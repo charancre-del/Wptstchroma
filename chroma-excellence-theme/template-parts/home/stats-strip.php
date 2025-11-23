@@ -6,60 +6,19 @@
  * @package Chroma_Excellence
  */
 
-$stats = chroma_home_stats_strip();
+$stats = chroma_home_stats();
 if ( ! $stats ) {
-    return;
+        return;
 }
 ?>
 
-<section class="bg-brand-navy py-16" data-section="stats">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            
-            <?php if ( ! empty( $stats['stat_1_number'] ) ) : ?>
-            <div class="text-center" data-stat="1">
-                <div class="text-5xl font-bold text-chroma-yellow mb-2">
-                    <?php echo esc_html( $stats['stat_1_number'] ); ?>
-                </div>
-                <div class="text-brand-cream text-lg">
-                    <?php echo esc_html( $stats['stat_1_label'] ); ?>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ( ! empty( $stats['stat_2_number'] ) ) : ?>
-            <div class="text-center" data-stat="2">
-                <div class="text-5xl font-bold text-chroma-teal mb-2">
-                    <?php echo esc_html( $stats['stat_2_number'] ); ?>
-                </div>
-                <div class="text-brand-cream text-lg">
-                    <?php echo esc_html( $stats['stat_2_label'] ); ?>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ( ! empty( $stats['stat_3_number'] ) ) : ?>
-            <div class="text-center" data-stat="3">
-                <div class="text-5xl font-bold text-chroma-red mb-2">
-                    <?php echo esc_html( $stats['stat_3_number'] ); ?>
-                </div>
-                <div class="text-brand-cream text-lg">
-                    <?php echo esc_html( $stats['stat_3_label'] ); ?>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ( ! empty( $stats['stat_4_number'] ) ) : ?>
-            <div class="text-center" data-stat="4">
-                <div class="text-5xl font-bold text-chroma-green mb-2">
-                    <?php echo esc_html( $stats['stat_4_number'] ); ?>
-                </div>
-                <div class="text-brand-cream text-lg">
-                    <?php echo esc_html( $stats['stat_4_label'] ); ?>
-                </div>
-            </div>
-            <?php endif; ?>
-
+<section class="bg-white py-12 border-y border-chroma-blue/10" data-section="stats">
+        <div class="max-w-6xl mx-auto px-4 lg:px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                <?php foreach ( $stats as $stat ) : ?>
+                        <div class="group">
+                                <div class="font-serif text-3xl font-bold text-chroma-red group-hover:scale-110 transition-transform duration-300"><?php echo esc_html( $stat['value'] ); ?></div>
+                                <div class="mt-1 text-[11px] uppercase tracking-[0.2em] text-brand-ink/60"><?php echo esc_html( $stat['label'] ); ?></div>
+                        </div>
+                <?php endforeach; ?>
         </div>
-    </div>
 </section>

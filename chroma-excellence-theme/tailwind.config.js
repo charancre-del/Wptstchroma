@@ -21,6 +21,9 @@ module.exports = {
         chroma: {
           red: '#D67D6B',
           redLight: '#F4E5E2',
+          blue: '#4A6C7C',
+          blueDark: '#2F4858',
+          blueLight: '#E3E9EC',
           teal: '#4A9B8E',
           tealLight: '#E3F2EF',
           green: '#8DA399',

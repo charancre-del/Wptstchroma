@@ -13,16 +13,30 @@ get_header();
 <!-- Hero Section -->
 <?php get_template_part( 'template-parts/home/hero' ); ?>
 
-<!-- Stats Strip -->
-<?php if ( chroma_home_has_stats() ) : ?>
-	<?php get_template_part( 'template-parts/home/stats-strip' ); ?>
+<!-- Prismpath Expertise -->
+<?php if ( chroma_home_has_prismpath_panels() ) : ?>
+<?php get_template_part( 'template-parts/home/prismpath-expertise' ); ?>
 <?php endif; ?>
 
-<!-- Programs Preview -->
-<?php get_template_part( 'template-parts/home/programs-preview' ); ?>
+<!-- Stats Strip -->
+<?php if ( chroma_home_has_stats() ) : ?>
+        <?php get_template_part( 'template-parts/home/stats-strip' ); ?>
+<?php endif; ?>
 
-<!-- Curriculum/Prismpath Section -->
-<?php get_template_part( 'template-parts/home/curriculum' ); ?>
+<!-- Programs Wizard -->
+<?php if ( chroma_home_has_program_wizard() ) : ?>
+<?php get_template_part( 'template-parts/home/programs-wizard' ); ?>
+<?php endif; ?>
+
+<!-- Curriculum Radar -->
+<?php if ( chroma_home_has_curriculum_profiles() ) : ?>
+<?php get_template_part( 'template-parts/home/curriculum-chart' ); ?>
+<?php endif; ?>
+
+<!-- Schedule Tabs -->
+<?php if ( chroma_home_has_schedule_tracks() ) : ?>
+<?php get_template_part( 'template-parts/home/schedule-tabs' ); ?>
+<?php endif; ?>
 
 <!-- Locations Preview -->
 <?php get_template_part( 'template-parts/home/locations-preview' ); ?>

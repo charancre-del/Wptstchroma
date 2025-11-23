@@ -44,7 +44,7 @@ function chroma_home_hero() {
  * Home Stats
  */
 function chroma_home_stats() {
-	$stats = chroma_get_home_field( 'home_stats' );
+        $stats = chroma_get_home_field( 'home_stats' );
 
 	if ( ! $stats ) {
 		// Default stats
@@ -56,7 +56,20 @@ function chroma_home_stats() {
 		);
 	}
 
-	return $stats;
+        return $stats;
+}
+
+/**
+ * Prismpath expertise panels
+ */
+function chroma_home_prismpath_panels() {
+        $panels = chroma_get_home_field( 'home_prismpath_panels' );
+
+        if ( $panels ) {
+                return $panels;
+        }
+
+        return array();
 }
 
 /**
@@ -111,7 +124,65 @@ function chroma_home_faq_items() {
  * Check if FAQ Exists
  */
 function chroma_home_has_faq() {
-	return ! empty( chroma_home_faq_items() );
+        return ! empty( chroma_home_faq_items() );
+}
+
+/**
+ * Age-based program wizard options
+ */
+function chroma_home_program_wizard_options() {
+        $options = chroma_get_home_field( 'home_program_wizard_options' );
+
+        if ( $options ) {
+                return $options;
+        }
+
+        return array();
+}
+
+/**
+ * Curriculum radar profiles
+ */
+function chroma_home_curriculum_profiles() {
+        $profiles = chroma_get_home_field( 'home_curriculum_profiles' );
+
+        if ( $profiles ) {
+                return $profiles;
+        }
+
+        return array();
+}
+
+/**
+ * Daily schedule tracks
+ */
+function chroma_home_schedule_tracks() {
+$tracks = chroma_get_home_field( 'home_schedule_tracks' );
+
+if ( $tracks ) {
+return $tracks;
+}
+
+return array();
+}
+
+/**
+ * Checkers for optional sections
+ */
+function chroma_home_has_prismpath_panels() {
+return ! empty( chroma_home_prismpath_panels() );
+}
+
+function chroma_home_has_program_wizard() {
+return ! empty( chroma_home_program_wizard_options() );
+}
+
+function chroma_home_has_curriculum_profiles() {
+return ! empty( chroma_home_curriculum_profiles() );
+}
+
+function chroma_home_has_schedule_tracks() {
+return ! empty( chroma_home_schedule_tracks() );
 }
 
 /**

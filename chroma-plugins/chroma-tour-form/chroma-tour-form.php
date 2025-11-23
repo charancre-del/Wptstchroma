@@ -74,11 +74,20 @@ function chroma_handle_tour_submission() {
 		return;
 	}
 
-	$parent_name  = sanitize_text_field( $_POST['parent_name'] );
-	$phone        = sanitize_text_field( $_POST['phone'] );
-	$email        = sanitize_email( $_POST['email'] );
-	$location_id  = intval( $_POST['location_id'] );
-	$child_ages   = sanitize_text_field( $_POST['child_ages'] );
+	$parent_name = isset( $_POST['parent_name'] ) ? sanitize_text_field( wp_unslash( $_POST['parent_name'] ) ) : '';
+	$phone       = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+	$email       = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$location_id = isset( $_POST['location_id'] ) ? intval( $_POST['location_id'] ) : 0;
+	$child_ages  = isset( $_POST['child_ages'] ) ? sanitize_text_field( wp_unslash( $_POST['child_ages'] ) ) : '';
+
+	$redirect_fallback = home_url( '/' );
+	$redirect_target   = wp_get_referer() ?: $redirect_fallback;
+	$redirect_url      = wp_validate_redirect( $redirect_target, $redirect_fallback );
+
+	if ( empty( $parent_name ) || empty( $phone ) || empty( $email ) || ! is_email( $email ) ) {
+		wp_safe_redirect( add_query_arg( 'tour_sent', '0', $redirect_url ) );
+		exit;
+	}
 
 	// Determine email recipient
 	$to_email = get_field( 'global_tour_email', 'option' ) ?: get_option( 'admin_email' );
@@ -92,10 +101,10 @@ function chroma_handle_tour_submission() {
 	// Send email
 	$subject = 'New Tour Request from ' . $parent_name;
 	$message = sprintf(
-		"New tour request:\n\nName: %s\nPhone: %s\nEmail: %s\nLocation: %s\nChild Ages: %s",
-		$parent_name,
-		$phone,
-		$email,
+	"New tour request:\n\nName: %s\nPhone: %s\nEmail: %s\nLocation: %s\nChild Ages: %s",
+	$parent_name,
+	$phone,
+	$email,
 		$location_id ? get_the_title( $location_id ) : 'Not specified',
 		$child_ages ?: 'Not specified'
 	);
@@ -104,6 +113,14 @@ function chroma_handle_tour_submission() {
 
 	// Log to Lead Log CPT if it exists
 	if ( post_type_exists( 'lead_log' ) ) {
+		$lead_payload = array(
+			'parent_name' => $parent_name,
+			'phone'       => $phone,
+			'email'       => $email,
+			'location_id' => $location_id,
+			'child_ages'  => $child_ages,
+		);
+
 		wp_insert_post( array(
 			'post_type'   => 'lead_log',
 			'post_title'  => 'Tour: ' . $parent_name,
@@ -114,12 +131,12 @@ function chroma_handle_tour_submission() {
 				'lead_email'     => $email,
 				'lead_phone'     => $phone,
 				'lead_location'  => $location_id,
-				'lead_payload'   => json_encode( $_POST ),
+				'lead_payload'   => wp_json_encode( $lead_payload ),
 			),
 		) );
 	}
 
-	wp_redirect( add_query_arg( 'tour_sent', '1', wp_get_referer() ) );
+	wp_safe_redirect( add_query_arg( 'tour_sent', '1', $redirect_url ) );
 	exit;
 }
 add_action( 'template_redirect', 'chroma_handle_tour_submission' );

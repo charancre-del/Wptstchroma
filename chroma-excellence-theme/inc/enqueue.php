@@ -47,17 +47,28 @@ function chroma_enqueue_assets() {
 		$css_version
 	);
 
-	// Main JavaScript
-	$js_path = CHROMA_THEME_DIR . '/assets/js/main.js';
-	$js_version = file_exists( $js_path ) ? filemtime( $js_path ) : CHROMA_VERSION;
+        // Main JavaScript
+        $js_path = CHROMA_THEME_DIR . '/assets/js/main.js';
+        $js_version = file_exists( $js_path ) ? filemtime( $js_path ) : CHROMA_VERSION;
 
 	wp_enqueue_script(
 		'chroma-main',
 		CHROMA_THEME_URI . '/assets/js/main.js',
 		array(),
-		$js_version,
-		true
-	);
+                $js_version,
+                true
+        );
+
+        // Chart.js for curriculum radar (homepage)
+        if ( is_front_page() ) {
+                wp_enqueue_script(
+                        'chartjs',
+                        'https://cdn.jsdelivr.net/npm/chart.js',
+                        array(),
+                        '4.4.1',
+                        true
+                );
+        }
 
 	// Leaflet for maps (only on location pages)
 	if ( is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' ) ) {

@@ -1620,3 +1620,49 @@ body {
     padding-top: 6rem;
   }
 }
+
+/* Manual utilities for new Chroma blue palette (added without Tailwind build) */
+.bg-chroma-blue { background-color: #4A6C7C; }
+.bg-chroma-blue\/5 { background-color: rgba(74, 108, 124, 0.05); }
+.bg-chroma-blue\/10 { background-color: rgba(74, 108, 124, 0.1); }
+.bg-chroma-blue\/15 { background-color: rgba(74, 108, 124, 0.15); }
+.bg-chroma-blue\/20 { background-color: rgba(74, 108, 124, 0.2); }
+.bg-chroma-blueLight { background-color: #E3E9EC; }
+.bg-chroma-blueDark { background-color: #2F4858; }
+.text-chroma-blue { color: #4A6C7C; }
+.text-chroma-blueDark { color: #2F4858; }
+.text-chroma-blueDark\/60 { color: rgba(47, 72, 88, 0.6); }
+.border-chroma-blue\/10 { border-color: rgba(74, 108, 124, 0.1); }
+.border-chroma-blue\/15 { border-color: rgba(74, 108, 124, 0.15); }
+.border-chroma-blue\/20 { border-color: rgba(74, 108, 124, 0.2); }
+.hover\:border-chroma-blue:hover { border-color: #4A6C7C; }
+.hover\:text-chroma-blue:hover { color: #4A6C7C; }
+.hover\:bg-chroma-blueDark:hover { background-color: #2F4858; }
+.from-chroma-blue { --tw-gradient-from: #4A6C7C var(--tw-gradient-from-position); --tw-gradient-to: rgba(74, 108, 124, 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+.to-chroma-blue { --tw-gradient-to: #4A6C7C var(--tw-gradient-to-position); }
+/* Manual utility fallbacks */
+.bg-chroma-yellowLight { background-color: #FDF6E3; }
+.bg-chroma-redLight { background-color: #F4E5E2; }
+.rounded-\[2\.5rem\] { border-radius: 2.5rem; }
+.h-\[340px\] { height: 340px; }
+.h-\[380px\] { height: 380px; }
+.h-\[320px\] { height: 320px; }
+.max-w-\[1200px\] { max-width: 1200px; }
+@media (min-width: 768px) {
+  .md\:h-\[380px\] { height: 380px; }
+}
+@media (min-width: 768px) {
+  .md\:h-\[620px\] { height: 620px; }
+}
+.text-chroma-blueDark\/60 { color: rgba(47, 72, 88, 0.6); }
+.border-brand-navy\/15 { border-color: rgba(26, 35, 50, 0.15); }
+.border-brand-navy\/30 { border-color: rgba(26, 35, 50, 0.3); }
+@media (min-width: 768px) {
+  .md\:grid-cols-12 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .md\:col-span-7 { grid-column: span 7 / span 7; }
+  .md\:col-span-5 { grid-column: span 5 / span 5; }
+  .md\:col-span-3 { grid-column: span 3 / span 3; }
+  .md\:col-span-4 { grid-column: span 4 / span 4; }
+  .md\:row-span-2 { grid-row: span 2 / span 2; }
+}
+.w-\[1px\] { width: 1px; }
