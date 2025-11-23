@@ -59,8 +59,19 @@ function chroma_enqueue_assets() {
 		true
 	);
 
+	// Chart.js for curriculum visualization (homepage only)
+	if ( is_front_page() ) {
+		wp_enqueue_script(
+			'chartjs',
+			'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+			array(),
+			'4.4.0',
+			true
+		);
+	}
+
 	// Leaflet for maps (only on location pages)
-	if ( is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' ) ) {
+	if ( is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' ) || is_front_page() ) {
 		wp_enqueue_style(
 			'leaflet',
 			'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
