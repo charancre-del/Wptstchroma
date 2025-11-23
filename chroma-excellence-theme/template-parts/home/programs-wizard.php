@@ -18,7 +18,7 @@ if ( empty( $options ) ) {
                         <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-3">Find the right program in 10 seconds</h2>
                         <p class="text-brand-ink/70 text-sm md:text-base max-w-2xl mx-auto">Choose your child’s age and we’ll suggest the Chroma program designed for their development stage and your family’s needs.</p>
                 </div>
-                <div class="bg-white rounded-3xl p-6 md:p-8 border border-chroma-blue/10 shadow-soft" data-program-wizard data-options='<?php echo wp_json_encode( $options ); ?>'>
+                <div class="bg-white rounded-3xl p-6 md:p-8 border border-chroma-blue/10 shadow-soft" data-program-wizard data-options='<?php echo esc_attr( wp_json_encode( $options ) ); ?>'>
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" data-program-wizard-options>
                                 <?php foreach ( $options as $option ) : ?>
                                         <button class="p-4 bg-white rounded-2xl border border-chroma-blue/20 hover:border-chroma-blue hover:shadow-soft transition group text-center" data-program-wizard-option="<?php echo esc_attr( $option['key'] ); ?>">

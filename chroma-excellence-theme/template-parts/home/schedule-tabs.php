@@ -14,7 +14,7 @@ if ( empty( $tracks ) ) {
 
 <section id="schedule" class="py-20 bg-brand-cream relative">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-chroma-red via-chroma-yellow to-chroma-blue opacity-40"></div>
-        <div class="max-w-6xl mx-auto px-4 lg:px-6" data-schedule data-tracks='<?php echo wp_json_encode( $tracks ); ?>'>
+        <div class="max-w-6xl mx-auto px-4 lg:px-6" data-schedule data-tracks='<?php echo esc_attr( wp_json_encode( $tracks ) ); ?>'>
                 <div class="text-center mb-12">
                         <span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-4 block">Day by Day</span>
                         <h2 class="text-3xl md:text-4xl font-serif text-brand-ink mb-3">A Daily Rhythm of Joy</h2>
