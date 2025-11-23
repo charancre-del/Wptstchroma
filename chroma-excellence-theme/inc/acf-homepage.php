@@ -167,6 +167,23 @@ return array();
 }
 
 /**
+ * Locations preview content
+ */
+function chroma_home_locations_preview() {
+        $heading     = chroma_get_home_field( 'home_locations_heading' );
+        $subheading  = chroma_get_home_field( 'home_locations_subheading' );
+        $cta_label   = chroma_get_home_field( 'home_locations_cta_label' );
+        $cta_link    = chroma_get_home_field( 'home_locations_cta_link' );
+
+        return array(
+                'heading'    => $heading ?: 'Our Locations',
+                'subheading' => $subheading,
+                'cta_label'  => $cta_label ?: 'View All Locations',
+                'cta_link'   => $cta_link ?: '/locations',
+        );
+}
+
+/**
  * Checkers for optional sections
  */
 function chroma_home_has_prismpath_panels() {
