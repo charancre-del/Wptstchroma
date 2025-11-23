@@ -67,15 +67,24 @@ add_shortcode( 'chroma_acquisition_form', 'chroma_acquisition_form_shortcode' );
  */
 function chroma_handle_acquisition_submission() {
 	if ( ! isset( $_POST['chroma_acquisition_submit'] ) || ! wp_verify_nonce( $_POST['chroma_acquisition_nonce'], 'chroma_acquisition_submit' ) ) {
-		return;
+	return;
 	}
 
-	$contact_name      = sanitize_text_field( $_POST['contact_name'] );
-	$phone             = sanitize_text_field( $_POST['phone'] );
-	$email             = sanitize_email( $_POST['email'] );
-	$facility_name     = sanitize_text_field( $_POST['facility_name'] );
-	$facility_location = sanitize_text_field( $_POST['facility_location'] );
-	$details           = sanitize_textarea_field( $_POST['details'] );
+	$contact_name      = isset( $_POST['contact_name'] ) ? sanitize_text_field( wp_unslash( $_POST['contact_name'] ) ) : '';
+	$phone             = isset( $_POST['phone'] ) ? sanitize_text_field( wp_unslash( $_POST['phone'] ) ) : '';
+	$email             = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+	$facility_name     = isset( $_POST['facility_name'] ) ? sanitize_text_field( wp_unslash( $_POST['facility_name'] ) ) : '';
+	$facility_location = isset( $_POST['facility_location'] ) ? sanitize_text_field( wp_unslash( $_POST['facility_location'] ) ) : '';
+	$details           = isset( $_POST['details'] ) ? sanitize_textarea_field( wp_unslash( $_POST['details'] ) ) : '';
+
+	$redirect_fallback = home_url( '/' );
+	$redirect_target   = wp_get_referer() ?: $redirect_fallback;
+	$redirect_url      = wp_validate_redirect( $redirect_target, $redirect_fallback );
+
+	if ( empty( $contact_name ) || empty( $phone ) || empty( $email ) || empty( $facility_name ) || empty( $facility_location ) || ! is_email( $email ) ) {
+	wp_safe_redirect( add_query_arg( 'acquisition_sent', '0', $redirect_url ) );
+	exit;
+	}
 
 	// Server-side validation
 	if ( empty( $contact_name ) || empty( $email ) || empty( $phone ) || empty( $facility_name ) || empty( $facility_location ) ) {
