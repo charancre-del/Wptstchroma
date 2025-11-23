@@ -1,0 +1,114 @@
+<?php
+/**
+ * Plugin Name: Chroma Acquisitions Form
+ * Description: Acquisitions inquiry form for potential sellers to Chroma ELA
+ * Version: 1.0.0
+ * Author: Chroma Development Team
+ * Text Domain: chroma-acquisitions-form
+ */
+
+// Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Acquisitions Form Shortcode
+ * Usage: [chroma_acquisition_form]
+ */
+function chroma_acquisition_form_shortcode() {
+	ob_start();
+	?>
+	<form class="chroma-acquisition-form space-y-4" method="post" action="">
+		<?php wp_nonce_field( 'chroma_acquisition_submit', 'chroma_acquisition_nonce' ); ?>
+
+		<div class="grid md:grid-cols-2 gap-4">
+			<div>
+				<label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Your Name *</label>
+				<input type="text" name="contact_name" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+			</div>
+			<div>
+				<label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Phone *</label>
+				<input type="tel" name="phone" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+			</div>
+		</div>
+
+		<div>
+			<label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Email *</label>
+			<input type="email" name="email" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+		</div>
+
+		<div>
+			<label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Facility Name *</label>
+			<input type="text" name="facility_name" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+		</div>
+
+		<div>
+			<label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Facility Location (City, State) *</label>
+			<input type="text" name="facility_location" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+		</div>
+
+		<div>
+			<label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Additional Details</label>
+			<textarea name="details" rows="4" class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none"></textarea>
+		</div>
+
+		<button type="submit" name="chroma_acquisition_submit" class="w-full bg-chroma-teal text-white text-xs font-semibold uppercase tracking-wider py-4 rounded-full shadow-soft hover:bg-brand-navy transition">
+			Submit Inquiry
+		</button>
+	</form>
+	<?php
+	return ob_get_clean();
+}
+add_shortcode( 'chroma_acquisition_form', 'chroma_acquisition_form_shortcode' );
+
+/**
+ * Handle Form Submission
+ */
+function chroma_handle_acquisition_submission() {
+	if ( ! isset( $_POST['chroma_acquisition_submit'] ) || ! wp_verify_nonce( $_POST['chroma_acquisition_nonce'], 'chroma_acquisition_submit' ) ) {
+		return;
+	}
+
+	$contact_name      = sanitize_text_field( $_POST['contact_name'] );
+	$phone             = sanitize_text_field( $_POST['phone'] );
+	$email             = sanitize_email( $_POST['email'] );
+	$facility_name     = sanitize_text_field( $_POST['facility_name'] );
+	$facility_location = sanitize_text_field( $_POST['facility_location'] );
+	$details           = sanitize_textarea_field( $_POST['details'] );
+
+	// Email to acquisitions team
+	$to_email = 'acquisitions@chromaela.com';
+	$subject  = 'New Acquisition Inquiry: ' . $facility_name;
+	$message  = sprintf(
+		"New acquisition inquiry:\n\nContact: %s\nPhone: %s\nEmail: %s\nFacility: %s\nLocation: %s\n\nDetails:\n%s",
+		$contact_name,
+		$phone,
+		$email,
+		$facility_name,
+		$facility_location,
+		$details
+	);
+
+	wp_mail( $to_email, $subject, $message );
+
+	// Log to Lead Log CPT
+	if ( post_type_exists( 'lead_log' ) ) {
+		wp_insert_post( array(
+			'post_type'   => 'lead_log',
+			'post_title'  => 'Acquisition: ' . $facility_name,
+			'post_status' => 'publish',
+			'meta_input'  => array(
+				'lead_type'    => 'acquisition',
+				'lead_name'    => $contact_name,
+				'lead_email'   => $email,
+				'lead_phone'   => $phone,
+				'lead_payload' => json_encode( $_POST ),
+			),
+		) );
+	}
+
+	wp_redirect( add_query_arg( 'acquisition_sent', '1', wp_get_referer() ) );
+	exit;
+}
+add_action( 'template_redirect', 'chroma_handle_acquisition_submission' );

@@ -1,0 +1,50 @@
+/**
+ * Tailwind CSS Input File
+ * Compiled to assets/css/main.css via PostCSS
+ *
+ * @package Chroma_Excellence
+ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/**
+ * Base Styles
+ */
+@layer base {
+  body {
+    font-family: theme('fontFamily.sans');
+  }
+}
+
+/**
+ * Custom Components
+ */
+@layer components {
+  .shadow-soft {
+    box-shadow: 0 20px 40px -10px rgba(74, 108, 124, 0.08);
+  }
+
+  .shadow-card {
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
+/**
+ * Custom Utilities
+ */
+@layer utilities {
+  .fade-in-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeInUp 1.1s ease forwards;
+  }
+
+  @keyframes fadeInUp {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

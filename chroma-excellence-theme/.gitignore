@@ -1,0 +1,28 @@
+# Node modules
+node_modules/
+package-lock.json
+yarn.lock
+
+# Editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.DS_Store
+Thumbs.db
+
+# WordPress debug log
+debug.log
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.cache
+
+# Environment files
+.env
+.env.local
+
+# Keep compiled CSS for production
+# assets/css/main.css
