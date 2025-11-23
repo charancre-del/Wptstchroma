@@ -77,6 +77,15 @@ function chroma_handle_acquisition_submission() {
 	$facility_location = sanitize_text_field( $_POST['facility_location'] );
 	$details           = sanitize_textarea_field( $_POST['details'] );
 
+	// Server-side validation
+	if ( empty( $contact_name ) || empty( $email ) || empty( $phone ) || empty( $facility_name ) || empty( $facility_location ) ) {
+		wp_die( 'Required fields are missing. Please fill out all required fields.', 'Missing Data', array( 'response' => 400, 'back_link' => true ) );
+	}
+
+	if ( ! is_email( $email ) ) {
+		wp_die( 'Invalid email address format.', 'Invalid Data', array( 'response' => 400, 'back_link' => true ) );
+	}
+
 	// Email to acquisitions team
 	$to_email = 'acquisitions@chromaela.com';
 	$subject  = 'New Acquisition Inquiry: ' . $facility_name;
@@ -103,12 +112,21 @@ function chroma_handle_acquisition_submission() {
 				'lead_name'    => $contact_name,
 				'lead_email'   => $email,
 				'lead_phone'   => $phone,
-				'lead_payload' => json_encode( $_POST ),
+				'lead_payload' => json_encode( array(
+					'contact_name'      => $contact_name,
+					'email'             => $email,
+					'phone'             => $phone,
+					'facility_name'     => $facility_name,
+					'facility_location' => $facility_location,
+					'details'           => $details,
+					'submitted_at'      => current_time( 'mysql' ),
+				) ),
 			),
 		) );
 	}
 
-	wp_redirect( add_query_arg( 'acquisition_sent', '1', wp_get_referer() ) );
+	$redirect_url = wp_get_referer() ?: home_url( '/acquisitions/' );
+	wp_redirect( add_query_arg( 'acquisition_sent', '1', $redirect_url ) );
 	exit;
 }
 add_action( 'template_redirect', 'chroma_handle_acquisition_submission' );
