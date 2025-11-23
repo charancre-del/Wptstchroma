@@ -63,13 +63,42 @@ function chroma_home_stats() {
  * Prismpath expertise panels
  */
 function chroma_home_prismpath_panels() {
-        $panels = chroma_get_home_field( 'home_prismpath_panels' );
+$panels = chroma_get_home_field( 'home_prismpath_panels' );
 
-        if ( $panels ) {
-                return $panels;
-        }
+if ( $panels ) {
+return $panels;
+}
 
-        return array();
+return array(
+'feature' => array(
+'eyebrow'   => 'The Chroma Standard',
+'heading'   => 'Grounded in Expertise. Wrapped in Love.',
+'cta_label' => 'Meet the Team',
+'cta_url'   => '/about',
+),
+'cards'   => array(
+array(
+'badge'       => 'Proprietary Model',
+'title'       => 'The Prismpath™ Curriculum',
+'description' => 'Just as a prism refracts light into a full spectrum of color, Prismpath™ refracts play into a full spectrum of development.',
+),
+array(
+'badge'       => '',
+'title'       => 'Expert Care, Extended Family.',
+'description' => 'Our educators are state-certified professionals who understand that the most important credential is kindness.',
+),
+array(
+'badge'       => '',
+'title'       => 'Wholesome Fuel',
+'description' => 'Organic, balanced meals served family-style to fuel growing minds.',
+),
+array(
+'badge'       => '',
+'title'       => 'Uncompromised Safety',
+'description' => 'Secure, monitored facilities with open-door transparency for parents.',
+),
+),
+);
 }
 
 /**
@@ -131,26 +160,115 @@ function chroma_home_has_faq() {
  * Age-based program wizard options
  */
 function chroma_home_program_wizard_options() {
-        $options = chroma_get_home_field( 'home_program_wizard_options' );
+$options = chroma_get_home_field( 'home_program_wizard_options' );
 
-        if ( $options ) {
-                return $options;
-        }
+if ( $options ) {
+return $options;
+}
 
-        return array();
+return array(
+array(
+'key'         => 'infant',
+'emoji'       => '👶',
+'label'       => "Infant\n(6 weeks–12m)",
+'description' => 'Low ratios, safe sleep practices, responsive caregiving, and sensory play in a peaceful, predictable environment.',
+'link'        => '/programs#infant',
+),
+array(
+'key'         => 'toddler',
+'emoji'       => '🚀',
+'label'       => "Toddler\n(1 year)",
+'description' => 'Curated environments for walkers and explorers with language bursts and social skills.',
+'link'        => '/programs#toddler',
+),
+array(
+'key'         => 'preschool',
+'emoji'       => '🎨',
+'label'       => "Preschool\n(2 years)",
+'description' => 'Early concepts in math, literacy, and science introduced through hands-on centers and guided play.',
+'link'        => '/programs#preschool',
+),
+array(
+'key'         => 'prep',
+'emoji'       => '✏️',
+'label'       => "Pre-K Prep\n(3 years)",
+'description' => 'Structured centers and small-group instruction that build independence before GA Pre-K.',
+'link'        => '/programs#pre-k-prep',
+),
+array(
+'key'         => 'prek',
+'emoji'       => '🎓',
+'label'       => "GA Pre-K\n(4 years)",
+'description' => 'Balanced academic readiness, social-emotional learning, and joyful experiences aligned with GA standards.',
+'link'        => '/programs#ga-pre-k',
+),
+array(
+'key'         => 'afterschool',
+'emoji'       => '🚌',
+'label'       => "After School\n(5–12 years)",
+'description' => 'Transportation from local schools, homework support, clubs, and outdoor play.',
+'link'        => '/programs#after-school',
+),
+);
 }
 
 /**
  * Curriculum radar profiles
  */
 function chroma_home_curriculum_profiles() {
-        $profiles = chroma_get_home_field( 'home_curriculum_profiles' );
+$profiles = chroma_get_home_field( 'home_curriculum_profiles' );
 
-        if ( $profiles ) {
-                return $profiles;
-        }
+if ( $profiles ) {
+return $profiles;
+}
 
-        return array();
+return array(
+'labels'   => array( 'Physical', 'Emotional', 'Social', 'Academic', 'Creative' ),
+'profiles' => array(
+array(
+'key'         => 'infant',
+'title'       => 'Foundation Phase',
+'description' => 'Infant classrooms emphasize emotional security, attachment, physical health, and sensory experiences. Academics are embedded through language-rich interactions.',
+'color'       => '#D67D6B',
+'data'        => array( 90, 90, 40, 15, 40 ),
+),
+array(
+'key'         => 'toddler',
+'title'       => 'Discovery Phase',
+'description' => 'Toddlers explore movement, language, early problem-solving, and social skills through guided play and routines.',
+'color'       => '#4A6C7C',
+'data'        => array( 85, 75, 65, 30, 70 ),
+),
+array(
+'key'         => 'preschool',
+'title'       => 'Exploration Phase',
+'description' => 'Preschoolers work on early literacy, math concepts, dramatic play, and collaborative projects, supported by strong routines.',
+'color'       => '#E6BE75',
+'data'        => array( 75, 65, 70, 55, 80 ),
+),
+array(
+'key'         => 'prep',
+'title'       => 'Pre-K Prep Phase',
+'description' => 'Children build stamina for small-group work, early writing, and multi-step directions while strengthening self-regulation.',
+'color'       => '#2F4858',
+'data'        => array( 65, 60, 75, 75, 70 ),
+),
+array(
+'key'         => 'prek',
+'title'       => 'GA Pre-K Readiness',
+'description' => 'Balanced academic readiness, social-emotional learning, and joyful experiences aligned with GA standards.',
+'color'       => '#4A6C7C',
+'data'        => array( 60, 60, 80, 90, 70 ),
+),
+array(
+'key'         => 'afterschool',
+'title'       => 'Enrichment Phase',
+'description' => 'School-age programming offers homework help, social clubs, athletic play, and creative enrichment for older children.',
+'color'       => '#E6BE75',
+'data'        => array( 50, 70, 85, 75, 80 ),
+),
+),
+);
 }
 
 /**
@@ -163,7 +281,74 @@ if ( $tracks ) {
 return $tracks;
 }
 
-return array();
+return array(
+array(
+'key'   => 'infant',
+'title' => 'The Nurturing Nest',
+'color' => 'chroma-blue',
+'steps' => array(
+array(
+'time'  => 'AM',
+'title' => 'Warm Welcome & Cuddles',
+'copy'  => 'Transition from parent, bottle feeding, and floor play.',
+),
+array(
+'time'  => 'Mid',
+'title' => 'Sensory Discovery',
+'copy'  => 'Tummy time, soft textures, and mirror play.',
+),
+array(
+'time'  => 'PM',
+'title' => 'Stroller Walk & Songs',
+'copy'  => 'Fresh air (weather permitting) and gentle music.',
+),
+),
+),
+array(
+'key'   => 'toddler',
+'title' => 'Explorers & Builders',
+'color' => 'chroma-yellow',
+'steps' => array(
+array(
+'time'  => '9:00',
+'title' => 'Morning Circle',
+'copy'  => 'Songs, greeting friends, and introducing the daily theme.',
+),
+array(
+'time'  => '10:30',
+'title' => 'Prismpath Play',
+'copy'  => 'Block building, art stations, and guided motor skills.',
+),
+array(
+'time'  => '12:00',
+'title' => 'Family-Style Lunch',
+'copy'  => 'Learning to pass bowls, use utensils, and chat with friends.',
+),
+),
+),
+array(
+'key'   => 'prek',
+'title' => 'Kindergarten Readiness',
+'color' => 'chroma-red',
+'steps' => array(
+array(
+'time'  => '9:00',
+'title' => 'Literacy & Logic',
+'copy'  => 'Phonics games, calendar math, and story comprehension.',
+),
+array(
+'time'  => '11:00',
+'title' => 'Project-Based Learning',
+'copy'  => 'Collaborative science experiments and art projects.',
+),
+array(
+'time'  => '2:00',
+'title' => 'Social Centers',
+'copy'  => 'Dramatic play and negotiation skills.',
+),
+),
+),
+);
 }
 
 /**
