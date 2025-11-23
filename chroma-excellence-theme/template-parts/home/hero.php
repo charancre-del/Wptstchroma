@@ -27,25 +27,50 @@ $home_id = chroma_get_home_page_id();
 				<?php echo esc_html( $hero['subheading'] ); ?>
 			</p>
 			<div class="flex flex-col sm:flex-row gap-4">
-				<a href="<?php echo esc_url( $hero['cta_url'] ); ?>" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-teal text-white text-xs font-semibold uppercase tracking-[0.22em] shadow-soft hover:bg-brand-navy transition">
+				<a href="<?php echo esc_url( $hero['cta_url'] ); ?>" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-[0.22em] shadow-soft hover:bg-chroma-red/90 transition">
 					<?php echo esc_html( $hero['cta_label'] ); ?>
 				</a>
-				<a href="<?php echo esc_url( $hero['secondary_url'] ); ?>" class="inline-flex items-center justify-center px-7 py-3.5 rounded-full border border-brand-navy/30 bg-white text-xs font-semibold uppercase tracking-[0.18em] text-brand-ink hover:border-brand-navy transition">
+				<a href="<?php echo esc_url( $hero['secondary_url'] ); ?>" class="inline-flex items-center justify-center px-7 py-3.5 rounded-full border border-brand-navy/30 bg-white text-xs font-semibold uppercase tracking-[0.18em] text-brand-ink hover:border-brand-navy hover:text-brand-navy transition">
 					<?php echo esc_html( $hero['secondary_label'] ); ?>
 				</a>
+			</div>
+			<!-- Meta Badges -->
+			<div class="flex flex-wrap items-center gap-5 text-[12px] text-brand-ink/60">
+				<div class="flex items-center gap-2">
+					<span class="text-chroma-yellow text-lg">★★★★★</span>
+					<span>4.8 Average Parent Rating</span>
+				</div>
+				<div class="hidden sm:block w-[1px] h-5 bg-brand-navy/20"></div>
+				<div class="flex items-center gap-2">
+					<span class="w-2 h-2 rounded-full bg-chroma-green"></span>
+					<span>Licensed • Quality Rated • GA Pre-K Partner</span>
+				</div>
 			</div>
 		</div>
 		<div class="relative w-full h-[430px] sm:h-[470px] lg:h-[500px]">
 			<div class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3"></div>
+			<div class="absolute bottom-6 left-6 w-72 h-72 bg-chroma-yellowLight rounded-full -z-10 blur-2xl opacity-70"></div>
 			<?php if ( has_post_thumbnail( $home_id ) ) : ?>
-				<div class="absolute inset-y-0 left-16 right-0 rounded-[3rem] overflow-hidden shadow-soft">
+				<div class="absolute inset-y-0 left-16 right-0 rounded-[3rem] overflow-hidden border border-white/10 shadow-soft">
 					<?php echo get_the_post_thumbnail( $home_id, 'hero-large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
 				</div>
 			<?php else : ?>
-				<div class="absolute inset-y-0 left-16 right-0 rounded-[3rem] overflow-hidden shadow-soft bg-gradient-to-br from-chroma-teal to-chroma-green flex items-center justify-center text-white">
+				<div class="absolute inset-y-0 left-16 right-0 rounded-[3rem] overflow-hidden border border-white/10 shadow-soft bg-gradient-to-br from-chroma-teal to-chroma-green flex items-center justify-center text-white">
 					<i class="fa-solid fa-graduation-cap text-8xl opacity-20"></i>
 				</div>
 			<?php endif; ?>
+			<!-- Floating Kindergarten Ready Card -->
+			<div class="absolute bottom-6 -left-8 bg-white/90 backdrop-blur-md p-5 rounded-2xl shadow-soft max-w-xs border border-white">
+				<div class="flex gap-4 items-center">
+					<div class="w-12 h-12 rounded-xl bg-chroma-teal/10 flex items-center justify-center text-chroma-teal text-xl">
+						<i class="fa-solid fa-graduation-cap"></i>
+					</div>
+					<div>
+						<p class="font-bold text-sm text-brand-ink">Kindergarten Ready</p>
+						<p class="text-[11px] text-brand-ink/60">Comprehensive Prep</p>
+					</div>
+				</div>
+			</div>
 		</div>
 	</div>
 </section>
