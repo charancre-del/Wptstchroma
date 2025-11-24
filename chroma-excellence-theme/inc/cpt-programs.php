@@ -25,6 +25,8 @@ function chroma_register_program_cpt() {
 		'view_item'             => __( 'View Program', 'chroma-excellence' ),
 	);
 
+	$program_slug = chroma_get_program_base_slug();
+
 	$args = array(
 		'label'                 => __( 'Program', 'chroma-excellence' ),
 		'labels'                => $labels,
@@ -32,8 +34,8 @@ function chroma_register_program_cpt() {
 		'public'                => true,
 		'menu_position'         => 20,
 		'menu_icon'             => 'dashicons-welcome-learn-more',
-		'has_archive'           => 'programs',
-		'rewrite'               => array( 'slug' => 'programs' ),
+		'has_archive'           => $program_slug,
+		'rewrite'               => array( 'slug' => $program_slug ),
 		'show_in_rest'          => true,
 	);
 

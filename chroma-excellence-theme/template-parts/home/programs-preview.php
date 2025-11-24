@@ -12,9 +12,10 @@ if ( ! $programs ) {
 }
 
 $featured = $programs['featured'] ?? array();
+$program_slug = chroma_get_program_base_slug();
 ?>
 
-<section class="py-20 bg-brand-cream" data-section="programs">
+<section id="<?php echo esc_attr( $program_slug ); ?>" class="py-20 bg-brand-cream" data-section="<?php echo esc_attr( $program_slug ); ?>">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Section Header -->
