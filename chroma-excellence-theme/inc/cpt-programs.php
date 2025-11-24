@@ -286,3 +286,90 @@ function chroma_program_meta_box_save( $post_id ) {
         update_post_meta( $post_id, 'program_faq_items', $faq_items );
 }
 add_action( 'save_post', 'chroma_program_meta_box_save' );
+
+/**
+ * Add meta box for program locations
+ */
+function chroma_program_locations_meta_box() {
+	add_meta_box(
+		'chroma-program-locations',
+		__( 'Available at Locations', 'chroma-excellence' ),
+		'chroma_program_locations_meta_box_render',
+		'program',
+		'side',
+		'default'
+	);
+}
+add_action( 'add_meta_boxes', 'chroma_program_locations_meta_box' );
+
+/**
+ * Render program locations meta box
+ */
+function chroma_program_locations_meta_box_render( $post ) {
+	wp_nonce_field( 'chroma_program_locations_nonce', 'chroma_program_locations_nonce_field' );
+
+	// Get all locations
+	$all_locations = get_posts( array(
+		'post_type'      => 'location',
+		'posts_per_page' => -1,
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	) );
+
+	// Get currently selected locations
+	$selected_locations = get_post_meta( $post->ID, 'program_locations', true );
+	if ( ! is_array( $selected_locations ) ) {
+		$selected_locations = array();
+	}
+	?>
+	<p><?php _e( 'Select the locations where this program is available:', 'chroma-excellence' ); ?></p>
+	<div style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #f9f9f9;">
+		<?php if ( ! empty( $all_locations ) ) : ?>
+			<?php foreach ( $all_locations as $location ) : ?>
+				<label style="display: block; margin-bottom: 8px;">
+					<input
+						type="checkbox"
+						name="program_locations[]"
+						value="<?php echo esc_attr( $location->ID ); ?>"
+						<?php checked( in_array( $location->ID, $selected_locations ) ); ?>
+					/>
+					<?php echo esc_html( $location->post_title ); ?>
+				</label>
+			<?php endforeach; ?>
+		<?php else : ?>
+			<p><?php _e( 'No locations found. Please add locations first.', 'chroma-excellence' ); ?></p>
+		<?php endif; ?>
+	</div>
+	<p><small><?php _e( 'This program will only appear on selected location pages.', 'chroma-excellence' ); ?></small></p>
+	<?php
+}
+
+/**
+ * Save program locations
+ */
+function chroma_program_locations_meta_box_save( $post_id ) {
+	// Verify nonce
+	if ( ! isset( $_POST['chroma_program_locations_nonce_field'] ) || ! wp_verify_nonce( wp_unslash( $_POST['chroma_program_locations_nonce_field'] ), 'chroma_program_locations_nonce' ) ) {
+		return;
+	}
+
+	// Check autosave
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Check permissions
+	if ( isset( $_POST['post_type'] ) && 'program' === $_POST['post_type'] ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+	}
+
+	// Save selected locations
+	$selected_locations = isset( $_POST['program_locations'] ) && is_array( $_POST['program_locations'] )
+		? array_map( 'intval', $_POST['program_locations'] )
+		: array();
+
+	update_post_meta( $post_id, 'program_locations', $selected_locations );
+}
+add_action( 'save_post_program', 'chroma_program_locations_meta_box_save' );

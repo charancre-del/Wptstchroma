@@ -32,9 +32,13 @@ while ( have_posts() ) :
 	$ages_served      = get_post_meta( $location_id, 'location_ages_served', true ) ?: '6w - 12y';
 
 	// Director info
-	$director_name    = get_post_meta( $location_id, 'location_director_name', true );
-	$director_bio     = get_post_meta( $location_id, 'location_director_bio', true );
-	$director_photo   = get_post_meta( $location_id, 'location_director_photo', true );
+	$director_name      = get_post_meta( $location_id, 'location_director_name', true );
+	$director_bio       = get_post_meta( $location_id, 'location_director_bio', true );
+	$director_photo     = get_post_meta( $location_id, 'location_director_photo', true );
+	$director_signature = get_post_meta( $location_id, 'location_director_signature', true );
+
+	// Maps embed
+	$maps_embed = get_post_meta( $location_id, 'location_maps_embed', true );
 
 	// Get programs at this location
 	$programs_query = new WP_Query( array(
@@ -42,6 +46,13 @@ while ( have_posts() ) :
 		'posts_per_page' => 6,
 		'orderby'        => 'menu_order',
 		'order'          => 'ASC',
+		'meta_query'     => array(
+			array(
+				'key'     => 'program_locations',
+				'value'   => '"' . $location_id . '"',
+				'compare' => 'LIKE',
+			),
+		),
 	) );
 ?>
 
@@ -198,6 +209,9 @@ while ( have_posts() ) :
 					<?php echo wpautop( wp_kses_post( $director_bio ) ); ?>
 				</div>
 				<div class="flex items-center gap-4">
+					<?php if ( $director_signature ) : ?>
+						<img src="<?php echo esc_url( $director_signature ); ?>" alt="<?php echo esc_attr( $director_name ); ?> signature" class="h-16 w-auto opacity-80" />
+					<?php endif; ?>
 					<div class="text-xs uppercase tracking-wider opacity-60">
 						<p class="font-bold"><?php echo esc_html( $director_name ); ?></p>
 						<p>Campus Director</p>
@@ -326,7 +340,25 @@ while ( have_posts() ) :
 				</div>
 
 				<!-- Map Embed -->
-				<?php if ( $lat && $lng ) : ?>
+				<?php if ( $maps_embed ) : ?>
+					<div class="mt-10">
+						<div class="w-full h-80 rounded-3xl overflow-hidden shadow-card border border-brand-ink/10">
+							<?php echo wp_kses( $maps_embed, array(
+								'iframe' => array(
+									'src'             => array(),
+									'width'           => array(),
+									'height'          => array(),
+									'frameborder'     => array(),
+									'style'           => array(),
+									'allowfullscreen' => array(),
+									'loading'         => array(),
+									'referrerpolicy'  => array(),
+									'title'           => array(),
+								),
+							) ); ?>
+						</div>
+					</div>
+				<?php elseif ( $lat && $lng ) : ?>
 					<div class="mt-10">
 						<div
 							data-chroma-map

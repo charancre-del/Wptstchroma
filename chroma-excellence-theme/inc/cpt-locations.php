@@ -250,6 +250,16 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 	$director_name    = get_post_meta( $post->ID, 'location_director_name', true );
 	$director_bio     = get_post_meta( $post->ID, 'location_director_bio', true );
 	$director_photo   = get_post_meta( $post->ID, 'location_director_photo', true );
+	$director_signature = get_post_meta( $post->ID, 'location_director_signature', true );
+	$maps_embed       = get_post_meta( $post->ID, 'location_maps_embed', true );
+	$address          = get_post_meta( $post->ID, 'location_address', true );
+	$city             = get_post_meta( $post->ID, 'location_city', true );
+	$state            = get_post_meta( $post->ID, 'location_state', true );
+	$zip              = get_post_meta( $post->ID, 'location_zip', true );
+	$phone            = get_post_meta( $post->ID, 'location_phone', true );
+	$email            = get_post_meta( $post->ID, 'location_email', true );
+	$latitude         = get_post_meta( $post->ID, 'location_latitude', true );
+	$longitude        = get_post_meta( $post->ID, 'location_longitude', true );
 	?>
 	<style>
 		.chroma-meta-field { margin-bottom: 20px; }
@@ -325,10 +335,78 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 			<input type="text" id="location_director_photo" name="location_director_photo" value="<?php echo esc_attr( $director_photo ); ?>" placeholder="https://..." />
 			<small><?php _e( 'URL to director photo (optional)', 'chroma-excellence' ); ?></small>
 		</div>
+
+		<div class="chroma-meta-field">
+			<label for="location_director_signature"><?php _e( 'Director Signature Image URL', 'chroma-excellence' ); ?></label>
+			<input type="text" id="location_director_signature" name="location_director_signature" value="<?php echo esc_attr( $director_signature ); ?>" placeholder="https://..." />
+			<small><?php _e( 'URL to director signature image (optional)', 'chroma-excellence' ); ?></small>
+		</div>
 	</div>
 
 	<div class="chroma-meta-section">
-		<p><strong><?php _e( 'Note:', 'chroma-excellence' ); ?></strong> <?php _e( 'Basic location information (address, phone, email, etc.) can be edited in the main editor above. Use the "Featured Image" box to set the hero image for this location.', 'chroma-excellence' ); ?></p>
+		<h4><?php _e( 'Address & Contact', 'chroma-excellence' ); ?></h4>
+
+		<div class="chroma-meta-field">
+			<label for="location_address"><?php _e( 'Street Address', 'chroma-excellence' ); ?></label>
+			<input type="text" id="location_address" name="location_address" value="<?php echo esc_attr( $address ); ?>" placeholder="e.g., 123 Main Street" />
+		</div>
+
+		<div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px;">
+			<div class="chroma-meta-field">
+				<label for="location_city"><?php _e( 'City', 'chroma-excellence' ); ?></label>
+				<input type="text" id="location_city" name="location_city" value="<?php echo esc_attr( $city ); ?>" placeholder="e.g., Lawrenceville" />
+			</div>
+
+			<div class="chroma-meta-field">
+				<label for="location_state"><?php _e( 'State', 'chroma-excellence' ); ?></label>
+				<input type="text" id="location_state" name="location_state" value="<?php echo esc_attr( $state ); ?>" placeholder="GA" />
+			</div>
+
+			<div class="chroma-meta-field">
+				<label for="location_zip"><?php _e( 'ZIP Code', 'chroma-excellence' ); ?></label>
+				<input type="text" id="location_zip" name="location_zip" value="<?php echo esc_attr( $zip ); ?>" placeholder="30043" />
+			</div>
+		</div>
+
+		<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+			<div class="chroma-meta-field">
+				<label for="location_phone"><?php _e( 'Phone', 'chroma-excellence' ); ?></label>
+				<input type="text" id="location_phone" name="location_phone" value="<?php echo esc_attr( $phone ); ?>" placeholder="(770) 555-1234" />
+			</div>
+
+			<div class="chroma-meta-field">
+				<label for="location_email"><?php _e( 'Email', 'chroma-excellence' ); ?></label>
+				<input type="email" id="location_email" name="location_email" value="<?php echo esc_attr( $email ); ?>" placeholder="info@example.com" />
+			</div>
+		</div>
+
+		<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+			<div class="chroma-meta-field">
+				<label for="location_latitude"><?php _e( 'Latitude', 'chroma-excellence' ); ?></label>
+				<input type="text" id="location_latitude" name="location_latitude" value="<?php echo esc_attr( $latitude ); ?>" placeholder="33.9562" />
+				<small><?php _e( 'For map integration (optional)', 'chroma-excellence' ); ?></small>
+			</div>
+
+			<div class="chroma-meta-field">
+				<label for="location_longitude"><?php _e( 'Longitude', 'chroma-excellence' ); ?></label>
+				<input type="text" id="location_longitude" name="location_longitude" value="<?php echo esc_attr( $longitude ); ?>" placeholder="-83.8781" />
+				<small><?php _e( 'For map integration (optional)', 'chroma-excellence' ); ?></small>
+			</div>
+		</div>
+	</div>
+
+	<div class="chroma-meta-section">
+		<h4><?php _e( 'Google Maps', 'chroma-excellence' ); ?></h4>
+
+		<div class="chroma-meta-field">
+			<label for="location_maps_embed"><?php _e( 'Google Maps Embed Code', 'chroma-excellence' ); ?></label>
+			<textarea id="location_maps_embed" name="location_maps_embed" rows="5" placeholder='<iframe src="https://www.google.com/maps/embed?..." width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>'><?php echo esc_textarea( $maps_embed ); ?></textarea>
+			<small><?php _e( 'Paste the full iframe embed code from Google Maps. Go to Google Maps → Share → Embed a map', 'chroma-excellence' ); ?></small>
+		</div>
+	</div>
+
+	<div class="chroma-meta-section">
+		<p><strong><?php _e( 'Note:', 'chroma-excellence' ); ?></strong> <?php _e( 'Use the "Featured Image" box in the sidebar to set the hero image for this location. Programs available at this location can be managed from the Programs admin section.', 'chroma-excellence' ); ?></p>
 	</div>
 	<?php
 }
@@ -365,14 +443,26 @@ function chroma_save_location_custom_fields( $post_id ) {
 		'location_director_name',
 		'location_director_bio',
 		'location_director_photo',
+		'location_director_signature',
+		'location_maps_embed',
+		'location_address',
+		'location_city',
+		'location_state',
+		'location_zip',
+		'location_phone',
+		'location_email',
+		'location_latitude',
+		'location_longitude',
 	);
 
 	foreach ( $fields as $field ) {
 		if ( isset( $_POST[ $field ] ) ) {
 			$value = wp_unslash( $_POST[ $field ] );
 			// Sanitize based on field type
-			if ( in_array( $field, array( 'location_description', 'location_director_bio' ) ) ) {
+			if ( in_array( $field, array( 'location_description', 'location_director_bio', 'location_maps_embed' ) ) ) {
 				$value = sanitize_textarea_field( $value );
+			} elseif ( $field === 'location_email' ) {
+				$value = sanitize_email( $value );
 			} else {
 				$value = sanitize_text_field( $value );
 			}
