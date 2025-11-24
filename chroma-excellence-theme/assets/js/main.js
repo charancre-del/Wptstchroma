@@ -6,6 +6,15 @@
  */
 
 document.addEventListener('DOMContentLoaded', function () {
+  const safeParseJSON = (value, fallback) => {
+    try {
+      return JSON.parse(value);
+    } catch (e) {
+      console.warn('Failed to parse JSON payload', e);
+      return fallback;
+    }
+  };
+
   /**
    * Mobile Nav Toggle
    */
@@ -62,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function () {
    */
   const wizard = document.querySelector('[data-program-wizard]');
   if (wizard) {
-    const options = JSON.parse(wizard.getAttribute('data-options') || '[]');
+    const options = safeParseJSON(wizard.getAttribute('data-options') || '[]', []);
     const optionButtons = wizard.querySelectorAll('[data-program-wizard-option]');
     const result = wizard.querySelector('[data-program-wizard-result]');
     const title = wizard.querySelector('[data-program-wizard-title]');
@@ -98,7 +107,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const curriculumButtons = document.querySelectorAll('[data-curriculum-button]');
 
   if (curriculumConfigEl && curriculumChartEl) {
-    const config = JSON.parse(curriculumConfigEl.textContent || '{}');
+    const config = safeParseJSON(curriculumConfigEl.textContent || '{}', {});
     const profiles = config.profiles || [];
     const labels = config.labels || [];
     const defaultProfile = profiles[0];
