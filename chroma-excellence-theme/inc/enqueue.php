@@ -74,11 +74,18 @@ function chroma_enqueue_assets() {
                 true
         );
 
-	// Leaflet for maps (only on location pages)
-	if ( is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' ) ) {
-		wp_enqueue_style(
-			'leaflet',
-			'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+        // Leaflet for maps (location archive, single locations, locations page, or home locations preview)
+        $should_load_maps = is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' );
+
+        if ( is_front_page() && function_exists( 'chroma_home_locations_preview' ) ) {
+                $locations_preview = chroma_home_locations_preview();
+                $should_load_maps  = $should_load_maps || ( ! empty( $locations_preview['map_points'] ) );
+        }
+
+        if ( $should_load_maps ) {
+                wp_enqueue_style(
+                        'leaflet',
+                        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
 			array(),
 			'1.9.4'
 		);

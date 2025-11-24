@@ -330,62 +330,64 @@ function chroma_home_programs_preview() {
  * Locations preview content
  */
 function chroma_home_locations_preview() {
+        static $cached;
+
+        if ( isset( $cached ) ) {
+                return $cached;
+        }
+
         $heading    = '19+ neighborhood locations across Metro Atlanta';
         $subheading = 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.';
         $cta_label  = 'View All Locations';
         $cta_link   = '/locations';
 
-        $query = new WP_Query(
+        $locations = get_posts(
                 array(
-                        'post_type'      => 'location',
-                        'post_status'    => 'publish',
-                        'posts_per_page' => -1,
-                        'orderby'        => 'title',
-                        'order'          => 'ASC',
+                        'post_type'        => 'location',
+                        'post_status'      => 'publish',
+                        'posts_per_page'   => -1,
+                        'orderby'          => 'title',
+                        'order'            => 'ASC',
+                        'suppress_filters' => true,
                 )
         );
 
         $map_points = array();
         $featured   = array();
 
-        if ( $query->have_posts() ) {
-                while ( $query->have_posts() ) {
-                        $query->the_post();
-                        $post_id = get_the_ID();
+        foreach ( $locations as $location ) {
+                $post_id   = $location->ID;
+                $title     = get_the_title( $post_id );
+                $permalink = get_permalink( $post_id );
 
-                        $title   = get_the_title();
-                        $permalink = get_permalink();
+                $city    = function_exists( 'get_field' ) ? get_field( 'location_city', $post_id ) : get_post_meta( $post_id, 'location_city', true );
+                $state   = function_exists( 'get_field' ) ? get_field( 'location_state', $post_id ) : get_post_meta( $post_id, 'location_state', true );
+                $phone   = function_exists( 'get_field' ) ? get_field( 'location_phone', $post_id ) : get_post_meta( $post_id, 'location_phone', true );
+                $address = function_exists( 'get_field' ) ? get_field( 'location_address', $post_id ) : get_post_meta( $post_id, 'location_address', true );
 
-                        $city    = function_exists( 'get_field' ) ? get_field( 'location_city', $post_id ) : get_post_meta( $post_id, 'location_city', true );
-                        $state   = function_exists( 'get_field' ) ? get_field( 'location_state', $post_id ) : get_post_meta( $post_id, 'location_state', true );
-                        $phone   = function_exists( 'get_field' ) ? get_field( 'location_phone', $post_id ) : get_post_meta( $post_id, 'location_phone', true );
-                        $address = function_exists( 'get_field' ) ? get_field( 'location_address', $post_id ) : get_post_meta( $post_id, 'location_address', true );
+                $lat = function_exists( 'get_field' ) ? get_field( 'location_latitude', $post_id ) : get_post_meta( $post_id, 'location_latitude', true );
+                $lng = function_exists( 'get_field' ) ? get_field( 'location_longitude', $post_id ) : get_post_meta( $post_id, 'location_longitude', true );
 
-                        $lat = function_exists( 'get_field' ) ? get_field( 'location_latitude', $post_id ) : get_post_meta( $post_id, 'location_latitude', true );
-                        $lng = function_exists( 'get_field' ) ? get_field( 'location_longitude', $post_id ) : get_post_meta( $post_id, 'location_longitude', true );
-
-                        if ( $lat && $lng ) {
-                                $map_points[] = array(
-                                        'id'    => $post_id,
-                                        'title' => $title,
-                                        'lat'   => (float) $lat,
-                                        'lng'   => (float) $lng,
-                                        'url'   => $permalink,
-                                        'city'  => $city,
-                                        'state' => $state,
-                                );
-                        }
-
-                        $featured[] = array(
-                                'title'   => $title,
-                                'city'    => $city,
-                                'state'   => $state,
-                                'address' => $address,
-                                'phone'   => $phone,
-                                'url'     => $permalink,
+                if ( $lat && $lng ) {
+                        $map_points[] = array(
+                                'id'    => $post_id,
+                                'name'  => $title,
+                                'lat'   => (float) $lat,
+                                'lng'   => (float) $lng,
+                                'url'   => $permalink,
+                                'city'  => $city,
+                                'state' => $state,
                         );
                 }
-                wp_reset_postdata();
+
+                $featured[] = array(
+                        'title'   => $title,
+                        'city'    => $city,
+                        'state'   => $state,
+                        'address' => $address,
+                        'phone'   => $phone,
+                        'url'     => $permalink,
+                );
         }
 
         // If no dynamic locations exist, retain the previous static defaults.
@@ -393,7 +395,7 @@ function chroma_home_locations_preview() {
                 $map_points = array(
                         array(
                                 'id'    => 1,
-                                'title' => 'Marietta – East',
+                                'name'  => 'Marietta – East',
                                 'lat'   => 33.975,
                                 'lng'   => -84.507,
                                 'url'   => '/locations/marietta-east',
@@ -402,7 +404,7 @@ function chroma_home_locations_preview() {
                         ),
                         array(
                                 'id'    => 2,
-                                'title' => 'Austell – Tramore',
+                                'name'  => 'Austell – Tramore',
                                 'lat'   => 33.815,
                                 'lng'   => -84.63,
                                 'url'   => '/locations/austell-tramore',
@@ -411,7 +413,7 @@ function chroma_home_locations_preview() {
                         ),
                         array(
                                 'id'    => 3,
-                                'title' => 'Lawrenceville',
+                                'name'  => 'Lawrenceville',
                                 'lat'   => 33.956,
                                 'lng'   => -83.99,
                                 'url'   => '/locations/lawrenceville',
@@ -420,7 +422,7 @@ function chroma_home_locations_preview() {
                         ),
                         array(
                                 'id'    => 4,
-                                'title' => 'Johns Creek',
+                                'name'  => 'Johns Creek',
                                 'lat'   => 34.028,
                                 'lng'   => -84.198,
                                 'url'   => '/locations/johns-creek',
@@ -460,7 +462,7 @@ function chroma_home_locations_preview() {
         // Limit featured list to the first three items for layout consistency.
         $featured = array_slice( $featured, 0, 3 );
 
-        return array(
+        $cached = array(
                 'heading'    => $heading,
                 'subheading' => $subheading,
                 'cta_label'  => $cta_label,
@@ -468,6 +470,8 @@ function chroma_home_locations_preview() {
                 'map_points' => $map_points,
                 'featured'   => $featured,
         );
+
+        return $cached;
 }
 
 /**
