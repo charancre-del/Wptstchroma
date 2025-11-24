@@ -118,13 +118,15 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!profile) return;
 
       curriculumButtons.forEach((btn) => {
-        if (btn.getAttribute('data-curriculum-button') === profile.key) {
+        const isActive = btn.getAttribute('data-curriculum-button') === profile.key;
+        if (isActive) {
           btn.classList.add('bg-chroma-blue', 'text-white', 'shadow-soft');
           btn.classList.remove('text-brand-ink/70');
         } else {
           btn.classList.remove('bg-chroma-blue', 'text-white', 'shadow-soft');
           btn.classList.add('text-brand-ink/70');
         }
+        btn.style.color = isActive ? '#ffffff' : 'rgba(38, 50, 56, 0.6)';
       });
 
       const title = document.querySelector('[data-curriculum-title]');
@@ -207,6 +209,8 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.classList.toggle('text-white', isActive);
         btn.classList.toggle('shadow-soft', isActive);
         btn.classList.toggle('text-brand-ink/60', !isActive);
+        btn.style.color = isActive ? '#ffffff' : 'rgba(38, 50, 56, 0.6)';
+        btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       });
 
       panels.forEach((panel) => {

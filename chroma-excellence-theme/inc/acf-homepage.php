@@ -221,12 +221,14 @@ function chroma_home_curriculum_profiles() {
  * Daily schedule tracks
  */
 function chroma_home_schedule_tracks() {
-        return array(
-                array(
-                        'key'   => 'infant',
-                        'title' => 'The Nurturing Nest',
-                        'color' => 'chroma-blue',
-                        'steps' => array(
+return array(
+array(
+'key'   => 'infant',
+'label' => 'Infants',
+'title' => 'The Nurturing Nest',
+'color' => 'chroma-blue',
+'background' => 'bg-chroma-blueLight',
+'steps' => array(
                                 array(
                                         'time'  => 'AM',
                                         'title' => 'Warm Welcome & Cuddles',
@@ -244,11 +246,13 @@ function chroma_home_schedule_tracks() {
                                 ),
                         ),
                 ),
-                array(
-                        'key'   => 'toddler',
-                        'title' => 'Explorers & Builders',
-                        'color' => 'chroma-yellow',
-                        'steps' => array(
+array(
+'key'   => 'toddler',
+'label' => 'Toddlers',
+'title' => 'Explorers & Builders',
+'color' => 'chroma-yellow',
+'background' => 'bg-chroma-yellowLight',
+'steps' => array(
                                 array(
                                         'time'  => '9:00',
                                         'title' => 'Morning Circle',
@@ -266,29 +270,103 @@ function chroma_home_schedule_tracks() {
                                 ),
                         ),
                 ),
-                array(
-                        'key'   => 'prek',
-                        'title' => 'Kindergarten Readiness',
-                        'color' => 'chroma-red',
-                        'steps' => array(
-                                array(
-                                        'time'  => '9:00',
-                                        'title' => 'Literacy & Logic',
-                                        'copy'  => 'Phonics games, calendar math, and story comprehension.',
-                                ),
-                                array(
-                                        'time'  => '11:00',
-                                        'title' => 'Project-Based Learning',
-                                        'copy'  => 'Collaborative science experiments and art projects.',
-                                ),
-                                array(
-                                        'time'  => '2:00',
-                                        'title' => 'Social Centers',
-                                        'copy'  => 'Dramatic play and negotiation skills.',
-                                ),
-                        ),
-                ),
-        );
+array(
+'key'   => 'preschool',
+'label' => 'Preschool',
+'title' => 'Hands-on Discovery',
+'color' => 'chroma-green',
+'background' => 'bg-chroma-greenLight',
+'steps' => array(
+array(
+'time'  => '9:00',
+'title' => 'Morning Meeting',
+'copy'  => 'Greetings, songs, and preview of the day’s centers.',
+),
+array(
+'time'  => '10:30',
+'title' => 'Centers & Small Groups',
+'copy'  => 'Guided play with art, STEM trays, and sensory bins.',
+),
+array(
+'time'  => '1:30',
+'title' => 'Outdoor Adventure',
+'copy'  => 'Gross-motor play, gardening, and nature walks.',
+),
+),
+),
+array(
+'key'   => 'prep',
+'label' => 'Prek-Prep',
+'title' => 'Independence Builders',
+'color' => 'chroma-blueDark',
+'background' => 'bg-chroma-blueLight',
+'steps' => array(
+array(
+'time'  => '8:45',
+'title' => 'Literacy Invitations',
+'copy'  => 'Name practice, letter work, and story retells.',
+),
+array(
+'time'  => '10:15',
+'title' => 'Math & Movement',
+'copy'  => 'Patterning, counting games, and yoga-based movement.',
+),
+array(
+'time'  => '1:00',
+'title' => 'Project Time',
+'copy'  => 'Small-group projects that build stamina and collaboration.',
+),
+),
+),
+array(
+'key'   => 'ga-prek',
+'label' => 'GA Prek',
+'title' => 'Kindergarten Readiness',
+'color' => 'chroma-red',
+'background' => 'bg-chroma-redLight',
+'steps' => array(
+array(
+'time'  => '9:00',
+'title' => 'Literacy & Logic',
+'copy'  => 'Phonics games, calendar math, and story comprehension.',
+),
+array(
+'time'  => '11:00',
+'title' => 'Project-Based Learning',
+'copy'  => 'Collaborative science experiments and art projects.',
+),
+array(
+'time'  => '2:00',
+'title' => 'Social Centers',
+'copy'  => 'Dramatic play and negotiation skills.',
+),
+),
+),
+array(
+'key'   => 'afterschool',
+'label' => 'Afterschool',
+'title' => 'Clubs & Care',
+'color' => 'chroma-yellow',
+'background' => 'bg-chroma-yellowLight',
+'steps' => array(
+array(
+'time'  => '3:00',
+'title' => 'Arrival & Snack',
+'copy'  => 'Healthy snack and community check-in after school.',
+),
+array(
+'time'  => '3:30',
+'title' => 'Homework & Tutoring',
+'copy'  => 'Quiet homework support with teacher guidance.',
+),
+array(
+'time'  => '4:30',
+'title' => 'Clubs & Outdoor Play',
+'copy'  => 'STEM clubs, art, and active play before pickup.',
+),
+),
+),
+);
 }
 
 /**

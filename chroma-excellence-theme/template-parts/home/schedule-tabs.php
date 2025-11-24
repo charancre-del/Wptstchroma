@@ -22,25 +22,26 @@ if ( empty( $tracks ) ) {
                 </div>
                 <div class="flex justify-center mb-12">
                         <div class="bg-white border border-chroma-blue/15 p-1 rounded-full inline-flex" data-schedule-tabs>
-                                <?php foreach ( $tracks as $index => $track ) : ?>
-                                        <?php
-                                        $is_active = 0 === $index;
-                                        $tab_classes = $is_active
-                                                ? 'bg-chroma-blue text-white shadow-soft'
-                                                : 'text-brand-ink/60 hover:text-chroma-blue';
-                                        ?>
-                                        <button class="schedule-tab px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 <?php echo esc_attr( $tab_classes ); ?>" data-schedule-tab="<?php echo esc_attr( $track['key'] ); ?>"><?php echo esc_html( ucfirst( $track['key'] ) ); ?></button>
-                                <?php endforeach; ?>
-                        </div>
-                </div>
-                <?php foreach ( $tracks as $index => $track ) : ?>
-                        <?php
-                        $is_active = 0 === $index;
-                        $panel_classes = $is_active ? 'tab-content active' : 'tab-content hidden';
-                        ?>
-                        <div class="<?php echo esc_attr( $panel_classes ); ?>" data-schedule-panel="<?php echo esc_attr( $track['key'] ); ?>">
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                                        <div class="rounded-[3rem] p-10 h-full <?php echo esc_attr( 'chroma-' === substr( $track['color'], 0, 7 ) ? 'bg-' . $track['color'] . 'Light' : 'bg-brand-cream' ); ?>">
+<?php foreach ( $tracks as $index => $track ) : ?>
+<?php
+$is_active = 0 === $index;
+$tab_classes = $is_active
+? 'bg-chroma-blue text-white shadow-soft'
+: 'text-brand-ink/60 hover:text-chroma-blue';
+?>
+<button class="schedule-tab px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 <?php echo esc_attr( $tab_classes ); ?>" data-schedule-tab="<?php echo esc_attr( $track['key'] ); ?>" aria-pressed="<?php echo esc_attr( $is_active ? 'true' : 'false' ); ?>"><?php echo esc_html( $track['label'] ?? ucfirst( $track['key'] ) ); ?></button>
+<?php endforeach; ?>
+</div>
+</div>
+<?php foreach ( $tracks as $index => $track ) : ?>
+<?php
+$is_active      = 0 === $index;
+$panel_classes  = $is_active ? 'tab-content active' : 'tab-content hidden';
+$backgroundTint = ! empty( $track['background'] ) ? $track['background'] : 'bg-brand-cream';
+?>
+<div class="<?php echo esc_attr( $panel_classes ); ?>" data-schedule-panel="<?php echo esc_attr( $track['key'] ); ?>">
+<div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+<div class="rounded-[3rem] p-10 h-full <?php echo esc_attr( $backgroundTint ); ?>">
                                                 <h3 class="text-2xl font-serif text-brand-ink mb-6"><?php echo esc_html( $track['title'] ); ?></h3>
                                                 <p class="text-brand-ink/70 mb-8 leading-relaxed">Thoughtfully balanced flow tailored to this age group's needs.</p>
                                                 <div class="space-y-6 relative">
