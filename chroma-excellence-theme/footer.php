@@ -48,21 +48,21 @@
 				<div class="md:col-span-1">
 					<h3 class="font-bold text-sm mb-3">Follow Us</h3>
 					<div class="flex gap-3">
-						<?php if ( $facebook = get_field( 'global_facebook_url', 'option' ) ) : ?>
-							<a href="<?php echo esc_url( $facebook ); ?>" target="_blank" rel="noopener" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
-								<i class="fa-brands fa-facebook-f text-xs"></i>
-							</a>
-						<?php endif; ?>
-						<?php if ( $instagram = get_field( 'global_instagram_url', 'option' ) ) : ?>
-							<a href="<?php echo esc_url( $instagram ); ?>" target="_blank" rel="noopener" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
-								<i class="fa-brands fa-instagram text-xs"></i>
-							</a>
-						<?php endif; ?>
-						<?php if ( $linkedin = get_field( 'global_linkedin_url', 'option' ) ) : ?>
-							<a href="<?php echo esc_url( $linkedin ); ?>" target="_blank" rel="noopener" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
-								<i class="fa-brands fa-linkedin-in text-xs"></i>
-							</a>
-						<?php endif; ?>
+                                                <?php if ( $facebook = chroma_global_facebook_url() ) : ?>
+                                                        <a href="<?php echo esc_url( $facebook ); ?>" target="_blank" rel="noopener" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
+                                                                <i class="fa-brands fa-facebook-f text-xs"></i>
+                                                        </a>
+                                                <?php endif; ?>
+                                                <?php if ( $instagram = chroma_global_instagram_url() ) : ?>
+                                                        <a href="<?php echo esc_url( $instagram ); ?>" target="_blank" rel="noopener" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
+                                                                <i class="fa-brands fa-instagram text-xs"></i>
+                                                        </a>
+                                                <?php endif; ?>
+                                                <?php if ( $linkedin = chroma_global_linkedin_url() ) : ?>
+                                                        <a href="<?php echo esc_url( $linkedin ); ?>" target="_blank" rel="noopener" class="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition">
+                                                                <i class="fa-brands fa-linkedin-in text-xs"></i>
+                                                        </a>
+                                                <?php endif; ?>
 					</div>
 				</div>
 			</div>

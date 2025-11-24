@@ -42,10 +42,11 @@ $programs = get_posts( array(
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <?php foreach ( $programs as $program ) :
                         setup_postdata( $program );
-                        $age_range = get_field( 'program_age_range', $program->ID );
-                        $excerpt   = get_field( 'program_short_description', $program->ID ) ?: wp_trim_words( $program->post_content, 25 );
-                        $icon      = get_field( 'program_icon_class', $program->ID ) ?: 'fas fa-child';
-                        $color     = get_field( 'program_color', $program->ID ) ?: 'chroma-teal';
+                        $meta      = chroma_get_program_meta( $program->ID );
+                        $age_range = $meta['age_range'];
+                        $excerpt   = $meta['short_description'] ?: wp_trim_words( $program->post_content, 25 );
+                        $icon      = $meta['icon_class'];
+                        $color     = $meta['color'];
                     ?>
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300" data-program="<?php echo esc_attr( $program->ID ); ?>">
                         <div class="bg-gradient-to-br from-<?php echo esc_attr( $color ); ?>/10 to-<?php echo esc_attr( $color ); ?>/5 p-8">

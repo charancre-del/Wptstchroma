@@ -19,16 +19,16 @@ function chroma_organization_schema() {
 		return;
 	}
 
-	$schema = array(
-		'@context'    => 'https://schema.org',
-		'@type'       => 'ChildCare',
-		'name'        => get_bloginfo( 'name' ),
-		'url'         => home_url(),
-		'logo'        => get_field( 'global_logo', 'option' ) ?: '',
-		'description' => chroma_global_seo_default_description(),
-		'areaServed'  => array(
-			'@type' => 'City',
-			'name'  => 'Atlanta',
+        $schema = array(
+                '@context'    => 'https://schema.org',
+                '@type'       => 'ChildCare',
+                'name'        => get_bloginfo( 'name' ),
+                'url'         => home_url(),
+                'logo'        => chroma_get_option_value( 'global_logo', '' ),
+                'description' => chroma_global_seo_default_description(),
+                'areaServed'  => array(
+                        '@type' => 'City',
+                        'name'  => 'Atlanta',
 		),
 		'sameAs'      => array_filter( array(
 			chroma_global_facebook_url(),
@@ -49,33 +49,34 @@ function chroma_location_schema() {
 		return;
 	}
 
-	$location_id = get_the_ID();
+        $location_id = get_the_ID();
+        $meta        = chroma_get_location_meta( $location_id );
 
-	$schema = array(
-		'@context'     => 'https://schema.org',
-		'@type'        => array( 'ChildCare', 'LocalBusiness' ),
-		'name'         => get_the_title(),
+        $schema = array(
+                '@context'     => 'https://schema.org',
+                '@type'        => array( 'ChildCare', 'LocalBusiness' ),
+                'name'         => get_the_title(),
 		'description'  => get_the_excerpt() ?: chroma_trimmed_excerpt( 30 ),
-		'url'          => get_permalink(),
-		'image'        => get_the_post_thumbnail_url( $location_id, 'full' ),
-		'address'      => array(
-			'@type'           => 'PostalAddress',
-			'streetAddress'   => get_field( 'location_address', $location_id ),
-			'addressLocality' => get_field( 'location_city', $location_id ),
-			'addressRegion'   => get_field( 'location_state', $location_id ) ?: 'GA',
-			'postalCode'      => get_field( 'location_zip', $location_id ),
-		),
-		'telephone'    => get_field( 'location_phone', $location_id ),
-		'email'        => get_field( 'location_email', $location_id ),
-	);
+                'url'          => get_permalink(),
+                'image'        => get_the_post_thumbnail_url( $location_id, 'full' ),
+                'address'      => array(
+                        '@type'           => 'PostalAddress',
+                        'streetAddress'   => $meta['address'],
+                        'addressLocality' => $meta['city'],
+                        'addressRegion'   => $meta['state'],
+                        'postalCode'      => $meta['zip'],
+                ),
+                'telephone'    => $meta['phone'],
+                'email'        => $meta['email'],
+        );
 
-	if ( $lat = get_field( 'location_latitude', $location_id ) ) {
-		$schema['geo'] = array(
-			'@type'     => 'GeoCoordinates',
-			'latitude'  => $lat,
-			'longitude' => get_field( 'location_longitude', $location_id ),
-		);
-	}
+        if ( $lat = $meta['latitude'] ) {
+                $schema['geo'] = array(
+                        '@type'     => 'GeoCoordinates',
+                        'latitude'  => $lat,
+                        'longitude' => $meta['longitude'],
+                );
+        }
 
 	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) . '</script>' . "\n";
 }
@@ -131,8 +132,8 @@ add_action( 'wp_head', 'chroma_og_tags', 5 );
  * Hreflang Tags for EN/ES
  */
 function chroma_hreflang_tags() {
-	$alternate_en = get_field( 'alternate_url_en' );
-	$alternate_es = get_field( 'alternate_url_es' );
+        $alternate_en = chroma_get_meta_value( get_the_ID(), 'alternate_url_en' );
+        $alternate_es = chroma_get_meta_value( get_the_ID(), 'alternate_url_es' );
 
 	if ( $alternate_en ) {
 		echo '<link rel="alternate" hreflang="en" href="' . esc_url( $alternate_en ) . '" />' . "\n";
