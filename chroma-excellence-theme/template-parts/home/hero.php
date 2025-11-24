@@ -5,7 +5,7 @@
  * @package Chroma_Excellence
  */
 
-$hero = chroma_home_hero();
+$hero    = chroma_home_hero();
 $home_id = chroma_get_home_page_id();
 ?>
 

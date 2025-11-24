@@ -140,6 +140,12 @@ function chroma_handle_tour_submission() {
 				'lead_email'     => $email,
 				'lead_phone'     => $phone,
 				'lead_location'  => $location_id,
+				'lead_payload'   => wp_json_encode( $lead_payload ),
+			),
+		) );
+	}
+
+	wp_safe_redirect( add_query_arg( 'tour_sent', '1', $redirect_url ) );
 				'lead_payload'   => json_encode( array(
 					'parent_name'  => $parent_name,
 					'email'        => $email,

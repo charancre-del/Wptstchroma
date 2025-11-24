@@ -36,6 +36,56 @@ function chroma_enqueue_assets() {
 		'6.4.0'
 	);
 
+        // Compiled Tailwind CSS
+        $css_path    = CHROMA_THEME_DIR . '/assets/css/main.css';
+        $css_version = file_exists( $css_path ) ? filemtime( $css_path ) : CHROMA_VERSION;
+
+        wp_enqueue_style(
+                'chroma-main',
+                CHROMA_THEME_URI . '/assets/css/main.css',
+                array(),
+                $css_version
+        );
+
+        // Chart.js for curriculum radar (homepage)
+        $script_dependencies = array();
+
+        if ( is_front_page() ) {
+                wp_enqueue_script(
+                        'chartjs',
+                        'https://cdn.jsdelivr.net/npm/chart.js',
+                        array(),
+                        '4.4.1',
+                        true
+                );
+
+                $script_dependencies[] = 'chartjs';
+        }
+
+        // Main JavaScript
+        $js_path    = CHROMA_THEME_DIR . '/assets/js/main.js';
+        $js_version = file_exists( $js_path ) ? filemtime( $js_path ) : CHROMA_VERSION;
+
+        wp_enqueue_script(
+                'chroma-main',
+                CHROMA_THEME_URI . '/assets/js/main.js',
+                $script_dependencies,
+                $js_version,
+                true
+        );
+
+        // Leaflet for maps (location archive, single locations, locations page, or home locations preview)
+        $should_load_maps = is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' );
+
+        if ( is_front_page() && function_exists( 'chroma_home_locations_preview' ) ) {
+                $locations_preview = chroma_home_locations_preview();
+                $should_load_maps  = $should_load_maps || ( ! empty( $locations_preview['map_points'] ) );
+        }
+
+        if ( $should_load_maps ) {
+                wp_enqueue_style(
+                        'leaflet',
+                        'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
 	// Compiled Tailwind CSS
 	$css_path = CHROMA_THEME_DIR . '/assets/css/main.css';
 	$css_version = file_exists( $css_path ) ? filemtime( $css_path ) : CHROMA_VERSION;

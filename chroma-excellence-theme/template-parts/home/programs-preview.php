@@ -11,16 +11,7 @@ if ( ! $programs ) {
     return;
 }
 
-// Get featured programs or fallback to latest 3
-$featured = get_field( 'home_featured_programs', 'option' );
-if ( ! $featured ) {
-    $featured = get_posts( array(
-        'post_type'      => 'program',
-        'posts_per_page' => 3,
-        'orderby'        => 'menu_order',
-        'order'          => 'ASC',
-    ) );
-}
+$featured = $programs['featured'] ?? array();
 ?>
 
 <section class="py-20 bg-brand-cream" data-section="programs">
@@ -41,18 +32,18 @@ if ( ! $featured ) {
         <!-- Programs Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <?php foreach ( $featured as $program ) :
-                setup_postdata( $program );
-                $age_range = get_field( 'program_age_range', $program->ID );
-                $excerpt   = get_field( 'program_short_description', $program->ID ) ?: wp_trim_words( $program->post_content, 20 );
-                $icon      = get_field( 'program_icon_class', $program->ID ) ?: 'fas fa-child';
+                $age_range = $program['age_range'] ?? '';
+                $excerpt   = $program['excerpt'] ?? '';
+                $icon      = $program['icon'] ?? 'fas fa-child';
+                $url       = $program['url'] ?? '#';
             ?>
-            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300" data-program="<?php echo esc_attr( $program->ID ); ?>">
+            <div class="bg-white rounded-lg shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300" data-program="<?php echo esc_attr( sanitize_title( $program['title'] ) ); ?>">
                 <div class="p-8">
                     <div class="text-chroma-teal text-4xl mb-4">
                         <i class="<?php echo esc_attr( $icon ); ?>"></i>
                     </div>
                     <h3 class="text-2xl font-bold text-brand-ink mb-2">
-                        <?php echo esc_html( $program->post_title ); ?>
+                        <?php echo esc_html( $program['title'] ); ?>
                     </h3>
                     <?php if ( $age_range ) : ?>
                         <div class="text-chroma-yellow font-semibold mb-4">
@@ -62,12 +53,12 @@ if ( ! $featured ) {
                     <p class="text-brand-ink/70 mb-6">
                         <?php echo esc_html( $excerpt ); ?>
                     </p>
-                    <a href="<?php echo esc_url( get_permalink( $program ) ); ?>" class="inline-block bg-chroma-teal text-white px-6 py-3 rounded-lg font-semibold hover:bg-chroma-teal/90 transition-colors">
+                    <a href="<?php echo esc_url( $url ); ?>" class="inline-block bg-chroma-teal text-white px-6 py-3 rounded-lg font-semibold hover:bg-chroma-teal/90 transition-colors">
                         Learn More
                     </a>
                 </div>
             </div>
-            <?php endforeach; wp_reset_postdata(); ?>
+            <?php endforeach; ?>
         </div>
 
         <!-- View All CTA -->

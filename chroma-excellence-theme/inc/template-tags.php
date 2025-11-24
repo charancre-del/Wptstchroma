@@ -8,14 +8,72 @@
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+        exit;
+}
+
+/**
+ * Safe meta getter with default fallback.
+ */
+function chroma_get_meta_value( $post_id, $key, $default = '' ) {
+        $value = get_post_meta( $post_id, $key, true );
+
+        return ( '' === $value || null === $value ) ? $default : $value;
+}
+
+/**
+ * Safe option getter for ACF-style option keys.
+ */
+function chroma_get_option_value( $key, $default = '' ) {
+        $option_key = 'options_' . $key;
+        $value      = get_option( $option_key, null );
+
+        if ( null === $value || '' === $value ) {
+                return $default;
+        }
+
+        return $value;
+}
+
+/**
+ * Get core location meta in one call.
+ */
+function chroma_get_location_meta( $post_id = null ) {
+        $post_id = $post_id ?: get_the_ID();
+
+        return array(
+                'address'    => chroma_get_meta_value( $post_id, 'location_address' ),
+                'city'       => chroma_get_meta_value( $post_id, 'location_city' ),
+                'state'      => chroma_get_meta_value( $post_id, 'location_state', 'GA' ),
+                'zip'        => chroma_get_meta_value( $post_id, 'location_zip' ),
+                'phone'      => chroma_get_meta_value( $post_id, 'location_phone' ),
+                'email'      => chroma_get_meta_value( $post_id, 'location_email' ),
+                'latitude'   => chroma_get_meta_value( $post_id, 'location_latitude' ),
+                'longitude'  => chroma_get_meta_value( $post_id, 'location_longitude' ),
+                'capacity'   => chroma_get_meta_value( $post_id, 'location_capacity' ),
+                'enrollment' => chroma_get_meta_value( $post_id, 'location_enrollment' ),
+        );
+}
+
+/**
+ * Get program meta in one call.
+ */
+function chroma_get_program_meta( $post_id = null ) {
+        $post_id = $post_id ?: get_the_ID();
+
+        return array(
+                'age_range'          => chroma_get_meta_value( $post_id, 'program_age_range' ),
+                'short_description'  => chroma_get_meta_value( $post_id, 'program_short_description' ),
+                'icon_class'         => chroma_get_meta_value( $post_id, 'program_icon_class', 'fas fa-child' ),
+                'color'              => chroma_get_meta_value( $post_id, 'program_color', 'chroma-teal' ),
+                'locations'          => chroma_get_meta_value( $post_id, 'program_locations', array() ),
+        );
 }
 
 /**
  * Trimmed Excerpt
  */
 function chroma_trimmed_excerpt( $length = 20, $post_id = null ) {
-	$post_id = $post_id ?: get_the_ID();
+        $post_id = $post_id ?: get_the_ID();
 	$excerpt = has_excerpt( $post_id ) ? get_the_excerpt( $post_id ) : get_the_content( null, false, $post_id );
 	$excerpt = wp_strip_all_tags( $excerpt );
 	$words   = explode( ' ', $excerpt );
@@ -51,19 +109,19 @@ function chroma_archive_pagination() {
  * Location Address Line
  */
 function chroma_location_address_line( $post_id = null ) {
-	$post_id = $post_id ?: get_the_ID();
-	$address = get_field( 'location_address', $post_id );
+        $post_id = $post_id ?: get_the_ID();
+        $address = chroma_get_meta_value( $post_id, 'location_address' );
 
-	return $address ?: '';
+        return $address ?: '';
 }
 
 /**
  * Location City State
  */
 function chroma_location_city_state( $post_id = null ) {
-	$post_id = $post_id ?: get_the_ID();
-	$city    = get_field( 'location_city', $post_id );
-	$state   = get_field( 'location_state', $post_id ) ?: 'GA';
+        $post_id = $post_id ?: get_the_ID();
+        $city    = chroma_get_meta_value( $post_id, 'location_city' );
+        $state   = chroma_get_meta_value( $post_id, 'location_state', 'GA' );
 
 	if ( ! $city ) {
 		return '';

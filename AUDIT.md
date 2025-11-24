@@ -1,5 +1,8 @@
 # Codebase Audit (Updated)
 
+## Current Branch Check
+- Reviewed the latest `work` branch (no remote configured; HEAD at `3dcdbad`) after the reported updates. The homepage stack remains unchanged from the prior audit—no new wizard, radar, schedule, or split tour modules exist under `template-parts/home` or in `front-page.php`.
+
 ## Overview
 - WordPress theme `chroma-excellence-theme` plus three companion plugins deliver custom post types, ACF-powered templates, location mapping, and lead-capture forms documented in the README.
 

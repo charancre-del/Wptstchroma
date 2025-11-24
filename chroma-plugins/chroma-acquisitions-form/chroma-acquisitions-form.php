@@ -112,6 +112,30 @@ function chroma_handle_acquisition_submission() {
 
 	// Log to Lead Log CPT
 	if ( post_type_exists( 'lead_log' ) ) {
+	$lead_payload = array(
+	'contact_name'      => $contact_name,
+	'phone'             => $phone,
+	'email'             => $email,
+	'facility_name'     => $facility_name,
+	'facility_location' => $facility_location,
+	'details'           => $details,
+	);
+
+	wp_insert_post( array(
+	'post_type'   => 'lead_log',
+	'post_title'  => 'Acquisition: ' . $facility_name,
+	'post_status' => 'publish',
+	'meta_input'  => array(
+	'lead_type'    => 'acquisition',
+	'lead_name'    => $contact_name,
+	'lead_email'   => $email,
+	'lead_phone'   => $phone,
+	'lead_payload' => wp_json_encode( $lead_payload ),
+	),
+	) );
+	}
+
+	wp_safe_redirect( add_query_arg( 'acquisition_sent', '1', $redirect_url ) );
 		wp_insert_post( array(
 			'post_type'   => 'lead_log',
 			'post_title'  => 'Acquisition: ' . $facility_name,
