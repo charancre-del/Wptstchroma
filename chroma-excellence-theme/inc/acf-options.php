@@ -1,6 +1,6 @@
 <?php
 /**
- * ACF Options Page and Global Helpers
+ * Legacy options helpers (works without ACF)
  *
  * @package Chroma_Excellence
  * @since 1.0.0

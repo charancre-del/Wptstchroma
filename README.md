@@ -60,6 +60,8 @@ cd wp-content/plugins/
    - Create "Primary Menu" and assign to Primary location
    - Create "Footer Menu" and assign to Footer location
 
+> ℹ️ **ACF plugin optional:** The homepage and global helpers use hardcoded defaults and WordPress options. You can run the site without installing ACF, and no templates will break if the plugin is absent.
+
 ### Step 4: Create Content
 
 **Programs:**
@@ -152,6 +154,16 @@ chroma: {
 ### ACF Field Groups
 
 Legacy ACF JSON files remain for reference, but the theme no longer requires the plugin.
+
+### Runtime without ACF
+
+- No templates or helpers call `get_field()` or other ACF PHP APIs. All homepage data and global defaults are hardcoded or stored in standard WordPress options.
+- The legacy `inc/acf-*.php` helpers rely only on WordPress functions, so they load safely even if the Advanced Custom Fields plugin is missing or deactivated.
+- You can confirm the absence of ACF function calls with:
+
+```bash
+rg "get_field" chroma-excellence-theme chroma-plugins
+```
 
 ## 🔍 SEO Features
 
