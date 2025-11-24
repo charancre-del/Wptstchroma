@@ -144,3 +144,77 @@ function chroma_location_title_placeholder( $title ) {
 	return $title;
 }
 add_filter( 'enter_title_here', 'chroma_location_title_placeholder' );
+
+/**
+ * Add custom fields to location_region taxonomy
+ */
+function chroma_location_region_add_form_fields() {
+	?>
+	<div class="form-field">
+		<label for="region_color_bg"><?php _e( 'Background Color Class', 'chroma-excellence' ); ?></label>
+		<input type="text" name="region_color_bg" id="region_color_bg" value="chroma-greenLight" placeholder="e.g., chroma-greenLight">
+		<p class="description"><?php _e( 'Tailwind background color class (e.g., chroma-greenLight, chroma-redLight, chroma-blueLight, chroma-yellowLight)', 'chroma-excellence' ); ?></p>
+	</div>
+	<div class="form-field">
+		<label for="region_color_text"><?php _e( 'Text Color Class', 'chroma-excellence' ); ?></label>
+		<input type="text" name="region_color_text" id="region_color_text" value="chroma-green" placeholder="e.g., chroma-green">
+		<p class="description"><?php _e( 'Tailwind text color class (e.g., chroma-green, chroma-red, chroma-blue, chroma-yellow)', 'chroma-excellence' ); ?></p>
+	</div>
+	<div class="form-field">
+		<label for="region_color_border"><?php _e( 'Border Color Class', 'chroma-excellence' ); ?></label>
+		<input type="text" name="region_color_border" id="region_color_border" value="chroma-green" placeholder="e.g., chroma-green">
+		<p class="description"><?php _e( 'Tailwind border color class (e.g., chroma-green, chroma-red, chroma-blue, chroma-yellow)', 'chroma-excellence' ); ?></p>
+	</div>
+	<?php
+}
+add_action( 'location_region_add_form_fields', 'chroma_location_region_add_form_fields' );
+
+/**
+ * Add custom fields to location_region taxonomy edit form
+ */
+function chroma_location_region_edit_form_fields( $term ) {
+	$color_bg = get_term_meta( $term->term_id, 'region_color_bg', true );
+	$color_text = get_term_meta( $term->term_id, 'region_color_text', true );
+	$color_border = get_term_meta( $term->term_id, 'region_color_border', true );
+	?>
+	<tr class="form-field">
+		<th scope="row"><label for="region_color_bg"><?php _e( 'Background Color Class', 'chroma-excellence' ); ?></label></th>
+		<td>
+			<input type="text" name="region_color_bg" id="region_color_bg" value="<?php echo esc_attr( $color_bg ?: 'chroma-greenLight' ); ?>">
+			<p class="description"><?php _e( 'Tailwind background color class (e.g., chroma-greenLight, chroma-redLight, chroma-blueLight, chroma-yellowLight)', 'chroma-excellence' ); ?></p>
+		</td>
+	</tr>
+	<tr class="form-field">
+		<th scope="row"><label for="region_color_text"><?php _e( 'Text Color Class', 'chroma-excellence' ); ?></label></th>
+		<td>
+			<input type="text" name="region_color_text" id="region_color_text" value="<?php echo esc_attr( $color_text ?: 'chroma-green' ); ?>">
+			<p class="description"><?php _e( 'Tailwind text color class (e.g., chroma-green, chroma-red, chroma-blue, chroma-yellow)', 'chroma-excellence' ); ?></p>
+		</td>
+	</tr>
+	<tr class="form-field">
+		<th scope="row"><label for="region_color_border"><?php _e( 'Border Color Class', 'chroma-excellence' ); ?></label></th>
+		<td>
+			<input type="text" name="region_color_border" id="region_color_border" value="<?php echo esc_attr( $color_border ?: 'chroma-green' ); ?>">
+			<p class="description"><?php _e( 'Tailwind border color class (e.g., chroma-green, chroma-red, chroma-blue, chroma-yellow)', 'chroma-excellence' ); ?></p>
+		</td>
+	</tr>
+	<?php
+}
+add_action( 'location_region_edit_form_fields', 'chroma_location_region_edit_form_fields' );
+
+/**
+ * Save location_region taxonomy custom fields
+ */
+function chroma_save_location_region_meta( $term_id ) {
+	if ( isset( $_POST['region_color_bg'] ) ) {
+		update_term_meta( $term_id, 'region_color_bg', sanitize_text_field( $_POST['region_color_bg'] ) );
+	}
+	if ( isset( $_POST['region_color_text'] ) ) {
+		update_term_meta( $term_id, 'region_color_text', sanitize_text_field( $_POST['region_color_text'] ) );
+	}
+	if ( isset( $_POST['region_color_border'] ) ) {
+		update_term_meta( $term_id, 'region_color_border', sanitize_text_field( $_POST['region_color_border'] ) );
+	}
+}
+add_action( 'created_location_region', 'chroma_save_location_region_meta' );
+add_action( 'edited_location_region', 'chroma_save_location_region_meta' );

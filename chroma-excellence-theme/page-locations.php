@@ -8,6 +8,12 @@
 
 get_header();
 
+// Get all location regions from taxonomy
+$all_regions = get_terms( array(
+	'taxonomy'   => 'location_region',
+	'hide_empty' => true,
+) );
+
 // Get all published locations
 $locations_query = new WP_Query( array(
 	'post_type'      => 'location',
@@ -17,15 +23,18 @@ $locations_query = new WP_Query( array(
 	'order'          => 'ASC',
 ) );
 
-// Helper function to determine region color
-function chroma_get_region_color( $region ) {
-	$color_map = array(
-		'Gwinnett'    => array( 'bg' => 'chroma-greenLight', 'text' => 'chroma-green', 'border' => 'chroma-green' ),
-		'Cobb'        => array( 'bg' => 'chroma-redLight', 'text' => 'chroma-red', 'border' => 'chroma-red' ),
-		'North'       => array( 'bg' => 'chroma-blueLight', 'text' => 'chroma-blue', 'border' => 'chroma-blue' ),
-		'South'       => array( 'bg' => 'chroma-yellowLight', 'text' => 'chroma-yellow', 'border' => 'chroma-yellow' ),
+// Helper function to get region color from term meta
+function chroma_get_region_color_from_term( $term_id ) {
+	$color_bg = get_term_meta( $term_id, 'region_color_bg', true );
+	$color_text = get_term_meta( $term_id, 'region_color_text', true );
+	$color_border = get_term_meta( $term_id, 'region_color_border', true );
+
+	// Fallback to default green if no colors set
+	return array(
+		'bg'     => $color_bg ?: 'chroma-greenLight',
+		'text'   => $color_text ?: 'chroma-green',
+		'border' => $color_border ?: 'chroma-green',
 	);
-	return $color_map[ $region ] ?? $color_map['Gwinnett'];
 }
 ?>
 
@@ -63,18 +72,15 @@ function chroma_get_region_color( $region ) {
 					<button onclick="filterLocations('all')" class="filter-btn active whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-ink text-white shadow-md transition-all">
 						All Areas
 					</button>
-					<button onclick="filterLocations('Gwinnett')" class="filter-btn whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-brand-ink/60 hover:bg-chroma-greenLight hover:text-chroma-green border border-transparent hover:border-chroma-green/20 transition-all">
-						Gwinnett
-					</button>
-					<button onclick="filterLocations('Cobb')" class="filter-btn whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-brand-ink/60 hover:bg-chroma-redLight hover:text-chroma-red border border-transparent hover:border-chroma-red/20 transition-all">
-						Cobb
-					</button>
-					<button onclick="filterLocations('North')" class="filter-btn whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-brand-ink/60 hover:bg-chroma-blueLight hover:text-chroma-blue border border-transparent hover:border-chroma-blue/20 transition-all">
-						North Metro
-					</button>
-					<button onclick="filterLocations('South')" class="filter-btn whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-brand-ink/60 hover:bg-chroma-yellowLight hover:text-chroma-yellow border border-transparent hover:border-chroma-yellow/20 transition-all">
-						South Metro
-					</button>
+					<?php if ( ! empty( $all_regions ) && ! is_wp_error( $all_regions ) ) : ?>
+						<?php foreach ( $all_regions as $region_term ) :
+							$colors = chroma_get_region_color_from_term( $region_term->term_id );
+						?>
+							<button onclick="filterLocations('<?php echo esc_attr( $region_term->slug ); ?>')" class="filter-btn whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-brand-ink/60 hover:bg-<?php echo esc_attr( $colors['bg'] ); ?> hover:text-<?php echo esc_attr( $colors['text'] ); ?> border border-transparent hover:border-<?php echo esc_attr( $colors['border'] ); ?>/20 transition-all">
+								<?php echo esc_html( $region_term->name ); ?>
+							</button>
+						<?php endforeach; ?>
+					<?php endif; ?>
 				</div>
 			</div>
 		</div>
@@ -112,29 +118,18 @@ function chroma_get_region_color( $region ) {
 						$lat        = $location_fields['latitude'];
 						$lng        = $location_fields['longitude'];
 
-						// Determine region (can be custom field or extracted from city)
-						$region = get_post_meta( $location_id, 'location_region', true );
+						// Get region from taxonomy
+						$location_regions = wp_get_post_terms( $location_id, 'location_region' );
+						$region_term = ! empty( $location_regions ) && ! is_wp_error( $location_regions ) ? $location_regions[0] : null;
 
-						// Normalize region value - strip " Metro" suffix if present
-						if ( $region ) {
-							$region = str_replace( ' Metro', '', $region );
-						}
+						// Get region name and slug for display and filtering
+						$region_name = $region_term ? $region_term->name : 'Metro Atlanta';
+						$region_slug = $region_term ? $region_term->slug : 'uncategorized';
 
-						if ( ! $region ) {
-							// Auto-detect region based on city (you can customize this logic)
-							if ( in_array( $city, array( 'Lawrenceville', 'Lilburn', 'Duluth', 'Suwanee', 'Buford' ) ) ) {
-								$region = 'Gwinnett';
-							} elseif ( in_array( $city, array( 'Marietta', 'Austell', 'Kennesaw', 'Smyrna', 'Acworth' ) ) ) {
-								$region = 'Cobb';
-							} elseif ( in_array( $city, array( 'Roswell', 'Alpharetta', 'Milton', 'Johns Creek', 'Cumming', 'Murrayville' ) ) ) {
-								$region = 'North';
-							} else {
-								$region = 'South';
-							}
-						}
-
-						// Get colors for this region
-						$colors = chroma_get_region_color( $region );
+						// Get colors for this region from term meta
+						$colors = $region_term
+							? chroma_get_region_color_from_term( $region_term->term_id )
+							: array( 'bg' => 'chroma-greenLight', 'text' => 'chroma-green', 'border' => 'chroma-green' );
 
 						// Check for special badges
 						$is_featured   = get_post_meta( $location_id, 'location_featured', true );
@@ -152,7 +147,7 @@ function chroma_get_region_color( $region ) {
 						}
 						?>
 
-						<div class="location-card group" data-region="<?php echo esc_attr( $region ); ?>" data-name="<?php echo esc_attr( $location_name . ' ' . $city . ' ' . $zip ); ?>">
+						<div class="location-card group" data-region="<?php echo esc_attr( $region_slug ); ?>" data-name="<?php echo esc_attr( $location_name . ' ' . $city . ' ' . $zip ); ?>">
 							<div class="bg-white rounded-[2rem] p-6 shadow-card border border-<?php echo esc_attr( $is_featured ? $colors['border'] . ' border-opacity-50' : 'brand-ink/5' ); ?> hover:border-<?php echo esc_attr( $colors['border'] ); ?>/30 transition-all hover:-translate-y-1 h-full flex flex-col relative overflow-hidden">
 
 								<?php if ( $is_new || $is_enrolling ) : ?>
@@ -163,7 +158,7 @@ function chroma_get_region_color( $region ) {
 
 								<div class="flex justify-between items-start mb-4 <?php echo ( $is_new || $is_enrolling ) ? 'mt-2' : ''; ?>">
 									<span class="bg-<?php echo esc_attr( $colors['bg'] ); ?> text-<?php echo esc_attr( $colors['text'] ); ?> px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
-										<?php echo esc_html( $region ); ?>
+										<?php echo esc_html( $region_name ); ?>
 									</span>
 									<?php if ( $is_open ) : ?>
 										<div class="w-2 h-2 rounded-full bg-chroma-green animate-pulse" title="Open Now"></div>
