@@ -46,6 +46,10 @@ while ( have_posts() ) :
 	// School pickups
 	$school_pickups = get_post_meta( $location_id, 'location_school_pickups', true );
 
+	// SEO content
+	$seo_content_title = get_post_meta( $location_id, 'location_seo_content_title', true );
+	$seo_content_text = get_post_meta( $location_id, 'location_seo_content_text', true );
+
 	// Get programs at this location
 	$programs_query = new WP_Query( array(
 		'post_type'      => 'program',
@@ -437,6 +441,25 @@ while ( have_posts() ) :
 
 		</div>
 	</section>
+
+	<?php if ( $seo_content_title || $seo_content_text ) : ?>
+	<!-- Location SEO Content Section -->
+	<section class="py-24 bg-brand-cream relative">
+		<div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">
+			<?php if ( $seo_content_title ) : ?>
+				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
+					<?php echo esc_html( $seo_content_title ); ?>
+				</h2>
+			<?php endif; ?>
+
+			<?php if ( $seo_content_text ) : ?>
+				<div class="text-lg text-brand-ink/80 leading-relaxed max-w-3xl mx-auto">
+					<?php echo wp_kses_post( wpautop( $seo_content_text ) ); ?>
+				</div>
+			<?php endif; ?>
+		</div>
+	</section>
+	<?php endif; ?>
 
 </main>
 

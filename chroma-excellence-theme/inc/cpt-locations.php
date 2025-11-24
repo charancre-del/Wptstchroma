@@ -254,6 +254,8 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 	$maps_embed       = get_post_meta( $post->ID, 'location_maps_embed', true );
 	$tour_booking_link = get_post_meta( $post->ID, 'location_tour_booking_link', true );
 	$school_pickups   = get_post_meta( $post->ID, 'location_school_pickups', true );
+	$seo_content_title = get_post_meta( $post->ID, 'location_seo_content_title', true );
+	$seo_content_text = get_post_meta( $post->ID, 'location_seo_content_text', true );
 	$address          = get_post_meta( $post->ID, 'location_address', true );
 	$city             = get_post_meta( $post->ID, 'location_city', true );
 	$state            = get_post_meta( $post->ID, 'location_state', true );
@@ -493,6 +495,22 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 	</div>
 
 	<div class="chroma-meta-section">
+		<h4><?php _e( 'Location SEO Content', 'chroma-excellence' ); ?></h4>
+
+		<div class="chroma-meta-field">
+			<label for="location_seo_content_title"><?php _e( 'SEO Content Title', 'chroma-excellence' ); ?></label>
+			<input type="text" id="location_seo_content_title" name="location_seo_content_title" value="<?php echo esc_attr( $seo_content_title ); ?>" placeholder="e.g., Early Education and Care in Lawrenceville, GA" />
+			<small><?php _e( 'Title for the location-specific content section (e.g., "Early Education and Care in [City], GA")', 'chroma-excellence' ); ?></small>
+		</div>
+
+		<div class="chroma-meta-field">
+			<label for="location_seo_content_text"><?php _e( 'SEO Content Description', 'chroma-excellence' ); ?></label>
+			<textarea id="location_seo_content_text" name="location_seo_content_text" rows="6" placeholder="Our school is more than a daycare..."><?php echo esc_textarea( $seo_content_text ); ?></textarea>
+			<small><?php _e( 'Location-specific description highlighting the area, accessibility, and unique features. This content appears at the bottom of the location page.', 'chroma-excellence' ); ?></small>
+		</div>
+	</div>
+
+	<div class="chroma-meta-section">
 		<p><strong><?php _e( 'Note:', 'chroma-excellence' ); ?></strong> <?php _e( 'Use the "Featured Image" box in the sidebar to set the hero image for this location. Programs available at this location can be managed from the Programs admin section.', 'chroma-excellence' ); ?></p>
 	</div>
 	<?php
@@ -534,6 +552,8 @@ function chroma_save_location_custom_fields( $post_id ) {
 		'location_maps_embed',
 		'location_tour_booking_link',
 		'location_school_pickups',
+		'location_seo_content_title',
+		'location_seo_content_text',
 		'location_address',
 		'location_city',
 		'location_state',
@@ -548,7 +568,7 @@ function chroma_save_location_custom_fields( $post_id ) {
 		if ( isset( $_POST[ $field ] ) ) {
 			$value = wp_unslash( $_POST[ $field ] );
 			// Sanitize based on field type
-			if ( in_array( $field, array( 'location_description', 'location_director_bio', 'location_maps_embed', 'location_school_pickups' ) ) ) {
+			if ( in_array( $field, array( 'location_description', 'location_director_bio', 'location_maps_embed', 'location_school_pickups', 'location_seo_content_text' ) ) ) {
 				$value = sanitize_textarea_field( $value );
 			} elseif ( $field === 'location_email' ) {
 				$value = sanitize_email( $value );
