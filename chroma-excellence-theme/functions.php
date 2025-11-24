@@ -36,6 +36,7 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
 
 // Utility Functions
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
+require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-home.php';
 
 // Legacy helper files (ACF plugin optional; helpers run on core WP functions only)
