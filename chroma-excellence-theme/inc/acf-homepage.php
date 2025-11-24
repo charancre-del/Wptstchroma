@@ -414,10 +414,15 @@ function chroma_home_locations_preview() {
                 return $cached;
         }
 
-        $heading    = '19+ neighborhood locations across Metro Atlanta';
-        $subheading = 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.';
-        $cta_label  = 'View All Locations';
-        $cta_link   = '/locations';
+        $heading     = '19+ neighborhood locations across Metro Atlanta';
+        $subheading  = 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.';
+        $cta_label   = 'View All Locations';
+        $cta_link    = '/locations';
+        $taxonomy    = 'location_region';
+        $fallback    = (object) array(
+                'name' => __( 'Other Areas', 'chroma-excellence' ),
+                'slug' => 'other-areas',
+        );
 
         $locations = get_posts(
                 array(
@@ -432,19 +437,21 @@ function chroma_home_locations_preview() {
 
         $map_points = array();
         $featured   = array();
+        $grouped    = array();
 
         foreach ( $locations as $location ) {
                 $post_id   = $location->ID;
                 $title     = get_the_title( $post_id );
                 $permalink = get_permalink( $post_id );
 
-                $city    = function_exists( 'get_field' ) ? get_field( 'location_city', $post_id ) : get_post_meta( $post_id, 'location_city', true );
-                $state   = function_exists( 'get_field' ) ? get_field( 'location_state', $post_id ) : get_post_meta( $post_id, 'location_state', true );
-                $phone   = function_exists( 'get_field' ) ? get_field( 'location_phone', $post_id ) : get_post_meta( $post_id, 'location_phone', true );
-                $address = function_exists( 'get_field' ) ? get_field( 'location_address', $post_id ) : get_post_meta( $post_id, 'location_address', true );
+                $meta    = chroma_get_location_meta( $post_id );
+                $city    = $meta['city'];
+                $state   = $meta['state'];
+                $phone   = $meta['phone'];
+                $address = $meta['address'];
 
-                $lat = function_exists( 'get_field' ) ? get_field( 'location_latitude', $post_id ) : get_post_meta( $post_id, 'location_latitude', true );
-                $lng = function_exists( 'get_field' ) ? get_field( 'location_longitude', $post_id ) : get_post_meta( $post_id, 'location_longitude', true );
+                $lat = $meta['latitude'];
+                $lng = $meta['longitude'];
 
                 if ( $lat && $lng ) {
                         $map_points[] = array(
@@ -458,7 +465,7 @@ function chroma_home_locations_preview() {
                         );
                 }
 
-                $featured[] = array(
+                $location_data = array(
                         'title'   => $title,
                         'city'    => $city,
                         'state'   => $state,
@@ -466,6 +473,27 @@ function chroma_home_locations_preview() {
                         'phone'   => $phone,
                         'url'     => $permalink,
                 );
+
+                $featured[] = $location_data;
+
+                $terms = get_the_terms( $post_id, $taxonomy );
+                if ( empty( $terms ) || is_wp_error( $terms ) ) {
+                        $terms = array( $fallback );
+                }
+
+                foreach ( $terms as $term ) {
+                        $group_key = $term->slug ? sanitize_title( $term->slug ) : sanitize_title( $term->name );
+
+                        if ( ! isset( $grouped[ $group_key ] ) ) {
+                                $grouped[ $group_key ] = array(
+                                        'label'     => $term->name,
+                                        'slug'      => $term->slug ?: $group_key,
+                                        'locations' => array(),
+                                );
+                        }
+
+                        $grouped[ $group_key ]['locations'][] = $location_data;
+                }
         }
 
         // If no dynamic locations exist, retain the previous static defaults.
@@ -535,18 +563,44 @@ function chroma_home_locations_preview() {
                                 'url'     => '/locations/lawrenceville',
                         ),
                 );
+
+                $grouped = array(
+                        'metro-atlanta' => array(
+                                'label'     => 'Metro Atlanta',
+                                'slug'      => 'metro-atlanta',
+                                'locations' => $featured,
+                        ),
+                );
         }
 
-        // Limit featured list to the first three items for layout consistency.
-        $featured = array_slice( $featured, 0, 3 );
+        foreach ( $grouped as &$group ) {
+                usort(
+                        $group['locations'],
+                        function ( $a, $b ) {
+                                return strnatcasecmp( $a['title'], $b['title'] );
+                        }
+                );
+        }
+        unset( $group );
+
+        if ( ! empty( $grouped ) ) {
+                uasort(
+                        $grouped,
+                        function ( $a, $b ) {
+                                return strnatcasecmp( $a['label'], $b['label'] );
+                        }
+                );
+        }
 
         $cached = array(
-                'heading'    => $heading,
-                'subheading' => $subheading,
-                'cta_label'  => $cta_label,
-                'cta_link'   => $cta_link,
-                'map_points' => $map_points,
-                'featured'   => $featured,
+                'heading'      => $heading,
+                'subheading'   => $subheading,
+                'cta_label'    => $cta_label,
+                'cta_link'     => $cta_link,
+                'map_points'   => $map_points,
+                'featured'     => $featured,
+                'grouped'      => $grouped,
+                'taxonomy_key' => $taxonomy,
         );
 
         return $cached;

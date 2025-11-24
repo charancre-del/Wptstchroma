@@ -13,10 +13,8 @@ get_header();
 <!-- Hero Section -->
 <?php get_template_part( 'template-parts/home/hero' ); ?>
 
-<!-- Prismpath Expertise -->
-<?php if ( chroma_home_has_prismpath_panels() ) : ?>
+<!-- Prismpath Expertise Section (Bento Grid) -->
 <?php get_template_part( 'template-parts/home/prismpath-expertise' ); ?>
-<?php endif; ?>
 
 <!-- Stats Strip -->
 <?php if ( chroma_home_has_stats() ) : ?>
@@ -41,12 +39,12 @@ get_header();
 <!-- Locations Preview -->
 <?php get_template_part( 'template-parts/home/locations-preview' ); ?>
 
+<!-- Tour CTA -->
+<?php get_template_part( 'template-parts/home/tour-cta' ); ?>
+
 <!-- FAQ Section -->
 <?php if ( chroma_home_has_faq() ) : ?>
 	<?php get_template_part( 'template-parts/home/faq' ); ?>
 <?php endif; ?>
-
-<!-- Tour CTA -->
-<?php get_template_part( 'template-parts/home/tour-cta' ); ?>
 
 <?php get_footer(); ?>
