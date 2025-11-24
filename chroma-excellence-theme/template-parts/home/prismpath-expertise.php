@@ -37,10 +37,10 @@ $readiness_text    = $readiness['description'];
                 </div>
 
 		<!-- Bento Grid -->
-		<div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:h-[620px]">
+		<div class="grid grid-cols-1 md:grid-cols-12 md:grid-rows-2 gap-6 md:auto-rows-fr">
 
 			<!-- Card 1: Large Blue Card (7 columns) -->
-                        <div class="md:col-span-7 bg-chroma-blue rounded-[3rem] p-10 text-white flex flex-col justify-between relative overflow-hidden">
+                        <div class="md:col-span-7 md:row-span-1 bg-chroma-blue rounded-[3rem] p-10 text-white flex flex-col justify-between relative overflow-hidden min-h-[300px] md:min-h-0">
 				<div class="absolute top-0 right-0 p-10 opacity-10 text-8xl">
 					<i class="fa-solid fa-shapes"></i>
 				</div>
@@ -70,7 +70,7 @@ $readiness_text    = $readiness['description'];
 			</div>
 
 			<!-- Card 2: Large Red Card (5 columns, tall) -->
-                        <div class="md:col-span-5 md:row-span-2 bg-chroma-red rounded-[3rem] p-10 text-white relative overflow-hidden">
+                        <div class="md:col-span-5 md:row-span-2 bg-chroma-red rounded-[3rem] p-10 text-white relative overflow-hidden min-h-[400px] md:min-h-0">
 				<div class="absolute top-0 right-0 p-12 opacity-10 text-8xl">
 					<i class="fa-solid fa-heart"></i>
 				</div>
@@ -93,7 +93,7 @@ $readiness_text    = $readiness['description'];
                         </div>
 
 			<!-- Card 3: Green Card (3 columns) -->
-			<div class="md:col-span-3 bg-gradient-to-br from-chroma-green to-chroma-green/90 rounded-[3rem] p-8 text-white">
+			<div class="md:col-span-3 md:row-span-1 bg-gradient-to-br from-chroma-green to-chroma-green/90 rounded-[3rem] p-8 text-white min-h-[300px] md:min-h-0">
 				<div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-4">
 					<i class="fa-solid fa-apple-whole"></i>
 				</div>
@@ -104,7 +104,7 @@ $readiness_text    = $readiness['description'];
 			</div>
 
 			<!-- Card 4: White Card (4 columns) -->
-                        <div class="md:col-span-4 bg-white border border-chroma-blue/10 shadow-soft rounded-[3rem] p-8 flex flex-col gap-4">
+                        <div class="md:col-span-4 md:row-span-1 bg-white border border-chroma-blue/10 shadow-soft rounded-[3rem] p-8 flex flex-col gap-4 min-h-[300px] md:min-h-0">
 				<div class="flex items-center gap-3">
 					<i class="fa-solid fa-shield-halved text-chroma-yellow text-2xl"></i>
 					<h3 class="text-xl font-bold text-brand-ink"><?php echo esc_html( $card_4['heading'] ); ?></h3>
