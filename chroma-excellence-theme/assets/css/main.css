@@ -1056,12 +1056,18 @@ body {
 .border-chroma-blue\/30 {
   border-color: rgb(74 108 124 / 0.3);
 }
+.border-chroma-green\/20 {
+  border-color: rgb(141 163 153 / 0.2);
+}
 .border-chroma-red {
   --tw-border-opacity: 1;
   border-color: rgb(214 125 107 / var(--tw-border-opacity, 1));
 }
 .border-chroma-red\/30 {
   border-color: rgb(214 125 107 / 0.3);
+}
+.border-chroma-yellow\/20 {
+  border-color: rgb(230 190 117 / 0.2);
 }
 .border-white {
   --tw-border-opacity: 1;
@@ -1611,9 +1617,6 @@ body {
 .opacity-10 {
   opacity: 0.1;
 }
-.opacity-20 {
-  opacity: 0.2;
-}
 .opacity-40 {
   opacity: 0.4;
 }
@@ -1688,9 +1691,17 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+.delay-200 {
+  transition-delay: 200ms;
+}
 .duration-300 {
   transition-duration: 300ms;
 }
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(24px);
+    animation: fadeInUp 1.1s ease forwards;
+  }
 @keyframes fadeInUp {
     to {
       opacity: 1;
@@ -1768,6 +1779,11 @@ body {
   border-color: rgb(74 108 124 / var(--tw-border-opacity, 1));
 }
 
+.hover\:border-chroma-green:hover {
+  --tw-border-opacity: 1;
+  border-color: rgb(141 163 153 / var(--tw-border-opacity, 1));
+}
+
 .hover\:border-chroma-red:hover {
   --tw-border-opacity: 1;
   border-color: rgb(214 125 107 / var(--tw-border-opacity, 1));
@@ -1780,6 +1796,11 @@ body {
 .hover\:border-chroma-teal:hover {
   --tw-border-opacity: 1;
   border-color: rgb(74 108 124 / var(--tw-border-opacity, 1));
+}
+
+.hover\:border-chroma-yellow:hover {
+  --tw-border-opacity: 1;
+  border-color: rgb(230 190 117 / var(--tw-border-opacity, 1));
 }
 
 .hover\:bg-brand-cream:hover {
@@ -1908,6 +1929,10 @@ body {
 
   .sm\:flex-row {
     flex-direction: row;
+  }
+
+  .sm\:items-center {
+    align-items: center;
   }
 
   .sm\:px-6 {
