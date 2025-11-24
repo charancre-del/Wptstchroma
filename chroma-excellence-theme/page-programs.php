@@ -42,68 +42,27 @@ $programs = get_posts( array(
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <?php foreach ( $programs as $program ) :
                         setup_postdata( $program );
-                        $meta      = chroma_get_program_meta( $program->ID );
-                        $age_range = $meta['age_range'];
-                        $excerpt   = $meta['short_description'] ?: wp_trim_words( $program->post_content, 25 );
-                        $icon      = $meta['icon_class'];
-                        $color     = $meta['color'];
-                        $age_range = get_field( 'program_age_range', $program->ID );
-                        $excerpt   = get_field( 'program_short_description', $program->ID ) ?: wp_trim_words( $program->post_content, 25 );
-                        $icon      = get_field( 'program_icon_class', $program->ID ) ?: 'fas fa-child';
-
-                        $color_key = get_field( 'program_color', $program->ID ) ?: 'chroma-teal';
-                        $palettes  = array(
-                            'chroma-teal'   => array(
-                                'gradient_from' => 'from-chroma-teal/10',
-                                'gradient_to'   => 'to-chroma-teal/5',
-                                'text'          => 'text-chroma-teal',
-                                'button'        => 'bg-chroma-teal hover:bg-chroma-teal/90',
-                            ),
-                            'chroma-blue'   => array(
-                                'gradient_from' => 'from-chroma-blue/10',
-                                'gradient_to'   => 'to-chroma-blue/5',
-                                'text'          => 'text-chroma-blue',
-                                'button'        => 'bg-chroma-blue hover:bg-chroma-blueDark',
-                            ),
-                            'chroma-red'    => array(
-                                'gradient_from' => 'from-chroma-red/10',
-                                'gradient_to'   => 'to-chroma-red/5',
-                                'text'          => 'text-chroma-red',
-                                'button'        => 'bg-chroma-red hover:bg-chroma-red/90',
-                            ),
-                            'chroma-green'  => array(
-                                'gradient_from' => 'from-chroma-green/10',
-                                'gradient_to'   => 'to-chroma-green/5',
-                                'text'          => 'text-chroma-green',
-                                'button'        => 'bg-chroma-green hover:bg-chroma-green/90',
-                            ),
-                            'chroma-yellow' => array(
-                                'gradient_from' => 'from-chroma-yellow/10',
-                                'gradient_to'   => 'to-chroma-yellow/5',
-                                'text'          => 'text-chroma-yellow',
-                                'button'        => 'bg-chroma-yellow hover:bg-chroma-yellow/90',
-                            ),
-                        );
-
-                        $palette = $palettes[ $color_key ] ?? $palettes['chroma-teal'];
+                        $program_fields = chroma_get_program_fields( $program->ID );
+                        $color_classes  = chroma_program_color_classes( $program_fields['color'] );
+                        $excerpt        = $program_fields['excerpt'] ?: wp_trim_words( $program->post_content, 25 );
                     ?>
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300" data-program="<?php echo esc_attr( $program->ID ); ?>">
-                        <div class="bg-gradient-to-br <?php echo esc_attr( $palette['gradient_from'] . ' ' . $palette['gradient_to'] ); ?> p-8">
-                            <div class="<?php echo esc_attr( $palette['text'] ); ?> text-5xl mb-4">
-                                <i class="<?php echo esc_attr( $icon ); ?>"></i>
+                        <div class="bg-gradient-to-br <?php echo esc_attr( $color_classes['gradient_from'] ); ?> <?php echo esc_attr( $color_classes['gradient_to'] ); ?> p-8">
+                            <div class="<?php echo esc_attr( $color_classes['text'] ); ?> text-5xl mb-4">
+                                <i class="<?php echo esc_attr( $program_fields['icon'] ); ?>"></i>
                             </div>
                             <h2 class="text-2xl font-bold text-brand-ink mb-2">
                                 <?php echo esc_html( $program->post_title ); ?>
                             </h2>
-                            <?php if ( $age_range ) : ?>
+                            <?php if ( $program_fields['age_range'] ) : ?>
                                 <div class="text-chroma-yellow font-semibold mb-4">
-                                    Ages <?php echo esc_html( $age_range ); ?>
+                                    Ages <?php echo esc_html( $program_fields['age_range'] ); ?>
                                 </div>
                             <?php endif; ?>
                             <p class="text-brand-ink/70 mb-6">
                                 <?php echo esc_html( $excerpt ); ?>
                             </p>
-                            <a href="<?php echo esc_url( get_permalink( $program ) ); ?>" class="inline-block <?php echo esc_attr( $palette['button'] ); ?> text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                            <a href="<?php echo esc_url( get_permalink( $program ) ); ?>" class="inline-block <?php echo esc_attr( $color_classes['button'] ); ?> text-white px-6 py-3 rounded-lg font-semibold hover:opacity-90 transition-colors">
                                 Learn More
                             </a>
                         </div>

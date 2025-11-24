@@ -10,13 +10,12 @@ get_header();
 ?>
 
 <?php while ( have_posts() ) : the_post(); ?>
-        <?php $meta = chroma_get_program_meta(); ?>
-        <article id="program-<?php the_ID(); ?>" <?php post_class(); ?>>
-                <div class="bg-gradient-to-br from-chroma-redLight to-white py-16 border-b border-brand-navy/10">
-                        <div class="max-w-6xl mx-auto px-4 lg:px-6">
-                                <?php if ( $age_range = $meta['age_range'] ) : ?>
-                                        <?php chroma_eyebrow( $age_range, 'teal' ); ?>
-                                <?php endif; ?>
+	<article id="program-<?php the_ID(); ?>" <?php post_class(); ?>>
+		<div class="bg-gradient-to-br from-chroma-redLight to-white py-16 border-b border-brand-navy/10">
+			<div class="max-w-6xl mx-auto px-4 lg:px-6">
+                                <?php if ( $age_range = chroma_get_meta_value( get_the_ID(), 'program_age_range' ) ) : ?>
+					<?php chroma_eyebrow( $age_range, 'teal' ); ?>
+				<?php endif; ?>
 				<h1 class="text-4xl md:text-5xl font-serif font-bold text-brand-ink mb-4"><?php the_title(); ?></h1>
 				<?php if ( has_excerpt() ) : ?>
 					<p class="text-lg text-brand-ink/70"><?php the_excerpt(); ?></p>

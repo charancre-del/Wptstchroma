@@ -12,6 +12,33 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Global settings helper
+ */
+function chroma_get_global_setting( $key, $default = '' ) {
+        $defaults = array(
+                'global_phone'                  => '',
+                'global_email'                  => '',
+                'global_tour_email'             => '',
+                'global_address'                => '',
+                'global_city'                   => '',
+                'global_state'                  => 'GA',
+                'global_zip'                    => '',
+                'global_facebook_url'           => '',
+                'global_instagram_url'          => '',
+                'global_linkedin_url'           => '',
+                'global_seo_default_title'      => get_bloginfo( 'name' ),
+                'global_seo_default_description' => get_bloginfo( 'description' ),
+                'global_logo'                   => '',
+        );
+
+        $settings = get_option( 'chroma_global_settings', array() );
+        $value    = $settings[ $key ] ?? $default;
+
+        if ( '' === $value && isset( $defaults[ $key ] ) ) {
+                $value = $defaults[ $key ];
+        }
+
+        return apply_filters( 'chroma_global_setting', $value, $key, $settings );
  * Global configuration pulled from wp_options/theme_mods to avoid ACF reliance.
  */
 function chroma_get_global_settings() {
@@ -91,6 +118,7 @@ function chroma_global_email() {
  * Global Tour Email Helper
  */
 function chroma_global_tour_email() {
+return chroma_get_global_setting( 'global_tour_email', chroma_global_email() );
         return chroma_get_option_value( 'global_tour_email', chroma_global_email() );
 	$settings = chroma_get_global_settings();
 	return $settings['tour_email'] ?: chroma_global_email();
