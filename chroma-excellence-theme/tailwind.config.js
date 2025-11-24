@@ -9,14 +9,14 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Outfit', 'system-ui', 'sans-serif'],
         serif: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
       },
       colors: {
         brand: {
           ink: '#263238',
           cream: '#FFFCF8',
-          navy: '#1a2332',
+          navy: '#4A6C7C',
         },
         chroma: {
           red: '#D67D6B',
@@ -24,8 +24,8 @@ module.exports = {
           blue: '#4A6C7C',
           blueDark: '#2F4858',
           blueLight: '#E3E9EC',
-          teal: '#4A9B8E',
-          tealLight: '#E3F2EF',
+          teal: '#4A6C7C',
+          tealLight: '#E3E9EC',
           green: '#8DA399',
           greenLight: '#E3EBE8',
           yellow: '#E6BE75',

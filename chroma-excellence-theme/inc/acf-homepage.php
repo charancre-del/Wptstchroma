@@ -18,13 +18,10 @@ function chroma_get_home_page_id() {
         return get_option( 'page_on_front' ) ?: 0;
 }
 
-/**
- * Home Hero Data
- */
-function chroma_home_hero() {
+function chroma_home_default_hero() {
         return array(
                 'heading'         => 'The art of <span class="italic text-chroma-red">growing up.</span>',
-                'subheading'      => 'Where accredited excellence meets the warmth of home.',
+                'subheading'      => 'Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.',
                 'cta_label'       => 'Schedule a Tour',
                 'cta_url'         => '#tour',
                 'secondary_label' => 'View Programs',
@@ -32,10 +29,7 @@ function chroma_home_hero() {
         );
 }
 
-/**
- * Home Stats
- */
-function chroma_home_stats() {
+function chroma_home_default_stats() {
         return array(
                 array( 'value' => '19+', 'label' => 'Metro campuses' ),
                 array( 'value' => '2,000+', 'label' => 'Children enrolled' ),
@@ -44,80 +38,138 @@ function chroma_home_stats() {
         );
 }
 
+function chroma_home_default_prismpath() {
+        return array(
+                'feature'   => array(
+                        'eyebrow'    => 'The Chroma Standard',
+                        'heading'    => 'Grounded in Expertise. Wrapped in Love.',
+                        'subheading' => '',
+                        'cta_label'  => 'Meet the Team',
+                        'cta_url'    => '/about',
+                ),
+                'cards'     => array(
+                        array(
+                                'badge'   => 'Proprietary Model',
+                                'heading' => 'The Prismpath™ Curriculum',
+                                'text'    => 'Just as a prism refracts light into a full spectrum of color, Prismpath™ refracts play into a full spectrum of development.',
+                        ),
+                        array(
+                                'badge'   => '',
+                                'heading' => 'Expert Care, Extended Family.',
+                                'text'    => 'Our educators are state-certified professionals who understand that the most important credential is kindness.',
+                                'button'  => 'Meet the Team',
+                                'url'     => '/about',
+                        ),
+                        array(
+                                'badge'   => '',
+                                'heading' => 'Wholesome Fuel',
+                                'text'    => 'Organic, balanced meals served family-style to fuel growing minds.',
+                        ),
+                        array(
+                                'badge'   => '',
+                                'heading' => 'Uncompromised Safety',
+                                'text'    => 'Secure, monitored facilities with open-door transparency for parents.',
+                        ),
+                ),
+                'readiness' => array(
+                        'heading'     => 'Kindergarten Readiness',
+                        'description' => 'Our graduates enter school confident, socially capable, and academically prepared.',
+                ),
+        );
+}
+
+function chroma_home_get_theme_mod_json( $key, $default = array() ) {
+        $raw = get_theme_mod( $key, '' );
+
+        if ( empty( $raw ) ) {
+                return $default;
+        }
+
+        $decoded = json_decode( $raw, true );
+
+        if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $decoded ) ) {
+                return $default;
+        }
+
+        return $decoded;
+}
+
+/**
+ * Home Hero Data
+ */
+function chroma_home_hero() {
+        $defaults = chroma_home_default_hero();
+
+        return array(
+                'heading'         => wp_kses_post( get_theme_mod( 'chroma_home_hero_heading', $defaults['heading'] ) ),
+                'subheading'      => sanitize_text_field( get_theme_mod( 'chroma_home_hero_subheading', $defaults['subheading'] ) ),
+                'cta_label'       => sanitize_text_field( get_theme_mod( 'chroma_home_hero_cta_label', $defaults['cta_label'] ) ),
+                'cta_url'         => esc_url_raw( get_theme_mod( 'chroma_home_hero_cta_url', $defaults['cta_url'] ) ),
+                'secondary_label' => sanitize_text_field( get_theme_mod( 'chroma_home_hero_secondary_label', $defaults['secondary_label'] ) ),
+                'secondary_url'   => esc_url_raw( get_theme_mod( 'chroma_home_hero_secondary_url', $defaults['secondary_url'] ) ),
+        );
+}
+
+/**
+ * Home Stats
+ */
+function chroma_home_stats() {
+        $stats    = chroma_home_get_theme_mod_json( 'chroma_home_stats_json', chroma_home_default_stats() );
+        $cleaned  = array();
+
+        foreach ( $stats as $stat ) {
+                $cleaned[] = array(
+                        'value' => sanitize_text_field( $stat['value'] ?? '' ),
+                        'label' => sanitize_text_field( $stat['label'] ?? '' ),
+                );
+        }
+
+        return $cleaned;
+}
+
 /**
  * Prismpath expertise panels
  */
 function chroma_home_prismpath_panels() {
+        $defaults = chroma_home_default_prismpath();
+
+        $feature = $defaults['feature'];
+        $feature = array(
+                'eyebrow'    => sanitize_text_field( get_theme_mod( 'chroma_home_prismpath_eyebrow', $feature['eyebrow'] ) ),
+                'heading'    => sanitize_text_field( get_theme_mod( 'chroma_home_prismpath_heading', $feature['heading'] ) ),
+                'subheading' => sanitize_text_field( get_theme_mod( 'chroma_home_prismpath_subheading', $feature['subheading'] ) ),
+                'cta_label'  => sanitize_text_field( get_theme_mod( 'chroma_home_prismpath_cta_label', $feature['cta_label'] ) ),
+                'cta_url'    => esc_url_raw( get_theme_mod( 'chroma_home_prismpath_cta_url', $feature['cta_url'] ) ),
+        );
+
+        $cards = chroma_home_get_theme_mod_json( 'chroma_home_prismpath_cards_json', $defaults['cards'] );
+        $cards = array_map(
+                function ( $card ) {
+                        return array(
+                                'badge'   => sanitize_text_field( $card['badge'] ?? '' ),
+                                'heading' => sanitize_text_field( $card['heading'] ?? '' ),
+                                'text'    => sanitize_textarea_field( $card['text'] ?? '' ),
+                                'button'  => sanitize_text_field( $card['button'] ?? '' ),
+                                'url'     => esc_url_raw( $card['url'] ?? '' ),
+                        );
+                },
+                $cards
+        );
+
+        $readiness = $defaults['readiness'];
+        $readiness = array(
+                'heading'     => sanitize_text_field( get_theme_mod( 'chroma_home_prismpath_readiness_heading', $readiness['heading'] ) ),
+                'description' => sanitize_textarea_field( get_theme_mod( 'chroma_home_prismpath_readiness_desc', $readiness['description'] ) ),
+        );
+
         return array(
-                'feature' => array(
-                        'eyebrow'   => 'The Chroma Standard',
-                        'heading'   => 'Grounded in Expertise. Wrapped in Love.',
-                        'cta_label' => 'Meet the Team',
-                        'cta_url'   => '/about',
-                ),
-                'cards'   => array(
-                        array(
-                                'badge'       => 'Proprietary Model',
-                                'title'       => 'The Prismpath™ Curriculum',
-                                'description' => 'Just as a prism refracts play into a full spectrum of development.',
-                        ),
-                        array(
-                                'badge'       => '',
-                                'title'       => 'Expert Care, Extended Family.',
-                                'description' => 'Our educators are state-certified professionals who understand that the most important credential is kindness.',
-                        ),
-                        array(
-                                'badge'       => '',
-                                'title'       => 'Wholesome Fuel',
-                                'description' => 'Organic, balanced meals served family-style to fuel growing minds.',
-                        ),
-                        array(
-                                'badge'       => '',
-                                'title'       => 'Uncompromised Safety',
-                                'description' => 'Secure, monitored facilities with open-door transparency for parents.',
-                        ),
-                ),
+                'feature'   => $feature,
+                'cards'     => $cards,
+                'readiness' => $readiness,
         );
 }
 
-/**
- * Home FAQ Items
- */
-function chroma_home_faq_items() {
-        return array(
-                array(
-                        'question' => 'Do you offer GA Lottery Pre-K?',
-                        'answer'   => 'Yes. Many Chroma locations offer free GA Lottery Pre-K for 4-year-olds.',
-                ),
-                array(
-                        'question' => 'What ages do you serve?',
-                        'answer'   => 'Most campuses serve children from 6 weeks through 12 years old.',
-                ),
-                array(
-                        'question' => 'Are meals and snacks included?',
-                        'answer'   => 'Yes. Through the Child and Adult Care Food Program (CACFP).',
-                ),
-        );
-}
-
-/**
- * Home FAQ block
- */
-function chroma_home_faq() {
-        return array(
-                'heading'    => 'Common questions from parents',
-                'subheading' => 'We’ve answered a few of the questions parents ask most when choosing childcare and early learning.',
-                'items'      => chroma_home_faq_items(),
-                'cta_text'   => '',
-                'cta_label'  => '',
-                'cta_link'   => '',
-        );
-}
-
-/**
- * Age-based program wizard options
- */
-function chroma_home_program_wizard_options() {
+function chroma_home_default_program_wizard_options() {
         return array(
                 array(
                         'key'         => 'infant',
@@ -164,15 +216,13 @@ function chroma_home_program_wizard_options() {
         );
 }
 
-/**
- * Curriculum radar profiles
- */
-function chroma_home_curriculum_profiles() {
+function chroma_home_default_curriculum_profiles() {
         return array(
                 'labels'   => array( 'Physical', 'Emotional', 'Social', 'Academic', 'Creative' ),
                 'profiles' => array(
                         array(
                                 'key'         => 'infant',
+                                'label'       => 'Infant',
                                 'title'       => 'Foundation Phase',
                                 'description' => 'Infant classrooms emphasize emotional security, attachment, physical health, and sensory experiences. Academics are embedded through language-rich interactions.',
                                 'color'       => '#D67D6B',
@@ -180,6 +230,7 @@ function chroma_home_curriculum_profiles() {
                         ),
                         array(
                                 'key'         => 'toddler',
+                                'label'       => 'Toddler',
                                 'title'       => 'Discovery Phase',
                                 'description' => 'Toddlers explore movement, language, early problem-solving, and social skills through guided play and routines.',
                                 'color'       => '#4A6C7C',
@@ -187,6 +238,7 @@ function chroma_home_curriculum_profiles() {
                         ),
                         array(
                                 'key'         => 'preschool',
+                                'label'       => 'Preschool',
                                 'title'       => 'Exploration Phase',
                                 'description' => 'Preschoolers work on early literacy, math concepts, dramatic play, and collaborative projects, supported by strong routines.',
                                 'color'       => '#E6BE75',
@@ -194,6 +246,7 @@ function chroma_home_curriculum_profiles() {
                         ),
                         array(
                                 'key'         => 'prep',
+                                'label'       => 'Pre-K Prep',
                                 'title'       => 'Pre-K Prep Phase',
                                 'description' => 'Children build stamina for small-group work, early writing, and multi-step directions while strengthening self-regulation.',
                                 'color'       => '#2F4858',
@@ -201,6 +254,7 @@ function chroma_home_curriculum_profiles() {
                         ),
                         array(
                                 'key'         => 'prek',
+                                'label'       => 'GA Pre-K',
                                 'title'       => 'GA Pre-K Readiness',
                                 'description' => 'Balanced academic readiness, social-emotional learning, and joyful experiences aligned with GA standards.',
                                 'color'       => '#4A6C7C',
@@ -208,6 +262,7 @@ function chroma_home_curriculum_profiles() {
                         ),
                         array(
                                 'key'         => 'afterschool',
+                                'label'       => 'After School',
                                 'title'       => 'Enrichment Phase',
                                 'description' => 'School-age programming offers homework help, social clubs, athletic play, and creative enrichment for older children.',
                                 'color'       => '#E6BE75',
@@ -218,17 +273,58 @@ function chroma_home_curriculum_profiles() {
 }
 
 /**
- * Daily schedule tracks
+ * Home FAQ Items
  */
-function chroma_home_schedule_tracks() {
-return array(
-array(
-'key'   => 'infant',
-'label' => 'Infants',
-'title' => 'The Nurturing Nest',
-'color' => 'chroma-blue',
-'background' => 'bg-chroma-blueLight',
-'steps' => array(
+function chroma_home_default_faq_items() {
+        return array(
+                array(
+                        'question' => 'Do you offer GA Lottery Pre-K?',
+                        'answer'   => 'Yes. Many Chroma locations offer free GA Lottery Pre-K for 4-year-olds.',
+                ),
+                array(
+                        'question' => 'What ages do you serve?',
+                        'answer'   => 'Most campuses serve children from 6 weeks through 12 years old.',
+                ),
+                array(
+                        'question' => 'Are meals and snacks included?',
+                        'answer'   => 'Yes. Through the Child and Adult Care Food Program (CACFP).',
+                ),
+                array(
+                        'question' => 'How do you communicate with parents?',
+                        'answer'   => 'We use a modern parent app and in-person conversations to keep you informed.',
+                ),
+                array(
+                        'question' => 'Can I tour before enrolling?',
+                        'answer'   => 'Absolutely. We encourage tours so you can meet the Director and see classrooms in action.',
+                ),
+        );
+}
+
+function chroma_home_default_faq() {
+        return array(
+                'heading'    => 'Common questions from parents',
+                'subheading' => 'We’ve answered a few of the questions parents ask most when choosing childcare and early learning.',
+                'items'      => chroma_home_default_faq_items(),
+                'cta_text'   => '',
+                'cta_label'  => '',
+                'cta_link'   => '',
+        );
+}
+
+/**
+ * Curriculum radar profiles
+ */
+function chroma_home_default_schedule_tracks() {
+        return array(
+                array(
+                        'key'         => 'infant',
+                        'label'       => 'Infants',
+                        'title'       => 'The Nurturing Nest',
+                        'description' => 'Individualized schedules follow infants’ cues for sleeping and eating, with gentle sensory play.',
+                        'color'       => 'chroma-blue',
+                        'background'  => 'bg-chroma-blueLight',
+                        'image'       => 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop',
+                        'steps'       => array(
                                 array(
                                         'time'  => 'AM',
                                         'title' => 'Warm Welcome & Cuddles',
@@ -246,13 +342,15 @@ array(
                                 ),
                         ),
                 ),
-array(
-'key'   => 'toddler',
-'label' => 'Toddlers',
-'title' => 'Explorers & Builders',
-'color' => 'chroma-yellow',
-'background' => 'bg-chroma-yellowLight',
-'steps' => array(
+                array(
+                        'key'         => 'toddler',
+                        'label'       => 'Toddlers',
+                        'title'       => 'Explorers & Builders',
+                        'description' => 'Structured circle time and communal meals help toddlers understand social cues and transitions.',
+                        'color'       => 'chroma-yellow',
+                        'background'  => 'bg-chroma-yellowLight',
+                        'image'       => 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop',
+                        'steps'       => array(
                                 array(
                                         'time'  => '9:00',
                                         'title' => 'Morning Circle',
@@ -270,143 +368,153 @@ array(
                                 ),
                         ),
                 ),
-array(
-'key'   => 'preschool',
-'label' => 'Preschool',
-'title' => 'Hands-on Discovery',
-'color' => 'chroma-green',
-'background' => 'bg-chroma-greenLight',
-'steps' => array(
-array(
-'time'  => '9:00',
-'title' => 'Morning Meeting',
-'copy'  => 'Greetings, songs, and preview of the day’s centers.',
-),
-array(
-'time'  => '10:30',
-'title' => 'Centers & Small Groups',
-'copy'  => 'Guided play with art, STEM trays, and sensory bins.',
-),
-array(
-'time'  => '1:30',
-'title' => 'Outdoor Adventure',
-'copy'  => 'Gross-motor play, gardening, and nature walks.',
-),
-),
-),
-array(
-'key'   => 'prep',
-'label' => 'Prek-Prep',
-'title' => 'Independence Builders',
-'color' => 'chroma-blueDark',
-'background' => 'bg-chroma-blueLight',
-'steps' => array(
-array(
-'time'  => '8:45',
-'title' => 'Literacy Invitations',
-'copy'  => 'Name practice, letter work, and story retells.',
-),
-array(
-'time'  => '10:15',
-'title' => 'Math & Movement',
-'copy'  => 'Patterning, counting games, and yoga-based movement.',
-),
-array(
-'time'  => '1:00',
-'title' => 'Project Time',
-'copy'  => 'Small-group projects that build stamina and collaboration.',
-),
-),
-),
-array(
-'key'   => 'ga-prek',
-'label' => 'GA Prek',
-'title' => 'Kindergarten Readiness',
-'color' => 'chroma-red',
-'background' => 'bg-chroma-redLight',
-'steps' => array(
-array(
-'time'  => '9:00',
-'title' => 'Literacy & Logic',
-'copy'  => 'Phonics games, calendar math, and story comprehension.',
-),
-array(
-'time'  => '11:00',
-'title' => 'Project-Based Learning',
-'copy'  => 'Collaborative science experiments and art projects.',
-),
-array(
-'time'  => '2:00',
-'title' => 'Social Centers',
-'copy'  => 'Dramatic play and negotiation skills.',
-),
-),
-),
-array(
-'key'   => 'afterschool',
-'label' => 'Afterschool',
-'title' => 'Clubs & Care',
-'color' => 'chroma-yellow',
-'background' => 'bg-chroma-yellowLight',
-'steps' => array(
-array(
-'time'  => '3:00',
-'title' => 'Arrival & Snack',
-'copy'  => 'Healthy snack and community check-in after school.',
-),
-array(
-'time'  => '3:30',
-'title' => 'Homework & Tutoring',
-'copy'  => 'Quiet homework support with teacher guidance.',
-),
-array(
-'time'  => '4:30',
-'title' => 'Clubs & Outdoor Play',
-'copy'  => 'STEM clubs, art, and active play before pickup.',
-),
-),
-),
-);
-}
-
-/**
- * Programs preview grid content
- */
-function chroma_home_programs_preview() {
-        return array(
-                'heading'    => 'Our Programs',
-                'subheading' => 'Choose the Chroma program designed for your child’s age and learning stage.',
-                'cta_label'  => 'View All Programs',
-                'cta_link'   => '/programs',
-                'featured'   => array(
-                        array(
-                                'title'     => 'Infant Care',
-                                'age_range' => '6 weeks–12 months',
-                                'icon'      => 'fa-solid fa-baby',
-                                'excerpt'   => 'Safe sleep practices, responsive caregiving, and sensory-rich experiences in a peaceful environment.',
-                                'url'       => '/programs#infant',
-                        ),
-                        array(
-                                'title'     => 'Toddler Program',
-                                'age_range' => '1 year',
-                                'icon'      => 'fa-solid fa-rocket',
-                                'excerpt'   => 'Exploratory play, language bursts, and social skill building for new walkers and talkers.',
-                                'url'       => '/programs#toddler',
-                        ),
-                        array(
-                                'title'     => 'GA Pre-K',
-                                'age_range' => '4 years',
-                                'icon'      => 'fa-solid fa-graduation-cap',
-                                'excerpt'   => 'Balanced academics, social-emotional learning, and joyful projects aligned with Georgia standards.',
-                                'url'       => '/programs#ga-pre-k',
+                array(
+                        'key'         => 'prek',
+                        'label'       => 'Pre-K',
+                        'title'       => 'Kindergarten Readiness',
+                        'description' => 'The Pre-K rhythm mirrors elementary flow, building stamina and focus.',
+                        'color'       => 'chroma-red',
+                        'background'  => 'bg-chroma-redLight',
+                        'image'       => 'https://images.unsplash.com/photo-1503919545874-86c1d9a04595?q=80&w=800&auto=format&fit=crop',
+                        'steps'       => array(
+                                array(
+                                        'time'  => '9:00',
+                                        'title' => 'Literacy & Logic',
+                                        'copy'  => 'Phonics games, calendar math, and story comprehension.',
+                                ),
+                                array(
+                                        'time'  => '11:00',
+                                        'title' => 'Project-Based Learning',
+                                        'copy'  => 'Collaborative science experiments and art projects.',
+                                ),
+                                array(
+                                        'time'  => '2:00',
+                                        'title' => 'Social Centers',
+                                        'copy'  => 'Dramatic play and negotiation skills.',
+                                ),
                         ),
                 ),
         );
 }
 
 /**
- * Locations preview content
+ * Age-based program wizard options
  */
+function chroma_home_program_wizard_options() {
+        $options = chroma_home_get_theme_mod_json( 'chroma_home_program_wizard_json', chroma_home_default_program_wizard_options() );
+
+        return array_map(
+                function ( $item ) {
+                        return array(
+                                'key'         => sanitize_title( $item['key'] ?? '' ),
+                                'emoji'       => sanitize_text_field( $item['emoji'] ?? '' ),
+                                'label'       => sanitize_text_field( $item['label'] ?? '' ),
+                                'description' => sanitize_textarea_field( $item['description'] ?? '' ),
+                                'link'        => esc_url_raw( $item['link'] ?? '' ),
+                        );
+                },
+                $options
+        );
+}
+
+/**
+ * Curriculum radar profiles
+ */
+function chroma_home_curriculum_profiles() {
+        $defaults = chroma_home_default_curriculum_profiles();
+        $profiles = chroma_home_get_theme_mod_json( 'chroma_home_curriculum_profiles_json', $defaults['profiles'] );
+
+        $profiles = array_map(
+                function ( $profile ) {
+                        $color = $profile['color'] ?? '';
+                        if ( ! sanitize_hex_color( $color ) ) {
+                                $color = '#4A6C7C';
+                        }
+
+                        $data = array_map( 'floatval', $profile['data'] ?? array() );
+
+                        return array(
+                                'key'         => sanitize_title( $profile['key'] ?? '' ),
+                                'label'       => sanitize_text_field( $profile['label'] ?? '' ),
+                                'title'       => sanitize_text_field( $profile['title'] ?? '' ),
+                                'description' => sanitize_textarea_field( $profile['description'] ?? '' ),
+                                'color'       => $color,
+                                'data'        => $data,
+                        );
+                },
+                $profiles
+        );
+
+        return array(
+                'labels'   => $defaults['labels'],
+                'profiles' => $profiles,
+        );
+}
+
+/**
+ * Daily schedule tracks
+ */
+function chroma_home_schedule_tracks() {
+        $tracks = chroma_home_get_theme_mod_json( 'chroma_home_schedule_tracks_json', chroma_home_default_schedule_tracks() );
+
+        return array_map(
+                function ( $track ) {
+                        $steps = array_map(
+                                function ( $step ) {
+                                        return array(
+                                                'time'  => sanitize_text_field( $step['time'] ?? '' ),
+                                                'title' => sanitize_text_field( $step['title'] ?? '' ),
+                                                'copy'  => sanitize_textarea_field( $step['copy'] ?? '' ),
+                                        );
+                                },
+                                $track['steps'] ?? array()
+                        );
+
+                        return array(
+                                'key'         => sanitize_title( $track['key'] ?? '' ),
+                                'label'       => sanitize_text_field( $track['label'] ?? '' ),
+                                'title'       => sanitize_text_field( $track['title'] ?? '' ),
+                                'description' => sanitize_textarea_field( $track['description'] ?? '' ),
+                                'color'       => sanitize_text_field( $track['color'] ?? '' ),
+                                'background'  => sanitize_text_field( $track['background'] ?? '' ),
+                                'image'       => esc_url_raw( $track['image'] ?? '' ),
+                                'steps'       => $steps,
+                        );
+                },
+                $tracks
+        );
+}
+
+/**
+ * Home FAQ block
+ */
+function chroma_home_faq_items() {
+        $items = chroma_home_get_theme_mod_json( 'chroma_home_faq_items_json', chroma_home_default_faq_items() );
+
+        return array_map(
+                function ( $item ) {
+                        return array(
+                                'question' => sanitize_text_field( $item['question'] ?? '' ),
+                                'answer'   => sanitize_textarea_field( $item['answer'] ?? '' ),
+                        );
+                },
+                $items
+        );
+}
+
+function chroma_home_faq() {
+        $defaults = chroma_home_default_faq();
+
+        return array(
+                'heading'    => sanitize_text_field( get_theme_mod( 'chroma_home_faq_heading', $defaults['heading'] ) ),
+                'subheading' => sanitize_text_field( get_theme_mod( 'chroma_home_faq_subheading', $defaults['subheading'] ) ),
+                'items'      => chroma_home_faq_items(),
+                'cta_text'   => '',
+                'cta_label'  => '',
+                'cta_link'   => '',
+        );
+}
+
 function chroma_home_locations_preview() {
         static $cached;
 
@@ -414,10 +522,10 @@ function chroma_home_locations_preview() {
                 return $cached;
         }
 
-        $heading     = '19+ neighborhood locations across Metro Atlanta';
-        $subheading  = 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.';
-        $cta_label   = 'View All Locations';
-        $cta_link    = '/locations';
+        $heading     = sanitize_text_field( get_theme_mod( 'chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta' ) );
+        $subheading  = sanitize_text_field( get_theme_mod( 'chroma_home_locations_subheading', 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.' ) );
+        $cta_label   = sanitize_text_field( get_theme_mod( 'chroma_home_locations_cta_label', 'View All Locations' ) );
+        $cta_link    = esc_url_raw( get_theme_mod( 'chroma_home_locations_cta_link', '/locations' ) );
         $taxonomy    = 'location_region';
         $fallback    = (object) array(
                 'name' => __( 'Other Areas', 'chroma-excellence' ),

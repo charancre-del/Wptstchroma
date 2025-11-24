@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Detect Current Language Heuristically
- * Based on URL patterns or ACF fields
+ * Based on URL patterns (no ACF required)
  */
 function chroma_detect_current_language() {
 	$current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
