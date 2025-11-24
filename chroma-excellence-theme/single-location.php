@@ -283,7 +283,22 @@ while ( have_posts() ) :
 			<div>
 				<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Visit Us</span>
 				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">Come see the magic in person.</h2>
-				<p class="text-brand-ink/70 mb-8">Tours are the best way to feel the Chroma difference. We schedule tours Monday through Friday between 9:00 AM and 11:30 AM to minimize disruption to our classrooms.</p>
+				<p class="text-brand-ink/70 mb-8">
+					<?php
+					// Parse opening and closing times from hours field
+					$tour_text = 'We are available for tours Monday through Friday';
+					if ( $hours ) {
+						// Try to parse hours like "7am - 6pm" or "7:00am - 6:00pm"
+						if ( preg_match( '/([0-9]{1,2}(?::[0-9]{2})?\s*[ap]m)\s*[-–—]\s*([0-9]{1,2}(?::[0-9]{2})?\s*[ap]m)/i', $hours, $matches ) ) {
+							$opening_time = trim( $matches[1] );
+							$closing_time = trim( $matches[2] );
+							$tour_text .= ' between ' . esc_html( $opening_time ) . ' and ' . esc_html( $closing_time );
+						}
+					}
+					$tour_text .= '. We welcome little ones to accompany on a tour!';
+					echo $tour_text;
+					?>
+				</p>
 
 				<div class="space-y-6">
 					<?php if ( $address ) : ?>
