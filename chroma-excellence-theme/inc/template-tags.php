@@ -73,6 +73,83 @@ function chroma_get_program_fields( $post_id = null ) {
 }
 
 /**
+ * Program anchor slug helper
+ */
+function chroma_get_program_anchor_slug( $post_id = null ) {
+    $post_id = $post_id ?: get_the_ID();
+    $anchor  = chroma_get_meta_value( $post_id, 'program_anchor_slug', '' );
+
+    if ( ! $anchor ) {
+        $anchor = get_post_field( 'post_name', $post_id );
+    }
+
+    return sanitize_title( $anchor );
+}
+
+/**
+ * Program SEO intro fields
+ */
+function chroma_get_program_seo_fields( $post_id = null ) {
+    $post_id = $post_id ?: get_the_ID();
+
+    $highlights = chroma_get_meta_value( $post_id, 'program_seo_highlights', '' );
+    $highlights = preg_split( '/\r\n|\r|\n/', $highlights );
+    $highlights = array_filter( array_map( 'trim', (array) $highlights ) );
+
+    return array(
+        'heading'    => chroma_get_meta_value( $post_id, 'program_seo_heading', '' ),
+        'summary'    => chroma_get_meta_value( $post_id, 'program_seo_summary', '' ),
+        'highlights' => $highlights,
+    );
+}
+
+/**
+ * Cached lookup of program anchors keyed by slug and title
+ */
+function chroma_get_program_anchor_lookup() {
+    static $lookup;
+
+    if ( null !== $lookup ) {
+        return $lookup;
+    }
+
+    $lookup = array();
+
+    $programs = get_posts(
+        array(
+            'post_type'      => 'program',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'orderby'        => 'menu_order title',
+            'order'          => 'ASC',
+        )
+    );
+
+    foreach ( $programs as $program_id ) {
+        $anchor        = chroma_get_program_anchor_slug( $program_id );
+        $slug          = get_post_field( 'post_name', $program_id );
+        $title_anchor  = sanitize_title( get_the_title( $program_id ) );
+
+        $lookup[ $anchor ]       = $anchor;
+        $lookup[ $slug ]         = $anchor;
+        $lookup[ $title_anchor ] = $anchor;
+    }
+
+    return $lookup;
+}
+
+/**
+ * Resolve an anchor slug for a given program key
+ */
+function chroma_program_anchor_for_key( $key ) {
+    $lookup = chroma_get_program_anchor_lookup();
+    $key    = sanitize_title( $key );
+
+    return $lookup[ $key ] ?? $key;
+}
+
+/**
  * Program color class mapping
  */
 function chroma_program_color_classes( $color_key ) {
