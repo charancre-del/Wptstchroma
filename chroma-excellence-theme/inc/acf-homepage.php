@@ -126,7 +126,7 @@ function chroma_home_has_sections() {
  * Home FAQ Items
  */
 function chroma_home_faq_items() {
-	$faqs = chroma_get_home_field( 'home_faq_items' );
+        $faqs = chroma_get_home_field( 'home_faq_items' );
 
 	if ( ! $faqs ) {
 		// Default FAQs
@@ -154,6 +154,21 @@ function chroma_home_faq_items() {
  */
 function chroma_home_has_faq() {
         return ! empty( chroma_home_faq_items() );
+}
+
+/**
+ * Home FAQ block (heading, subheading, items, CTA)
+ */
+function chroma_home_faq() {
+
+        return array(
+                'heading'    => chroma_get_home_field( 'home_faq_heading' ) ?: 'Common questions from parents',
+                'subheading' => chroma_get_home_field( 'home_faq_subheading' ) ?: 'We’ve answered a few of the questions parents ask most when choosing childcare and early learning.',
+                'items'      => chroma_home_faq_items(),
+                'cta_text'   => chroma_get_home_field( 'home_faq_cta_text' ) ?: '',
+                'cta_label'  => chroma_get_home_field( 'home_faq_cta_label' ) ?: '',
+                'cta_link'   => chroma_get_home_field( 'home_faq_cta_link' ) ?: '',
+        );
 }
 
 /**
