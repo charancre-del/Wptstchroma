@@ -56,10 +56,10 @@ function chroma_enqueue_assets() {
                 $css_version
         );
 
-        // Chart.js for curriculum radar (homepage).
+        // Chart.js for curriculum radar (homepage and program pages).
         $script_dependencies = array();
 
-        if ( is_front_page() ) {
+        if ( is_front_page() || is_singular( 'program' ) || is_post_type_archive( 'program' ) ) {
                 wp_enqueue_script(
                         'chartjs',
                         'https://cdn.jsdelivr.net/npm/chart.js',
@@ -144,7 +144,7 @@ function chroma_resource_hints( $urls, $relation_type ) {
                 );
                 $urls[] = 'https://cdnjs.cloudflare.com';
 
-                if ( is_front_page() ) {
+                if ( is_front_page() || is_singular( 'program' ) || is_post_type_archive( 'program' ) ) {
                         $urls[] = 'https://cdn.jsdelivr.net';
                 }
 
@@ -158,7 +158,7 @@ function chroma_resource_hints( $urls, $relation_type ) {
                 $urls[] = '//fonts.gstatic.com';
                 $urls[] = '//cdnjs.cloudflare.com';
 
-                if ( is_front_page() ) {
+                if ( is_front_page() || is_singular( 'program' ) || is_post_type_archive( 'program' ) ) {
                         $urls[] = '//cdn.jsdelivr.net';
                 }
 
