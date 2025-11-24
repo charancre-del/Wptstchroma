@@ -104,6 +104,84 @@ function chroma_get_program_seo_fields( $post_id = null ) {
 }
 
 /**
+ * Program SEO meta tags
+ */
+function chroma_get_program_meta_tags( $post_id = null ) {
+    $post_id   = $post_id ?: get_the_ID();
+    $meta_desc = chroma_get_meta_value( $post_id, 'program_meta_description', '' );
+
+    if ( ! $meta_desc ) {
+        $meta_desc = has_excerpt( $post_id ) ? get_the_excerpt( $post_id ) : chroma_trimmed_excerpt( 32, $post_id );
+    }
+
+    return array(
+        'title'       => chroma_get_meta_value( $post_id, 'program_meta_title', get_the_title( $post_id ) ),
+        'description' => $meta_desc,
+    );
+}
+
+/**
+ * Program FAQ items as structured array
+ */
+function chroma_get_program_faq_items( $post_id = null ) {
+    $post_id = $post_id ?: get_the_ID();
+    $raw     = chroma_get_meta_value( $post_id, 'program_faq_items', '' );
+
+    if ( ! $raw ) {
+        return array();
+    }
+
+    $rows = preg_split( '/\r\n|\r|\n/', $raw );
+    $rows = array_filter( array_map( 'trim', (array) $rows ) );
+    $faq  = array();
+
+    foreach ( $rows as $row ) {
+        $parts = array_map( 'trim', explode( '|', $row, 2 ) );
+
+        if ( count( $parts ) < 2 || ! $parts[0] || ! $parts[1] ) {
+            continue;
+        }
+
+        $faq[] = array(
+            'question' => wp_strip_all_tags( $parts[0] ),
+            'answer'   => wp_kses_post( $parts[1] ),
+        );
+    }
+
+    return $faq;
+}
+
+/**
+ * Render FAQ schema JSON-LD
+ */
+function chroma_render_program_faq_schema( $faq_items ) {
+    if ( empty( $faq_items ) ) {
+        return;
+    }
+
+    $entities = array();
+
+    foreach ( $faq_items as $item ) {
+        $entities[] = array(
+            '@type'          => 'Question',
+            'name'           => $item['question'],
+            'acceptedAnswer' => array(
+                '@type' => 'Answer',
+                'text'  => wp_strip_all_tags( $item['answer'] ),
+            ),
+        );
+    }
+
+    $schema = array(
+        '@context'    => 'https://schema.org',
+        '@type'       => 'FAQPage',
+        'mainEntity'  => $entities,
+    );
+
+    echo '<script type="application/ld+json">' . wp_json_encode( $schema ) . '</script>';
+}
+
+/**
  * Cached lookup of program anchors keyed by slug and title
  */
 function chroma_get_program_anchor_lookup() {
