@@ -6,38 +6,21 @@
  * @package Chroma_Excellence
  */
 
-$home_id = chroma_get_home_page_id();
+$panels = chroma_home_prismpath_panels();
 
-// Get ACF data
-$heading = get_field( 'prismpath_heading', $home_id ) ?: 'Grounded in Expertise. Wrapped in Love.';
-$subheading = get_field( 'prismpath_subheading', $home_id );
+$feature = $panels['feature'];
+$cards   = $panels['cards'];
+$heading = $feature['heading'];
+$subheading = $feature['subheading'] ?? '';
 
-// Card data
-$card_1 = array(
-	'heading' => get_field( 'prismpath_card_1_heading', $home_id ) ?: 'The Prismpath™ Curriculum',
-	'text'    => get_field( 'prismpath_card_1_text', $home_id ) ?: 'Just as a prism refracts light into a full spectrum of color, Prismpath™ refracts play into a full spectrum of development.',
-	'badge'   => get_field( 'prismpath_card_1_badge', $home_id ) ?: 'Proprietary Model',
-);
+$card_1 = $cards[0];
+$card_2 = $cards[1];
+$card_3 = $cards[2];
+$card_4 = $cards[3];
 
-$card_2 = array(
-	'heading' => get_field( 'prismpath_card_2_heading', $home_id ) ?: 'Expert Care, Extended Family.',
-	'text'    => get_field( 'prismpath_card_2_text', $home_id ) ?: 'Our educators are state-certified professionals who understand that the most important credential is kindness.',
-	'button'  => get_field( 'prismpath_card_2_button', $home_id ) ?: 'Meet the Team',
-	'url'     => get_field( 'prismpath_card_2_url', $home_id ) ?: home_url( '/about' ),
-);
-
-$card_3 = array(
-	'heading' => get_field( 'prismpath_card_3_heading', $home_id ) ?: 'Wholesome Fuel',
-	'text'    => get_field( 'prismpath_card_3_text', $home_id ) ?: 'Organic, balanced meals served family-style to fuel growing minds.',
-);
-
-$card_4 = array(
-	'heading' => get_field( 'prismpath_card_4_heading', $home_id ) ?: 'Uncompromised Safety',
-	'text'    => get_field( 'prismpath_card_4_text', $home_id ) ?: 'Secure, monitored facilities with open-door transparency for parents.',
-);
-
-$readiness_heading = get_field( 'prismpath_readiness_heading', $home_id ) ?: 'Kindergarten Readiness';
-$readiness_text = get_field( 'prismpath_readiness_text', $home_id ) ?: 'Our graduates enter school confident, socially capable, and academically prepared.';
+$readiness       = $panels['readiness'];
+$readiness_heading = $readiness['heading'];
+$readiness_text    = $readiness['description'];
 ?>
 
 <section id="prismpath" class="py-24 px-4 lg:px-6 bg-white relative overflow-hidden" data-section="prismpath">

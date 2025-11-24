@@ -6,7 +6,7 @@ Complete WordPress solution for Chroma Early Learning Academy featuring custom t
 
 ### 1. **chroma-excellence-theme** (WordPress Theme)
 Custom theme with:
-- ACF Pro integration with flexible content
+- Hardcoded homepage sections (no ACF dependency)
 - 2 Custom Post Types (Programs, Locations)
 - Advanced SEO engine with schema.org markup
 - Sitemap.xml and robots.txt management
@@ -52,12 +52,7 @@ cd wp-content/plugins/
 # 3. Chroma Acquisitions Form
 ```
 
-### Step 3: Install ACF Pro
-
-1. Purchase/install Advanced Custom Fields Pro
-2. Activate ACF Pro plugin
-
-### Step 4: Configure Theme
+### Step 3: Configure Theme
 
 1. **Activate Theme:** Appearance → Themes → Chroma Excellence
 2. **Set Permalinks:** Settings → Permalinks → Post name → Save
@@ -65,26 +60,7 @@ cd wp-content/plugins/
    - Create "Primary Menu" and assign to Primary location
    - Create "Footer Menu" and assign to Footer location
 
-### Step 5: Configure ACF Options
-
-Go to **Chroma Settings** in WordPress admin and configure:
-
-**Global Contact Info:**
-- global_phone
-- global_email
-- global_tour_email
-- global_address, global_city, global_state, global_zip
-
-**Social Media:**
-- global_facebook_url
-- global_instagram_url
-- global_linkedin_url
-
-**SEO Defaults:**
-- global_seo_default_title
-- global_seo_default_description
-
-### Step 6: Create Content
+### Step 4: Create Content
 
 **Programs:**
 1. Add Programs (Programs → Add New)
@@ -102,11 +78,7 @@ Go to **Chroma Settings** in WordPress admin and configure:
 **Homepage:**
 1. Create a page called "Home"
 2. Settings → Reading → Set "Home" as homepage
-3. Configure ACF fields:
-   - home_hero_heading, home_hero_subheading
-   - home_hero_cta_label, home_hero_cta_url
-   - home_stats (repeater)
-   - home_faq_items (repeater)
+3. Homepage sections now load from hardcoded theme data—no ACF fields are required.
 
 ## 📁 Theme Architecture
 
@@ -121,7 +93,7 @@ chroma-excellence-theme/
 ├── single-program.php           # Program detail
 ├── single-location.php          # Location detail
 ├── /inc                         # Core functionality
-│   ├── setup.php                # Theme setup + ACF JSON
+│   ├── setup.php                # Theme setup
 │   ├── enqueue.php              # Assets loading
 │   ├── nav-menus.php            # Navigation with Tailwind
 │   ├── cpt-programs.php         # Program CPT
@@ -143,7 +115,7 @@ chroma-excellence-theme/
 │   └── /js
 │       ├── main.js              # Main JavaScript
 │       └── map-layer.js         # Leaflet maps
-├── /acf-json                    # ACF field groups (version control)
+├── /acf-json                    # Legacy ACF field groups (reference only)
 ├── tailwind.config.js           # Tailwind config
 ├── postcss.config.js            # PostCSS config
 └── package.json                 # NPM dependencies
@@ -179,7 +151,7 @@ chroma: {
 
 ### ACF Field Groups
 
-Field groups are automatically saved to `/acf-json` for version control.
+Legacy ACF JSON files remain for reference, but the theme no longer requires the plugin.
 
 ## 🔍 SEO Features
 
@@ -192,7 +164,7 @@ Field groups are automatically saved to `/acf-json` for version control.
 
 - **Robots.txt:** Automatically includes sitemap URL
 
-- **Hreflang:** Set `alternate_url_en` and `alternate_url_es` ACF fields
+- **Hreflang:** Set `alternate_url_en` and `alternate_url_es` post meta fields (ACF optional)
 
 - **Monthly cron:** Automatically pings Google & Bing with sitemap
 
@@ -217,7 +189,7 @@ View all leads: **Lead Log** menu in WordPress admin
 ## 🌍 Spanish Support
 
 1. Create Spanish version of page/post
-2. Add ACF fields:
+2. Add post meta fields (ACF optional):
    - `alternate_url_en` - English URL
    - `alternate_url_es` - Spanish URL
 3. Theme automatically adds hreflang tags
@@ -238,13 +210,13 @@ Manually update permalink to preserve existing URLs.
 ## 🔧 Deployment Checklist
 
 - [ ] Install theme + plugins
-- [ ] Install ACF Pro
+- [ ] Install ACF Pro (optional)
 - [ ] Configure Chroma Settings (global options)
 - [ ] Set up menus (Primary + Footer)
 - [ ] Set permalinks to "Post name"
 - [ ] Add Programs
 - [ ] Add Locations with lat/lng for maps
-- [ ] Configure homepage ACF fields
+- [ ] Review homepage defaults (hardcoded in theme)
 - [ ] Run `npm run build` for production CSS
 - [ ] Test tour form submission
 - [ ] Verify sitemap: `/?sitemap=xml`

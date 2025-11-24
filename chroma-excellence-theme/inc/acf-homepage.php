@@ -48,18 +48,19 @@ function chroma_home_stats() {
  * Prismpath expertise panels
  */
 function chroma_home_prismpath_panels() {
-        return array(
-                'feature' => array(
-                        'eyebrow'   => 'The Chroma Standard',
-                        'heading'   => 'Grounded in Expertise. Wrapped in Love.',
-                        'cta_label' => 'Meet the Team',
-                        'cta_url'   => '/about',
-                ),
-                'cards'   => array(
-                        array(
-                                'badge'       => 'Proprietary Model',
-                                'title'       => 'The Prismpath™ Curriculum',
-                                'description' => 'Just as a prism refracts play into a full spectrum of development.',
+return array(
+'feature' => array(
+'eyebrow'   => 'The Chroma Standard',
+'heading'   => 'Grounded in Expertise. Wrapped in Love.',
+'subheading' => 'A holistic model that blends proven curriculum, certified educators, and a culture of warmth.',
+'cta_label' => 'Meet the Team',
+'cta_url'   => '/about',
+),
+'cards'   => array(
+array(
+'badge'       => 'Proprietary Model',
+'title'       => 'The Prismpath™ Curriculum',
+'description' => 'Just as a prism refracts play into a full spectrum of development.',
                         ),
                         array(
                                 'badge'       => '',
@@ -71,13 +72,17 @@ function chroma_home_prismpath_panels() {
                                 'title'       => 'Wholesome Fuel',
                                 'description' => 'Organic, balanced meals served family-style to fuel growing minds.',
                         ),
-                        array(
-                                'badge'       => '',
-                                'title'       => 'Uncompromised Safety',
-                                'description' => 'Secure, monitored facilities with open-door transparency for parents.',
-                        ),
-                ),
-        );
+array(
+'badge'       => '',
+'title'       => 'Uncompromised Safety',
+'description' => 'Secure, monitored facilities with open-door transparency for parents.',
+),
+),
+'readiness' => array(
+'heading'     => 'Kindergarten Readiness',
+'description' => 'Our graduates enter school confident, socially capable, and academically prepared.',
+),
+);
 }
 
 /**
