@@ -36,7 +36,7 @@ if ( ! $faq_data || empty( $faq_data['items'] ) ) {
                 $faq_id = 'faq-' . ( $index + 1 );
             ?>
             <div class="bg-white rounded-lg shadow-md overflow-hidden" data-accordion>
-                <button 
+                <button
                     class="w-full text-left px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
                     data-accordion-trigger
                     aria-expanded="false"
@@ -49,11 +49,10 @@ if ( ! $faq_data || empty( $faq_data['items'] ) ) {
                         <i class="fas fa-chevron-down transition-transform duration-300"></i>
                     </span>
                 </button>
-                <div 
+                <div
                     id="<?php echo esc_attr( $faq_id ); ?>"
-                    class="px-6 overflow-hidden transition-all duration-300"
+                    class="px-6 overflow-hidden transition-all duration-300 hidden"
                     data-accordion-content
-                    style="max-height: 0;"
                 >
                     <div class="pb-4 text-brand-ink/70">
                         <?php echo wp_kses_post( wpautop( $item['answer'] ) ); ?>
