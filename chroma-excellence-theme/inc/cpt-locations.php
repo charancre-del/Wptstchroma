@@ -253,6 +253,7 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 	$director_signature = get_post_meta( $post->ID, 'location_director_signature', true );
 	$maps_embed       = get_post_meta( $post->ID, 'location_maps_embed', true );
 	$tour_booking_link = get_post_meta( $post->ID, 'location_tour_booking_link', true );
+	$school_pickups   = get_post_meta( $post->ID, 'location_school_pickups', true );
 	$address          = get_post_meta( $post->ID, 'location_address', true );
 	$city             = get_post_meta( $post->ID, 'location_city', true );
 	$state            = get_post_meta( $post->ID, 'location_state', true );
@@ -417,6 +418,16 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 	</div>
 
 	<div class="chroma-meta-section">
+		<h4><?php _e( 'School Pickups', 'chroma-excellence' ); ?></h4>
+
+		<div class="chroma-meta-field">
+			<label for="location_school_pickups"><?php _e( 'Elementary Schools', 'chroma-excellence' ); ?></label>
+			<textarea id="location_school_pickups" name="location_school_pickups" rows="5" placeholder="Enter one school name per line, e.g.:&#10;Lawrenceville Elementary&#10;Pleasant Hill Elementary&#10;Grace Elementary"><?php echo esc_textarea( $school_pickups ); ?></textarea>
+			<small><?php _e( 'Enter one school name per line. These will be displayed on the location page.', 'chroma-excellence' ); ?></small>
+		</div>
+	</div>
+
+	<div class="chroma-meta-section">
 		<p><strong><?php _e( 'Note:', 'chroma-excellence' ); ?></strong> <?php _e( 'Use the "Featured Image" box in the sidebar to set the hero image for this location. Programs available at this location can be managed from the Programs admin section.', 'chroma-excellence' ); ?></p>
 	</div>
 	<?php
@@ -457,6 +468,7 @@ function chroma_save_location_custom_fields( $post_id ) {
 		'location_director_signature',
 		'location_maps_embed',
 		'location_tour_booking_link',
+		'location_school_pickups',
 		'location_address',
 		'location_city',
 		'location_state',
@@ -471,7 +483,7 @@ function chroma_save_location_custom_fields( $post_id ) {
 		if ( isset( $_POST[ $field ] ) ) {
 			$value = wp_unslash( $_POST[ $field ] );
 			// Sanitize based on field type
-			if ( in_array( $field, array( 'location_description', 'location_director_bio', 'location_maps_embed' ) ) ) {
+			if ( in_array( $field, array( 'location_description', 'location_director_bio', 'location_maps_embed', 'location_school_pickups' ) ) ) {
 				$value = sanitize_textarea_field( $value );
 			} elseif ( $field === 'location_email' ) {
 				$value = sanitize_email( $value );

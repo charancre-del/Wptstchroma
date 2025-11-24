@@ -43,6 +43,9 @@ while ( have_posts() ) :
 	// Tour booking link
 	$tour_booking_link = get_post_meta( $location_id, 'location_tour_booking_link', true );
 
+	// School pickups
+	$school_pickups = get_post_meta( $location_id, 'location_school_pickups', true );
+
 	// Get programs at this location
 	$programs_query = new WP_Query( array(
 		'post_type'      => 'program',
@@ -356,6 +359,29 @@ while ( have_posts() ) :
 							</p>
 						</div>
 					</div>
+
+					<?php if ( $school_pickups ) :
+						$schools = array_filter( array_map( 'trim', explode( "\n", $school_pickups ) ) );
+						if ( ! empty( $schools ) ) :
+					?>
+					<div class="flex gap-4">
+						<div class="w-12 h-12 rounded-full bg-brand-cream flex items-center justify-center text-chroma-blue text-lg shrink-0">
+							<i class="fa-solid fa-bus"></i>
+						</div>
+						<div>
+							<h4 class="font-bold text-brand-ink">School Pickups</h4>
+							<p class="text-sm text-brand-ink/70">We provide pickup service to:</p>
+							<ul class="text-sm text-brand-ink/70 mt-2 space-y-1">
+								<?php foreach ( $schools as $school ) : ?>
+									<li class="flex items-start gap-2">
+										<i class="fa-solid fa-check text-chroma-green text-xs mt-1"></i>
+										<span><?php echo esc_html( $school ); ?></span>
+									</li>
+								<?php endforeach; ?>
+							</ul>
+						</div>
+					</div>
+					<?php endif; endif; ?>
 				</div>
 
 				<!-- Map Embed -->
