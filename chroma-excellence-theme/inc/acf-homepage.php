@@ -405,12 +405,16 @@ function chroma_home_program_wizard_options() {
 
         return array_map(
                 function ( $item ) {
+                        $key         = sanitize_title( $item['key'] ?? '' );
+                        $anchor_slug = chroma_program_anchor_for_key( $key );
+                        $link_target = $anchor_slug ?: $key;
+
                         return array(
-                                'key'         => sanitize_title( $item['key'] ?? '' ),
+                                'key'         => $key,
                                 'emoji'       => sanitize_text_field( $item['emoji'] ?? '' ),
                                 'label'       => sanitize_text_field( $item['label'] ?? '' ),
                                 'description' => sanitize_textarea_field( $item['description'] ?? '' ),
-                                'link'        => esc_url_raw( $item['link'] ?? '' ),
+                                'link'        => esc_url_raw( home_url( '/programs#' . $link_target ) ),
                         );
                 },
                 $options

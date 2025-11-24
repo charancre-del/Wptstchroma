@@ -60,22 +60,22 @@ add_filter( 'manage_program_posts_columns', 'chroma_program_admin_columns' );
  * Populate admin columns
  */
 function chroma_program_admin_column_content( $column, $post_id ) {
-switch ( $column ) {
-case 'age_range':
-$age_range = get_post_meta( $post_id, 'program_age_range', true );
-echo $age_range ? esc_html( $age_range ) : '—';
-break;
+        switch ( $column ) {
+                case 'age_range':
+                        $age_range = get_post_meta( $post_id, 'program_age_range', true );
+                        echo $age_range ? esc_html( $age_range ) : '—';
+                        break;
 
-case 'locations':
-$locations = get_post_meta( $post_id, 'program_locations', true );
-			if ( $locations ) {
-				$count = count( $locations );
-				echo esc_html( $count . ' location' . ( $count > 1 ? 's' : '' ) );
-			} else {
-				echo '—';
-			}
-			break;
-	}
+                case 'locations':
+                        $locations = get_post_meta( $post_id, 'program_locations', true );
+                        if ( $locations ) {
+                                $count = count( $locations );
+                                echo esc_html( $count . ' location' . ( $count > 1 ? 's' : '' ) );
+                        } else {
+                                echo '—';
+                        }
+                        break;
+        }
 }
 add_action( 'manage_program_posts_custom_column', 'chroma_program_admin_column_content', 10, 2 );
 
@@ -90,3 +90,140 @@ function chroma_program_title_placeholder( $title ) {
 	return $title;
 }
 add_filter( 'enter_title_here', 'chroma_program_title_placeholder' );
+
+/**
+ * Register meta fields for Program anchors and SEO intro
+ */
+function chroma_register_program_meta() {
+        $meta_args = array(
+                'object_subtype'  => 'program',
+                'type'            => 'string',
+                'single'          => true,
+                'show_in_rest'    => true,
+                'auth_callback'   => function() {
+                        return current_user_can( 'edit_posts' );
+                },
+        );
+
+        register_post_meta(
+                'program',
+                'program_anchor_slug',
+                array_merge(
+                        $meta_args,
+                        array(
+                                'sanitize_callback' => 'sanitize_title',
+                                'default'           => '',
+                        )
+                )
+        );
+
+        register_post_meta(
+                'program',
+                'program_seo_heading',
+                array_merge(
+                        $meta_args,
+                        array(
+                                'sanitize_callback' => 'sanitize_text_field',
+                        )
+                )
+        );
+
+        register_post_meta(
+                'program',
+                'program_seo_summary',
+                array_merge(
+                        $meta_args,
+                        array(
+                                'sanitize_callback' => 'sanitize_textarea_field',
+                        )
+                )
+        );
+
+        register_post_meta(
+                'program',
+                'program_seo_highlights',
+                array_merge(
+                        $meta_args,
+                        array(
+                                'sanitize_callback' => 'sanitize_textarea_field',
+                        )
+                )
+        );
+}
+add_action( 'init', 'chroma_register_program_meta' );
+
+/**
+ * Add meta box for anchor and SEO intro fields
+ */
+function chroma_program_meta_box() {
+        add_meta_box(
+                'chroma-program-anchor-seo',
+                __( 'Program Anchor & SEO Intro', 'chroma-excellence' ),
+                'chroma_program_meta_box_render',
+                'program',
+                'side',
+                'default'
+        );
+}
+add_action( 'add_meta_boxes', 'chroma_program_meta_box' );
+
+/**
+ * Render the meta box fields
+ */
+function chroma_program_meta_box_render( $post ) {
+        wp_nonce_field( 'chroma_program_meta_nonce', 'chroma_program_meta_nonce_field' );
+
+        $anchor     = get_post_meta( $post->ID, 'program_anchor_slug', true );
+        $heading    = get_post_meta( $post->ID, 'program_seo_heading', true );
+        $summary    = get_post_meta( $post->ID, 'program_seo_summary', true );
+        $highlights = get_post_meta( $post->ID, 'program_seo_highlights', true );
+        ?>
+        <p>
+                <label for="program_anchor_slug" class="screen-reader-text"><?php esc_html_e( 'Program Anchor', 'chroma-excellence' ); ?></label>
+                <input type="text" id="program_anchor_slug" name="program_anchor_slug" value="<?php echo esc_attr( $anchor ); ?>" class="widefat" placeholder="<?php esc_attr_e( 'e.g., infant', 'chroma-excellence' ); ?>" />
+                <small><?php esc_html_e( 'Used for #anchors and homepage wizard links. Defaults to the slug.', 'chroma-excellence' ); ?></small>
+        </p>
+        <p>
+                <label for="program_seo_heading" class="screen-reader-text"><?php esc_html_e( 'SEO Heading', 'chroma-excellence' ); ?></label>
+                <input type="text" id="program_seo_heading" name="program_seo_heading" value="<?php echo esc_attr( $heading ); ?>" class="widefat" placeholder="<?php esc_attr_e( 'Program intro heading', 'chroma-excellence' ); ?>" />
+        </p>
+        <p>
+                <label for="program_seo_summary" class="screen-reader-text"><?php esc_html_e( 'SEO Summary', 'chroma-excellence' ); ?></label>
+                <textarea id="program_seo_summary" name="program_seo_summary" class="widefat" rows="3" placeholder="<?php esc_attr_e( 'Short overview that lives above the card', 'chroma-excellence' ); ?>"><?php echo esc_textarea( $summary ); ?></textarea>
+        </p>
+        <p>
+                <label for="program_seo_highlights" class="screen-reader-text"><?php esc_html_e( 'SEO Highlights', 'chroma-excellence' ); ?></label>
+                <textarea id="program_seo_highlights" name="program_seo_highlights" class="widefat" rows="4" placeholder="<?php esc_attr_e( "One bullet per line (e.g. ratios, curriculum)", 'chroma-excellence' ); ?>"><?php echo esc_textarea( $highlights ); ?></textarea>
+        </p>
+        <?php
+}
+
+/**
+ * Save meta box fields
+ */
+function chroma_program_meta_box_save( $post_id ) {
+        if ( ! isset( $_POST['chroma_program_meta_nonce_field'] ) || ! wp_verify_nonce( wp_unslash( $_POST['chroma_program_meta_nonce_field'] ), 'chroma_program_meta_nonce' ) ) {
+                return;
+        }
+
+        if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+                return;
+        }
+
+        if ( isset( $_POST['post_type'] ) && 'program' === $_POST['post_type'] ) {
+                if ( ! current_user_can( 'edit_post', $post_id ) ) {
+                        return;
+                }
+        }
+
+        $anchor     = isset( $_POST['program_anchor_slug'] ) ? sanitize_title( wp_unslash( $_POST['program_anchor_slug'] ) ) : '';
+        $heading    = isset( $_POST['program_seo_heading'] ) ? sanitize_text_field( wp_unslash( $_POST['program_seo_heading'] ) ) : '';
+        $summary    = isset( $_POST['program_seo_summary'] ) ? sanitize_textarea_field( wp_unslash( $_POST['program_seo_summary'] ) ) : '';
+        $highlights = isset( $_POST['program_seo_highlights'] ) ? sanitize_textarea_field( wp_unslash( $_POST['program_seo_highlights'] ) ) : '';
+
+        update_post_meta( $post_id, 'program_anchor_slug', $anchor );
+        update_post_meta( $post_id, 'program_seo_heading', $heading );
+        update_post_meta( $post_id, 'program_seo_summary', $summary );
+        update_post_meta( $post_id, 'program_seo_highlights', $highlights );
+}
+add_action( 'save_post', 'chroma_program_meta_box_save' );
