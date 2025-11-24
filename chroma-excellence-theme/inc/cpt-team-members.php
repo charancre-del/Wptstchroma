@@ -97,10 +97,6 @@ add_action( 'manage_team_member_posts_custom_column', 'chroma_team_member_admin_
  * Seed default team members to populate About page cards.
  */
 function chroma_seed_default_team_members() {
-    if ( get_option( 'chroma_team_members_seeded' ) ) {
-        return;
-    }
-
     $existing = get_posts(
         array(
             'post_type'      => 'team_member',
@@ -110,7 +106,14 @@ function chroma_seed_default_team_members() {
         )
     );
 
+    if ( get_option( 'chroma_team_members_seeded' ) && ! empty( $existing ) ) {
+        return;
+    }
+
+    // If posts exist but the option was never set (e.g., after theme updates),
+    // mark the site as seeded so we do not insert duplicates on every request.
     if ( ! empty( $existing ) ) {
+        update_option( 'chroma_team_members_seeded', 1 );
         return;
     }
 
@@ -151,4 +154,5 @@ function chroma_seed_default_team_members() {
     update_option( 'chroma_team_members_seeded', 1 );
 }
 add_action( 'after_switch_theme', 'chroma_seed_default_team_members' );
+add_action( 'init', 'chroma_seed_default_team_members', 20 );
 
