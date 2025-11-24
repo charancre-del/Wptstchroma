@@ -35,7 +35,7 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
 // Utility Functions
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 
-// ACF Configuration and Helpers
+// Legacy helper files (ACF plugin optional)
 require_once CHROMA_THEME_DIR . '/inc/acf-options.php';
 require_once CHROMA_THEME_DIR . '/inc/acf-homepage.php';
 
