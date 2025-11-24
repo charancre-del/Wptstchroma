@@ -40,6 +40,9 @@ while ( have_posts() ) :
 	// Maps embed
 	$maps_embed = get_post_meta( $location_id, 'location_maps_embed', true );
 
+	// Tour booking link
+	$tour_booking_link = get_post_meta( $location_id, 'location_tour_booking_link', true );
+
 	// Get programs at this location
 	$programs_query = new WP_Query( array(
 		'post_type'      => 'program',
@@ -284,9 +287,10 @@ while ( have_posts() ) :
 				<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Visit Us</span>
 				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">Come see the magic in person.</h2>
 				<p class="text-brand-ink/70 mb-8">
+					Tours are the best way to feel the Chroma difference.
 					<?php
 					// Parse opening and closing times from hours field
-					$tour_text = 'We are available for tours Monday through Friday';
+					$tour_text = ' We are available for tours Monday through Friday';
 					if ( $hours ) {
 						// Try to parse hours like "7am - 6pm" or "7:00am - 6:00pm"
 						if ( preg_match( '/([0-9]{1,2}(?::[0-9]{2})?\s*[ap]m)\s*[-–—]\s*([0-9]{1,2}(?::[0-9]{2})?\s*[ap]m)/i', $hours, $matches ) ) {
@@ -390,6 +394,19 @@ while ( have_posts() ) :
 				<p class="text-sm text-brand-ink/60 mb-6">Fill out the form below and we'll contact you to confirm a time.</p>
 
 				<?php echo do_shortcode( '[chroma_tour_form location_id="' . $location_id . '"]' ); ?>
+
+				<?php if ( $tour_booking_link ) : ?>
+					<div class="mt-6 text-center">
+						<div class="flex items-center gap-4 mb-4">
+							<div class="flex-1 h-px bg-brand-ink/10"></div>
+							<span class="text-sm text-brand-ink/40 font-medium uppercase tracking-wider">or</span>
+							<div class="flex-1 h-px bg-brand-ink/10"></div>
+						</div>
+						<a href="<?php echo esc_url( $tour_booking_link ); ?>" target="_blank" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-green text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-greenDark transition-all hover:-translate-y-1">
+							Book a Tour Now
+						</a>
+					</div>
+				<?php endif; ?>
 			</div>
 
 		</div>

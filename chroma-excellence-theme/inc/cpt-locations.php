@@ -252,6 +252,7 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 	$director_photo   = get_post_meta( $post->ID, 'location_director_photo', true );
 	$director_signature = get_post_meta( $post->ID, 'location_director_signature', true );
 	$maps_embed       = get_post_meta( $post->ID, 'location_maps_embed', true );
+	$tour_booking_link = get_post_meta( $post->ID, 'location_tour_booking_link', true );
 	$address          = get_post_meta( $post->ID, 'location_address', true );
 	$city             = get_post_meta( $post->ID, 'location_city', true );
 	$state            = get_post_meta( $post->ID, 'location_state', true );
@@ -406,6 +407,16 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 	</div>
 
 	<div class="chroma-meta-section">
+		<h4><?php _e( 'Tour Booking', 'chroma-excellence' ); ?></h4>
+
+		<div class="chroma-meta-field">
+			<label for="location_tour_booking_link"><?php _e( 'Tour Booking Link', 'chroma-excellence' ); ?></label>
+			<input type="url" id="location_tour_booking_link" name="location_tour_booking_link" value="<?php echo esc_attr( $tour_booking_link ); ?>" placeholder="https://..." />
+			<small><?php _e( 'External link for "Book a Tour Now" button (e.g., online scheduling system)', 'chroma-excellence' ); ?></small>
+		</div>
+	</div>
+
+	<div class="chroma-meta-section">
 		<p><strong><?php _e( 'Note:', 'chroma-excellence' ); ?></strong> <?php _e( 'Use the "Featured Image" box in the sidebar to set the hero image for this location. Programs available at this location can be managed from the Programs admin section.', 'chroma-excellence' ); ?></p>
 	</div>
 	<?php
@@ -445,6 +456,7 @@ function chroma_save_location_custom_fields( $post_id ) {
 		'location_director_photo',
 		'location_director_signature',
 		'location_maps_embed',
+		'location_tour_booking_link',
 		'location_address',
 		'location_city',
 		'location_state',
@@ -463,6 +475,8 @@ function chroma_save_location_custom_fields( $post_id ) {
 				$value = sanitize_textarea_field( $value );
 			} elseif ( $field === 'location_email' ) {
 				$value = sanitize_email( $value );
+			} elseif ( $field === 'location_tour_booking_link' ) {
+				$value = esc_url_raw( $value );
 			} else {
 				$value = sanitize_text_field( $value );
 			}
