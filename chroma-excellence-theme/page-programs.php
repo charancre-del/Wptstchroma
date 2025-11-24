@@ -47,10 +47,49 @@ $programs = get_posts( array(
                         $excerpt   = $meta['short_description'] ?: wp_trim_words( $program->post_content, 25 );
                         $icon      = $meta['icon_class'];
                         $color     = $meta['color'];
+                        $age_range = get_field( 'program_age_range', $program->ID );
+                        $excerpt   = get_field( 'program_short_description', $program->ID ) ?: wp_trim_words( $program->post_content, 25 );
+                        $icon      = get_field( 'program_icon_class', $program->ID ) ?: 'fas fa-child';
+
+                        $color_key = get_field( 'program_color', $program->ID ) ?: 'chroma-teal';
+                        $palettes  = array(
+                            'chroma-teal'   => array(
+                                'gradient_from' => 'from-chroma-teal/10',
+                                'gradient_to'   => 'to-chroma-teal/5',
+                                'text'          => 'text-chroma-teal',
+                                'button'        => 'bg-chroma-teal hover:bg-chroma-teal/90',
+                            ),
+                            'chroma-blue'   => array(
+                                'gradient_from' => 'from-chroma-blue/10',
+                                'gradient_to'   => 'to-chroma-blue/5',
+                                'text'          => 'text-chroma-blue',
+                                'button'        => 'bg-chroma-blue hover:bg-chroma-blueDark',
+                            ),
+                            'chroma-red'    => array(
+                                'gradient_from' => 'from-chroma-red/10',
+                                'gradient_to'   => 'to-chroma-red/5',
+                                'text'          => 'text-chroma-red',
+                                'button'        => 'bg-chroma-red hover:bg-chroma-red/90',
+                            ),
+                            'chroma-green'  => array(
+                                'gradient_from' => 'from-chroma-green/10',
+                                'gradient_to'   => 'to-chroma-green/5',
+                                'text'          => 'text-chroma-green',
+                                'button'        => 'bg-chroma-green hover:bg-chroma-green/90',
+                            ),
+                            'chroma-yellow' => array(
+                                'gradient_from' => 'from-chroma-yellow/10',
+                                'gradient_to'   => 'to-chroma-yellow/5',
+                                'text'          => 'text-chroma-yellow',
+                                'button'        => 'bg-chroma-yellow hover:bg-chroma-yellow/90',
+                            ),
+                        );
+
+                        $palette = $palettes[ $color_key ] ?? $palettes['chroma-teal'];
                     ?>
                     <div class="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow duration-300" data-program="<?php echo esc_attr( $program->ID ); ?>">
-                        <div class="bg-gradient-to-br from-<?php echo esc_attr( $color ); ?>/10 to-<?php echo esc_attr( $color ); ?>/5 p-8">
-                            <div class="text-<?php echo esc_attr( $color ); ?> text-5xl mb-4">
+                        <div class="bg-gradient-to-br <?php echo esc_attr( $palette['gradient_from'] . ' ' . $palette['gradient_to'] ); ?> p-8">
+                            <div class="<?php echo esc_attr( $palette['text'] ); ?> text-5xl mb-4">
                                 <i class="<?php echo esc_attr( $icon ); ?>"></i>
                             </div>
                             <h2 class="text-2xl font-bold text-brand-ink mb-2">
@@ -64,7 +103,7 @@ $programs = get_posts( array(
                             <p class="text-brand-ink/70 mb-6">
                                 <?php echo esc_html( $excerpt ); ?>
                             </p>
-                            <a href="<?php echo esc_url( get_permalink( $program ) ); ?>" class="inline-block bg-<?php echo esc_attr( $color ); ?> text-white px-6 py-3 rounded-lg font-semibold hover:bg-<?php echo esc_attr( $color ); ?>/90 transition-colors">
+                            <a href="<?php echo esc_url( get_permalink( $program ) ); ?>" class="inline-block <?php echo esc_attr( $palette['button'] ); ?> text-white px-6 py-3 rounded-lg font-semibold transition-colors">
                                 Learn More
                             </a>
                         </div>

@@ -42,6 +42,44 @@ function chroma_register_location_cpt() {
 add_action( 'init', 'chroma_register_location_cpt', 0 );
 
 /**
+ * Register Location taxonomy (counties/regions)
+ */
+function chroma_register_location_taxonomy() {
+        $labels = array(
+                'name'              => _x( 'Location Regions', 'taxonomy general name', 'chroma-excellence' ),
+                'singular_name'     => _x( 'Location Region', 'taxonomy singular name', 'chroma-excellence' ),
+                'search_items'      => __( 'Search Location Regions', 'chroma-excellence' ),
+                'all_items'         => __( 'All Location Regions', 'chroma-excellence' ),
+                'parent_item'       => __( 'Parent Region', 'chroma-excellence' ),
+                'parent_item_colon' => __( 'Parent Region:', 'chroma-excellence' ),
+                'edit_item'         => __( 'Edit Region', 'chroma-excellence' ),
+                'update_item'       => __( 'Update Region', 'chroma-excellence' ),
+                'add_new_item'      => __( 'Add New Region', 'chroma-excellence' ),
+                'new_item_name'     => __( 'New Region Name', 'chroma-excellence' ),
+                'menu_name'         => __( 'Location Regions', 'chroma-excellence' ),
+        );
+
+        register_taxonomy(
+                'location_region',
+                array( 'location' ),
+                array(
+                        'hierarchical'      => true,
+                        'labels'            => $labels,
+                        'show_ui'           => true,
+                        'show_admin_column' => true,
+                        'show_in_rest'      => true,
+                        'query_var'         => true,
+                        'rewrite'           => array( 'slug' => 'location-region' ),
+                        'default_term'      => array(
+                                'name' => __( 'Uncategorized Locations', 'chroma-excellence' ),
+                                'slug' => 'uncategorized-locations',
+                        ),
+                )
+        );
+}
+add_action( 'init', 'chroma_register_location_taxonomy', 1 );
+
+/**
  * Add admin columns
  */
 function chroma_location_admin_columns( $columns ) {

@@ -12,7 +12,7 @@ if ( ! $locations_data ) {
 }
 
 $map_json = $locations_data['map_points'] ?? array();
-$featured = $locations_data['featured'] ?? array();
+$grouped  = $locations_data['grouped'] ?? array();
 ?>
 
 <section class="py-20 bg-white" data-section="locations">
@@ -43,40 +43,55 @@ $featured = $locations_data['featured'] ?? array();
         <?php endif; ?>
 
         <!-- Featured Locations Grid -->
-        <?php if ( ! empty( $featured ) ) : ?>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <?php foreach ( $featured as $location ) :
-                $city    = $location['city'] ?? '';
-                $state   = $location['state'] ?? '';
-                $phone   = $location['phone'] ?? '';
-                $address = $location['address'] ?? '';
-                $url     = $location['url'] ?? '#';
-            ?>
-            <div class="bg-gradient-to-br from-chroma-teal/5 to-chroma-green/5 rounded-lg p-6 hover:shadow-lg transition-shadow" data-location="<?php echo esc_attr( $location['title'] ); ?>">
-                <h3 class="text-2xl font-bold text-brand-ink mb-2">
-                    <?php echo esc_html( $location['title'] ); ?>
-                </h3>
-                <?php if ( $city && $state ) : ?>
-                    <div class="text-chroma-teal font-semibold mb-4">
-                        <?php echo esc_html( $city . ', ' . strtoupper( $state ) ); ?>
-                    </div>
-                <?php endif; ?>
-                <?php if ( $address ) : ?>
-                    <p class="text-brand-ink/70 mb-2">
-                        <i class="fas fa-map-marker-alt text-chroma-red mr-2"></i>
-                        <?php echo esc_html( $address ); ?>
-                    </p>
-                <?php endif; ?>
-                <?php if ( $phone ) : ?>
-                    <p class="text-brand-ink/70 mb-4">
-                        <i class="fas fa-phone text-chroma-yellow mr-2"></i>
-                        <?php echo esc_html( $phone ); ?>
-                    </p>
-                <?php endif; ?>
-                <a href="<?php echo esc_url( $url ); ?>" class="inline-block bg-chroma-teal text-white px-6 py-2 rounded-lg font-semibold hover:bg-chroma-teal/90 transition-colors">
-                    View Location
-                </a>
-            </div>
+        <?php if ( ! empty( $grouped ) ) : ?>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+            <?php foreach ( $grouped as $group ) : ?>
+                <div class="bg-white border border-brand-ink/10 rounded-lg p-6 shadow-sm">
+                    <h3 class="text-xl font-bold text-brand-ink mb-4"><?php echo esc_html( $group['label'] ?? '' ); ?></h3>
+                    <?php if ( ! empty( $group['locations'] ) ) : ?>
+                        <ul class="space-y-4">
+                            <?php foreach ( $group['locations'] as $location ) :
+                                $city    = $location['city'] ?? '';
+                                $state   = $location['state'] ?? '';
+                                $phone   = $location['phone'] ?? '';
+                                $address = $location['address'] ?? '';
+                                $url     = $location['url'] ?? '#';
+                            ?>
+                                <li class="pb-4 border-b border-brand-ink/10 last:border-b-0 last:pb-0">
+                                    <div class="flex items-start justify-between gap-3">
+                                        <div>
+                                            <a href="<?php echo esc_url( $url ); ?>" class="text-lg font-semibold text-brand-ink hover:text-chroma-teal transition-colors">
+                                                <?php echo esc_html( $location['title'] ); ?>
+                                            </a>
+                                            <?php if ( $city && $state ) : ?>
+                                                <div class="text-chroma-teal font-semibold">
+                                                    <?php echo esc_html( $city . ', ' . strtoupper( $state ) ); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                            <?php if ( $address ) : ?>
+                                                <p class="text-brand-ink/70 mt-2">
+                                                    <i class="fas fa-map-marker-alt text-chroma-red mr-2"></i>
+                                                    <?php echo esc_html( $address ); ?>
+                                                </p>
+                                            <?php endif; ?>
+                                            <?php if ( $phone ) : ?>
+                                                <p class="text-brand-ink/70 mt-1">
+                                                    <i class="fas fa-phone text-chroma-yellow mr-2"></i>
+                                                    <?php echo esc_html( $phone ); ?>
+                                                </p>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <a href="<?php echo esc_url( $url ); ?>" class="inline-flex items-center justify-center rounded-full bg-chroma-teal text-white h-10 w-10" aria-label="View <?php echo esc_attr( $location['title'] ); ?>">
+                                                <i class="fas fa-arrow-right"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
             <?php endforeach; ?>
         </div>
         <?php endif; ?>
