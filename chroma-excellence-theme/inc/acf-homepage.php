@@ -330,18 +330,75 @@ function chroma_home_programs_preview() {
  * Locations preview content
  */
 function chroma_home_locations_preview() {
-        return array(
-                'heading'    => '19+ neighborhood locations across Metro Atlanta',
-                'subheading' => 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.',
-                'cta_label'  => 'View All Locations',
-                'cta_link'   => '/locations',
-                'map_points' => array(
+        $heading    = '19+ neighborhood locations across Metro Atlanta';
+        $subheading = 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.';
+        $cta_label  = 'View All Locations';
+        $cta_link   = '/locations';
+
+        $query = new WP_Query(
+                array(
+                        'post_type'      => 'location',
+                        'post_status'    => 'publish',
+                        'posts_per_page' => -1,
+                        'orderby'        => 'title',
+                        'order'          => 'ASC',
+                )
+        );
+
+        $map_points = array();
+        $featured   = array();
+
+        if ( $query->have_posts() ) {
+                while ( $query->have_posts() ) {
+                        $query->the_post();
+                        $post_id = get_the_ID();
+
+                        $title   = get_the_title();
+                        $permalink = get_permalink();
+
+                        $city    = function_exists( 'get_field' ) ? get_field( 'location_city', $post_id ) : get_post_meta( $post_id, 'location_city', true );
+                        $state   = function_exists( 'get_field' ) ? get_field( 'location_state', $post_id ) : get_post_meta( $post_id, 'location_state', true );
+                        $phone   = function_exists( 'get_field' ) ? get_field( 'location_phone', $post_id ) : get_post_meta( $post_id, 'location_phone', true );
+                        $address = function_exists( 'get_field' ) ? get_field( 'location_address', $post_id ) : get_post_meta( $post_id, 'location_address', true );
+
+                        $lat = function_exists( 'get_field' ) ? get_field( 'location_latitude', $post_id ) : get_post_meta( $post_id, 'location_latitude', true );
+                        $lng = function_exists( 'get_field' ) ? get_field( 'location_longitude', $post_id ) : get_post_meta( $post_id, 'location_longitude', true );
+
+                        if ( $lat && $lng ) {
+                                $map_points[] = array(
+                                        'id'    => $post_id,
+                                        'title' => $title,
+                                        'lat'   => (float) $lat,
+                                        'lng'   => (float) $lng,
+                                        'url'   => $permalink,
+                                        'city'  => $city,
+                                        'state' => $state,
+                                );
+                        }
+
+                        $featured[] = array(
+                                'title'   => $title,
+                                'city'    => $city,
+                                'state'   => $state,
+                                'address' => $address,
+                                'phone'   => $phone,
+                                'url'     => $permalink,
+                        );
+                }
+                wp_reset_postdata();
+        }
+
+        // If no dynamic locations exist, retain the previous static defaults.
+        if ( empty( $featured ) ) {
+                $map_points = array(
                         array(
                                 'id'    => 1,
                                 'title' => 'Marietta – East',
                                 'lat'   => 33.975,
                                 'lng'   => -84.507,
                                 'url'   => '/locations/marietta-east',
+                                'city'  => 'Marietta',
+                                'state' => 'GA',
                         ),
                         array(
                                 'id'    => 2,
@@ -349,6 +406,8 @@ function chroma_home_locations_preview() {
                                 'lat'   => 33.815,
                                 'lng'   => -84.63,
                                 'url'   => '/locations/austell-tramore',
+                                'city'  => 'Austell',
+                                'state' => 'GA',
                         ),
                         array(
                                 'id'    => 3,
@@ -356,6 +415,8 @@ function chroma_home_locations_preview() {
                                 'lat'   => 33.956,
                                 'lng'   => -83.99,
                                 'url'   => '/locations/lawrenceville',
+                                'city'  => 'Lawrenceville',
+                                'state' => 'GA',
                         ),
                         array(
                                 'id'    => 4,
@@ -363,9 +424,12 @@ function chroma_home_locations_preview() {
                                 'lat'   => 34.028,
                                 'lng'   => -84.198,
                                 'url'   => '/locations/johns-creek',
+                                'city'  => 'Johns Creek',
+                                'state' => 'GA',
                         ),
-                ),
-                'featured'   => array(
+                );
+
+                $featured = array(
                         array(
                                 'title'   => 'Marietta – East',
                                 'city'    => 'Marietta',
@@ -390,7 +454,19 @@ function chroma_home_locations_preview() {
                                 'phone'   => '(770) 555-8890',
                                 'url'     => '/locations/lawrenceville',
                         ),
-                ),
+                );
+        }
+
+        // Limit featured list to the first three items for layout consistency.
+        $featured = array_slice( $featured, 0, 3 );
+
+        return array(
+                'heading'    => $heading,
+                'subheading' => $subheading,
+                'cta_label'  => $cta_label,
+                'cta_link'   => $cta_link,
+                'map_points' => $map_points,
+                'featured'   => $featured,
         );
 }
 
