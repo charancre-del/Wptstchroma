@@ -64,32 +64,3 @@ function chroma_content_width() {
 }
 add_action( 'after_setup_theme', 'chroma_content_width', 0 );
 
-/**
- * ACF JSON Save Path
- * Store ACF field groups in theme for version control
- */
-function chroma_acf_json_save_point( $path ) {
-	return CHROMA_THEME_DIR . '/acf-json';
-}
-add_filter( 'acf/settings/save_json', 'chroma_acf_json_save_point' );
-
-/**
- * ACF JSON Load Path
- */
-function chroma_acf_json_load_point( $paths ) {
-	unset( $paths[0] );
-	$paths[] = CHROMA_THEME_DIR . '/acf-json';
-	return $paths;
-}
-add_filter( 'acf/settings/load_json', 'chroma_acf_json_load_point' );
-
-/**
- * Hide ACF menu for non-admins
- */
-function chroma_hide_acf_menu( $show ) {
-	if ( ! current_user_can( 'manage_options' ) ) {
-		return false;
-	}
-	return $show;
-}
-add_filter( 'acf/settings/show_admin', 'chroma_hide_acf_menu' );

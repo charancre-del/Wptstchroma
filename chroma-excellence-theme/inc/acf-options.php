@@ -12,48 +12,64 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Register ACF Options Page
+ * Global settings helper
  */
-if ( function_exists( 'acf_add_options_page' ) ) {
-	acf_add_options_page( array(
-		'page_title' => __( 'Chroma Settings', 'chroma-excellence' ),
-		'menu_title' => __( 'Chroma Settings', 'chroma-excellence' ),
-		'menu_slug'  => 'chroma-settings',
-		'capability' => 'edit_posts',
-		'icon_url'   => 'dashicons-admin-settings',
-		'position'   => 2,
-	) );
+function chroma_get_global_setting( $key, $default = '' ) {
+        $defaults = array(
+                'global_phone'                  => '',
+                'global_email'                  => '',
+                'global_tour_email'             => '',
+                'global_address'                => '',
+                'global_city'                   => '',
+                'global_state'                  => 'GA',
+                'global_zip'                    => '',
+                'global_facebook_url'           => '',
+                'global_instagram_url'          => '',
+                'global_linkedin_url'           => '',
+                'global_seo_default_title'      => get_bloginfo( 'name' ),
+                'global_seo_default_description' => get_bloginfo( 'description' ),
+                'global_logo'                   => '',
+        );
+
+        $settings = get_option( 'chroma_global_settings', array() );
+        $value    = $settings[ $key ] ?? $default;
+
+        if ( '' === $value && isset( $defaults[ $key ] ) ) {
+                $value = $defaults[ $key ];
+        }
+
+        return apply_filters( 'chroma_global_setting', $value, $key, $settings );
 }
 
 /**
  * Global Phone Helper
  */
 function chroma_global_phone() {
-	return get_field( 'global_phone', 'option' ) ?: '';
+return chroma_get_global_setting( 'global_phone', '' );
 }
 
 /**
  * Global Email Helper
  */
 function chroma_global_email() {
-	return get_field( 'global_email', 'option' ) ?: '';
+return chroma_get_global_setting( 'global_email', '' );
 }
 
 /**
  * Global Tour Email Helper
  */
 function chroma_global_tour_email() {
-	return get_field( 'global_tour_email', 'option' ) ?: chroma_global_email();
+return chroma_get_global_setting( 'global_tour_email', chroma_global_email() );
 }
 
 /**
  * Global Full Address Helper
  */
 function chroma_global_full_address() {
-	$address = get_field( 'global_address', 'option' );
-	$city    = get_field( 'global_city', 'option' );
-	$state   = get_field( 'global_state', 'option' );
-	$zip     = get_field( 'global_zip', 'option' );
+$address = chroma_get_global_setting( 'global_address', '' );
+$city    = chroma_get_global_setting( 'global_city', '' );
+$state   = chroma_get_global_setting( 'global_state', 'GA' );
+$zip     = chroma_get_global_setting( 'global_zip', '' );
 
 	if ( ! $address ) {
 		return '';
@@ -72,33 +88,33 @@ function chroma_global_full_address() {
  * Global Facebook URL
  */
 function chroma_global_facebook_url() {
-	return get_field( 'global_facebook_url', 'option' ) ?: '';
+return chroma_get_global_setting( 'global_facebook_url', '' );
 }
 
 /**
  * Global Instagram URL
  */
 function chroma_global_instagram_url() {
-	return get_field( 'global_instagram_url', 'option' ) ?: '';
+return chroma_get_global_setting( 'global_instagram_url', '' );
 }
 
 /**
  * Global LinkedIn URL
  */
 function chroma_global_linkedin_url() {
-	return get_field( 'global_linkedin_url', 'option' ) ?: '';
+return chroma_get_global_setting( 'global_linkedin_url', '' );
 }
 
 /**
  * Global SEO Default Title
  */
 function chroma_global_seo_default_title() {
-	return get_field( 'global_seo_default_title', 'option' ) ?: get_bloginfo( 'name' );
+return chroma_get_global_setting( 'global_seo_default_title', get_bloginfo( 'name' ) );
 }
 
 /**
  * Global SEO Default Description
  */
 function chroma_global_seo_default_description() {
-	return get_field( 'global_seo_default_description', 'option' ) ?: get_bloginfo( 'description' );
+return chroma_get_global_setting( 'global_seo_default_description', get_bloginfo( 'description' ) );
 }

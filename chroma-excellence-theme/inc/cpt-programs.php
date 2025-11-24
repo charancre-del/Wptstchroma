@@ -60,14 +60,14 @@ add_filter( 'manage_program_posts_columns', 'chroma_program_admin_columns' );
  * Populate admin columns
  */
 function chroma_program_admin_column_content( $column, $post_id ) {
-	switch ( $column ) {
-		case 'age_range':
-			$age_range = get_field( 'program_age_range', $post_id );
-			echo $age_range ? esc_html( $age_range ) : '—';
-			break;
+switch ( $column ) {
+case 'age_range':
+$age_range = get_post_meta( $post_id, 'program_age_range', true );
+echo $age_range ? esc_html( $age_range ) : '—';
+break;
 
-		case 'locations':
-			$locations = get_field( 'program_locations', $post_id );
+case 'locations':
+$locations = get_post_meta( $post_id, 'program_locations', true );
 			if ( $locations ) {
 				$count = count( $locations );
 				echo esc_html( $count . ' location' . ( $count > 1 ? 's' : '' ) );

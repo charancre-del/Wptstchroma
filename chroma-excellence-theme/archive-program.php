@@ -29,7 +29,7 @@ get_header();
 						</div>
 					<?php endif; ?>
 					<div class="p-6">
-						<?php if ( $age_range = get_field( 'program_age_range' ) ) : ?>
+                                                <?php if ( $age_range = chroma_get_meta_value( get_the_ID(), 'program_age_range' ) ) : ?>
 							<?php chroma_badge( $age_range, 'teal' ); ?>
 						<?php endif; ?>
 						<h2 class="text-2xl font-serif font-bold text-brand-ink mt-3 mb-2">
