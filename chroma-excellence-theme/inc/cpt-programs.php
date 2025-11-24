@@ -151,6 +151,39 @@ function chroma_register_program_meta() {
                         )
                 )
         );
+
+        register_post_meta(
+                'program',
+                'program_meta_title',
+                array_merge(
+                        $meta_args,
+                        array(
+                                'sanitize_callback' => 'sanitize_text_field',
+                        )
+                )
+        );
+
+        register_post_meta(
+                'program',
+                'program_meta_description',
+                array_merge(
+                        $meta_args,
+                        array(
+                                'sanitize_callback' => 'sanitize_textarea_field',
+                        )
+                )
+        );
+
+        register_post_meta(
+                'program',
+                'program_faq_items',
+                array_merge(
+                        $meta_args,
+                        array(
+                                'sanitize_callback' => 'sanitize_textarea_field',
+                        )
+                )
+        );
 }
 add_action( 'init', 'chroma_register_program_meta' );
 
@@ -179,6 +212,9 @@ function chroma_program_meta_box_render( $post ) {
         $heading    = get_post_meta( $post->ID, 'program_seo_heading', true );
         $summary    = get_post_meta( $post->ID, 'program_seo_summary', true );
         $highlights = get_post_meta( $post->ID, 'program_seo_highlights', true );
+        $meta_title = get_post_meta( $post->ID, 'program_meta_title', true );
+        $meta_desc  = get_post_meta( $post->ID, 'program_meta_description', true );
+        $faq_items  = get_post_meta( $post->ID, 'program_faq_items', true );
         ?>
         <p>
                 <label for="program_anchor_slug" class="screen-reader-text"><?php esc_html_e( 'Program Anchor', 'chroma-excellence' ); ?></label>
@@ -196,6 +232,21 @@ function chroma_program_meta_box_render( $post ) {
         <p>
                 <label for="program_seo_highlights" class="screen-reader-text"><?php esc_html_e( 'SEO Highlights', 'chroma-excellence' ); ?></label>
                 <textarea id="program_seo_highlights" name="program_seo_highlights" class="widefat" rows="4" placeholder="<?php esc_attr_e( "One bullet per line (e.g. ratios, curriculum)", 'chroma-excellence' ); ?>"><?php echo esc_textarea( $highlights ); ?></textarea>
+        </p>
+        <hr />
+        <p>
+                <label for="program_meta_title" class="screen-reader-text"><?php esc_html_e( 'Meta Title', 'chroma-excellence' ); ?></label>
+                <input type="text" id="program_meta_title" name="program_meta_title" value="<?php echo esc_attr( $meta_title ); ?>" class="widefat" placeholder="<?php esc_attr_e( 'Custom title tag (optional)', 'chroma-excellence' ); ?>" />
+                <small><?php esc_html_e( 'Used on the program detail for search visibility.', 'chroma-excellence' ); ?></small>
+        </p>
+        <p>
+                <label for="program_meta_description" class="screen-reader-text"><?php esc_html_e( 'Meta Description', 'chroma-excellence' ); ?></label>
+                <textarea id="program_meta_description" name="program_meta_description" class="widefat" rows="3" placeholder="<?php esc_attr_e( '1–2 sentence description for search snippets', 'chroma-excellence' ); ?>"><?php echo esc_textarea( $meta_desc ); ?></textarea>
+        </p>
+        <p>
+                <label for="program_faq_items" class="screen-reader-text"><?php esc_html_e( 'FAQ Items', 'chroma-excellence' ); ?></label>
+                <textarea id="program_faq_items" name="program_faq_items" class="widefat" rows="4" placeholder="<?php esc_attr_e( 'Question | Answer (one per line)', 'chroma-excellence' ); ?>"><?php echo esc_textarea( $faq_items ); ?></textarea>
+                <small><?php esc_html_e( 'Populate FAQ schema and on-page Q&A.', 'chroma-excellence' ); ?></small>
         </p>
         <?php
 }
@@ -222,10 +273,16 @@ function chroma_program_meta_box_save( $post_id ) {
         $heading    = isset( $_POST['program_seo_heading'] ) ? sanitize_text_field( wp_unslash( $_POST['program_seo_heading'] ) ) : '';
         $summary    = isset( $_POST['program_seo_summary'] ) ? sanitize_textarea_field( wp_unslash( $_POST['program_seo_summary'] ) ) : '';
         $highlights = isset( $_POST['program_seo_highlights'] ) ? sanitize_textarea_field( wp_unslash( $_POST['program_seo_highlights'] ) ) : '';
+        $meta_title = isset( $_POST['program_meta_title'] ) ? sanitize_text_field( wp_unslash( $_POST['program_meta_title'] ) ) : '';
+        $meta_desc  = isset( $_POST['program_meta_description'] ) ? sanitize_textarea_field( wp_unslash( $_POST['program_meta_description'] ) ) : '';
+        $faq_items  = isset( $_POST['program_faq_items'] ) ? sanitize_textarea_field( wp_unslash( $_POST['program_faq_items'] ) ) : '';
 
         update_post_meta( $post_id, 'program_anchor_slug', $anchor );
         update_post_meta( $post_id, 'program_seo_heading', $heading );
         update_post_meta( $post_id, 'program_seo_summary', $summary );
         update_post_meta( $post_id, 'program_seo_highlights', $highlights );
+        update_post_meta( $post_id, 'program_meta_title', $meta_title );
+        update_post_meta( $post_id, 'program_meta_description', $meta_desc );
+        update_post_meta( $post_id, 'program_faq_items', $faq_items );
 }
 add_action( 'save_post', 'chroma_program_meta_box_save' );
