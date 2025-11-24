@@ -6,7 +6,7 @@ Complete WordPress solution for Chroma Early Learning Academy featuring custom t
 
 ### 1. **chroma-excellence-theme** (WordPress Theme)
 Custom theme with:
-- Hardcoded homepage sections (no ACF dependency)
+- Hardcoded homepage defaults (override via Customizer, no ACF dependency)
 - 2 Custom Post Types (Programs, Locations)
 - Advanced SEO engine with schema.org markup
 - Sitemap.xml and robots.txt management
@@ -80,7 +80,7 @@ cd wp-content/plugins/
 **Homepage:**
 1. Create a page called "Home"
 2. Settings → Reading → Set "Home" as homepage
-3. Homepage sections now load from hardcoded theme data—no ACF fields are required.
+3. Optional: Appearance → Customize → **Chroma Homepage** to edit hero text, stats, Prismpath cards, wizard options, curriculum radar data, schedule tabs, FAQs, and the locations callout (JSON textareas provided for list-based sections).
 
 ## 📁 Theme Architecture
 
