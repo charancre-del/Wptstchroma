@@ -21,7 +21,7 @@ if ( empty( $cards ) || empty( $feature ) || count( $cards ) < 4 ) {
                         <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php echo esc_html( $feature['eyebrow'] ); ?></span>
                         <h2 class="text-3xl md:text-5xl font-serif text-brand-ink"><?php echo esc_html( $feature['heading'] ); ?></h2>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-6 md:h-[620px]">
+                <div class="grid grid-cols-1 md:grid-cols-12 md:grid-rows-2 md:auto-rows-[minmax(0,1fr)] gap-6">
                         <div class="md:col-span-7 bg-chroma-blue rounded-[3rem] p-10 text-white flex flex-col justify-between relative overflow-hidden">
                                 <div class="absolute top-0 right-0 p-10 opacity-10 text-8xl"><i class="fa-solid fa-shapes"></i></div>
                                 <div class="relative z-10 space-y-4">
