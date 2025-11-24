@@ -114,6 +114,12 @@ function chroma_get_region_color( $region ) {
 
 						// Determine region (can be custom field or extracted from city)
 						$region = get_post_meta( $location_id, 'location_region', true );
+
+						// Normalize region value - strip " Metro" suffix if present
+						if ( $region ) {
+							$region = str_replace( ' Metro', '', $region );
+						}
+
 						if ( ! $region ) {
 							// Auto-detect region based on city (you can customize this logic)
 							if ( in_array( $city, array( 'Lawrenceville', 'Lilburn', 'Duluth', 'Suwanee', 'Buford' ) ) ) {
