@@ -29,10 +29,9 @@ get_header();
 						</div>
 					<?php endif; ?>
 					<div class="p-6">
-                                                <?php $meta = chroma_get_program_meta(); ?>
-                                                <?php if ( $age_range = $meta['age_range'] ) : ?>
-                                                        <?php chroma_badge( $age_range, 'teal' ); ?>
-                                                <?php endif; ?>
+                                                <?php if ( $age_range = chroma_get_meta_value( get_the_ID(), 'program_age_range' ) ) : ?>
+							<?php chroma_badge( $age_range, 'teal' ); ?>
+						<?php endif; ?>
 						<h2 class="text-2xl font-serif font-bold text-brand-ink mt-3 mb-2">
 							<a href="<?php the_permalink(); ?>" class="hover:text-chroma-teal">
 								<?php the_title(); ?>

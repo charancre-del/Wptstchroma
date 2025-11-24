@@ -20,9 +20,9 @@ $locations = get_posts( array(
 // Build map data
 $map_data = array();
 foreach ( $locations as $loc ) {
-    $meta = chroma_get_location_meta( $loc->ID );
-    $lat  = $meta['latitude'];
-    $lng  = $meta['longitude'];
+    $fields = chroma_get_location_fields( $loc->ID );
+    $lat    = $fields['latitude'];
+    $lng    = $fields['longitude'];
     if ( $lat && $lng ) {
         $map_data[] = array(
             'id'    => $loc->ID,
@@ -73,12 +73,12 @@ foreach ( $locations as $loc ) {
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <?php foreach ( $locations as $location ) :
                         setup_postdata( $location );
-                        $meta    = chroma_get_location_meta( $location->ID );
-                        $city    = $meta['city'];
-                        $state   = $meta['state'];
-                        $phone   = $meta['phone'];
-                        $address = $meta['address'];
-                        $email   = $meta['email'];
+                        $fields  = chroma_get_location_fields( $location->ID );
+                        $city    = $fields['city'];
+                        $state   = $fields['state'];
+                        $phone   = $fields['phone'];
+                        $address = $fields['address'];
+                        $email   = $fields['email'];
                     ?>
                     <div class="bg-gradient-to-br from-brand-cream to-white rounded-lg shadow-md p-6 hover:shadow-xl transition-shadow" data-location="<?php echo esc_attr( $location->ID ); ?>">
                         <h2 class="text-2xl font-bold text-brand-ink mb-2">

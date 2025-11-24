@@ -100,21 +100,19 @@ add_filter( 'manage_location_posts_columns', 'chroma_location_admin_columns' );
  * Populate admin columns
  */
 function chroma_location_admin_column_content( $column, $post_id ) {
-        $meta = chroma_get_location_meta( $post_id );
-
-        switch ( $column ) {
+	switch ( $column ) {
                 case 'city':
-                        echo esc_html( $meta['city'] ?: '—' );
+                        echo esc_html( get_post_meta( $post_id, 'location_city', true ) ?: '—' );
                         break;
                 case 'state':
-                        echo esc_html( $meta['state'] ?: '—' );
+                        echo esc_html( get_post_meta( $post_id, 'location_state', true ) ?: '—' );
                         break;
                 case 'phone':
-                        echo esc_html( $meta['phone'] ?: '—' );
+                        echo esc_html( get_post_meta( $post_id, 'location_phone', true ) ?: '—' );
                         break;
                 case 'capacity':
-                        $capacity   = $meta['capacity'];
-                        $enrollment = $meta['enrollment'];
+                        $capacity = get_post_meta( $post_id, 'location_capacity', true );
+                        $enrollment = get_post_meta( $post_id, 'location_enrollment', true );
                         if ( $capacity ) {
                                 echo esc_html( $enrollment . ' / ' . $capacity );
                         } else {

@@ -9,7 +9,25 @@
 
 // Exit if accessed directly
 if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+        exit;
+}
+
+/**
+ * Safe accessor for global settings without relying on ACF.
+ */
+function chroma_tour_get_global_setting( $key, $default = '' ) {
+        if ( function_exists( 'chroma_get_global_setting' ) ) {
+                return chroma_get_global_setting( $key, $default );
+        }
+
+        $settings = get_option( 'chroma_global_settings', array() );
+        $value    = isset( $settings[ $key ] ) ? $settings[ $key ] : '';
+
+        if ( '' === $value ) {
+                return $default;
+        }
+
+        return $value;
 }
 
 /**
@@ -99,13 +117,13 @@ function chroma_handle_tour_submission() {
 	}
 
 	// Determine email recipient
-	$to_email = get_field( 'global_tour_email', 'option' ) ?: get_option( 'admin_email' );
-	if ( $location_id ) {
-		$location_email = get_field( 'location_email', $location_id );
-		if ( $location_email ) {
-			$to_email = $location_email;
-		}
-	}
+        $to_email = chroma_tour_get_global_setting( 'global_tour_email', get_option( 'admin_email' ) );
+        if ( $location_id ) {
+                $location_email = get_post_meta( $location_id, 'location_email', true );
+                if ( $location_email ) {
+                        $to_email = $location_email;
+                }
+        }
 
 	// Send email
 	$subject = 'New Tour Request from ' . $parent_name;

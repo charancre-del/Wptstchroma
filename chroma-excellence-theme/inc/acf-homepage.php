@@ -444,14 +444,14 @@ function chroma_home_locations_preview() {
                 $title     = get_the_title( $post_id );
                 $permalink = get_permalink( $post_id );
 
-                $meta    = chroma_get_location_meta( $post_id );
-                $city    = $meta['city'];
-                $state   = $meta['state'];
-                $phone   = $meta['phone'];
-                $address = $meta['address'];
+                $fields  = chroma_get_location_fields( $post_id );
+                $city    = $fields['city'];
+                $state   = $fields['state'];
+                $phone   = $fields['phone'];
+                $address = $fields['address'];
 
-                $lat = $meta['latitude'];
-                $lng = $meta['longitude'];
+                $lat = $fields['latitude'];
+                $lng = $fields['longitude'];
 
                 if ( $lat && $lng ) {
                         $map_points[] = array(

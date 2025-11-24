@@ -34,7 +34,7 @@ function chroma_organization_schema() {
 		'@type'       => 'ChildCare',
 		'name'        => get_bloginfo( 'name' ),
 		'url'         => home_url(),
-		'logo'        => chroma_global_logo_url(),
+                'logo'        => chroma_get_global_setting( 'global_logo', '' ),
 		'description' => chroma_global_seo_default_description(),
 		'areaServed'  => array(
 			'@type' => 'City',
@@ -63,34 +63,36 @@ function chroma_location_schema() {
         $location_id = get_the_ID();
         $meta        = chroma_get_location_meta( $location_id );
 
+        $location_fields = chroma_get_location_fields( $location_id );
+
         $schema = array(
                 '@context'     => 'https://schema.org',
                 '@type'        => array( 'ChildCare', 'LocalBusiness' ),
                 'name'         => get_the_title(),
-		'description'  => get_the_excerpt() ?: chroma_trimmed_excerpt( 30 ),
+                'description'  => get_the_excerpt() ?: chroma_trimmed_excerpt( 30 ),
                 'url'          => get_permalink(),
                 'image'        => get_the_post_thumbnail_url( $location_id, 'full' ),
                 'address'      => array(
                         '@type'           => 'PostalAddress',
-                        'streetAddress'   => $meta['address'],
-                        'addressLocality' => $meta['city'],
-                        'addressRegion'   => $meta['state'],
-                        'postalCode'      => $meta['zip'],
+                        'streetAddress'   => $location_fields['address'],
+                        'addressLocality' => $location_fields['city'],
+                        'addressRegion'   => $location_fields['state'],
+                        'postalCode'      => $location_fields['zip'],
                 ),
-                'telephone'    => $meta['phone'],
-                'email'        => $meta['email'],
+                'telephone'    => $location_fields['phone'],
+                'email'        => $location_fields['email'],
         );
 
-        if ( $lat = $meta['latitude'] ) {
+        if ( $location_fields['latitude'] ) {
+                $lat = $location_fields['latitude'];
                 $schema['geo'] = array(
                         '@type'     => 'GeoCoordinates',
                         'latitude'  => $lat,
-                        'longitude' => $meta['longitude'],
+                        'longitude' => $location_fields['longitude'],
                 );
         }
 
-	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) . '</script>' . "
-";
+	echo '<script type="application/ld+json">' . wp_json_encode( $schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT ) . '</script>' . "\n";
 }
 add_action( 'wp_head', 'chroma_location_schema' );
 
@@ -151,8 +153,8 @@ add_action( 'wp_head', 'chroma_og_tags', 5 );
  * Hreflang Tags for EN/ES
  */
 function chroma_hreflang_tags() {
-        $alternate_en = chroma_get_meta_value( get_the_ID(), 'alternate_url_en' );
-        $alternate_es = chroma_get_meta_value( get_the_ID(), 'alternate_url_es' );
+        $alternate_en = get_post_meta( get_the_ID(), 'alternate_url_en', true );
+        $alternate_es = get_post_meta( get_the_ID(), 'alternate_url_es', true );
 
 	if ( $alternate_en ) {
 		echo '<link rel="alternate" hreflang="en" href="' . esc_url( $alternate_en ) . '" />' . "
