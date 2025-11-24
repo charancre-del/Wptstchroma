@@ -73,6 +73,7 @@ function chroma_get_global_settings() {
  * Global Phone Helper
  */
 function chroma_global_phone() {
+        return chroma_get_option_value( 'global_phone', '' );
 	$settings = chroma_get_global_settings();
 	return $settings['phone'] ?: '';
 }
@@ -81,6 +82,7 @@ function chroma_global_phone() {
  * Global Email Helper
  */
 function chroma_global_email() {
+        return chroma_get_option_value( 'global_email', '' );
 	$settings = chroma_get_global_settings();
 	return $settings['email'] ?: '';
 }
@@ -89,6 +91,7 @@ function chroma_global_email() {
  * Global Tour Email Helper
  */
 function chroma_global_tour_email() {
+        return chroma_get_option_value( 'global_tour_email', chroma_global_email() );
 	$settings = chroma_get_global_settings();
 	return $settings['tour_email'] ?: chroma_global_email();
 }
@@ -97,6 +100,10 @@ function chroma_global_tour_email() {
  * Global Full Address Helper
  */
 function chroma_global_full_address() {
+        $address = chroma_get_option_value( 'global_address' );
+        $city    = chroma_get_option_value( 'global_city' );
+        $state   = chroma_get_option_value( 'global_state', 'GA' );
+        $zip     = chroma_get_option_value( 'global_zip' );
 	$settings = chroma_get_global_settings();
 	$address  = $settings['address'];
 	$city     = $settings['city'];
@@ -120,6 +127,7 @@ function chroma_global_full_address() {
  * Global Facebook URL
  */
 function chroma_global_facebook_url() {
+        return chroma_get_option_value( 'global_facebook_url', '' );
 	$settings = chroma_get_global_settings();
 	return $settings['facebook_url'] ?: '';
 }
@@ -128,6 +136,7 @@ function chroma_global_facebook_url() {
  * Global Instagram URL
  */
 function chroma_global_instagram_url() {
+        return chroma_get_option_value( 'global_instagram_url', '' );
 	$settings = chroma_get_global_settings();
 	return $settings['instagram_url'] ?: '';
 }
@@ -136,6 +145,7 @@ function chroma_global_instagram_url() {
  * Global LinkedIn URL
  */
 function chroma_global_linkedin_url() {
+        return chroma_get_option_value( 'global_linkedin_url', '' );
 	$settings = chroma_get_global_settings();
 	return $settings['linkedin_url'] ?: '';
 }
@@ -144,6 +154,7 @@ function chroma_global_linkedin_url() {
  * Global SEO Default Title
  */
 function chroma_global_seo_default_title() {
+        return chroma_get_option_value( 'global_seo_default_title', get_bloginfo( 'name' ) );
 	$settings = chroma_get_global_settings();
 	return $settings['seo_default_title'] ?: get_bloginfo( 'name' );
 }
@@ -152,6 +163,7 @@ function chroma_global_seo_default_title() {
  * Global SEO Default Description
  */
 function chroma_global_seo_default_description() {
+        return chroma_get_option_value( 'global_seo_default_description', get_bloginfo( 'description' ) );
 	$settings = chroma_get_global_settings();
 	return $settings['seo_default_description'] ?: get_bloginfo( 'description' );
 }

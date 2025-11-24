@@ -40,7 +40,7 @@ get_header();
 
     <!-- Benefits Section -->
     <?php
-    $benefits = get_field( 'acquisition_benefits' );
+$benefits = chroma_get_meta_value( get_the_ID(), 'acquisition_benefits', array() );
     if ( $benefits ) :
     ?>
     <section class="py-16 bg-brand-cream">
@@ -105,7 +105,7 @@ get_header();
 
     <!-- Process Timeline -->
     <?php
-    $process_steps = get_field( 'acquisition_process' );
+$process_steps = chroma_get_meta_value( get_the_ID(), 'acquisition_process', array() );
     if ( $process_steps ) :
     ?>
     <section class="py-16 bg-brand-cream">

@@ -444,13 +444,14 @@ function chroma_home_locations_preview() {
                 $title     = get_the_title( $post_id );
                 $permalink = get_permalink( $post_id );
 
-                $city    = function_exists( 'get_field' ) ? get_field( 'location_city', $post_id ) : get_post_meta( $post_id, 'location_city', true );
-                $state   = function_exists( 'get_field' ) ? get_field( 'location_state', $post_id ) : get_post_meta( $post_id, 'location_state', true );
-                $phone   = function_exists( 'get_field' ) ? get_field( 'location_phone', $post_id ) : get_post_meta( $post_id, 'location_phone', true );
-                $address = function_exists( 'get_field' ) ? get_field( 'location_address', $post_id ) : get_post_meta( $post_id, 'location_address', true );
+                $meta    = chroma_get_location_meta( $post_id );
+                $city    = $meta['city'];
+                $state   = $meta['state'];
+                $phone   = $meta['phone'];
+                $address = $meta['address'];
 
-                $lat = function_exists( 'get_field' ) ? get_field( 'location_latitude', $post_id ) : get_post_meta( $post_id, 'location_latitude', true );
-                $lng = function_exists( 'get_field' ) ? get_field( 'location_longitude', $post_id ) : get_post_meta( $post_id, 'location_longitude', true );
+                $lat = $meta['latitude'];
+                $lng = $meta['longitude'];
 
                 if ( $lat && $lng ) {
                         $map_points[] = array(

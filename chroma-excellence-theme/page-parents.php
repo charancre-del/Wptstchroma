@@ -40,7 +40,7 @@ get_header();
 
     <!-- Resource Cards -->
     <?php
-    $resources = get_field( 'parent_resources' );
+$resources = chroma_get_meta_value( get_the_ID(), 'parent_resources', array() );
     if ( $resources ) :
     ?>
     <section class="py-16 bg-brand-cream">

@@ -40,8 +40,8 @@ get_header();
 
     <!-- Mission & Values -->
     <?php
-    $mission = get_field( 'about_mission' );
-    $values  = get_field( 'about_values' );
+    $mission = chroma_get_meta_value( get_the_ID(), 'about_mission' );
+    $values  = chroma_get_meta_value( get_the_ID(), 'about_values' );
     if ( $mission || $values ) :
     ?>
     <section class="py-16 bg-brand-cream">
@@ -79,7 +79,7 @@ get_header();
 
     <!-- Team Section -->
     <?php
-    $team_members = get_field( 'about_team' );
+    $team_members = chroma_get_meta_value( get_the_ID(), 'about_team', array() );
     if ( $team_members ) :
     ?>
     <section class="py-16 bg-white">

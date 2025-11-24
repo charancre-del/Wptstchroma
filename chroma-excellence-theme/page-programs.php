@@ -42,6 +42,11 @@ $programs = get_posts( array(
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <?php foreach ( $programs as $program ) :
                         setup_postdata( $program );
+                        $meta      = chroma_get_program_meta( $program->ID );
+                        $age_range = $meta['age_range'];
+                        $excerpt   = $meta['short_description'] ?: wp_trim_words( $program->post_content, 25 );
+                        $icon      = $meta['icon_class'];
+                        $color     = $meta['color'];
                         $age_range = get_field( 'program_age_range', $program->ID );
                         $excerpt   = get_field( 'program_short_description', $program->ID ) ?: wp_trim_words( $program->post_content, 25 );
                         $icon      = get_field( 'program_icon_class', $program->ID ) ?: 'fas fa-child';
