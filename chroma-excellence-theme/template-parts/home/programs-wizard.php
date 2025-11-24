@@ -9,12 +9,15 @@
 
 $options = chroma_home_program_wizard_options();
 
+$program_slug        = chroma_get_program_base_slug();
+$program_archive_url = chroma_get_program_archive_url();
+
 if ( empty( $options ) ) {
-        return;
+	return;
 }
 ?>
 
-<section id="programs" class="py-20 bg-brand-cream border-b border-chroma-blue/10" data-section="programs">
+<section id="<?php echo esc_attr( $program_slug ); ?>" class="py-20 bg-brand-cream border-b border-chroma-blue/10" data-section="<?php echo esc_attr( $program_slug ); ?>">
         <div class="max-w-5xl mx-auto px-4 lg:px-6">
                 <div class="text-center mb-10">
                         <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-3">Find the right program in 10 seconds</h2>
@@ -36,7 +39,7 @@ if ( empty( $options ) ) {
                                 <h3 class="text-2xl font-serif font-bold text-brand-ink mb-2" data-program-wizard-title>Program Name</h3>
                                 <p class="text-brand-ink/70 max-w-xl mx-auto text-sm md:text-base" data-program-wizard-description>Description goes here.</p>
                                 <div class="flex flex-wrap justify-center gap-3 text-xs">
-                                        <a class="inline-flex items-center justify-center px-5 py-2 rounded-full border border-chroma-blue/20 bg-white text-brand-ink font-semibold hover:border-chroma-blue hover:text-chroma-blue transition" data-program-wizard-link href="/programs">Learn more about this program</a>
+<a class="inline-flex items-center justify-center px-5 py-2 rounded-full border border-chroma-blue/20 bg-white text-brand-ink font-semibold hover:border-chroma-blue hover:text-chroma-blue transition" data-program-wizard-link href="<?php echo esc_url( $program_archive_url ); ?>">Learn more about this program</a>
                                         <a href="#tour" class="inline-flex items-center justify-center px-5 py-2 rounded-full bg-chroma-red text-white font-semibold hover:bg-chroma-red/90 transition">Speak to an enrollment specialist</a>
                                         <button type="button" class="text-brand-ink/50 hover:text-brand-ink underline decoration-dotted" data-program-wizard-reset>Start Over</button>
                                 </div>

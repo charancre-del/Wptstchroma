@@ -26,6 +26,7 @@ define( 'CHROMA_THEME_URI', get_template_directory_uri() );
 // Core setup and configuration
 require_once CHROMA_THEME_DIR . '/inc/setup.php';
 require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
+require_once CHROMA_THEME_DIR . '/inc/program-settings.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
 
 // Custom Post Types

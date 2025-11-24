@@ -19,14 +19,14 @@ function chroma_get_home_page_id() {
 }
 
 function chroma_home_default_hero() {
-        return array(
-                'heading'         => 'The art of <span class="italic text-chroma-red">growing up.</span>',
-                'subheading'      => 'Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.',
-                'cta_label'       => 'Schedule a Tour',
-                'cta_url'         => '#tour',
-                'secondary_label' => 'View Programs',
-                'secondary_url'   => '/programs',
-        );
+return array(
+'heading'         => 'The art of <span class="italic text-chroma-red">growing up.</span>',
+'subheading'      => 'Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.',
+'cta_label'       => 'Schedule a Tour',
+'cta_url'         => '#tour',
+'secondary_label' => 'View Programs',
+'secondary_url'   => chroma_get_program_archive_url(),
+);
 }
 
 function chroma_home_default_stats() {
@@ -170,50 +170,52 @@ function chroma_home_prismpath_panels() {
 }
 
 function chroma_home_default_program_wizard_options() {
-        return array(
-                array(
-                        'key'         => 'infant',
-                        'emoji'       => '👶',
-                        'label'       => "Infant\n(6 weeks–12m)",
-                        'description' => 'Low ratios, safe sleep practices, responsive caregiving, and sensory play in a peaceful, predictable environment.',
-                        'link'        => '/programs#infant',
-                ),
-                array(
-                        'key'         => 'toddler',
-                        'emoji'       => '🚀',
-                        'label'       => "Toddler\n(1 year)",
-                        'description' => 'Curated environments for walkers and explorers with language bursts and social skills.',
-                        'link'        => '/programs#toddler',
-                ),
-                array(
-                        'key'         => 'preschool',
-                        'emoji'       => '🎨',
-                        'label'       => "Preschool\n(2 years)",
-                        'description' => 'Early concepts in math, literacy, and science introduced through hands-on centers and guided play.',
-                        'link'        => '/programs#preschool',
-                ),
-                array(
-                        'key'         => 'prep',
-                        'emoji'       => '✏️',
-                        'label'       => "Pre-K Prep\n(3 years)",
-                        'description' => 'Structured centers and small-group instruction that build independence before GA Pre-K.',
-                        'link'        => '/programs#pre-k-prep',
-                ),
-                array(
-                        'key'         => 'prek',
-                        'emoji'       => '🎓',
-                        'label'       => "GA Pre-K\n(4 years)",
-                        'description' => 'Balanced academic readiness, social-emotional learning, and joyful experiences aligned with GA standards.',
-                        'link'        => '/programs#ga-pre-k',
-                ),
-                array(
-                        'key'         => 'afterschool',
-                        'emoji'       => '🚌',
-                        'label'       => "After School\n(5–12 years)",
-                        'description' => 'Transportation from local schools, homework support, clubs, and outdoor play.',
-                        'link'        => '/programs#after-school',
-                ),
-        );
+	$program_url = chroma_get_program_archive_url();
+
+	return array(
+		array(
+			'key'         => 'infant',
+			'emoji'       => '👶',
+			'label'       => "Infant\n(6 weeks–12m)",
+			'description' => 'Low ratios, safe sleep practices, responsive caregiving, and sensory play in a peaceful, predictable environment.',
+			'link'        => $program_url . '#infant',
+		),
+		array(
+			'key'         => 'toddler',
+			'emoji'       => '🚀',
+			'label'       => "Toddler\n(1 year)",
+			'description' => 'Curated environments for walkers and explorers with language bursts and social skills.',
+			'link'        => $program_url . '#toddler',
+		),
+		array(
+			'key'         => 'preschool',
+			'emoji'       => '🎨',
+			'label'       => "Preschool\n(2 years)",
+			'description' => 'Early concepts in math, literacy, and science introduced through hands-on centers and guided play.',
+			'link'        => $program_url . '#preschool',
+		),
+		array(
+			'key'         => 'prep',
+			'emoji'       => '✏️',
+			'label'       => "Pre-K Prep\n(3 years)",
+			'description' => 'Structured centers and small-group instruction that build independence before GA Pre-K.',
+			'link'        => $program_url . '#pre-k-prep',
+		),
+		array(
+			'key'         => 'prek',
+			'emoji'       => '🎓',
+			'label'       => "GA Pre-K\n(4 years)",
+			'description' => 'Balanced academic readiness, social-emotional learning, and joyful experiences aligned with GA standards.',
+			'link'        => $program_url . '#ga-pre-k',
+		),
+		array(
+			'key'         => 'afterschool',
+			'emoji'       => '🚌',
+			'label'       => "After School\n(5–12 years)",
+			'description' => 'Transportation from local schools, homework support, clubs, and outdoor play.',
+			'link'        => $program_url . '#after-school',
+		),
+	);
 }
 
 function chroma_home_default_curriculum_profiles() {
@@ -401,29 +403,27 @@ function chroma_home_default_schedule_tracks() {
  * Age-based program wizard options
  */
 function chroma_home_program_wizard_options() {
-        $options = chroma_home_get_theme_mod_json( 'chroma_home_program_wizard_json', chroma_home_default_program_wizard_options() );
+	$options     = chroma_home_get_theme_mod_json( 'chroma_home_program_wizard_json', chroma_home_default_program_wizard_options() );
+	$program_url = chroma_get_program_archive_url();
 
-        return array_map(
-                function ( $item ) {
-                        $key         = sanitize_title( $item['key'] ?? '' );
-                        $anchor_slug = chroma_program_anchor_for_key( $key );
-                        $link_target = $anchor_slug ?: $key;
+	return array_map(
+		function ( $item ) use ( $program_url ) {
+			$key         = sanitize_title( $item['key'] ?? '' );
+			$anchor_slug = chroma_program_anchor_for_key( $key );
+			$link_target = $anchor_slug ?: $key;
 
-                        return array(
-                                'key'         => $key,
-                                'emoji'       => sanitize_text_field( $item['emoji'] ?? '' ),
-                                'label'       => sanitize_text_field( $item['label'] ?? '' ),
-                                'description' => sanitize_textarea_field( $item['description'] ?? '' ),
-                                'link'        => esc_url_raw( home_url( '/programs#' . $link_target ) ),
-                        );
-                },
-                $options
-        );
+			return array(
+				'key'         => $key,
+				'emoji'       => sanitize_text_field( $item['emoji'] ?? '' ),
+				'label'       => sanitize_text_field( $item['label'] ?? '' ),
+				'description' => sanitize_textarea_field( $item['description'] ?? '' ),
+				'link'        => esc_url_raw( $program_url . '#' . $link_target ),
+			);
+		},
+		$options
+	);
 }
 
-/**
- * Curriculum radar profiles
- */
 function chroma_home_curriculum_profiles() {
         $defaults = chroma_home_default_curriculum_profiles();
         $profiles = chroma_home_get_theme_mod_json( 'chroma_home_curriculum_profiles_json', $defaults['profiles'] );
