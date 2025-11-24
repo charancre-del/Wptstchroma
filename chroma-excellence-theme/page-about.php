@@ -79,8 +79,18 @@ $values  = get_post_meta( get_the_ID(), 'about_values', true );
 
     <!-- Team Section -->
     <?php
-$team_members = get_post_meta( get_the_ID(), 'about_team', true );
-    if ( $team_members ) :
+    $team_query = new WP_Query(
+        array(
+            'post_type'      => 'team_member',
+            'posts_per_page' => -1,
+            'orderby'        => array(
+                'menu_order' => 'ASC',
+                'title'      => 'ASC',
+            ),
+        )
+    );
+
+    if ( $team_query->have_posts() ) :
     ?>
     <section class="py-16 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -88,28 +98,37 @@ $team_members = get_post_meta( get_the_ID(), 'about_team', true );
                 Meet Our Team
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <?php foreach ( $team_members as $member ) : ?>
+                <?php
+                while ( $team_query->have_posts() ) :
+                    $team_query->the_post();
+                    $title = get_post_meta( get_the_ID(), 'team_member_title', true );
+                    ?>
                     <div class="text-center">
-                        <?php if ( ! empty( $member['photo'] ) ) : ?>
-                            <img src="<?php echo esc_url( $member['photo']['url'] ); ?>" alt="<?php echo esc_attr( $member['name'] ); ?>" class="w-48 h-48 rounded-full mx-auto mb-4 object-cover">
+                        <?php if ( has_post_thumbnail() ) : ?>
+                            <?php the_post_thumbnail( 'medium', array( 'class' => 'w-48 h-48 rounded-full mx-auto mb-4 object-cover', 'alt' => esc_attr( get_the_title() ) ) ); ?>
                         <?php endif; ?>
                         <h3 class="text-xl font-bold text-brand-ink mb-1">
-                            <?php echo esc_html( $member['name'] ); ?>
+                            <?php the_title(); ?>
                         </h3>
-                        <p class="text-chroma-teal font-semibold mb-3">
-                            <?php echo esc_html( $member['title'] ); ?>
-                        </p>
-                        <?php if ( ! empty( $member['bio'] ) ) : ?>
-                            <p class="text-brand-ink/70 text-sm">
-                                <?php echo esc_html( $member['bio'] ); ?>
+                        <?php if ( ! empty( $title ) ) : ?>
+                            <p class="text-chroma-teal font-semibold mb-3">
+                                <?php echo esc_html( $title ); ?>
                             </p>
                         <?php endif; ?>
+                        <?php if ( get_the_content() ) : ?>
+                            <div class="text-brand-ink/70 text-sm prose prose-sm mx-auto">
+                                <?php echo wp_kses_post( wpautop( get_the_content() ) ); ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                <?php endforeach; ?>
+                <?php endwhile; ?>
             </div>
         </div>
     </section>
-    <?php endif; ?>
+    <?php
+        wp_reset_postdata();
+    endif;
+    ?>
 
     <!-- CTA Section -->
     <section class="py-16 bg-gradient-to-r from-chroma-teal to-chroma-green">

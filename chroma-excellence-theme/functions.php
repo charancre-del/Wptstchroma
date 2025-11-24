@@ -32,6 +32,7 @@ require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
 // Custom Post Types
 require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
+require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
 
 // Utility Functions
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
