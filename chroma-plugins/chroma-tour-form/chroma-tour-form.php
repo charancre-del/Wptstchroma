@@ -89,6 +89,15 @@ function chroma_handle_tour_submission() {
 		exit;
 	}
 
+	// Server-side validation
+	if ( empty( $parent_name ) || empty( $email ) || empty( $phone ) ) {
+		wp_die( 'Required fields are missing. Please fill out all required fields.', 'Missing Data', array( 'response' => 400, 'back_link' => true ) );
+	}
+
+	if ( ! is_email( $email ) ) {
+		wp_die( 'Invalid email address format.', 'Invalid Data', array( 'response' => 400, 'back_link' => true ) );
+	}
+
 	// Determine email recipient
 	$to_email = get_field( 'global_tour_email', 'option' ) ?: get_option( 'admin_email' );
 	if ( $location_id ) {
@@ -137,6 +146,20 @@ function chroma_handle_tour_submission() {
 	}
 
 	wp_safe_redirect( add_query_arg( 'tour_sent', '1', $redirect_url ) );
+				'lead_payload'   => json_encode( array(
+					'parent_name'  => $parent_name,
+					'email'        => $email,
+					'phone'        => $phone,
+					'location_id'  => $location_id,
+					'child_ages'   => $child_ages,
+					'submitted_at' => current_time( 'mysql' ),
+				) ),
+			),
+		) );
+	}
+
+	$redirect_url = wp_get_referer() ?: home_url( '/contact/' );
+	wp_redirect( add_query_arg( 'tour_sent', '1', $redirect_url ) );
 	exit;
 }
 add_action( 'template_redirect', 'chroma_handle_tour_submission' );

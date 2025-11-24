@@ -86,6 +86,45 @@ function chroma_enqueue_assets() {
                 wp_enqueue_style(
                         'leaflet',
                         'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
+	// Compiled Tailwind CSS
+	$css_path = CHROMA_THEME_DIR . '/assets/css/main.css';
+	$css_version = file_exists( $css_path ) ? filemtime( $css_path ) : CHROMA_VERSION;
+
+	wp_enqueue_style(
+		'chroma-main',
+		CHROMA_THEME_URI . '/assets/css/main.css',
+		array(),
+		$css_version
+	);
+
+	// Main JavaScript
+	$js_path = CHROMA_THEME_DIR . '/assets/js/main.js';
+	$js_version = file_exists( $js_path ) ? filemtime( $js_path ) : CHROMA_VERSION;
+
+	wp_enqueue_script(
+		'chroma-main',
+		CHROMA_THEME_URI . '/assets/js/main.js',
+		array(),
+		$js_version,
+		true
+	);
+
+	// Chart.js for curriculum visualization (homepage only)
+	if ( is_front_page() ) {
+		wp_enqueue_script(
+			'chartjs',
+			'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+			array(),
+			'4.4.0',
+			true
+		);
+	}
+
+	// Leaflet for maps (only on location pages)
+	if ( is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' ) || is_front_page() ) {
+		wp_enqueue_style(
+			'leaflet',
+			'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
 			array(),
 			'1.9.4'
 		);
