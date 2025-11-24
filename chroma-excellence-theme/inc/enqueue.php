@@ -115,3 +115,34 @@ null
         );
 }
 add_action( 'wp_enqueue_scripts', 'chroma_enqueue_assets' );
+
+/**
+ * Enqueue admin assets
+ */
+function chroma_enqueue_admin_assets( $hook ) {
+        // Only load on post edit screens
+        if ( 'post.php' !== $hook && 'post-new.php' !== $hook ) {
+                return;
+        }
+
+        // Font Awesome for icon previews in admin
+        wp_enqueue_style(
+                'font-awesome-admin',
+                'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
+                array(),
+                '6.4.0'
+        );
+
+        // Media uploader
+        wp_enqueue_media();
+
+        // Custom admin script for media uploader
+        wp_enqueue_script(
+                'chroma-admin',
+                CHROMA_THEME_URI . '/assets/js/admin.js',
+                array( 'jquery' ),
+                CHROMA_VERSION,
+                true
+        );
+}
+add_action( 'admin_enqueue_scripts', 'chroma_enqueue_admin_assets' );

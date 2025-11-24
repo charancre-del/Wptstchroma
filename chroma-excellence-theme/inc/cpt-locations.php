@@ -271,7 +271,58 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 		.chroma-meta-field small { display: block; margin-top: 5px; color: #666; font-style: italic; }
 		.chroma-meta-section { border-top: 1px solid #ddd; padding-top: 20px; margin-top: 20px; }
 		.chroma-meta-section h4 { margin-top: 0; margin-bottom: 15px; font-size: 14px; font-weight: 600; text-transform: uppercase; color: #555; }
+		.chroma-icon-preview {
+			display: inline-flex;
+			align-items: center;
+			gap: 10px;
+			padding: 10px 15px;
+			background: #f0f0f1;
+			border-radius: 4px;
+			margin-top: 10px;
+			font-size: 13px;
+		}
+		.chroma-icon-preview i {
+			font-size: 16px;
+			color: #2271b1;
+		}
+		.chroma-image-preview img {
+			max-width: 200px;
+			height: auto;
+			margin-top: 10px;
+			border: 1px solid #ddd;
+			padding: 5px;
+			border-radius: 4px;
+		}
 	</style>
+
+	<div class="chroma-meta-section" style="border-top: none; padding-top: 0; margin-top: 0;">
+		<div style="background: #e7f5ff; padding: 15px; border-radius: 4px; margin-bottom: 20px; border-left: 4px solid #2271b1;">
+			<p style="margin: 0 0 10px 0; font-weight: 600;">
+				<i class="fa-solid fa-info-circle"></i> Frontend Icons Preview
+			</p>
+			<p style="margin: 0; font-size: 13px; color: #555;">
+				The following icons will appear on your location page:
+			</p>
+			<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px;">
+				<div class="chroma-icon-preview">
+					<i class="fa-solid fa-location-dot"></i>
+					<span>Address</span>
+				</div>
+				<div class="chroma-icon-preview">
+					<i class="fa-solid fa-phone"></i>
+					<span>Phone/Email</span>
+				</div>
+				<div class="chroma-icon-preview">
+					<i class="fa-solid fa-clock"></i>
+					<span>Hours</span>
+				</div>
+				<div class="chroma-icon-preview">
+					<i class="fa-solid fa-bus"></i>
+					<span>School Pickups</span>
+				</div>
+			</div>
+		</div>
+	</div>
 
 	<div class="chroma-meta-section">
 		<h4><?php _e( 'Hero Section', 'chroma-excellence' ); ?></h4>
@@ -333,15 +384,29 @@ function chroma_render_location_custom_fields_meta_box( $post ) {
 		</div>
 
 		<div class="chroma-meta-field">
-			<label for="location_director_photo"><?php _e( 'Director Photo URL', 'chroma-excellence' ); ?></label>
-			<input type="text" id="location_director_photo" name="location_director_photo" value="<?php echo esc_attr( $director_photo ); ?>" placeholder="https://..." />
-			<small><?php _e( 'URL to director photo (optional)', 'chroma-excellence' ); ?></small>
+			<label for="location_director_photo"><?php _e( 'Director Photo', 'chroma-excellence' ); ?></label>
+			<input type="text" id="location_director_photo" name="location_director_photo" class="chroma-image-field" value="<?php echo esc_attr( $director_photo ); ?>" placeholder="https://..." style="width: calc(100% - 220px); display: inline-block;" />
+			<button type="button" class="button chroma-upload-button" data-field="location_director_photo" style="margin-left: 5px;">
+				<i class="fa-solid fa-upload"></i> Upload Image
+			</button>
+			<button type="button" class="button chroma-clear-button" data-field="location_director_photo" style="margin-left: 5px;">
+				<i class="fa-solid fa-times"></i> Clear
+			</button>
+			<div class="chroma-image-preview"></div>
+			<small><?php _e( 'Director photo (optional)', 'chroma-excellence' ); ?></small>
 		</div>
 
 		<div class="chroma-meta-field">
-			<label for="location_director_signature"><?php _e( 'Director Signature Image URL', 'chroma-excellence' ); ?></label>
-			<input type="text" id="location_director_signature" name="location_director_signature" value="<?php echo esc_attr( $director_signature ); ?>" placeholder="https://..." />
-			<small><?php _e( 'URL to director signature image (optional)', 'chroma-excellence' ); ?></small>
+			<label for="location_director_signature"><?php _e( 'Director Signature Image', 'chroma-excellence' ); ?></label>
+			<input type="text" id="location_director_signature" name="location_director_signature" class="chroma-image-field" value="<?php echo esc_attr( $director_signature ); ?>" placeholder="https://..." style="width: calc(100% - 220px); display: inline-block;" />
+			<button type="button" class="button chroma-upload-button" data-field="location_director_signature" style="margin-left: 5px;">
+				<i class="fa-solid fa-upload"></i> Upload Image
+			</button>
+			<button type="button" class="button chroma-clear-button" data-field="location_director_signature" style="margin-left: 5px;">
+				<i class="fa-solid fa-times"></i> Clear
+			</button>
+			<div class="chroma-image-preview"></div>
+			<small><?php _e( 'Director signature image (optional)', 'chroma-excellence' ); ?></small>
 		</div>
 	</div>
 
