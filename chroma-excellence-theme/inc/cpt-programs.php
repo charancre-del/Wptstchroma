@@ -308,6 +308,15 @@ function chroma_program_locations_meta_box() {
 		'normal',
 		'high'
 	);
+
+	add_meta_box(
+		'chroma-program-single-page',
+		__( 'Single Page Content', 'chroma-excellence' ),
+		'chroma_program_single_page_meta_box_render',
+		'program',
+		'normal',
+		'default'
+	);
 }
 add_action( 'add_meta_boxes', 'chroma_program_locations_meta_box' );
 
@@ -501,3 +510,173 @@ function chroma_program_details_meta_box_save( $post_id ) {
 	}
 }
 add_action( 'save_post_program', 'chroma_program_details_meta_box_save' );
+
+/**
+ * Render single page content meta box
+ */
+function chroma_program_single_page_meta_box_render( $post ) {
+	wp_nonce_field( 'chroma_program_single_page_nonce', 'chroma_program_single_page_nonce_field' );
+
+	// Hero section
+	$hero_title = get_post_meta( $post->ID, 'program_hero_title', true );
+	$hero_description = get_post_meta( $post->ID, 'program_hero_description', true );
+
+	// Prismpath section
+	$prism_title = get_post_meta( $post->ID, 'program_prism_title', true );
+	$prism_description = get_post_meta( $post->ID, 'program_prism_description', true );
+	$prism_focus_items = get_post_meta( $post->ID, 'program_prism_focus_items', true );
+
+	// Chart data
+	$prism_physical = get_post_meta( $post->ID, 'program_prism_physical', true ) ?: '50';
+	$prism_emotional = get_post_meta( $post->ID, 'program_prism_emotional', true ) ?: '50';
+	$prism_social = get_post_meta( $post->ID, 'program_prism_social', true ) ?: '50';
+	$prism_academic = get_post_meta( $post->ID, 'program_prism_academic', true ) ?: '50';
+	$prism_creative = get_post_meta( $post->ID, 'program_prism_creative', true ) ?: '50';
+
+	// Schedule
+	$schedule_title = get_post_meta( $post->ID, 'program_schedule_title', true );
+	$schedule_items = get_post_meta( $post->ID, 'program_schedule_items', true );
+	?>
+	<style>
+		.chroma-single-field { margin-bottom: 20px; }
+		.chroma-single-field label { display: block; font-weight: 600; margin-bottom: 5px; }
+		.chroma-single-field input[type="text"],
+		.chroma-single-field input[type="number"],
+		.chroma-single-field textarea { width: 100%; max-width: 800px; }
+		.chroma-single-field small { display: block; margin-top: 5px; color: #666; font-style: italic; }
+		.chroma-section-divider { border-top: 2px solid #0073aa; margin: 30px 0 20px 0; padding-top: 20px; }
+		.chroma-chart-inputs { display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px; max-width: 800px; }
+		.chroma-chart-input { text-align: center; }
+		.chroma-chart-input input { text-align: center; font-weight: bold; }
+	</style>
+
+	<div class="chroma-section-divider">
+		<h3 style="margin-top: 0; color: #0073aa;">Hero Section</h3>
+	</div>
+
+	<div class="chroma-single-field">
+		<label for="program_hero_title"><?php _e( 'Hero Title', 'chroma-excellence' ); ?></label>
+		<input type="text" id="program_hero_title" name="program_hero_title" value="<?php echo esc_attr( $hero_title ); ?>" placeholder="e.g., The Foundation Phase." />
+		<small><?php _e( 'Main heading on single program page (defaults to program title if empty)', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-single-field">
+		<label for="program_hero_description"><?php _e( 'Hero Description', 'chroma-excellence' ); ?></label>
+		<textarea id="program_hero_description" name="program_hero_description" rows="3" placeholder="A peaceful, 'shoeless' environment..."><?php echo esc_textarea( $hero_description ); ?></textarea>
+		<small><?php _e( 'Description paragraph in hero section', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-section-divider">
+		<h3 style="margin-top: 0; color: #0073aa;">Prismpath™ Focus Section</h3>
+	</div>
+
+	<div class="chroma-single-field">
+		<label for="program_prism_title"><?php _e( 'Prism Section Title', 'chroma-excellence' ); ?></label>
+		<input type="text" id="program_prism_title" name="program_prism_title" value="<?php echo esc_attr( $prism_title ); ?>" placeholder="e.g., Building Trust & Body." />
+		<small><?php _e( 'Title for the Prismpath focus section', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-single-field">
+		<label for="program_prism_description"><?php _e( 'Prism Description', 'chroma-excellence' ); ?></label>
+		<textarea id="program_prism_description" name="program_prism_description" rows="4" placeholder="In the first year, the brain grows faster than at any other time..."><?php echo esc_textarea( $prism_description ); ?></textarea>
+		<small><?php _e( 'Description explaining the program\'s Prismpath focus', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-single-field">
+		<label><?php _e( 'Prismpath Chart Values (0-100)', 'chroma-excellence' ); ?></label>
+		<div class="chroma-chart-inputs">
+			<div class="chroma-chart-input">
+				<label for="program_prism_physical" style="font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 5px;">Physical</label>
+				<input type="number" id="program_prism_physical" name="program_prism_physical" value="<?php echo esc_attr( $prism_physical ); ?>" min="0" max="100" style="background: #F4E5E2;" />
+			</div>
+			<div class="chroma-chart-input">
+				<label for="program_prism_emotional" style="font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 5px;">Emotional</label>
+				<input type="number" id="program_prism_emotional" name="program_prism_emotional" value="<?php echo esc_attr( $prism_emotional ); ?>" min="0" max="100" style="background: #FDF6E3;" />
+			</div>
+			<div class="chroma-chart-input">
+				<label for="program_prism_social" style="font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 5px;">Social</label>
+				<input type="number" id="program_prism_social" name="program_prism_social" value="<?php echo esc_attr( $prism_social ); ?>" min="0" max="100" style="background: #E3EBE8;" />
+			</div>
+			<div class="chroma-chart-input">
+				<label for="program_prism_academic" style="font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 5px;">Academic</label>
+				<input type="number" id="program_prism_academic" name="program_prism_academic" value="<?php echo esc_attr( $prism_academic ); ?>" min="0" max="100" style="background: #E3E9EC;" />
+			</div>
+			<div class="chroma-chart-input">
+				<label for="program_prism_creative" style="font-size: 11px; text-transform: uppercase; color: #666; margin-bottom: 5px;">Creative</label>
+				<input type="number" id="program_prism_creative" name="program_prism_creative" value="<?php echo esc_attr( $prism_creative ); ?>" min="0" max="100" style="background: #FDF6E3;" />
+			</div>
+		</div>
+		<small><?php _e( 'Set values 0-100 for each pillar. These create the radar chart.', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-single-field">
+		<label for="program_prism_focus_items"><?php _e( 'Focus Items', 'chroma-excellence' ); ?></label>
+		<textarea id="program_prism_focus_items" name="program_prism_focus_items" rows="4" placeholder="Enter one item per line, e.g.:&#10;High Physical: Tummy time, rolling, reaching.&#10;High Emotional: Responsive feeding, cuddling."><?php echo esc_textarea( $prism_focus_items ); ?></textarea>
+		<small><?php _e( 'Bullet points explaining the focus. One per line.', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-section-divider">
+		<h3 style="margin-top: 0; color: #0073aa;">Daily Schedule/Rhythm Section</h3>
+	</div>
+
+	<div class="chroma-single-field">
+		<label for="program_schedule_title"><?php _e( 'Schedule Section Title', 'chroma-excellence' ); ?></label>
+		<input type="text" id="program_schedule_title" name="program_schedule_title" value="<?php echo esc_attr( $schedule_title ); ?>" placeholder="e.g., A Rhythm, Not a Routine" />
+		<small><?php _e( 'Title for the schedule section', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-single-field">
+		<label for="program_schedule_items"><?php _e( 'Schedule Items', 'chroma-excellence' ); ?></label>
+		<textarea id="program_schedule_items" name="program_schedule_items" rows="8" placeholder="Format: Badge|Title|Description (one per line)&#10;Example:&#10;AM|Warm Welcome & Bottles|Transition from parent arms to teacher arms...&#10;Mid|Sensory Discovery|Tummy time on textured mats...&#10;PM|Stroller Walks & Nap|Fresh air in our buggy carts..."><?php echo esc_textarea( $schedule_items ); ?></textarea>
+		<small><?php _e( 'Format: Badge|Title|Description (one per line). Badge can be AM, Mid, PM, or any text.', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<p><strong><?php _e( 'Note:', 'chroma-excellence' ); ?></strong> <?php _e( 'The featured image is used as the hero image on the single program page.', 'chroma-excellence' ); ?></p>
+	<?php
+}
+
+/**
+ * Save single page content
+ */
+function chroma_program_single_page_meta_box_save( $post_id ) {
+	// Verify nonce
+	if ( ! isset( $_POST['chroma_program_single_page_nonce_field'] ) || ! wp_verify_nonce( wp_unslash( $_POST['chroma_program_single_page_nonce_field'] ), 'chroma_program_single_page_nonce' ) ) {
+		return;
+	}
+
+	// Check autosave
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Check permissions
+	if ( isset( $_POST['post_type'] ) && 'program' === $_POST['post_type'] ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+	}
+
+	// Save fields
+	$fields = array(
+		'program_hero_title'       => 'sanitize_text_field',
+		'program_hero_description' => 'sanitize_textarea_field',
+		'program_prism_title'      => 'sanitize_text_field',
+		'program_prism_description' => 'sanitize_textarea_field',
+		'program_prism_focus_items' => 'sanitize_textarea_field',
+		'program_prism_physical'   => 'absint',
+		'program_prism_emotional'  => 'absint',
+		'program_prism_social'     => 'absint',
+		'program_prism_academic'   => 'absint',
+		'program_prism_creative'   => 'absint',
+		'program_schedule_title'   => 'sanitize_text_field',
+		'program_schedule_items'   => 'sanitize_textarea_field',
+	);
+
+	foreach ( $fields as $field => $sanitize_callback ) {
+		if ( isset( $_POST[ $field ] ) ) {
+			$value = call_user_func( $sanitize_callback, wp_unslash( $_POST[ $field ] ) );
+			update_post_meta( $post_id, $field, $value );
+		}
+	}
+}
+add_action( 'save_post_program', 'chroma_program_single_page_meta_box_save' );
