@@ -11,34 +11,8 @@ if ( ! $locations_data ) {
     return;
 }
 
-// Get all locations for map
-$all_locations = get_posts( array(
-    'post_type'      => 'location',
-    'posts_per_page' => -1,
-    'post_status'    => 'publish',
-) );
-
-// Build JSON for map
-$map_json = array();
-foreach ( $all_locations as $loc ) {
-    $lat = get_field( 'location_latitude', $loc->ID );
-    $lng = get_field( 'location_longitude', $loc->ID );
-    if ( $lat && $lng ) {
-        $map_json[] = array(
-            'id'    => $loc->ID,
-            'title' => $loc->post_title,
-            'lat'   => floatval( $lat ),
-            'lng'   => floatval( $lng ),
-            'url'   => get_permalink( $loc ),
-        );
-    }
-}
-
-// Get featured locations
-$featured = get_field( 'home_featured_locations', 'option' );
-if ( ! $featured ) {
-    $featured = array_slice( $all_locations, 0, 3 );
-}
+$map_json = $locations_data['map_points'] ?? array();
+$featured = $locations_data['featured'] ?? array();
 ?>
 
 <section class="py-20 bg-white" data-section="locations">
@@ -72,15 +46,15 @@ if ( ! $featured ) {
         <?php if ( ! empty( $featured ) ) : ?>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <?php foreach ( $featured as $location ) :
-                setup_postdata( $location );
-                $city    = get_field( 'location_city', $location->ID );
-                $state   = get_field( 'location_state', $location->ID );
-                $phone   = get_field( 'location_phone', $location->ID );
-                $address = get_field( 'location_address', $location->ID );
+                $city    = $location['city'] ?? '';
+                $state   = $location['state'] ?? '';
+                $phone   = $location['phone'] ?? '';
+                $address = $location['address'] ?? '';
+                $url     = $location['url'] ?? '#';
             ?>
-            <div class="bg-gradient-to-br from-chroma-teal/5 to-chroma-green/5 rounded-lg p-6 hover:shadow-lg transition-shadow" data-location="<?php echo esc_attr( $location->ID ); ?>">
+            <div class="bg-gradient-to-br from-chroma-teal/5 to-chroma-green/5 rounded-lg p-6 hover:shadow-lg transition-shadow" data-location="<?php echo esc_attr( $location['title'] ); ?>">
                 <h3 class="text-2xl font-bold text-brand-ink mb-2">
-                    <?php echo esc_html( $location->post_title ); ?>
+                    <?php echo esc_html( $location['title'] ); ?>
                 </h3>
                 <?php if ( $city && $state ) : ?>
                     <div class="text-chroma-teal font-semibold mb-4">
@@ -99,11 +73,11 @@ if ( ! $featured ) {
                         <?php echo esc_html( $phone ); ?>
                     </p>
                 <?php endif; ?>
-                <a href="<?php echo esc_url( get_permalink( $location ) ); ?>" class="inline-block bg-chroma-teal text-white px-6 py-2 rounded-lg font-semibold hover:bg-chroma-teal/90 transition-colors">
+                <a href="<?php echo esc_url( $url ); ?>" class="inline-block bg-chroma-teal text-white px-6 py-2 rounded-lg font-semibold hover:bg-chroma-teal/90 transition-colors">
                     View Location
                 </a>
             </div>
-            <?php endforeach; wp_reset_postdata(); ?>
+            <?php endforeach; ?>
         </div>
         <?php endif; ?>
 
