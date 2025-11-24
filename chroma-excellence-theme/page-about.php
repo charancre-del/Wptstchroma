@@ -40,8 +40,8 @@ get_header();
 
     <!-- Mission & Values -->
     <?php
-    $mission = get_field( 'about_mission' );
-    $values  = get_field( 'about_values' );
+$mission = get_post_meta( get_the_ID(), 'about_mission', true );
+$values  = get_post_meta( get_the_ID(), 'about_values', true );
     if ( $mission || $values ) :
     ?>
     <section class="py-16 bg-brand-cream">
@@ -79,7 +79,7 @@ get_header();
 
     <!-- Team Section -->
     <?php
-    $team_members = get_field( 'about_team' );
+$team_members = get_post_meta( get_the_ID(), 'about_team', true );
     if ( $team_members ) :
     ?>
     <section class="py-16 bg-white">

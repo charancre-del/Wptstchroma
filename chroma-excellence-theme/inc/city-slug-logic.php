@@ -16,8 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Pattern: service-areas-{city}-{state}
  */
 function chroma_suggest_location_slug( $post_id ) {
-	$city  = get_field( 'location_city', $post_id );
-	$state = get_field( 'location_state', $post_id ) ?: 'ga';
+        $city  = get_post_meta( $post_id, 'location_city', true );
+        $state = get_post_meta( $post_id, 'location_state', true ) ?: 'ga';
 
 	if ( ! $city ) {
 		return '';

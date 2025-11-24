@@ -63,21 +63,21 @@ add_filter( 'manage_location_posts_columns', 'chroma_location_admin_columns' );
  */
 function chroma_location_admin_column_content( $column, $post_id ) {
 	switch ( $column ) {
-		case 'city':
-			echo esc_html( get_field( 'location_city', $post_id ) ?: '—' );
-			break;
-		case 'state':
-			echo esc_html( get_field( 'location_state', $post_id ) ?: '—' );
-			break;
-		case 'phone':
-			echo esc_html( get_field( 'location_phone', $post_id ) ?: '—' );
-			break;
-		case 'capacity':
-			$capacity = get_field( 'location_capacity', $post_id );
-			$enrollment = get_field( 'location_enrollment', $post_id );
-			if ( $capacity ) {
-				echo esc_html( $enrollment . ' / ' . $capacity );
-			} else {
+                case 'city':
+                        echo esc_html( get_post_meta( $post_id, 'location_city', true ) ?: '—' );
+                        break;
+                case 'state':
+                        echo esc_html( get_post_meta( $post_id, 'location_state', true ) ?: '—' );
+                        break;
+                case 'phone':
+                        echo esc_html( get_post_meta( $post_id, 'location_phone', true ) ?: '—' );
+                        break;
+                case 'capacity':
+                        $capacity = get_post_meta( $post_id, 'location_capacity', true );
+                        $enrollment = get_post_meta( $post_id, 'location_enrollment', true );
+                        if ( $capacity ) {
+                                echo esc_html( $enrollment . ' / ' . $capacity );
+                        } else {
 				echo '—';
 			}
 			break;

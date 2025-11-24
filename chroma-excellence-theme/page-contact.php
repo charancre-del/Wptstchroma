@@ -9,9 +9,9 @@
 get_header();
 
 // Get global contact info
-$global_phone = get_field( 'global_phone', 'option' );
-$global_email = get_field( 'global_email', 'option' );
-$global_address = get_field( 'global_address', 'option' );
+$global_phone   = chroma_global_phone();
+$global_email   = chroma_global_email();
+$global_address = chroma_global_full_address();
 ?>
 
 <main id="primary" class="site-main">
@@ -106,7 +106,7 @@ $global_address = get_field( 'global_address', 'option' );
 
                     <!-- Office Hours -->
                     <?php
-                    $office_hours = get_field( 'office_hours', 'option' );
+                    $office_hours = get_option( 'office_hours', '' );
                     if ( $office_hours ) :
                     ?>
                     <div class="bg-brand-cream rounded-xl p-6">
@@ -123,10 +123,10 @@ $global_address = get_field( 'global_address', 'option' );
                     <!-- Social Media -->
                     <?php
                     $social = array(
-                        'facebook'  => get_field( 'social_facebook', 'option' ),
-                        'instagram' => get_field( 'social_instagram', 'option' ),
-                        'linkedin'  => get_field( 'social_linkedin', 'option' ),
-                        'twitter'   => get_field( 'social_twitter', 'option' ),
+                        'facebook'  => get_option( 'social_facebook', '' ),
+                        'instagram' => get_option( 'social_instagram', '' ),
+                        'linkedin'  => get_option( 'social_linkedin', '' ),
+                        'twitter'   => get_option( 'social_twitter', '' ),
                     );
                     $has_social = array_filter( $social );
                     if ( $has_social ) :
@@ -180,8 +180,9 @@ $global_address = get_field( 'global_address', 'option' );
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <?php foreach ( $locations as $location ) :
-                    $city  = get_field( 'location_city', $location->ID );
-                    $state = get_field( 'location_state', $location->ID );
+                    $fields = chroma_get_location_fields( $location->ID );
+                    $city   = $fields['city'];
+                    $state  = $fields['state'];
                 ?>
                 <a href="<?php echo esc_url( get_permalink( $location ) ); ?>" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
                     <i class="fas fa-map-marker-alt text-chroma-teal text-3xl mb-3"></i>

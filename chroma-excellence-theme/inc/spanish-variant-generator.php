@@ -36,9 +36,9 @@ function chroma_get_alternate_url( $target_lang = 'es' ) {
 		return ''; // Already on target language
 	}
 
-	// Check ACF fields
-	$alternate_en = get_field( 'alternate_url_en' );
-	$alternate_es = get_field( 'alternate_url_es' );
+        // Check post meta fields
+        $alternate_en = get_post_meta( get_the_ID(), 'alternate_url_en', true );
+        $alternate_es = get_post_meta( get_the_ID(), 'alternate_url_es', true );
 
 	if ( $target_lang === 'es' && $alternate_es ) {
 		return $alternate_es;

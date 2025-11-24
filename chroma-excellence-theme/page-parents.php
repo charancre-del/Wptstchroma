@@ -40,7 +40,7 @@ get_header();
 
     <!-- Resource Cards -->
     <?php
-    $resources = get_field( 'parent_resources' );
+    $resources = get_post_meta( get_the_ID(), 'parent_resources', true );
     if ( $resources ) :
     ?>
     <section class="py-16 bg-brand-cream">
