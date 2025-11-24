@@ -299,6 +299,15 @@ function chroma_program_locations_meta_box() {
 		'side',
 		'default'
 	);
+
+	add_meta_box(
+		'chroma-program-details',
+		__( 'Program Details', 'chroma-excellence' ),
+		'chroma_program_details_meta_box_render',
+		'program',
+		'normal',
+		'high'
+	);
 }
 add_action( 'add_meta_boxes', 'chroma_program_locations_meta_box' );
 
@@ -373,3 +382,122 @@ function chroma_program_locations_meta_box_save( $post_id ) {
 	update_post_meta( $post_id, 'program_locations', $selected_locations );
 }
 add_action( 'save_post_program', 'chroma_program_locations_meta_box_save' );
+
+/**
+ * Render program details meta box
+ */
+function chroma_program_details_meta_box_render( $post ) {
+	wp_nonce_field( 'chroma_program_details_nonce', 'chroma_program_details_nonce_field' );
+
+	$age_range = get_post_meta( $post->ID, 'program_age_range', true );
+	$features = get_post_meta( $post->ID, 'program_features', true );
+	$cta_text = get_post_meta( $post->ID, 'program_cta_text', true );
+	$cta_link = get_post_meta( $post->ID, 'program_cta_link', true );
+	$color_scheme = get_post_meta( $post->ID, 'program_color_scheme', true );
+	?>
+	<style>
+		.chroma-program-field { margin-bottom: 20px; }
+		.chroma-program-field label { display: block; font-weight: 600; margin-bottom: 5px; }
+		.chroma-program-field input[type="text"],
+		.chroma-program-field textarea,
+		.chroma-program-field select { width: 100%; max-width: 600px; }
+		.chroma-program-field small { display: block; margin-top: 5px; color: #666; font-style: italic; }
+		.chroma-color-preview {
+			display: inline-flex;
+			align-items: center;
+			gap: 15px;
+			margin-top: 10px;
+		}
+		.chroma-color-preview .color-swatch {
+			width: 40px;
+			height: 40px;
+			border-radius: 8px;
+			border: 2px solid #ddd;
+		}
+	</style>
+
+	<div class="chroma-program-field">
+		<label for="program_age_range"><?php _e( 'Age Range', 'chroma-excellence' ); ?></label>
+		<input type="text" id="program_age_range" name="program_age_range" value="<?php echo esc_attr( $age_range ); ?>" placeholder="e.g., 6w - 12mo, 1 Year, 2-3 Years" />
+		<small><?php _e( 'Age range badge shown on program card (e.g., "6w - 12mo", "1 Year", "4yr - 5yr")', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-program-field">
+		<label for="program_features"><?php _e( 'Program Features', 'chroma-excellence' ); ?></label>
+		<textarea id="program_features" name="program_features" rows="4" placeholder="Enter one feature per line, e.g.:&#10;Individualized Schedules&#10;Sign Language Intro&#10;Daily Circle Time"><?php echo esc_textarea( $features ); ?></textarea>
+		<small><?php _e( 'Enter one feature per line. These will display with checkmarks on the program card.', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-program-field">
+		<label for="program_cta_text"><?php _e( 'CTA Button Text', 'chroma-excellence' ); ?></label>
+		<input type="text" id="program_cta_text" name="program_cta_text" value="<?php echo esc_attr( $cta_text ); ?>" placeholder="e.g., Schedule Tour, Join Waitlist, Learn More" />
+		<small><?php _e( 'Text for the call-to-action button (default: "Schedule Tour")', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-program-field">
+		<label for="program_cta_link"><?php _e( 'CTA Button Link', 'chroma-excellence' ); ?></label>
+		<input type="text" id="program_cta_link" name="program_cta_link" value="<?php echo esc_attr( $cta_link ); ?>" placeholder="#tour" />
+		<small><?php _e( 'URL or anchor link for the CTA button (default: "#tour")', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<div class="chroma-program-field">
+		<label for="program_color_scheme"><?php _e( 'Color Scheme', 'chroma-excellence' ); ?></label>
+		<select id="program_color_scheme" name="program_color_scheme">
+			<option value="red" <?php selected( $color_scheme, 'red' ); ?>>Red - Infant Care</option>
+			<option value="blue" <?php selected( $color_scheme, 'blue' ); ?>>Blue - Toddler</option>
+			<option value="yellow" <?php selected( $color_scheme, 'yellow' ); ?>>Yellow - Preschool</option>
+			<option value="blueDark" <?php selected( $color_scheme, 'blueDark' ); ?>>Dark Blue - Pre-K Prep</option>
+			<option value="green" <?php selected( $color_scheme, 'green' ); ?>>Green - GA Pre-K</option>
+		</select>
+		<div class="chroma-color-preview">
+			<div class="color-swatch" style="background-color: #D67D6B;" title="Red"></div>
+			<div class="color-swatch" style="background-color: #4A6C7C;" title="Blue"></div>
+			<div class="color-swatch" style="background-color: #E6BE75;" title="Yellow"></div>
+			<div class="color-swatch" style="background-color: #2F4858;" title="Dark Blue"></div>
+			<div class="color-swatch" style="background-color: #8DA399;" title="Green"></div>
+		</div>
+		<small><?php _e( 'Color theme for the program card hover effects and badges', 'chroma-excellence' ); ?></small>
+	</div>
+
+	<p><strong><?php _e( 'Note:', 'chroma-excellence' ); ?></strong> <?php _e( 'The program description shown on the card comes from the "Excerpt" field. The featured image is used as the card image.', 'chroma-excellence' ); ?></p>
+	<?php
+}
+
+/**
+ * Save program details
+ */
+function chroma_program_details_meta_box_save( $post_id ) {
+	// Verify nonce
+	if ( ! isset( $_POST['chroma_program_details_nonce_field'] ) || ! wp_verify_nonce( wp_unslash( $_POST['chroma_program_details_nonce_field'] ), 'chroma_program_details_nonce' ) ) {
+		return;
+	}
+
+	// Check autosave
+	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+		return;
+	}
+
+	// Check permissions
+	if ( isset( $_POST['post_type'] ) && 'program' === $_POST['post_type'] ) {
+		if ( ! current_user_can( 'edit_post', $post_id ) ) {
+			return;
+		}
+	}
+
+	// Save fields
+	$fields = array(
+		'program_age_range'    => 'sanitize_text_field',
+		'program_features'     => 'sanitize_textarea_field',
+		'program_cta_text'     => 'sanitize_text_field',
+		'program_cta_link'     => 'esc_url_raw',
+		'program_color_scheme' => 'sanitize_text_field',
+	);
+
+	foreach ( $fields as $field => $sanitize_callback ) {
+		if ( isset( $_POST[ $field ] ) ) {
+			$value = call_user_func( $sanitize_callback, wp_unslash( $_POST[ $field ] ) );
+			update_post_meta( $post_id, $field, $value );
+		}
+	}
+}
+add_action( 'save_post_program', 'chroma_program_details_meta_box_save' );
