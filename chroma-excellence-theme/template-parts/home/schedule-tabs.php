@@ -47,7 +47,7 @@ if ( empty( $tracks ) ) {
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                                         <div class="rounded-[3rem] p-10 h-full <?php echo esc_attr( $backgroundTint ); ?>">
                                                 <h3 class="text-2xl font-serif text-brand-ink mb-6"><?php echo esc_html( $track['title'] ); ?></h3>
-                                                <p class="text-brand-ink/70 mb-8 leading-relaxed">Thoughtfully balanced flow tailored to this age group's needs.</p>
+                                                <p class="text-brand-ink/70 mb-8 leading-relaxed"><?php echo esc_html( $track['description'] ?? '' ); ?></p>
                                                 <div class="space-y-6 relative">
                                                         <div class="absolute left-[19px] top-2 bottom-2 w-0.5 bg-chroma-blue/20"></div>
                                                         <?php foreach ( $track['steps'] as $step ) : ?>
@@ -62,7 +62,11 @@ if ( empty( $tracks ) ) {
                                                 </div>
                                         </div>
                                         <div class="rounded-[3rem] overflow-hidden shadow-2xl h-[320px] md:h-[400px] bg-chroma-blueLight">
-                                                <div class="w-full h-full flex items-center justify-center text-chroma-blueDark/60 text-5xl"><i class="fa-solid fa-image"></i></div>
+                                                <?php if ( ! empty( $track['image'] ) ) : ?>
+                                                        <img src="<?php echo esc_url( $track['image'] ); ?>" alt="<?php echo esc_attr( $track['title'] ); ?>" class="w-full h-full object-cover" />
+                                                <?php else : ?>
+                                                        <div class="w-full h-full flex items-center justify-center text-chroma-blueDark/60 text-5xl"><i class="fa-solid fa-image"></i></div>
+                                                <?php endif; ?>
                                         </div>
                                 </div>
                         </div>

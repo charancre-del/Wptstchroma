@@ -11,7 +11,7 @@
 							<span class="w-3 h-3 rounded-full bg-chroma-red"></span>
 							<span class="w-3 h-3 rounded-full bg-chroma-yellow"></span>
 							<span class="w-3 h-3 rounded-full bg-chroma-green"></span>
-							<span class="w-3 h-3 rounded-full bg-chroma-teal"></span>
+                                                        <span class="w-3 h-3 rounded-full bg-chroma-blue"></span>
 						</div>
 						<span class="font-semibold text-white text-sm">Chroma</span>
 					</div>

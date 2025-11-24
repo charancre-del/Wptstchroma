@@ -25,35 +25,35 @@ function chroma_acquisition_form_shortcode() {
                 <div class="grid md:grid-cols-2 gap-4">
                         <div>
                                 <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Your Name *</label>
-                                <input type="text" name="contact_name" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+                                <input type="text" name="contact_name" required class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" />
                         </div>
                         <div>
                                 <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Phone *</label>
-                                <input type="tel" name="phone" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+                                <input type="tel" name="phone" required class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" />
                         </div>
                 </div>
 
                 <div>
                         <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Email *</label>
-                        <input type="email" name="email" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+                        <input type="email" name="email" required class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" />
                 </div>
 
                 <div>
                         <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Facility Name *</label>
-                        <input type="text" name="facility_name" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+                        <input type="text" name="facility_name" required class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" />
                 </div>
 
                 <div>
                         <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Facility Location (City, State) *</label>
-                        <input type="text" name="facility_location" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+                        <input type="text" name="facility_location" required class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" />
                 </div>
 
                 <div>
                         <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Additional Details</label>
-                        <textarea name="details" rows="4" class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none"></textarea>
+                        <textarea name="details" rows="4" class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none"></textarea>
                 </div>
 
-                <button type="submit" name="chroma_acquisition_submit" class="w-full bg-chroma-teal text-white text-xs font-semibold uppercase tracking-wider py-4 rounded-full shadow-soft hover:bg-brand-navy transition">
+                <button type="submit" name="chroma_acquisition_submit" class="w-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-wider py-4 rounded-full shadow-soft hover:bg-chroma-red/90 transition">
                         Submit Inquiry
                 </button>
         </form>

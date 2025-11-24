@@ -43,22 +43,22 @@ function chroma_tour_form_shortcode() {
                 <div class="grid md:grid-cols-2 gap-4">
                         <div>
                                 <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Parent Name *</label>
-                                <input type="text" name="parent_name" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+                                <input type="text" name="parent_name" required class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" />
                         </div>
                         <div>
                                 <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Phone *</label>
-                                <input type="tel" name="phone" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+                                <input type="tel" name="phone" required class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" />
                         </div>
                 </div>
 
                 <div class="grid md:grid-cols-2 gap-4">
                         <div>
                                 <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Email *</label>
-                                <input type="email" name="email" required class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" />
+                                <input type="email" name="email" required class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" />
                         </div>
                         <div>
                                 <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Preferred Location</label>
-                                <select name="location_id" class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none">
+                                <select name="location_id" class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none">
                                         <option value="">Select a location...</option>
                                         <?php
                                         $locations = get_posts( array( 'post_type' => 'location', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' ) );
@@ -74,10 +74,10 @@ function chroma_tour_form_shortcode() {
 
                 <div>
                         <label class="block text-xs font-semibold text-brand-ink/60 uppercase mb-1.5">Child(ren) Age(s)</label>
-                        <input type="text" name="child_ages" class="w-full px-4 py-3 rounded-xl border border-brand-navy/20 bg-white focus:border-chroma-teal outline-none" placeholder="e.g., 10 months, 3 years" />
+                        <input type="text" name="child_ages" class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none" placeholder="e.g., 10 months, 3 years" />
                 </div>
 
-                <button type="submit" name="chroma_tour_submit" class="w-full bg-chroma-teal text-white text-xs font-semibold uppercase tracking-wider py-4 rounded-full shadow-soft hover:bg-brand-navy transition">
+                <button type="submit" name="chroma_tour_submit" class="w-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-wider py-4 rounded-full shadow-soft hover:bg-chroma-red/90 transition">
                         Request Tour
                 </button>
         </form>

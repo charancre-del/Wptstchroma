@@ -22,8 +22,11 @@ if ( empty( $options ) ) {
                 </div>
                 <div class="bg-white rounded-3xl p-6 md:p-8 border border-chroma-blue/10 shadow-soft" data-program-wizard data-options='<?php echo esc_attr( wp_json_encode( $options ) ); ?>'>
                         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" data-program-wizard-options>
-                                <?php foreach ( $options as $option ) : ?>
-                                        <button class="p-4 bg-white rounded-2xl border border-chroma-blue/20 hover:border-chroma-blue hover:shadow-soft transition group text-center" data-program-wizard-option="<?php echo esc_attr( $option['key'] ); ?>">
+                                <?php foreach ( $options as $index => $option ) :
+                                        $is_featured = 0 === $index;
+                                        $base_classes = $is_featured ? 'bg-chroma-redLight border-chroma-red/30 hover:border-chroma-red' : 'bg-white border-chroma-blue/20 hover:border-chroma-blue';
+                                        ?>
+                                        <button class="p-4 <?php echo esc_attr( $base_classes ); ?> rounded-2xl border hover:shadow-soft transition group text-center" data-program-wizard-option="<?php echo esc_attr( $option['key'] ); ?>">
                                                 <span class="text-2xl block mb-2 group-hover:scale-110 transition-transform"><?php echo esc_html( $option['emoji'] ); ?></span>
                                                 <span class="font-semibold text-brand-ink text-xs leading-tight"><?php echo esc_html( $option['label'] ); ?></span>
                                         </button>
