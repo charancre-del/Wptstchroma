@@ -26,16 +26,20 @@ define( 'CHROMA_THEME_URI', get_template_directory_uri() );
 // Core setup and configuration
 require_once CHROMA_THEME_DIR . '/inc/setup.php';
 require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
+require_once CHROMA_THEME_DIR . '/inc/program-settings.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
 
 // Custom Post Types
 require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
+require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
 
 // Utility Functions
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
+require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-home.php';
 
-// ACF Configuration and Helpers
+// Legacy helper files (ACF plugin optional; helpers run on core WP functions only)
 require_once CHROMA_THEME_DIR . '/inc/acf-options.php';
 require_once CHROMA_THEME_DIR . '/inc/acf-homepage.php';
 

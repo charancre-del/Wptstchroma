@@ -40,7 +40,7 @@ get_header();
 
     <!-- Benefits Section -->
     <?php
-$benefits = chroma_get_meta_value( get_the_ID(), 'acquisition_benefits', array() );
+$benefits = get_post_meta( get_the_ID(), 'acquisition_benefits', true );
     if ( $benefits ) :
     ?>
     <section class="py-16 bg-brand-cream">
@@ -105,7 +105,7 @@ $benefits = chroma_get_meta_value( get_the_ID(), 'acquisition_benefits', array()
 
     <!-- Process Timeline -->
     <?php
-$process_steps = chroma_get_meta_value( get_the_ID(), 'acquisition_process', array() );
+$process_steps = get_post_meta( get_the_ID(), 'acquisition_process', true );
     if ( $process_steps ) :
     ?>
     <section class="py-16 bg-brand-cream">

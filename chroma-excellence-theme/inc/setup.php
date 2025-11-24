@@ -63,3 +63,4 @@ function chroma_content_width() {
 	$GLOBALS['content_width'] = apply_filters( 'chroma_content_width', 1200 );
 }
 add_action( 'after_setup_theme', 'chroma_content_width', 0 );
+

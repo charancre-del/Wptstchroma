@@ -1,7 +1,7 @@
 <?php
 /**
  * Front Page Template (Homepage)
- * Uses ACF Flexible Content for modular sections
+ * Uses hardcoded helpers for modular sections (ACF optional)
  *
  * @package Chroma_Excellence
  * @since 1.0.0

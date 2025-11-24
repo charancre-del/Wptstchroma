@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', function () {
               suggestedMax: 100,
               ticks: { display: false },
               pointLabels: {
-                font: { family: 'Inter, system-ui, sans-serif', size: 12 },
+                font: { family: 'Outfit, system-ui, sans-serif', size: 12 },
                 color: '#263238',
               },
             },
@@ -321,7 +321,7 @@ document.addEventListener('DOMContentLoaded', function () {
             suggestedMax: 100,
             ticks: { display: false },
             pointLabels: {
-              font: { family: 'Inter', size: 12 },
+              font: { family: 'Outfit', size: 12 },
               color: '#263238'
             }
           }
@@ -350,11 +350,11 @@ document.addEventListener('DOMContentLoaded', function () {
         // Update tab styles
         curriculumTabs.forEach((t) => {
           if (t === tab) {
-            t.classList.remove('bg-white', 'text-brand-ink/70', 'border', 'border-brand-navy/20');
-            t.classList.add('bg-chroma-teal', 'text-white', 'shadow-soft');
+            t.classList.remove('bg-white', 'text-brand-ink/70', 'border', 'border-chroma-blue/20');
+            t.classList.add('bg-chroma-blue', 'text-white', 'shadow-soft');
           } else {
-            t.classList.remove('bg-chroma-teal', 'text-white', 'shadow-soft');
-            t.classList.add('bg-white', 'text-brand-ink/70', 'border', 'border-brand-navy/20');
+            t.classList.remove('bg-chroma-blue', 'text-white', 'shadow-soft');
+            t.classList.add('bg-white', 'text-brand-ink/70', 'border', 'border-chroma-blue/20');
           }
         });
       });
@@ -374,7 +374,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const schedulePanels = document.querySelectorAll('[data-schedule-panel]');
 
   if (scheduleTabs.length && schedulePanels.length) {
-    scheduleTabs.forEach((tab) => {
+        scheduleTabs.forEach((tab) => {
       tab.addEventListener('click', () => {
         const target = tab.dataset.scheduleTab;
 
@@ -382,9 +382,9 @@ document.addEventListener('DOMContentLoaded', function () {
         scheduleTabs.forEach((t) => {
           if (t === tab) {
             t.classList.remove('text-brand-ink/60');
-            t.classList.add('bg-chroma-teal', 'text-white', 'shadow-soft');
+            t.classList.add('bg-chroma-blue', 'text-white', 'shadow-soft');
           } else {
-            t.classList.remove('bg-chroma-teal', 'text-white', 'shadow-soft');
+            t.classList.remove('bg-chroma-blue', 'text-white', 'shadow-soft');
             t.classList.add('text-brand-ink/60');
           }
         });

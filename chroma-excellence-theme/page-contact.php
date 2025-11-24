@@ -9,9 +9,9 @@
 get_header();
 
 // Get global contact info
-$global_phone   = chroma_get_option_value( 'global_phone' );
-$global_email   = chroma_get_option_value( 'global_email' );
-$global_address = chroma_get_option_value( 'global_address' );
+$global_phone   = chroma_global_phone();
+$global_email   = chroma_global_email();
+$global_address = chroma_global_full_address();
 ?>
 
 <main id="primary" class="site-main">
@@ -106,7 +106,7 @@ $global_address = chroma_get_option_value( 'global_address' );
 
                     <!-- Office Hours -->
                     <?php
-                    $office_hours = chroma_get_option_value( 'office_hours' );
+                    $office_hours = get_option( 'office_hours', '' );
                     if ( $office_hours ) :
                     ?>
                     <div class="bg-brand-cream rounded-xl p-6">
@@ -123,10 +123,10 @@ $global_address = chroma_get_option_value( 'global_address' );
                     <!-- Social Media -->
                     <?php
                     $social = array(
-                        'facebook'  => chroma_get_option_value( 'social_facebook' ),
-                        'instagram' => chroma_get_option_value( 'social_instagram' ),
-                        'linkedin'  => chroma_get_option_value( 'social_linkedin' ),
-                        'twitter'   => chroma_get_option_value( 'social_twitter' ),
+                        'facebook'  => get_option( 'social_facebook', '' ),
+                        'instagram' => get_option( 'social_instagram', '' ),
+                        'linkedin'  => get_option( 'social_linkedin', '' ),
+                        'twitter'   => get_option( 'social_twitter', '' ),
                     );
                     $has_social = array_filter( $social );
                     if ( $has_social ) :
@@ -180,9 +180,9 @@ $global_address = chroma_get_option_value( 'global_address' );
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <?php foreach ( $locations as $location ) :
-                    $meta  = chroma_get_location_meta( $location->ID );
-                    $city  = $meta['city'];
-                    $state = $meta['state'];
+                    $fields = chroma_get_location_fields( $location->ID );
+                    $city   = $fields['city'];
+                    $state  = $fields['state'];
                 ?>
                 <a href="<?php echo esc_url( get_permalink( $location ) ); ?>" class="bg-white rounded-lg p-6 text-center hover:shadow-lg transition-shadow">
                     <i class="fas fa-map-marker-alt text-chroma-teal text-3xl mb-3"></i>

@@ -40,7 +40,7 @@ get_header();
 
     <!-- Benefits Grid -->
     <?php
-    $employer_benefits = chroma_get_meta_value( get_the_ID(), 'employer_benefits', array() );
+$employer_benefits = get_post_meta( get_the_ID(), 'employer_benefits', true );
     if ( $employer_benefits ) :
     ?>
     <section class="py-16 bg-brand-cream">
@@ -71,7 +71,7 @@ get_header();
 
     <!-- Partnership Types -->
     <?php
-    $partnership_types = chroma_get_meta_value( get_the_ID(), 'partnership_types', array() );
+$partnership_types = get_post_meta( get_the_ID(), 'partnership_types', true );
     if ( $partnership_types ) :
     ?>
     <section class="py-16 bg-white">
@@ -107,7 +107,7 @@ get_header();
 
     <!-- Testimonials -->
     <?php
-    $testimonials = chroma_get_meta_value( get_the_ID(), 'employer_testimonials', array() );
+$testimonials = get_post_meta( get_the_ID(), 'employer_testimonials', true );
     if ( $testimonials ) :
     ?>
     <section class="py-16 bg-brand-cream">

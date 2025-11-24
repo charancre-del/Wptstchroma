@@ -35,28 +35,24 @@ if ( ! $faq_data || empty( $faq_data['items'] ) ) {
                 }
                 $faq_id = 'faq-' . ( $index + 1 );
             ?>
-            <div class="bg-white rounded-lg shadow-md overflow-hidden" data-accordion>
+            <div class="bg-brand-cream rounded-2xl px-5 py-4 border border-chroma-blue/10" data-accordion>
                 <button
-                    class="w-full text-left px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                    class="w-full text-left flex items-center justify-between gap-3"
                     data-accordion-trigger
                     aria-expanded="false"
                     aria-controls="<?php echo esc_attr( $faq_id ); ?>"
                 >
-                    <span class="text-lg font-semibold text-brand-ink pr-8">
+                    <span class="font-semibold text-sm text-brand-ink">
                         <?php echo esc_html( $item['question'] ); ?>
                     </span>
-                    <span class="text-chroma-teal text-2xl flex-shrink-0" data-accordion-icon>
-                        <i class="fas fa-chevron-down transition-transform duration-300"></i>
-                    </span>
+                    <span class="text-brand-ink/60 text-xl flex-shrink-0" data-accordion-icon>⌄</span>
                 </button>
                 <div
                     id="<?php echo esc_attr( $faq_id ); ?>"
-                    class="px-6 overflow-hidden transition-all duration-300 hidden"
+                    class="mt-3 text-sm text-brand-ink/70 hidden"
                     data-accordion-content
                 >
-                    <div class="pb-4 text-brand-ink/70">
-                        <?php echo wp_kses_post( wpautop( $item['answer'] ) ); ?>
-                    </div>
+                    <div class="pb-1"><?php echo wp_kses_post( wpautop( $item['answer'] ) ); ?></div>
                 </div>
             </div>
             <?php endforeach; ?>
@@ -68,7 +64,7 @@ if ( ! $faq_data || empty( $faq_data['items'] ) ) {
             <p class="text-brand-ink/80 mb-4">
                 <?php echo esc_html( $faq_data['cta_text'] ); ?>
             </p>
-            <a href="<?php echo esc_url( $faq_data['cta_link'] ); ?>" class="inline-block bg-chroma-teal text-white px-8 py-3 rounded-lg font-bold hover:bg-chroma-teal/90 transition-colors">
+            <a href="<?php echo esc_url( $faq_data['cta_link'] ); ?>" class="inline-block bg-chroma-red text-white px-8 py-3 rounded-full font-bold hover:bg-chroma-red/90 transition-colors">
                 <?php echo esc_html( $faq_data['cta_label'] ?: 'Contact Us' ); ?>
             </a>
         </div>

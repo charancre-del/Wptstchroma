@@ -56,9 +56,10 @@ function chroma_footer_nav() {
  * Primary Nav Fallback
  */
 function chroma_primary_nav_fallback() {
-	$pages = array( 'programs', 'prismpath', 'curriculum', 'schedule', 'locations', 'faq' );
+	$program_slug = chroma_get_program_base_slug();
+	$pages        = array( $program_slug, "prismpath", "curriculum", "schedule", "locations", "faq" );
 	foreach ( $pages as $slug ) {
-		echo '<a href="#' . esc_attr( $slug ) . '" class="hover:text-chroma-teal transition">' . esc_html( ucwords( str_replace( '-', ' ', $slug ) ) ) . '</a>';
+		echo '<a href="#' . esc_attr( $slug ) . '" class="hover:text-chroma-blue transition">' . esc_html( ucwords( str_replace( '-', ' ', $slug ) ) ) . '</a>';
 	}
 }
 
@@ -66,8 +67,9 @@ function chroma_primary_nav_fallback() {
  * Footer Nav Fallback
  */
 function chroma_footer_nav_fallback() {
+	$program_slug = chroma_get_program_base_slug();
 	$pages = array(
-		'programs'      => 'Programs',
+		$program_slug  => 'Programs',
 		'locations'     => 'Locations',
 		'about'         => 'About Us',
 		'contact'       => 'Contact',
@@ -78,17 +80,16 @@ function chroma_footer_nav_fallback() {
 		echo '<a href="' . esc_url( $url ) . '" class="block hover:text-white transition">' . esc_html( $title ) . '</a>';
 	}
 }
-
 /**
  * Custom Walker for Primary Navigation
  */
 class Chroma_Primary_Nav_Walker extends Walker_Nav_Menu {
 	function start_el( &$output, $item, $depth = 0, $args = null, $id = 0 ) {
-		$classes = 'hover:text-chroma-teal transition';
+                $classes = 'hover:text-chroma-blue transition';
 
-		if ( $item->current ) {
-			$classes .= ' text-chroma-teal';
-		}
+                if ( $item->current ) {
+                        $classes .= ' text-chroma-red';
+                }
 
 		$output .= '<a href="' . esc_url( $item->url ) . '" class="' . esc_attr( $classes ) . '">';
 		$output .= esc_html( $item->title );

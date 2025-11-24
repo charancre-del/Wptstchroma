@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Detect Current Language Heuristically
- * Based on URL patterns or ACF fields
+ * Based on URL patterns (no ACF required)
  */
 function chroma_detect_current_language() {
 	$current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
@@ -36,9 +36,9 @@ function chroma_get_alternate_url( $target_lang = 'es' ) {
 		return ''; // Already on target language
 	}
 
-        // Check stored meta fields
-        $alternate_en = chroma_get_meta_value( get_the_ID(), 'alternate_url_en' );
-        $alternate_es = chroma_get_meta_value( get_the_ID(), 'alternate_url_es' );
+        // Check post meta fields
+        $alternate_en = get_post_meta( get_the_ID(), 'alternate_url_en', true );
+        $alternate_es = get_post_meta( get_the_ID(), 'alternate_url_es', true );
 
 	if ( $target_lang === 'es' && $alternate_es ) {
 		return $alternate_es;
