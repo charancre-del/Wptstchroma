@@ -132,8 +132,8 @@ while ( have_posts() ) :
 					<?php if ( has_post_thumbnail() ) : ?>
 						<?php the_post_thumbnail( 'large', array( 'class' => 'w-full h-full object-cover' ) ); ?>
 					<?php else : ?>
-						<img src="https://images.unsplash.com/photo-1587654780291-39c9404d746b?q=80&w=1000&auto=format&fit=crop" alt="<?php echo esc_attr( $location_name ); ?> Campus" class="w-full h-full object-cover" />
-					<?php endif; ?>
+                                                <img src="https://images.unsplash.com/photo-1587654780291-39c9404d746b?q=80&w=1000&auto=format&fit=crop" alt="<?php echo esc_attr( $location_name ); ?> Campus" class="w-full h-full object-cover" loading="lazy" decoding="async" width="1000" height="750" />
+                                        <?php endif; ?>
 
 					<!-- Floating Review Badge -->
 					<div class="absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-float max-w-[200px]">
