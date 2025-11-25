@@ -152,6 +152,45 @@ function chroma_hreflang_tags() {
 add_action( 'wp_head', 'chroma_hreflang_tags', 1 );
 
 /**
+ * Shared meta description output with fallbacks
+ */
+function chroma_shared_meta_description() {
+        // Preserve About page specific metadata when defined.
+        if ( function_exists( 'chroma_is_about_template' ) && function_exists( 'chroma_get_about_seo_fields' ) && chroma_is_about_template() ) {
+                $about_fields = chroma_get_about_seo_fields();
+
+                if ( ! empty( $about_fields['description'] ) ) {
+                        return;
+                }
+        }
+
+        $post_id     = get_the_ID();
+        $description = '';
+
+        if ( function_exists( 'chroma_get_program_meta_tags' ) && is_singular( 'program' ) ) {
+                $program_meta = chroma_get_program_meta_tags( $post_id );
+                $description  = $program_meta['description'];
+        }
+
+        if ( ! $description && $post_id ) {
+                $description = get_post_meta( $post_id, 'meta_description', true );
+        }
+
+        if ( ! $description && $post_id ) {
+                $description = has_excerpt( $post_id ) ? get_the_excerpt( $post_id ) : chroma_trimmed_excerpt( 32, $post_id );
+        }
+
+        if ( ! $description ) {
+                $description = chroma_global_seo_default_description();
+        }
+
+        if ( $description ) {
+                echo '<meta name="description" content="' . esc_attr( wp_strip_all_tags( $description ) ) . '" />' . "\n";
+        }
+}
+add_action( 'wp_head', 'chroma_shared_meta_description', 2 );
+
+/**
  * Custom Sitemap.xml
  */
 function chroma_custom_sitemap() {
