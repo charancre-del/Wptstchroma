@@ -725,3 +725,83 @@ function chroma_save_about_page_meta( $post_id ) {
 	}
 }
 add_action( 'save_post', 'chroma_save_about_page_meta' );
+
+/**
+ * Seed default values for About page when template is first applied
+ */
+function chroma_seed_about_page_defaults( $post_id ) {
+	// Check if this is a page
+	if ( get_post_type( $post_id ) !== 'page' ) {
+		return;
+	}
+
+	// Check if About Page template is being used
+	$template = get_post_meta( $post_id, '_wp_page_template', true );
+	if ( $template !== 'page-about.php' ) {
+		return;
+	}
+
+	// Check if already seeded
+	$already_seeded = get_post_meta( $post_id, '_about_defaults_seeded', true );
+	if ( $already_seeded ) {
+		return;
+	}
+
+	// Default values array
+	$defaults = array(
+		'about_hero_title'                => 'Excellence in Every Color',
+		'about_hero_description'          => 'At Chroma Excellence Academy, we believe every child is born with infinite potential. Our mission is to nurture that potential through play-based learning, research-backed curriculum, and educators who see childhood as sacred.',
+		'about_hero_stats_text'           => '12+ Locations | 500+ Families',
+		'about_mission_title'             => 'Our Mission',
+		'about_mission_description'       => 'To provide a developmentally rich, joyful environment where children explore, discover, and grow into curious, confident, and compassionate citizens of the world.',
+		'about_story_title'               => 'Our Story',
+		'about_story_description'         => 'Founded in 2010, Chroma Excellence Academy began with a simple belief: that the early years matter. What started as a single location has grown into a network of vibrant learning communities, each one grounded in the same core philosophy—play is the work of childhood, and every moment is an opportunity to learn.',
+		'about_stat1_value'               => '12+',
+		'about_stat1_label'               => 'Locations',
+		'about_stat2_value'               => '500+',
+		'about_stat2_label'               => 'Families Served',
+		'about_stat3_value'               => '15',
+		'about_stat3_label'               => 'Years of Excellence',
+		'about_stat4_value'               => '100%',
+		'about_stat4_label'               => 'Organic Meals',
+		'about_educators_title'           => 'Our Educators Difference',
+		'about_educator1_title'           => 'Continuous Training',
+		'about_educator1_desc'            => 'Every teacher receives 40+ hours of professional development annually, staying current on child development research and best practices.',
+		'about_educator2_title'           => 'Low Ratios',
+		'about_educator2_desc'            => 'We maintain ratios well below state requirements, ensuring individualized attention for every child.',
+		'about_educator3_title'           => 'Passionate Educators',
+		'about_educator3_desc'            => 'Our teachers don\'t just work here—they believe in the mission. Many have been with us for 5+ years.',
+		'about_values_title'              => 'Our Four Pillars',
+		'about_value1_icon'               => 'fa-solid fa-heart',
+		'about_value1_title'              => 'Compassion',
+		'about_value1_desc'               => 'We lead with empathy, kindness, and care in all we do.',
+		'about_value2_icon'               => 'fa-solid fa-users',
+		'about_value2_title'              => 'Community',
+		'about_value2_desc'               => 'Families, staff, and children grow together in mutual support.',
+		'about_value3_icon'               => 'fa-solid fa-leaf',
+		'about_value3_title'              => 'Sustainability',
+		'about_value3_desc'               => 'We honor the earth through eco-conscious practices and curriculum.',
+		'about_value4_icon'               => 'fa-solid fa-lightbulb',
+		'about_value4_title'              => 'Innovation',
+		'about_value4_desc'               => 'We blend timeless pedagogy with modern research and tools.',
+		'about_leadership_title'          => 'Meet Our Leadership',
+		'about_leadership_description'    => 'Our leadership team brings decades of combined experience in early childhood education, curriculum design, and educational administration.',
+		'about_nutrition_title'           => 'Nutrition & Wellness',
+		'about_nutrition_description'     => 'We believe that a healthy body supports a healthy mind. All meals are prepared fresh daily using organic, locally sourced ingredients whenever possible. Our menu is designed by pediatric nutritionists to support growing bodies and developing brains.',
+		'about_nutrition_image'           => 'https://images.unsplash.com/photo-1490818387583-1baba5e638af?q=80&w=800&auto=format&fit=crop',
+		'about_philanthropy_title'        => 'Giving Back',
+		'about_philanthropy_description'  => 'Education is a right, not a privilege. Through our scholarship fund and community partnerships, we ensure that families from all backgrounds can access high-quality early education. We also partner with local nonprofits to teach children the joy of service from a young age.',
+		'about_philanthropy_image'        => 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?q=80&w=800&auto=format&fit=crop',
+		'about_cta_title'                 => 'Ready to join our community?',
+		'about_cta_description'           => 'Schedule a tour to see our approach in action and meet the educators who will nurture your child\'s journey.',
+	);
+
+	// Populate all default values
+	foreach ( $defaults as $meta_key => $default_value ) {
+		update_post_meta( $post_id, $meta_key, $default_value );
+	}
+
+	// Mark as seeded
+	update_post_meta( $post_id, '_about_defaults_seeded', '1' );
+}
+add_action( 'save_post', 'chroma_seed_about_page_defaults', 5 );

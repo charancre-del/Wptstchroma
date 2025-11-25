@@ -79,7 +79,7 @@ while ( have_posts() ) :
 
 	// CTA Section
 	$cta_title = get_post_meta( $page_id, 'about_cta_title', true ) ?: 'Ready to join our community?';
-	$cta_description = get_post_meta( $page_id, 'about_cta_description', true ) ?: 'Schedule a tour to see our approach in action and meet the educators who will nurture your child's journey.';
+	$cta_description = get_post_meta( $page_id, 'about_cta_description', true ) ?: 'Schedule a tour to see our approach in action and meet the educators who will nurture your child\'s journey.';
 
 	// Get Team Members
 	$team_members = new WP_Query( array(
