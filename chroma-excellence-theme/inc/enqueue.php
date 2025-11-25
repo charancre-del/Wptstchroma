@@ -12,16 +12,47 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Determine whether map assets should be enqueued.
+ */
+function chroma_should_load_maps() {
+        $should_load_maps = is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' );
+
+        if ( is_front_page() && function_exists( 'chroma_home_locations_preview' ) ) {
+                $locations_preview = chroma_home_locations_preview();
+                $should_load_maps  = $should_load_maps || ( ! empty( $locations_preview['map_points'] ) );
+        }
+
+        return $should_load_maps;
+}
+
+/**
  * Enqueue theme styles and scripts
  */
 function chroma_enqueue_assets() {
-// Google Fonts.
-wp_enqueue_style(
-'chroma-fonts',
-'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap',
-array(),
-null
-);
+        $get_script_asset = static function ( $filename ) {
+                $minified_path = CHROMA_THEME_DIR . "/assets/js/{$filename}.min.js";
+                $source_path   = CHROMA_THEME_DIR . "/assets/js/{$filename}.js";
+
+                if ( file_exists( $minified_path ) ) {
+                        return array(
+                                'src' => CHROMA_THEME_URI . "/assets/js/{$filename}.min.js",
+                                'ver' => filemtime( $minified_path ),
+                        );
+                }
+
+                return array(
+                        'src' => CHROMA_THEME_URI . "/assets/js/{$filename}.js",
+                        'ver' => file_exists( $source_path ) ? filemtime( $source_path ) : CHROMA_VERSION,
+                );
+        };
+
+        // Google Fonts.
+        wp_enqueue_style(
+                'chroma-fonts',
+                'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap',
+                array(),
+                null
+        );
 
         // Font Awesome.
         wp_enqueue_style(
@@ -48,36 +79,35 @@ null
         if ( is_front_page() ) {
                 wp_enqueue_script(
                         'chartjs',
-                        'https://cdn.jsdelivr.net/npm/chart.js',
+                        'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
                         array(),
                         '4.4.1',
                         true
                 );
 
+                wp_script_add_data( 'chartjs', 'defer', true );
                 $script_dependencies[] = 'chartjs';
         }
 
         // Main JavaScript.
-        $js_path    = CHROMA_THEME_DIR . '/assets/js/main.js';
-        $js_version = file_exists( $js_path ) ? filemtime( $js_path ) : CHROMA_VERSION;
+        $main_asset = $get_script_asset( 'main' );
 
         wp_enqueue_script(
                 'chroma-main',
-                CHROMA_THEME_URI . '/assets/js/main.js',
+                $main_asset['src'],
                 $script_dependencies,
-                $js_version,
+                $main_asset['ver'],
                 true
         );
 
-        // Leaflet for maps (location archive, single locations, locations page, or home locations preview).
-        $should_load_maps = is_post_type_archive( 'location' ) || is_singular( 'location' ) || is_page( 'locations' );
+        wp_script_add_data( 'chroma-main', 'defer', true );
 
-        if ( is_front_page() && function_exists( 'chroma_home_locations_preview' ) ) {
-                $locations_preview = chroma_home_locations_preview();
-                $should_load_maps  = $should_load_maps || ( ! empty( $locations_preview['map_points'] ) );
-        }
+        // Leaflet for maps (location archive, single locations, locations page, or home locations preview).
+        $should_load_maps = chroma_should_load_maps();
 
         if ( $should_load_maps ) {
+                $map_asset = $get_script_asset( 'map-layer' );
+
                 wp_enqueue_style(
                         'leaflet',
                         'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css',
@@ -93,13 +123,17 @@ null
                         true
                 );
 
+                wp_script_add_data( 'leaflet', 'defer', true );
+
                 wp_enqueue_script(
                         'chroma-map-layer',
-                        CHROMA_THEME_URI . '/assets/js/map-layer.js',
+                        $map_asset['src'],
                         array( 'leaflet' ),
-                        $js_version,
+                        $map_asset['ver'],
                         true
                 );
+
+                wp_script_add_data( 'chroma-map-layer', 'defer', true );
         }
 
         // Localize script for AJAX and dynamic data.
@@ -115,6 +149,45 @@ null
         );
 }
 add_action( 'wp_enqueue_scripts', 'chroma_enqueue_assets' );
+
+/**
+ * Add resource hints for external assets to improve initial page performance.
+ */
+function chroma_resource_hints( $urls, $relation_type ) {
+        if ( 'preconnect' === $relation_type ) {
+                $urls[] = 'https://fonts.googleapis.com';
+                $urls[] = array(
+                        'href'        => 'https://fonts.gstatic.com',
+                        'crossorigin' => 'anonymous',
+                );
+                $urls[] = 'https://cdnjs.cloudflare.com';
+
+                if ( is_front_page() ) {
+                        $urls[] = 'https://cdn.jsdelivr.net';
+                }
+
+                if ( chroma_should_load_maps() ) {
+                        $urls[] = 'https://unpkg.com';
+                }
+        }
+
+        if ( 'dns-prefetch' === $relation_type ) {
+                $urls[] = '//fonts.googleapis.com';
+                $urls[] = '//fonts.gstatic.com';
+                $urls[] = '//cdnjs.cloudflare.com';
+
+                if ( is_front_page() ) {
+                        $urls[] = '//cdn.jsdelivr.net';
+                }
+
+                if ( chroma_should_load_maps() ) {
+                        $urls[] = '//unpkg.com';
+                }
+        }
+
+        return array_unique( $urls, SORT_REGULAR );
+}
+add_filter( 'wp_resource_hints', 'chroma_resource_hints', 10, 2 );
 
 /**
  * Enqueue admin assets
@@ -137,11 +210,23 @@ function chroma_enqueue_admin_assets( $hook ) {
         wp_enqueue_media();
 
         // Custom admin script for media uploader
+        $admin_asset = array(
+                'src' => CHROMA_THEME_URI . '/assets/js/admin.js',
+                'ver' => CHROMA_VERSION,
+        );
+
+        if ( file_exists( CHROMA_THEME_DIR . '/assets/js/admin.min.js' ) ) {
+                $admin_asset = array(
+                        'src' => CHROMA_THEME_URI . '/assets/js/admin.min.js',
+                        'ver' => filemtime( CHROMA_THEME_DIR . '/assets/js/admin.min.js' ),
+                );
+        }
+
         wp_enqueue_script(
                 'chroma-admin',
-                CHROMA_THEME_URI . '/assets/js/admin.js',
+                $admin_asset['src'],
                 array( 'jquery' ),
-                CHROMA_VERSION,
+                $admin_asset['ver'],
                 true
         );
 }
