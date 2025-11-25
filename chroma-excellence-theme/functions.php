@@ -34,6 +34,9 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
 
+// Page Meta Boxes
+require_once CHROMA_THEME_DIR . '/inc/about-page-meta.php';
+
 // Utility Functions
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
