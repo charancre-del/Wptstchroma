@@ -1,395 +1,244 @@
-🎯 Overview
-
-This repository contains the custom WordPress theme for Chroma Early Learning Academy, built for:
-
-20+ locations
-
-Multiple programs (Infants → After School)
-
-A warm, premium brand experience
-
-Fast editing via ACF Flexible Content
-
-SEO, local SEO, and structured data
-
-Tailwind CSS design system
-
-Interactive curriculum radar, program wizard, and tour funnels
-
-The theme is fully modular and designed for long-term scalability as Chroma expands across Metro Atlanta and beyond.
-
-🧱 Tech Stack
-Component	Choice	Reason
-WordPress (Classic Theme)	Custom theme	Maximum control, scalability
-ACF Pro	Options, CPT fields, Flexible Content	Marketer-friendly content management
-Tailwind CSS	dist/app.css	Clean design system, rapid development
-JavaScript	Vanilla JS + Chart.js	Curriculum interactivity
-Bundler	Vite / NPM scripts	Tailwind + JS compilation
-SEO Plugin	SearchAtlas / Yoast / RankMath	Canonical, sitemap, meta handling
-📁 Folder Structure
-chroma-ela/
-  style.css
-  functions.php
-  front-page.php
-  index.php
-  page.php
-  single.php
-  single-program.php
-  single-location.php
-  single-team.php
-  page-careers.php
-  page-about.php
-
-  /inc
-    setup.php
-    enqueue.php
-    nav-menus.php
-    cpt-program.php
-    cpt-location.php
-    cpt-team.php
-    acf.php
-    seo.php
-    patterns.php
-
-  /template-parts
-    /hero
-      home-hero.php
-    /home
-      programs.php
-      curriculum.php
-      locations-strip.php
-      reviews.php
-      about.php
-      careers.php
-      tour-cta.php
-    /program
-      header.php
-      overview.php
-      curriculum-focus.php
-    /location
-      header.php
-      details.php
-      map.php
-
-  /resources
-    /css
-      app.css          // Tailwind entry
-    /js
-      app.js           // Main JS bundle
-
-  /dist
-    app.css            // Compiled Tailwind
-    app.js             // Bundled JS
-
-⚙️ Theme Initialization
-functions.php
-
-Loads all logic:
-
-require get_template_directory() . '/inc/setup.php';
-require get_template_directory() . '/inc/enqueue.php';
-require get_template_directory() . '/inc/nav-menus.php';
-require get_template_directory() . '/inc/cpt-program.php';
-require get_template_directory() . '/inc/cpt-location.php';
-require get_template_directory() . '/inc/cpt-team.php';
-require get_template_directory() . '/inc/acf.php';
-require get_template_directory() . '/inc/seo.php';
-require get_template_directory() . '/inc/patterns.php';
-
-🏷️ Custom Post Types (CPTs)
-Programs (program)
-
-Age range
-
-Tagline
-
-Curriculum focus (Physical, Emotional, Social, Academic, Creative)
-
-Features (repeater)
-
-Offered locations (relationship)
-
-SEO fields
-
-Locations (location)
-
-Address + phone
-
-Hours
-
-Ages served
-
-Enrollment status (Now enrolling / Waitlist / Coming soon)
-
-Google Maps embed
-
-Programs served
-
-Gallery
-
-Team (team)
-
-Role
-
-Credentials
-
-Location(s) served
-
-⚙️ ACF: Content Model
-1️⃣ Global Options
-
-Under: Chroma Settings → ACF Options Page
-
-Fields:
-
-Logo (light/dark)
-
-Phone & email
-
-Corporate address
-
-Header CTA text + link
-
-Footer text
-
-Social media links
-
-Default meta description
-
-OG image
-
-Analytics IDs (GA4, Meta Pixel)
-
-2️⃣ Front Page (Flexible Content)
-
-Field group: Homepage Layout
-
-Modules:
-
-hero_warm
-
-programs_wizard
-
-curriculum_radar (interactive)
-
-schedule_strip
-
-locations_grid
-
-reviews_strip
-
-about_teaser
-
-careers_teaser
-
-tour_cta
-
-faq_strip
-
-Each module has its own subfields → loaded into template parts.
-
-3️⃣ Program Fields
-
-Age range
-
-Tagline
-
-Curriculum focus weighting
-
-Features
-
-Offered locations
-
-Program photo/video
-
-Meta fields
-
-4️⃣ Locations Fields
-
-Address / city / state / zip
-
-County
-
-Phone / email
-
-Hours
-
-Programs offered
-
-Google Maps embed
-
-Enrollment status
-
-Hero image
-
-Gallery
-
-Schema overrides
-
-🧩 Template System
-front-page.php
-
-Loops ACF Flexible Content:
-
-if ( have_rows('home_layout') ):
-  while ( have_rows('home_layout') ): the_row();
-  
-    if ( get_row_layout() == 'hero_warm' ):
-      get_template_part('template-parts/hero/home-hero');
-
-    elseif ( get_row_layout() == 'curriculum_radar' ):
-      get_template_part('template-parts/home/curriculum');
-
-    // etc...
-
-  endwhile;
-endif;
-
-
-This makes homepage modular, reorderable, and marketer-editable.
-
-🎨 Styling (Tailwind)
-tailwind.config.js
-
-Brand palette:
-
-brand.cream, brand.ink
-
-chroma.peach, chroma.mint, chroma.lilac, chroma.sun
-
-Soft shadows
-
-Rounded cards
-
-Family-friendly shapes
-
-Responsive breakpoints
-
-Entry file:
-
-resources/css/app.css
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-🧠 JavaScript
-
-resources/js/app.js contains:
-
-Navigation toggles (mobile drawer)
-
-Scroll reveal utilities
-
-Programs wizard logic
-
-Timeline/schedule logic
-
-Curriculum radar (Chart.js)
-
-Marquee enhancements
-
-Review slider controls
-
-Bundled → dist/app.js.
-
-🔍 SEO & Schema
-Handled via:
-
-add_theme_support('title-tag')
-
-SEO plugin (canonical, sitemap, meta)
-
-Custom schema in /inc/seo.php
-
-Schema:
-Global (Home)
-
-@type: ChildCare
-
-Name, URL, logo
-
-SameAs social
-
-AreaServed: Atlanta
-
-Description
-
-Location (single-location.php)
-
-@type: ChildCare + LocalBusiness
-
-Full address
-
-Phone
-
-Hours
-
-Geo coordinates (optional)
-
-Map link
-
-Enrollment status
-
-Program (optional)
-
-EducationalOccupationalProgram
-
-Age band
-
-Description
-
-🚀 Build Instructions
-Install dependencies:
+# Chroma Excellence WordPress Theme & Plugins
+
+Complete WordPress solution for Chroma Early Learning Academy featuring custom theme, SEO engine, and lead management system.
+
+## 📦 What's Included
+
+### 1. **chroma-excellence-theme** (WordPress Theme)
+Custom theme with:
+- Hardcoded homepage defaults (override via Customizer, no ACF dependency)
+- 2 Custom Post Types (Programs, Locations)
+- Advanced SEO engine with schema.org markup
+- Sitemap.xml and robots.txt management
+- Spanish variant support (hreflang)
+- City-slug logic for location URLs
+- Monthly SEO cron for search engine pings
+- Tailwind CSS design system
+- Leaflet maps integration
+- Data-attribute based modular JavaScript
+
+### 2. **chroma-plugins** (3 WordPress Plugins)
+- **chroma-tour-form** - Tour request form with lead routing
+- **chroma-acquisitions-form** - Acquisitions inquiry form
+- **chroma-lead-log** - Lead logging CPT for centralized tracking
+
+## 🚀 Installation
+
+### Step 1: Install Theme
+
+```bash
+# Upload theme to WordPress
+cd wp-content/themes/
+# Upload chroma-excellence-theme folder
+
+# Install dependencies
+cd chroma-excellence-theme
 npm install
 
-Start Tailwind watcher:
+# Build CSS
+npm run build
+```
+
+### Step 2: Install Plugins
+
+```bash
+# Upload plugins to WordPress
+cd wp-content/plugins/
+# Upload all 3 plugin folders from chroma-plugins/
+
+# Activate in WordPress admin:
+# 1. Chroma Lead Log (activate first)
+# 2. Chroma Tour Form
+# 3. Chroma Acquisitions Form
+```
+
+### Step 3: Configure Theme
+
+1. **Activate Theme:** Appearance → Themes → Chroma Excellence
+2. **Set Permalinks:** Settings → Permalinks → Post name → Save
+3. **Configure Menus:** Appearance → Menus
+   - Create "Primary Menu" and assign to Primary location
+   - Create "Footer Menu" and assign to Footer location
+
+> ℹ️ **ACF plugin optional:** The homepage and global helpers use hardcoded defaults and WordPress options. You can run the site without installing ACF, and no templates will break if the plugin is absent.
+
+### Step 4: Create Content
+
+**Programs:**
+1. Add Programs (Programs → Add New)
+2. Required fields: program_age_range, program_description
+3. Optional: program_locations (relationship to locations)
+
+**Locations:**
+1. Add Locations (Locations → Add New)
+2. Required fields:
+   - location_address, location_city, location_state, location_zip
+   - location_phone, location_email
+   - location_latitude, location_longitude (for maps)
+3. Optional: location_capacity, location_enrollment
+
+**Homepage:**
+1. Create a page called "Home"
+2. Settings → Reading → Set "Home" as homepage
+3. Optional: Appearance → Customize → **Chroma Homepage** to edit hero text, stats, Prismpath cards, wizard options, curriculum radar data, schedule tabs, FAQs, and the locations callout (JSON textareas provided for list-based sections).
+
+## 📁 Theme Architecture
+
+```
+chroma-excellence-theme/
+├── style.css                    # Theme header
+├── functions.php                # Main loader
+├── header.php / footer.php      # Layout shell
+├── front-page.php               # Homepage
+├── index.php                    # Fallback
+├── archive-program.php          # Programs listing
+├── single-program.php           # Program detail
+├── single-location.php          # Location detail
+├── /inc                         # Core functionality
+│   ├── setup.php                # Theme setup
+│   ├── enqueue.php              # Assets loading
+│   ├── nav-menus.php            # Navigation with Tailwind
+│   ├── cpt-programs.php         # Program CPT
+│   ├── cpt-locations.php        # Location CPT
+│   ├── acf-options.php          # Global helpers
+│   ├── acf-homepage.php         # Home helpers
+│   ├── template-tags.php        # Utility functions
+│   ├── cleanup.php              # WordPress cleanup
+│   ├── seo-engine.php           # Schema, sitemap, OG tags
+│   ├── city-slug-logic.php      # Location URL suggestions
+│   ├── spanish-variant-generator.php  # Language switching
+│   └── monthly-seo-cron.php     # SEO maintenance cron
+├── /template-parts              # Modular sections
+│   └── /home                    # Homepage sections
+├── /assets
+│   ├── /css
+│   │   ├── input.css            # Tailwind entry
+│   │   └── main.css             # Compiled CSS
+│   └── /js
+│       ├── main.js              # Main JavaScript
+│       └── map-layer.js         # Leaflet maps
+├── /acf-json                    # Legacy ACF field groups (reference only)
+├── tailwind.config.js           # Tailwind config
+├── postcss.config.js            # PostCSS config
+└── package.json                 # NPM dependencies
+```
+
+## 🛠️ Development
+
+### CSS Development (Tailwind)
+
+```bash
+# Watch mode (development)
 npm run dev
 
-Build for production:
+# Build for production
 npm run build
+```
 
+### Brand Colors
 
-Compiles into /dist.
+```javascript
+brand: {
+  ink: '#263238',      // Primary text
+  cream: '#FFFCF8',    // Background
+  navy: '#1a2332',     // Dark accent
+}
+chroma: {
+  red: '#D67D6B',
+  teal: '#4A9B8E',
+  green: '#8DA399',
+  yellow: '#E6BE75',
+}
+```
 
-📦 Deployment
+### ACF Field Groups
 
-Upload theme folder → Activate → Configure:
+Legacy ACF JSON files remain for reference, but the theme no longer requires the plugin.
 
-Add Programs (Infant, Toddler, Preschool, GA Pre-K)
+### Runtime without ACF
 
-Add Locations (all 19 campuses)
+- No templates or helpers call `get_field()` or other ACF PHP APIs. All homepage data and global defaults are hardcoded or stored in standard WordPress options.
+- The legacy `inc/acf-*.php` helpers rely only on WordPress functions, so they load safely even if the Advanced Custom Fields plugin is missing or deactivated.
+- You can confirm the absence of ACF function calls with:
 
-Add Team Members
+```bash
+rg "get_field" chroma-excellence-theme chroma-plugins
+```
 
-Configure Chroma Settings (logo, phone, CTA)
+## 🔍 SEO Features
 
-Add homepage sections using ACF Flexible Content
+- **Automatic Schema.org markup:**
+  - Organization (homepage)
+  - ChildCare + LocalBusiness (locations)
+  - Service (programs)
 
-🧪 Optional Enhancements
+- **Sitemap:** `https://yourdomain.com/?sitemap=xml`
 
-Multi-language (Polylang / WPML)
+- **Robots.txt:** Automatically includes sitemap URL
 
-Waitlist / Enrollment form integration
+- **Hreflang:** Set `alternate_url_en` and `alternate_url_es` post meta fields (ACF optional)
 
-AI assistant widget (lead pre-qualification)
+- **Monthly cron:** Automatically pings Google & Bing with sitemap
 
-Blog for parent education
+## 📝 Using Forms
 
-Structured location sitemap
+### Tour Form
+Add to any page: `[chroma_tour_form]`
 
-📝 License
+- Routes to location email if location selected
+- Falls back to global_tour_email
+- Logs to Lead Log CPT
 
-Private proprietary theme for Chroma Early Learning Academy.
+### Acquisitions Form
+Add to acquisitions page: `[chroma_acquisition_form]`
 
-📞 Support / Next Steps
+- Sends to acquisitions@chromaela.com
+- Logs to Lead Log CPT
 
-If you add new locations, programs, or sub-brands, the theme structure already supports:
+### Lead Log
+View all leads: **Lead Log** menu in WordPress admin
 
-Unlimited CPT entries
+## 🌍 Spanish Support
 
-Unlimited new homepage layouts
+1. Create Spanish version of page/post
+2. Add post meta fields (ACF optional):
+   - `alternate_url_en` - English URL
+   - `alternate_url_es` - Spanish URL
+3. Theme automatically adds hreflang tags
 
-Reusable template parts
+Display language switcher:
+```php
+<?php chroma_render_language_switcher(); ?>
+```
 
-Custom schema
+## 📍 Location URL Management
+
+For each location, the theme suggests SEO-friendly slugs:
+- Pattern: `service-areas-{city}-{state}`
+- Example: `service-areas-johns-creek-ga`
+
+Manually update permalink to preserve existing URLs.
+
+## 🔧 Deployment Checklist
+
+- [ ] Install theme + plugins
+- [ ] Install ACF Pro (optional)
+- [ ] Configure Chroma Settings (global options)
+- [ ] Set up menus (Primary + Footer)
+- [ ] Set permalinks to "Post name"
+- [ ] Add Programs
+- [ ] Add Locations with lat/lng for maps
+- [ ] Review homepage defaults (hardcoded in theme)
+- [ ] Run `npm run build` for production CSS
+- [ ] Test tour form submission
+- [ ] Verify sitemap: `/?sitemap=xml`
+- [ ] Check schema markup (Google Rich Results Test)
+
+## 📞 Support
+
+- GitHub: https://github.com/charancre-del/Wptstchroma
+- Internal development team
+
+## 📄 License
+
+Proprietary - All rights reserved © 2025 Chroma Early Learning Academy

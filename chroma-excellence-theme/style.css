@@ -1,0 +1,25 @@
+/*
+Theme Name: Chroma Excellence Theme
+Theme URI: https://chromaela.com
+Author: Chroma Development Team
+Author URI: https://chromaela.com
+Description: Custom WordPress theme for Chroma Early Learning Academy featuring the Prismpath™ curriculum, hardcoded homepage sections (no ACF requirement), advanced SEO engine, and Tailwind CSS. Built for 19+ Metro Atlanta locations with local SEO optimization.
+Version: 1.0.0
+Requires at least: 6.0
+Tested up to: 6.4
+Requires PHP: 8.0
+License: Proprietary
+License URI: All rights reserved
+Text Domain: chroma-excellence
+Tags: education, childcare, early-learning, tailwind, custom-theme
+
+Chroma Excellence Theme
+Copyright (C) 2025 Chroma Early Learning Academy
+All rights reserved. This theme is proprietary software.
+*/
+
+/**
+ * This file only contains the WordPress theme header.
+ * All styles are compiled via Tailwind CSS into assets/css/main.css
+ * and enqueued via inc/enqueue.php
+ */

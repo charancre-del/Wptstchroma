@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chroma Page Previews</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --brand-ink: #0f1a2b;
+      --brand-navy: #0b223c;
+      --brand-cream: #fdf7ec;
+      --brand-white: #ffffff;
+      --brand-soft: #f5ede0;
+      --chroma-red: #ef4444;
+      --chroma-yellow: #f59e0b;
+      --chroma-green: #10b981;
+      --chroma-teal: #14b8a6;
+      --home-ink: #263238;
+      --home-cream: #fffcf8;
+      --home-blue: #4a6c7c;
+      --home-blue-dark: #2f4858;
+      --home-green: #8da399;
+      --home-red: #d67d6b;
+      --home-yellow: #e6be75;
+      --shadow-soft: 0 18px 50px rgba(12, 23, 46, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      color: var(--brand-ink);
+      background: radial-gradient(circle at 20% 20%, rgba(239, 68, 68, 0.08), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(245, 158, 11, 0.08), transparent 32%),
+                  radial-gradient(circle at 70% 70%, rgba(20, 184, 166, 0.07), transparent 40%),
+                  var(--brand-cream);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    h1, h2, h3, h4 { font-weight: 700; margin: 0 0 0.5em; }
+    p { margin: 0 0 1em; color: rgba(15, 26, 43, 0.8); }
+    .page-shell { max-width: 1200px; margin: 0 auto; padding: 32px 24px 64px; }
+    .surface { background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(12px); border: 1px solid rgba(15, 26, 43, 0.06); box-shadow: var(--shadow-soft); border-radius: 28px; padding: 26px 24px; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      padding: 20px 24px;
+      background: rgba(255, 255, 255, 0.96);
+      border-bottom: 1px solid rgba(15, 26, 43, 0.06);
+      box-shadow: 0 12px 30px rgba(0,0,0,0.04);
+      backdrop-filter: blur(10px);
+    }
+
+    .site-mast {
+      margin: 28px auto 18px;
+      padding: 18px 22px;
+      max-width: 1200px;
+      background: linear-gradient(120deg, rgba(15, 26, 43, 0.9), rgba(11, 34, 60, 0.9));
+      color: white;
+      border-radius: 22px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: var(--shadow-soft);
+    }
+    .site-mast .bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .site-mast nav { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+    .site-mast nav a {
+      color: rgba(255,255,255,0.86);
+      text-decoration: none;
+      font-weight: 600;
+      padding: 10px 12px;
+      border-radius: 12px;
+      transition: background 150ms ease;
+    }
+    .site-mast nav a:hover { background: rgba(255,255,255,0.08); }
+    .site-mast .cta { background: linear-gradient(135deg, var(--chroma-red), var(--chroma-yellow)); color: var(--brand-ink); box-shadow: 0 14px 30px rgba(239,68,68,0.25); }
+
+    .logo-mark { display: inline-flex; gap: 4px; align-items: center; }
+    .dot { width: 10px; height: 10px; border-radius: 999px; display: inline-block; opacity: 0.9; }
+    .dot.red { background: var(--chroma-red); }
+    .dot.yellow { background: var(--chroma-yellow); }
+    .dot.green { background: var(--chroma-green); }
+    .dot.teal { background: var(--chroma-teal); }
+
+    .page-switcher { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .page-switcher button {
+      padding: 10px 14px;
+      background: #f3f4f6;
+      border: 1px solid rgba(15, 26, 43, 0.08);
+      border-radius: 999px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 150ms ease;
+      color: rgba(15, 26, 43, 0.8);
+    }
+    .page-switcher button.active {
+      background: linear-gradient(135deg, var(--brand-navy), var(--brand-ink));
+      color: white;
+      border-color: var(--brand-ink);
+      box-shadow: 0 10px 30px rgba(15, 26, 43, 0.18);
+    }
+
+    .page-preview { display: none; margin-top: 28px; }
+    .page-preview.active { display: block; }
+
+    .hero { padding: 48px 32px; border-radius: 24px; color: white; position: relative; overflow: hidden; box-shadow: var(--shadow-soft); }
+    .hero::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(255,255,255,0.12), transparent 32%);
+      pointer-events: none;
+    }
+    .hero h1 { font-size: 2.8rem; color: white; }
+    .hero p { color: rgba(255, 255, 255, 0.9); max-width: 780px; }
+    .pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; font-weight: 700; }
+
+    .grid { display: grid; gap: 20px; }
+    .grid-2 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .card { background: white; border-radius: 18px; padding: 20px; box-shadow: 0 12px 35px rgba(0,0,0,0.08); border: 1px solid rgba(15, 26, 43, 0.04); }
+    .card h3 { margin-bottom: 0.35em; }
+    .tag { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(15, 26, 43, 0.06); color: rgba(15, 26, 43, 0.8); margin-bottom: 10px; }
+    .cta { display: inline-flex; align-items: center; gap: 10px; padding: 12px 18px; border-radius: 14px; background: var(--chroma-teal); color: white; font-weight: 700; text-decoration: none; margin-top: 12px; box-shadow: 0 10px 25px rgba(20, 184, 166, 0.3); }
+    .cta.secondary { background: white; color: var(--brand-ink); border: 1px solid rgba(15, 26, 43, 0.12); box-shadow: none; }
+
+    .section-title { display: flex; align-items: center; gap: 10px; font-size: 1.8rem; margin-bottom: 12px; }
+    .section-title i { color: var(--chroma-teal); }
+
+    .stat-bar { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 16px; }
+    .stat { background: rgba(255,255,255,0.9); padding: 14px 18px; border-radius: 12px; font-weight: 700; color: var(--brand-ink); box-shadow: 0 10px 28px rgba(0,0,0,0.06); }
+
+    .list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+    .list li { display: flex; gap: 10px; align-items: flex-start; }
+    .list i { color: var(--chroma-teal); margin-top: 2px; }
+
+    .footer { background: var(--brand-ink); color: white; padding: 32px; border-radius: 18px; margin-top: 40px; box-shadow: var(--shadow-soft); }
+    .footer a { color: rgba(255,255,255,0.78); text-decoration: none; font-weight: 600; }
+    .footer .links { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 10px; }
+
+    .strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; margin-top: 16px; }
+    .strip .item { background: rgba(15, 26, 43, 0.04); padding: 12px 14px; border-radius: 12px; font-weight: 600; }
+
+    .mono { font-family: 'Playfair Display', serif; letter-spacing: 0.6px; }
+
+    /* Homepage mirroring the provided Tailwind layout */
+    .home-surface { background: var(--home-cream); border-radius: 32px; padding: 32px; box-shadow: var(--shadow-soft); border: 1px solid rgba(38, 50, 56, 0.08); }
+    .home-hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 32px; background: radial-gradient(circle at 20% 30%, rgba(214, 125, 107, 0.1), transparent 40%), radial-gradient(circle at 80% 20%, rgba(74, 108, 124, 0.1), transparent 35%), linear-gradient(135deg, #fffaf0, #fff); border: 1px solid rgba(38, 50, 56, 0.08); border-radius: 32px; padding: 36px; position: relative; overflow: hidden; }
+    .home-hero::after { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 85% 80%, rgba(230, 190, 117, 0.18), transparent 40%); pointer-events: none; }
+    .home-hero .col { position: relative; z-index: 1; display: grid; gap: 18px; }
+    .home-pill { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; background: rgba(74, 108, 124, 0.08); color: var(--home-blue-dark); font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; font-size: 11px; }
+    .home-heading { font-family: 'Playfair Display', serif; font-size: 2.4rem; color: var(--home-ink); margin: 0; line-height: 1.1; }
+    .home-heading em { color: var(--home-red); font-style: italic; }
+    .home-lead { color: rgba(38, 50, 56, 0.7); font-size: 15px; max-width: 620px; margin: 0; line-height: 1.7; }
+    .home-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+    .home-actions a { text-decoration: none; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; font-size: 12px; border-radius: 999px; padding: 14px 18px; border: 1px solid rgba(74, 108, 124, 0.2); transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease; }
+    .home-actions .primary { background: var(--home-red); color: white; box-shadow: 0 14px 30px rgba(214, 125, 107, 0.3); border-color: transparent; }
+    .home-actions .secondary { background: white; color: var(--home-ink); }
+    .home-actions a:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(0,0,0,0.06); }
+    .home-meta { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: rgba(38, 50, 56, 0.7); align-items: center; }
+    .home-meta .divider { width: 1px; height: 16px; background: rgba(74, 108, 124, 0.2); }
+    .home-media { position: relative; }
+    .home-media .frame { border-radius: 32px; overflow: hidden; border: 1px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-soft); background: #fff; }
+    .home-media video, .home-media img { width: 100%; height: 100%; display: block; object-fit: cover; min-height: 360px; }
+    .home-media .floating { position: absolute; bottom: 12px; left: -18px; background: rgba(255,255,255,0.92); border-radius: 18px; padding: 14px; display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow-soft); border: 1px solid rgba(38, 50, 56, 0.08); }
+    .home-media .floating .icon { width: 46px; height: 46px; border-radius: 14px; background: rgba(74,108,124,0.08); color: var(--home-blue-dark); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; }
+    .home-section { margin-top: 32px; border-radius: 28px; padding: 24px; border: 1px solid rgba(38, 50, 56, 0.06); background: white; box-shadow: 0 12px 28px rgba(0,0,0,0.04); }
+    .home-section h3 { margin: 0 0 12px; font-size: 1.4rem; color: var(--home-ink); }
+    .home-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+    .home-card { border-radius: 24px; padding: 18px; color: white; position: relative; overflow: hidden; min-height: 200px; }
+    .home-card.blue { background: var(--home-blue); }
+    .home-card.red { background: var(--home-red); }
+    .home-card.green { background: var(--home-green); color: #0f1a2b; }
+    .home-card.light { background: #fff; color: var(--home-ink); border: 1px solid rgba(38,50,56,0.08); }
+    .home-card .badge { display: inline-flex; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.16); font-weight: 700; text-transform: uppercase; letter-spacing: 0.14em; font-size: 11px; }
+    .home-card h4 { margin: 10px 0 6px; font-size: 1.2rem; color: inherit; }
+    .home-card p { color: rgba(255,255,255,0.88); margin: 0; line-height: 1.6; }
+    .home-card.light p { color: rgba(38,50,56,0.7); }
+    .home-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
+    .home-stat { background: rgba(255,255,255,0.9); border: 1px solid rgba(38,50,56,0.08); border-radius: 18px; padding: 14px; text-align: center; font-weight: 700; color: var(--home-ink); }
+    .wizard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+    .wizard-button { border-radius: 18px; border: 1px solid rgba(74,108,124,0.18); padding: 14px; background: #fff; cursor: pointer; transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease; text-align: center; font-weight: 700; color: var(--home-ink); }
+    .wizard-button.active { border-color: var(--home-red); box-shadow: 0 12px 26px rgba(214,125,107,0.22); transform: translateY(-2px); background: rgba(214,125,107,0.08); }
+    .wizard-result { margin-top: 16px; background: rgba(214,125,107,0.06); border: 1px solid rgba(214,125,107,0.2); border-radius: 18px; padding: 16px; }
+    .pill-quiet { display: inline-block; padding: 8px 12px; border-radius: 999px; background: rgba(74,108,124,0.1); color: var(--home-blue-dark); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 11px; }
+    .home-flex { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+    .home-tabs { display: inline-flex; background: rgba(74,108,124,0.08); border-radius: 999px; padding: 6px; gap: 6px; }
+    .home-tabs button { border: none; background: transparent; padding: 10px 14px; border-radius: 999px; font-weight: 700; color: rgba(38,50,56,0.6); cursor: pointer; }
+    .home-tabs button.active { background: var(--home-blue); color: white; box-shadow: 0 10px 24px rgba(74,108,124,0.3); }
+    .timeline { display: grid; gap: 12px; position: relative; padding-left: 18px; }
+    .timeline::before { content: ""; position: absolute; left: 6px; top: 6px; bottom: 6px; width: 2px; background: rgba(74,108,124,0.2); }
+    .timeline-item { display: grid; gap: 4px; padding-left: 10px; }
+    .timeline-item strong { color: var(--home-blue-dark); }
+    .locations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 14px; }
+    .location-card { border: 1px solid rgba(38,50,56,0.08); padding: 12px; border-radius: 16px; background: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.04); }
+    .location-card.highlight { background: rgba(214,125,107,0.1); border-color: rgba(214,125,107,0.4); }
+    .tour-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; align-items: stretch; }
+    .tour-form input, .tour-form select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(74,108,124,0.2); font-size: 14px; }
+    .tour-form label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(38,50,56,0.6); display: block; margin-bottom: 6px; }
+    .tour-form button { width: 100%; padding: 14px; border-radius: 999px; border: none; background: var(--home-red); color: white; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; box-shadow: 0 12px 30px rgba(214,125,107,0.3); }
+    .faq details { border-radius: 14px; background: rgba(74,108,124,0.04); padding: 12px 14px; border: 1px solid rgba(38,50,56,0.06); }
+    .faq summary { cursor: pointer; font-weight: 700; color: var(--home-ink); display: flex; justify-content: space-between; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="page-shell" style="padding: 0;">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;">
+        <div>
+          <div class="logo-mark">
+            <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="dot teal"></span>
+            <span style="font-weight:700;">Chroma Page Gallery</span>
+          </div>
+          <p style="margin:6px 0 0; color: rgba(15, 26, 43, 0.6);">Switch between sample layouts that mirror the WordPress theme templates.</p>
+        </div>
+        <div class="page-switcher" id="pageSwitcher">
+          <button data-target="home" class="active">Homepage</button>
+          <button data-target="programs">Programs</button>
+          <button data-target="program-detail">Program Detail</button>
+          <button data-target="locations">Locations</button>
+          <button data-target="location-detail">Location Detail</button>
+          <button data-target="contact">Contact</button>
+          <button data-target="about">About</button>
+          <button data-target="parents">Parents</button>
+          <button data-target="employers">Employers</button>
+          <button data-target="acquisitions">Acquisitions</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-mast">
+    <div class="bar">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="dot teal"></span>
+        <div>
+          <div style="font-weight:700; font-size:1.05rem;">Chroma Excellence Theme</div>
+          <div style="opacity:0.8; font-size:0.95rem;">Sample header & navigation pulled into each preview</div>
+        </div>
+      </div>
+      <nav>
+        <a href="#">Programs</a>
+        <a href="#">Locations</a>
+        <a href="#">About</a>
+        <a href="#">Parents</a>
+        <a href="#">Employers</a>
+        <a class="cta" href="#">Book a Tour</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="page-shell">
+    <!-- Homepage Preview -->
+    <section class="page-preview surface active" id="home">
+      <div class="home-surface">
+        <div class="home-hero">
+          <div class="col">
+            <div class="home-pill"><span class="dot teal"></span>19+ Metro Atlanta Locations</div>
+            <h1 class="home-heading">The art of <em>growing up.</em></h1>
+            <p class="home-lead">Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.</p>
+            <div class="home-actions">
+              <a class="primary" href="#tour">Schedule a Tour</a>
+              <a class="secondary" href="#programs">View Programs</a>
+            </div>
+            <div class="home-meta">
+              <span>★★★★★ 4.8 Average Parent Rating</span>
+              <span class="divider"></span>
+              <span>Licensed • Quality Rated • GA Pre-K Partner</span>
+            </div>
+          </div>
+          <div class="col home-media">
+            <div class="frame">
+              <video autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop">
+                <source src="hero-classroom.mp4" type="video/mp4" />
+              </video>
+            </div>
+            <div class="floating">
+              <div class="icon"><i class="fa-solid fa-graduation-cap"></i></div>
+              <div>
+                <strong>Kindergarten Ready</strong>
+                <div style="font-size:12px; color:rgba(38,50,56,0.7);">Comprehensive Prep</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-section">
+          <h3>Grounded in Expertise. Wrapped in Love.</h3>
+          <div class="home-grid">
+            <div class="home-card blue">
+              <span class="badge">Proprietary Model</span>
+              <h4>The Prismpath™ Curriculum</h4>
+              <p>Just as a prism refracts light into a full spectrum of color, Prismpath™ refracts play into a full spectrum of development.</p>
+            </div>
+            <div class="home-card red">
+              <h4>Expert Care, Extended Family.</h4>
+              <p>State-certified educators who lead with kindness and craft joyful classrooms.</p>
+              <div class="badge" style="margin-top:12px; background:white; color: var(--home-red);">Meet the Team</div>
+            </div>
+            <div class="home-card green">
+              <h4>Wholesome Fuel</h4>
+              <p style="color:rgba(15,26,43,0.7);">Organic, balanced meals served family-style to fuel growing minds.</p>
+            </div>
+            <div class="home-card light">
+              <div class="home-flex" style="justify-content: space-between;">
+                <div>
+                  <h4>Uncompromised Safety</h4>
+                  <p>Secure, monitored facilities with open-door transparency for parents.</p>
+                </div>
+                <i class="fa-solid fa-shield-halved" style="color: var(--home-yellow); font-size: 24px;"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-stats">
+          <div class="home-stat">19+ Metro campuses</div>
+          <div class="home-stat">2,000+ Children enrolled</div>
+          <div class="home-stat">4.8 Avg parent rating</div>
+          <div class="home-stat">6w–12y Age range</div>
+        </div>
+
+        <div class="home-section" id="programs">
+          <div class="home-flex" style="justify-content: space-between;">
+            <div>
+              <div class="pill-quiet">Programs</div>
+              <h3>Find the right program in seconds</h3>
+              <p style="margin:0; color:rgba(38,50,56,0.6);">Choose your child’s age and we’ll suggest the program designed for their stage.</p>
+            </div>
+          </div>
+          <div class="wizard-grid" style="margin-top:16px;" id="wizardButtons">
+            <button class="wizard-button" data-wizard="infant">👶 Infant<br><span style="font-size:12px; font-weight:600; color:rgba(38,50,56,0.6);">6 wks–12m</span></button>
+            <button class="wizard-button" data-wizard="toddler">🚀 Toddler<br><span style="font-size:12px; font-weight:600; color:rgba(38,50,56,0.6);">1 year</span></button>
+            <button class="wizard-button" data-wizard="preschool">🎨 Preschool<br><span style="font-size:12px; font-weight:600; color:rgba(38,50,56,0.6);">2 years</span></button>
+            <button class="wizard-button" data-wizard="prep">✏️ Pre-K Prep<br><span style="font-size:12px; font-weight:600; color:rgba(38,50,56,0.6);">3 years</span></button>
+            <button class="wizard-button" data-wizard="prek">🎓 GA Pre-K<br><span style="font-size:12px; font-weight:600; color:rgba(38,50,56,0.6);">4 years</span></button>
+            <button class="wizard-button" data-wizard="afterschool">🚌 After School<br><span style="font-size:12px; font-weight:600; color:rgba(38,50,56,0.6);">5–12 years</span></button>
+          </div>
+          <div class="wizard-result" id="wizardResult">
+            <h4 id="wizardTitle" style="margin:0 0 6px; color: var(--home-ink);">Program Name</h4>
+            <p id="wizardDesc" style="margin:0 0 10px; color:rgba(38,50,56,0.65);">Description placeholder.</p>
+            <div class="home-flex">
+              <a id="wizardLink" href="/programs" class="cta secondary" style="font-size:12px;">Learn more</a>
+              <a href="#tour" class="cta" style="font-size:12px; background: var(--home-red); color: white;">Speak to enrollment</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-section" id="curriculum">
+          <div class="home-flex" style="justify-content: space-between; align-items: flex-start; gap: 18px; flex-wrap: wrap;">
+            <div style="max-width: 520px;">
+              <div class="pill-quiet" style="margin-bottom:8px;">Prismpath™ Curriculum</div>
+              <h3>A curriculum that shifts as your child grows</h3>
+              <p style="color:rgba(38,50,56,0.65); margin: 0 0 10px;">Prismpath™ balances five pillars – physical, emotional, social, academic, and creative development. The mix changes at each age so your child gets exactly what they need.</p>
+              <div class="home-tabs" id="curriculumTabs">
+                <button data-cur="infant" class="active">Infant</button>
+                <button data-cur="toddler">Toddler</button>
+                <button data-cur="preschool">Preschool</button>
+                <button data-cur="prep">Pre-K Prep</button>
+                <button data-cur="prek">GA Pre-K</button>
+                <button data-cur="afterschool">After School</button>
+              </div>
+              <div class="home-section" style="margin-top:14px; padding:16px; background: rgba(74,108,124,0.04);">
+                <h4 id="curriculumTitle" style="margin:0 0 6px;">Foundation Phase</h4>
+                <p id="curriculumDesc" style="margin:0; color:rgba(38,50,56,0.65);">Infant classrooms emphasize emotional security, attachment, physical health, and sensory experiences.</p>
+              </div>
+            </div>
+            <div style="flex:1; min-width:320px;">
+              <canvas id="homeCurriculumChart" aria-label="Curriculum radar chart" role="img"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-section" id="schedule">
+          <div class="home-flex" style="justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <div>
+              <div class="pill-quiet" style="margin-bottom:8px; color: var(--home-green);">Day by Day</div>
+              <h3>A Daily Rhythm of Joy</h3>
+              <p style="margin:0; color:rgba(38,50,56,0.65);">Each classroom follows a flow that balances stimulation, nourishment, and rest.</p>
+            </div>
+            <div class="home-tabs" id="scheduleTabs">
+              <button data-tab="infant" class="active">Infants</button>
+              <button data-tab="toddler">Toddlers</button>
+              <button data-tab="prek">Pre-K</button>
+            </div>
+          </div>
+          <div id="schedulePanels" style="margin-top:16px; display:grid; gap:12px;">
+            <div class="home-section" data-panel="infant" style="margin:0; background: rgba(74,108,124,0.06);">
+              <h4 style="margin:0 0 8px; color: var(--home-blue-dark);">The Nurturing Nest</h4>
+              <p style="margin:0 0 12px; color:rgba(38,50,56,0.65);">Individualized schedules follow infants’ cues for sleeping and eating, with gentle sensory play.</p>
+              <div class="timeline">
+                <div class="timeline-item"><strong>AM · Warm Welcome & Cuddles</strong><span style="color:rgba(38,50,56,0.65);">Transition from parent, bottle feeding, and floor play.</span></div>
+                <div class="timeline-item"><strong>Mid · Sensory Discovery</strong><span style="color:rgba(38,50,56,0.65);">Tummy time, soft textures, and mirror play.</span></div>
+                <div class="timeline-item"><strong>PM · Stroller Walk & Songs</strong><span style="color:rgba(38,50,56,0.65);">Fresh air and gentle music.</span></div>
+              </div>
+            </div>
+            <div class="home-section" data-panel="toddler" style="margin:0; display:none; background: rgba(230,190,117,0.12);">
+              <h4 style="margin:0 0 8px; color: var(--home-ink);">Explorers & Builders</h4>
+              <p style="margin:0 0 12px; color:rgba(38,50,56,0.65);">Structured circle time and communal meals help toddlers understand social cues and transitions.</p>
+              <div class="timeline">
+                <div class="timeline-item"><strong>9:00 · Morning Circle</strong><span style="color:rgba(38,50,56,0.65);">Songs, greeting friends, and introducing the daily theme.</span></div>
+                <div class="timeline-item"><strong>10:30 · Prismpath Play</strong><span style="color:rgba(38,50,56,0.65);">Block building, art stations, and guided motor skills.</span></div>
+                <div class="timeline-item"><strong>12:00 · Family-Style Lunch</strong><span style="color:rgba(38,50,56,0.65);">Learning to pass bowls, use utensils, and chat with friends.</span></div>
+              </div>
+            </div>
+            <div class="home-section" data-panel="prek" style="margin:0; display:none; background: rgba(214,125,107,0.08);">
+              <h4 style="margin:0 0 8px; color: var(--home-red);">Kindergarten Readiness</h4>
+              <p style="margin:0 0 12px; color:rgba(38,50,56,0.65);">The Pre-K rhythm mirrors elementary flow, building stamina and focus.</p>
+              <div class="timeline">
+                <div class="timeline-item"><strong>9:00 · Literacy & Logic</strong><span style="color:rgba(38,50,56,0.65);">Phonics games, calendar math, and story comprehension.</span></div>
+                <div class="timeline-item"><strong>11:00 · Project-Based Learning</strong><span style="color:rgba(38,50,56,0.65);">Collaborative science experiments and art projects.</span></div>
+                <div class="timeline-item"><strong>2:00 · Social Centers</strong><span style="color:rgba(38,50,56,0.65);">Dramatic play and negotiation skills.</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-section" id="locations">
+          <div class="home-flex" style="justify-content: space-between;">
+            <div>
+              <div class="pill-quiet" style="margin-bottom:8px;">Locations</div>
+              <h3>19+ neighborhood locations across Metro Atlanta</h3>
+              <p style="margin:0; color:rgba(38,50,56,0.65);">Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.</p>
+            </div>
+          </div>
+          <div class="locations-grid">
+            <div>
+              <div class="home-flex" style="gap:6px; font-size:12px; text-transform: uppercase; letter-spacing:0.18em; color:rgba(38,50,56,0.6);"><span>🍑</span>Cobb County</div>
+              <div class="location-card">Marietta – East<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">2499 Shallowford Rd</span></div>
+              <div class="location-card">Marietta – West<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">2424 Powder Springs Rd</span></div>
+              <div class="location-card">Austell – Premier<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">7225 Premier Ln</span></div>
+              <div class="location-card highlight">Austell – Tramore<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">2081 Mesa Valley Rd</span><br><span style="color: var(--home-blue); font-weight:700; font-size:11px;">Now Enrolling</span></div>
+            </div>
+            <div>
+              <div class="home-flex" style="gap:6px; font-size:12px; text-transform: uppercase; letter-spacing:0.18em; color:rgba(38,50,56,0.6);"><span>🌳</span>Gwinnett County</div>
+              <div class="location-card">Lawrenceville<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">3650 Club Dr NW</span></div>
+              <div class="location-card">Lilburn<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">917 Killian Hill Rd</span></div>
+              <div class="location-card">Duluth – Pleasant Hill<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">3152 Creek Dr NW</span></div>
+              <div class="location-card">Duluth – Satellite<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">3730 Satellite Blvd</span></div>
+            </div>
+            <div>
+              <div class="home-flex" style="gap:6px; font-size:12px; text-transform: uppercase; letter-spacing:0.18em; color:rgba(38,50,56,0.6);"><span>🏙️</span>North Metro</div>
+              <div class="location-card">Roswell<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">1255 Upper Hembree Rd</span></div>
+              <div class="location-card">Alpharetta – Midway<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">4015 Discovery Dr</span></div>
+              <div class="location-card">Johns Creek<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">3580 Old Alabama Rd</span></div>
+              <div class="location-card highlight">North Hall – Murrayville<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">5768 Wade Whelchel Rd</span><br><span style="color: var(--home-blue); font-weight:700; font-size:11px;">Now Enrolling</span></div>
+            </div>
+            <div>
+              <div class="home-flex" style="gap:6px; font-size:12px; text-transform: uppercase; letter-spacing:0.18em; color:rgba(38,50,56,0.6);"><span>⛰️</span>South Metro</div>
+              <div class="location-card">Ellenwood – Henry<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">2765 E Atlanta Rd</span></div>
+              <div class="location-card">McDonough – Henry<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">90 Hunters Chase</span></div>
+              <div class="location-card">Jonesboro – Clayton<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">1832 Noah Ark Rd</span></div>
+              <div class="location-card highlight">Newnan – Coweta<br><span style="color:rgba(38,50,56,0.6); font-size:12px;">40 Bledsoe Rd</span><br><span style="color: var(--home-blue); font-weight:700; font-size:11px;">New Campus</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-section" id="tour">
+          <div class="tour-grid">
+            <div>
+              <div class="pill-quiet" style="margin-bottom:8px;">Book a tour</div>
+              <h3>Schedule a private tour</h3>
+              <p style="color:rgba(38,50,56,0.65);">Share a few details and your preferred campus. A Chroma Director will reach out to confirm tour times.</p>
+              <form class="tour-form">
+                <div style="display:grid; gap:10px; grid-template-columns: repeat(auto-fit, minmax(200px,1fr));">
+                  <div><label>Parent Name</label><input type="text" placeholder="Jane Doe" required></div>
+                  <div><label>Phone</label><input type="tel" placeholder="(555) 123-4567" required></div>
+                </div>
+                <div style="display:grid; gap:10px; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); margin-top:10px;">
+                  <div><label>Email</label><input type="email" placeholder="you@email.com" required></div>
+                  <div><label>Preferred Campus</label><select><option>Select…</option><option>Newnan</option><option>North Hall</option><option>Austell – Tramore</option></select></div>
+                </div>
+                <div style="margin-top:10px;"><label>Child(ren) Age(s)</label><input type="text" placeholder="e.g., 10 months, 3 years"></div>
+                <button type="button">Request Tour Times</button>
+                <p style="font-size:11px; color:rgba(38,50,56,0.55); margin:8px 0 0;">No obligation. We’ll never share your information.</p>
+              </form>
+            </div>
+            <div style="background: linear-gradient(135deg, var(--home-blue), var(--home-green)); color: white; padding: 18px; border-radius: 22px; box-shadow: var(--shadow-soft);">
+              <p style="letter-spacing:0.18em; text-transform: uppercase; font-size:11px; font-weight:700;">Why families choose Chroma</p>
+              <ul class="list" style="color:white;">
+                <li><i class="fa-solid fa-check"></i><span>Warm, consistent teachers who know your child well</span></li>
+                <li><i class="fa-solid fa-check"></i><span>Daily parent communication with photos and updates</span></li>
+                <li><i class="fa-solid fa-check"></i><span>Healthy meals included through CACFP participation</span></li>
+                <li><i class="fa-solid fa-check"></i><span>Age-appropriate security and safety protocols</span></li>
+                <li><i class="fa-solid fa-check"></i><span>GA Lottery Pre-K at many locations</span></li>
+              </ul>
+              <div style="margin-top:12px; font-size:12px; color: rgba(255,255,255,0.85);">
+                <strong>Typical tour length: 20–30 minutes</strong><br>
+                Meet the Director, walk classrooms, and get tuition details for your child’s age group.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-section faq" id="faq">
+          <h3>Common questions from parents</h3>
+          <details open>
+            <summary>Do you offer GA Lottery Pre-K?<span>⌄</span></summary>
+            <p style="margin:8px 0 0; color:rgba(38,50,56,0.65);">Yes. Many Chroma locations offer free GA Lottery Pre-K for 4-year-olds.</p>
+          </details>
+          <details>
+            <summary>What ages do you serve?<span>⌄</span></summary>
+            <p style="margin:8px 0 0; color:rgba(38,50,56,0.65);">Most campuses serve children from 6 weeks through 12 years old.</p>
+          </details>
+          <details>
+            <summary>Are meals and snacks included?<span>⌄</span></summary>
+            <p style="margin:8px 0 0; color:rgba(38,50,56,0.65);">Yes. Through the Child and Adult Care Food Program (CACFP).</p>
+          </details>
+          <details>
+            <summary>How do you communicate with parents?<span>⌄</span></summary>
+            <p style="margin:8px 0 0; color:rgba(38,50,56,0.65);">We use a modern parent app and in-person conversations to keep you informed.</p>
+          </details>
+          <details>
+            <summary>Can I tour before enrolling?<span>⌄</span></summary>
+            <p style="margin:8px 0 0; color:rgba(38,50,56,0.65);">Absolutely. We encourage tours so you can meet the Director and see classrooms in action.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Programs Preview -->
+    <section class="page-preview surface" id="programs">
+      <div class="hero" style="background: linear-gradient(135deg, var(--chroma-red), var(--chroma-yellow));">
+        <div class="pill" style="background: rgba(255,255,255,0.14);">Programs Template</div>
+        <h1>Explore our classrooms</h1>
+        <p>Grid-driven page that lists every program with ACF-powered iconography, color accents, age ranges, and excerpt text.</p>
+      </div>
+
+      <div class="grid grid-3" style="margin-top: 24px;">
+        <div class="card">
+          <span class="tag">Infants · 6–12 months</span>
+          <h3>Little Luminaries</h3>
+          <p>Warm, sensory-first spaces with gentle routines and family-style communication.</p>
+          <a class="cta secondary" href="#">Learn more</a>
+        </div>
+        <div class="card">
+          <span class="tag">Toddlers · 1–2 years</span>
+          <h3>Color Explorers</h3>
+          <p>Hands-on discovery centers that spark curiosity with art, music, and movement.</p>
+          <a class="cta secondary" href="#">Learn more</a>
+        </div>
+        <div class="card">
+          <span class="tag">Pre-K · 3–4 years</span>
+          <h3>Future Makers</h3>
+          <p>Kindergarten readiness with literacy, STEM provocations, and social-emotional play.</p>
+          <a class="cta secondary" href="#">Learn more</a>
+        </div>
+      </div>
+      <a class="cta" href="#" style="margin-top: 18px;">Schedule your tour</a>
+    </section>
+
+    <!-- Program Detail Preview -->
+    <section class="page-preview surface" id="program-detail">
+      <div class="hero" style="background: linear-gradient(135deg, var(--chroma-teal), var(--chroma-green));">
+        <div class="pill" style="background: rgba(255,255,255,0.18);">Single Program Template</div>
+        <h1>Future Makers · Pre-K</h1>
+        <p>Detail template for a single program post with hero summary, ACF-driven highlights, schedules, and tuition prompts.</p>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 20px;">
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-list-check"></i> Highlights</h3>
+          <ul class="list">
+            <li><i class="fa-solid fa-check"></i><span>NAEYC-aligned literacy and early numeracy centers.</span></li>
+            <li><i class="fa-solid fa-check"></i><span>STEM provocations, sensory tables, and dramatic play.</span></li>
+            <li><i class="fa-solid fa-check"></i><span>Parent app updates with photos and daily reports.</span></li>
+          </ul>
+          <a class="cta" href="#">Book a tour</a>
+        </div>
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-clock"></i> Daily rhythm</h3>
+          <div class="strip">
+            <div class="item">7:00 – 8:30: Flexible arrival & breakfast</div>
+            <div class="item">9:00 – 11:30: Centers, outdoor play, circle time</div>
+            <div class="item">12:00 – 2:00: Lunch & rest</div>
+            <div class="item">2:00 – 6:00: Specials, enrichment, pick-up</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Locations Preview -->
+    <section class="page-preview surface" id="locations">
+      <div class="hero" style="background: linear-gradient(135deg, var(--chroma-teal), var(--chroma-yellow));">
+        <div class="pill" style="background: rgba(255,255,255,0.16);">Locations Template</div>
+        <h1>Find a Chroma near you</h1>
+        <p>City cards pulled from the locations custom post type, each linking to its own detail page.</p>
+      </div>
+
+      <div class="grid grid-3" style="margin-top: 24px;">
+        <div class="card">
+          <h3>Midtown Atlanta</h3>
+          <p>Modern classrooms off Peachtree Street with rooftop play decks.</p>
+          <div class="tag">Serves infants – Pre-K</div>
+        </div>
+        <div class="card">
+          <h3>Smyrna</h3>
+          <p>Neighborhood school with STEM atelier, garden beds, and secure access.</p>
+          <div class="tag">Serves toddlers – Pre-K</div>
+        </div>
+        <div class="card">
+          <h3>Decatur</h3>
+          <p>Light-filled studios, natural playgrounds, and partnership with local parks.</p>
+          <div class="tag">Serves infants – Pre-K</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Location Detail Preview -->
+    <section class="page-preview surface" id="location-detail">
+      <div class="hero" style="background: linear-gradient(135deg, var(--chroma-green), var(--chroma-teal));">
+        <div class="pill" style="background: rgba(255,255,255,0.18);">Single Location Template</div>
+        <h1>Chroma · Midtown</h1>
+        <p>Detail view with address, phone, tuition prompts, classroom highlights, and map embed.</p>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 20px;">
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-location-dot"></i> Visit us</h3>
+          <p><strong>Address:</strong> 123 Peachtree St NE, Atlanta, GA</p>
+          <p><strong>Phone:</strong> (404) 555-1234</p>
+          <p><strong>Hours:</strong> 7:00 AM – 6:00 PM, Monday–Friday</p>
+          <a class="cta" href="#">Schedule a tour</a>
+        </div>
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-school"></i> Highlights</h3>
+          <ul class="list">
+            <li><i class="fa-solid fa-check"></i><span>Enclosed playground with shade sails.</span></li>
+            <li><i class="fa-solid fa-check"></i><span>STEM atelier and art lab.</span></li>
+            <li><i class="fa-solid fa-check"></i><span>Dedicated nursing/quiet room for infants.</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top: 14px;">
+        <h3 class="section-title"><i class="fa-solid fa-map"></i> Map preview</h3>
+        <p style="margin: 0;">Embed a Google Map iframe here to mirror the live location page.</p>
+      </div>
+    </section>
+
+    <!-- Contact Preview -->
+    <section class="page-preview surface" id="contact">
+      <div class="hero" style="background: linear-gradient(135deg, var(--chroma-teal), var(--chroma-green));">
+        <div class="pill" style="background: rgba(255,255,255,0.18);">Contact Template</div>
+        <h1>We'd love to meet you</h1>
+        <p>Shows how the tour form, global contact info, office hours, and social links appear on the contact page.</p>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 20px;">
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-clipboard-list"></i> Tour form</h3>
+          <div class="strip">
+            <div class="item">Parent name & contact info</div>
+            <div class="item">Child age & program interest</div>
+            <div class="item">Preferred location & visit time</div>
+          </div>
+          <a class="cta" href="#">Submit form</a>
+        </div>
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-address-card"></i> Contact details</h3>
+          <p><strong>Phone:</strong> (404) 555-1234</p>
+          <p><strong>Email:</strong> hello@chromaearlylearning.com</p>
+          <p><strong>Address:</strong> 123 Peachtree St NE, Atlanta, GA</p>
+          <p><strong>Hours:</strong> 7:00 AM – 6:00 PM</p>
+          <div class="page-switcher" style="margin-top: 12px;">
+            <a class="cta secondary" href="#">Facebook</a>
+            <a class="cta secondary" href="#">Instagram</a>
+            <a class="cta secondary" href="#">LinkedIn</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Preview -->
+    <section class="page-preview surface" id="about">
+      <div class="hero" style="background: linear-gradient(135deg, var(--brand-ink), var(--chroma-red));">
+        <div class="pill" style="background: rgba(255,255,255,0.18);">About Template</div>
+        <h1>Our story & promise</h1>
+        <p>Supports long-form storytelling with pull quotes, leadership bios, and value pillars sourced from ACF fields.</p>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 20px; align-items: start;">
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-heart"></i> Mission</h3>
+          <p>We nurture vibrant, inclusive communities where every child is seen, loved, and challenged.</p>
+          <h4 class="mono">Values</h4>
+          <ul class="list">
+            <li><i class="fa-solid fa-check"></i><span>Joyful learning</span></li>
+            <li><i class="fa-solid fa-check"></i><span>Safety & trust</span></li>
+            <li><i class="fa-solid fa-check"></i><span>Partnership with families</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-users"></i> Leadership</h3>
+          <div class="strip">
+            <div class="item"><strong>CEO</strong> · Former educator guiding strategy & experience.</div>
+            <div class="item"><strong>Center Directors</strong> · On-site leaders with decades of childcare expertise.</div>
+            <div class="item"><strong>Teachers</strong> · Certified, background-checked, and supported with ongoing PD.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Parents Preview -->
+    <section class="page-preview surface" id="parents">
+      <div class="hero" style="background: linear-gradient(135deg, var(--chroma-yellow), var(--chroma-red));">
+        <div class="pill" style="background: rgba(255,255,255,0.18);">Parents Template</div>
+        <h1>Everything families need</h1>
+        <p>Resource-driven page with downloadable handbooks, tuition info, and FAQs targeted to enrolled or prospective parents.</p>
+      </div>
+
+      <div class="grid grid-3" style="margin-top: 24px;">
+        <div class="card">
+          <h3>Family Handbook</h3>
+          <p>Downloadable PDF with policies, schedules, and health guidelines.</p>
+          <a class="cta secondary" href="#">Download</a>
+        </div>
+        <div class="card">
+          <h3>Tuition & Fees</h3>
+          <p>Transparent pricing table grouped by program and schedule.</p>
+          <a class="cta secondary" href="#">View rates</a>
+        </div>
+        <div class="card">
+          <h3>Frequently Asked Questions</h3>
+          <p>Accordion-style answers for nutrition, safety, and enrollment steps.</p>
+          <a class="cta secondary" href="#">Read FAQs</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Employers Preview -->
+    <section class="page-preview surface" id="employers">
+      <div class="hero" style="background: linear-gradient(135deg, var(--brand-ink), var(--chroma-teal));">
+        <div class="pill" style="background: rgba(255,255,255,0.18);">Employers Template</div>
+        <h1>Childcare benefits for teams</h1>
+        <p>Landing page that explains partnership options for employers, including reserved seats, subsidy programs, and campus pop-ups.</p>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 20px;">
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-briefcase"></i> Partnership models</h3>
+          <ul class="list">
+            <li><i class="fa-solid fa-check"></i><span>Reserved seats for priority employees.</span></li>
+            <li><i class="fa-solid fa-check"></i><span>Back-up care blocks during peak seasons.</span></li>
+            <li><i class="fa-solid fa-check"></i><span>Onsite or near-site pop-up classrooms.</span></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-handshake"></i> Why Chroma</h3>
+          <p>Competitive benefits narrative with workforce impact stats, quality markers, and testimonials.</p>
+          <a class="cta" href="#">Contact partnerships</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Acquisitions Preview -->
+    <section class="page-preview surface" id="acquisitions">
+      <div class="hero" style="background: linear-gradient(135deg, var(--brand-ink), var(--chroma-yellow));">
+        <div class="pill" style="background: rgba(255,255,255,0.18);">Acquisitions Template</div>
+        <h1>Partner with Chroma</h1>
+        <p>Sample layout for the acquisitions page describing the process for school owners, including call-to-action panels and a secure lead form.</p>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 20px;">
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-route"></i> How it works</h3>
+          <ol class="list" style="counter-reset: steps;">
+            <li style="list-style: none;"><i class="fa-solid fa-check"></i><span>Confidential intro call.</span></li>
+            <li style="list-style: none;"><i class="fa-solid fa-check"></i><span>Program and team review.</span></li>
+            <li style="list-style: none;"><i class="fa-solid fa-check"></i><span>Transition plan for families and staff.</span></li>
+          </ol>
+        </div>
+        <div class="card">
+          <h3 class="section-title"><i class="fa-solid fa-envelope"></i> Owner form</h3>
+          <p>Short, secure form with required fields for school name, enrollment, and desired timeline.</p>
+          <a class="cta" href="#">Submit inquiry</a>
+        </div>
+      </div>
+    </section>
+
+    <div class="footer">
+      <div class="logo-mark" style="margin-bottom: 8px;">
+        <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span><span class="dot teal"></span>
+        <span style="font-weight:700;">Chroma Early Learning</span>
+      </div>
+      <p style="color: rgba(255,255,255,0.8); margin-bottom: 8px;">Sample footer mirrors the WordPress theme with quick links and social icons.</p>
+      <div class="links">
+        <a href="#">Programs</a>
+        <a href="#">Locations</a>
+        <a href="#">Parents</a>
+        <a href="#">Contact</a>
+        <a href="#">Privacy Policy</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const switcher = document.getElementById('pageSwitcher');
+    const previews = document.querySelectorAll('.page-preview');
+
+    switcher.addEventListener('click', (event) => {
+      const target = event.target.closest('button');
+      if (!target) return;
+
+      const id = target.dataset.target;
+      document.querySelectorAll('.page-switcher button').forEach(btn => btn.classList.remove('active'));
+      target.classList.add('active');
+
+      previews.forEach(section => {
+        section.classList.toggle('active', section.id === id);
+      });
+    });
+
+    // Program wizard content
+    const programConfig = {
+      infant: { title: 'Infant Care (6 weeks–12 months)', desc: 'Low ratios, safe sleep practices, responsive caregiving, and sensory play in a peaceful, predictable environment.', link: '/programs#infant' },
+      toddler: { title: 'Toddler Program (1 year)', desc: 'Curated environments for walkers and explorers with language bursts and social skills.', link: '/programs#toddler' },
+      preschool: { title: 'Preschool (2 years)', desc: 'Early concepts in math, literacy, and science introduced through hands-on centers and guided play.', link: '/programs#preschool' },
+      prep: { title: 'Pre-K Prep (3 years)', desc: 'Structured centers and small-group instruction that build independence before GA Pre-K.', link: '/programs#pre-k-prep' },
+      prek: { title: 'GA Pre-K (4 years)', desc: 'Balanced academic readiness, social-emotional learning, and joyful experiences aligned with GA standards.', link: '/programs#ga-pre-k' },
+      afterschool: { title: 'After-School Program (5–12 years)', desc: 'Transportation from local schools, homework support, clubs, and outdoor play.', link: '/programs#after-school' }
+    };
+
+    const wizardButtons = document.querySelectorAll('#wizardButtons .wizard-button');
+    const wizardTitle = document.getElementById('wizardTitle');
+    const wizardDesc = document.getElementById('wizardDesc');
+    const wizardLink = document.getElementById('wizardLink');
+
+    function setWizard(key) {
+      const data = programConfig[key];
+      if (!data) return;
+      wizardButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.wizard === key));
+      if (wizardTitle) wizardTitle.textContent = data.title;
+      if (wizardDesc) wizardDesc.textContent = data.desc;
+      if (wizardLink) wizardLink.href = data.link || '/programs';
+    }
+
+    wizardButtons.forEach(btn => btn.addEventListener('click', () => setWizard(btn.dataset.wizard)));
+    setWizard('infant');
+
+    // Curriculum chart
+    const curriculumConfig = {
+      infant: { title: 'Foundation Phase', desc: 'Emphasizes emotional security, attachment, physical health, and sensory experiences.', color: '#d67d6b', data: [90, 90, 40, 15, 40] },
+      toddler: { title: 'Discovery Phase', desc: 'Movement, language, early problem-solving, and social skills through guided play.', color: '#4a6c7c', data: [85, 75, 65, 30, 70] },
+      preschool: { title: 'Exploration Phase', desc: 'Early literacy, math concepts, dramatic play, and collaborative projects with routines.', color: '#e6be75', data: [75, 65, 70, 55, 80] },
+      prep: { title: 'Pre-K Prep Phase', desc: 'Builds stamina for small-group work, early writing, and multi-step directions.', color: '#2f4858', data: [65, 60, 75, 75, 70] },
+      prek: { title: 'GA Pre-K Readiness', desc: 'Academic readiness and social-emotional learning aligned with GA standards.', color: '#4a6c7c', data: [60, 60, 80, 90, 70] },
+      afterschool: { title: 'Enrichment Phase', desc: 'Homework help, social clubs, athletic play, and creative enrichment.', color: '#e6be75', data: [50, 70, 85, 75, 80] }
+    };
+
+    const curriculumTabs = document.querySelectorAll('#curriculumTabs button');
+    const curriculumTitle = document.getElementById('curriculumTitle');
+    const curriculumDesc = document.getElementById('curriculumDesc');
+    const curriculumCanvas = document.getElementById('homeCurriculumChart');
+    const curriculumLabels = ['Physical', 'Emotional', 'Social', 'Academic', 'Creative'];
+    let curriculumChart;
+
+    if (curriculumCanvas && window.Chart) {
+      const ctx = curriculumCanvas.getContext('2d');
+      curriculumChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: curriculumLabels,
+          datasets: [{ data: curriculumConfig.infant.data, borderColor: curriculumConfig.infant.color, backgroundColor: curriculumConfig.infant.color + '33', borderWidth: 2, pointBackgroundColor: '#fff', pointBorderColor: curriculumConfig.infant.color, pointRadius: 4 }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { display: false }, grid: { color: '#e5e7eb' }, angleLines: { color: '#e5e7eb' }, pointLabels: { color: '#263238', font: { family: 'Inter', size: 12 } } } }
+        }
+      });
+    }
+
+    function setCurriculum(key) {
+      const data = curriculumConfig[key];
+      if (!data) return;
+      curriculumTabs.forEach(btn => btn.classList.toggle('active', btn.dataset.cur === key));
+      if (curriculumTitle) curriculumTitle.textContent = data.title;
+      if (curriculumDesc) curriculumDesc.textContent = data.desc;
+      if (curriculumChart) {
+        curriculumChart.data.datasets[0].data = data.data;
+        curriculumChart.data.datasets[0].borderColor = data.color;
+        curriculumChart.data.datasets[0].backgroundColor = data.color + '33';
+        curriculumChart.data.datasets[0].pointBorderColor = data.color;
+        curriculumChart.update();
+      }
+    }
+
+    curriculumTabs.forEach(btn => btn.addEventListener('click', () => setCurriculum(btn.dataset.cur)));
+    setCurriculum('infant');
+
+    // Schedule tabs
+    const scheduleTabs = document.querySelectorAll('#scheduleTabs button');
+    const schedulePanels = document.querySelectorAll('#schedulePanels [data-panel]');
+
+    function setSchedule(key) {
+      scheduleTabs.forEach(btn => btn.classList.toggle('active', btn.dataset.tab === key));
+      schedulePanels.forEach(panel => { panel.style.display = panel.dataset.panel === key ? 'block' : 'none'; });
+    }
+
+    scheduleTabs.forEach(btn => btn.addEventListener('click', () => setSchedule(btn.dataset.tab)));
+    setSchedule('infant');
+  </script>
+</body>
+</html>

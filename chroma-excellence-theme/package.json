@@ -1,0 +1,27 @@
+{
+  "name": "chroma-excellence-theme",
+  "version": "1.0.0",
+  "description": "Custom WordPress theme for Chroma Early Learning Academy with Prismpath™ curriculum",
+  "private": true,
+  "scripts": {
+    "dev:css": "postcss assets/css/input.css -o assets/css/main.css --watch",
+    "build:css": "NODE_ENV=production postcss assets/css/input.css -o assets/css/main.css",
+    "dev": "npm run dev:css",
+    "build": "npm run build:css"
+  },
+  "keywords": [
+    "wordpress",
+    "theme",
+    "tailwind",
+    "childcare",
+    "education"
+  ],
+  "author": "Chroma Development Team",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.32",
+    "postcss-cli": "^11.0.0",
+    "autoprefixer": "^10.4.16"
+  }
+}
