@@ -29,7 +29,8 @@ if (empty($tracks)) {
 		</div>
 
 		<div class="flex justify-center mb-12">
-			<div class="bg-white border border-chroma-blue/15 p-1 rounded-full inline-flex" data-schedule-tabs>
+			<div class="bg-white border border-chroma-blue/15 p-1 rounded-2xl flex flex-wrap gap-2 justify-center"
+				data-schedule-tabs>
 				<?php foreach ($tracks as $index => $track): ?>
 					<?php
 					$is_active = 0 === $index;
