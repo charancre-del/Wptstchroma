@@ -68,7 +68,7 @@ function chroma_get_region_color_from_term($term_id)
 				<div class="relative flex-grow">
 					<i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-brand-ink/30"></i>
 					<input type="text" id="location-search" placeholder="Search by city, zip, or campus name..."
-						class="w-full pl-12 pr-6 py-4 rounded-full bg-brand-cream/50 focus:bg-white focus:ring-2 ring-chroma-green/20 outline-none text-brand-ink placeholder:text-brand-ink/40 transition-all" />
+						class="w-full pl-12 pr-6 py-4 rounded-full bg-brand-cream/50 focus:bg-white focus:ring-2 ring-chroma-green/20 outline-none text-brand-ink placeholder:text-brand-ink/60 transition-all" />
 				</div>
 				<div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 px-2 md:px-0 no-scrollbar" id="region-filters">
 					<button onclick="filterLocations('all')"
@@ -193,7 +193,7 @@ function chroma_get_region_color_from_term($term_id)
 								</p>
 
 								<div
-									class="flex flex-wrap gap-2 mb-6 text-[10px] font-bold uppercase tracking-wider text-brand-ink/40">
+									class="flex flex-wrap gap-2 mb-6 text-[10px] font-bold uppercase tracking-wider text-brand-ink">
 									<span
 										class="border border-brand-ink/10 px-2 py-1 rounded-md"><?php echo esc_html($ages_served); ?></span>
 									<?php foreach (array_slice($special_programs, 0, 2) as $program): ?>

@@ -69,7 +69,7 @@ $newsroom_query = new WP_Query($newsroom_args);
         <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo.png'); ?>"
           srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo.png'); ?> 1x,
                      <?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo-highres.png'); ?> 2x" alt="Chroma Early Learning" class="h-10 w-auto" />
-        <span class="text-xs uppercase tracking-widest text-brand-ink/70">Newsroom</span>
+        <span class="text-xs uppercase tracking-widest text-brand-ink">Newsroom</span>
       </a>
       <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-ink/80">
         <?php
