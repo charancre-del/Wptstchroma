@@ -130,6 +130,8 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'breadcrumbs' ? 'nav-tab-active' : ''; ?>">Breadcrumbs</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=social'); ?>"
                     class="nav-tab <?php echo $active_tab === 'social' ? 'nav-tab-active' : ''; ?>">Social Preview</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'bulk' ? 'nav-tab-active' : ''; ?>">Bulk Operations</a>
                 <?php do_action('chroma_seo_dashboard_tabs'); ?>
             </nav>
 
@@ -170,6 +172,9 @@ class Chroma_SEO_Dashboard
                     break;
                 case 'social':
                     $this->render_social_tab();
+                    break;
+                case 'bulk':
+                    $this->render_bulk_ops_tab();
                     break;
                 default:
                     // Allow other tabs to render via action
@@ -1417,5 +1422,286 @@ class Chroma_SEO_Dashboard
         }
 
         wp_send_json_success($data);
+    }
+
+    /**
+     * Render Bulk Operations Tab
+     */
+    private function render_bulk_ops_tab()
+    {
+        $ptype = isset($_GET['ptype']) ? sanitize_text_field($_GET['ptype']) : 'location';
+        $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
+        $posts_per_page = 50;
+
+        $query = new WP_Query([
+            'post_type' => $ptype,
+            'posts_per_page' => $posts_per_page,
+            'paged' => $paged,
+            'post_status' => 'publish'
+        ]);
+
+        $schema_definitions = class_exists('Chroma_Schema_Types') ? Chroma_Schema_Types::get_definitions() : [];
+        ?>
+        <div class="chroma-seo-card">
+            <h2>📦 Bulk Operations</h2>
+            <p>Perform AI tasks on multiple pages at once. <strong>Keep this tab open while processing.</strong></p>
+
+            <!-- Filter Bar -->
+            <div
+                style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; background: #f0f0f1; padding: 10px; border-radius: 4px;">
+                <label><strong>Post Type:</strong></label>
+                <select
+                    onchange="window.location.href='<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk&ptype='); ?>' + this.value">
+                    <option value="location" <?php selected($ptype, 'location'); ?>>Locations</option>
+                    <option value="program" <?php selected($ptype, 'program'); ?>>Programs</option>
+                    <option value="page" <?php selected($ptype, 'page'); ?>>Pages</option>
+                    <option value="post" <?php selected($ptype, 'post'); ?>>Blog Posts</option>
+                </select>
+                <span class="count" style="color: #666;">(<?php echo $query->found_posts; ?> items found)</span>
+            </div>
+
+            <div style="display: flex; gap: 20px;">
+
+                <!-- Left: Post List -->
+                <div style="flex: 2;">
+                    <!-- Controls -->
+                    <div
+                        style="padding: 10px; background: #fff; border: 1px solid #ddd; margin-bottom: -1px; border-radius: 4px 4px 0 0;">
+                        <label><input type="checkbox" id="cb-select-all-bulk"> Select All on Page</label>
+                    </div>
+
+                    <!-- List -->
+                    <div style="background: #fff; border: 1px solid #ddd; max-height: 500px; overflow-y: auto;">
+                        <table class="wp-list-table widefat fixed striped">
+                            <thead>
+                                <tr>
+                                    <td class="check-column"><input type="checkbox" disabled></td>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if ($query->have_posts()):
+                                    while ($query->have_posts()):
+                                        $query->the_post(); ?>
+                                        <tr>
+                                            <th scope="row" class="check-column">
+                                                <input type="checkbox" name="bulk_post[]" value="<?php the_ID(); ?>">
+                                            </th>
+                                            <td>
+                                                <strong><?php the_title(); ?></strong>
+                                                <br>
+                                                <a href="<?php echo get_edit_post_link(); ?>" target="_blank"
+                                                    style="font-size: 11px;">Edit</a>
+                                                | <a href="<?php the_permalink(); ?>" target="_blank" style="font-size: 11px;">View</a>
+                                            </td>
+                                            <td id="status-<?php the_ID(); ?>">
+                                                <span class="dashicons dashicons-minus" style="color:#ccc;"></span>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <?php
+                    // Pagination
+                    $big = 999999999;
+                    echo paginate_links(array(
+                        'base' => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
+                        'format' => '&paged=%#%',
+                        'current' => max(1, $paged),
+                        'total' => $query->max_num_pages
+                    ));
+                    ?>
+                </div>
+
+                <!-- Right: Actions -->
+                <div style="flex: 1;">
+                    <div style="background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 4px;">
+                        <h3>🛠 Action Settings</h3>
+
+                        <div style="margin-bottom: 20px;">
+                            <label><strong>Step 1: Choose Action</strong></label>
+                            <select id="bulk-action-selector" style="width: 100%; margin-top: 5px;">
+                                <option value="">-- Select Action --</option>
+                                <option value="llm_targeting">✨ Generate LLM Targeting (Meta)</option>
+                                <option value="schema">🏗 Apply Schema (Structured Data)</option>
+                            </select>
+                        </div>
+
+                        <!-- Schema Settings -->
+                        <div id="bulk-settings-schema"
+                            style="display:none; margin-bottom: 20px; border-left: 3px solid #0073aa; padding-left: 10px;">
+                            <label><strong>Select Schema Type:</strong></label>
+                            <select id="bulk-schema-type" style="width: 100%; margin-top: 5px;">
+                                <?php foreach ($schema_definitions as $key => $def): ?>
+                                    <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($def['label']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <p class="description">AI will extract data from the page content and auto-fill this schema.</p>
+                        </div>
+
+                        <!-- LLM Settings -->
+                        <div id="bulk-settings-llm"
+                            style="display:none; margin-bottom: 20px; border-left: 3px solid #8c64ff; padding-left: 10px;">
+                            <p><strong>✨ AI Auto-Fill</strong></p>
+                            <p class="description">AI will read the page content + live site context and generate:</p>
+                            <ul style="list-style: disc; margin-left: 20px; color: #666;">
+                                <li>Primary Search Intent</li>
+                                <li>3-5 Target Queries</li>
+                                <li>Key Differentiators</li>
+                            </ul>
+                        </div>
+
+                        <hr>
+
+                        <div style="margin-top: 20px;">
+                            <button id="btn-run-bulk" class="button button-primary button-large" style="width: 100%;" disabled>
+                                ▶ Run Bulk Process
+                            </button>
+                        </div>
+
+                        <!-- Progress -->
+                        <div id="bulk-progress-container" style="display:none; margin-top: 20px;">
+                            <p><strong>Progress:</strong> <span id="bulk-counter">0/0</span></p>
+                            <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
+                                <div id="bulk-progress-bar"
+                                    style="width: 0%; height: 100%; background: #0073aa; transition: width 0.3s;"></div>
+                            </div>
+                            <textarea id="bulk-log"
+                                style="width: 100%; height: 150px; margin-top: 10px; font-family: monospace; font-size: 11px;"
+                                readonly></textarea>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            jQuery(document).ready(function ($) {
+                // Toggle Settings based on Action
+                $('#bulk-action-selector').on('change', function () {
+                    var val = $(this).val();
+                    $('#bulk-settings-schema').hide();
+                    $('#bulk-settings-llm').hide();
+                    $('#btn-run-bulk').prop('disabled', val === '');
+
+                    if (val === 'schema') $('#bulk-settings-schema').show();
+                    if (val === 'llm_targeting') $('#bulk-settings-llm').show();
+                });
+
+                // Select All
+                $('#cb-select-all-bulk').on('change', function () {
+                    $('input[name="bulk_post[]"]').prop('checked', $(this).is(':checked'));
+                });
+
+                // Run Process
+                $('#btn-run-bulk').on('click', function (e) {
+                    e.preventDefault();
+
+                    var posts = [];
+                    $('input[name="bulk_post[]"]:checked').each(function () {
+                        posts.push($(this).val());
+                    });
+
+                    if (posts.length === 0) {
+                        alert('Please select at least one post.');
+                        return;
+                    }
+
+                    if (!confirm('Are you sure you want to process ' + posts.length + ' items? This will overwrite existing data.')) {
+                        return;
+                    }
+
+                    var actionType = $('#bulk-action-selector').val();
+                    var schemaType = $('#bulk-schema-type').val();
+                    var total = posts.length;
+                    var processed = 0;
+
+                    // Reset UI
+                    $('#bulk-progress-container').show();
+                    $('#bulk-progress-bar').css('width', '0%');
+                    $('#bulk-counter').text('0/' + total);
+                    $('#bulk-log').val('--- Starting Batch Process ---\n');
+                    $(this).prop('disabled', true);
+
+                    // Recursive Worker
+                    function processNext() {
+                        if (posts.length === 0) {
+                            $('#bulk-log').val($('#bulk-log').val() + '✅ Batch Complete!\n');
+                            $('#btn-run-bulk').prop('disabled', false);
+                            alert('Batch Processing Complete!');
+                            return;
+                        }
+
+                        var pid = posts.shift();
+                        var rowStatus = $('#status-' + pid);
+                        rowStatus.html('<span class="dashicons dashicons-update" style="color: blue; animation: spin 2s infinite linear;"></span>');
+
+                        log('Processing Post ID: ' + pid + '...');
+
+                        var ajaxAction = '';
+                        var payload = {
+                            post_id: pid,
+                            auto_save: 'true',
+                            nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>'
+                        };
+
+                        if (actionType === 'schema') {
+                            ajaxAction = 'chroma_generate_schema';
+                            payload.action = ajaxAction;
+                            payload.schema_type = schemaType;
+                        } else {
+                            ajaxAction = 'chroma_generate_llm_targeting';
+                            payload.action = ajaxAction;
+                        }
+
+                        $.post(ajaxurl, payload, function (response) {
+                            processed++;
+                            var pct = Math.round((processed / total) * 100);
+                            $('#bulk-progress-bar').css('width', pct + '%');
+                            $('#bulk-counter').text(processed + '/' + total);
+
+                            if (response.success) {
+                                rowStatus.html('<span class="dashicons dashicons-yes" style="color: green;"></span>');
+                                log('✅ Success: ' + (response.data.message || 'Saved'));
+                            } else {
+                                rowStatus.html('<span class="dashicons dashicons-no" style="color: red;"></span>');
+                                log('❌ Failed: ' + (response.data.message || 'Unknown Error'));
+                            }
+
+                            // Next
+                            processNext();
+
+                        }).fail(function () {
+                            processed++;
+                            rowStatus.html('<span class="dashicons dashicons-warning" style="color: orange;"></span>');
+                            log('⚠️ Network Error on ID ' + pid);
+                            processNext(); // Continue anyway
+                        });
+                    }
+
+                    // Helper
+                    function log(msg) {
+                        var area = $('#bulk-log');
+                        area.val(area.val() + msg + '\n');
+                        area.scrollTop(area[0].scrollHeight);
+                    }
+
+                    // Start
+                    processNext();
+                });
+            });
+        </script>
+        <style>
+            @keyframes spin {
+                100% {
+                    -webkit-transform: rotate(360deg);
+                    transform: rotate(360deg);
+                }
+            }
+        </style>
+        <?php
     }
 }

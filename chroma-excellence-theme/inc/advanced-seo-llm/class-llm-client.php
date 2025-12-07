@@ -95,7 +95,7 @@ class Chroma_LLM_Client
                     e.preventDefault();
                     var btn = $(this);
                     btn.prop('disabled', true).text('Saving...');
-                    
+
                     $.post(ajaxurl, {
                         action: 'chroma_save_llm_settings',
                         api_key: $('#chroma_openai_api_key').val(),
@@ -108,7 +108,7 @@ class Chroma_LLM_Client
                         } else {
                             alert('Error saving settings: ' + (response.data.message || ''));
                         }
-                    }).fail(function() {
+                    }).fail(function () {
                         btn.prop('disabled', false).text('Save Settings');
                         alert('Request failed. Please check your internet connection.');
                     });
@@ -119,10 +119,10 @@ class Chroma_LLM_Client
                     e.preventDefault();
                     var btn = $(this);
                     var status = $('#chroma-llm-status');
-                    
+
                     btn.prop('disabled', true).text('Testing...');
                     status.text('').css('color', 'inherit');
-                    
+
                     $.post(ajaxurl, {
                         action: 'chroma_test_llm_connection'
                     }, function (response) {
@@ -132,7 +132,7 @@ class Chroma_LLM_Client
                         } else {
                             status.text('❌ Failed: ' + (response.data.message || 'Unknown error')).css('color', 'red');
                         }
-                    }).fail(function() {
+                    }).fail(function () {
                         btn.prop('disabled', false).text('Test Connection');
                         status.text('❌ Request failed completely. Check network/console.').css('color', 'red');
                     });
@@ -302,6 +302,21 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => 'Failed to parse AI response']);
         }
 
+        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
+            $existing_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+            if (!is_array($existing_schemas)) {
+                $existing_schemas = [];
+            }
+            // Append new schema
+            $existing_schemas[] = [
+                'type' => $schema_type,
+                'data' => $json
+            ];
+            update_post_meta($post_id, '_chroma_post_schemas', $existing_schemas);
+            $json['message'] = 'Schema generated and saved successfully.';
+            $json['saved'] = true;
+        }
+
         wp_send_json_success($json);
     }
 
@@ -328,7 +343,7 @@ class Chroma_LLM_Client
         $prompt .= "- primary_intent: (string) The main user intent (e.g., 'informational', 'commercial', 'transactional').\n";
         $prompt .= "- target_queries: (array of strings) 3-5 natural language questions users might ask to find this.\n";
         $prompt .= "- key_differentiators: (array of strings) 3-5 unique selling points or key facts.\n";
-        $prompt .= "- key_differentiators: (array of strings) 3-5 unique selling points or key facts.\n";
+
 
         // Fetch and format meta
         $meta = get_post_meta($post_id);
@@ -375,6 +390,22 @@ class Chroma_LLM_Client
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             wp_send_json_error(['message' => 'Invalid JSON response from AI']);
+        }
+
+        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
+            if (!empty($json['primary_intent'])) {
+                update_post_meta($post_id, 'seo_llm_primary_intent', sanitize_text_field($json['primary_intent']));
+            }
+            if (!empty($json['target_queries']) && is_array($json['target_queries'])) {
+                $queries = array_map('sanitize_text_field', $json['target_queries']);
+                update_post_meta($post_id, 'seo_llm_target_queries', $queries);
+            }
+            if (!empty($json['key_differentiators']) && is_array($json['key_differentiators'])) {
+                $diffs = array_map('sanitize_text_field', $json['key_differentiators']);
+                update_post_meta($post_id, 'seo_llm_key_differentiators', $diffs);
+            }
+            $json['message'] = 'LLM Targeting data generated and saved.';
+            $json['saved'] = true;
         }
 
         wp_send_json_success($json);
