@@ -28,6 +28,7 @@ class Chroma_LLM_Client
         add_action('wp_ajax_chroma_test_llm_connection', [$this, 'ajax_test_connection']);
         add_action('wp_ajax_chroma_generate_schema', [$this, 'ajax_generate_schema']);
         add_action('wp_ajax_chroma_generate_llm_targeting', [$this, 'ajax_generate_llm_targeting']);
+        add_action('wp_ajax_chroma_generate_general_seo_meta', [$this, 'ajax_generate_general_seo_meta']);
     }
 
     /**
@@ -321,6 +322,66 @@ class Chroma_LLM_Client
     }
 
     /**
+     * AJAX: Generate General SEO Meta (Desc/Keywords)
+     */
+    public function ajax_generate_general_seo_meta()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
+        $post_id = intval($_POST['post_id']);
+        $post = get_post($post_id);
+
+        if (!$post) {
+            wp_send_json_error(['message' => 'Post not found']);
+        }
+
+        $prompt = "Generate SEO metadata for the following content.\n";
+        $prompt .= "Return ONLY valid JSON with two keys:\n";
+        $prompt .= "- description: (string) A compelling meta description, max 160 chars.\n";
+        $prompt .= "- keywords: (string) 5-8 comma-separated keywords.\n\n";
+
+        $prompt .= "Title: " . $post->post_title . "\n";
+        $prompt .= "Excerpt: " . $post->post_excerpt . "\n";
+        $prompt .= "Content: " . wp_trim_words(strip_tags($post->post_content), 500) . "\n"; // Limit content for cost/speed
+
+        // Add Web Context (Live Page + Homepage + GMB)
+        $web_context = $this->get_web_context($post_id);
+        if ($web_context) {
+            $prompt .= "\n\nWeb Context (Live Site/GMB Info):\n" . $web_context;
+        }
+
+        $response = $this->make_request([
+            'messages' => [
+                ['role' => 'system', 'content' => 'You are an SEO expert.'],
+                ['role' => 'user', 'content' => $prompt]
+            ]
+        ]);
+
+        if (is_wp_error($response)) {
+            wp_send_json_error(['message' => $response->get_error_message()]);
+        }
+
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+        $content = $data['choices'][0]['message']['content'] ?? '';
+
+        // Extract JSON
+        if (preg_match('/\{.*\}/s', $content, $matches)) {
+            $json = json_decode($matches[0], true);
+            if ($json) {
+                wp_send_json_success($json);
+            }
+        }
+
+        // Fallback if JSON parsing fails
+        wp_send_json_error(['message' => 'Failed to parse AI response. Raw: ' . substr($content, 0, 100)]);
+    }
+
+    /**
      * AJAX: Generate LLM Targeting Data
      */
     public function ajax_generate_llm_targeting()
@@ -466,6 +527,13 @@ class Chroma_LLM_Client
     private function get_web_context($post_id)
     {
         $context = "";
+
+        // 0. Check for GMB URL
+        $gmb = get_post_meta($post_id, 'location_gmb_url', true);
+        if ($gmb) {
+            $context .= "Google My Business URL: " . $gmb . "\n";
+            $context .= "Instruction: This is the official GMB listing. Use your internal knowledge of this business (reviews, location details) to enhance the content.\n\n";
+        }
 
         // 1. Try to get the live page content (if published)
         $permalink = get_permalink($post_id);
