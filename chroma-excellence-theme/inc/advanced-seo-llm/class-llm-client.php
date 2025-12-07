@@ -84,12 +84,60 @@ class Chroma_LLM_Client
             </table>
         </div>
 
-        <script>     jQuery(document).ready(function ($) {         // Save Settings         $('#chroma-save-llm').on('click', function (e) {             e.preventDefault();             var btn = $(this);             btn.prop('disabled', true).text('Saving...');
-                $.post(ajaxurl, { action: 'chroma_save_llm_settings', api_key: $('#chroma_openai_api_key').val(), model: $('#chroma_llm_model').val(), base_url: $('#chroma_llm_base_url').val() }, function (response) { btn.prop('disabled', false).text('Save Settings'); if (response.success) { alert('Settings saved! ' + (response.data.message || '')); } else { alert('Error saving settings: ' + (response.data.message || '')); } });
+        <script>
+            jQuery(document).ready(function ($) {
+                // Unbind previous events to prevent duplicates in case of AJAX reloads
+                $(document).off('click', '#chroma-save-llm');
+                $(document).off('click', '#chroma-test-llm');
+
+                // Save Settings
+                $(document).on('click', '#chroma-save-llm', function (e) {
+                    e.preventDefault();
+                    var btn = $(this);
+                    btn.prop('disabled', true).text('Saving...');
+                    
+                    $.post(ajaxurl, {
+                        action: 'chroma_save_llm_settings',
+                        api_key: $('#chroma_openai_api_key').val(),
+                        model: $('#chroma_llm_model').val(),
+                        base_url: $('#chroma_llm_base_url').val()
+                    }, function (response) {
+                        btn.prop('disabled', false).text('Save Settings');
+                        if (response.success) {
+                            alert('Settings saved! ' + (response.data.message || ''));
+                        } else {
+                            alert('Error saving settings: ' + (response.data.message || ''));
+                        }
+                    }).fail(function() {
+                        btn.prop('disabled', false).text('Save Settings');
+                        alert('Request failed. Please check your internet connection.');
+                    });
+                });
+
+                // Test Connection
+                $(document).on('click', '#chroma-test-llm', function (e) {
+                    e.preventDefault();
+                    var btn = $(this);
+                    var status = $('#chroma-llm-status');
+                    
+                    btn.prop('disabled', true).text('Testing...');
+                    status.text('').css('color', 'inherit');
+                    
+                    $.post(ajaxurl, {
+                        action: 'chroma_test_llm_connection'
+                    }, function (response) {
+                        btn.prop('disabled', false).text('Test Connection');
+                        if (response.success) {
+                            status.text('✅ Connected! ' + (response.data.message || '')).css('color', 'green');
+                        } else {
+                            status.text('❌ Failed: ' + (response.data.message || 'Unknown error')).css('color', 'red');
+                        }
+                    }).fail(function() {
+                        btn.prop('disabled', false).text('Test Connection');
+                        status.text('❌ Request failed completely. Check network/console.').css('color', 'red');
+                    });
+                });
             });
-            // Test Connection         $('#chroma-test-llm').on('click', function (e) {             e.preventDefault();             var btn = $(this);             var status = $('#chroma-llm-status');
-            btn.prop('disabled', true).text('Testing...'); status.text('').css('color', 'inherit');
-            $.post(ajaxurl, { action: 'chroma_test_llm_connection' }, function (response) { btn.prop('disabled', false).text('Test Connection'); if (response.success) { status.text('✅ Connected! ' + (response.data.message || '')).css('color', 'green'); } else { status.text('❌ Failed: ' + response.data.message).css('color', 'red'); } });         });     });
         </script>
         <?php
     }
