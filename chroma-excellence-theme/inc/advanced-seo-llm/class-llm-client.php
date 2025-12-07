@@ -85,11 +85,11 @@ class Chroma_LLM_Client
         </div>
 
         <script>     jQuery(document).ready(function ($) {         // Save Settings         $('#chroma-save-llm').on('click', function (e) {             e.preventDefault();             var btn = $(this);             btn.prop('disabled', true).text('Saving...');
-                $.post(ajaxurl, { action: 'chroma_save_llm_settings', api_key: $('#chroma_openai_api_key').val(), model: $('#chroma_llm_model').val(), base_url: $('#chroma_llm_base_url').val() }, function (response) { btn.prop('disabled', false).text('Save Settings'); if (response.success) { alert('Settings saved!'); } else { alert('Error saving settings.'); } });
+                $.post(ajaxurl, { action: 'chroma_save_llm_settings', api_key: $('#chroma_openai_api_key').val(), model: $('#chroma_llm_model').val(), base_url: $('#chroma_llm_base_url').val() }, function (response) { btn.prop('disabled', false).text('Save Settings'); if (response.success) { alert('Settings saved! ' + (response.data.message || '')); } else { alert('Error saving settings: ' + (response.data.message || '')); } });
             });
             // Test Connection         $('#chroma-test-llm').on('click', function (e) {             e.preventDefault();             var btn = $(this);             var status = $('#chroma-llm-status');
             btn.prop('disabled', true).text('Testing...'); status.text('').css('color', 'inherit');
-            $.post(ajaxurl, { action: 'chroma_test_llm_connection' }, function (response) { btn.prop('disabled', false).text('Test Connection'); if (response.success) { status.text('✅ Connected successfully!').css('color', 'green'); } else { status.text('❌ Connection failed: ' + response.data.message).css('color', 'red'); } });         });     });
+            $.post(ajaxurl, { action: 'chroma_test_llm_connection' }, function (response) { btn.prop('disabled', false).text('Test Connection'); if (response.success) { status.text('✅ Connected! ' + (response.data.message || '')).css('color', 'green'); } else { status.text('❌ Failed: ' + response.data.message).css('color', 'red'); } });         });     });
         </script>
         <?php
     }
@@ -104,7 +104,13 @@ class Chroma_LLM_Client
         }
 
         if (isset($_POST['api_key'])) {
-            update_option('chroma_openai_api_key', sanitize_text_field($_POST['api_key']));
+            $key = sanitize_text_field($_POST['api_key']);
+            error_log('Chroma LLM: Saving API Key - Length: ' . strlen($key));
+            if (empty($key)) {
+                error_log('Chroma LLM: Warning - Saving EMPTY API Key');
+            }
+            $updated = update_option('chroma_openai_api_key', $key);
+            error_log('Chroma LLM: update_option result: ' . ($updated ? 'true' : 'false'));
         }
         if (isset($_POST['model'])) {
             update_option('chroma_llm_model', sanitize_text_field($_POST['model']));
@@ -116,7 +122,12 @@ class Chroma_LLM_Client
             update_option('chroma_llm_base_url', $url);
         }
 
-        wp_send_json_success();
+        $debug_msg = 'Key saved.';
+        if (isset($key)) {
+            $debug_msg .= ' Length: ' . strlen($key);
+        }
+
+        wp_send_json_success(['message' => $debug_msg]);
     }
 
     /**
@@ -130,8 +141,9 @@ class Chroma_LLM_Client
 
         // Lazy-load API key fresh from database (in case user just saved it)
         $api_key = get_option('chroma_openai_api_key', '');
+        error_log('Chroma LLM: Testing Connection. Loaded API Key Length: ' . strlen($api_key));
         if (!$api_key) {
-            wp_send_json_error(['message' => 'No API Key found. Please save your key first.']);
+            wp_send_json_error(['message' => 'No API Key found. (DB value empty)']);
         }
 
         $response = $this->make_request([
