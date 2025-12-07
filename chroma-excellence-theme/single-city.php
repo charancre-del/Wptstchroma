@@ -74,8 +74,9 @@ $location_count = is_array($location_ids) ? count($location_ids) : 0;
     <!-- Simplified Header -->
     <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-chroma-blue/10">
         <div class="max-w-7xl mx-auto px-4 h-[82px] flex items-center justify-between">
-            <a href="/" class="font-bold text-lg text-brand-ink focus:outline-none focus:ring-2 focus:ring-chroma-blue rounded-lg px-2">Chroma <span
-                    class="text-chroma-blue text-xs uppercase tracking-widest ml-2"><?php echo esc_html($city); ?>
+            <a href="/"
+                class="font-bold text-lg text-brand-ink focus:outline-none focus:ring-2 focus:ring-chroma-blue rounded-lg px-2">Chroma
+                <span class="text-chroma-blue text-xs uppercase tracking-widest ml-2"><?php echo esc_html($city); ?>
                     Area</span></a>
             <a href="#locations"
                 class="bg-chroma-red text-white px-6 py-3 rounded-full text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark focus:ring-2 focus:ring-offset-2 focus:ring-chroma-red focus:outline-none transition-colors">Find
@@ -96,7 +97,7 @@ $location_count = is_array($location_ids) ? count($location_ids) : 0;
                 <h1 class="font-serif text-5xl md:text-7xl text-brand-ink mb-6 leading-tight">
                     The Best Daycare in <span class="italic text-chroma-blue"><?php echo esc_html($city); ?>, GA.</span>
                 </h1>
-                <p class="text-xl text-brand-ink/70 max-w-2xl mx-auto mb-10">
+                <p class="text-xl text-brand-ink max-w-2xl mx-auto mb-10">
                     Are you looking for "daycare near me"? Discover the highest-rated early learning centers in the
                     <?php echo esc_html($city); ?> area, featuring the Prismpath™ curriculum and GA Pre-K.
                 </p>
@@ -117,7 +118,7 @@ $location_count = is_array($location_ids) ? count($location_ids) : 0;
                 </h2>
 
                 <!-- SEO Body Text -->
-                <p class="text-lg md:text-xl text-brand-ink/70 leading-relaxed max-w-3xl mx-auto">
+                <p class="text-lg md:text-xl text-brand-ink leading-relaxed max-w-3xl mx-auto">
                     Our school is more than a daycare. Through purposeful play and nurturing guidance, we help lay the
                     foundation for a lifelong love of learning.
                     <br><br>
@@ -133,7 +134,8 @@ $location_count = is_array($location_ids) ? count($location_ids) : 0;
             <div class="max-w-7xl mx-auto px-4 lg:px-6">
                 <div class="text-center mb-16">
                     <h2 class="font-serif text-3xl font-bold text-brand-ink">Chroma Locations Serving
-                        <?php echo esc_html($city); ?></h2>
+                        <?php echo esc_html($city); ?>
+                    </h2>
                     <p class="text-brand-ink/60 mt-4">Select the campus closest to your home or work.</p>
                 </div>
 
@@ -177,12 +179,14 @@ $location_count = is_array($location_ids) ? count($location_ids) : 0;
                                             alt="<?php the_title(); ?>">
                                         <div
                                             class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide shadow-sm">
-                                            <?php echo esc_html($rating); ?> ★</div>
+                                            <?php echo esc_html($rating); ?> ★
+                                        </div>
                                     </div>
                                     <h3 class="font-serif text-2xl font-bold text-brand-ink mb-2"><?php the_title(); ?></h3>
                                     <p class="text-sm text-brand-ink/60 mb-1"><?php echo esc_html($address); ?></p>
-                                    <p class="text-xs text-brand-ink/70 font-bold uppercase tracking-widest mb-6">Serving
-                                        <?php echo esc_html($city); ?> Families</p>
+                                    <p class="text-xs text-brand-ink font-bold uppercase tracking-widest mb-6">Serving
+                                        <?php echo esc_html($city); ?> Families
+                                    </p>
                                     <div class="mt-auto flex gap-3">
                                         <a href="<?php the_permalink(); ?>"
                                             aria-label="View Campus: <?php the_title_attribute(); ?>"
@@ -198,14 +202,14 @@ $location_count = is_array($location_ids) ? count($location_ids) : 0;
                     ?>
 
                 </div>
-                
+
                 <?php if (!empty($neighborhoods) && is_array($neighborhoods)): ?>
-                        <div class="mt-16 text-center">
-                            <p class="text-brand-ink/60 text-sm">
-                                <strong>Also proudly serving families in:</strong><br>
-                                <?php echo esc_html(implode(', ', $neighborhoods)); ?>.
-                            </p>
-                        </div>
+                    <div class="mt-16 text-center">
+                        <p class="text-brand-ink/60 text-sm">
+                            <strong>Also proudly serving families in:</strong><br>
+                            <?php echo esc_html(implode(', ', $neighborhoods)); ?>.
+                        </p>
+                    </div>
                 <?php endif; ?>
             </div>
         </section>
@@ -214,38 +218,46 @@ $location_count = is_array($location_ids) ? count($location_ids) : 0;
         <section class="py-20 bg-brand-cream border-t border-brand-ink/5">
             <div class="max-w-4xl mx-auto px-4">
                 <h2 class="font-serif text-3xl font-bold text-brand-ink mb-10 text-center">Questions about Childcare in
-                    <?php echo esc_html($city); ?></h2>
+                    <?php echo esc_html($city); ?>
+                </h2>
 
                 <div class="space-y-4">
-                    <details class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer focus-within:ring-2 focus-within:ring-chroma-blue focus-within:ring-offset-2">
-                        <summary class="flex items-center justify-between font-bold text-brand-ink list-none focus:outline-none">
+                    <details
+                        class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer focus-within:ring-2 focus-within:ring-chroma-blue focus-within:ring-offset-2">
+                        <summary
+                            class="flex items-center justify-between font-bold text-brand-ink list-none focus:outline-none">
                             <span>Do you offer GA Lottery Pre-K in <?php echo esc_html($city); ?>?</span>
                             <span class="text-chroma-blue group-open:rotate-180 transition-transform"><i
                                     class="fa-solid fa-chevron-down"></i></span>
                         </summary>
-                        <p class="mt-3 text-sm text-brand-ink/70">Yes! Our locations serving
+                        <p class="mt-3 text-sm text-brand-ink">Yes! Our locations serving
                             <?php echo esc_html($city); ?> participate in the Georgia Lottery Pre-K program. It is
-                            tuition-free for all 4-year-olds living in Georgia.</p>
+                            tuition-free for all 4-year-olds living in Georgia.
+                        </p>
                     </details>
 
-                    <details class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer focus-within:ring-2 focus-within:ring-chroma-blue focus-within:ring-offset-2">
-                        <summary class="flex items-center justify-between font-bold text-brand-ink list-none focus:outline-none">
+                    <details
+                        class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer focus-within:ring-2 focus-within:ring-chroma-blue focus-within:ring-offset-2">
+                        <summary
+                            class="flex items-center justify-between font-bold text-brand-ink list-none focus:outline-none">
                             <span>Do you provide transportation from <?php echo esc_html($city); ?> schools?</span>
                             <span class="text-chroma-blue group-open:rotate-180 transition-transform"><i
                                     class="fa-solid fa-chevron-down"></i></span>
                         </summary>
-                        <p class="mt-3 text-sm text-brand-ink/70">We provide safe bus transportation from most major
+                        <p class="mt-3 text-sm text-brand-ink">We provide safe bus transportation from most major
                             elementary schools in the <?php echo esc_html($county); ?> School District. Check the
                             specific campus page for a full list.</p>
                     </details>
 
-                    <details class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer focus-within:ring-2 focus-within:ring-chroma-blue focus-within:ring-offset-2">
-                        <summary class="flex items-center justify-between font-bold text-brand-ink list-none focus:outline-none">
+                    <details
+                        class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer focus-within:ring-2 focus-within:ring-chroma-blue focus-within:ring-offset-2">
+                        <summary
+                            class="flex items-center justify-between font-bold text-brand-ink list-none focus:outline-none">
                             <span>What ages do you accept at your <?php echo esc_html($city); ?> centers?</span>
                             <span class="text-chroma-blue group-open:rotate-180 transition-transform"><i
                                     class="fa-solid fa-chevron-down"></i></span>
                         </summary>
-                        <p class="mt-3 text-sm text-brand-ink/70">We serve children from 6 weeks old (Infant Care) up to
+                        <p class="mt-3 text-sm text-brand-ink">We serve children from 6 weeks old (Infant Care) up to
                             12 years old (After School). We also offer a Private Kindergarten option at select
                             locations.</p>
                     </details>
@@ -257,7 +269,8 @@ $location_count = is_array($location_ids) ? count($location_ids) : 0;
 
     <footer class="bg-brand-ink text-white py-12 text-center text-sm opacity-60">
         <p>© <?php echo date('Y'); ?> Chroma Early Learning. Proudly serving <?php echo esc_html($city); ?> and
-            <?php echo esc_html($county); ?> County.</p>
+            <?php echo esc_html($county); ?> County.
+        </p>
     </footer>
     <?php wp_footer(); ?>
 </body>

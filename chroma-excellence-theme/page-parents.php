@@ -351,7 +351,7 @@ $gallery_img5 = get_post_meta($page_id, 'about_gallery_image_5', true) ?: 'https
 										<div>
 											<p class="font-bold text-brand-ink"><?php echo esc_html($menu['title']); ?>
 											</p>
-											<p class="text-xs text-brand-ink/70">
+											<p class="text-xs text-brand-ink">
 												<?php echo esc_html($menu['subtitle']); ?>
 											</p>
 										</div>

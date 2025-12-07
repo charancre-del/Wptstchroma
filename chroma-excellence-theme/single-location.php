@@ -261,7 +261,7 @@ while (have_posts()):
 								<p class="text-xs font-serif italic text-brand-ink/90">
 									"<?php echo esc_html($hero_review_text); ?>"
 								</p>
-								<p class="text-[10px] font-bold text-brand-ink/70 mt-2 uppercase tracking-wide">—
+								<p class="text-[10px] font-bold text-brand-ink mt-2 uppercase tracking-wide">—
 									<?php echo esc_html($hero_review_author); ?>
 								</p>
 							</div>
@@ -691,7 +691,7 @@ while (have_posts()):
 						<div class="mt-6 text-center">
 							<div class="flex items-center gap-4 mb-4">
 								<div class="flex-1 h-px bg-brand-ink/10"></div>
-								<span class="text-sm text-brand-ink/70 font-medium uppercase tracking-wider">or</span>
+								<span class="text-sm text-brand-ink font-medium uppercase tracking-wider">or</span>
 								<div class="flex-1 h-px bg-brand-ink/10"></div>
 							</div>
 							<a href="<?php echo esc_url($tour_booking_link); ?>" target="_blank"

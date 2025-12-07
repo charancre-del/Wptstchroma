@@ -85,10 +85,11 @@ class Chroma_LLM_Client
         </div>
 
         <script>     jQuery(document).ready(function ($) {         // Save Settings         $('#chroma-save-llm').on('click', function (e) {             e.preventDefault();             var btn = $(this);             btn.prop('disabled', true).text('Saving...');
-                     $.post(ajaxurl, {                 action: 'chroma_save_llm_settings',                 api_key: $('#chroma_openai_api_key').val(),                 model: $('#chroma_llm_model').val(),                 base_url: $('#chroma_llm_base_url').val()             }, function (response) {                 btn.prop('disabled', false).text('Save Settings');                 if (response.success) {                     alert('Settings saved!');                 } else {                     alert('Error saving settings.');                 }             });         });
-                 // Test Connection         $('#chroma-test-llm').on('click', function (e) {             e.preventDefault();             var btn = $(this);             var status = $('#chroma-llm-status');
-                     btn.prop('disabled', true).text('Testing...');             status.text('').css('color', 'inherit');
-                     $.post(ajaxurl, {                 action: 'chroma_test_llm_connection'             }, function (response) {                 btn.prop('disabled', false).text('Test Connection');                 if (response.success) {                     status.text('✅ Connected successfully!').css('color', 'green');                 } else {                     status.text('❌ Connection failed: ' + response.data.message).css('color', 'red');                 }             });         });     });
+                $.post(ajaxurl, { action: 'chroma_save_llm_settings', api_key: $('#chroma_openai_api_key').val(), model: $('#chroma_llm_model').val(), base_url: $('#chroma_llm_base_url').val() }, function (response) { btn.prop('disabled', false).text('Save Settings'); if (response.success) { alert('Settings saved!'); } else { alert('Error saving settings.'); } });
+            });
+            // Test Connection         $('#chroma-test-llm').on('click', function (e) {             e.preventDefault();             var btn = $(this);             var status = $('#chroma-llm-status');
+            btn.prop('disabled', true).text('Testing...'); status.text('').css('color', 'inherit');
+            $.post(ajaxurl, { action: 'chroma_test_llm_connection' }, function (response) { btn.prop('disabled', false).text('Test Connection'); if (response.success) { status.text('✅ Connected successfully!').css('color', 'green'); } else { status.text('❌ Connection failed: ' + response.data.message).css('color', 'red'); } });         });     });
         </script>
         <?php
     }
@@ -127,7 +128,9 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => 'Permission denied']);
         }
 
-        if (!$this->api_key) {
+        // Lazy-load API key fresh from database (in case user just saved it)
+        $api_key = get_option('chroma_openai_api_key', '');
+        if (!$api_key) {
             wp_send_json_error(['message' => 'No API Key found. Please save your key first.']);
         }
 
@@ -322,12 +325,20 @@ class Chroma_LLM_Client
      */
     private function make_request($data)
     {
+        // Lazy-load settings fresh from database to ensure latest values are used
+        $api_key = get_option('chroma_openai_api_key', '');
+        $model = get_option('chroma_llm_model', 'gpt-4o-mini');
+        $base_url = get_option('chroma_llm_base_url', 'https://api.openai.com/v1');
+
+        if (empty($api_key)) {
+            return new WP_Error('no_api_key', 'No API Key configured. Please save your key first.');
+        }
+
         // Use configured base URL or default
-        $base_url = $this->base_url ?: 'https://api.openai.com/v1';
-        $url = $base_url . '/chat/completions';
+        $url = ($base_url ?: 'https://api.openai.com/v1') . '/chat/completions';
 
         $body = array_merge([
-            'model' => $this->model ?: 'gpt-4o-mini',
+            'model' => $model ?: 'gpt-4o-mini',
             'temperature' => 0.7,
         ], $data);
 
@@ -335,7 +346,7 @@ class Chroma_LLM_Client
             'body' => json_encode($body),
             'headers' => [
                 'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $this->api_key
+                'Authorization' => 'Bearer ' . $api_key
             ],
             'timeout' => 30
         ];
