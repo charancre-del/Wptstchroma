@@ -180,11 +180,29 @@ $referral_button_text = get_post_meta($page_id, 'parents_referral_button_text', 
 $referral_button_url = get_post_meta($page_id, 'parents_referral_button_url', true) ?: 'mailto:director@chromaela.com?subject=Parent%20Referral';
 
 // Life at Chroma Gallery
-$gallery_img1 = get_post_meta($page_id, 'about_gallery_image_1', true) ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
-$gallery_img2 = get_post_meta($page_id, 'about_gallery_image_2', true) ?: 'https://images.unsplash.com/photo-1587654780291-39c940483713?q=80&w=800&auto=format&fit=crop';
-$gallery_img3 = get_post_meta($page_id, 'about_gallery_image_3', true) ?: 'https://images.unsplash.com/photo-1560785496-3c9d27877182?q=80&w=800&auto=format&fit=crop';
-$gallery_img4 = get_post_meta($page_id, 'about_gallery_image_4', true) ?: 'https://images.unsplash.com/photo-1596464716127-f9a82741cac8?q=80&w=800&auto=format&fit=crop';
-$gallery_img5 = get_post_meta($page_id, 'about_gallery_image_5', true) ?: 'https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=800&auto=format&fit=crop';
+// Moments of Joy Gallery
+$gallery_raw = get_post_meta($page_id, 'parents_moments_gallery', true);
+$gallery_images = array();
+if (!empty($gallery_raw)) {
+	$lines = explode("\n", $gallery_raw);
+	foreach ($lines as $line) {
+		$url = trim($line);
+		if (!empty($url) && filter_var($url, FILTER_VALIDATE_URL)) {
+			$gallery_images[] = esc_url($url);
+		}
+	}
+}
+
+// Fallback if no gallery images provided
+if (empty($gallery_images)) {
+	$gallery_images = array(
+		'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop',
+		'https://images.unsplash.com/photo-1587654780291-39c940483713?q=80&w=800&auto=format&fit=crop',
+		'https://images.unsplash.com/photo-1560785496-3c9d27877182?q=80&w=800&auto=format&fit=crop',
+		'https://images.unsplash.com/photo-1596464716127-f9a82741cac8?q=80&w=800&auto=format&fit=crop',
+		'https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=800&auto=format&fit=crop'
+	);
+}
 ?>
 
 <main id="primary" class="site-main" role="main">
@@ -277,7 +295,7 @@ $gallery_img5 = get_post_meta($page_id, 'about_gallery_image_5', true) ?: 'https
 		</section>
 
 		<!-- Life at Chroma Gallery -->
-		<section class="py-24 bg-white">
+		<section class="py-24 bg-white overflow-hidden">
 			<div class="max-w-7xl mx-auto px-4 lg:px-6">
 				<div class="text-center mb-16">
 					<span class="text-chroma-orange font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Life at
@@ -285,34 +303,54 @@ $gallery_img5 = get_post_meta($page_id, 'about_gallery_image_5', true) ?: 'https
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink">Moments of Joy</h2>
 				</div>
 
-				<div class="grid grid-cols-2 md:grid-cols-4 gap-4 auto-rows-[200px]">
-					<!-- Gallery Item 1 (Large) -->
-					<div class="col-span-2 row-span-2 rounded-[2rem] overflow-hidden relative group shadow-soft">
-						<img src="<?php echo esc_url($gallery_img1); ?>" alt="Chroma Moment"
-							class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-						<div
-							class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+				<div class="relative w-full max-w-5xl mx-auto aspect-video md:aspect-[21/9] rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white"
+					data-location-carousel>
+					<!-- Gallery Carousel -->
+					<div class="relative w-full h-full">
+						<div class="flex transition-transform duration-500 ease-in-out h-full"
+							data-location-carousel-track>
+							<?php foreach ($gallery_images as $index => $image_url): ?>
+								<div class="w-full h-full flex-shrink-0"
+									data-location-slide="<?php echo esc_attr($index); ?>">
+									<img src="<?php echo esc_url($image_url); ?>"
+										alt="Chroma Moment <?php echo esc_attr($index + 1); ?>"
+										class="w-full h-full object-cover" decoding="async" <?php if ($index === 0)
+											echo 'fetchpriority="high"';
+										else
+											echo 'loading="lazy"'; ?> />
+								</div>
+							<?php endforeach; ?>
 						</div>
-					</div>
-					<!-- Gallery Item 2 -->
-					<div class="rounded-[2rem] overflow-hidden relative group shadow-soft">
-						<img src="<?php echo esc_url($gallery_img2); ?>" alt="Chroma Moment"
-							class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-					</div>
-					<!-- Gallery Item 3 -->
-					<div class="rounded-[2rem] overflow-hidden relative group shadow-soft">
-						<img src="<?php echo esc_url($gallery_img3); ?>" alt="Chroma Moment"
-							class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-					</div>
-					<!-- Gallery Item 4 -->
-					<div class="rounded-[2rem] overflow-hidden relative group shadow-soft">
-						<img src="<?php echo esc_url($gallery_img4); ?>" alt="Chroma Moment"
-							class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-					</div>
-					<!-- Gallery Item 5 -->
-					<div class="rounded-[2rem] overflow-hidden relative group shadow-soft">
-						<img src="<?php echo esc_url($gallery_img5); ?>" alt="Chroma Moment"
-							class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+
+						<?php if (count($gallery_images) > 1): ?>
+							<!-- Navigation Arrows -->
+							<button
+								class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/90 rounded-full shadow-lg text-brand-ink hover:bg-white transition"
+								data-location-prev aria-label="Previous image">
+								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+										d="M15 19l-7-7 7-7" />
+								</svg>
+							</button>
+							<button
+								class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center bg-white/90 rounded-full shadow-lg text-brand-ink hover:bg-white transition"
+								data-location-next aria-label="Next image">
+								<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+										d="M9 5l7 7-7 7" />
+								</svg>
+							</button>
+
+							<!-- Dots -->
+							<div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2" data-location-dots>
+								<?php foreach ($gallery_images as $index => $image_url): ?>
+									<button
+										class="w-2 h-2 rounded-full transition-all <?php echo 0 === $index ? 'bg-white w-6' : 'bg-white/50'; ?>"
+										data-location-dot="<?php echo esc_attr($index); ?>"
+										aria-label="Go to image <?php echo esc_attr($index + 1); ?>"></button>
+								<?php endforeach; ?>
+							</div>
+						<?php endif; ?>
 					</div>
 				</div>
 			</div>

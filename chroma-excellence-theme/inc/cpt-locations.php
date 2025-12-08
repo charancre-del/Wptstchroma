@@ -741,8 +741,25 @@ function chroma_save_location_custom_fields($post_id)
 		if (isset($_POST[$field])) {
 			$value = wp_unslash($_POST[$field]);
 			// Sanitize based on field type
-			if (in_array($field, array('location_description', 'location_director_bio', 'location_maps_embed', 'location_school_pickups', 'location_seo_content_text', 'location_service_areas', 'location_hero_review_text', 'location_faq_items', 'location_hero_gallery', 'location_virtual_tour_embed'))) {
+			if (in_array($field, array('location_description', 'location_director_bio', 'location_school_pickups', 'location_seo_content_text', 'location_service_areas', 'location_hero_review_text', 'location_faq_items', 'location_hero_gallery'))) {
 				$value = sanitize_textarea_field($value);
+			} elseif ($field === 'location_maps_embed' || $field === 'location_virtual_tour_embed') {
+				// Allow iframes and scripts for embeds
+				$allowed_tags = wp_kses_allowed_html('post');
+				$allowed_tags['iframe'] = array(
+					'src' => true,
+					'width' => true,
+					'height' => true,
+					'frameborder' => true,
+					'allowfullscreen' => true,
+					'allow' => true, 'loading' => true,
+					'style' => true,
+					'class' => true,
+					'title' => true,
+					'referrerpolicy' => true
+				);
+				$allowed_tags['script'] = array('src' => true, 'type' => true, 'async' => true, 'defer' => true);
+				$value = wp_kses($value, $allowed_tags);
 			} elseif ($field === 'location_email') {
 				$value = sanitize_email($value);
 			} elseif ($field === 'location_tour_booking_link' || $field === 'location_gmb_url') {
