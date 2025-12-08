@@ -668,13 +668,19 @@ class Chroma_SEO_Dashboard
                         nonce: chroma_nonce,
                         post_id: id
                     }, function (response) {
+                        console.log('Schema Inspector AJAX Response:', response);
                         $('#chroma-inspector-spinner').removeClass('is-active');
-                        if (response.success) {
+                        if (response && response.success) {
                             $('#chroma-inspector-content').html(response.data.html);
                             initTooltips();
                         } else {
-                            var msg = (response.data && response.data.message) ? response.data.message : 'Error loading data';
-                            alert(msg);
+                            var msg = 'Error loading data.';
+                            if (response && response.data && response.data.message) {
+                                msg = response.data.message;
+                            } else if (typeof response === 'string') {
+                                msg = 'Server returned non-JSON: ' + response.substring(0, 200);
+                            }
+                            $('#chroma-inspector-content').html('<div style="background:#fee; padding:15px; border:1px solid #c00; color:#800;"><strong>Error:</strong> ' + msg + '</div>');
                         }
                     }).fail(function () {
                         $('#chroma-inspector-spinner').removeClass('is-active');
