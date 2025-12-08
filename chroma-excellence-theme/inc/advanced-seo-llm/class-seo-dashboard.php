@@ -606,7 +606,8 @@ class Chroma_SEO_Dashboard
                     <?php endforeach; ?>
                 </optgroup>
             </select>
-            <button type="button" class="button button-link-delete" id="chroma-reset-schema-btn" style="margin-left: 10px; display: none;">Reset all Schemas for this Page</button>
+            <button type="button" class="button button-link-delete" id="chroma-reset-schema-btn"
+                style="margin-left: 10px; display: none;">Reset all Schemas for this Page</button>
             <span class="spinner" id="chroma-inspector-spinner"></span>
         </div>
 
@@ -634,12 +635,12 @@ class Chroma_SEO_Dashboard
                 });
 
                 // Reset Schema Handler
-                $('#chroma-reset-schema-btn').on('click', function(e) {
+                $('#chroma-reset-schema-btn').on('click', function (e) {
                     e.preventDefault();
                     if (!confirm('Are you sure you want to delete ALL schema data for this page? This cannot be undone.')) return;
-                    
+
                     var id = $('#chroma-inspector-select').val();
-                    if(!id) return;
+                    if (!id) return;
 
                     var btn = $(this);
                     btn.prop('disabled', true);
@@ -648,9 +649,9 @@ class Chroma_SEO_Dashboard
                         action: 'chroma_reset_post_schema',
                         nonce: chroma_nonce,
                         post_id: id
-                    }, function(response) {
+                    }, function (response) {
                         btn.prop('disabled', false);
-                        if(response.success) {
+                        if (response.success) {
                             alert('Schemas reset successfully.');
                             loadInspectorData(id);
                         } else {
@@ -947,14 +948,36 @@ class Chroma_SEO_Dashboard
 
             <div id="chroma-active-schemas">
                 <?php
+                error_log('Chroma SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
+
                 if (empty($existing_schemas)) {
                     echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
                 } else {
+                    $valid_count = 0;
                     foreach ($existing_schemas as $index => $schema) {
-                        if (!is_array($schema) || !isset($schema['type']) || !isset($schema['data'])) {
+                        // Log each schema item for debugging
+                        error_log("Chroma SEO: Schema item [{$index}]: " . print_r($schema, true));
+
+                        if (!is_array($schema)) {
+                            error_log("Chroma SEO: Schema [{$index}] is not an array, skipping.");
                             continue;
                         }
+                        if (!isset($schema['type'])) {
+                            error_log("Chroma SEO: Schema [{$index}] missing 'type' key, skipping.");
+                            continue;
+                        }
+                        if (!isset($schema['data']) || !is_array($schema['data'])) {
+                            error_log("Chroma SEO: Schema [{$index}] missing or invalid 'data' key, skipping.");
+                            continue;
+                        }
+                        $valid_count++;
                         $this->render_schema_block($schema['type'], $schema['data'], $index);
+                    }
+                    if ($valid_count === 0 && !empty($existing_schemas)) {
+                        echo '<div class="notice notice-error" style="padding: 10px; margin: 10px 0;">';
+                        echo '<p><strong>Warning:</strong> Schema data appears to be corrupted. The stored data is not in the expected format.</p>';
+                        echo '<p>Use the "Reset all Schemas for this Page" button above to clear and start fresh.</p>';
+                        echo '</div>';
                     }
                 }
                 ?>
