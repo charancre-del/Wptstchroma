@@ -1536,6 +1536,7 @@ class Chroma_SEO_Dashboard
                     <option value="location" <?php selected($ptype, 'location'); ?>>Locations</option>
                     <option value="program" <?php selected($ptype, 'program'); ?>>Programs</option>
                     <option value="page" <?php selected($ptype, 'page'); ?>>Pages</option>
+                    <option value="city" <?php selected($ptype, 'city'); ?>>Cities</option>
                     <option value="post" <?php selected($ptype, 'post'); ?>>Blog Posts</option>
                 </select>
                 <span class="count" style="color: #666;">(<?php echo $query->found_posts; ?> items found)</span>
