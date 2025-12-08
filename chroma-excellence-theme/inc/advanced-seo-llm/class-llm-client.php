@@ -224,9 +224,43 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => 'Missing parameters']);
         }
 
+        $result = $this->generate_schema_data($post_id, $schema_type);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()]);
+        }
+
+        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
+            $existing_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+            if (!is_array($existing_schemas)) {
+                $existing_schemas = [];
+            }
+            // Append new schema
+            $existing_schemas[] = [
+                'type' => $schema_type,
+                'data' => $result
+            ];
+            update_post_meta($post_id, '_chroma_post_schemas', $existing_schemas);
+            $result['message'] = 'Schema generated and saved successfully.';
+            $result['saved'] = true;
+        }
+
+        wp_send_json_success($result);
+    }
+
+    /**
+     * Generate Schema Data (Public API)
+     * 
+     * @param int $post_id
+     * @param string $schema_type
+     * @param array $context Optional instructions or context
+     * @return array|WP_Error
+     */
+    public function generate_schema_data($post_id, $schema_type, $context = [])
+    {
         $post = get_post($post_id);
         if (!$post) {
-            wp_send_json_error(['message' => 'Post not found']);
+            return new WP_Error('not_found', 'Post not found');
         }
 
         // Get schema definition to guide the LLM
@@ -244,12 +278,16 @@ class Chroma_LLM_Client
         $prompt = "Analyze the following content and extract data for a Schema.org '{$schema_type}' object.\n";
         $prompt .= "Return ONLY valid JSON. Do not include markdown formatting.\n";
 
+        // Add custom instructions if provided
+        if (!empty($context['instructions'])) {
+            $prompt .= "IMPORTANT INSTRUCTIONS: " . $context['instructions'] . "\n";
+        }
+
         if (!empty($expected_keys)) {
             $prompt .= "Map the extracted data to the following JSON keys ONLY:\n";
             $prompt .= "- " . implode("\n- ", $expected_keys) . "\n";
             $prompt .= "If a field cannot be found, leave it empty or omit it.\n";
         }
-
 
 
         // Fetch and format meta
@@ -289,36 +327,21 @@ class Chroma_LLM_Client
         ]);
 
         if (is_wp_error($response)) {
-            wp_send_json_error(['message' => $response->get_error_message()]);
+            return $response;
         }
 
         if (!isset($response['choices'][0]['message']['content'])) {
-            wp_send_json_error(['message' => 'Invalid API response format']);
+            return new WP_Error('api_error', 'Invalid API response format');
         }
 
         $content = $response['choices'][0]['message']['content'];
         $json = json_decode($content, true);
 
         if (!$json) {
-            wp_send_json_error(['message' => 'Failed to parse AI response']);
+            return new WP_Error('json_error', 'Failed to parse AI response');
         }
 
-        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
-            $existing_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
-            if (!is_array($existing_schemas)) {
-                $existing_schemas = [];
-            }
-            // Append new schema
-            $existing_schemas[] = [
-                'type' => $schema_type,
-                'data' => $json
-            ];
-            update_post_meta($post_id, '_chroma_post_schemas', $existing_schemas);
-            $json['message'] = 'Schema generated and saved successfully.';
-            $json['saved'] = true;
-        }
-
-        wp_send_json_success($json);
+        return $json;
     }
 
     /**
@@ -393,10 +416,46 @@ class Chroma_LLM_Client
         }
 
         $post_id = intval($_POST['post_id']);
-        $post = get_post($post_id);
+        if (!$post_id) {
+            wp_send_json_error(['message' => 'Missing Post ID']);
+        }
 
+        $result = $this->generate_llm_targeting_data($post_id);
+
+        if (is_wp_error($result)) {
+            wp_send_json_error(['message' => $result->get_error_message()]);
+        }
+
+        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
+            if (!empty($result['primary_intent'])) {
+                update_post_meta($post_id, 'seo_llm_primary_intent', sanitize_text_field($result['primary_intent']));
+            }
+            if (!empty($result['target_queries']) && is_array($result['target_queries'])) {
+                $queries = array_map('sanitize_text_field', $result['target_queries']);
+                update_post_meta($post_id, 'seo_llm_target_queries', $queries);
+            }
+            if (!empty($result['key_differentiators']) && is_array($result['key_differentiators'])) {
+                $diffs = array_map('sanitize_text_field', $result['key_differentiators']);
+                update_post_meta($post_id, 'seo_llm_key_differentiators', $diffs);
+            }
+            $result['message'] = 'LLM Targeting data generated and saved.';
+            $result['saved'] = true;
+        }
+
+        wp_send_json_success($result);
+    }
+
+    /**
+     * Generate LLM Targeting Data (Public API)
+     * 
+     * @param int $post_id
+     * @return array|WP_Error
+     */
+    public function generate_llm_targeting_data($post_id)
+    {
+        $post = get_post($post_id);
         if (!$post) {
-            wp_send_json_error(['message' => 'Post not found']);
+            return new WP_Error('not_found', 'Post not found');
         }
 
         $prompt = "Analyze the following content and generate LLM optimization data.\n";
@@ -443,33 +502,17 @@ class Chroma_LLM_Client
         ]);
 
         if (is_wp_error($response)) {
-            wp_send_json_error(['message' => $response->get_error_message()]);
+            return $response;
         }
 
         $content = $response['choices'][0]['message']['content'];
         $json = json_decode($content, true);
 
         if (json_last_error() !== JSON_ERROR_NONE) {
-            wp_send_json_error(['message' => 'Invalid JSON response from AI']);
+            return new WP_Error('json_error', 'Invalid JSON response from AI');
         }
 
-        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
-            if (!empty($json['primary_intent'])) {
-                update_post_meta($post_id, 'seo_llm_primary_intent', sanitize_text_field($json['primary_intent']));
-            }
-            if (!empty($json['target_queries']) && is_array($json['target_queries'])) {
-                $queries = array_map('sanitize_text_field', $json['target_queries']);
-                update_post_meta($post_id, 'seo_llm_target_queries', $queries);
-            }
-            if (!empty($json['key_differentiators']) && is_array($json['key_differentiators'])) {
-                $diffs = array_map('sanitize_text_field', $json['key_differentiators']);
-                update_post_meta($post_id, 'seo_llm_key_differentiators', $diffs);
-            }
-            $json['message'] = 'LLM Targeting data generated and saved.';
-            $json['saved'] = true;
-        }
-
-        wp_send_json_success($json);
+        return $json;
     }
 
     /**

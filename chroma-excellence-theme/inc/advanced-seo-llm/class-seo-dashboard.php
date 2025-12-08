@@ -632,21 +632,6 @@ class Chroma_SEO_Dashboard
                     $('#chroma-inspector-spinner').addClass('is-active');
                     $.post(ajaxurl, {
                         action: 'chroma_fetch_schema_inspector',
-                        nonce: chroma_nonce,
-                        post_id: id
-                    }, function (response) {
-                        $('#chroma-inspector-spinner').removeClass('is-active');
-                        if (response.success) {
-                            $('#chroma-inspector-content').html(response.data.html);
-                            initTooltips();
-                        } else {
-                            alert('Error loading data');
-                        }
-                    });
-                }
-
-                function initTooltips() {
-                    $('.chroma-help-tip').tooltip({
                         content: function () {
                             return $(this).attr('title');
                         },
@@ -849,11 +834,29 @@ class Chroma_SEO_Dashboard
      */
     public function ajax_fetch_inspector_data()
     {
-        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        // Debug Logging
+        error_log('Chroma SEO: ajax_fetch_inspector_data called');
+        
+        if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
+             error_log('Chroma SEO: Nonce verification failed');
+             wp_send_json_error(['message' => 'Security check failed (Nonce)']);
+        }
 
-        $post_id = intval($_POST['post_id']);
-        if (!$post_id)
-            wp_send_json_error();
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        error_log('Chroma SEO: Fetching schema for Post ID: ' . $post_id);
+
+        if (!$post_id) {
+            error_log('Chroma SEO: No Post ID provided');
+            wp_send_json_error(['message' => 'Invalid Post ID']);
+        }
+        
+        if (!class_exists('Chroma_Schema_Types')) {
+             error_log('Chroma SEO: Chroma_Schema_Types class missing');
+             wp_send_json_error(['message' => 'Critical Error: Schema Types Library missing']);
+        }
+
+        try {
+
 
         // Get existing schemas
         $existing_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
@@ -1371,90 +1374,6 @@ class Chroma_SEO_Dashboard
         wp_send_json_success();
     }
     /**
-     * AJAX: Generate LLM Targeting Data (AI Auto-Fill)
-     */
-    public function ajax_generate_llm_targeting()
-    {
-        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
-        $post_id = intval($_POST['post_id']);
-        if (!$post_id)
-            wp_send_json_error(['message' => 'Invalid Post ID']);
-
-        if (!class_exists('Chroma_Fallback_Resolver')) {
-            wp_send_json_error(['message' => 'Fallback Resolver not found']);
-        }
-
-        $data = [
-            'primary_intent' => 'informational', // Default
-            'target_queries' => Chroma_Fallback_Resolver::get_llm_target_queries($post_id),
-            'key_differentiators' => Chroma_Fallback_Resolver::get_llm_key_differentiators($post_id)
-        ];
-
-        // START AUTO-SAVE FOR BULK OPERATIONS
-        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
-            if (current_user_can('edit_posts')) {
-                update_post_meta($post_id, 'seo_llm_primary_intent', $data['primary_intent']);
-                update_post_meta($post_id, 'seo_llm_target_queries', $data['target_queries']);
-                update_post_meta($post_id, 'seo_llm_key_differentiators', $data['key_differentiators']);
-                wp_send_json_success(['message' => 'Generated and Saved!']);
-            }
-        }
-        // END AUTO-SAVE
-
-        wp_send_json_success($data);
-    }
-
-    /**
-     * AJAX: Generate Schema Data (AI Auto-Fill)
-     */
-    public function ajax_generate_schema()
-    {
-        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
-        $post_id = intval($_POST['post_id']);
-        $type = sanitize_text_field($_POST['schema_type']);
-
-        if (!$post_id || !$type)
-            wp_send_json_error(['message' => 'Invalid parameters']);
-
-        $data = [];
-        $post = get_post($post_id);
-
-        // Basic smart defaults based on post content
-        if ($post) {
-            $data['name'] = $post->post_title;
-            $data['description'] = wp_trim_words($post->post_content, 25);
-            $data['url'] = get_permalink($post_id);
-
-            if ($type === 'Person') {
-                $data['jobTitle'] = get_post_meta($post_id, 'team_member_title', true) ?: 'Team Member';
-            }
-
-            if ($type === 'LocalBusiness' || $type === 'ChildCare') {
-                $data['telephone'] = get_post_meta($post_id, 'location_phone', true) ?: get_theme_mod('chroma_phone_number');
-                $data['address'] = get_post_meta($post_id, 'location_address', true);
-            }
-        }
-
-        // START AUTO-SAVE FOR BULK OPERATIONS
-        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
-            if (current_user_can('edit_posts')) {
-                // Overwrite existing schemas with this single new one
-                $new_schemas = [
-                    [
-                        'type' => $type,
-                        'data' => $data
-                    ]
-                ];
-                update_post_meta($post_id, '_chroma_post_schemas', $new_schemas);
-                wp_send_json_success(['message' => 'Schema Applied & Saved!']);
-            }
-        }
-        // END AUTO-SAVE
-
-        wp_send_json_success($data);
-    }
-
-    /**
      * Render Bulk Operations Tab
      */
     private function render_bulk_ops_tab()
@@ -1474,7 +1393,7 @@ class Chroma_SEO_Dashboard
         ?>
         <div class="chroma-seo-card">
             <h2>📦 Bulk Operations</h2>
-            <p>Perform AI tasks on multiple pages at once. <strong>Keep this tab open while processing.</strong></p>
+            <p>Perform AI tasks on multiple pages at once. Build a queue of actions and apply them to all selected posts.</p>
 
             <!-- Filter Bar -->
             <div
@@ -1548,39 +1467,25 @@ class Chroma_SEO_Dashboard
                 <!-- Right: Actions -->
                 <div style="flex: 1;">
                     <div style="background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 4px;">
-                        <h3>🛠 Action Settings</h3>
+                        <h3>🛠 Job Queue</h3>
+                        <p class="description">Define what to do for each selected post.</p>
 
-                        <div style="margin-bottom: 20px;">
-                            <label><strong>Step 1: Choose Action</strong></label>
-                            <select id="bulk-action-selector" style="width: 100%; margin-top: 5px;">
-                                <option value="">-- Select Action --</option>
-                                <option value="llm_targeting">✨ Generate LLM Targeting (Meta)</option>
-                                <option value="schema">🏗 Apply Schema (Structured Data)</option>
-                            </select>
+                        <div id="bulk-action-queue" style="margin-bottom: 20px; border: 1px solid #eee; min-height: 50px; background: #fafafa; padding: 10px;">
+                            <p id="queue-empty-msg" style="color: #999; font-style: italic; text-align: center; margin: 0;">Queue is empty.</p>
                         </div>
 
-                        <!-- Schema Settings -->
-                        <div id="bulk-settings-schema"
-                            style="display:none; margin-bottom: 20px; border-left: 3px solid #0073aa; padding-left: 10px;">
-                            <label><strong>Select Schema Type:</strong></label>
-                            <select id="bulk-schema-type" style="width: 100%; margin-top: 5px;">
-                                <?php foreach ($schema_definitions as $key => $def): ?>
-                                    <option value="<?php echo esc_attr($key); ?>"><?php echo esc_html($def['label']); ?></option>
-                                <?php endforeach; ?>
+                        <div style="margin-bottom: 20px; padding: 10px; background: #f0f6fc; border: 1px solid #cce5ff; border-radius: 4px;">
+                            <label style="display: block; margin-bottom: 5px;"><strong>Add Action:</strong></label>
+                            <select id="bulk-add-action-selector" style="width: 100%; margin-bottom: 5px;">
+                                <option value="">-- Choose Action --</option>
+                                <option value="llm_targeting">✨ Generate LLM Targeting</option>
+                                <optgroup label="Add Schema">
+                                    <?php foreach ($schema_definitions as $key => $def): ?>
+                                        <option value="schema:<?php echo esc_attr($key); ?>">Schema: <?php echo esc_html($def['label']); ?></option>
+                                    <?php endforeach; ?>
+                                </optgroup>
                             </select>
-                            <p class="description">AI will extract data from the page content and auto-fill this schema.</p>
-                        </div>
-
-                        <!-- LLM Settings -->
-                        <div id="bulk-settings-llm"
-                            style="display:none; margin-bottom: 20px; border-left: 3px solid #8c64ff; padding-left: 10px;">
-                            <p><strong>✨ AI Auto-Fill</strong></p>
-                            <p class="description">AI will read the page content + live site context and generate:</p>
-                            <ul style="list-style: disc; margin-left: 20px; color: #666;">
-                                <li>Primary Search Intent</li>
-                                <li>3-5 Target Queries</li>
-                                <li>Key Differentiators</li>
-                            </ul>
+                            <button id="btn-add-to-queue" class="button button-secondary" style="width: 100%;">+ Add to Queue</button>
                         </div>
 
                         <hr>
@@ -1593,13 +1498,13 @@ class Chroma_SEO_Dashboard
 
                         <!-- Progress -->
                         <div id="bulk-progress-container" style="display:none; margin-top: 20px;">
-                            <p><strong>Progress:</strong> <span id="bulk-counter">0/0</span></p>
+                            <p><strong>Total Progress:</strong> <span id="bulk-counter">0/0</span></p>
                             <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
                                 <div id="bulk-progress-bar"
                                     style="width: 0%; height: 100%; background: #0073aa; transition: width 0.3s;"></div>
                             </div>
                             <textarea id="bulk-log"
-                                style="width: 100%; height: 150px; margin-top: 10px; font-family: monospace; font-size: 11px;"
+                                style="width: 100%; height: 200px; margin-top: 10px; font-family: monospace; font-size: 11px;"
                                 readonly></textarea>
                         </div>
 
@@ -1610,16 +1515,57 @@ class Chroma_SEO_Dashboard
 
         <script>
             jQuery(document).ready(function ($) {
-                // Toggle Settings based on Action
-                $('#bulk-action-selector').on('change', function () {
-                    var val = $(this).val();
-                    $('#bulk-settings-schema').hide();
-                    $('#bulk-settings-llm').hide();
-                    $('#btn-run-bulk').prop('disabled', val === '');
+                var actionQueue = [];
+                var chroma_nonce = '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>';
 
-                    if (val === 'schema') $('#bulk-settings-schema').show();
-                    if (val === 'llm_targeting') $('#bulk-settings-llm').show();
+                // Add to Queue
+                $('#btn-add-to-queue').on('click', function(e) {
+                    e.preventDefault();
+                    var val = $('#bulk-add-action-selector').val();
+                    var label = $('#bulk-add-action-selector option:selected').text();
+                    
+                    if (!val) return;
+
+                    var actionObj = { id: Date.now(), type: '', label: label };
+                    if (val === 'llm_targeting') {
+                        actionObj.type = 'llm_targeting';
+                    } else if (val.startsWith('schema:')) {
+                        actionObj.type = 'schema';
+                        actionObj.schemaType = val.split(':')[1];
+                    }
+
+                    actionQueue.push(actionObj);
+                    renderQueue();
                 });
+
+                // Remove from Queue
+                $(document).on('click', '.remove-queue-item', function(e) {
+                    e.preventDefault();
+                    var id = $(this).data('id');
+                    actionQueue = actionQueue.filter(function(item) { return item.id !== id; });
+                    renderQueue();
+                });
+
+                function renderQueue() {
+                    var container = $('#bulk-action-queue');
+                    container.empty();
+                    
+                    if (actionQueue.length === 0) {
+                        container.html('<p id="queue-empty-msg" style="color: #999; font-style: italic; text-align: center; margin: 0;">Queue is empty.</p>');
+                        $('#btn-run-bulk').prop('disabled', true);
+                        return;
+                    }
+
+                    $('#btn-run-bulk').prop('disabled', false);
+
+                    $.each(actionQueue, function(i, item) {
+                        var html = '<div style="background: #fff; border: 1px solid #ddd; padding: 5px 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">';
+                        html += '<span>' + (i + 1) + '. ' + item.label + '</span>';
+                        html += '<a href="#" class="remove-queue-item" data-id="' + item.id + '" style="color: #d63638; text-decoration: none;">&times;</a>';
+                        html += '</div>';
+                        container.append(html);
+                    });
+                }
 
                 // Select All
                 $('#cb-select-all-bulk').on('change', function () {
@@ -1640,12 +1586,15 @@ class Chroma_SEO_Dashboard
                         return;
                     }
 
-                    if (!confirm('Are you sure you want to process ' + posts.length + ' items? This will overwrite existing data.')) {
+                    if (actionQueue.length === 0) {
+                        alert('Please add at least one action to the queue.');
                         return;
                     }
 
-                    var actionType = $('#bulk-action-selector').val();
-                    var schemaType = $('#bulk-schema-type').val();
+                    if (!confirm('Run ' + actionQueue.length + ' actions on ' + posts.length + ' posts? This may take a while.')) {
+                        return;
+                    }
+
                     var total = posts.length;
                     var processed = 0;
 
@@ -1657,9 +1606,9 @@ class Chroma_SEO_Dashboard
                     $(this).prop('disabled', true);
 
                     // Recursive Worker
-                    function processNext() {
+                    function processNextPost() {
                         if (posts.length === 0) {
-                            $('#bulk-log').val($('#bulk-log').val() + '✅ Batch Complete!\n');
+                            $('#bulk-log').val($('#bulk-log').val() + '✅ All Posts Completed!\n');
                             $('#btn-run-bulk').prop('disabled', false);
                             alert('Batch Processing Complete!');
                             return;
@@ -1671,67 +1620,62 @@ class Chroma_SEO_Dashboard
 
                         log('Processing Post ID: ' + pid + '...');
 
-                        var ajaxAction = '';
-                        var payload = {
-                            post_id: pid,
-                            auto_save: 'true',
-                            nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>'
-                        };
+                        // Process Actions sequentially for this post
+                        var currentActions = [...actionQueue]; // Copy
 
-                        if (actionType === 'schema') {
-                            ajaxAction = 'chroma_generate_schema';
-                            payload.action = ajaxAction;
-                            payload.schema_type = schemaType;
-                        } else {
-                            ajaxAction = 'chroma_generate_llm_targeting';
-                            payload.action = ajaxAction;
-                        }
-
-                        $.post(ajaxurl, payload, function (response) {
-                            processed++;
-                            var pct = Math.round((processed / total) * 100);
-                            $('#bulk-progress-bar').css('width', pct + '%');
-                            $('#bulk-counter').text(processed + '/' + total);
-
-                            if (response.success) {
+                        function processNextAction() {
+                            if (currentActions.length === 0) {
+                                // Post Done
+                                processed++;
+                                var pct = Math.round((processed / total) * 100);
+                                $('#bulk-progress-bar').css('width', pct + '%');
+                                $('#bulk-counter').text(processed + '/' + total);
                                 rowStatus.html('<span class="dashicons dashicons-yes" style="color: green;"></span>');
-                                log('✅ Success: ' + (response.data.message || 'Saved'));
-                            } else {
-                                rowStatus.html('<span class="dashicons dashicons-no" style="color: red;"></span>');
-                                log('❌ Failed: ' + (response.data.message || 'Unknown Error'));
+                                log('> Done with Post ID: ' + pid);
+                                processNextPost();
+                                return;
                             }
 
-                            // Next
-                            processNext();
+                            var action = currentActions.shift();
+                            log('> Running: ' + action.label + '...');
 
-                        }).fail(function () {
-                            processed++;
-                            rowStatus.html('<span class="dashicons dashicons-warning" style="color: orange;"></span>');
-                            log('⚠️ Network Error on ID ' + pid);
-                            processNext(); // Continue anyway
-                        });
+                            var ajaxAction = '';
+                            var payload = {
+                                post_id: pid,
+                                auto_save: 'true',
+                                nonce: chroma_nonce
+                            };
+
+                            if (action.type === 'schema') {
+                                payload.action = 'chroma_generate_schema';
+                                payload.schema_type = action.schemaType;
+                            } else {
+                                payload.action = 'chroma_generate_llm_targeting';
+                            }
+
+                            $.post(ajaxurl, payload, function (response) {
+                                if (response.success) {
+                                    log('  ✓ Success');
+                                } else {
+                                    log('  ❌ Failed: ' + (response.data.message || 'Unknown'));
+                                }
+                                processNextAction();
+                            }).fail(function () {
+                                log('  ❌ Network Error');
+                                processNextAction(); // Continue anyway
+                            });
+                        }
+
+                        processNextAction();
                     }
-
-                    // Helper
+                    
                     function log(msg) {
                         var area = $('#bulk-log');
                         area.val(area.val() + msg + '\n');
                         area.scrollTop(area[0].scrollHeight);
                     }
 
-                    // Start
-                    processNext();
+                    processNextPost();
                 });
             });
         </script>
-        <style>
-            @keyframes spin {
-                100% {
-                    -webkit-transform: rotate(360deg);
-                    transform: rotate(360deg);
-                }
-            }
-        </style>
-        <?php
-    }
-}
