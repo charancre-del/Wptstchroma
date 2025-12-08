@@ -69,6 +69,7 @@ class Chroma_SEO_Dashboard
 
         wp_enqueue_script('jquery');
         wp_enqueue_script('jquery-ui-tabs');
+        wp_enqueue_script('jquery-ui-tooltip');
 
         // Simple inline styles for the dashboard
         wp_add_inline_style('common', '

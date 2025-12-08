@@ -269,7 +269,14 @@ class Chroma_LLM_Client
         if (isset($definitions[$schema_type]['fields'])) {
             foreach ($definitions[$schema_type]['fields'] as $key => $field) {
                 if ($key !== 'custom_fields') { // Skip custom fields repeater
-                    $expected_keys[] = $key . ' (' . $field['label'] . ')';
+                    if (isset($field['type']) && $field['type'] === 'repeater' && isset($field['subfields'])) {
+                        // Handle Repeater Fields (like FAQ questions)
+                        $sub_keys = array_keys($field['subfields']);
+                        $expected_keys[] = $key . ' (' . $field['label'] . ') [MUST be an array of objects with keys: ' . implode(', ', $sub_keys) . ']';
+                    } else {
+                        // Handle Standard Fields
+                        $expected_keys[] = $key . ' (' . $field['label'] . ')';
+                    }
                 }
             }
         }
