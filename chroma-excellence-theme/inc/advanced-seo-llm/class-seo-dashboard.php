@@ -630,6 +630,25 @@ class Chroma_SEO_Dashboard
                     $('#chroma-inspector-spinner').addClass('is-active');
                     $.post(ajaxurl, {
                         action: 'chroma_fetch_schema_inspector',
+                        nonce: chroma_nonce,
+                        post_id: id
+                    }, function (response) {
+                        $('#chroma-inspector-spinner').removeClass('is-active');
+                        if (response.success) {
+                            $('#chroma-inspector-content').html(response.data.html);
+                            initTooltips();
+                        } else {
+                            var msg = (response.data && response.data.message) ? response.data.message : 'Error loading data';
+                            alert(msg);
+                        }
+                    }).fail(function () {
+                        $('#chroma-inspector-spinner').removeClass('is-active');
+                        alert('Connection error');
+                    });
+                }
+
+                function initTooltips() {
+                    $(document).tooltip({
                         content: function () {
                             return $(this).attr('title');
                         },
