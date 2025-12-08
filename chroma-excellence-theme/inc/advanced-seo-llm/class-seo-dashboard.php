@@ -892,10 +892,14 @@ class Chroma_SEO_Dashboard
      */
     public function ajax_fetch_inspector_data()
     {
+        // Capture any stray output that might corrupt JSON
+        ob_start();
+        
         // Debug Logging
         error_log('Chroma SEO: ajax_fetch_inspector_data called');
 
         if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
+            ob_end_clean();
             error_log('Chroma SEO: Nonce verification failed');
             wp_send_json_error(['message' => 'Security check failed (Nonce)']);
         }
@@ -904,14 +908,19 @@ class Chroma_SEO_Dashboard
         error_log('Chroma SEO: Fetching schema for Post ID: ' . $post_id);
 
         if (!$post_id) {
+            ob_end_clean();
             error_log('Chroma SEO: No Post ID provided');
             wp_send_json_error(['message' => 'Invalid Post ID']);
         }
 
         if (!class_exists('Chroma_Schema_Types')) {
+            ob_end_clean();
             error_log('Chroma SEO: Chroma_Schema_Types class missing');
             wp_send_json_error(['message' => 'Critical Error: Schema Types Library missing']);
         }
+        
+        // Clean any stray output before try block
+        ob_end_clean();
 
         try {
 
