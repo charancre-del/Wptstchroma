@@ -944,7 +944,15 @@ class Chroma_SEO_Dashboard
             ?>
             <input type="hidden" id="chroma-inspector-post-id" value="<?php echo $post_id; ?>">
 
-
+            <!-- DEBUG PANEL - Remove after fixing -->
+            <details style="background: #fffbcc; border: 1px solid #e0d800; padding: 10px; margin-bottom: 15px;">
+                <summary style="cursor: pointer; font-weight: bold; color: #806600;">🔍 Debug: Click to see raw schema data from database</summary>
+                <pre style="background: #fff; padding: 10px; margin-top: 10px; overflow: auto; max-height: 300px; font-size: 11px;"><?php 
+                    echo "Post ID: {$post_id}\n\n";
+                    echo "Raw _chroma_post_schemas meta:\n";
+                    echo htmlspecialchars(print_r($existing_schemas, true)); 
+                ?></pre>
+            </details>
 
             <div id="chroma-active-schemas">
                 <?php
