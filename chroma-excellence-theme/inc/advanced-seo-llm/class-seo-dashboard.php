@@ -897,6 +897,9 @@ class Chroma_SEO_Dashboard
                 echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
             } else {
                 foreach ($existing_schemas as $index => $schema) {
+                    if (!is_array($schema) || !isset($schema['type']) || !isset($schema['data'])) {
+                        continue;
+                    }
                     $this->render_schema_block($schema['type'], $schema['data'], $index);
                 }
             }
@@ -1387,6 +1390,17 @@ class Chroma_SEO_Dashboard
             'key_differentiators' => Chroma_Fallback_Resolver::get_llm_key_differentiators($post_id)
         ];
 
+        // START AUTO-SAVE FOR BULK OPERATIONS
+        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
+            if (current_user_can('edit_posts')) {
+                update_post_meta($post_id, 'seo_llm_primary_intent', $data['primary_intent']);
+                update_post_meta($post_id, 'seo_llm_target_queries', $data['target_queries']);
+                update_post_meta($post_id, 'seo_llm_key_differentiators', $data['key_differentiators']);
+                wp_send_json_success(['message' => 'Generated and Saved!']);
+            }
+        }
+        // END AUTO-SAVE
+
         wp_send_json_success($data);
     }
 
@@ -1420,6 +1434,22 @@ class Chroma_SEO_Dashboard
                 $data['address'] = get_post_meta($post_id, 'location_address', true);
             }
         }
+
+        // START AUTO-SAVE FOR BULK OPERATIONS
+        if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
+            if (current_user_can('edit_posts')) {
+                // Overwrite existing schemas with this single new one
+                $new_schemas = [
+                    [
+                        'type' => $type,
+                        'data' => $data
+                    ]
+                ];
+                update_post_meta($post_id, '_chroma_post_schemas', $new_schemas);
+                wp_send_json_success(['message' => 'Schema Applied & Saved!']);
+            }
+        }
+        // END AUTO-SAVE
 
         wp_send_json_success($data);
     }
