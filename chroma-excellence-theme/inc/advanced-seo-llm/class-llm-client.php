@@ -341,6 +341,9 @@ class Chroma_LLM_Client
             return new WP_Error('json_error', 'Failed to parse AI response');
         }
 
+        // Sanitize data against schema definition
+        $json = $this->sanitize_schema_data($json, $schema_type);
+
         return $json;
     }
 
@@ -604,5 +607,45 @@ class Chroma_LLM_Client
         }
 
         return $context;
+    }
+
+    /**
+     * Sanitize and Validate Schema Data against Definitions
+     * Prevents type mismatches (e.g. Array for Textarea) which cause crashes.
+     */
+    private function sanitize_schema_data($data, $schema_type)
+    {
+        $definitions = Chroma_Schema_Types::get_definitions();
+        if (!isset($definitions[$schema_type]['fields'])) {
+            return $data; // No definition found, return as is
+        }
+
+        $fields = $definitions[$schema_type]['fields'];
+
+        foreach ($data as $key => $value) {
+            if (!isset($fields[$key])) {
+                continue; // Unknown field, ignore or keep
+            }
+
+            $field_def = $fields[$key];
+            $type = isset($field_def['type']) ? $field_def['type'] : 'text';
+
+            // Critical Fix: mismatched Arrays for Text/Textarea fields
+            if (($type === 'text' || $type === 'textarea' || $type === 'image') && is_array($value)) {
+                // LLM returned a list (e.g. for sameAs), but schema expects a string
+                $data[$key] = implode(', ', $value);
+            }
+
+            // Critical Fix: mismatched String for Array/Repeater fields
+            // (Less common, but possible)
+            if ($type === 'repeater' && !is_array($value) && !empty($value)) {
+                // If it returns a single object instead of array of objects, wrap it?
+                // Or if it returns a string, ignore it? 
+                // For now, let's just make sure it's an array if not empty
+                $data[$key] = [$value];
+            }
+        }
+
+        return $data;
     }
 }

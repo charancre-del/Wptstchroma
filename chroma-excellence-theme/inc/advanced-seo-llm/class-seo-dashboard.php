@@ -1024,7 +1024,7 @@ class Chroma_SEO_Dashboard
             echo json_encode(['success' => true, 'data' => ['html' => $html]]);
             die();
 
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             ob_end_clean(); // Clean buffer if error
             error_log('Chroma SEO Error: ' . $e->getMessage());
             wp_send_json_error(['message' => 'Error: ' . $e->getMessage()]);
@@ -1060,6 +1060,11 @@ class Chroma_SEO_Dashboard
             <table class="form-table" style="margin-top: 0;">
                 <?php foreach ($def['fields'] as $key => $field):
                     $val = isset($data[$key]) ? $data[$key] : '';
+
+                    // Handle array values for non-repeater fields (like sameAs)
+                    if (is_array($val) && $field['type'] !== 'repeater') {
+                        $val = implode(', ', $val);
+                    }
                     ?>
                     <tr>
                         <th scope="row" style="padding: 10px 0; width: 200px;">
