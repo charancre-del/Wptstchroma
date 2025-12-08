@@ -28,6 +28,7 @@ class Chroma_SEO_Dashboard
         add_action('wp_ajax_chroma_fetch_social_preview', [$this, 'ajax_fetch_social_preview']);
         add_action('wp_ajax_chroma_fetch_llm_data', [$this, 'ajax_fetch_llm_data']);
         add_action('wp_ajax_chroma_save_llm_targeting', [$this, 'ajax_save_llm_targeting']);
+        add_action('wp_ajax_chroma_reset_post_schema', [$this, 'ajax_reset_post_schema']);
         add_action('admin_init', [$this, 'register_settings']);
     }
 
@@ -605,6 +606,7 @@ class Chroma_SEO_Dashboard
                     <?php endforeach; ?>
                 </optgroup>
             </select>
+            <button type="button" class="button button-link-delete" id="chroma-reset-schema-btn" style="margin-left: 10px; display: none;">Reset all Schemas for this Page</button>
             <span class="spinner" id="chroma-inspector-spinner"></span>
         </div>
 
@@ -623,11 +625,43 @@ class Chroma_SEO_Dashboard
 
                 $('#chroma-inspector-select').on('change', function () {
                     var id = $(this).val();
-                    if (id) loadInspectorData(id);
+                    if (id) {
+                        loadInspectorData(id);
+                    } else {
+                        $('#chroma-inspector-content').empty();
+                        $('#chroma-reset-schema-btn').hide();
+                    }
+                });
+
+                // Reset Schema Handler
+                $('#chroma-reset-schema-btn').on('click', function(e) {
+                    e.preventDefault();
+                    if (!confirm('Are you sure you want to delete ALL schema data for this page? This cannot be undone.')) return;
+                    
+                    var id = $('#chroma-inspector-select').val();
+                    if(!id) return;
+
+                    var btn = $(this);
+                    btn.prop('disabled', true);
+
+                    $.post(ajaxurl, {
+                        action: 'chroma_reset_post_schema',
+                        nonce: chroma_nonce,
+                        post_id: id
+                    }, function(response) {
+                        btn.prop('disabled', false);
+                        if(response.success) {
+                            alert('Schemas reset successfully.');
+                            loadInspectorData(id);
+                        } else {
+                            alert(response.data.message || 'Error occurred.');
+                        }
+                    });
                 });
 
                 function loadInspectorData(id) {
                     $('#chroma-inspector-spinner').addClass('is-active');
+                    $('#chroma-reset-schema-btn').show();
                     $.post(ajaxurl, {
                         action: 'chroma_fetch_schema_inspector',
                         nonce: chroma_nonce,
@@ -1396,6 +1430,30 @@ class Chroma_SEO_Dashboard
 
         wp_send_json_success();
     }
+
+    /**
+     * AJAX: Reset Post Schema (Bulk Action)
+     */
+    public function ajax_reset_post_schema()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        if (!current_user_can('edit_posts'))
+            wp_send_json_error(['message' => 'Permission denied']);
+
+        $post_id = intval($_POST['post_id']);
+        if (!$post_id)
+            wp_send_json_error(['message' => 'Invalid Post ID']);
+
+        // Delete new schema meta
+        delete_post_meta($post_id, '_chroma_post_schemas');
+
+        // Delete legacy meta if exists to ensure clean slate
+        delete_post_meta($post_id, '_chroma_schema_type');
+        delete_post_meta($post_id, '_chroma_schema_data');
+
+        wp_send_json_success(['message' => 'Schemas reset successfully']);
+    }
+
     /**
      * Render Bulk Operations Tab
      */
@@ -1504,11 +1562,13 @@ class Chroma_SEO_Dashboard
                             <label style="display: block; margin-bottom: 5px;"><strong>Add Action:</strong></label>
                             <select id="bulk-add-action-selector" style="width: 100%; margin-bottom: 5px;">
                                 <option value="">-- Choose Action --</option>
+                                <option value="reset_schema" style="color: red;">❌ Reset/Clear All Schemas</option>
                                 <option value="llm_targeting">✨ Generate LLM Targeting</option>
                                 <optgroup label="Add Schema">
                                     <?php foreach ($schema_definitions as $key => $def): ?>
                                         <option value="schema:<?php echo esc_attr($key); ?>">Schema:
-                                            <?php echo esc_html($def['label']); ?></option>
+                                            <?php echo esc_html($def['label']); ?>
+                                        </option>
                                     <?php endforeach; ?>
                                 </optgroup>
                             </select>
@@ -1557,6 +1617,8 @@ class Chroma_SEO_Dashboard
                     var actionObj = { id: Date.now(), type: '', label: label };
                     if (val === 'llm_targeting') {
                         actionObj.type = 'llm_targeting';
+                    } else if (val === 'reset_schema') {
+                        actionObj.type = 'reset';
                     } else if (val.startsWith('schema:')) {
                         actionObj.type = 'schema';
                         actionObj.schemaType = val.split(':')[1];
@@ -1677,6 +1739,8 @@ class Chroma_SEO_Dashboard
                             if (action.type === 'schema') {
                                 payload.action = 'chroma_generate_schema';
                                 payload.schema_type = action.schemaType;
+                            } else if (action.type === 'reset') {
+                                payload.action = 'chroma_reset_post_schema';
                             } else {
                                 payload.action = 'chroma_generate_llm_targeting';
                             }
