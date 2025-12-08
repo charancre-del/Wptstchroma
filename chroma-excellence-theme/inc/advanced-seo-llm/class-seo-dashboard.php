@@ -28,8 +28,7 @@ class Chroma_SEO_Dashboard
         add_action('wp_ajax_chroma_fetch_social_preview', [$this, 'ajax_fetch_social_preview']);
         add_action('wp_ajax_chroma_fetch_llm_data', [$this, 'ajax_fetch_llm_data']);
         add_action('wp_ajax_chroma_save_llm_targeting', [$this, 'ajax_save_llm_targeting']);
-        add_action('wp_ajax_chroma_generate_llm_targeting', [$this, 'ajax_generate_llm_targeting']);
-        add_action('wp_ajax_chroma_generate_schema', [$this, 'ajax_generate_schema']);
+        add_action('wp_ajax_chroma_reset_post_schema', [$this, 'ajax_reset_post_schema']);
         add_action('admin_init', [$this, 'register_settings']);
     }
 
@@ -70,6 +69,7 @@ class Chroma_SEO_Dashboard
 
         wp_enqueue_script('jquery');
         wp_enqueue_script('jquery-ui-tabs');
+        wp_enqueue_script('jquery-ui-tooltip');
 
         // Simple inline styles for the dashboard
         wp_add_inline_style('common', '
@@ -130,6 +130,8 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'breadcrumbs' ? 'nav-tab-active' : ''; ?>">Breadcrumbs</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=social'); ?>"
                     class="nav-tab <?php echo $active_tab === 'social' ? 'nav-tab-active' : ''; ?>">Social Preview</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'bulk' ? 'nav-tab-active' : ''; ?>">Bulk Operations</a>
                 <?php do_action('chroma_seo_dashboard_tabs'); ?>
             </nav>
 
@@ -170,6 +172,9 @@ class Chroma_SEO_Dashboard
                     break;
                 case 'social':
                     $this->render_social_tab();
+                    break;
+                case 'bulk':
+                    $this->render_bulk_ops_tab();
                     break;
                 default:
                     // Allow other tabs to render via action
@@ -602,6 +607,8 @@ class Chroma_SEO_Dashboard
                     <?php endforeach; ?>
                 </optgroup>
             </select>
+            <button type="button" class="button button-link-delete" id="chroma-reset-schema-btn"
+                style="margin-left: 10px; display: none;">Reset all Schemas for this Page</button>
             <span class="spinner" id="chroma-inspector-spinner"></span>
         </div>
 
@@ -620,28 +627,67 @@ class Chroma_SEO_Dashboard
 
                 $('#chroma-inspector-select').on('change', function () {
                     var id = $(this).val();
-                    if (id) loadInspectorData(id);
+                    if (id) {
+                        loadInspectorData(id);
+                    } else {
+                        $('#chroma-inspector-content').empty();
+                        $('#chroma-reset-schema-btn').hide();
+                    }
+                });
+
+                // Reset Schema Handler
+                $('#chroma-reset-schema-btn').on('click', function (e) {
+                    e.preventDefault(); if (!confirm('Are you sure you want to delete ALL schema data for this page? This cannot be undone.')) return; var id = $('#chroma-inspector-select').val();
+                    if (!id) return;
+
+                    var btn = $(this);
+                    btn.prop('disabled', true);
+
+                    $.post(ajaxurl, {
+                        action: 'chroma_reset_post_schema',
+                        nonce: chroma_nonce,
+                        post_id: id
+                    }, function (response) {
+                        btn.prop('disabled', false);
+                        if (response.success) {
+                            alert('Schemas reset successfully.');
+                            loadInspectorData(id);
+                        } else {
+                            alert(response.data.message || 'Error occurred.');
+                        }
+                    });
                 });
 
                 function loadInspectorData(id) {
                     $('#chroma-inspector-spinner').addClass('is-active');
+                    $('#chroma-reset-schema-btn').show();
                     $.post(ajaxurl, {
                         action: 'chroma_fetch_schema_inspector',
                         nonce: chroma_nonce,
                         post_id: id
                     }, function (response) {
+                        console.log('Schema Inspector AJAX Response:', response);
                         $('#chroma-inspector-spinner').removeClass('is-active');
-                        if (response.success) {
+                        if (response && response.success) {
                             $('#chroma-inspector-content').html(response.data.html);
                             initTooltips();
                         } else {
-                            alert('Error loading data');
+                            var msg = 'Error loading data.';
+                            if (response && response.data && response.data.message) {
+                                msg = response.data.message;
+                            } else if (typeof response === 'string') {
+                                msg = 'Server returned non-JSON: ' + response.substring(0, 200);
+                            }
+                            $('#chroma-inspector-content').html('<div style="background:#fee; padding:15px; border:1px solid #c00; color:#800;"><strong>Error:</strong> ' + msg + '</div>');
                         }
+                    }).fail(function () {
+                        $('#chroma-inspector-spinner').removeClass('is-active');
+                        alert('Connection error');
                     });
                 }
 
                 function initTooltips() {
-                    $('.chroma-help-tip').tooltip({
+                    $(document).tooltip({
                         content: function () {
                             return $(this).attr('title');
                         },
@@ -844,78 +890,146 @@ class Chroma_SEO_Dashboard
      */
     public function ajax_fetch_inspector_data()
     {
-        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        // Capture any stray output that might corrupt JSON
+        ob_start();
 
-        $post_id = intval($_POST['post_id']);
-        if (!$post_id)
-            wp_send_json_error();
+        // Debug Logging
+        error_log('Chroma SEO: ajax_fetch_inspector_data called');
 
-        // Get existing schemas
-        $existing_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
-        if (!is_array($existing_schemas) || empty($existing_schemas)) {
-            $existing_schemas = [];
-            // Backwards compatibility: Check for legacy schema data
-            $legacy_type = get_post_meta($post_id, '_chroma_schema_type', true);
-            if ($legacy_type && $legacy_type !== 'none') {
-                $legacy_data = get_post_meta($post_id, '_chroma_schema_data', true);
-                if (!is_array($legacy_data))
-                    $legacy_data = [];
+        if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
+            ob_end_clean();
+            error_log('Chroma SEO: Nonce verification failed');
+            wp_send_json_error(['message' => 'Security check failed (Nonce)']);
+        }
 
-                // Add as a new modular schema
-                $existing_schemas[] = [
-                    'type' => $legacy_type,
-                    'data' => $legacy_data
-                ];
-            }
-            // If still no schemas, try to load smart defaults based on post type
-            if (empty($existing_schemas)) {
-                // Use the Schema Injector to get defaults if available
-                if (class_exists('Chroma_Schema_Injector')) {
-                    $defaults = Chroma_Schema_Injector::get_default_schema_for_post_type($post_id);
-                    if (!empty($defaults)) {
-                        $existing_schemas = $defaults;
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        error_log('Chroma SEO: Fetching schema for Post ID: ' . $post_id);
+
+        if (!$post_id) {
+            ob_end_clean();
+            error_log('Chroma SEO: No Post ID provided');
+            wp_send_json_error(['message' => 'Invalid Post ID']);
+        }
+
+        if (!class_exists('Chroma_Schema_Types')) {
+            ob_end_clean();
+            error_log('Chroma SEO: Chroma_Schema_Types class missing');
+            wp_send_json_error(['message' => 'Critical Error: Schema Types Library missing']);
+        }
+
+        // Clean any stray output before try block
+        ob_end_clean();
+
+        try {
+            // Start capturing output IMMEDIATELY in try block
+            ob_start();            // Get existing schemas
+            $existing_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+            if (!is_array($existing_schemas) || empty($existing_schemas)) {
+                $existing_schemas = [];
+                // Backwards compatibility: Check for legacy schema data
+                $legacy_type = get_post_meta($post_id, '_chroma_schema_type', true);
+                if ($legacy_type && $legacy_type !== 'none') {
+                    $legacy_data = get_post_meta($post_id, '_chroma_schema_data', true);
+                    if (!is_array($legacy_data))
+                        $legacy_data = [];
+
+                    // Add as a new modular schema
+                    $existing_schemas[] = [
+                        'type' => $legacy_type,
+                        'data' => $legacy_data
+                    ];
+                }
+                // If still no schemas, try to load smart defaults based on post type
+                if (empty($existing_schemas)) {
+                    // Use the Schema Injector to get defaults if available
+                    if (class_exists('Chroma_Schema_Injector')) {
+                        $defaults = Chroma_Schema_Injector::get_default_schema_for_post_type($post_id);
+                        if (!empty($defaults)) {
+                            $existing_schemas = $defaults;
+                        }
                     }
                 }
             }
-        }
-        $available_types = Chroma_Schema_Types::get_definitions();
-
-        ob_start();
-        ?>
-        <input type="hidden" id="chroma-inspector-post-id" value="<?php echo $post_id; ?>">
-
-
-
-        <div id="chroma-active-schemas">
-            <?php
-            if (empty($existing_schemas)) {
-                echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
-            } else {
-                foreach ($existing_schemas as $index => $schema) {
-                    $this->render_schema_block($schema['type'], $schema['data'], $index);
-                }
-            }
+            $available_types = Chroma_Schema_Types::get_definitions();
             ?>
-        </div>
+            <input type="hidden" id="chroma-inspector-post-id" value="<?php echo $post_id; ?>">
 
-        <div
-            style="display: flex; gap: 20px; margin-top: 20px; margin-bottom: 20px; align-items: center; background: #fff; padding: 15px; border: 1px solid #ddd;">
-            <strong>Add New Schema:</strong>
-            <select id="chroma-schema-type-select">
-                <option value="">-- Select Type --</option>
-                <?php foreach ($available_types as $type => $def): ?>
-                    <option value="<?php echo esc_attr($type); ?>"><?php echo esc_html($def['label']); ?></option>
-                <?php endforeach; ?>
-            </select>
-            <button id="chroma-add-schema-btn" class="button button-secondary">Add Schema</button>
-        </div>
+            <!-- DEBUG PANEL - Remove after fixing -->
+            <details style="background: #fffbcc; border: 1px solid #e0d800; padding: 10px; margin-bottom: 15px;">
+                <summary style="cursor: pointer; font-weight: bold; color: #806600;">🔍 Debug: Click to see raw schema data from
+                    database</summary>
+                <pre style="background: #fff; padding: 10px; margin-top: 10px; overflow: auto; max-height: 300px; font-size: 11px;"><?php
+                echo "Post ID: {$post_id}\n\n";
+                echo "Raw _chroma_post_schemas meta:\n";
+                echo htmlspecialchars(print_r($existing_schemas, true));
+                ?></pre>
+            </details>
 
-        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc;">
-            <button id="chroma-inspector-save" class="button button-primary button-large">Save All Schemas</button>
-        </div>
-        <?php
-        $html = ob_get_clean();
-        wp_send_json_success(['html' => $html]);
+            <div id="chroma-active-schemas">
+                <?php
+                error_log('Chroma SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
+
+                if (empty($existing_schemas)) {
+                    echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
+                } else {
+                    $valid_count = 0;
+                    foreach ($existing_schemas as $index => $schema) {
+                        // Log each schema item for debugging
+                        error_log("Chroma SEO: Schema item [{$index}]: " . print_r($schema, true));
+
+                        if (!is_array($schema)) {
+                            error_log("Chroma SEO: Schema [{$index}] is not an array, skipping.");
+                            continue;
+                        }
+                        if (!isset($schema['type'])) {
+                            error_log("Chroma SEO: Schema [{$index}] missing 'type' key, skipping.");
+                            continue;
+                        }
+                        if (!isset($schema['data']) || !is_array($schema['data'])) {
+                            error_log("Chroma SEO: Schema [{$index}] missing or invalid 'data' key, skipping.");
+                            continue;
+                        }
+                        $valid_count++;
+                        $this->render_schema_block($schema['type'], $schema['data'], $index);
+                    }
+                    if ($valid_count === 0 && !empty($existing_schemas)) {
+                        echo '<div class="notice notice-error" style="padding: 10px; margin: 10px 0;">';
+                        echo '<p><strong>Warning:</strong> Schema data appears to be corrupted. The stored data is not in the expected format.</p>';
+                        echo '<p>Use the "Reset all Schemas for this Page" button above to clear and start fresh.</p>';
+                        echo '</div>';
+                    }
+                }
+                ?>
+            </div>
+
+            <div
+                style="display: flex; gap: 20px; margin-top: 20px; margin-bottom: 20px; align-items: center; background: #fff; padding: 15px; border: 1px solid #ddd;">
+                <strong>Add New Schema:</strong>
+                <select id="chroma-schema-type-select">
+                    <option value="">-- Select Type --</option>
+                    <?php foreach ($available_types as $type => $def): ?>
+                        <option value="<?php echo esc_attr($type); ?>"><?php echo esc_html($def['label']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <button id="chroma-add-schema-btn" class="button button-secondary">Add Schema</button>
+            </div>
+
+            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc;">
+                <button id="chroma-inspector-save" class="button button-primary button-large">Save All Schemas</button>
+            </div>
+            <?php
+            $html = ob_get_clean();
+
+            // Force clean response
+            @header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['success' => true, 'data' => ['html' => $html]]);
+            die();
+
+        } catch (Throwable $e) {
+            ob_end_clean(); // Clean buffer if error
+            error_log('Chroma SEO Error: ' . $e->getMessage());
+            wp_send_json_error(['message' => 'Error: ' . $e->getMessage()]);
+        }
     }
 
     /**
@@ -947,6 +1061,11 @@ class Chroma_SEO_Dashboard
             <table class="form-table" style="margin-top: 0;">
                 <?php foreach ($def['fields'] as $key => $field):
                     $val = isset($data[$key]) ? $data[$key] : '';
+
+                    // Handle array values for non-repeater fields (like sameAs)
+                    if (is_array($val) && $field['type'] !== 'repeater') {
+                        $val = implode(', ', $val);
+                    }
                     ?>
                     <tr>
                         <th scope="row" style="padding: 10px 0; width: 200px;">
@@ -1362,60 +1481,348 @@ class Chroma_SEO_Dashboard
 
         wp_send_json_success();
     }
+
     /**
-     * AJAX: Generate LLM Targeting Data (AI Auto-Fill)
+     * AJAX: Reset Post Schema (Bulk Action)
      */
-    public function ajax_generate_llm_targeting()
+    public function ajax_reset_post_schema()
     {
         check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        if (!current_user_can('edit_posts'))
+            wp_send_json_error(['message' => 'Permission denied']);
+
         $post_id = intval($_POST['post_id']);
         if (!$post_id)
             wp_send_json_error(['message' => 'Invalid Post ID']);
 
-        if (!class_exists('Chroma_Fallback_Resolver')) {
-            wp_send_json_error(['message' => 'Fallback Resolver not found']);
-        }
+        // Delete new schema meta
+        delete_post_meta($post_id, '_chroma_post_schemas');
 
-        $data = [
-            'primary_intent' => 'informational', // Default
-            'target_queries' => Chroma_Fallback_Resolver::get_llm_target_queries($post_id),
-            'key_differentiators' => Chroma_Fallback_Resolver::get_llm_key_differentiators($post_id)
-        ];
+        // Delete legacy meta if exists to ensure clean slate
+        delete_post_meta($post_id, '_chroma_schema_type');
+        delete_post_meta($post_id, '_chroma_schema_data');
 
-        wp_send_json_success($data);
+        wp_send_json_success(['message' => 'Schemas reset successfully']);
     }
 
     /**
-     * AJAX: Generate Schema Data (AI Auto-Fill)
+     * Render Bulk Operations Tab
      */
-    public function ajax_generate_schema()
+    private function render_bulk_ops_tab()
     {
-        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
-        $post_id = intval($_POST['post_id']);
-        $type = sanitize_text_field($_POST['schema_type']);
+        $ptype = isset($_GET['ptype']) ? sanitize_text_field($_GET['ptype']) : 'location';
+        $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
+        $posts_per_page = 50;
 
-        if (!$post_id || !$type)
-            wp_send_json_error(['message' => 'Invalid parameters']);
+        $query = new WP_Query([
+            'post_type' => $ptype,
+            'posts_per_page' => $posts_per_page,
+            'paged' => $paged,
+            'post_status' => 'publish'
+        ]);
 
-        $data = [];
-        $post = get_post($post_id);
+        $schema_definitions = class_exists('Chroma_Schema_Types') ? Chroma_Schema_Types::get_definitions() : [];
+        ?>
+        <div class="chroma-seo-card">
+            <h2>📦 Bulk Operations</h2>
+            <p>Perform AI tasks on multiple pages at once. Build a queue of actions and apply them to all selected posts.</p>
 
-        // Basic smart defaults based on post content
-        if ($post) {
-            $data['name'] = $post->post_title;
-            $data['description'] = wp_trim_words($post->post_content, 25);
-            $data['url'] = get_permalink($post_id);
+            <!-- Filter Bar -->
+            <div
+                style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; background: #f0f0f1; padding: 10px; border-radius: 4px;">
+                <label><strong>Post Type:</strong></label>
+                <select
+                    onchange="window.location.href='<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk&ptype='); ?>' + this.value">
+                    <option value="location" <?php selected($ptype, 'location'); ?>>Locations</option>
+                    <option value="program" <?php selected($ptype, 'program'); ?>>Programs</option>
+                    <option value="page" <?php selected($ptype, 'page'); ?>>Pages</option>
+                    <option value="city" <?php selected($ptype, 'city'); ?>>Cities</option>
+                    <option value="post" <?php selected($ptype, 'post'); ?>>Blog Posts</option>
+                </select>
+                <span class="count" style="color: #666;">(<?php echo $query->found_posts; ?> items found)</span>
+            </div>
 
-            if ($type === 'Person') {
-                $data['jobTitle'] = get_post_meta($post_id, 'team_member_title', true) ?: 'Team Member';
-            }
+            <div style="display: flex; gap: 20px;">
 
-            if ($type === 'LocalBusiness' || $type === 'ChildCare') {
-                $data['telephone'] = get_post_meta($post_id, 'location_phone', true) ?: get_theme_mod('chroma_phone_number');
-                $data['address'] = get_post_meta($post_id, 'location_address', true);
-            }
-        }
+                <!-- Left: Post List -->
+                <div style="flex: 2;">
+                    <!-- Controls -->
+                    <div
+                        style="padding: 10px; background: #fff; border: 1px solid #ddd; margin-bottom: -1px; border-radius: 4px 4px 0 0;">
+                        <label><input type="checkbox" id="cb-select-all-bulk"> Select All on Page</label>
+                    </div>
 
-        wp_send_json_success($data);
+                    <!-- List -->
+                    <div style="background: #fff; border: 1px solid #ddd; max-height: 500px; overflow-y: auto;">
+                        <table class="wp-list-table widefat fixed striped">
+                            <thead>
+                                <tr>
+                                    <td class="check-column"><input type="checkbox" disabled></td>
+                                    <th>Title</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if ($query->have_posts()):
+                                    while ($query->have_posts()):
+                                        $query->the_post(); ?>
+                                        <tr>
+                                            <th scope="row" class="check-column">
+                                                <input type="checkbox" name="bulk_post[]" value="<?php the_ID(); ?>">
+                                            </th>
+                                            <td>
+                                                <strong><?php the_title(); ?></strong>
+                                                <br>
+                                                <a href="<?php echo get_edit_post_link(); ?>" target="_blank"
+                                                    style="font-size: 11px;">Edit</a>
+                                                | <a href="<?php the_permalink(); ?>" target="_blank" style="font-size: 11px;">View</a>
+                                            </td>
+                                            <td id="status-<?php the_ID(); ?>">
+                                                <span class="dashicons dashicons-minus" style="color:#ccc;"></span>
+                                            </td>
+                                        </tr>
+                                    <?php endwhile; endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <?php
+                    // Pagination
+                    $big = 999999999;
+                    echo paginate_links(array(
+                        'base' => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
+                        'format' => '&paged=%#%',
+                        'current' => max(1, $paged),
+                        'total' => $query->max_num_pages
+                    ));
+                    ?>
+                </div>
+
+                <!-- Right: Actions -->
+                <div style="flex: 1;">
+                    <div style="background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 4px;">
+                        <h3>🛠 Job Queue</h3>
+                        <p class="description">Define what to do for each selected post.</p>
+
+                        <div id="bulk-action-queue"
+                            style="margin-bottom: 20px; border: 1px solid #eee; min-height: 50px; background: #fafafa; padding: 10px;">
+                            <p id="queue-empty-msg" style="color: #999; font-style: italic; text-align: center; margin: 0;">
+                                Queue is empty.</p>
+                        </div>
+
+                        <div
+                            style="margin-bottom: 20px; padding: 10px; background: #f0f6fc; border: 1px solid #cce5ff; border-radius: 4px;">
+                            <label style="display: block; margin-bottom: 5px;"><strong>Add Action:</strong></label>
+                            <select id="bulk-add-action-selector" style="width: 100%; margin-bottom: 5px;">
+                                <option value="">-- Choose Action --</option>
+                                <option value="reset_schema" style="color: red;">❌ Reset/Clear All Schemas</option>
+                                <option value="llm_targeting">✨ Generate LLM Targeting</option>
+                                <optgroup label="Add Schema">
+                                    <?php foreach ($schema_definitions as $key => $def): ?>
+                                        <option value="schema:<?php echo esc_attr($key); ?>">Schema:
+                                            <?php echo esc_html($def['label']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </optgroup>
+                            </select>
+                            <button id="btn-add-to-queue" class="button button-secondary" style="width: 100%;">+ Add to
+                                Queue</button>
+                        </div>
+
+                        <hr>
+
+                        <div style="margin-top: 20px;">
+                            <button id="btn-run-bulk" class="button button-primary button-large" style="width: 100%;" disabled>
+                                ▶ Run Bulk Process
+                            </button>
+                        </div>
+
+                        <!-- Progress -->
+                        <div id="bulk-progress-container" style="display:none; margin-top: 20px;">
+                            <p><strong>Total Progress:</strong> <span id="bulk-counter">0/0</span></p>
+                            <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
+                                <div id="bulk-progress-bar"
+                                    style="width: 0%; height: 100%; background: #0073aa; transition: width 0.3s;"></div>
+                            </div>
+                            <textarea id="bulk-log"
+                                style="width: 100%; height: 200px; margin-top: 10px; font-family: monospace; font-size: 11px;"
+                                readonly></textarea>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            jQuery(document).ready(function ($) {
+                var actionQueue = [];
+                var chroma_nonce = '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>';
+
+                // Add to Queue
+                $('#btn-add-to-queue').on('click', function (e) {
+                    e.preventDefault();
+                    var val = $('#bulk-add-action-selector').val();
+                    var label = $('#bulk-add-action-selector option:selected').text();
+
+                    if (!val) return;
+
+                    var actionObj = { id: Date.now(), type: '', label: label };
+                    if (val === 'llm_targeting') {
+                        actionObj.type = 'llm_targeting';
+                    } else if (val === 'reset_schema') {
+                        actionObj.type = 'reset';
+                    } else if (val.startsWith('schema:')) {
+                        actionObj.type = 'schema';
+                        actionObj.schemaType = val.split(':')[1];
+                    }
+
+                    actionQueue.push(actionObj);
+                    renderQueue();
+                });
+
+                // Remove from Queue
+                $(document).on('click', '.remove-queue-item', function (e) {
+                    e.preventDefault();
+                    var id = $(this).data('id');
+                    actionQueue = actionQueue.filter(function (item) { return item.id !== id; });
+                    renderQueue();
+                });
+
+                function renderQueue() {
+                    var container = $('#bulk-action-queue');
+                    container.empty();
+
+                    if (actionQueue.length === 0) {
+                        container.html('<p id="queue-empty-msg" style="color: #999; font-style: italic; text-align: center; margin: 0;">Queue is empty.</p>');
+                        $('#btn-run-bulk').prop('disabled', true);
+                        return;
+                    }
+
+                    $('#btn-run-bulk').prop('disabled', false);
+
+                    $.each(actionQueue, function (i, item) {
+                        var html = '<div style="background: #fff; border: 1px solid #ddd; padding: 5px 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">';
+                        html += '<span>' + (i + 1) + '. ' + item.label + '</span>';
+                        html += '<a href="#" class="remove-queue-item" data-id="' + item.id + '" style="color: #d63638; text-decoration: none;">&times;</a>';
+                        html += '</div>';
+                        container.append(html);
+                    });
+                }
+
+                // Select All
+                $('#cb-select-all-bulk').on('change', function () {
+                    $('input[name="bulk_post[]"]').prop('checked', $(this).is(':checked'));
+                });
+
+                // Run Process
+                $('#btn-run-bulk').on('click', function (e) {
+                    e.preventDefault();
+
+                    var posts = [];
+                    $('input[name="bulk_post[]"]:checked').each(function () {
+                        posts.push($(this).val());
+                    });
+
+                    if (posts.length === 0) {
+                        alert('Please select at least one post.');
+                        return;
+                    }
+
+                    if (actionQueue.length === 0) {
+                        alert('Please add at least one action to the queue.');
+                        return;
+                    }
+
+                    if (!confirm('Run ' + actionQueue.length + ' actions on ' + posts.length + ' posts? This may take a while.')) {
+                        return;
+                    }
+
+                    var total = posts.length;
+                    var processed = 0;
+
+                    // Reset UI
+                    $('#bulk-progress-container').show();
+                    $('#bulk-progress-bar').css('width', '0%');
+                    $('#bulk-counter').text('0/' + total);
+                    $('#bulk-log').val('--- Starting Batch Process ---\n');
+                    $(this).prop('disabled', true);
+
+                    // Recursive Worker
+                    function processNextPost() {
+                        if (posts.length === 0) {
+                            $('#bulk-log').val($('#bulk-log').val() + '✅ All Posts Completed!\n');
+                            $('#btn-run-bulk').prop('disabled', false);
+                            alert('Batch Processing Complete!');
+                            return;
+                        }
+
+                        var pid = posts.shift();
+                        var rowStatus = $('#status-' + pid);
+                        rowStatus.html('<span class="dashicons dashicons-update" style="color: blue; animation: spin 2s infinite linear;"></span>');
+
+                        log('Processing Post ID: ' + pid + '...');
+
+                        // Process Actions sequentially for this post
+                        var currentActions = [...actionQueue]; // Copy
+
+                        function processNextAction() {
+                            if (currentActions.length === 0) {
+                                // Post Done
+                                processed++;
+                                var pct = Math.round((processed / total) * 100);
+                                $('#bulk-progress-bar').css('width', pct + '%');
+                                $('#bulk-counter').text(processed + '/' + total);
+                                rowStatus.html('<span class="dashicons dashicons-yes" style="color: green;"></span>');
+                                log('> Done with Post ID: ' + pid);
+                                processNextPost();
+                                return;
+                            }
+
+                            var action = currentActions.shift();
+                            log('> Running: ' + action.label + '...');
+
+                            var ajaxAction = '';
+                            var payload = {
+                                post_id: pid,
+                                auto_save: 'true',
+                                nonce: chroma_nonce
+                            };
+
+                            if (action.type === 'schema') {
+                                payload.action = 'chroma_generate_schema';
+                                payload.schema_type = action.schemaType;
+                            } else if (action.type === 'reset') {
+                                payload.action = 'chroma_reset_post_schema';
+                            } else {
+                                payload.action = 'chroma_generate_llm_targeting';
+                            }
+
+                            $.post(ajaxurl, payload, function (response) {
+                                if (response.success) {
+                                    log('  ✓ Success');
+                                } else {
+                                    log('  ❌ Failed: ' + (response.data.message || 'Unknown'));
+                                }
+                                processNextAction();
+                            }).fail(function () {
+                                log('  ❌ Network Error');
+                                processNextAction(); // Continue anyway
+                            });
+                        }
+
+                        processNextAction();
+                    }
+
+                    function log(msg) {
+                        var area = $('#bulk-log');
+                        area.val(area.val() + msg + '\n');
+                        area.scrollTop(area[0].scrollHeight);
+                    }
+
+                    processNextPost();
+                });
+            });
+        </script>
+        <?php
     }
 }

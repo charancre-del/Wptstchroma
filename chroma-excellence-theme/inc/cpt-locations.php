@@ -301,6 +301,7 @@ function chroma_render_location_custom_fields_meta_box($post)
 	$latitude = get_post_meta($post->ID, 'location_latitude', true);
 	$longitude = get_post_meta($post->ID, 'location_longitude', true);
 	$service_areas = get_post_meta($post->ID, 'location_service_areas', true);
+	$gmb_url = get_post_meta($post->ID, 'location_gmb_url', true);
 	?>
 	<style>
 		.chroma-meta-field {
@@ -602,7 +603,14 @@ function chroma_render_location_custom_fields_meta_box($post)
 	</div>
 
 	<div class="chroma-meta-section">
-		<h4><?php _e('Google Maps', 'chroma-excellence'); ?></h4>
+		<h4><?php _e('Google Maps & GMB', 'chroma-excellence'); ?></h4>
+
+		<div class="chroma-meta-field">
+			<label for="location_gmb_url"><?php _e('Google My Business URL', 'chroma-excellence'); ?></label>
+			<input type="url" id="location_gmb_url" name="location_gmb_url"
+				value="<?php echo esc_attr($gmb_url); ?>" placeholder="https://maps.google.com/?cid=..." />
+			<small><?php _e('Direct URL to your Google My Business listing. Used by AI to enhance content generation.', 'chroma-excellence'); ?></small>
+		</div>
 
 		<div class="chroma-meta-field">
 			<label for="location_maps_embed"><?php _e('Google Maps Embed Code', 'chroma-excellence'); ?></label>
@@ -726,17 +734,35 @@ function chroma_save_location_custom_fields($post_id)
 		'location_service_areas',
 		'location_special_programs',
 		'location_faq_items',
+		'location_gmb_url',
 	);
 
 	foreach ($fields as $field) {
 		if (isset($_POST[$field])) {
 			$value = wp_unslash($_POST[$field]);
 			// Sanitize based on field type
-			if (in_array($field, array('location_description', 'location_director_bio', 'location_maps_embed', 'location_school_pickups', 'location_seo_content_text', 'location_service_areas', 'location_hero_review_text', 'location_faq_items', 'location_hero_gallery', 'location_virtual_tour_embed'))) {
+			if (in_array($field, array('location_description', 'location_director_bio', 'location_school_pickups', 'location_seo_content_text', 'location_service_areas', 'location_hero_review_text', 'location_faq_items', 'location_hero_gallery'))) {
 				$value = sanitize_textarea_field($value);
+			} elseif ($field === 'location_maps_embed' || $field === 'location_virtual_tour_embed') {
+				// Allow iframes and scripts for embeds
+				$allowed_tags = wp_kses_allowed_html('post');
+				$allowed_tags['iframe'] = array(
+					'src' => true,
+					'width' => true,
+					'height' => true,
+					'frameborder' => true,
+					'allowfullscreen' => true,
+					'allow' => true, 'loading' => true,
+					'style' => true,
+					'class' => true,
+					'title' => true,
+					'referrerpolicy' => true
+				);
+				$allowed_tags['script'] = array('src' => true, 'type' => true, 'async' => true, 'defer' => true);
+				$value = wp_kses($value, $allowed_tags);
 			} elseif ($field === 'location_email') {
 				$value = sanitize_email($value);
-			} elseif ($field === 'location_tour_booking_link') {
+			} elseif ($field === 'location_tour_booking_link' || $field === 'location_gmb_url') {
 				$value = esc_url_raw($value);
 			} else {
 				$value = sanitize_text_field($value);
