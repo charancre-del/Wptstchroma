@@ -40,7 +40,7 @@ if (!$tour_cta) {
         </div>
 
         <!-- Full-Width Form Container -->
-        <div class="bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 overflow-hidden p-8 md:p-10">
+        <div class="bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 overflow-hidden p-4 md:p-6">
             <?php
             if (shortcode_exists('chroma_tour_form')) {
                 echo do_shortcode('[chroma_tour_form]');
