@@ -115,6 +115,36 @@ add_action('init', 'chroma_remove_legacy_assets');
 
 
 /**
+ * Add CORS Headers for Font Files
+ * Fixes: Cross-origin font loading when site is accessed via www vs non-www
+ */
+function chroma_add_cors_headers()
+{
+    // Only add headers for font file requests
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+
+    if (preg_match('/\.(woff2?|ttf|otf|eot)$/i', $request_uri)) {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, OPTIONS');
+        header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
+    }
+}
+add_action('send_headers', 'chroma_add_cors_headers');
+
+/**
+ * Add CORS headers to font files served by WordPress
+ * This filter adds headers when fonts are served through WordPress
+ */
+function chroma_cors_font_headers($headers, $path)
+{
+    if (preg_match('/\.(woff2?|ttf|otf|eot)$/i', $path)) {
+        $headers['Access-Control-Allow-Origin'] = '*';
+    }
+    return $headers;
+}
+add_filter('wp_get_attachment_headers', 'chroma_cors_font_headers', 10, 2);
+
+/**
  * Performance Optimizations - Phase 1 (Safe Mode)
  * Added: [Current Date]
  */
