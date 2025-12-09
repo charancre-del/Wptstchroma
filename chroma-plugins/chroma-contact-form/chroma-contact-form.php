@@ -380,7 +380,9 @@ function chroma_contact_form_shortcode()
         <div class="chroma-ghl-iframe-container" style="min-height: 924px;">
             <iframe src="https://api.leadconnectorhq.com/widget/form/ibinKhrBmF0n4S5tFcz6"
                 style="width:100%;height:100%;border:none;border-radius:3px;min-height:924px;"
-                id="inline-ibinKhrBmF0n4S5tFcz6" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
+                id="inline-ibinKhrBmF0n4S5tFcz6" 
+                loading="eager"
+                data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
                 data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
                 data-deactivation-type="neverDeactivate" data-deactivation-value=""
                 data-form-name="Contact Us- Chroma Early Learning" data-height="924"
