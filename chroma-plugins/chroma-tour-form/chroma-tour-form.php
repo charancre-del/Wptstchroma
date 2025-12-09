@@ -251,7 +251,7 @@ function chroma_handle_tour_submission()
     $payload['formId'] = 'JpecxfWJrxyWE7Ufdtkd';
     $payload['locationId'] = 'euN4JvLvKNYTYh4Xyh3p';
     $payload['companyId'] = 'aXTQYHsTlryLiFQng6a9'; // Critical missing field
-    $payload['traceId'] = '2eca4662-e2c9-4e6d-b6c5-f162afafbf48'; // From source config
+    $payload['traceId'] = '48e8401e-b945-440e-889d-210e75758ee7'; // Updated from V2 source
     $payload['country'] = 'US';
     $payload['inputType'] = 'form_builder';
 
