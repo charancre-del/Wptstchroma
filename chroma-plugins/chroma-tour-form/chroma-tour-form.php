@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Chroma Tour Form
  * Description: Native tour request form with dynamic LeadConnector options and direct API submission.
- * Version: 2.0.0
+ * Version: 2.0.1
  * Author: Chroma Development Team
  * Text Domain: chroma-tour-form
  */
@@ -49,31 +49,6 @@ function chroma_tour_get_dynamic_options()
     );
 
     // Extract Ages: ID tjcMDuffDYLzvezpnxly
-    // The rendered HTML structure for multiselect often puts options in a hidden list or JS data
-    // We try to scrape rendered <li> elements if they exist in the static HTML response.
-    // NOTE: GHL forms are largely JS rendered. If static HTML doesn't contain options, we might need to parse the JSON config.
-    // Let's check for the window.__NUXT__ or similar data if list items are missing.
-
-    // Nuxt Data Parsing Strategy (More reliable for GHL)
-    // We look for the JSON blob inside <script>window.__NUXT__=...</script>
-    $scripts = $dom->getElementsByTagName('script');
-    $nuxt_json = '';
-
-    foreach ($scripts as $script) {
-        if (strpos($script->nodeValue, 'window.__NUXT__') !== false) {
-            $nuxt_json = $script->nodeValue;
-            break;
-        }
-    }
-
-    // Fallback: If we can't parse Nuxt easily, try regex on the raw HTML for the specific list items
-    // Since complex JSON parsing from broken JS strings is risky in PHP, we'll try regex for the Multiselect options
-
-    // Regex for Ages
-    // Looking for patterns like: "label":"Infant" or <span>Infant</span>
-    // But specific to the field ID.
-    // Let's use specific IDs found in source: listbox-tjcMDuffDYLzvezpnxly
-
     $age_nodes = $xpath->query('//ul[contains(@id, "tjcMDuffDYLzvezpnxly")]//li//span[@class="multiselect__option" or contains(@class, "multiselect__option--highlight")]');
     if ($age_nodes->length > 0) {
         foreach ($age_nodes as $node) {
@@ -97,7 +72,7 @@ function chroma_tour_get_dynamic_options()
             }
         }
     } else {
-        // Fallback defaults if scraping fails (Partial list)
+        // Fallback defaults if scraping fails
         $options['locations'] = array('1205 Upper Burris Rd, Canton, GA 30114, USA');
     }
 
@@ -303,8 +278,8 @@ function chroma_handle_tour_submission()
         }
     }
 
-    // Submit to GHL
-    $response = wp_remote_post('https://backend.leadconnectorhq.com/forms/submit', array(
+    // Submit to GHL (try services. subdomain if backend. fails)
+    $response = wp_remote_post('https://services.leadconnectorhq.com/forms/submit', array(
         'body' => wp_json_encode($payload),
         'headers' => array('Content-Type' => 'application/json'),
         'timeout' => 20
@@ -330,13 +305,19 @@ function chroma_handle_tour_submission()
 
         wp_safe_redirect(add_query_arg('tour_sent', '1', $redirect_target));
     } else {
-        // Log error and redirect with error flag
+        // DEBUG: Die with detailed info
+        echo '<div style="background:#f00; color:#fff; padding:20px; text-align:left;">';
+        echo '<h1>Submission Failed</h1>';
+        echo '<p>Please report this error:</p>';
+        echo '<pre>';
         if (is_wp_error($response)) {
-            error_log('Tour Form Error: ' . $response->get_error_message());
+            echo 'WP Error: ' . $response->get_error_message();
         } else {
-            error_log('Tour Form Error: ' . wp_remote_retrieve_body($response));
+            echo 'Status Code: ' . wp_remote_retrieve_response_code($response) . "\n";
+            echo 'Response Body: ' . esc_html(wp_remote_retrieve_body($response));
         }
-        wp_safe_redirect(add_query_arg(array('tour_sent' => '0', 'error' => 'api_fail'), $redirect_target));
+        echo '</pre></div>';
+        exit;
     }
 
     exit;
