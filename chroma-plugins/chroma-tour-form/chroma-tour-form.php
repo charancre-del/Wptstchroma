@@ -270,7 +270,9 @@ function chroma_handle_tour_submission()
 
     $payload = array();
     $payload['formId'] = 'JpecxfWJrxyWE7Ufdtkd';
-    $payload['locationId'] = 'euN4JvLvKNYTYh4Xyh3p'; // Correct UUID from source (index 82 was just a pointer)
+    $payload['locationId'] = 'euN4JvLvKNYTYh4Xyh3p';
+    $payload['companyId'] = 'aXTQYHsTlryLiFQng6a9'; // Critical missing field
+    $payload['traceId'] = '2eca4662-e2c9-4e6d-b6c5-f162afafbf48'; // From source config
     $payload['country'] = 'US';
     $payload['inputType'] = 'form_builder';
 
