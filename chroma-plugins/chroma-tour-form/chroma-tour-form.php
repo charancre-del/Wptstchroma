@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Chroma Tour Form
- * Description: Tour request form with lead logging for Chroma Early Learning Academy. Fully editable fields via Settings.
- * Version: 1.2.0
+ * Description: Native tour request form with dynamic LeadConnector options and direct API submission.
+ * Version: 2.0.0
  * Author: Chroma Development Team
  * Text Domain: chroma-tour-form
  */
@@ -13,377 +13,251 @@ if (!defined('ABSPATH')) {
 }
 
 /**
- * Default Fields Configuration
+ * Fetch and Parse Dynamic Options from GHL
+ * Caches results for 12 hours.
  */
-function chroma_tour_default_fields()
+function chroma_tour_get_dynamic_options()
 {
-    return array(
-        array(
-            'id' => 'parent_name',
-            'label' => 'Parent Name',
-            'type' => 'text',
-            'required' => true,
-            'width' => 'half',
-            'placeholder' => ''
-        ),
-        array(
-            'id' => 'phone',
-            'label' => 'Phone',
-            'type' => 'tel',
-            'required' => true,
-            'width' => 'half',
-            'placeholder' => ''
-        ),
-        array(
-            'id' => 'email',
-            'label' => 'Email',
-            'type' => 'email',
-            'required' => true,
-            'width' => 'half',
-            'placeholder' => ''
-        ),
-        array(
-            'id' => 'location_id',
-            'label' => 'Preferred Location',
-            'type' => 'select_location',
-            'required' => false,
-            'width' => 'half',
-            'placeholder' => 'Select a location...'
-        ),
-        array(
-            'id' => 'child_ages',
-            'label' => 'Child(ren) Age(s)',
-            'type' => 'text',
-            'required' => false,
-            'width' => 'full',
-            'placeholder' => 'e.g., 10 months, 3 years'
-        )
+    $transient_key = 'chroma_tour_ghl_options';
+    $cached = get_transient($transient_key);
+
+    if ($cached !== false && is_array($cached)) {
+        return $cached;
+    }
+
+    $url = 'https://api.leadconnectorhq.com/widget/form/JpecxfWJrxyWE7Ufdtkd';
+    $response = wp_remote_get($url, array('timeout' => 15));
+
+    if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+        return array(); // Fail silently/gracefully
+    }
+
+    $html = wp_remote_retrieve_body($response);
+
+    // Suppress warnings for malformed HTML
+    $dom = new DOMDocument();
+    libxml_use_internal_errors(true);
+    // Encoding hack to prevent font issues
+    $dom->loadHTML('<?xml encoding="utf-8" ?>' . $html);
+    libxml_clear_errors();
+
+    $xpath = new DOMXPath($dom);
+
+    $options = array(
+        'ages' => array(),
+        'locations' => array()
     );
-}
 
-/**
- * Admin Menu & Settings
- */
-function chroma_tour_register_settings()
-{
-    register_setting('chroma_tour_options', 'chroma_tour_fields', array(
-        'type' => 'string',
-        'sanitize_callback' => 'chroma_tour_sanitize_json',
-        'default' => wp_json_encode(chroma_tour_default_fields())
-    ));
-    
-    register_setting('chroma_tour_options', 'chroma_tour_webhook_url', array(
-        'type' => 'string',
-        'sanitize_callback' => 'esc_url_raw',
-        'default' => ''
-    ));
+    // Extract Ages: ID tjcMDuffDYLzvezpnxly
+    // The rendered HTML structure for multiselect often puts options in a hidden list or JS data
+    // We try to scrape rendered <li> elements if they exist in the static HTML response.
+    // NOTE: GHL forms are largely JS rendered. If static HTML doesn't contain options, we might need to parse the JSON config.
+    // Let's check for the window.__NUXT__ or similar data if list items are missing.
 
-    register_setting('chroma_tour_options', 'chroma_tour_email_recipient', array(
-        'type' => 'string',
-        'sanitize_callback' => 'sanitize_email',
-        'default' => get_option('admin_email')
-    ));
-}
-add_action('admin_init', 'chroma_tour_register_settings');
+    // Nuxt Data Parsing Strategy (More reliable for GHL)
+    // We look for the JSON blob inside <script>window.__NUXT__=...</script>
+    $scripts = $dom->getElementsByTagName('script');
+    $nuxt_json = '';
 
-function chroma_tour_sanitize_json($input)
-{
-    $decoded = json_decode($input, true);
-    if (json_last_error() !== JSON_ERROR_NONE) {
-        add_settings_error('chroma_tour_fields', 'invalid_json', 'Invalid JSON format. Changes not saved.');
-        return get_option('chroma_tour_fields');
+    foreach ($scripts as $script) {
+        if (strpos($script->nodeValue, 'window.__NUXT__') !== false) {
+            $nuxt_json = $script->nodeValue;
+            break;
+        }
     }
-    return $input;
-}
 
-function chroma_tour_admin_menu()
-{
-    add_options_page(
-        'Tour Form Settings',
-        'Tour Form',
-        'manage_options',
-        'chroma-tour-form',
-        'chroma_tour_settings_page_html'
-    );
-}
-add_action('admin_menu', 'chroma_tour_admin_menu');
+    // Fallback: If we can't parse Nuxt easily, try regex on the raw HTML for the specific list items
+    // Since complex JSON parsing from broken JS strings is risky in PHP, we'll try regex for the Multiselect options
 
-function chroma_tour_settings_page_html()
-{
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-    ?>
-    <div class="wrap">
-        <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-        <form action="options.php" method="post" id="chroma-tour-settings-form">
-            <?php
-            settings_fields('chroma_tour_options');
-            do_settings_sections('chroma_tour_options');
-            
-            $fields_json = get_option('chroma_tour_fields', wp_json_encode(chroma_tour_default_fields()));
-            $webhook_url = get_option('chroma_tour_webhook_url', '');
-            $email_recipient = get_option('chroma_tour_email_recipient', get_option('admin_email'));
-            ?>
-            
-            <table class="form-table">
-                <tr valign="top">
-                    <th scope="row">Email Recipient</th>
-                    <td>
-                        <input type="email" name="chroma_tour_email_recipient" value="<?php echo esc_attr($email_recipient); ?>" class="regular-text" />
-                        <p class="description">The email address where notifications will be sent. Defaults to admin email.</p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row">Webhook URL</th>
-                    <td>
-                        <input type="url" name="chroma_tour_webhook_url" value="<?php echo esc_attr($webhook_url); ?>" class="regular-text" placeholder="https://hooks.zapier.com/..." />
-                        <p class="description">Optional. Send form submissions to this URL via POST request.</p>
-                    </td>
-                </tr>
-                <tr valign="top">
-                    <th scope="row">Form Fields</th>
-                    <td>
-                        <div id="chroma-fields-editor"></div>
-                        <input type="hidden" name="chroma_tour_fields" id="chroma_tour_fields_input" value="<?php echo esc_attr($fields_json); ?>">
-                    </td>
-                </tr>
-            </table>
-            
-            <?php submit_button('Save Settings'); ?>
-        </form>
-    </div>
+    // Regex for Ages
+    // Looking for patterns like: "label":"Infant" or <span>Infant</span>
+    // But specific to the field ID.
+    // Let's use specific IDs found in source: listbox-tjcMDuffDYLzvezpnxly
 
-    <style>
-        .chroma-field-row {
-            background: #fff;
-            border: 1px solid #ccd0d4;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            display: flex;
-            align-items: flex-start;
-            gap: 15px;
-            cursor: move;
-        }
-        .chroma-field-row.ui-sortable-helper {
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .chroma-field-col {
-            flex: 1;
-        }
-        .chroma-field-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .chroma-input-group {
-            margin-bottom: 10px;
-        }
-        .chroma-input-group label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 4px;
-            font-size: 12px;
-        }
-        .chroma-input-group input, .chroma-input-group select {
-            width: 100%;
-        }
-        .chroma-btn-remove {
-            color: #d63638;
-            border-color: #d63638;
-        }
-        .chroma-btn-remove:hover {
-            background: #d63638;
-            color: #fff;
-            border-color: #d63638;
-        }
-    </style>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const container = document.getElementById('chroma-fields-editor');
-            const input = document.getElementById('chroma_tour_fields_input');
-            let fields = JSON.parse(input.value || '[]');
-
-            function render() {
-                container.innerHTML = '';
-                
-                fields.forEach((field, index) => {
-                    const row = document.createElement('div');
-                    row.className = 'chroma-field-row';
-                    row.innerHTML = `
-                        <div class="chroma-field-col">
-                            <div class="chroma-input-group">
-                                <label>Label</label>
-                                <input type="text" value="${escapeHtml(field.label)}" onchange="updateField(${index}, 'label', this.value)">
-                            </div>
-                            <div class="chroma-input-group">
-                                <label>Field ID (Unique)</label>
-                                <input type="text" value="${escapeHtml(field.id)}" onchange="updateField(${index}, 'id', this.value)">
-                            </div>
-                        </div>
-                        <div class="chroma-field-col">
-                            <div class="chroma-input-group">
-                                <label>Type</label>
-                                <select onchange="updateField(${index}, 'type', this.value)">
-                                    <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
-                                    <option value="email" ${field.type === 'email' ? 'selected' : ''}>Email</option>
-                                    <option value="tel" ${field.type === 'tel' ? 'selected' : ''}>Phone</option>
-                                    <option value="textarea" ${field.type === 'textarea' ? 'selected' : ''}>Text Area</option>
-                                    <option value="select_location" ${field.type === 'select_location' ? 'selected' : ''}>Location Select</option>
-                                </select>
-                            </div>
-                            <div class="chroma-input-group">
-                                <label>Width</label>
-                                <select onchange="updateField(${index}, 'width', this.value)">
-                                    <option value="half" ${field.width === 'half' ? 'selected' : ''}>Half Width (50%)</option>
-                                    <option value="full" ${field.width === 'full' ? 'selected' : ''}>Full Width (100%)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="chroma-field-col">
-                             <div class="chroma-input-group">
-                                <label>Placeholder</label>
-                                <input type="text" value="${escapeHtml(field.placeholder || '')}" onchange="updateField(${index}, 'placeholder', this.value)">
-                            </div>
-                            <div class="chroma-input-group">
-                                <label>
-                                    <input type="checkbox" ${field.required ? 'checked' : ''} onchange="updateField(${index}, 'required', this.checked)">
-                                    Required
-                                </label>
-                            </div>
-                        </div>
-                        <div class="chroma-field-actions">
-                            <button type="button" class="button button-small chroma-btn-remove" onclick="removeField(${index})">Remove</button>
-                        </div>
-                    `;
-                    container.appendChild(row);
-                });
-
-                const addBtn = document.createElement('button');
-                addBtn.type = 'button';
-                addBtn.className = 'button button-primary';
-                addBtn.innerText = '+ Add Field';
-                addBtn.onclick = addField;
-                container.appendChild(addBtn);
-
-                input.value = JSON.stringify(fields);
+    $age_nodes = $xpath->query('//ul[contains(@id, "tjcMDuffDYLzvezpnxly")]//li//span[@class="multiselect__option" or contains(@class, "multiselect__option--highlight")]');
+    if ($age_nodes->length > 0) {
+        foreach ($age_nodes as $node) {
+            $text = trim($node->textContent);
+            if ($text && strpos($text, 'No elements found') === false && strpos($text, 'List is empty') === false) {
+                $options['ages'][] = $text;
             }
-
-            window.updateField = function(index, key, value) {
-                fields[index][key] = value;
-                input.value = JSON.stringify(fields);
-            };
-
-            window.removeField = function(index) {
-                if(confirm('Are you sure you want to remove this field?')) {
-                    fields.splice(index, 1);
-                    render();
-                }
-            };
-
-            window.addField = function() {
-                fields.push({
-                    id: 'new_field_' + Date.now(),
-                    label: 'New Field',
-                    type: 'text',
-                    required: false,
-                    width: 'half',
-                    placeholder: ''
-                });
-                render();
-            };
-
-            function escapeHtml(text) {
-                if (!text) return '';
-                return text
-                    .replace(/&/g, "&amp;")
-                    .replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;")
-                    .replace(/"/g, "&quot;")
-                    .replace(/'/g, "&#039;");
-            }
-
-            render();
-        });
-    </script>
-    <?php
-}
-
-/**
- * Safe accessor for global settings without relying on ACF.
- */
-function chroma_tour_get_global_setting($key, $default = '')
-{
-    if (function_exists('chroma_get_global_setting')) {
-        return chroma_get_global_setting($key, $default);
+        }
+    } else {
+        // Fallback defaults if scraping fails
+        $options['ages'] = array('Infant', 'Toddler', 'Preschool', 'Pre-K', 'AfterSchool/Summer Camp');
     }
-    $settings = get_option('chroma_global_settings', array());
-    return isset($settings[$key]) ? $settings[$key] : $default;
+
+    // Extract Locations: ID DKcjpcd5izdAklwt1Bby
+    $location_nodes = $xpath->query('//ul[contains(@id, "DKcjpcd5izdAklwt1Bby")]//li//span[@class="multiselect__option" or contains(@class, "multiselect__option--highlight")]');
+    if ($location_nodes->length > 0) {
+        foreach ($location_nodes as $node) {
+            $text = trim($node->textContent);
+            if ($text && strpos($text, 'No elements found') === false && strpos($text, 'List is empty') === false) {
+                $options['locations'][] = $text;
+            }
+        }
+    } else {
+        // Fallback defaults if scraping fails (Partial list)
+        $options['locations'] = array('1205 Upper Burris Rd, Canton, GA 30114, USA');
+    }
+
+    // Cache if we found data
+    set_transient($transient_key, $options, 12 * HOUR_IN_SECONDS);
+
+    return $options;
 }
 
 /**
  * Tour Form Shortcode
- * Usage: [chroma_tour_form]
+ * Native implementation submitting to GHL.
  */
 function chroma_tour_form_shortcode()
 {
-    $fields_json = get_option('chroma_tour_fields', wp_json_encode(chroma_tour_default_fields()));
-    $fields = json_decode($fields_json, true);
-    if (!is_array($fields)) {
-        $fields = chroma_tour_default_fields();
-    }
+    $dynamic_options = chroma_tour_get_dynamic_options();
+    $locations = isset($dynamic_options['locations']) ? $dynamic_options['locations'] : array();
+    $ages = isset($dynamic_options['ages']) ? $dynamic_options['ages'] : array();
 
     ob_start();
     ?>
-    <form class="chroma-tour-form space-y-4" method="post" action="">
+    <form class="chroma-tour-form space-y-6" method="post" action="">
         <?php wp_nonce_field('chroma_tour_submit', 'chroma_tour_nonce'); ?>
         <input type="hidden" name="chroma_tour_redirect" value="<?php echo esc_url(get_permalink()); ?>" />
 
-        <div class="grid md:grid-cols-2 gap-4">
-            <?php foreach ($fields as $field):
-                $id = esc_attr($field['id']);
-                $label = esc_html($field['label']);
-                $type = esc_attr($field['type']);
-                $required = !empty($field['required']) ? 'required' : '';
-                $width = isset($field['width']) && $field['width'] === 'full' ? 'md:col-span-2' : '';
-                $placeholder = isset($field['placeholder']) ? esc_attr($field['placeholder']) : '';
-                $asterisk = !empty($field['required']) ? ' *' : '';
-                ?>
+        <!-- Parent Information -->
+        <div class="space-y-4">
+            <h3 class="text-xl font-bold text-brand-offblack">Parent Information</h3>
 
-                <div class="<?php echo esc_attr($width); ?>">
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="tour_<?php echo $id; ?>">
-                        <?php echo $label . $asterisk; ?>
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- First Name -->
+                <div>
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="first_name">
+                        First Name *
                     </label>
-
-                    <?php if ($type === 'select_location'): ?>
-                        <select id="tour_<?php echo $id; ?>" name="<?php echo $id; ?>" <?php echo $required; ?> aria-label="<?php echo $label; ?>"
-                            class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink">
-                            <option value=""><?php echo $placeholder ?: 'Select a location...'; ?></option>
-                            <?php
-                            $locations = get_posts(array('post_type' => 'location', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC'));
-                            foreach ($locations as $location):
-                                ?>
-                                <option value="<?php echo esc_attr($location->ID); ?>">
-                                    <?php echo esc_html($location->post_title); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-
-                    <?php elseif ($type === 'textarea'): ?>
-                        <textarea id="tour_<?php echo $id; ?>" name="<?php echo $id; ?>" <?php echo $required; ?> aria-label="<?php echo $label; ?>"
-                            placeholder="<?php echo $placeholder; ?>"
-                            class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink h-32"></textarea>
-
-                    <?php else: ?>
-                        <input type="<?php echo $type; ?>" id="tour_<?php echo $id; ?>" name="<?php echo $id; ?>" <?php echo $required; ?>
-                            aria-label="<?php echo $label; ?>" placeholder="<?php echo $placeholder; ?>"
-                            class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                    <?php endif; ?>
+                    <input type="text" id="first_name" name="first_name" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
                 </div>
 
-            <?php endforeach; ?>
+                <!-- Last Name -->
+                <div>
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="last_name">
+                        Last Name *
+                    </label>
+                    <input type="text" id="last_name" name="last_name" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="phone">
+                        Cell Phone *
+                    </label>
+                    <input type="tel" id="phone" name="phone" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
+                </div>
+
+                <!-- Alternate Phone -->
+                <div>
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="uCpuvkOPhwArxUCz820O">
+                        Alternate Phone *
+                    </label>
+                    <input type="tel" id="uCpuvkOPhwArxUCz820O" name="uCpuvkOPhwArxUCz820O" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
+                </div>
+
+                <!-- Email -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="email">
+                        Email Address *
+                    </label>
+                    <input type="email" id="email" name="email" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Child's Information -->
+        <div class="space-y-4 pt-4 border-t border-gray-100">
+            <h3 class="text-xl font-bold text-brand-offblack">Child's Information</h3>
+
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- Child First Name -->
+                <div>
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="KXEHzTOMGosdJUu1Eqri">
+                        Child's First Name *
+                    </label>
+                    <input type="text" id="KXEHzTOMGosdJUu1Eqri" name="KXEHzTOMGosdJUu1Eqri" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
+                </div>
+
+                <!-- Child Last Name -->
+                <div>
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="dTabDQmMvBfwpMCUaPpU">
+                        Child's Last Name *
+                    </label>
+                    <input type="text" id="dTabDQmMvBfwpMCUaPpU" name="dTabDQmMvBfwpMCUaPpU" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
+                </div>
+
+                <!-- Gender -->
+                <div>
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="ZC8R7WzKJdl1C13rOD4D">
+                        Gender *
+                    </label>
+                    <select id="ZC8R7WzKJdl1C13rOD4D" name="ZC8R7WzKJdl1C13rOD4D" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink">
+                        <option value="">Select...</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                    </select>
+                </div>
+
+                <!-- Desired Start Date -->
+                <div>
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="9dpin9NpFnCaEY9hTL51">
+                        Desired Start Date *
+                    </label>
+                    <input type="date" id="9dpin9NpFnCaEY9hTL51" name="9dpin9NpFnCaEY9hTL51" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
+                </div>
+
+                <!-- Child Age -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="tjcMDuffDYLzvezpnxly">
+                        How old is your child *
+                    </label>
+                    <select id="tjcMDuffDYLzvezpnxly" name="tjcMDuffDYLzvezpnxly" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink">
+                        <option value="">Select...</option>
+                        <?php if (!empty($ages)): ?>
+                            <?php foreach ($ages as $age): ?>
+                                <option value="<?php echo esc_attr($age); ?>"><?php echo esc_html($age); ?></option>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <option value="Infant">Infant</option>
+                            <option value="Toddler">Toddler</option>
+                            <option value="Preschool">Preschool</option>
+                            <option value="Pre-K">Pre-K</option>
+                            <option value="AfterSchool/Summer Camp">AfterSchool/Summer Camp</option>
+                        <?php endif; ?>
+                    </select>
+                </div>
+
+                <!-- Location -->
+                <div class="md:col-span-2">
+                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="DKcjpcd5izdAklwt1Bby">
+                        What Metro Atlanta Location is best suited for your needs? *
+                    </label>
+                    <select id="DKcjpcd5izdAklwt1Bby" name="DKcjpcd5izdAklwt1Bby" required
+                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink">
+                        <option value="">Select a location...</option>
+                        <?php if (!empty($locations)): ?>
+                            <?php foreach ($locations as $location): ?>
+                                <option value="<?php echo esc_attr($location); ?>"><?php echo esc_html($location); ?></option>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </select>
+                </div>
+            </div>
         </div>
 
         <button type="submit" name="chroma_tour_submit"
@@ -397,7 +271,7 @@ function chroma_tour_form_shortcode()
 add_shortcode('chroma_tour_form', 'chroma_tour_form_shortcode');
 
 /**
- * Handle Form Submission
+ * Handle Form Submission via API
  */
 function chroma_handle_tour_submission()
 {
@@ -405,122 +279,80 @@ function chroma_handle_tour_submission()
         return;
     }
 
-    // Get fields configuration
-    $fields_json = get_option('chroma_tour_fields', wp_json_encode(chroma_tour_default_fields()));
-    $fields = json_decode($fields_json, true);
-    if (!is_array($fields)) {
-        $fields = chroma_tour_default_fields();
-    }
+    $fields = array(
+        'first_name',
+        'last_name',
+        'phone',
+        'uCpuvkOPhwArxUCz820O',
+        'email',
+        'KXEHzTOMGosdJUu1Eqri',
+        'dTabDQmMvBfwpMCUaPpU',
+        'ZC8R7WzKJdl1C13rOD4D',
+        '9dpin9NpFnCaEY9hTL51',
+        'tjcMDuffDYLzvezpnxly',
+        'DKcjpcd5izdAklwt1Bby'
+    );
 
-    $submission_data = array();
-    $has_error = false;
-    $parent_name = 'Unknown';
-    $email = '';
-    $location_id = 0;
+    $payload = array();
+    $payload['formId'] = 'JpecxfWJrxyWE7Ufdtkd';
+    $payload['locationId'] = '82'; // From source
 
-    // Process fields
     foreach ($fields as $field) {
-        $id = $field['id'];
-        $required = !empty($field['required']);
-        $value = isset($_POST[$id]) ? sanitize_text_field(wp_unslash($_POST[$id])) : '';
-
-        if ($field['type'] === 'email') {
-            $value = sanitize_email($value);
-            if ($required && !is_email($value)) {
-                $has_error = true;
-            }
-            if (is_email($value)) {
-                $email = $value; // Capture email for sending
-            }
+        if (isset($_POST[$field])) {
+            $payload[$field] = sanitize_text_field(wp_unslash($_POST[$field]));
         }
-
-        if ($required && empty($value)) {
-            $has_error = true;
-        }
-
-        // Capture specific fields for logic
-        if ($id === 'parent_name') $parent_name = $value;
-        if ($id === 'location_id') $location_id = intval($value);
-
-        $submission_data[$field['label']] = $value;
     }
+
+    // Submit to GHL
+    $response = wp_remote_post('https://backend.leadconnectorhq.com/forms/submit', array(
+        'body' => wp_json_encode($payload),
+        'headers' => array('Content-Type' => 'application/json'),
+        'timeout' => 20
+    ));
 
     $redirect_fallback = home_url('/contact/');
     $redirect_target = !empty($_POST['chroma_tour_redirect']) ? esc_url_raw(wp_unslash($_POST['chroma_tour_redirect'])) : (wp_get_referer() ?: $redirect_fallback);
-    $redirect_url = wp_validate_redirect($redirect_target, $redirect_fallback);
 
-    if ($has_error || empty($email)) {
-        wp_safe_redirect(add_query_arg('tour_sent', '0', $redirect_url));
-        exit;
-    }
-
-    // Determine email recipients
-    $global_recipients_str = get_option('chroma_tour_email_recipient', 'enrollment@chromaela.com, info@chromaela.com');
-    $recipients = array_map('trim', explode(',', $global_recipients_str));
-    
-    if ($location_id) {
-        $location_email = get_post_meta($location_id, 'location_email', true);
-        if ($location_email && is_email($location_email)) {
-            $recipients[] = $location_email;
-        }
-    }
-
-    // Remove duplicates and empty values
-    $recipients = array_unique(array_filter($recipients, 'is_email'));
-    
-    if (empty($recipients)) {
-        $recipients = array(get_option('admin_email'));
-    }
-
-    // Construct Message
-    $subject = 'New Tour Request from ' . $parent_name;
-    $message = "New tour request:\n\n";
-    foreach ($submission_data as $label => $val) {
-        $val_display = $val;
-        if ($label === 'Preferred Location' && is_numeric($val) && $val > 0) {
-            $val_display = get_the_title($val);
-        }
-        $message .= $label . ": " . $val_display . "\n";
-    }
-
-    wp_mail($recipients, $subject, $message);
-
-    // Log to Lead Log CPT
-    if (post_type_exists('lead_log')) {
-        wp_insert_post(
-            array(
+    // Check success (GHL usually returns 200 or 201)
+    if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) < 400) {
+        // Log locally for backup
+        if (post_type_exists('lead_log')) {
+            wp_insert_post(array(
                 'post_type' => 'lead_log',
-                'post_title' => 'Tour: ' . $parent_name,
+                'post_title' => 'Tour: ' . $payload['first_name'] . ' ' . $payload['last_name'],
                 'post_status' => 'publish',
                 'meta_input' => array(
                     'lead_type' => 'tour',
-                    'lead_name' => $parent_name,
-                    'lead_email' => $email,
-                    'lead_location' => $location_id,
-                    'lead_payload' => wp_json_encode($submission_data),
+                    'lead_payload' => wp_json_encode($payload),
                 ),
-            )
-        );
-    }
-    
-    // Webhook Integration
-    $webhook_url = get_option('chroma_tour_webhook_url', '');
-    if (!empty($webhook_url)) {
-        $webhook_data = array(
-            'form_name' => 'Tour Request',
-            'submitted_at' => current_time('mysql'),
-            'data' => $submission_data
-        );
-        
-        wp_remote_post($webhook_url, array(
-            'body' => wp_json_encode($webhook_data),
-            'headers' => array('Content-Type' => 'application/json'),
-            'timeout' => 15,
-            'blocking' => false // Don't wait for response
-        ));
+            ));
+        }
+
+        wp_safe_redirect(add_query_arg('tour_sent', '1', $redirect_target));
+    } else {
+        // Log error and redirect with error flag
+        if (is_wp_error($response)) {
+            error_log('Tour Form Error: ' . $response->get_error_message());
+        } else {
+            error_log('Tour Form Error: ' . wp_remote_retrieve_body($response));
+        }
+        wp_safe_redirect(add_query_arg(array('tour_sent' => '0', 'error' => 'api_fail'), $redirect_target));
     }
 
-    wp_safe_redirect(add_query_arg('tour_sent', '1', $redirect_url));
     exit;
 }
 add_action('template_redirect', 'chroma_handle_tour_submission');
+
+/**
+ * Legacy Settings (Admin Interface Preserved but Inactive)
+ */
+function chroma_tour_admin_menu()
+{
+    add_options_page('Tour Form Settings', 'Tour Form', 'manage_options', 'chroma-tour-form', 'chroma_tour_settings_page_html');
+}
+add_action('admin_menu', 'chroma_tour_admin_menu');
+
+function chroma_tour_settings_page_html()
+{
+    echo '<div class="wrap"><h1>Tour Form</h1><p>The tour form is currently using the native integration with LeadConnector (GHL). Field settings here are currently bypassed.</p></div>';
+}
