@@ -130,14 +130,7 @@ function chroma_tour_form_shortcode()
                         class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
                 </div>
 
-                <!-- Alternate Phone -->
-                <div>
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="uCpuvkOPhwArxUCz820O">
-                        Alternate Phone *
-                    </label>
-                    <input type="tel" id="uCpuvkOPhwArxUCz820O" name="uCpuvkOPhwArxUCz820O" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                </div>
+
 
                 <!-- Email -->
                 <div class="md:col-span-2">
@@ -173,18 +166,7 @@ function chroma_tour_form_shortcode()
                         class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
                 </div>
 
-                <!-- Gender -->
-                <div>
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="ZC8R7WzKJdl1C13rOD4D">
-                        Gender *
-                    </label>
-                    <select id="ZC8R7WzKJdl1C13rOD4D" name="ZC8R7WzKJdl1C13rOD4D" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink">
-                        <option value="">Select...</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                    </select>
-                </div>
+
 
                 <!-- Desired Start Date -->
                 <div>
@@ -258,11 +240,8 @@ function chroma_handle_tour_submission()
         'first_name',
         'last_name',
         'phone',
-        'uCpuvkOPhwArxUCz820O',
-        'email',
         'KXEHzTOMGosdJUu1Eqri',
         'dTabDQmMvBfwpMCUaPpU',
-        'ZC8R7WzKJdl1C13rOD4D',
         '9dpin9NpFnCaEY9hTL51',
         'tjcMDuffDYLzvezpnxly',
         'DKcjpcd5izdAklwt1Bby'
@@ -278,14 +257,34 @@ function chroma_handle_tour_submission()
 
     foreach ($fields as $field) {
         if (isset($_POST[$field])) {
-            $payload[$field] = sanitize_text_field(wp_unslash($_POST[$field]));
+            $value = sanitize_text_field(wp_unslash($_POST[$field]));
+
+            // Strict Phone Formatting for GHL (E.164)
+            if ($field === 'phone' && !empty($value)) {
+                // Remove non-digits
+                $digits = preg_replace('/\D/', '', $value);
+                // If 10 digits, add +1
+                if (strlen($digits) === 10) {
+                    $value = '+1' . $digits;
+                } elseif (strlen($digits) === 11 && strpos($digits, '1') === 0) {
+                    $value = '+' . $digits;
+                }
+                // If incorrect length, sending as-is but it likely fails validation
+            }
+
+            $payload[$field] = $value;
         }
     }
 
     // Submit to GHL (Using backend. endpoint from source config)
     $response = wp_remote_post('https://backend.leadconnectorhq.com/forms/submit', array(
         'body' => wp_json_encode($payload),
-        'headers' => array('Content-Type' => 'application/json'),
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Referer' => 'https://api.leadconnectorhq.com/widget/form/JpecxfWJrxyWE7Ufdtkd',
+            'Origin' => 'https://api.leadconnectorhq.com',
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        ),
         'timeout' => 20
     ));
 
