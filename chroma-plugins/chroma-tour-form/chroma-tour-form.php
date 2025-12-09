@@ -270,8 +270,8 @@ function chroma_handle_tour_submission()
 
     $payload = array();
     $payload['formId'] = 'JpecxfWJrxyWE7Ufdtkd';
-    $payload['locationId'] = 82; // Integer from source
-    $payload['country'] = 'US'; // Added explicit country
+    $payload['locationId'] = 'euN4JvLvKNYTYh4Xyh3p'; // Correct UUID from source (index 82 was just a pointer)
+    $payload['country'] = 'US';
     $payload['inputType'] = 'form_builder';
 
     foreach ($fields as $field) {
