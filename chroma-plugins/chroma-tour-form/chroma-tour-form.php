@@ -240,6 +240,7 @@ function chroma_handle_tour_submission()
         'first_name',
         'last_name',
         'phone',
+        'email',
         'KXEHzTOMGosdJUu1Eqri',
         'dTabDQmMvBfwpMCUaPpU',
         '9dpin9NpFnCaEY9hTL51',
