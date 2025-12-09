@@ -95,13 +95,13 @@ function chroma_tour_form_shortcode()
         <div class="bg-white rounded-2xl shadow-soft p-6 md:p-8 border border-gray-100">
 
             <!-- GHL Iframe - Official Embed -->
-            <div class="chroma-ghl-iframe-container" style="min-height: 725px;">
+            <div class="chroma-ghl-iframe-container" style="min-height: 788px;">
                 <iframe src="https://api.leadconnectorhq.com/widget/form/JpecxfWJrxyWE7Ufdtkd"
-                    style="width:100%;height:100%;border:none;border-radius:3px;min-height:725px;"
+                    style="width:100%;height:100%;border:none;border-radius:3px;min-height:788px;"
                     id="inline-JpecxfWJrxyWE7Ufdtkd" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
                     data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
                     data-deactivation-type="neverDeactivate" data-deactivation-value=""
-                    data-form-name="VIRTUAL TOUR INFORMATION - Chroma Early Learning" data-height="725"
+                    data-form-name="VIRTUAL TOUR INFORMATION - Chroma Early Learning" data-height="788"
                     data-layout-iframe-id="inline-JpecxfWJrxyWE7Ufdtkd" data-form-id="JpecxfWJrxyWE7Ufdtkd"
                     title="VIRTUAL TOUR INFORMATION - Chroma Early Learning">
                 </iframe>
@@ -111,7 +111,7 @@ function chroma_tour_form_shortcode()
 
     <style>
         .chroma-tour-form-wrapper {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
         }
 
