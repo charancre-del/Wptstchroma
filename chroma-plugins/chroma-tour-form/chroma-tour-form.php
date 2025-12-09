@@ -339,6 +339,7 @@ function chroma_tour_form_shortcode()
     ?>
     <form class="chroma-tour-form space-y-4" method="post" action="">
         <?php wp_nonce_field('chroma_tour_submit', 'chroma_tour_nonce'); ?>
+        <input type="hidden" name="chroma_tour_redirect" value="<?php echo esc_url(get_permalink()); ?>" />
 
         <div class="grid md:grid-cols-2 gap-4">
             <?php foreach ($fields as $field):
@@ -445,7 +446,7 @@ function chroma_handle_tour_submission()
     }
 
     $redirect_fallback = home_url('/contact/');
-    $redirect_target = wp_get_referer() ?: $redirect_fallback;
+    $redirect_target = !empty($_POST['chroma_tour_redirect']) ? esc_url_raw(wp_unslash($_POST['chroma_tour_redirect'])) : (wp_get_referer() ?: $redirect_fallback);
     $redirect_url = wp_validate_redirect($redirect_target, $redirect_fallback);
 
     if ($has_error || empty($email)) {

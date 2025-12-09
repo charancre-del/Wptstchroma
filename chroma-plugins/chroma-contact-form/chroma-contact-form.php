@@ -370,6 +370,7 @@ function chroma_contact_form_shortcode()
     ?>
     <form class="chroma-contact-form space-y-6" method="post" action="">
         <?php wp_nonce_field('chroma_contact_submit', 'chroma_contact_nonce'); ?>
+        <input type="hidden" name="chroma_contact_redirect" value="<?php echo esc_url(get_permalink()); ?>" />
 
         <div class="grid md:grid-cols-2 gap-6">
             <?php foreach ($fields as $field):
@@ -491,7 +492,7 @@ function chroma_handle_contact_submission()
     }
 
     $redirect_fallback = home_url('/contact/');
-    $redirect_target = wp_get_referer() ?: $redirect_fallback;
+    $redirect_target = !empty($_POST['chroma_contact_redirect']) ? esc_url_raw(wp_unslash($_POST['chroma_contact_redirect'])) : (wp_get_referer() ?: $redirect_fallback);
     $redirect_url = wp_validate_redirect($redirect_target, $redirect_fallback);
 
     if ($has_error || empty($email)) {
