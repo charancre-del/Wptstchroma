@@ -27,7 +27,7 @@ if (!$tour_cta) {
 
         <!-- Two Column: Benefits + Form Side by Side -->
         <div
-            class="bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 overflow-hidden grid lg:grid-cols-[1fr,1.2fr]">
+            class="bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 overflow-hidden grid md:grid-cols-2">
 
             <!-- Left: Why Families Choose Chroma -->
             <div
