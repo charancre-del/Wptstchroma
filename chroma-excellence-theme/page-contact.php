@@ -62,74 +62,68 @@ $press_link_url = get_post_meta($page_id, 'contact_press_link_url', true) ?: '/n
 
 		<!-- Contact Grid -->
 		<section class="pb-24 bg-white">
-			<div class="max-w-6xl mx-auto px-4 lg:px-6">
-				<div
-					class="bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 overflow-hidden flex flex-col lg:flex-row">
+			<div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[1.8fr,1fr] gap-12">
 
-					<!-- Left: Info Sidebar (Narrow, Fixed Width) -->
-					<div
-						class="bg-gradient-to-br from-chroma-blue via-chroma-green to-chroma-yellow text-white p-6 lg:p-8 lg:w-80 flex-shrink-0">
-
-						<!-- Corporate Office -->
-						<div class="mb-6">
-							<h2 class="font-serif text-xl font-bold mb-3">
-								<?php echo esc_html($corporate_title); ?>
-							</h2>
-							<p class="text-white/90 text-sm leading-relaxed">
-								<?php
-								if (!empty($corporate_name)) {
-									echo esc_html($corporate_name) . '<br>';
-								}
-								echo nl2br(esc_html($corporate_address));
-								?>
-							</p>
-							<a href="mailto:info@chromaela.com"
-								class="text-white font-semibold text-sm mt-2 block hover:underline">
-								info@chromaela.com
-							</a>
-						</div>
-
-						<div class="h-px bg-white/20 w-full mb-6"></div>
-
-						<!-- Careers -->
-						<div class="mb-6">
-							<h2 class="font-serif text-xl font-bold mb-2">
-								<?php echo esc_html($careers_title); ?>
-							</h2>
-							<p class="text-white/90 text-sm mb-3">
-								<?php echo esc_html($careers_description); ?>
-							</p>
-							<a href="<?php echo esc_url($careers_link_url); ?>"
-								class="text-white font-semibold text-xs uppercase tracking-wider hover:underline flex items-center gap-2">
-								<?php echo esc_html($careers_link_text); ?>
-								<span>→</span>
-							</a>
-						</div>
-
-						<div class="h-px bg-white/20 w-full mb-6"></div>
-
-						<!-- Press Inquiries -->
-						<div>
-							<h2 class="font-serif text-xl font-bold mb-2">
-								<?php echo esc_html($press_title); ?>
-							</h2>
-							<p class="text-white/90 text-sm mb-3">
-								<?php echo esc_html($press_description); ?>
-							</p>
-							<a href="<?php echo esc_url($press_link_url); ?>"
-								class="text-white font-semibold text-xs uppercase tracking-wider hover:underline flex items-center gap-2">
-								<?php echo esc_html($press_link_text); ?>
-								<span>→</span>
-							</a>
-						</div>
-					</div>
-
-					<!-- Right: Form (Takes Remaining Space) -->
-					<div class="flex-1 p-4 lg:p-6 bg-brand-cream">
-						<?php echo do_shortcode('[chroma_contact_form]'); ?>
-					</div>
-
+				<!-- Form -->
+				<div class="bg-brand-cream p-10 rounded-[3rem] border border-brand-ink/5 shadow-soft">
+					<?php echo do_shortcode('[chroma_contact_form]'); ?>
 				</div>
+
+				<!-- Info -->
+				<div class="flex flex-col justify-center gap-10">
+					<!-- Corporate Office -->
+					<div>
+						<h2 class="font-serif text-2xl font-bold text-brand-ink mb-4">
+							<?php echo esc_html($corporate_title); ?>
+						</h2>
+						<p class="text-brand-ink/80 leading-relaxed">
+							<?php
+							if (!empty($corporate_name)) {
+								echo esc_html($corporate_name) . '<br>';
+							}
+							echo nl2br(esc_html($corporate_address));
+							?>
+						</p>
+						<a href="mailto:info@chromaela.com" class="text-chroma-blue font-bold mt-2 block">
+							info@chromaela.com
+						</a>
+					</div>
+
+					<div class="h-px bg-brand-ink/10 w-full"></div>
+
+					<!-- Careers -->
+					<div>
+						<h2 class="font-serif text-2xl font-bold text-brand-ink mb-4">
+							<?php echo esc_html($careers_title); ?>
+						</h2>
+						<p class="text-brand-ink/80 mb-4">
+							<?php echo esc_html($careers_description); ?>
+						</p>
+						<a href="<?php echo esc_url($careers_link_url); ?>"
+							class="text-chroma-red font-bold text-sm uppercase tracking-wider hover:text-chroma-blue flex items-center gap-2">
+							<?php echo esc_html($careers_link_text); ?>
+							<i class="fa-solid fa-arrow-right"></i>
+						</a>
+					</div>
+
+					<div class="h-px bg-brand-ink/10 w-full"></div>
+
+					<!-- Press Inquiries -->
+					<div>
+						<h2 class="font-serif text-2xl font-bold text-brand-ink mb-4">
+							<?php echo esc_html($press_title); ?>
+						</h2>
+						<p class="text-brand-ink/80 mb-4">
+							<?php echo esc_html($press_description); ?>
+						</p>
+						<a href="<?php echo esc_url($press_link_url); ?>"
+							class="text-chroma-green font-bold text-sm uppercase tracking-wider hover:text-chroma-blue flex items-center gap-2">
+							<?php echo esc_html($press_link_text); ?>
+							<i class="fa-solid fa-arrow-right"></i>
+						</a>
+					</div>
+				</div>
+
 			</div>
 		</section>
 
