@@ -93,11 +93,6 @@ function chroma_tour_form_shortcode()
     <div class="chroma-tour-form-wrapper">
         <!-- Theme-Matched Container -->
         <div class="bg-white rounded-2xl shadow-soft p-6 md:p-8 border border-gray-100">
-            <!-- Optional Header -->
-            <div class="text-center mb-6">
-                <h3 class="text-2xl font-bold text-brand-offblack mb-2">Schedule Your Tour</h3>
-                <p class="text-gray-600 text-sm">Fill out the form below and we'll be in touch shortly.</p>
-            </div>
 
             <!-- GHL Iframe - Official Embed -->
             <div class="chroma-ghl-iframe-container" style="min-height: 725px;">
@@ -116,7 +111,7 @@ function chroma_tour_form_shortcode()
 
     <style>
         .chroma-tour-form-wrapper {
-            max-width: 650px;
+            max-width: 900px;
             margin: 0 auto;
         }
 
