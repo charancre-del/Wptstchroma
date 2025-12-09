@@ -265,55 +265,6 @@ function chroma_handle_tour_submission()
         'ZC8R7WzKJdl1C13rOD4D',
         '9dpin9NpFnCaEY9hTL51',
         'tjcMDuffDYLzvezpnxly',
-        'DKcjpcd5izdAklwt1Bby'
-    );
-
-    $payload = array();
-    $payload['formId'] = 'JpecxfWJrxyWE7Ufdtkd';
-    $payload['locationId'] = '82'; // From source
-
-    foreach ($fields as $field) {
-        if (isset($_POST[$field])) {
-            $payload[$field] = sanitize_text_field(wp_unslash($_POST[$field]));
-        }
-    }
-
-    // Submit to GHL (try services. subdomain if backend. fails)
-    $response = wp_remote_post('https://services.leadconnectorhq.com/forms/submit', array(
-        'body' => wp_json_encode($payload),
-        'headers' => array('Content-Type' => 'application/json'),
-        'timeout' => 20
-    ));
-
-    $redirect_fallback = home_url('/contact/');
-    $redirect_target = !empty($_POST['chroma_tour_redirect']) ? esc_url_raw(wp_unslash($_POST['chroma_tour_redirect'])) : (wp_get_referer() ?: $redirect_fallback);
-
-    // Check success (GHL usually returns 200 or 201)
-    if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) < 400) {
-        // Log locally for backup
-        if (post_type_exists('lead_log')) {
-            wp_insert_post(array(
-                'post_type' => 'lead_log',
-                'post_title' => 'Tour: ' . $payload['first_name'] . ' ' . $payload['last_name'],
-                'post_status' => 'publish',
-                'meta_input' => array(
-                    'lead_type' => 'tour',
-                    'lead_payload' => wp_json_encode($payload),
-                ),
-            ));
-        }
-
-        wp_safe_redirect(add_query_arg('tour_sent', '1', $redirect_target));
-    } else {
-        // DEBUG: Die with detailed info
-        echo '<div style="background:#f00; color:#fff; padding:20px; text-align:left;">';
-        echo '<h1>Submission Failed</h1>';
-        echo '<p>Please report this error:</p>';
-        echo '<pre>';
-        if (is_wp_error($response)) {
-            echo 'WP Error: ' . $response->get_error_message();
-        } else {
-            echo 'Status Code: ' . wp_remote_retrieve_response_code($response) . "\n";
             echo 'Response Body: ' . esc_html(wp_remote_retrieve_body($response));
         }
         echo '</pre></div>';
