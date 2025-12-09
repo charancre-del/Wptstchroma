@@ -84,144 +84,54 @@ function chroma_tour_get_dynamic_options()
 
 /**
  * Tour Form Shortcode
- * Native implementation submitting to GHL.
+ * Uses official GHL iframe embed with theme-styled container overlay.
  */
 function chroma_tour_form_shortcode()
 {
-    $dynamic_options = chroma_tour_get_dynamic_options();
-    $locations = isset($dynamic_options['locations']) ? $dynamic_options['locations'] : array();
-    $ages = isset($dynamic_options['ages']) ? $dynamic_options['ages'] : array();
-
     ob_start();
     ?>
-    <form class="chroma-tour-form space-y-6" method="post" action="">
-        <?php wp_nonce_field('chroma_tour_submit', 'chroma_tour_nonce'); ?>
-        <input type="hidden" name="chroma_tour_redirect" value="<?php echo esc_url(get_permalink()); ?>" />
+    <div class="chroma-tour-form-wrapper">
+        <!-- Theme-Matched Container -->
+        <div class="bg-white rounded-2xl shadow-soft p-6 md:p-8 border border-gray-100">
+            <!-- Optional Header -->
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-brand-offblack mb-2">Schedule Your Tour</h3>
+                <p class="text-gray-600 text-sm">Fill out the form below and we'll be in touch shortly.</p>
+            </div>
 
-        <!-- Parent Information -->
-        <div class="space-y-4">
-            <h3 class="text-xl font-bold text-brand-offblack">Parent Information</h3>
-
-            <div class="grid md:grid-cols-2 gap-4">
-                <!-- First Name -->
-                <div>
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="first_name">
-                        First Name *
-                    </label>
-                    <input type="text" id="first_name" name="first_name" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                </div>
-
-                <!-- Last Name -->
-                <div>
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="last_name">
-                        Last Name *
-                    </label>
-                    <input type="text" id="last_name" name="last_name" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                </div>
-
-                <!-- Phone -->
-                <div>
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="phone">
-                        Cell Phone *
-                    </label>
-                    <input type="tel" id="phone" name="phone" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                </div>
-
-
-
-                <!-- Email -->
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="email">
-                        Email Address *
-                    </label>
-                    <input type="email" id="email" name="email" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                </div>
+            <!-- GHL Iframe - Official Embed -->
+            <div class="chroma-ghl-iframe-container" style="min-height: 725px;">
+                <iframe src="https://api.leadconnectorhq.com/widget/form/JpecxfWJrxyWE7Ufdtkd"
+                    style="width:100%;height:100%;border:none;border-radius:3px;min-height:725px;"
+                    id="inline-JpecxfWJrxyWE7Ufdtkd" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
+                    data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
+                    data-deactivation-type="neverDeactivate" data-deactivation-value=""
+                    data-form-name="VIRTUAL TOUR INFORMATION - Chroma Early Learning" data-height="725"
+                    data-layout-iframe-id="inline-JpecxfWJrxyWE7Ufdtkd" data-form-id="JpecxfWJrxyWE7Ufdtkd"
+                    title="VIRTUAL TOUR INFORMATION - Chroma Early Learning">
+                </iframe>
             </div>
         </div>
+    </div>
 
-        <!-- Child's Information -->
-        <div class="space-y-4 pt-4 border-t border-gray-100">
-            <h3 class="text-xl font-bold text-brand-offblack">Child's Information</h3>
+    <style>
+        .chroma-tour-form-wrapper {
+            max-width: 650px;
+            margin: 0 auto;
+        }
 
-            <div class="grid md:grid-cols-2 gap-4">
-                <!-- Child First Name -->
-                <div>
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="KXEHzTOMGosdJUu1Eqri">
-                        Child's First Name *
-                    </label>
-                    <input type="text" id="KXEHzTOMGosdJUu1Eqri" name="KXEHzTOMGosdJUu1Eqri" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                </div>
+        .chroma-ghl-iframe-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 0.75rem;
+        }
 
-                <!-- Child Last Name -->
-                <div>
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="dTabDQmMvBfwpMCUaPpU">
-                        Child's Last Name *
-                    </label>
-                    <input type="text" id="dTabDQmMvBfwpMCUaPpU" name="dTabDQmMvBfwpMCUaPpU" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                </div>
+        .chroma-ghl-iframe-container iframe {
+            display: block;
+        }
+    </style>
 
-
-
-                <!-- Desired Start Date -->
-                <div>
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="9dpin9NpFnCaEY9hTL51">
-                        Desired Start Date *
-                    </label>
-                    <input type="date" id="9dpin9NpFnCaEY9hTL51" name="9dpin9NpFnCaEY9hTL51" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink" />
-                </div>
-
-                <!-- Child Age -->
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="tjcMDuffDYLzvezpnxly">
-                        How old is your child *
-                    </label>
-                    <select id="tjcMDuffDYLzvezpnxly" name="tjcMDuffDYLzvezpnxly" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink">
-                        <option value="">Select...</option>
-                        <?php if (!empty($ages)): ?>
-                            <?php foreach ($ages as $age): ?>
-                                <option value="<?php echo esc_attr($age); ?>"><?php echo esc_html($age); ?></option>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <option value="Infant">Infant</option>
-                            <option value="Toddler">Toddler</option>
-                            <option value="Preschool">Preschool</option>
-                            <option value="Pre-K">Pre-K</option>
-                            <option value="AfterSchool/Summer Camp">AfterSchool/Summer Camp</option>
-                        <?php endif; ?>
-                    </select>
-                </div>
-
-                <!-- Location -->
-                <div class="md:col-span-2">
-                    <label class="block text-xs font-bold text-brand-ink uppercase mb-1.5" for="DKcjpcd5izdAklwt1Bby">
-                        What Metro Atlanta Location is best suited for your needs? *
-                    </label>
-                    <select id="DKcjpcd5izdAklwt1Bby" name="DKcjpcd5izdAklwt1Bby" required
-                        class="w-full px-4 py-3 rounded-xl border border-chroma-blue/20 bg-white focus:border-chroma-blue outline-none text-brand-ink">
-                        <option value="">Select a location...</option>
-                        <?php if (!empty($locations)): ?>
-                            <?php foreach ($locations as $location): ?>
-                                <option value="<?php echo esc_attr($location); ?>"><?php echo esc_html($location); ?></option>
-                            <?php endforeach; ?>
-                        <?php endif; ?>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <button type="submit" name="chroma_tour_submit"
-            class="w-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-wider py-4 rounded-full shadow-soft hover:bg-chroma-red/90 transition">
-            Request Tour
-        </button>
-    </form>
+    <script src="https://link.msgsndr.com/js/form_embed.js"></script>
     <?php
     return ob_get_clean();
 }
