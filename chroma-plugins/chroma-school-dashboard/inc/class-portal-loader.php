@@ -28,19 +28,84 @@ class Chroma_School_Portal_Loader
     public function load_portal_template($template)
     {
         if (get_query_var('chroma_view') === 'portal') {
-            // Look for the built index.html in assets/portal
-            $portal_index = CHROMA_SCHOOL_DB_PATH . 'assets/portal/index.html';
 
-            if (file_exists($portal_index)) {
-                // We serve the HTML directly. 
-                // Note: Next.js assets (_next/static/...) must be resolvable.
-                // We might need to adjust base path in Next.js or use relative paths.
-                // For now, serving the catch-all index.html.
-                readfile($portal_index);
+            // 1. Determine requested file path relative to /portal/
+            // URL: /portal/_next/static/css/styles.css -> file: assets/portal/_next/static/css/styles.css
+
+            $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+            // Remove /portal/ prefix if present (it should be, due to rewrite)
+            // But we need to be careful about subfolders.
+            // Simplified: we look at what matches "portal/(.*)"
+
+            // Actually, let's just assume we are mapped to assets/portal directory.
+            // We need to strip the leading base path.
+            // Since we don't know the exact WP install path, let's rely on the fact that our Rewrite Rule passes the subpath?
+            // Wait, existing rule: 'index.php?chroma_view=portal'
+            // It DOES NOT pass the subpath in the current rule: '^portal/(.+)?$' -> 'index.php?chroma_view=portal'
+            // We need to capture it.
+            // Let's rely on $_SERVER['REQUEST_URI'] manually finding '/portal/'.
+
+            $path_part = strstr($request_uri, '/portal/');
+            if ($path_part) {
+                $rel_path = substr($path_part, 8); // remove '/portal/'
+            } else {
+                $rel_path = '';
+            }
+
+            // Security: Prevent directory traversal
+            if (strpos($rel_path, '..') !== false) {
+                status_header(403);
+                exit('Forbidden');
+            }
+
+            $file_path = CHROMA_SCHOOL_DB_PATH . 'assets/portal/' . $rel_path;
+
+            // If it is a real file, serve it
+            if ($rel_path && file_exists($file_path) && !is_dir($file_path)) {
+                $ext = pathinfo($file_path, PATHINFO_EXTENSION);
+                $mime = 'text/html';
+
+                switch ($ext) {
+                    case 'css':
+                        $mime = 'text/css';
+                        break;
+                    case 'js':
+                        $mime = 'application/javascript';
+                        break;
+                    case 'json':
+                        $mime = 'application/json';
+                        break;
+                    case 'png':
+                        $mime = 'image/png';
+                        break;
+                    case 'jpg':
+                    case 'jpeg':
+                        $mime = 'image/jpeg';
+                        break;
+                    case 'svg':
+                        $mime = 'image/svg+xml';
+                        break;
+                    case 'woff2':
+                        $mime = 'font/woff2';
+                        break;
+                    case 'ico':
+                        $mime = 'image/x-icon';
+                        break;
+                }
+
+                header('Content-Type: ' . $mime);
+                readfile($file_path);
+                exit;
+            }
+
+            // Fallback: Serve index.html for client-side routing
+            $index_path = CHROMA_SCHOOL_DB_PATH . 'assets/portal/index.html';
+            if (file_exists($index_path)) {
+                readfile($index_path);
                 exit;
             } else {
-                // Fallback if not built yet
-                echo "Portal is not deployed. Please run 'npm run build' and upload 'out' folder to 'plugins/chroma-school-dashboard/assets/portal'.";
+                echo "Portal not deployed.";
                 exit;
             }
         }
