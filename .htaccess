@@ -5,8 +5,9 @@ RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteBase /
 
 # Force Non-WWW (chromaela.com)
-RewriteCond %{HTTP_HOST} ^www\.chromaela\.com [NC]
-RewriteRule ^(.*)$ https://chromaela.com/$1 [L,R=301]
+# Force Non-WWW
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
 
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
