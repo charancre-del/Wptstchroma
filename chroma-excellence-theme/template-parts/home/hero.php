@@ -56,7 +56,7 @@ $home_id = chroma_get_home_page_id();
             </div>
         </div>
 
-        <div class="relative w-full h-[430px] sm:h-[470px] lg:h-[500px] fade-in-up delay-200">
+        <div class="relative w-full aspect-[4/5] sm:h-[470px] lg:h-[500px] lg:aspect-auto fade-in-up delay-200">
             <div class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3"></div>
             <div
                 class="absolute bottom-6 left-6 w-72 h-72 bg-chroma-yellowLight rounded-full -z-10 blur-2xl opacity-70">
