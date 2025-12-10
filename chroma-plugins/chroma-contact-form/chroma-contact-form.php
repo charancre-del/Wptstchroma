@@ -378,22 +378,13 @@ function chroma_contact_form_shortcode()
     ?>
     <div class="chroma-contact-form-wrapper">
         <div class="chroma-ghl-iframe-container" style="min-height: 779px;">
-            <iframe
-                src="https://api.leadconnectorhq.com/widget/form/ibinKhrBmF0n4S5tFcz6"
+            <iframe src="https://api.leadconnectorhq.com/widget/form/ibinKhrBmF0n4S5tFcz6"
                 style="width:100%;height:100%;border:none;border-radius:3px;min-height:779px;"
-                id="inline-ibinKhrBmF0n4S5tFcz6" 
-                loading="eager"
-                data-layout="{'id':'INLINE'}"
-                data-trigger-type="alwaysShow"
-                data-trigger-value=""
-                data-activation-type="alwaysActivated"
-                data-activation-value=""
-                data-deactivation-type="neverDeactivate"
-                data-deactivation-value=""
-                data-form-name="Contact Us- Chroma Early Learning"
-                data-height="779"
-                data-layout-iframe-id="inline-ibinKhrBmF0n4S5tFcz6"
-                data-form-id="ibinKhrBmF0n4S5tFcz6"
+                id="inline-ibinKhrBmF0n4S5tFcz6" loading="eager" data-layout="{'id':'INLINE'}"
+                data-trigger-type="alwaysShow" data-trigger-value="" data-activation-type="alwaysActivated"
+                data-activation-value="" data-deactivation-type="neverDeactivate" data-deactivation-value=""
+                data-form-name="Contact Us- Chroma Early Learning" data-height="779"
+                data-layout-iframe-id="inline-ibinKhrBmF0n4S5tFcz6" data-form-id="ibinKhrBmF0n4S5tFcz6"
                 title="Contact Us- Chroma Early Learning">
             </iframe>
         </div>
@@ -416,7 +407,37 @@ function chroma_contact_form_shortcode()
         }
     </style>
 
-    <script src="https://link.msgsndr.com/js/form_embed.js"></script>
+    <script>
+        (function () {
+            var loaded = false;
+            var container = document.querySelector('.chroma-contact-form-wrapper');
+
+            function loadGHLScript() {
+                if (loaded) return;
+                loaded = true;
+
+                var script = document.createElement('script');
+                script.src = 'https://link.msgsndr.com/js/form_embed.js';
+                script.async = true;
+                document.body.appendChild(script);
+            }
+
+            // Load after 2 second delay OR when form is scrolled into view
+            var timer = setTimeout(loadGHLScript, 2000);
+
+            // IntersectionObserver to load when visible
+            if ('IntersectionObserver' in window && container) {
+                var observer = new IntersectionObserver(function (entries) {
+                    if (entries[0].isIntersecting) {
+                        clearTimeout(timer);
+                        loadGHLScript();
+                        observer.disconnect();
+                    }
+                }, { rootMargin: '200px' });
+                observer.observe(container);
+            }
+        })();
+    </script>
     <?php
     return ob_get_clean();
 }

@@ -95,7 +95,7 @@ function chroma_tour_form_shortcode()
         <div class="chroma-ghl-iframe-container" style="min-height: 788px;">
             <iframe src="https://api.leadconnectorhq.com/widget/form/JpecxfWJrxyWE7Ufdtkd"
                 style="width:100%;height:100%;border:none;border-radius:3px;min-height:788px;"
-                id="inline-JpecxfWJrxyWE7Ufdtkd" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
+                id="inline-JpecxfWJrxyWE7Ufdtkd" loading="lazy" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
                 data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
                 data-deactivation-type="neverDeactivate" data-deactivation-value=""
                 data-form-name="VIRTUAL TOUR INFORMATION - Chroma Early Learning" data-height="788"
@@ -122,7 +122,37 @@ function chroma_tour_form_shortcode()
         }
     </style>
 
-    <script src="https://link.msgsndr.com/js/form_embed.js"></script>
+    <script>
+        (function () {
+            var loaded = false;
+            var container = document.querySelector('.chroma-tour-form-wrapper');
+
+            function loadGHLScript() {
+                if (loaded) return;
+                loaded = true;
+
+                var script = document.createElement('script');
+                script.src = 'https://link.msgsndr.com/js/form_embed.js';
+                script.async = true;
+                document.body.appendChild(script);
+            }
+
+            // Load after 2 second delay OR when form is scrolled into view
+            var timer = setTimeout(loadGHLScript, 2000);
+
+            // IntersectionObserver to load when visible
+            if ('IntersectionObserver' in window && container) {
+                var observer = new IntersectionObserver(function (entries) {
+                    if (entries[0].isIntersecting) {
+                        clearTimeout(timer);
+                        loadGHLScript();
+                        observer.disconnect();
+                    }
+                }, { rootMargin: '200px' });
+                observer.observe(container);
+            }
+        })();
+    </script>
     <?php
     return ob_get_clean();
 }
