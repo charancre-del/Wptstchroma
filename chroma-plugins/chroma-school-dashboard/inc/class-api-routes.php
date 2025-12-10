@@ -1,0 +1,270 @@
+<?php
+
+class Chroma_School_API_Routes
+{
+    private $current_user_school_id;
+
+    public function __construct()
+    {
+        add_action('rest_api_init', [$this, 'register_routes']);
+    }
+
+    public function register_routes()
+    {
+        register_rest_route('chroma/v1', '/tv/(?P<slug>[a-zA-Z0-9-]+)', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_tv_data'],
+            'permission_callback' => '__return_true'
+        ]);
+
+        register_rest_route('chroma/v1', '/auth/google', [
+            'methods' => 'POST',
+            'callback' => [$this, 'login_with_google'],
+            'permission_callback' => '__return_true'
+        ]);
+
+        register_rest_route('chroma/v1', '/portal/school/(?P<id>\d+)', [
+            'methods' => 'PATCH',
+            'callback' => [$this, 'update_school'],
+            'permission_callback' => [$this, 'check_director_permission']
+        ]);
+
+        register_rest_route('chroma/v1', '/portal/me', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_director_school'],
+            'permission_callback' => [$this, 'check_director_permission']
+        ]);
+    }
+
+    public function get_tv_data($request)
+    {
+        $slug = $request['slug'];
+        $posts = get_posts([
+            'name' => $slug,
+            'post_type' => 'chroma_school',
+            'numberposts' => 1,
+            'post_status' => 'publish'
+        ]);
+
+        if (empty($posts)) {
+            return new WP_Error('no_school', 'School not found', ['status' => 404]);
+        }
+
+        $post = $posts[0];
+        $config = get_post_meta($post->ID, '_chroma_school_config', true) ?: [];
+
+        // Fetch weather
+        $weather = null;
+        if (!empty($config['lat'])) {
+            $weather = Chroma_Weather_Provider::get_weather($config['lat'], $config['lon']);
+        }
+
+        // Get all other meta
+        $meta_keys = [
+            'newsletter',
+            'eom',
+            'announcements',
+            'today',
+            'qr',
+            'menu',
+            'slideshow',
+            'youtube',
+            'welcome_override'
+        ];
+
+        $data = [
+            'id' => $post->ID,
+            'title' => $post->post_title,
+            'slug' => $post->post_name,
+            'config' => ['timezone' => $config['timezone'] ?? 'America/New_York'], // Don't leak email
+            'weather' => $weather,
+            'content' => []
+        ];
+
+        foreach ($meta_keys as $key) {
+            $data['content'][$key] = get_post_meta($post->ID, '_chroma_school_' . $key, true);
+        }
+
+        // Add Global Chroma Cares
+        $data['global'] = [
+            'chroma_cares' => get_option('chroma_global_cares', []),
+            'alert' => get_option('chroma_global_alert', [])
+        ];
+
+        return rest_ensure_response($data);
+    }
+
+    /**
+     * POST /auth/google
+     * Verifies Google ID Token via Google API, finds matching Director, returns Session Token.
+     */
+    public function login_with_google($request)
+    {
+        $params = $request->get_json_params();
+        $id_token = $params['id_token'] ?? '';
+
+        if (!$params || empty($id_token)) {
+            return new WP_Error('missing_token', 'ID Token required', ['status' => 400]);
+        }
+
+        // 1. Verify Token with Google
+        $response = wp_remote_get('https://oauth2.googleapis.com/tokeninfo?id_token=' . $id_token);
+        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+            return new WP_Error('invalid_token', 'Google Token invalid', ['status' => 401]);
+        }
+
+        $google_data = json_decode(wp_remote_retrieve_body($response), true);
+        if (empty($google_data['email']) || empty($google_data['email_verified']) || $google_data['email_verified'] !== 'true') {
+            return new WP_Error('email_unverified', 'Email not verified', ['status' => 401]);
+        }
+
+        $email = $google_data['email'];
+
+        // 2. Find School by Director Email
+        // Optimization: In CPT save, I'll assume we save '_chroma_school_director_email' separately for query speed.
+        // For now, let's just do a meta query on the config array (slower but works for 20 schools).
+
+        $all_schools = get_posts(['post_type' => 'chroma_school', 'posts_per_page' => -1]);
+        $found_school = null;
+
+        foreach ($all_schools as $s) {
+            $conf = get_post_meta($s->ID, '_chroma_school_config', true);
+            if (isset($conf['director_email']) && strtolower($conf['director_email']) === strtolower($email)) {
+                $found_school = $s;
+                break;
+            }
+        }
+
+        if (!$found_school) {
+            return new WP_Error('no_access', 'No school found for this email.', ['status' => 403]);
+        }
+
+        // 3. Issue Session Token
+        $token = bin2hex(random_bytes(32));
+        $expiration = HOUR_IN_SECONDS * 12;
+
+        // Store session transient: chroma_sess_{token} = {school_id, email, exp}
+        set_transient('chroma_sess_' . $token, [
+            'school_id' => $found_school->ID,
+            'email' => $email,
+            'exp' => time() + $expiration
+        ], $expiration);
+
+        return rest_ensure_response([
+            'token' => $token,
+            'school_id' => $found_school->ID,
+            'school_slug' => $found_school->post_name,
+            'director_email' => $email
+        ]);
+    }
+
+    /**
+     * GET /portal/me
+     */
+    public function get_director_school($request)
+    {
+        $school_id = $this->current_user_school_id; // Set by permission check
+        if (!$school_id)
+            return new WP_Error('unauthorized', 'Invalid session', ['status' => 401]);
+
+        // Reuse get data logic but without the HTTP request overhead
+        $post = get_post($school_id);
+
+        $meta_keys = [
+            'newsletter',
+            'eom',
+            'announcements',
+            'today',
+            'qr',
+            'menu',
+            'slideshow',
+            'youtube',
+            'welcome_override'
+        ];
+        $content = [];
+        foreach ($meta_keys as $key) {
+            $content[$key] = get_post_meta($school_id, '_chroma_school_' . $key, true);
+        }
+
+        return rest_ensure_response([
+            'id' => $school_id,
+            'title' => $post->post_title,
+            'slug' => $post->post_name,
+            'content' => $content
+        ]);
+    }
+
+    /**
+     * PATCH /portal/school/{id}
+     */
+    public function update_school($request)
+    {
+        $school_id = $request['id'];
+        $params = $request->get_json_params();
+
+        // Whitelisted fields to update
+        $allowed_keys = [
+            'newsletter',
+            'eom',
+            'announcements',
+            'today',
+            'qr',
+            'menu',
+            'slideshow',
+            'youtube',
+            'welcome_override'
+        ];
+
+        foreach ($params as $key => $value) {
+            if (in_array($key, $allowed_keys)) {
+                if ($key === 'announcements' || $key === 'today' || $key === 'qr' || $key === 'slideshow') {
+                    // Array types
+                    $value = is_array($value) ? $value : [];
+                } else {
+                    $value = wp_kses_post($value); // Allow safe HTML in bodies
+                }
+
+                update_post_meta($school_id, '_chroma_school_' . $key, $value);
+            }
+        }
+
+        return rest_ensure_response(['success' => true]);
+    }
+
+    /**
+     * Permission Callback
+     * Checks Authorization: Bearer {token}
+     */
+    public function check_director_permission($request)
+    {
+        $auth_header = $request->get_header('Authorization');
+        if (!$auth_header || !preg_match('/Bearer\s+(.*)$/i', $auth_header, $matches)) {
+            return false;
+        }
+
+        $token = $matches[1];
+        $session = get_transient('chroma_sess_' . $token);
+
+        if (!$session || !isset($session['school_id'])) {
+            return false;
+        }
+
+        // If route has {id}, verify it matches (for PATCH)
+        $route_id = $request->get_param('id');
+        if ($route_id && intval($route_id) !== intval($session['school_id'])) {
+            return false;
+        }
+
+        // Store for use in callback
+        $this->current_user_school_id = $session['school_id'];
+        return true;
+    }
+}
+
+class Chroma_School_Admin_Settings
+{
+    public function __construct()
+    {
+        // Will implement Admin Page in next pass
+    }
+}
