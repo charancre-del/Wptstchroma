@@ -66,11 +66,44 @@ class Chroma_City_Landing_Meta extends Chroma_Advanced_SEO_Meta_Box_Base
         }
 
         $intro_text = get_post_meta($post->ID, 'city_intro_text', true);
+        $city_county = get_post_meta($post->ID, 'city_county', true);
+
+        // Available counties in Metro Atlanta
+        $counties = [
+            '' => __('Select County...', 'chroma-excellence'),
+            'Cobb' => 'Cobb County',
+            'Gwinnett' => 'Gwinnett County',
+            'Fulton' => 'Fulton County (North)',
+            'DeKalb' => 'DeKalb County',
+            'Cherokee' => 'Cherokee County',
+            'Forsyth' => 'Forsyth County',
+            'Clayton' => 'Clayton County',
+            'Henry' => 'Henry County',
+            'Douglas' => 'Douglas County',
+            'Paulding' => 'Paulding County',
+            'Fayette' => 'Fayette County',
+            'Rockdale' => 'Rockdale County',
+            'Other' => 'Other Areas'
+        ];
         ?>
         <div class="chroma-field-wrapper">
             <p class="description">
                 <?php _e('Configure this page as a Hyperlocal City Landing Page. Select the locations that serve this city.', 'chroma-excellence'); ?>
             </p>
+
+            <div style="margin-bottom: 20px;">
+                <label for="city_county"><strong><?php _e('County:', 'chroma-excellence'); ?></strong></label>
+                <select id="city_county" name="city_county" class="widefat" style="max-width: 300px;">
+                    <?php foreach ($counties as $value => $label): ?>
+                        <option value="<?php echo esc_attr($value); ?>" <?php selected($city_county, $value); ?>>
+                            <?php echo esc_html($label); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <p class="description">
+                    <?php _e('Select the county this city belongs to. Used for grouping on the Communities archive page.', 'chroma-excellence'); ?>
+                </p>
+            </div>
 
             <div style="margin-bottom: 20px;">
                 <label for="city_intro_text"><?php _e('Local Intro Text (SEO Optimized):', 'chroma-excellence'); ?></label>
@@ -108,6 +141,11 @@ class Chroma_City_Landing_Meta extends Chroma_Advanced_SEO_Meta_Box_Base
      */
     public function save_fields($post_id)
     {
+        // Save county
+        if (isset($_POST['city_county'])) {
+            update_post_meta($post_id, 'city_county', sanitize_text_field($_POST['city_county']));
+        }
+
         if (isset($_POST['city_intro_text'])) {
             update_post_meta($post_id, 'city_intro_text', wp_kses_post($_POST['city_intro_text']));
         }
