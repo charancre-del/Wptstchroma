@@ -11,7 +11,6 @@
 
 <head>
   <meta charset="<?php bloginfo('charset'); ?>" />
-  <title><?php echo esc_html('Page Not Found | ' . get_bloginfo('name')); ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -54,11 +53,7 @@
       <a href="<?php echo esc_url(home_url('/')); ?>"
         class="px-8 py-3 bg-brand-ink text-white font-bold rounded-full uppercase tracking-widest text-xs hover:bg-chroma-blue transition-colors">Go
         Home</a>
-      <?php
-      // Try to get the locations page URL
-      $locations_page = get_page_by_path('locations');
-      $locations_url = $locations_page ? get_permalink($locations_page->ID) : home_url('/locations/');
-      ?>
+      <?php $locations_url = chroma_smart_link('locations'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
         class="px-8 py-3 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-widest text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors">Find
         a School</a>

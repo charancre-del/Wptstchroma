@@ -36,7 +36,6 @@ $newsroom_query = new WP_Query($newsroom_args);
 
 <head>
   <meta charset="<?php bloginfo('charset'); ?>" />
-  <title><?php echo esc_html('Newsroom | ' . get_bloginfo('name')); ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -79,13 +78,8 @@ $newsroom_query = new WP_Query($newsroom_args);
           <a href="<?php echo esc_url(get_permalink($stories_page->ID)); ?>" class="hover:text-chroma-blue">Stories
             (Blog)</a>
         <?php endif; ?>
-        <?php
-        $contact_page = get_page_by_path('contact');
-        if ($contact_page):
-          ?>
-          <a href="<?php echo esc_url(get_permalink($contact_page->ID)); ?>" class="hover:text-chroma-blue">Media
-            Contact</a>
-        <?php endif; ?>
+        <a href="<?php echo esc_url(chroma_get_page_link('contact')); ?>" class="hover:text-chroma-blue">Media
+          Contact</a>
       </nav>
     </div>
   </header>
@@ -143,10 +137,7 @@ $newsroom_query = new WP_Query($newsroom_args);
       <div class="max-w-2xl mx-auto px-4">
         <h2 class="font-serif text-2xl font-bold mb-4">Media Inquiries</h2>
         <p class="text-white/60 mb-8">For interviews, high-res assets, or filming requests.</p>
-        <?php
-        $contact_page = get_page_by_path('contact');
-        $contact_url = $contact_page ? get_permalink($contact_page->ID) : home_url('/contact/');
-        ?>
+        <?php $contact_url = chroma_get_page_link('contact'); ?>
         <a href="<?php echo esc_url($contact_url); ?>"
           class="inline-block px-8 py-3 bg-white text-brand-ink font-bold rounded-full text-xs uppercase tracking-widest hover:bg-chroma-yellow transition-colors">
           Contact Media Team

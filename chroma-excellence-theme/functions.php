@@ -61,6 +61,7 @@ require_once CHROMA_THEME_DIR . '/inc/general-seo-meta.php';
 
 // Utility Functions
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
+require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
 require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-home.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
@@ -339,3 +340,51 @@ function chroma_lazy_load_leadconnector()
 }
 add_action('wp_footer', 'chroma_lazy_load_leadconnector', 999);
 
+/**
+ * URL Consistency: Force trailing slashes on all URLs
+ * This prevents duplicate content issues like /programs vs /programs/
+ */
+function chroma_enforce_trailing_slash($url, $type)
+{
+    // Skip files (anything with an extension)
+    if (preg_match('/\.[a-zA-Z0-9]+(\?|$)/', $url)) {
+        return $url;
+    }
+
+    // Skip feed URLs
+    if ($type === 'single_feed' || $type === 'category_feed') {
+        return $url;
+    }
+
+    return trailingslashit($url);
+}
+add_filter('user_trailingslashit', 'chroma_enforce_trailing_slash', 10, 2);
+
+/**
+ * Title Length Optimization for SEO
+ * Ensures titles stay within recommended limits
+ */
+function chroma_optimize_title_length($title_parts)
+{
+    // Truncate very long titles
+    if (isset($title_parts['title']) && mb_strlen($title_parts['title']) > 50) {
+        $title_parts['title'] = mb_substr($title_parts['title'], 0, 47) . '...';
+    }
+
+    // Use shorter site name suffix on blog posts
+    if (is_single() && isset($title_parts['site'])) {
+        $title_parts['site'] = 'Chroma';
+    }
+
+    return $title_parts;
+}
+add_filter('document_title_parts', 'chroma_optimize_title_length', 10);
+
+/**
+ * Use shorter title separator for cleaner titles
+ */
+function chroma_title_separator($sep)
+{
+    return '|';
+}
+add_filter('document_title_separator', 'chroma_title_separator');

@@ -108,6 +108,33 @@ function chroma_contact_register_settings()
         'sanitize_callback' => 'sanitize_email',
         'default' => get_option('admin_email')
     ));
+
+    // GHL Embed Settings
+    register_setting('chroma_contact_options', 'chroma_contact_form_id', array(
+        'type' => 'string',
+        'default' => 'ibinKhrBmF0n4S5tFcz6',
+        'sanitize_callback' => 'sanitize_text_field'
+    ));
+    register_setting('chroma_contact_options', 'chroma_contact_form_height', array(
+        'type' => 'integer',
+        'default' => 779,
+        'sanitize_callback' => 'absint'
+    ));
+    register_setting('chroma_contact_options', 'chroma_contact_form_name', array(
+        'type' => 'string',
+        'default' => 'Contact Us- Chroma Early Learning',
+        'sanitize_callback' => 'sanitize_text_field'
+    ));
+    register_setting('chroma_contact_options', 'chroma_contact_lazy_load', array(
+        'type' => 'boolean',
+        'default' => true,
+        'sanitize_callback' => 'rest_sanitize_boolean'
+    ));
+    register_setting('chroma_contact_options', 'chroma_contact_lazy_delay', array(
+        'type' => 'integer',
+        'default' => 2000,
+        'sanitize_callback' => 'absint'
+    ));
 }
 add_action('admin_init', 'chroma_contact_register_settings');
 
@@ -374,18 +401,30 @@ function chroma_contact_settings_page_html()
  */
 function chroma_contact_form_shortcode()
 {
+    // Get settings
+    $form_id = get_option('chroma_contact_form_id', 'ibinKhrBmF0n4S5tFcz6');
+    $form_height = get_option('chroma_contact_form_height', 779);
+    $form_name = get_option('chroma_contact_form_name', 'Contact Us- Chroma Early Learning');
+    $lazy_load = get_option('chroma_contact_lazy_load', true);
+    $lazy_delay = get_option('chroma_contact_lazy_delay', 2000);
+    
+    $form_url = 'https://api.leadconnectorhq.com/widget/form/' . esc_attr($form_id);
+    $loading_attr = $lazy_load ? 'lazy' : 'eager';
+    
     ob_start();
     ?>
-    <div class="chroma-contact-form-wrapper">
-        <div class="chroma-ghl-iframe-container" style="min-height: 779px;">
-            <iframe src="https://api.leadconnectorhq.com/widget/form/ibinKhrBmF0n4S5tFcz6"
-                style="width:100%;height:100%;border:none;border-radius:3px;min-height:779px;"
-                id="inline-ibinKhrBmF0n4S5tFcz6" loading="eager" data-layout="{'id':'INLINE'}"
-                data-trigger-type="alwaysShow" data-trigger-value="" data-activation-type="alwaysActivated"
-                data-activation-value="" data-deactivation-type="neverDeactivate" data-deactivation-value=""
-                data-form-name="Contact Us- Chroma Early Learning" data-height="779"
-                data-layout-iframe-id="inline-ibinKhrBmF0n4S5tFcz6" data-form-id="ibinKhrBmF0n4S5tFcz6"
-                title="Contact Us- Chroma Early Learning">
+    <div class="chroma-contact-form-wrapper" data-lazy="<?php echo $lazy_load ? 'true' : 'false'; ?>" data-delay="<?php echo esc_attr($lazy_delay); ?>">
+        <div class="chroma-ghl-iframe-container" style="min-height: <?php echo esc_attr($form_height); ?>px;">
+            <iframe src="<?php echo esc_url($form_url); ?>"
+                style="width:100%;height:100%;border:none;border-radius:3px;min-height:<?php echo esc_attr($form_height); ?>px;"
+                id="inline-<?php echo esc_attr($form_id); ?>" 
+                loading="<?php echo esc_attr($loading_attr); ?>"
+                data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
+                data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
+                data-deactivation-type="neverDeactivate" data-deactivation-value=""
+                data-form-name="<?php echo esc_attr($form_name); ?>" data-height="<?php echo esc_attr($form_height); ?>"
+                data-layout-iframe-id="inline-<?php echo esc_attr($form_id); ?>" data-form-id="<?php echo esc_attr($form_id); ?>"
+                title="<?php echo esc_attr($form_name); ?>">
             </iframe>
         </div>
     </div>
@@ -407,10 +446,12 @@ function chroma_contact_form_shortcode()
         }
     </style>
 
+    <?php if ($lazy_load): ?>
     <script>
         (function () {
             var loaded = false;
             var container = document.querySelector('.chroma-contact-form-wrapper');
+            var delay = <?php echo intval($lazy_delay); ?>;
 
             function loadGHLScript() {
                 if (loaded) return;
@@ -422,14 +463,14 @@ function chroma_contact_form_shortcode()
                 document.body.appendChild(script);
             }
 
-            // Load after 2 second delay OR when form is scrolled into view
-            var timer = setTimeout(loadGHLScript, 2000);
+            // Load after configured delay OR when form is scrolled into view
+            var timer = delay > 0 ? setTimeout(loadGHLScript, delay) : null;
 
             // IntersectionObserver to load when visible
             if ('IntersectionObserver' in window && container) {
                 var observer = new IntersectionObserver(function (entries) {
                     if (entries[0].isIntersecting) {
-                        clearTimeout(timer);
+                        if (timer) clearTimeout(timer);
                         loadGHLScript();
                         observer.disconnect();
                     }
@@ -438,6 +479,9 @@ function chroma_contact_form_shortcode()
             }
         })();
     </script>
+    <?php else: ?>
+    <script src="https://link.msgsndr.com/js/form_embed.js"></script>
+    <?php endif; ?>
     <?php
     return ob_get_clean();
 }

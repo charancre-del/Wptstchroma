@@ -484,12 +484,31 @@ add_action('wp_head', 'chroma_faq_schema');
  */
 
 /**
+ * Truncate social media title to optimal length
+ * 
+ * @param string $title The title to truncate
+ * @param int $max_length Maximum character length (default: 60 for OG)
+ * @return string Truncated title
+ */
+function chroma_truncate_social_title($title, $max_length = 60)
+{
+        if (strlen($title) <= $max_length) {
+                return $title;
+        }
+        // Truncate and add ellipsis
+        return substr($title, 0, $max_length - 3) . '...';
+}
+
+/**
  * Open Graph Tags
  */
 function chroma_og_tags()
 {
+        // Truncate OG title to 60 characters max
+        $og_title = chroma_truncate_social_title(get_the_title(), 60);
+
         echo '<meta property="og:type" content="website" />' . "\n";
-        echo '<meta property="og:title" content="' . esc_attr(get_the_title()) . '" />' . "\n";
+        echo '<meta property="og:title" content="' . esc_attr($og_title) . '" />' . "\n";
         echo '<meta property="og:url" content="' . esc_url(get_permalink()) . '" />' . "\n";
         echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
 
@@ -507,8 +526,11 @@ add_action('wp_head', 'chroma_og_tags', 5);
  */
 function chroma_twitter_cards()
 {
+        // Truncate Twitter title to 55 characters max
+        $twitter_title = chroma_truncate_social_title(get_the_title(), 55);
+
         echo '<meta name="twitter:card" content="summary_large_image" />' . "\n";
-        echo '<meta name="twitter:title" content="' . esc_attr(get_the_title()) . '" />' . "\n";
+        echo '<meta name="twitter:title" content="' . esc_attr($twitter_title) . '" />' . "\n";
 
         if (has_post_thumbnail()) {
                 echo '<meta name="twitter:image" content="' . esc_url(get_the_post_thumbnail_url(null, 'full')) . '" />' . "\n";

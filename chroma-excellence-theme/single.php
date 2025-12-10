@@ -34,7 +34,6 @@ $related_query = new WP_Query($related_args);
 
 <head>
   <meta charset="<?php bloginfo('charset'); ?>" />
-  <title><?php echo esc_html(get_the_title() . ' | ' . get_bloginfo('name')); ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -127,17 +126,11 @@ $related_query = new WP_Query($related_args);
                      <?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo-highres.png'); ?> 2x" alt="Chroma Early Learning" class="h-10 w-auto" />
       </a>
       <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-ink/80">
-        <?php
-        $stories_page = get_page_by_path('stories');
-        $stories_url = $stories_page ? get_permalink($stories_page->ID) : home_url('/stories/');
-        ?>
+        <?php $stories_url = chroma_smart_link('stories'); ?>
         <a href="<?php echo esc_url($stories_url); ?>" class="hover:text-chroma-blue flex items-center gap-2"><i
             class="fa-solid fa-arrow-left"></i> Back to Stories</a>
       </nav>
-      <?php
-      $locations_page = get_page_by_path('locations');
-      $locations_url = $locations_page ? get_permalink($locations_page->ID) : home_url('/locations/');
-      ?>
+      <?php $locations_url = chroma_smart_link('locations'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
         class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft">Book
         Tour</a>

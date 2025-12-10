@@ -12,6 +12,22 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Invalid schema types to filter out
+ * These are irrelevant types that may have been auto-generated incorrectly
+ */
+define('CHROMA_INVALID_SCHEMA_TYPES', array(
+    'VacationRental',
+    'MobileApplication',
+    'SoftwareApplication',
+    'WebApplication',
+    'VideoGame',
+    'RealEstateListing',
+    'Hotel',
+    'Restaurant',
+    'LodgingBusiness',
+));
+
 class Chroma_Schema_Injector
 {
     /**
@@ -227,6 +243,12 @@ class Chroma_Schema_Injector
             }
 
             $schema_type = sanitize_text_field($schema_data['type']);
+
+            // Skip invalid/irrelevant schema types
+            if (in_array($schema_type, CHROMA_INVALID_SCHEMA_TYPES, true)) {
+                continue;
+            }
+
             $fields = isset($schema_data['data']) ? $schema_data['data'] : [];
 
             $schema_output = [

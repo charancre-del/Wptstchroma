@@ -62,7 +62,6 @@ function chroma_get_category_color($category_slug)
 
 <head>
   <meta charset="<?php bloginfo('charset'); ?>" />
-  <title><?php echo esc_html('Stories | ' . get_bloginfo('name')); ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -101,18 +100,9 @@ function chroma_get_category_color($category_slug)
       <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-ink/80">
         <a href="<?php echo esc_url(home_url('/')); ?>" class="hover:text-chroma-blue">Home</a>
         <a href="<?php the_permalink(); ?>" class="text-brand-ink font-bold hover:text-chroma-red">Stories</a>
-        <?php
-        $newsroom_page = get_page_by_path('newsroom');
-        if ($newsroom_page):
-          ?>
-          <a href="<?php echo esc_url(get_permalink($newsroom_page->ID)); ?>"
-            class="hover:text-chroma-yellow">Newsroom</a>
-        <?php endif; ?>
+        <a href="<?php echo esc_url(chroma_smart_link('newsroom')); ?>" class="hover:text-chroma-yellow">Newsroom</a>
       </nav>
-      <?php
-      $locations_page = get_page_by_path('locations');
-      $locations_url = $locations_page ? get_permalink($locations_page->ID) : home_url('/locations/');
-      ?>
+      <?php $locations_url = chroma_smart_link('locations'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
         class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft">Book
         Tour</a>

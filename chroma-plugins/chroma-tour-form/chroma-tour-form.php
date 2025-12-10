@@ -88,19 +88,31 @@ function chroma_tour_get_dynamic_options()
  */
 function chroma_tour_form_shortcode()
 {
+    // Get settings
+    $form_id = get_option('chroma_tour_form_id', 'JpecxfWJrxyWE7Ufdtkd');
+    $form_height = get_option('chroma_tour_form_height', 788);
+    $form_name = get_option('chroma_tour_form_name', 'VIRTUAL TOUR INFORMATION - Chroma Early Learning');
+    $lazy_load = get_option('chroma_tour_lazy_load', true);
+    $lazy_delay = get_option('chroma_tour_lazy_delay', 2000);
+    
+    $form_url = 'https://api.leadconnectorhq.com/widget/form/' . esc_attr($form_id);
+    $loading_attr = $lazy_load ? 'lazy' : 'eager';
+    
     ob_start();
     ?>
-    <div class="chroma-tour-form-wrapper">
+    <div class="chroma-tour-form-wrapper" data-lazy="<?php echo $lazy_load ? 'true' : 'false'; ?>" data-delay="<?php echo esc_attr($lazy_delay); ?>">
         <!-- GHL Iframe - Official Embed -->
-        <div class="chroma-ghl-iframe-container" style="min-height: 788px;">
-            <iframe src="https://api.leadconnectorhq.com/widget/form/JpecxfWJrxyWE7Ufdtkd"
-                style="width:100%;height:100%;border:none;border-radius:3px;min-height:788px;"
-                id="inline-JpecxfWJrxyWE7Ufdtkd" loading="lazy" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
+        <div class="chroma-ghl-iframe-container" style="min-height: <?php echo esc_attr($form_height); ?>px;">
+            <iframe src="<?php echo esc_url($form_url); ?>"
+                style="width:100%;height:100%;border:none;border-radius:3px;min-height:<?php echo esc_attr($form_height); ?>px;"
+                id="inline-<?php echo esc_attr($form_id); ?>" 
+                loading="<?php echo esc_attr($loading_attr); ?>"
+                data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
                 data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
                 data-deactivation-type="neverDeactivate" data-deactivation-value=""
-                data-form-name="VIRTUAL TOUR INFORMATION - Chroma Early Learning" data-height="788"
-                data-layout-iframe-id="inline-JpecxfWJrxyWE7Ufdtkd" data-form-id="JpecxfWJrxyWE7Ufdtkd"
-                title="VIRTUAL TOUR INFORMATION - Chroma Early Learning">
+                data-form-name="<?php echo esc_attr($form_name); ?>" data-height="<?php echo esc_attr($form_height); ?>"
+                data-layout-iframe-id="inline-<?php echo esc_attr($form_id); ?>" data-form-id="<?php echo esc_attr($form_id); ?>"
+                title="<?php echo esc_attr($form_name); ?>">
             </iframe>
         </div>
     </div>
@@ -122,10 +134,12 @@ function chroma_tour_form_shortcode()
         }
     </style>
 
+    <?php if ($lazy_load): ?>
     <script>
         (function () {
             var loaded = false;
             var container = document.querySelector('.chroma-tour-form-wrapper');
+            var delay = <?php echo intval($lazy_delay); ?>;
 
             function loadGHLScript() {
                 if (loaded) return;
@@ -137,14 +151,14 @@ function chroma_tour_form_shortcode()
                 document.body.appendChild(script);
             }
 
-            // Load after 2 second delay OR when form is scrolled into view
-            var timer = setTimeout(loadGHLScript, 2000);
+            // Load after configured delay OR when form is scrolled into view
+            var timer = delay > 0 ? setTimeout(loadGHLScript, delay) : null;
 
             // IntersectionObserver to load when visible
             if ('IntersectionObserver' in window && container) {
                 var observer = new IntersectionObserver(function (entries) {
                     if (entries[0].isIntersecting) {
-                        clearTimeout(timer);
+                        if (timer) clearTimeout(timer);
                         loadGHLScript();
                         observer.disconnect();
                     }
@@ -153,6 +167,9 @@ function chroma_tour_form_shortcode()
             }
         })();
     </script>
+    <?php else: ?>
+    <script src="https://link.msgsndr.com/js/form_embed.js"></script>
+    <?php endif; ?>
     <?php
     return ob_get_clean();
 }
@@ -260,15 +277,127 @@ function chroma_handle_tour_submission()
 add_action('template_redirect', 'chroma_handle_tour_submission');
 
 /**
- * Legacy Settings (Admin Interface Preserved but Inactive)
+ * Register Settings
+ */
+function chroma_tour_register_settings()
+{
+    register_setting('chroma_tour_settings', 'chroma_tour_form_id', array(
+        'type' => 'string',
+        'default' => 'JpecxfWJrxyWE7Ufdtkd',
+        'sanitize_callback' => 'sanitize_text_field'
+    ));
+    register_setting('chroma_tour_settings', 'chroma_tour_form_height', array(
+        'type' => 'integer',
+        'default' => 788,
+        'sanitize_callback' => 'absint'
+    ));
+    register_setting('chroma_tour_settings', 'chroma_tour_form_name', array(
+        'type' => 'string',
+        'default' => 'VIRTUAL TOUR INFORMATION - Chroma Early Learning',
+        'sanitize_callback' => 'sanitize_text_field'
+    ));
+    register_setting('chroma_tour_settings', 'chroma_tour_lazy_load', array(
+        'type' => 'boolean',
+        'default' => true,
+        'sanitize_callback' => 'rest_sanitize_boolean'
+    ));
+    register_setting('chroma_tour_settings', 'chroma_tour_lazy_delay', array(
+        'type' => 'integer',
+        'default' => 2000,
+        'sanitize_callback' => 'absint'
+    ));
+}
+add_action('admin_init', 'chroma_tour_register_settings');
+
+/**
+ * Admin Menu
  */
 function chroma_tour_admin_menu()
 {
-    add_options_page('Tour Form Settings', 'Tour Form', 'manage_options', 'chroma-tour-form', 'chroma_tour_settings_page_html');
+    add_options_page(
+        'Tour Form Settings',
+        'Tour Form',
+        'manage_options',
+        'chroma-tour-form',
+        'chroma_tour_settings_page_html'
+    );
 }
 add_action('admin_menu', 'chroma_tour_admin_menu');
 
+/**
+ * Settings Page HTML
+ */
 function chroma_tour_settings_page_html()
 {
-    echo '<div class="wrap"><h1>Tour Form</h1><p>The tour form is currently using the native integration with LeadConnector (GHL). Field settings here are currently bypassed.</p></div>';
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+
+    // Get current values
+    $form_id = get_option('chroma_tour_form_id', 'JpecxfWJrxyWE7Ufdtkd');
+    $form_height = get_option('chroma_tour_form_height', 788);
+    $form_name = get_option('chroma_tour_form_name', 'VIRTUAL TOUR INFORMATION - Chroma Early Learning');
+    $lazy_load = get_option('chroma_tour_lazy_load', true);
+    $lazy_delay = get_option('chroma_tour_lazy_delay', 2000);
+    ?>
+    <div class="wrap">
+        <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+        
+        <form method="post" action="options.php">
+            <?php settings_fields('chroma_tour_settings'); ?>
+            
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row"><label for="chroma_tour_form_id">GHL Form ID</label></th>
+                    <td>
+                        <input type="text" id="chroma_tour_form_id" name="chroma_tour_form_id" 
+                               value="<?php echo esc_attr($form_id); ?>" class="regular-text">
+                        <p class="description">The form ID from your GoHighLevel embed URL (e.g., JpecxfWJrxyWE7Ufdtkd)</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="chroma_tour_form_height">Form Height (px)</label></th>
+                    <td>
+                        <input type="number" id="chroma_tour_form_height" name="chroma_tour_form_height" 
+                               value="<?php echo esc_attr($form_height); ?>" min="300" max="2000" class="small-text">
+                        <p class="description">Height of the iframe in pixels</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="chroma_tour_form_name">Form Name</label></th>
+                    <td>
+                        <input type="text" id="chroma_tour_form_name" name="chroma_tour_form_name" 
+                               value="<?php echo esc_attr($form_name); ?>" class="regular-text">
+                        <p class="description">Accessible title for the form iframe</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Lazy Loading</th>
+                    <td>
+                        <label for="chroma_tour_lazy_load">
+                            <input type="checkbox" id="chroma_tour_lazy_load" name="chroma_tour_lazy_load" 
+                                   value="1" <?php checked($lazy_load, true); ?>>
+                            Enable lazy loading for form embed script
+                        </label>
+                        <p class="description">When enabled, the form script loads after a delay or when scrolled into view (improves page speed)</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><label for="chroma_tour_lazy_delay">Lazy Load Delay (ms)</label></th>
+                    <td>
+                        <input type="number" id="chroma_tour_lazy_delay" name="chroma_tour_lazy_delay" 
+                               value="<?php echo esc_attr($lazy_delay); ?>" min="0" max="10000" step="100" class="small-text">
+                        <p class="description">Milliseconds to wait before loading (0 = load when visible only, 2000 = 2 seconds default)</p>
+                    </td>
+                </tr>
+            </table>
+            
+            <?php submit_button('Save Settings'); ?>
+        </form>
+        
+        <hr>
+        <h2>Usage</h2>
+        <p>Use this shortcode to display the tour form: <code>[chroma_tour_form]</code></p>
+    </div>
+    <?php
 }
