@@ -202,6 +202,10 @@ class Chroma_School_API_Routes
         $school_id = $request['id'];
         $params = $request->get_json_params();
 
+        // LOGGING
+        $log = sprintf("[%s] PATCH School %s. Payload keys: %s\n", date('Y-m-d H:i:s'), $school_id, implode(',', array_keys($params)));
+        file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', $log, FILE_APPEND);
+
         // Whitelisted fields to update
         $allowed_keys = [
             'newsletter',
@@ -224,7 +228,10 @@ class Chroma_School_API_Routes
                     $value = wp_kses_post($value); // Allow safe HTML in bodies
                 }
 
-                update_post_meta($school_id, '_chroma_school_' . $key, $value);
+                $updated = update_post_meta($school_id, '_chroma_school_' . $key, $value);
+                // Log update result
+                $log_update = sprintf(" - Key: %s | Values: %s | Updated: %s\n", $key, is_array($value) ? 'ARRAY' : substr($value, 0, 20), $updated ? 'YES' : 'NO/SAME');
+                file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', $log_update, FILE_APPEND);
             }
         }
 
@@ -238,6 +245,10 @@ class Chroma_School_API_Routes
     public function check_director_permission($request)
     {
         $auth_header = $request->get_header('Authorization');
+
+        // Log Auth Attempt
+        // file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', "Auth Check: " . substr($auth_header, 0, 20) . "...\n", FILE_APPEND);
+
         if (!$auth_header || !preg_match('/Bearer\s+(.*)$/i', $auth_header, $matches)) {
             return false;
         }
