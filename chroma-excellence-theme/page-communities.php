@@ -192,7 +192,7 @@ function chroma_page_get_city_description($city_post, $max_length = 60)
                     ?>
                     <!-- <?php echo esc_html($city_title); ?> City Card -->
                     <a href="<?php echo esc_url($city_permalink); ?>"
-                        class="group relative bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-xl transition-all duration-300 border border-brand-ink/5 <?php echo $is_opening_soon ? 'opacity-80 hover:opacity-100' : ''; ?>"
+                        class="group relative bg-white rounded-3xl overflow-hidden shadow-card hover:shadow-xl transition-all duration-300 border border-brand-ink/5"
                         aria-label="View schools in <?php echo esc_attr($city_title); ?>">
                         <div class="h-48 overflow-hidden relative bg-chroma-blue/5">
                             <div class="absolute inset-0 bg-brand-ink/10 group-hover:bg-transparent transition-colors z-10">
@@ -211,21 +211,7 @@ function chroma_page_get_city_description($city_post, $max_length = 60)
                                 </div>
                             <?php endif; ?>
 
-                            <?php if ($is_opening_soon): ?>
-                                <div class="absolute top-4 right-4 z-20">
-                                    <span
-                                        class="bg-chroma-yellow text-brand-ink text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-md">
-                                        Opening Soon
-                                    </span>
-                                </div>
-                            <?php else: ?>
-                                <div class="absolute bottom-4 left-4 z-20">
-                                    <span
-                                        class="bg-white/95 backdrop-blur-sm text-brand-ink text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full shadow-sm">
-                                        <?php echo esc_html($campus_count); ?> Campus<?php echo $campus_count !== 1 ? 'es' : ''; ?>
-                                    </span>
-                                </div>
-                            <?php endif; ?>
+
                         </div>
 
                         <div class="p-6">
@@ -237,27 +223,15 @@ function chroma_page_get_city_description($city_post, $max_length = 60)
                                 <?php echo esc_html($city_description); ?>
                             </p>
 
-                            <?php if ($is_opening_soon): ?>
-                                <span
-                                    class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 inline-flex items-center gap-2">
-                                    Join Waitlist
-                                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                                    </svg>
-                                </span>
-                            <?php else: ?>
-                                <span
-                                    class="text-xs font-bold uppercase tracking-wider text-chroma-red inline-flex items-center gap-2">
-                                    View Schools
-                                    <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                                    </svg>
-                                </span>
-                            <?php endif; ?>
+                            <span
+                                class="text-xs font-bold uppercase tracking-wider text-chroma-red inline-flex items-center gap-2">
+                                View Schools
+                                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                                </svg>
+                            </span>
                         </div>
                     </a>
                 <?php endforeach; ?>
