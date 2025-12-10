@@ -31,3 +31,10 @@ function chroma_school_dashboard_init()
     new Chroma_School_Admin_Settings();
 }
 add_action('plugins_loaded', 'chroma_school_dashboard_init');
+
+register_activation_hook(__FILE__, 'chroma_school_flush_rules');
+function chroma_school_flush_rules()
+{
+    chroma_school_dashboard_init();
+    flush_rewrite_rules();
+}
