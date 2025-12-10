@@ -40,6 +40,9 @@ class Chroma_School_Portal_Loader
 
             $rel_path = urldecode($rel_path);
 
+            // Strip trailing slashes and spaces (fixes /file.js/ issue)
+            $rel_path = rtrim($rel_path, '/ ');
+
             if (strpos($rel_path, '..') !== false) {
                 status_header(403);
                 exit('Forbidden');
