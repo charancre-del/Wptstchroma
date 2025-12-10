@@ -261,10 +261,4 @@ class Chroma_School_API_Routes
     }
 }
 
-class Chroma_School_Admin_Settings
-{
-    public function __construct()
-    {
-        // Will implement Admin Page in next pass
-    }
-}
+
