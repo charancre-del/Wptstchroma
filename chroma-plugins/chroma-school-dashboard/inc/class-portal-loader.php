@@ -32,23 +32,17 @@ class Chroma_School_Portal_Loader
             // 1. Determine requested file path relative to /portal/
             // URL: /portal/_next/static/css/styles.css -> file: assets/portal/_next/static/css/styles.css
 
-            $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+            $request_uri = $_SERVER['REQUEST_URI'];
 
-            // Remove /portal/ prefix if present (it should be, due to rewrite)
-            // But we need to be careful about subfolders.
-            // Simplified: we look at what matches "portal/(.*)"
+            // Extract path relative to /portal/
+            // Handles both /portal/foo.css and /portal/foo.css?v=1
+            $path = parse_url($request_uri, PHP_URL_PATH);
 
-            // Actually, let's just assume we are mapped to assets/portal directory.
-            // We need to strip the leading base path.
-            // Since we don't know the exact WP install path, let's rely on the fact that our Rewrite Rule passes the subpath?
-            // Wait, existing rule: 'index.php?chroma_view=portal'
-            // It DOES NOT pass the subpath in the current rule: '^portal/(.+)?$' -> 'index.php?chroma_view=portal'
-            // We need to capture it.
-            // Let's rely on $_SERVER['REQUEST_URI'] manually finding '/portal/'.
-
-            $path_part = strstr($request_uri, '/portal/');
-            if ($path_part) {
-                $rel_path = substr($path_part, 8); // remove '/portal/'
+            // Find where /portal/ starts
+            $pos = strpos($path, '/portal/');
+            if ($pos !== false) {
+                // Remove everything before and including '/portal/' to get relative path
+                $rel_path = substr($path, $pos + strlen('/portal/'));
             } else {
                 $rel_path = '';
             }

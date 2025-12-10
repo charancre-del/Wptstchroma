@@ -148,11 +148,10 @@ $school_name = get_the_title();
 
             <div class="flex items-center gap-6 z-10">
                 <!-- Logo -->
-                <div class="flex -space-x-2 mr-4">
-                    <span class="w-6 h-6 rounded-full bg-chroma-red"></span>
-                    <span class="w-6 h-6 rounded-full bg-chroma-yellow"></span>
-                    <span class="w-6 h-6 rounded-full bg-chroma-green"></span>
-                    <span class="w-6 h-6 rounded-full bg-chroma-blue"></span>
+                <!-- Logo -->
+                <div class="mr-4">
+                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/logo_icon_140x140.webp"
+                        alt="Chroma Logo" class="h-16 w-16 object-contain">
                 </div>
                 <div>
                     <h1 class="font-serif text-4xl font-bold text-brand-ink leading-tight">
@@ -199,7 +198,8 @@ $school_name = get_the_title();
                 <div class="flex items-center gap-3 mb-4">
                     <div
                         class="w-10 h-10 rounded-xl bg-chroma-blueLight flex items-center justify-center text-chroma-blue text-xl">
-                        <i class="fa-regular fa-calendar-check"></i></div>
+                        <i class="fa-regular fa-calendar-check"></i>
+                    </div>
                     <h2 class="font-serif text-2xl font-bold">Today</h2>
                 </div>
                 <ul class="space-y-4">
@@ -225,7 +225,8 @@ $school_name = get_the_title();
                 <div class="flex items-center gap-3 mb-4 z-10">
                     <div
                         class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-chroma-yellow text-xl">
-                        <i class="fa-solid fa-bullhorn"></i></div>
+                        <i class="fa-solid fa-bullhorn"></i>
+                    </div>
                     <h2 class="font-serif text-2xl font-bold text-brand-ink">Notices</h2>
                 </div>
                 <div class="relative z-10 flex-1 overflow-y-auto">
@@ -324,7 +325,8 @@ $school_name = get_the_title();
                         <div class="flex justify-between items-start mb-2">
                             <div>
                                 <h2 class="font-serif text-3xl font-bold text-brand-ink">
-                                    <?php echo esc_html($eom['name']); ?></h2>
+                                    <?php echo esc_html($eom['name']); ?>
+                                </h2>
                                 <!-- <p class="text-chroma-blue font-bold uppercase tracking-wider text-sm">Lead Teacher · Infants</p> -->
                             </div>
                             <i class="fa-solid fa-award text-4xl text-chroma-yellow animate-pulse-slow"></i>
@@ -346,7 +348,8 @@ $school_name = get_the_title();
                 <div class="bg-chroma-redLight rounded-3xl p-6 shadow-card flex-1 flex flex-col">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-chroma-red text-xl">
-                            <i class="fa-regular fa-newspaper"></i></div>
+                            <i class="fa-regular fa-newspaper"></i>
+                        </div>
                         <h2 class="font-serif text-2xl font-bold text-chroma-red">Newsletter</h2>
                     </div>
                     <div class="bg-white/60 rounded-2xl p-4 flex-1 mb-4 border border-chroma-red/10">
@@ -378,7 +381,8 @@ $school_name = get_the_title();
                     <div class="relative z-10 h-full flex flex-col">
                         <span class="text-chroma-green font-bold uppercase tracking-widest text-xs mb-2">Chroma Cares</span>
                         <h2 class="font-serif text-2xl font-bold text-brand-ink mb-3">
-                            <?php echo esc_html($global_cares['title']); ?></h2>
+                            <?php echo esc_html($global_cares['title']); ?>
+                        </h2>
                         <p class="text-brand-ink/70 text-sm flex-1">
                             <?php echo esc_html($global_cares['body'] ?? ''); ?>
                         </p>
