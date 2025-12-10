@@ -11,14 +11,12 @@ class Chroma_School_Portal_Loader
 
     public function add_rewrite_rules()
     {
-        // Matches /portal/ and anything after it (for client-side routing)
         add_rewrite_rule('^portal/?$', 'index.php?chroma_view=portal', 'top');
         add_rewrite_rule('^portal/(.+)?$', 'index.php?chroma_view=portal', 'top');
     }
 
     public function add_query_vars($vars)
     {
-        // Already added in Template Loader, but ensuring it's here if separated
         if (!in_array('chroma_view', $vars)) {
             $vars[] = 'chroma_view';
         }
@@ -30,34 +28,41 @@ class Chroma_School_Portal_Loader
         if (get_query_var('chroma_view') === 'portal') {
 
             $request_uri = $_SERVER['REQUEST_URI'];
-
-            // Extract path relative to /portal/
             $path = parse_url($request_uri, PHP_URL_PATH);
 
-            // Find where /portal/ starts
+            // Logic to find relative path
             $pos = strpos($path, '/portal/');
             if ($pos !== false) {
-                // Remove everything before and including '/portal/' to get relative path
                 $rel_path = substr($path, $pos + strlen('/portal/'));
             } else {
                 $rel_path = '';
             }
 
-            // Decode URL (e.g. %20 -> space)
             $rel_path = urldecode($rel_path);
 
-            // Security: Prevent directory traversal
             if (strpos($rel_path, '..') !== false) {
                 status_header(403);
                 exit('Forbidden');
             }
 
-            // Construct file path
-            // Normalize slashes for Windows compatibility
             $base_path = CHROMA_SCHOOL_DB_PATH . 'assets/portal/';
             $file_path = $base_path . $rel_path;
 
-            // If it is a real file, serve it
+            // DEBUG LOGGING
+            $log_entry = sprintf(
+                "[%s] URI: %s | Rel: %s | Full: %s | Exists: %s | IsDir: %s\n",
+                date('Y-m-d H:i:s'),
+                $request_uri,
+                $rel_path,
+                $file_path,
+                file_exists($file_path) ? 'YES' : 'NO',
+                is_dir($file_path) ? 'YES' : 'NO'
+            );
+            // Log to wp-content/uploads/portal-debug.log so it's writeable
+            $log_file = WP_CONTENT_DIR . '/uploads/portal-debug.log';
+            @file_put_contents($log_file, $log_entry, FILE_APPEND);
+
+
             if ($rel_path && file_exists($file_path) && !is_dir($file_path)) {
                 $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
                 $mime = 'text/html';
@@ -100,14 +105,13 @@ class Chroma_School_Portal_Loader
                     }
 
                     header('Content-Type: ' . $mime);
-                    // Cache for 1 year
                     header('Cache-Control: public, max-age=31536000');
                     readfile($file_path);
                     exit;
                 }
             }
 
-            // Fallback: Serve index.html for client-side routing
+            // Fallback
             $index_path = CHROMA_SCHOOL_DB_PATH . 'assets/portal/index.html';
             if (file_exists($index_path)) {
                 readfile($index_path);
