@@ -29,13 +29,9 @@ class Chroma_School_Portal_Loader
     {
         if (get_query_var('chroma_view') === 'portal') {
 
-            // 1. Determine requested file path relative to /portal/
-            // URL: /portal/_next/static/css/styles.css -> file: assets/portal/_next/static/css/styles.css
-
             $request_uri = $_SERVER['REQUEST_URI'];
 
             // Extract path relative to /portal/
-            // Handles both /portal/foo.css and /portal/foo.css?v=1
             $path = parse_url($request_uri, PHP_URL_PATH);
 
             // Find where /portal/ starts
@@ -47,50 +43,68 @@ class Chroma_School_Portal_Loader
                 $rel_path = '';
             }
 
+            // Decode URL (e.g. %20 -> space)
+            $rel_path = urldecode($rel_path);
+
             // Security: Prevent directory traversal
             if (strpos($rel_path, '..') !== false) {
                 status_header(403);
                 exit('Forbidden');
             }
 
-            $file_path = CHROMA_SCHOOL_DB_PATH . 'assets/portal/' . $rel_path;
+            // Construct file path
+            // Normalize slashes for Windows compatibility
+            $base_path = CHROMA_SCHOOL_DB_PATH . 'assets/portal/';
+            $file_path = $base_path . $rel_path;
 
             // If it is a real file, serve it
             if ($rel_path && file_exists($file_path) && !is_dir($file_path)) {
-                $ext = pathinfo($file_path, PATHINFO_EXTENSION);
+                $ext = strtolower(pathinfo($file_path, PATHINFO_EXTENSION));
                 $mime = 'text/html';
 
-                switch ($ext) {
-                    case 'css':
-                        $mime = 'text/css';
-                        break;
-                    case 'js':
-                        $mime = 'application/javascript';
-                        break;
-                    case 'json':
-                        $mime = 'application/json';
-                        break;
-                    case 'png':
-                        $mime = 'image/png';
-                        break;
-                    case 'jpg':
-                    case 'jpeg':
-                        $mime = 'image/jpeg';
-                        break;
-                    case 'svg':
-                        $mime = 'image/svg+xml';
-                        break;
-                    case 'woff2':
-                        $mime = 'font/woff2';
-                        break;
-                    case 'ico':
-                        $mime = 'image/x-icon';
-                        break;
-                }
+                $allowed_exts = ['css', 'js', 'json', 'png', 'jpg', 'jpeg', 'svg', 'woff2', 'ico', 'txt', 'map'];
 
-                header('Content-Type: ' . $mime);
-                readfile($file_path);
-                exit;
+                if (in_array($ext, $allowed_exts)) {
+                    switch ($ext) {
+                        case 'css':
+                            $mime = 'text/css';
+                            break;
+                        case 'js':
+                            $mime = 'application/javascript';
+                            break;
+                        case 'json':
+                            $mime = 'application/json';
+                            break;
+                        case 'png':
+                            $mime = 'image/png';
+                            break;
+                        case 'jpg':
+                        case 'jpeg':
+                            $mime = 'image/jpeg';
+                            break;
+                        case 'svg':
+                            $mime = 'image/svg+xml';
+                            break;
+                        case 'woff2':
+                            $mime = 'font/woff2';
+                            break;
+                        case 'ico':
+                            $mime = 'image/x-icon';
+                            break;
+                        case 'txt':
+                            $mime = 'text/plain';
+                            break;
+                        case 'map':
+                            $mime = 'application/json';
+                            break;
+                    }
+
+                    header('Content-Type: ' . $mime);
+                    // Cache for 1 year
+                    header('Cache-Control: public, max-age=31536000');
+                    readfile($file_path);
+                    exit;
+                }
             }
 
             // Fallback: Serve index.html for client-side routing
