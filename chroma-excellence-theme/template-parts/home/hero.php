@@ -56,23 +56,30 @@ $home_id = chroma_get_home_page_id();
             </div>
         </div>
 
-        <div class="relative w-full aspect-[4/5] sm:h-[470px] lg:h-[500px] lg:aspect-auto fade-in-up delay-200">
-            <div class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3"></div>
+        <!-- Hero Image Container -->
+        <div class="relative w-full aspect-[4/5] sm:aspect-auto sm:h-[420px] lg:h-[500px] fade-in-up delay-200 isolate">
+            <!-- Background Decorations -->
             <div
-                class="absolute bottom-6 left-6 w-72 h-72 bg-chroma-yellowLight rounded-full -z-10 blur-2xl opacity-70">
+                class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3 hidden sm:block">
+            </div>
+            <div
+                class="absolute bottom-6 left-6 w-72 h-72 bg-chroma-yellowLight rounded-full -z-10 blur-2xl opacity-70 hidden sm:block">
             </div>
 
+            <!-- Main Image Frame -->
             <div
-                class="absolute inset-0 sm:inset-y-0 sm:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft">
+                class="absolute inset-0 sm:inset-y-0 sm:left-12 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft bg-brand-cream/50 z-0">
                 <?php
                 $hero_video_path = get_template_directory() . '/assets/video/hero-classroom.mp4';
                 $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.mp4';
                 $hero_image = get_theme_mod('chroma_home_hero_image');
 
-
                 if (has_post_thumbnail($home_id)):
                     // Priority 1: Homepage featured image
-                    echo get_the_post_thumbnail($home_id, 'hero-large', array('class' => 'w-full h-full object-cover', 'fetchpriority' => 'high'));
+                    echo get_the_post_thumbnail($home_id, 'hero-large', array(
+                        'class' => 'w-full h-full object-cover',
+                        'fetchpriority' => 'high'
+                    ));
                 elseif ($hero_image):
                     // Priority 2: Customizer hero image
                     ?>
@@ -95,17 +102,16 @@ $home_id = chroma_get_home_page_id();
                 <?php endif; ?>
             </div>
 
+            <!-- Badge (Kindergarten Ready) -->
             <div
-                class="absolute bottom-6 -left-8 sm:-left-8 left-4 bg-white/90 backdrop-blur-md p-5 rounded-2xl shadow-soft max-w-xs border border-white hidden sm:flex">
-                <div class="flex gap-4 items-center">
-                    <div
-                        class="w-12 h-12 rounded-xl bg-chroma-blue/10 flex items-center justify-center text-chroma-blue text-xl">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                    </div>
-                    <div>
-                        <p class="font-bold text-sm text-brand-ink">Kindergarten Ready</p>
-                        <p class="text-[11px] text-brand-ink">Comprehensive Prep</p>
-                    </div>
+                class="absolute bottom-6 -left-4 sm:-left-8 bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-soft max-w-[200px] sm:max-w-xs border border-white z-10 flex gap-3 sm:gap-4 items-center">
+                <div
+                    class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-chroma-blue/10 flex items-center justify-center text-chroma-blue text-lg sm:text-xl shrink-0">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <p class="font-bold text-xs sm:text-sm text-brand-ink">Kindergarten Ready</p>
+                    <p class="text-[10px] sm:text-[11px] text-brand-ink">Comprehensive Prep</p>
                 </div>
             </div>
         </div>
