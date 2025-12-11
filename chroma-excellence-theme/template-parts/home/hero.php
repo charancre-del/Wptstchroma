@@ -57,7 +57,8 @@ $home_id = chroma_get_home_page_id();
         </div>
 
         <!-- Hero Image Container -->
-        <div class="relative w-full h-[400px] sm:h-[420px] lg:h-[500px] fade-in-up delay-200 isolate mt-8 sm:mt-0">
+        <!-- Hero Image Container -->
+        <div class="relative w-full h-[400px] sm:h-[420px] lg:h-[500px] isolate mt-8 sm:mt-0">
             <!-- Background Decorations -->
             <div
                 class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3 hidden sm:block">

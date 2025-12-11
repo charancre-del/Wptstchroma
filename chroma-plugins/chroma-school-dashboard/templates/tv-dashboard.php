@@ -136,54 +136,66 @@ $school_name = get_the_title();
 <body class="bg-brand-cream text-brand-ink antialiased h-screen w-screen flex flex-col p-6 lg:p-10 selection:bg-none">
 
     <div id="dashboard-container"
-        class="flex-1 grid grid-cols-12 grid-rows-12 gap-6 h-full w-full max-w-[2200px] mx-auto">
+        class="flex-1 grid grid-cols-12 grid-rows-12 gap-8 h-full w-full max-w-[2200px] mx-auto">
 
         <!-- HEADER ROW (Span 12, Row 1-2) -->
         <header
-            class="col-span-12 row-span-2 flex items-center justify-between bg-white rounded-3xl p-6 shadow-soft border border-chroma-blue/10 relative overflow-hidden">
+            class="col-span-12 row-span-2 flex items-center justify-between bg-white rounded-[2rem] p-8 shadow-soft border border-chroma-blue/10 relative overflow-hidden">
             <!-- Decor Blob -->
             <div
                 class="absolute top-0 right-0 w-64 h-64 bg-chroma-yellowLight rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2">
             </div>
 
-            <div class="flex items-center gap-6 z-10">
-                <!-- Logo -->
-                <!-- Logo -->
-                <div class="mr-4">
-                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/images/logo_icon_140x140.webp"
-                        alt="Chroma Logo" class="h-16 w-16 object-contain">
+            <div class="flex items-center gap-8 z-10">
+                <!-- Color Dots Icon (Mockup style) -->
+                <div class="flex gap-1 mr-2">
+                    <div class="w-6 h-6 rounded-full bg-chroma-red"></div>
+                    <div class="w-6 h-6 rounded-full bg-chroma-yellow"></div>
+                    <div class="w-6 h-6 rounded-full bg-chroma-green"></div>
+                    <div class="w-6 h-6 rounded-full bg-chroma-blue"></div>
                 </div>
+
                 <div>
-                    <h1 class="font-serif text-4xl font-bold text-brand-ink leading-tight">
+                    <h1 class="font-serif text-3xl font-bold text-brand-ink leading-tight">
                         <?php if (!empty($welcome_override)): ?>
                             <?php echo esc_html($welcome_override); ?>
                         <?php else: ?>
-                            Welcome to Chroma Early Learning <span
-                                class="text-chroma-blue italic"><?php echo esc_html($school_name); ?></span>
+                            Welcome to Chroma Early Learning
                         <?php endif; ?>
                     </h1>
-                    <p class="text-brand-ink/60 text-lg font-medium mt-1">Today is <span id="current-date">...</span>
+                    <div class="font-serif italic text-4xl text-chroma-blue mt-1 font-semibold">
+                        <!-- School Name, e.g. Marietta East -->
+                        <?php echo esc_html($school_name); ?>
+                    </div>
+                    <p class="text-brand-ink/40 text-lg font-medium mt-2">Today is <span id="current-date"
+                            class="text-brand-ink/60">...</span>
                     </p>
                 </div>
             </div>
 
             <!-- Time & Weather Widget -->
-            <div class="flex items-center gap-8 z-10">
+            <div class="flex items-center gap-10 z-10">
                 <?php if ($weather): ?>
                     <div class="text-right">
-                        <div class="flex items-center justify-end gap-3 text-brand-ink">
+                        <div class="flex items-center justify-end gap-4 text-brand-ink">
                             <i
-                                class="fa-solid <?php echo ($weather['code'] < 2) ? 'fa-sun' : 'fa-cloud-sun'; ?> text-4xl text-chroma-yellow"></i>
-                            <span class="text-5xl font-bold"><?php echo esc_html($weather['temp']); ?>°</span>
+                                class="fa-solid <?php echo ($weather['code'] < 2) ? 'fa-sun' : 'fa-cloud-sun'; ?> text-5xl text-chroma-yellow"></i>
+                            <span
+                                class="text-6xl font-bold tracking-tighter"><?php echo esc_html($weather['temp']); ?>°</span>
                         </div>
-                        <p class="text-brand-ink/60 font-medium"><?php echo esc_html($weather['description']); ?></p>
+                        <p class="text-brand-ink/50 font-medium text-lg mt-1">
+                            <?php echo esc_html($weather['description']); ?>
+                        </p>
                     </div>
-                    <div class="h-16 w-px bg-chroma-blue/10"></div>
+                    <!-- Separator -->
+                    <div class="h-20 w-px bg-chroma-blue/10"></div>
                 <?php endif; ?>
 
-                <div class="text-right w-40">
-                    <div id="clock" class="text-6xl font-bold text-brand-ink tabular-nums tracking-tight">00:00</div>
-                    <div id="ampm" class="text-xl font-bold text-chroma-blue uppercase tracking-widest text-right mr-1">
+                <div class="text-right">
+                    <div id="clock"
+                        class="text-7xl font-bold text-brand-ink tabular-nums tracking-tighter leading-none">00:00</div>
+                    <div id="ampm"
+                        class="text-2xl font-bold text-chroma-blue uppercase tracking-widest text-right mr-1 mt-1 opacity-60">
                         AM</div>
                 </div>
             </div>
@@ -194,51 +206,59 @@ $school_name = get_the_title();
 
             <!-- Today At A Glance -->
             <div
-                class="bg-white rounded-3xl p-6 shadow-card border border-chroma-blue/10 flex-1 flex flex-col overflow-hidden">
-                <div class="flex items-center gap-3 mb-4">
+                class="bg-white rounded-[2rem] p-6 shadow-card border border-chroma-blue/10 flex-shrink-0 flex flex-col overflow-hidden min-h-[300px]">
+                <div class="flex items-center gap-3 mb-6">
                     <div
-                        class="w-10 h-10 rounded-xl bg-chroma-blueLight flex items-center justify-center text-chroma-blue text-xl">
-                        <i class="fa-regular fa-calendar-check"></i>
+                        class="w-12 h-12 rounded-2xl bg-brand-cream border border-brand-ink/5 flex items-center justify-center text-chroma-blue text-2xl">
+                        <i class="fa-regular fa-calendar"></i>
                     </div>
-                    <h2 class="font-serif text-2xl font-bold">Today</h2>
+                    <h2 class="font-serif text-3xl font-bold text-brand-ink">Today</h2>
                 </div>
-                <ul class="space-y-4">
+                <div class="space-y-4">
                     <?php if (!empty($today) && is_array($today)): ?>
                         <?php foreach ($today as $item): ?>
-                            <li class="flex gap-4 items-start p-3 rounded-2xl bg-brand-cream border border-chroma-blue/5">
+                            <div class="flex flex-col p-4 rounded-2xl bg-white border border-chroma-blue/5 shadow-sm">
                                 <?php if (!empty($item['time'])): ?>
                                     <span
-                                        class="font-bold text-chroma-blue whitespace-nowrap"><?php echo esc_html($item['time']); ?></span>
+                                        class="text-chroma-blue font-bold text-lg mb-1"><?php echo esc_html($item['time']); ?></span>
                                 <?php endif; ?>
-                                <span class="font-medium leading-tight"><?php echo esc_html($item['label']); ?></span>
-                            </li>
+                                <span
+                                    class="font-bold text-xl text-brand-ink leading-tight"><?php echo esc_html($item['label']); ?></span>
+                            </div>
                         <?php endforeach; ?>
                     <?php else: ?>
-                        <p class="text-sm opacity-50">Have a wonderful day!</p>
+                        <!-- Empty State -->
+                        <div class="p-6 rounded-2xl bg-brand-cream text-center opacity-60">
+                            <p class="font-medium">Have a wonderful day!</p>
+                        </div>
                     <?php endif; ?>
-                </ul>
+                </div>
             </div>
 
-            <!-- Announcements -->
+            <!-- Notices / Announcements -->
             <div
-                class="bg-chroma-yellowLight rounded-3xl p-6 shadow-card flex-1 flex flex-col relative overflow-hidden">
-                <div class="flex items-center gap-3 mb-4 z-10">
+                class="bg-brand-cream rounded-[2rem] p-6 shadow-card flex-1 flex flex-col relative overflow-hidden border border-chroma-yellow/20">
+
+                <div class="flex items-center gap-3 mb-6 z-10">
                     <div
-                        class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-chroma-yellow text-xl">
+                        class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-chroma-yellow text-2xl shadow-sm">
                         <i class="fa-solid fa-bullhorn"></i>
                     </div>
-                    <h2 class="font-serif text-2xl font-bold text-brand-ink">Notices</h2>
+                    <h2 class="font-serif text-3xl font-bold text-brand-ink">Notices</h2>
                 </div>
-                <div class="relative z-10 flex-1 overflow-y-auto">
+
+                <div class="relative z-10 flex-1 overflow-y-auto space-y-5 pr-2">
                     <?php if (!empty($announcements) && is_array($announcements)): ?>
                         <?php foreach ($announcements as $notice): ?>
-                            <div class="mb-4 animate-fade-in border-b border-brand-ink/5 pb-2 last:border-0">
+                            <div class="animate-fade-in">
                                 <?php if (($notice['priority'] ?? 'normal') === 'high'): ?>
                                     <span
-                                        class="inline-block px-2 py-1 rounded-md bg-chroma-red text-white text-xs font-bold uppercase tracking-wider mb-2">Important</span>
+                                        class="inline-block px-3 py-1 rounded-lg bg-chroma-red text-white text-xs font-extra-bold uppercase tracking-wider mb-2">Important</span>
                                 <?php endif; ?>
-                                <h3 class="font-bold text-lg leading-tight mb-1"><?php echo esc_html($notice['title']); ?></h3>
-                                <p class="text-brand-ink/80 text-sm leading-relaxed"><?php echo esc_html($notice['body']); ?>
+                                <h3 class="font-bold text-xl leading-tight mb-2 text-brand-ink">
+                                    <?php echo esc_html($notice['title']); ?>
+                                </h3>
+                                <p class="text-brand-ink/70 text-base leading-relaxed"><?php echo esc_html($notice['body']); ?>
                                 </p>
                             </div>
                         <?php endforeach; ?>
@@ -246,37 +266,49 @@ $school_name = get_the_title();
                 </div>
                 <!-- Decor Icon -->
                 <i
-                    class="fa-solid fa-bell absolute -bottom-4 -right-4 text-9xl text-chroma-yellow opacity-20 rotate-12"></i>
+                    class="fa-solid fa-bell absolute -bottom-8 -right-8 text-[10rem] text-chroma-yellow opacity-10 rotate-12"></i>
             </div>
 
-            <!-- QR Code / Menu Link -->
+            <!-- Weekly Menu (Black Card) -->
             <?php if (!empty($menu)): ?>
-                <div class="bg-brand-ink rounded-3xl p-6 shadow-card text-white flex items-center justify-between h-40">
-                    <div>
-                        <h3 class="font-serif text-xl font-bold mb-1">Weekly Menu</h3>
-                        <p class="text-white/60 text-sm mb-3">View full info</p>
+                <div
+                    class="bg-brand-ink rounded-[2rem] p-6 shadow-card text-white flex gap-4 items-center h-48 relative overflow-hidden">
+                    <div class="flex-1 z-10">
+                        <h3 class="font-serif text-2xl font-bold mb-1">Weekly<br>Menu</h3>
+
                         <div
-                            class="inline-flex items-center gap-2 text-chroma-yellow text-xs font-bold uppercase tracking-wider">
+                            class="mt-4 inline-flex items-center gap-2 text-chroma-yellow text-xs font-bold uppercase tracking-widest">
                             <i class="fa-solid fa-utensils"></i> Scan to View
                         </div>
                     </div>
-                    <div class="w-24 h-24 bg-white rounded-xl p-2">
+                    <!-- QR Code container -->
+                    <div class="w-28 h-28 bg-white rounded-2xl p-2 shrink-0 z-10 relative shadow-lg">
                         <?php
                         $menu_url = filter_var($menu, FILTER_VALIDATE_URL) ? $menu : '#';
                         $qr_src = "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" . urlencode($menu_url);
                         ?>
                         <img src="<?php echo esc_url($qr_src); ?>" class="w-full h-full object-contain" alt="Menu QR">
+                        <!-- Center icon in QR -->
+                        <!-- <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            <div class="w-6 h-6 bg-white rounded-full flex items-center justify-center p-1">
+                                <i class="fa-solid fa-utensils text-brand-ink text-xs"></i>
+                            </div>
+                        </div> -->
                     </div>
+
+                    <!-- Decor -->
+                    <i class="fa-solid fa-carrot absolute -bottom-4 -left-4 text-8xl text-white opacity-5 -rotate-12"></i>
                 </div>
             <?php endif; ?>
 
         </aside>
 
         <!-- CENTER COLUMN (Span 6, Row 3-12) -->
-        <main class="col-span-6 row-span-10 flex flex-col gap-6">
+        <main class="col-span-6 row-span-10 flex flex-col gap-8">
 
             <!-- Primary Visual: Slideshow or YouTube -->
-            <div class="bg-black rounded-4xl overflow-hidden shadow-2xl relative flex-grow-[2] border-4 border-white">
+            <div
+                class="bg-black rounded-[2.5rem] overflow-hidden shadow-2xl relative flex-grow-[2] border-[6px] border-white ring-1 ring-black/5">
 
                 <?php if (!empty($youtube)): ?>
                     <!-- YouTube Embed -->
@@ -293,6 +325,16 @@ $school_name = get_the_title();
                 <?php else: ?>
                     <!-- Slideshow -->
                     <img id="slideshow-img" src="" class="w-full h-full object-cover animate-fade-in" alt="Slideshow">
+
+                    <div class="absolute bottom-8 left-8 right-8 z-20">
+                        <span
+                            class="inline-block px-3 py-1 rounded-full bg-chroma-red text-white text-xs font-bold uppercase tracking-wider mb-2 shadow-lg">Happening
+                            Now</span>
+                        <h2 class="font-serif text-5xl font-bold text-white drop-shadow-md">Fall Festival Highlights</h2>
+                    </div>
+
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10"></div>
+
                     <?php
                     // Pass PHP array to JS
                     $js_slides = !empty($slideshow) ? json_encode($slideshow) : '[]';
@@ -304,36 +346,42 @@ $school_name = get_the_title();
 
             </div>
 
-            <!-- Employee of the Month -->
+            <!-- Star Educator -->
             <?php if (!empty($eom['name'])): ?>
                 <div
-                    class="bg-white rounded-4xl p-2 pr-8 shadow-card border border-chroma-blue/10 flex items-center gap-6 h-48">
-                    <div class="h-full aspect-square rounded-3xl overflow-hidden relative">
+                    class="bg-white rounded-[2.5rem] p-3 shadow-card border border-chroma-blue/10 flex items-center gap-8 h-48 relative overflow-hidden group">
+                    <!-- Image -->
+                    <div class="h-full w-48 shrink-0 rounded-[2rem] overflow-hidden relative shadow-inner">
                         <?php if (!empty($eom['photo_url'])): ?>
-                            <img src="<?php echo esc_url($eom['photo_url']); ?>" class="w-full h-full object-cover"
+                            <img src="<?php echo esc_url($eom['photo_url']); ?>"
+                                class="w-full h-full object-cover transform group-hover:scale-105 transition duration-1000"
                                 alt="Teacher">
                         <?php else: ?>
-                            <div class="w-full h-full bg-chroma-blue flex items-center justify-center text-white text-4xl"><i
+                            <div class="w-full h-full bg-chroma-blue flex items-center justify-center text-white text-5xl"><i
                                     class="fa-solid fa-user"></i></div>
                         <?php endif; ?>
-                        <div
-                            class="absolute bottom-0 left-0 right-0 bg-chroma-blue text-white text-center py-1 text-[10px] font-bold uppercase tracking-wider">
-                            Star Educator
-                        </div>
                     </div>
-                    <div class="flex-1 py-4">
-                        <div class="flex justify-between items-start mb-2">
+
+                    <!-- Content -->
+                    <div class="flex-1 py-2 pr-6 z-10">
+                        <div class="flex justify-between items-start mb-1 h-full flex-col justify-center">
                             <div>
-                                <h2 class="font-serif text-3xl font-bold text-brand-ink">
+                                <h2 class="font-serif text-4xl font-bold text-brand-ink mb-1">
                                     <?php echo esc_html($eom['name']); ?>
                                 </h2>
-                                <!-- <p class="text-chroma-blue font-bold uppercase tracking-wider text-sm">Lead Teacher · Infants</p> -->
+                                <p class="text-chroma-blue font-bold uppercase tracking-widest text-xs mb-3">
+                                    Leacher Teacher • Infants
+                                </p>
+                                <p class="text-brand-ink/60 text-lg leading-snug line-clamp-2 italic">
+                                    "<?php echo esc_html($eom['blurb'] ?? 'Dedicated to nurturing every child\'s potential.'); ?>"
+                                </p>
                             </div>
-                            <i class="fa-solid fa-award text-4xl text-chroma-yellow animate-pulse-slow"></i>
                         </div>
-                        <p class="text-brand-ink/70 text-lg leading-snug line-clamp-3">
-                            <?php echo esc_html($eom['blurb'] ?? ''); ?>
-                        </p>
+                    </div>
+
+                    <!-- Badge Icon -->
+                    <div class="absolute top-6 right-6 text-chroma-yellow text-5xl opacity-40">
+                        <i class="fa-solid fa-certificate"></i>
                     </div>
                 </div>
             <?php endif; ?>
@@ -345,74 +393,99 @@ $school_name = get_the_title();
 
             <!-- Newsletter Card -->
             <?php if (!empty($newsletter['title'])): ?>
-                <div class="bg-chroma-redLight rounded-3xl p-6 shadow-card flex-1 flex flex-col">
+                <div class="bg-[#F8EEEB] rounded-[2rem] p-6 shadow-card flex-1 flex flex-col max-h-[40%]">
                     <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-chroma-red text-xl">
+                        <div
+                            class="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center text-chroma-red text-xl shadow-sm">
                             <i class="fa-regular fa-newspaper"></i>
                         </div>
                         <h2 class="font-serif text-2xl font-bold text-chroma-red">Newsletter</h2>
                     </div>
-                    <div class="bg-white/60 rounded-2xl p-4 flex-1 mb-4 border border-chroma-red/10">
-                        <h3 class="font-bold text-lg mb-2"><?php echo esc_html($newsletter['title']); ?></h3>
-                        <p class="text-brand-ink/70 text-sm leading-relaxed line-clamp-4">
-                            <?php echo esc_html($newsletter['body'] ?? ''); ?>
-                        </p>
-                    </div>
-                    <?php if (!empty($newsletter['url'])): ?>
-                        <div class="bg-white rounded-xl p-3 flex items-center gap-3 shadow-sm">
-                            <div class="bg-brand-ink p-1 rounded-lg">
-                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo urlencode($newsletter['url']); ?>"
-                                    class="w-10 h-10" alt="QR">
-                            </div>
-                            <div class="leading-tight">
-                                <p class="font-bold text-sm text-brand-ink">Read Issue</p>
-                                <p class="text-xs text-brand-ink/50">Scan with phone</p>
-                            </div>
+
+                    <div class="flex-1 flex flex-col gap-4">
+                        <div>
+                            <h3 class="font-bold text-xl text-brand-ink mb-1"><?php echo esc_html($newsletter['title']); ?>
+                            </h3>
+                            <p class="text-brand-ink/60 text-sm leading-relaxed line-clamp-3">
+                                <?php echo esc_html($newsletter['body'] ?? 'Updates on upcoming events and classroom activities.'); ?>
+                            </p>
                         </div>
-                    <?php endif; ?>
+
+                        <?php if (!empty($newsletter['url'])): ?>
+                            <div class="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm mt-auto">
+                                <div class="bg-brand-ink p-1 rounded-lg shrink-0">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo urlencode($newsletter['url']); ?>"
+                                        class="w-12 h-12" alt="QR">
+                                </div>
+                                <div class="leading-tight">
+                                    <p class="font-bold text-base text-brand-ink">Read Full Issue</p>
+                                    <p class="text-xs text-brand-ink/50">Scan with phone</p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
                 </div>
             <?php endif; ?>
 
-            <!-- Chroma Cares (Global) -->
-            <?php if (!empty($global_cares['title'])): ?>
-                <div class="bg-chroma-greenLight rounded-3xl p-6 shadow-card h-64 relative overflow-hidden group">
-                    <div class="absolute top-0 right-0 p-4 opacity-10 text-6xl text-chroma-green"><i
-                            class="fa-solid fa-hand-holding-heart"></i></div>
-                    <div class="relative z-10 h-full flex flex-col">
-                        <span class="text-chroma-green font-bold uppercase tracking-widest text-xs mb-2">Chroma Cares</span>
-                        <h2 class="font-serif text-2xl font-bold text-brand-ink mb-3">
-                            <?php echo esc_html($global_cares['title']); ?>
+            <!-- Chroma Cares (Global/Local) -->
+            <?php
+            $local_cares = get_post_meta($school_id, '_chroma_school_chroma_cares', true) ?: [];
+            // Prefer local override if title is set
+            $display_cares = !empty($local_cares['title']) ? $local_cares : $global_cares;
+            ?>
+            <?php if (!empty($display_cares['title'])): ?>
+                <div
+                    class="bg-[#E6EFEC] rounded-[2rem] p-6 shadow-card min-h-[220px] relative overflow-hidden group flex flex-col justify-between">
+                    <!-- Background Heart -->
+                    <div class="absolute top-4 right-4 text-8xl text-chroma-green opacity-[0.08] rotate-12">
+                        <i class="fa-solid fa-heart"></i>
+                    </div>
+
+                    <div class="relative z-10">
+                        <span class="text-chroma-green font-bold uppercase tracking-widest text-xs mb-2 block">Chroma
+                            Cares</span>
+                        <h2 class="font-serif text-3xl font-bold text-brand-ink mb-2 leading-tight">
+                            <?php echo esc_html($display_cares['title']); ?>
                         </h2>
-                        <p class="text-brand-ink/70 text-sm flex-1">
-                            <?php echo esc_html($global_cares['body'] ?? ''); ?>
+                        <p class="text-brand-ink/60 text-sm leading-relaxed">
+                            <?php echo esc_html($display_cares['body'] ?? 'Working together to support our community.'); ?>
                         </p>
                     </div>
                 </div>
             <?php endif; ?>
 
-            <!-- Helper: Celebrations Placeholder logic if needed, else fill space -->
-            <div
-                class="bg-white rounded-3xl p-6 shadow-card border border-chroma-blue/10 h-48 flex flex-col justify-center text-center relative overflow-hidden">
+            <!-- Helper: Celebrations -->
+            <?php
+            $celebrations = get_post_meta($school_id, '_chroma_school_celebrations', true) ?: [];
+            ?>
+            <?php if (!empty($celebrations)): ?>
                 <div
-                    class="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/confetti.png')]">
+                    class="bg-white rounded-[2rem] p-6 shadow-card border border-chroma-blue/10 flex-1 flex flex-col justify-center text-center relative overflow-hidden min-h-[150px]">
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <i
+                            class="fa-solid fa-cake-candles text-2xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600"></i>
+                        <h3 class="font-serif text-2xl font-bold text-brand-ink">Celebrations</h3>
+                    </div>
+
+                    <div class="space-y-1 relative z-10 text-brand-ink/60 text-lg">
+                        <?php foreach ($celebrations as $celeb): ?>
+                            <p><?php echo esc_html($celeb); ?></p>
+                        <?php endforeach; ?>
+                    </div>
                 </div>
-                <h3 class="font-serif text-xl font-bold text-brand-ink mb-4 relative z-10">🎉 Celebrations</h3>
-                <div class="space-y-2 relative z-10">
-                    <!-- Needs dynamic celebrations loop here later -->
-                </div>
-            </div>
+            <?php endif; ?>
 
         </aside>
 
-        <!-- Global Alert Ticker -->
+        <!-- Global Alert Ticker (Bottom Banner) -->
         <?php if (!empty($global_alert['enabled'])): ?>
             <div
-                class="fixed bottom-6 left-6 right-6 bg-chroma-blueDark text-white p-4 rounded-2xl shadow-2xl z-50 flex items-center gap-4 animate-fade-in border-l-8 border-chroma-yellow">
+                class="absolute bottom-6 left-6 right-6 bg-chroma-blueDark text-white p-5 rounded-2xl shadow-2xl z-50 flex items-center gap-5 animate-fade-in border-l-[10px] border-chroma-yellow">
                 <div
-                    class="bg-chroma-yellow text-brand-ink w-8 h-8 rounded-lg flex items-center justify-center font-bold shrink-0">
-                    <i class="fa-solid fa-circle-info"></i>
+                    class="bg-chroma-yellow text-brand-ink w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 text-xl">
+                    <i class="fa-solid fa-info"></i>
                 </div>
-                <p class="font-bold text-lg"><?php echo esc_html($global_alert['message'] ?? ''); ?></p>
+                <p class="font-bold text-2xl tracking-wide"><?php echo esc_html($global_alert['message'] ?? ''); ?></p>
             </div>
         <?php endif; ?>
 

@@ -179,7 +179,9 @@ class Chroma_School_API_Routes
             'menu',
             'slideshow',
             'youtube',
-            'welcome_override'
+            'welcome_override',
+            'chroma_cares',
+            'celebrations'
         ];
         $content = [];
         foreach ($meta_keys as $key) {
@@ -216,13 +218,18 @@ class Chroma_School_API_Routes
             'menu',
             'slideshow',
             'youtube',
-            'welcome_override'
+            'welcome_override',
+            'chroma_cares', // Added
+            'celebrations'  // Added
         ];
 
         foreach ($params as $key => $value) {
             if (in_array($key, $allowed_keys)) {
-                if ($key === 'announcements' || $key === 'today' || $key === 'qr' || $key === 'slideshow') {
+                if ($key === 'announcements' || $key === 'today' || $key === 'qr' || $key === 'slideshow' || $key === 'celebrations') {
                     // Array types
+                    $value = is_array($value) ? $value : [];
+                } elseif ($key === 'chroma_cares') {
+                    // Object/Array type
                     $value = is_array($value) ? $value : [];
                 } else {
                     $value = wp_kses_post($value); // Allow safe HTML in bodies
@@ -230,7 +237,7 @@ class Chroma_School_API_Routes
 
                 $updated = update_post_meta($school_id, '_chroma_school_' . $key, $value);
                 // Log update result
-                $log_update = sprintf(" - Key: %s | Values: %s | Updated: %s\n", $key, is_array($value) ? 'ARRAY' : substr($value, 0, 20), $updated ? 'YES' : 'NO/SAME');
+                $log_update = sprintf(" - Key: %s | Values: %s | Updated: %s\n", $key, is_array($value) ? 'ARRAY' : substr((string) $value, 0, 20), $updated ? 'YES' : 'NO/SAME');
                 file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', $log_update, FILE_APPEND);
             }
         }
@@ -244,6 +251,15 @@ class Chroma_School_API_Routes
      */
     public function check_director_permission($request)
     {
+        // Handle Preflight / CORS for local dev or cross-domain
+        header("Access-Control-Allow-Origin: *");
+        header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE, PATCH");
+        header("Access-Control-Allow-Headers: Authorization, Content-Type");
+
+        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+            return true;
+        }
+
         $auth_header = $request->get_header('Authorization');
 
         // Log Auth Attempt

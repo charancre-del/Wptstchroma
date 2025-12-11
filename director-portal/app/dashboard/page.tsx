@@ -19,6 +19,8 @@ type DashboardData = {
         youtube: string
         welcome_override: string
         slideshow: string[]
+        chroma_cares: { title: string; body: string }
+        celebrations: string[]
     }
 }
 
@@ -34,8 +36,9 @@ export default function DashboardPage() {
     const { fields: annFields, append: addAnn, remove: removeAnn } = useFieldArray({ control, name: 'announcements' })
     const { fields: todayFields, append: addToday, remove: removeToday } = useFieldArray({ control, name: 'today' })
 
-    // Slide Images handle manually for now or use field array if complex. 
-    // Let's assume slide images is a textarea of new-line separated URLs for v1 simplicity
+    // TODO: Add field array for celebrations if we want dynamic list. 
+    // For now we will rely on a simple text area or placeholder if strictly requested, 
+    // but the type is string[]. Let's stick to the form structure for now.
 
     useEffect(() => {
         const token = localStorage.getItem('chroma_token')
@@ -54,7 +57,16 @@ export default function DashboardPage() {
             })
             .then(data => {
                 setSchool(data)
-                reset(data.content)
+                // Ensure default structure for new fields to avoid uncontrolled input warnings
+                const content = {
+                    ...data.content,
+                    chroma_cares: data.content.chroma_cares || { title: '', body: '' },
+                    celebrations: data.content.celebrations || [],
+                    slideshow: data.content.slideshow || [],
+                    menu: data.content.menu || '',
+                    welcome_override: data.content.welcome_override || ''
+                }
+                reset(content)
                 setLoading(false)
             })
             .catch(() => {
@@ -95,7 +107,7 @@ export default function DashboardPage() {
                 <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
                     <h1 className="font-serif text-xl font-bold">Chroma Portal <span className="text-brand-ink/40">|</span> {school?.title}</h1>
                     <div className="flex items-center gap-4">
-                        <a href={`/tv/${school?.slug}`} target="_blank" className="text-sm font-bold text-chroma-blue flex items-center gap-2 hover:underline">
+                        <a href={`${process.env.NEXT_PUBLIC_WP_API_URL}/tv/${school?.slug}`} target="_blank" className="text-sm font-bold text-chroma-blue flex items-center gap-2 hover:underline">
                             <ExternalLink size={16} /> Preview TV
                         </a>
                         <button onClick={() => { localStorage.clear(); router.push('/') }} className="text-red-500 hover:bg-red-50 p-2 rounded-full">
@@ -108,11 +120,27 @@ export default function DashboardPage() {
             <main className="max-w-5xl mx-auto px-6 py-8">
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-end sticky top-24 z-40">
                         <button disabled={saving} type="submit" className="bg-chroma-blue text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-chroma-blueDark transition-colors flex items-center gap-2">
                             <Save size={20} /> {saving ? 'Saving...' : 'Save Changes'}
                         </button>
                     </div>
+
+                    {/* General Settings */}
+                    <section className="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
+                        <h2 className="font-serif text-2xl font-bold mb-6 text-brand-ink">General Settings</h2>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1">Welcome Message Override</label>
+                                <input {...register('welcome_override')} placeholder="Default: Welcome to Chroma..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                                <p className="text-xs text-brand-ink/40 mt-1">Leave empty to show standard welcome.</p>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1">Weekly Menu URL</label>
+                                <input {...register('menu')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                            </div>
+                        </div>
+                    </section>
 
                     {/* Newsletter */}
                     <section className="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
@@ -135,7 +163,7 @@ export default function DashboardPage() {
 
                     {/* Employee of Month */}
                     <section className="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                        <h2 className="font-serif text-2xl font-bold mb-6 text-chroma-blue">Employee of the Month</h2>
+                        <h2 className="font-serif text-2xl font-bold mb-6 text-chroma-blue">Star Educator</h2>
                         <div className="grid gap-4 md:grid-cols-2">
                             <div>
                                 <label className="block text-xs font-bold uppercase mb-1">Name</label>
@@ -146,8 +174,23 @@ export default function DashboardPage() {
                                 <input {...register('eom.photo_url')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
                             </div>
                             <div className="md:col-span-2">
-                                <label className="block text-xs font-bold uppercase mb-1">Blurb</label>
+                                <label className="block text-xs font-bold uppercase mb-1">Blurb / Quote</label>
                                 <textarea {...register('eom.blurb')} rows={2} className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* Chroma Cares (Local Override) */}
+                    <section className="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
+                        <h2 className="font-serif text-2xl font-bold mb-6 text-chroma-green">Chroma Cares</h2>
+                        <div className="grid gap-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1">Title</label>
+                                <input {...register('chroma_cares.title')} placeholder="Global Default" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-bold" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1">Body</label>
+                                <textarea {...register('chroma_cares.body')} rows={2} placeholder="Global Default" className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
                             </div>
                         </div>
                     </section>
@@ -182,31 +225,64 @@ export default function DashboardPage() {
                     {/* Today */}
                     <section className="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="font-serif text-2xl font-bold">Today Items</h2>
-                            <button type="button" onClick={() => addToday({ time: '', label: '' })} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                                <Plus size={14} /> Add
-                            </button>
+                            <h2 className="font-serif text-2xl font-bold">Today & Celebrations</h2>
                         </div>
-                        <div className="space-y-2">
-                            {todayFields.map((field, index) => (
-                                <div key={field.id} className="flex gap-2 items-center">
-                                    <input {...register(`today.${index}.time`)} placeholder="9:00 AM" className="w-24 p-2 rounded-lg border border-gray-200 bg-gray-50 text-sm font-bold" />
-                                    <input {...register(`today.${index}.label`)} placeholder="Event Name" className="flex-1 p-2 rounded-lg border border-gray-200 bg-gray-50 text-sm" />
-                                    <button type="button" onClick={() => removeToday(index)} className="text-red-400 hover:text-red-600">
-                                        <Trash2 size={16} />
+
+                        <div className="grid md:grid-cols-2 gap-8">
+                            {/* Today List */}
+                            <div>
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="font-bold">Schedule</h3>
+                                    <button type="button" onClick={() => addToday({ time: '', label: '' })} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full font-bold flex items-center gap-1">
+                                        <Plus size={14} /> Add
                                     </button>
                                 </div>
-                            ))}
+                                <div className="space-y-2">
+                                    {todayFields.map((field, index) => (
+                                        <div key={field.id} className="flex gap-2 items-center">
+                                            <input {...register(`today.${index}.time`)} placeholder="9:00 AM" className="w-24 p-2 rounded-lg border border-gray-200 bg-gray-50 text-sm font-bold" />
+                                            <input {...register(`today.${index}.label`)} placeholder="Event Name" className="flex-1 p-2 rounded-lg border border-gray-200 bg-gray-50 text-sm" />
+                                            <button type="button" onClick={() => removeToday(index)} className="text-red-400 hover:text-red-600">
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Celebrations */}
+                            <div className="bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                <h3 className="font-bold mb-3 text-sm uppercase text-brand-ink/50">Celebrations</h3>
+                                <div className="space-y-2">
+                                    <input {...register('celebrations.0')} placeholder="e.g. Happy Birthday Sarah! 🎂" className="w-full p-2 rounded-lg border border-gray-200 text-sm" />
+                                    <input {...register('celebrations.1')} placeholder="e.g. Pre-K Graduation 🎓" className="w-full p-2 rounded-lg border border-gray-200 text-sm" />
+                                    <input {...register('celebrations.2')} placeholder="e.g. Welcome Ms. Johnson!" className="w-full p-2 rounded-lg border border-gray-200 text-sm" />
+                                </div>
+                            </div>
                         </div>
                     </section>
 
                     {/* Media & Links */}
                     <section className="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                        <h2 className="font-serif text-2xl font-bold mb-6">Media & Links</h2>
+                        <h2 className="font-serif text-2xl font-bold mb-6">Visuals</h2>
                         <div className="grid gap-4">
                             <div>
                                 <label className="block text-xs font-bold uppercase mb-1">YouTube URL (Overrides Slideshow)</label>
                                 <input {...register('youtube')} placeholder="https://youtube.com/..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                            </div>
+
+                            {/* Slideshow */}
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1">Slideshow Image 1 URL</label>
+                                <input {...register('slideshow.0')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1">Slideshow Image 2 URL</label>
+                                <input {...register('slideshow.1')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold uppercase mb-1">Slideshow Image 3 URL</label>
+                                <input {...register('slideshow.2')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
                             </div>
                         </div>
                     </section>
