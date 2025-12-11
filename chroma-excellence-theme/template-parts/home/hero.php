@@ -56,14 +56,17 @@ $home_id = chroma_get_home_page_id();
             </div>
         </div>
 
-        <div class="relative w-full aspect-[4/5] sm:h-[470px] lg:h-[500px] lg:aspect-auto fade-in-up delay-200">
-            <div class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3"></div>
+        <!-- Hero Image Container - Mobile-first with proper aspect ratio -->
+        <div class="relative w-full aspect-[3/4] sm:aspect-[4/5] lg:aspect-[4/5] max-h-[550px] fade-in-up delay-200">
             <div
-                class="absolute bottom-6 left-6 w-72 h-72 bg-chroma-yellowLight rounded-full -z-10 blur-2xl opacity-70">
+                class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3 hidden sm:block">
+            </div>
+            <div
+                class="absolute bottom-6 left-6 w-72 h-72 bg-chroma-yellowLight rounded-full -z-10 blur-2xl opacity-70 hidden sm:block">
             </div>
 
             <div
-                class="absolute inset-y-0 left-16 right-0 rounded-[3rem] overflow-hidden border border-white/10 shadow-soft">
+                class="absolute inset-0 sm:inset-y-0 sm:left-8 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft">
                 <?php
                 $hero_video_path = get_template_directory() . '/assets/video/hero-classroom.mp4';
                 $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.mp4';
@@ -71,13 +74,17 @@ $home_id = chroma_get_home_page_id();
 
 
                 if (has_post_thumbnail($home_id)):
-                    // Priority 1: Homepage featured image
-                    echo get_the_post_thumbnail($home_id, 'hero-large', array('class' => 'w-full h-full object-cover', 'fetchpriority' => 'high'));
+                    // Priority 1: Homepage featured image - use aspect-ratio to prevent CLS
+                    echo get_the_post_thumbnail($home_id, 'hero-large', array(
+                        'class' => 'w-full h-full object-cover',
+                        'fetchpriority' => 'high',
+                        'style' => 'aspect-ratio: auto;'
+                    ));
                 elseif ($hero_image):
                     // Priority 2: Customizer hero image
                     ?>
                     <img src="<?php echo esc_url($hero_image); ?>" class="w-full h-full object-cover" alt="Chroma Classroom"
-                        fetchpriority="high" />
+                        fetchpriority="high" style="aspect-ratio: auto;" />
                 <?php elseif (file_exists($hero_video_path)): ?>
                     <!-- Priority 3: Hero video file -->
                     <video autoplay muted playsinline loop class="w-full h-full object-cover">
