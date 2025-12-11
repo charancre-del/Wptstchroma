@@ -57,7 +57,7 @@ $home_id = chroma_get_home_page_id();
         </div>
 
         <!-- Hero Image Container - Mobile-first with proper aspect ratio -->
-        <div class="relative w-full aspect-[3/4] sm:aspect-[4/5] lg:aspect-[4/5] max-h-[550px] fade-in-up delay-200">
+        <div class="relative w-full aspect-[4/5] sm:aspect-auto sm:h-[400px] lg:h-[460px] fade-in-up delay-200">
             <div
                 class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3 hidden sm:block">
             </div>
