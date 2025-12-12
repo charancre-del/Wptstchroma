@@ -24,7 +24,7 @@ $home_id = chroma_get_home_page_id();
                 19+ Metro Atlanta Locations
             </div>
 
-            <h1 class="font-serif text-brand-ink text-[2.8rem] sm:text-[3.4rem] leading-tight tracking-tight">
+            <h1 class="font-serif text-brand-ink text-4xl sm:text-[3.4rem] leading-tight tracking-tight">
                 <?php echo wp_kses_post($hero['heading']); ?>
             </h1>
 
@@ -105,7 +105,7 @@ $home_id = chroma_get_home_page_id();
 
             <!-- Badge (Kindergarten Ready) -->
             <div
-                class="absolute bottom-6 -left-4 sm:-left-8 bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-soft max-w-[200px] sm:max-w-xs border border-white z-10 flex gap-3 sm:gap-4 items-center">
+                class="absolute bottom-6 left-4 sm:-left-8 bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-soft max-w-[200px] sm:max-w-xs border border-white z-10 flex gap-3 sm:gap-4 items-center">
                 <div
                     class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-chroma-blue/10 flex items-center justify-center text-chroma-blue text-lg sm:text-xl shrink-0">
                     <i class="fa-solid fa-graduation-cap"></i>
