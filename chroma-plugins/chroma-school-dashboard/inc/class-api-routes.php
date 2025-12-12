@@ -69,7 +69,9 @@ class Chroma_School_API_Routes
             'menu',
             'slideshow',
             'youtube',
-            'welcome_override'
+            'welcome_override',
+            'chroma_cares',
+            'celebrations'
         ];
 
         $data = [
