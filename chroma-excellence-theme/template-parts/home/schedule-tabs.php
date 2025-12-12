@@ -105,7 +105,7 @@ if (empty($tracks)) {
 									: 'bg-white text-brand-ink hover:text-brand-ink hover:bg-white/80';
 								?>
 								<button
-									class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
+									class="min-w-[3.5rem] h-14 md:h-16 px-4 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
 									data-schedule-step-trigger data-title="<?php echo esc_attr($step['title']); ?>"
 									data-copy="<?php echo esc_attr($step['copy']); ?>"
 									aria-label="<?php echo esc_attr($step['time']); ?>">
@@ -122,7 +122,7 @@ if (empty($tracks)) {
 								$btn_classes = 'bg-white text-brand-ink hover:text-brand-ink hover:bg-white/80';
 								?>
 								<button
-									class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
+									class="min-w-[3.5rem] h-14 md:h-16 px-4 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
 									data-schedule-step-trigger data-title="<?php echo esc_attr($step['title']); ?>"
 									data-copy="<?php echo esc_attr($step['copy']); ?>"
 									aria-label="<?php echo esc_attr($step['time']); ?>">

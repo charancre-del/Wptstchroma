@@ -252,6 +252,9 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.classList.toggle('text-white', isActive);
         btn.classList.toggle('shadow-soft', isActive);
         btn.classList.toggle('text-brand-ink/60', !isActive);
+        // Fix for hover state on active tab (prevents blue text on blue bg)
+        btn.classList.toggle('hover:text-chroma-blue', !isActive);
+
         // Remove inline styles to let CSS classes handle colors
         btn.style.backgroundColor = '';
         btn.style.color = '';
