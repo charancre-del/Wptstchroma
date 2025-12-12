@@ -263,7 +263,22 @@
             // Set Google Client ID from config
             const clientId = document.getElementById('g_config').getAttribute('data-client-id');
             const gIdContainer = document.getElementById('g_id_onload');
-            if (gIdContainer && clientId !== 'REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID_FROM_ENV_LOCAL') {
+            
+            if (clientId === 'REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID_FROM_ENV_LOCAL') {
+                 // SHOW CONFIG ERROR
+                 document.getElementById('login-view').classList.remove('hidden');
+                 document.getElementById('login-view').innerHTML = `
+                    <div class="bg-red-50 border-2 border-red-500 rounded-2xl p-8 max-w-md text-center">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
+                        <h1 class="text-2xl font-bold text-red-600 mb-2">Setup Required</h1>
+                        <p class="text-brand-ink/70 mb-4">You must open <code>page-portal.php</code> and paste your <strong>Google Client ID</strong>.</p>
+                        <p class="text-xs bg-white p-2 border rounded font-mono">Use the ID from your old director-portal/.env.local file.</p>
+                    </div>
+                 `;
+                 return;
+            }
+
+            if (gIdContainer) {
                 gIdContainer.setAttribute('data-client_id', clientId);
             }
 
