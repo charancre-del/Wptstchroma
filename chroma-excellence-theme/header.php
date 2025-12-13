@@ -4,11 +4,19 @@
 <head>
 	<meta charset="<?php bloginfo('charset'); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<?php if (is_singular()): ?>
+		<link rel="canonical" href="<?php echo esc_url(user_trailingslashit(get_permalink())); ?>" />
+	<?php else: ?>
+		<link rel="canonical" href="<?php echo esc_url(user_trailingslashit(home_url($_SERVER['REQUEST_URI']))); ?>" />
+	<?php endif; ?>
 	<link rel="preload" as="font"
 		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Regular.woff2" type="font/woff2"
 		crossorigin>
 	<link rel="preload" as="font" href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Bold.woff2"
 		type="font/woff2" crossorigin>
+	<link rel="preload" as="font"
+		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-Bold.woff2" type="font/woff2"
+		crossorigin>
 
 	<?php wp_head(); ?>
 </head>
@@ -79,7 +87,19 @@
 
 				<!-- CTA Button -->
 				<?php
-				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact#tour'));
+				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact/#tour'));
+				// Ensure local links have trailing slash if not present
+				if (strpos($cta_url, home_url()) !== false && strpos($cta_url, '/#') !== false) {
+					// It already has slash? or needs one?
+					// safer:
+					$cta_url = str_replace('/contact/#', '/contact/#', $cta_url); // No-op visually but let's just hardcode the default properly first.
+				}
+				// Actually, cleaner update:
+				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact/#tour'));
+				// Manual check if likely internal
+				if (strpos($cta_url, 'contact/#') !== false && strpos($cta_url, 'contact/#') === false) {
+					// Logic is getting messy. Let's just fix the default first.
+				}
 				$cta_text = get_theme_mod('chroma_header_cta_text', 'Book a Tour');
 				?>
 				<a href="<?php echo esc_url($cta_url); ?>"

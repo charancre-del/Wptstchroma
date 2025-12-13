@@ -17,7 +17,7 @@
 					<img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?>"
 						srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?> 1x,
 								 <?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp'); ?> 2x"
-						alt="Chroma Early Learning" width="70" height="70"
+						alt="Chroma Early Learning" width="48" height="48"
 						class="h-12 w-auto opacity-90 hover:opacity-100 transition-opacity" />
 				</a>
 				<p class="text-[11px] text-white/80 leading-relaxed">
@@ -83,9 +83,9 @@
 			class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/50">
 			<p>&copy; <?php echo date('Y'); ?> Chroma Early Learning Academy. All rights reserved.</p>
 			<div class="flex gap-4">
-				<a href="<?php echo esc_url(home_url('/privacy-policy')); ?>" class="hover:text-white">Privacy
+				<a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="hover:text-white">Privacy
 					Policy</a>
-				<a href="<?php echo esc_url(home_url('/terms-of-service')); ?>" class="hover:text-white">Terms of
+				<a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>" class="hover:text-white">Terms of
 					Service</a>
 			</div>
 		</div>

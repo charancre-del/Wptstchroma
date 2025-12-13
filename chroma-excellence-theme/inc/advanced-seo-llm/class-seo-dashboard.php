@@ -128,6 +128,8 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'schema-builder' ? 'nav-tab-active' : ''; ?>">Schema Builder</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=breadcrumbs'); ?>"
                     class="nav-tab <?php echo $active_tab === 'breadcrumbs' ? 'nav-tab-active' : ''; ?>">Breadcrumbs</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=sitemap'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'sitemap' ? 'nav-tab-active' : ''; ?>">Sitemap</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=social'); ?>"
                     class="nav-tab <?php echo $active_tab === 'social' ? 'nav-tab-active' : ''; ?>">Social Preview</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk'); ?>"
@@ -162,6 +164,9 @@ class Chroma_SEO_Dashboard
                     break;
                 case 'schema-builder':
                     $this->render_schema_builder_tab();
+                    break;
+                case 'sitemap':
+                    $this->render_sitemap_tab();
                     break;
                 case 'breadcrumbs':
                     if (class_exists('Chroma_Breadcrumbs')) {
@@ -1503,6 +1508,122 @@ class Chroma_SEO_Dashboard
         delete_post_meta($post_id, '_chroma_schema_data');
 
         wp_send_json_success(['message' => 'Schemas reset successfully']);
+    }
+
+    /**
+     * Render Sitemap Tab
+     */
+    private function render_sitemap_tab()
+    {
+        // Save Handler
+        if (isset($_POST['chroma_sitemap_save']) && check_admin_referer('chroma_sitemap_options')) {
+            $options = array(
+                'enable_pages' => isset($_POST['enable_pages']),
+                'enable_posts' => isset($_POST['enable_posts']),
+                'enable_locations' => isset($_POST['enable_locations']),
+                'enable_programs' => isset($_POST['enable_programs']),
+                'exclude_ids' => sanitize_text_field($_POST['exclude_ids']),
+                'custom_urls' => sanitize_textarea_field($_POST['custom_urls']),
+                'use_uploaded' => isset($_POST['use_uploaded']),
+            );
+            update_option('chroma_sitemap_options', $options);
+
+            // Handle File Upload
+            if (!empty($_FILES['sitemap_upload']['name'])) {
+                $uploaded = $_FILES['sitemap_upload'];
+                $upload_dir = wp_upload_dir();
+                $target_path = $upload_dir['basedir'] . '/chroma-sitemap-manual.xml';
+
+                if (move_uploaded_file($uploaded['tmp_name'], $target_path)) {
+                    echo '<div class="notice notice-success"><p>Sitemap file uploaded successfully!</p></div>';
+                } else {
+                    echo '<div class="notice notice-error"><p>Failed to move uploaded file.</p></div>';
+                }
+            }
+
+            // Flush Rewrites
+            flush_rewrite_rules();
+            echo '<div class="notice notice-success"><p>Sitemap settings saved and rewrite rules flushed.</p></div>';
+        }
+
+        // Get Options
+        $options = get_option('chroma_sitemap_options', array(
+            'enable_pages' => true,
+            'enable_posts' => true,
+            'enable_locations' => true,
+            'enable_programs' => true,
+            'exclude_ids' => '',
+            'custom_urls' => '',
+            'use_uploaded' => false,
+        ));
+
+        $sitemap_url = home_url('/sitemap.xml');
+        ?>
+        <div class="chroma-seo-card">
+            <h2>🗺️ Sitemap Manager</h2>
+            <p>Manage your XML Sitemap configuration. <a href="<?php echo esc_url($sitemap_url); ?>" target="_blank"
+                    class="button">View Sitemap</a></p>
+
+            <form method="post" enctype="multipart/form-data">
+                <?php wp_nonce_field('chroma_sitemap_options'); ?>
+
+                <div class="chroma-doc-section" style="margin-top: 20px;">
+                    <h3>Content Types</h3>
+                    <p>Select which content types to include in the sitemap:</p>
+                    <fieldset>
+                        <label><input type="checkbox" name="enable_pages" <?php checked($options['enable_pages']); ?>>
+                            Pages</label><br>
+                        <label><input type="checkbox" name="enable_posts" <?php checked($options['enable_posts']); ?>> Blog
+                            Posts</label><br>
+                        <label><input type="checkbox" name="enable_locations" <?php checked($options['enable_locations']); ?>>
+                            Locations</label><br>
+                        <label><input type="checkbox" name="enable_programs" <?php checked($options['enable_programs']); ?>>
+                            Programs</label>
+                    </fieldset>
+                </div>
+
+                <div class="chroma-doc-section" style="margin-top: 20px;">
+                    <h3>Manual Control</h3>
+                    <table class="form-table">
+                        <tr>
+                            <th scope="row"><label for="exclude_ids">Exclude Post IDs</label></th>
+                            <td>
+                                <input name="exclude_ids" type="text" id="exclude_ids"
+                                    value="<?php echo esc_attr($options['exclude_ids']); ?>" class="regular-text">
+                                <p class="description">Comma-separated list of Post IDs to exclude (e.g.,
+                                    <code>12, 154, 404</code>)</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row"><label for="custom_urls">Additional Custom URLs</label></th>
+                            <td>
+                                <textarea name="custom_urls" id="custom_urls" rows="5"
+                                    class="large-text code"><?php echo esc_textarea($options['custom_urls']); ?></textarea>
+                                <p class="description">One URL per line. These will be appended to the sitemap.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="chroma-doc-section" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
+                    <h3>📂 Upload Custom Sitemap</h3>
+                    <p>If you prefer to serve a static XML file instead of generating one dynamically.</p>
+
+                    <label><input type="checkbox" name="use_uploaded" <?php checked($options['use_uploaded']); ?>> <strong>Use
+                            Uploaded Sitemap File</strong></label>
+                    <p class="description">If checked, the dynamic generation above is ignored, and the uploaded file is served.
+                    </p>
+                    <br>
+                    <input type="file" name="sitemap_upload" accept=".xml">
+                </div>
+
+                <p class="submit">
+                    <input type="submit" name="chroma_sitemap_save" id="submit" class="button button-primary"
+                        value="Save Changes & Flush Permalinks">
+                </p>
+            </form>
+        </div>
+        <?php
     }
 
     /**

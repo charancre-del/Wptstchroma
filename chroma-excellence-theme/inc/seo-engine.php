@@ -777,69 +777,137 @@ add_action('wp_head', 'chroma_meta_keywords', 3);
  */
 function chroma_custom_sitemap()
 {
-        if (!(isset($_GET['sitemap']) && 'xml' === $_GET['sitemap'])) {
+        if (get_query_var('sitemap') !== 'xml') {
                 return;
         }
 
+        // Get Options
+        $options = get_option('chroma_sitemap_options', array(
+                'enable_pages' => true,
+                'enable_posts' => true,
+                'enable_locations' => true,
+                'enable_programs' => true,
+                'exclude_ids' => '',
+                'custom_urls' => '',
+                'use_uploaded' => false,
+        ));
+
         header('Content-Type: application/xml; charset=utf-8');
 
+        // 1. Check for Static Upload Override
+        if (!empty($options['use_uploaded'])) {
+                $upload_dir = wp_upload_dir();
+                $static_path = $upload_dir['basedir'] . '/chroma-sitemap-manual.xml';
+                if (file_exists($static_path)) {
+                        readfile($static_path);
+                        exit;
+                }
+        }
+
+        // 2. Dynamic Generation
         echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
-        // Homepage.
+        // Homepage
         echo '<url>' . "\n";
-        echo '  <loc>' . esc_url(home_url('/')) . '</loc>' . "\n";
+        echo '  <loc>' . esc_url(user_trailingslashit(home_url('/'))) . '</loc>' . "\n";
         echo '  <lastmod>' . date('c') . '</lastmod>' . "\n";
         echo '  <changefreq>daily</changefreq>' . "\n";
         echo '  <priority>1.0</priority>' . "\n";
         echo '</url>' . "\n";
 
-        // Pages.
-        $pages = get_posts(
-                array(
+        $exclude_ids = array();
+        if (!empty($options['exclude_ids'])) {
+                $exclude_ids = array_map('trim', explode(',', $options['exclude_ids']));
+        }
+
+        // Pages
+        if (!empty($options['enable_pages'])) {
+                $pages = get_posts(array(
                         'post_type' => 'page',
                         'posts_per_page' => -1,
-                )
-        );
-        foreach ($pages as $page) {
-                echo '<url>' . "\n";
-                echo '  <loc>' . esc_url(get_permalink($page->ID)) . '</loc>' . "\n";
-                echo '  <lastmod>' . get_the_modified_date('c', $page->ID) . '</lastmod>' . "\n";
-                echo '  <changefreq>weekly</changefreq>' . "\n";
-                echo '  <priority>0.8</priority>' . "\n";
-                echo '</url>' . "\n";
+                        'exclude' => $exclude_ids,
+                        'post_status' => 'publish'
+                ));
+                foreach ($pages as $page) {
+                        echo '<url>' . "\n";
+                        echo '  <loc>' . esc_url(user_trailingslashit(get_permalink($page->ID))) . '</loc>' . "\n";
+                        echo '  <lastmod>' . get_the_modified_date('c', $page->ID) . '</lastmod>' . "\n";
+                        echo '  <changefreq>weekly</changefreq>' . "\n";
+                        echo '  <priority>0.8</priority>' . "\n";
+                        echo '</url>' . "\n";
+                }
         }
 
-        // Programs.
-        $programs = get_posts(
-                array(
+        // Programs
+        if (!empty($options['enable_programs'])) {
+                $programs = get_posts(array(
                         'post_type' => 'program',
                         'posts_per_page' => -1,
-                )
-        );
-        foreach ($programs as $program) {
-                echo '<url>' . "\n";
-                echo '  <loc>' . esc_url(get_permalink($program->ID)) . '</loc>' . "\n";
-                echo '  <lastmod>' . get_the_modified_date('c', $program->ID) . '</lastmod>' . "\n";
-                echo '  <changefreq>monthly</changefreq>' . "\n";
-                echo '  <priority>0.9</priority>' . "\n";
-                echo '</url>' . "\n";
+                        'exclude' => $exclude_ids,
+                        'post_status' => 'publish'
+                ));
+                foreach ($programs as $program) {
+                        echo '<url>' . "\n";
+                        echo '  <loc>' . esc_url(user_trailingslashit(get_permalink($program->ID))) . '</loc>' . "\n";
+                        echo '  <lastmod>' . get_the_modified_date('c', $program->ID) . '</lastmod>' . "\n";
+                        echo '  <changefreq>monthly</changefreq>' . "\n";
+                        echo '  <priority>0.9</priority>' . "\n";
+                        echo '</url>' . "\n";
+                }
         }
 
-        // Locations.
-        $locations = get_posts(
-                array(
+        // Locations
+        if (!empty($options['enable_locations'])) {
+                $locations = get_posts(array(
                         'post_type' => 'location',
                         'posts_per_page' => -1,
-                )
-        );
-        foreach ($locations as $location) {
-                echo '<url>' . "\n";
-                echo '  <loc>' . esc_url(get_permalink($location->ID)) . '</loc>' . "\n";
-                echo '  <lastmod>' . get_the_modified_date('c', $location->ID) . '</lastmod>' . "\n";
-                echo '  <changefreq>monthly</changefreq>' . "\n";
-                echo '  <priority>0.9</priority>' . "\n";
-                echo '</url>' . "\n";
+                        'exclude' => $exclude_ids,
+                        'post_status' => 'publish'
+                ));
+                foreach ($locations as $location) {
+                        echo '<url>' . "\n";
+                        echo '  <loc>' . esc_url(user_trailingslashit(get_permalink($location->ID))) . '</loc>' . "\n";
+                        echo '  <lastmod>' . get_the_modified_date('c', $location->ID) . '</lastmod>' . "\n";
+                        echo '  <changefreq>monthly</changefreq>' . "\n";
+                        echo '  <priority>0.9</priority>' . "\n";
+                        echo '</url>' . "\n";
+                }
+        }
+
+        // Posts
+        if (!empty($options['enable_posts'])) {
+                $posts = get_posts(array(
+                        'post_type' => 'post',
+                        'posts_per_page' => 100, // Limit blog posts to recent 100
+                        'exclude' => $exclude_ids,
+                        'post_status' => 'publish'
+                ));
+                foreach ($posts as $post) {
+                        echo '<url>' . "\n";
+                        echo '  <loc>' . esc_url(user_trailingslashit(get_permalink($post->ID))) . '</loc>' . "\n";
+                        echo '  <lastmod>' . get_the_modified_date('c', $post->ID) . '</lastmod>' . "\n";
+                        echo '  <changefreq>weekly</changefreq>' . "\n";
+                        echo '  <priority>0.7</priority>' . "\n";
+                        echo '</url>' . "\n";
+                }
+        }
+
+        // Custom URLs
+        if (!empty($options['custom_urls'])) {
+                $custom_urls = explode("\n", $options['custom_urls']);
+                foreach ($custom_urls as $url) {
+                        $url = trim($url);
+                        if (!empty($url)) {
+                                echo '<url>' . "\n";
+                                // Ensure manual URLs also get slashes if they look like internal directories
+                                $url = user_trailingslashit($url);
+                                echo '  <loc>' . esc_url($url) . '</loc>' . "\n";
+                                echo '  <changefreq>monthly</changefreq>' . "\n";
+                                echo '  <priority>0.6</priority>' . "\n";
+                                echo '</url>' . "\n";
+                        }
+                }
         }
 
         echo '</urlset>';
@@ -850,9 +918,36 @@ add_action('template_redirect', 'chroma_custom_sitemap');
 /**
  * Custom Robots.txt
  */
+/**
+ * Register Sitemap Rewrite Rules
+ */
+function chroma_register_sitemap_rewrites()
+{
+        add_rewrite_rule('^sitemap\.xml$', 'index.php?sitemap=xml', 'top');
+}
+add_action('init', 'chroma_register_sitemap_rewrites');
+
+/**
+ * Register Sitemap Query Var
+ */
+function chroma_register_sitemap_query_var($vars)
+{
+        $vars[] = 'sitemap';
+        return $vars;
+}
+add_filter('query_vars', 'chroma_register_sitemap_query_var');
+
+/**
+ * Disable Default WP Sitemap
+ */
+remove_action('init', 'wp_sitemaps_get_server');
+
+/**
+ * Custom Robots.txt
+ */
 function chroma_custom_robots_txt($output)
 {
-        $output .= 'Sitemap: ' . home_url('/?sitemap=xml') . "\n";
+        $output .= 'Sitemap: ' . home_url('/sitemap.xml') . "\n";
         return $output;
 }
 add_filter('robots_txt', 'chroma_custom_robots_txt');
