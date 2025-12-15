@@ -82,8 +82,8 @@ function chroma_get_wizard_color_classes($key)
                         <div class="flex flex-wrap gap-3 text-xs pt-2 justify-center md:justify-start">
                             <a class="inline-flex items-center justify-center px-6 py-3 rounded-full border border-chroma-blue/20 bg-white text-brand-ink font-semibold hover:border-chroma-blue hover:text-chroma-blue transition shadow-sm"
                                 data-program-wizard-link href="<?php echo esc_url($program_archive_url); ?>"
-                                aria-label="Learn more about our programs">
-                                Learn More
+                                aria-label="View all programs">
+                                View All Programs
                             </a>
                             <a href="#tour"
                                 class="inline-flex items-center justify-center px-6 py-3 rounded-full bg-chroma-red text-white font-semibold hover:bg-chroma-red/90 transition shadow-soft">

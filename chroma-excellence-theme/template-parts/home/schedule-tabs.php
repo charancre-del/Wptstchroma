@@ -36,7 +36,7 @@ if (empty($tracks)) {
 					$is_active = 0 === $index;
 					$tab_classes = $is_active
 						? 'bg-chroma-blue text-white shadow-soft'
-						: 'text-brand-ink hover:text-chroma-blue';
+						: 'text-gray-900 hover:text-chroma-blue';
 					?>
 					<button
 						class="schedule-tab px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 <?php echo esc_attr($tab_classes); ?>"
