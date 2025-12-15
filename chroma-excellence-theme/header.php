@@ -43,13 +43,17 @@
 						width:
 							<?php echo intval($logo_width_mobile); ?>
 							px;
-						height: auto;
-						aspect-ratio: 1 / 1;
+						height:
+							<?php echo intval($logo_width_mobile); ?>
+							px;
 					}
 
 					@media (min-width: 1024px) {
 						.chroma-logo {
 							width:
+								<?php echo intval($logo_width_desktop); ?>
+								px;
+							height:
 								<?php echo intval($logo_width_desktop); ?>
 								px;
 						}

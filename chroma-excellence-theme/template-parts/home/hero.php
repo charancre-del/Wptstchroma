@@ -78,14 +78,15 @@ $home_id = chroma_get_home_page_id();
                 if (has_post_thumbnail($home_id)):
                     // Priority 1: Homepage featured image
                     echo get_the_post_thumbnail($home_id, 'hero-large', array(
-                        'class' => 'w-full h-full object-cover',
-                        'fetchpriority' => 'high'
+                        'class' => 'w-full h-full object-cover no-lazy',
+                        'fetchpriority' => 'high',
+                        'data-no-lazy' => '1'
                     ));
                 elseif ($hero_image):
                     // Priority 2: Customizer hero image
                     ?>
-                    <img src="<?php echo esc_url($hero_image); ?>" class="w-full h-full object-cover" alt="Chroma Classroom"
-                        fetchpriority="high" />
+                    <img src="<?php echo esc_url($hero_image); ?>" class="w-full h-full object-cover no-lazy" alt="Chroma Classroom"
+                        fetchpriority="high" data-no-lazy="1" />
                 <?php elseif (file_exists($hero_video_path)): ?>
                     <!-- Priority 3: Hero video file -->
                     <video autoplay muted playsinline loop class="w-full h-full object-cover">

@@ -518,7 +518,16 @@
 .fa-magnifying-glass-chart:before {
     content: "\e522"
 }
+
 /* Added Missing Icons */
-.fa-lightbulb:before { content: "\f0eb"; }
-.fa-ban:before { content: "\f05e"; }
-.fa-user-check:before { content: "\f4fc"; }
+.fa-lightbulb:before {
+    content: "\f0eb";
+}
+
+.fa-ban:before {
+    content: "\f05e";
+}
+
+.fa-user-check:before {
+    content: "\f4fc";
+}
