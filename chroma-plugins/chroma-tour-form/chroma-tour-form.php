@@ -25,7 +25,8 @@ function chroma_tour_get_dynamic_options()
         return $cached;
     }
 
-    $url = 'https://api.leadconnectorhq.com/widget/form/JpecxfWJrxyWE7Ufdtkd';
+    $form_id = get_option('chroma_tour_form_id', '848tl2LjoZVsUIhhNOxd');
+    $url = 'https://api.leadconnectorhq.com/widget/form/' . $form_id;
     $response = wp_remote_get($url, array('timeout' => 15));
 
     if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
@@ -89,9 +90,9 @@ function chroma_tour_get_dynamic_options()
 function chroma_tour_form_shortcode()
 {
     // Get settings
-    $form_id = get_option('chroma_tour_form_id', 'JpecxfWJrxyWE7Ufdtkd');
-    $form_height = get_option('chroma_tour_form_height', 788);
-    $form_name = get_option('chroma_tour_form_name', 'VIRTUAL TOUR INFORMATION - Chroma Early Learning');
+    $form_id = get_option('chroma_tour_form_id', '848tl2LjoZVsUIhhNOxd');
+    $form_height = get_option('chroma_tour_form_height', 1125);
+    $form_name = get_option('chroma_tour_form_name', 'PARENT INFORMATION - Chroma Early Learning');
     $lazy_load = get_option('chroma_tour_lazy_load', true);
     $lazy_delay = get_option('chroma_tour_lazy_delay', 2000);
     
@@ -197,7 +198,8 @@ function chroma_handle_tour_submission()
     );
 
     $payload = array();
-    $payload['formId'] = 'JpecxfWJrxyWE7Ufdtkd';
+    $form_id = get_option('chroma_tour_form_id', '848tl2LjoZVsUIhhNOxd');
+    $payload['formId'] = $form_id;
     $payload['locationId'] = 'euN4JvLvKNYTYh4Xyh3p';
     $payload['companyId'] = 'aXTQYHsTlryLiFQng6a9'; // Critical missing field
     $payload['traceId'] = '48e8401e-b945-440e-889d-210e75758ee7'; // Updated from V2 source
@@ -230,7 +232,7 @@ function chroma_handle_tour_submission()
         'body' => wp_json_encode($payload),
         'headers' => array(
             'Content-Type' => 'application/json',
-            'Referer' => 'https://api.leadconnectorhq.com/widget/form/JpecxfWJrxyWE7Ufdtkd',
+            'Referer' => 'https://api.leadconnectorhq.com/widget/form/' . $form_id,
             'Origin' => 'https://api.leadconnectorhq.com',
             'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
         ),
@@ -283,17 +285,17 @@ function chroma_tour_register_settings()
 {
     register_setting('chroma_tour_settings', 'chroma_tour_form_id', array(
         'type' => 'string',
-        'default' => 'JpecxfWJrxyWE7Ufdtkd',
+        'default' => '848tl2LjoZVsUIhhNOxd',
         'sanitize_callback' => 'sanitize_text_field'
     ));
     register_setting('chroma_tour_settings', 'chroma_tour_form_height', array(
         'type' => 'integer',
-        'default' => 788,
+        'default' => 1125,
         'sanitize_callback' => 'absint'
     ));
     register_setting('chroma_tour_settings', 'chroma_tour_form_name', array(
         'type' => 'string',
-        'default' => 'VIRTUAL TOUR INFORMATION - Chroma Early Learning',
+        'default' => 'PARENT INFORMATION - Chroma Early Learning',
         'sanitize_callback' => 'sanitize_text_field'
     ));
     register_setting('chroma_tour_settings', 'chroma_tour_lazy_load', array(
@@ -334,9 +336,9 @@ function chroma_tour_settings_page_html()
     }
 
     // Get current values
-    $form_id = get_option('chroma_tour_form_id', 'JpecxfWJrxyWE7Ufdtkd');
-    $form_height = get_option('chroma_tour_form_height', 788);
-    $form_name = get_option('chroma_tour_form_name', 'VIRTUAL TOUR INFORMATION - Chroma Early Learning');
+    $form_id = get_option('chroma_tour_form_id', '848tl2LjoZVsUIhhNOxd');
+    $form_height = get_option('chroma_tour_form_height', 1125);
+    $form_name = get_option('chroma_tour_form_name', 'PARENT INFORMATION - Chroma Early Learning');
     $lazy_load = get_option('chroma_tour_lazy_load', true);
     $lazy_delay = get_option('chroma_tour_lazy_delay', 2000);
     ?>
