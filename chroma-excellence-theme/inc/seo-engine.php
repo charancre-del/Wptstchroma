@@ -913,7 +913,8 @@ function chroma_custom_sitemap()
         echo '</urlset>';
         exit;
 }
-add_action('template_redirect', 'chroma_custom_sitemap');
+// Disable Custom Sitemap Template Redirect
+// add_action('template_redirect', 'chroma_custom_sitemap');
 
 /**
  * Custom Robots.txt
@@ -925,7 +926,8 @@ function chroma_register_sitemap_rewrites()
 {
         add_rewrite_rule('^sitemap\.xml$', 'index.php?sitemap=xml', 'top');
 }
-add_action('init', 'chroma_register_sitemap_rewrites');
+// Disable Custom Sitemap Rewrite Rules in favor of Native
+// add_action('init', 'chroma_register_sitemap_rewrites');
 
 /**
  * Register Sitemap Query Var
@@ -938,9 +940,40 @@ function chroma_register_sitemap_query_var($vars)
 add_filter('query_vars', 'chroma_register_sitemap_query_var');
 
 /**
- * Disable Default WP Sitemap
+ * Disable Default WP Sitemap - REMOVED to use Native Sitemap with filters
  */
-remove_action('init', 'wp_sitemaps_get_server');
+// remove_action('init', 'wp_sitemaps_get_server');
+
+/**
+ * Configure Native WordPress Sitemap
+ */
+function chroma_sitemap_config()
+{
+        // 1. Post Types: Only allow specific types
+        add_filter('wp_sitemaps_post_types', function ($post_types) {
+                $allowed = array('post', 'page', 'location', 'program', 'city');
+                foreach ($post_types as $pt => $obj) {
+                        if (!in_array($pt, $allowed)) {
+                                unset($post_types[$pt]);
+                        }
+                }
+                return $post_types;
+        });
+
+        // 2. Taxonomies: Disable ALL taxonomies
+        add_filter('wp_sitemaps_taxonomies', function ($taxonomies) {
+                return array(); // Empty array removes all taxonomies
+        });
+
+        // 3. Users: Disable user sitemaps
+        add_filter('wp_sitemaps_add_provider', function ($provider, $name) {
+                if ('users' === $name) {
+                        return false;
+                }
+                return $provider;
+        }, 10, 2);
+}
+add_action('init', 'chroma_sitemap_config');
 
 /**
  * Custom Robots.txt

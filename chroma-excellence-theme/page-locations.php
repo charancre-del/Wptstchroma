@@ -261,11 +261,11 @@ function chroma_get_region_color_from_term($term_id)
 					<p class="text-white/70 text-lg mb-8">Our enrollment specialists can help you find the nearest
 						location with openings for your child's age group.</p>
 					<div class="flex flex-wrap gap-4">
-						<a href="<?php echo esc_url(home_url('/contact')); ?>"
+						<a href="<?php echo esc_url(home_url('/contact/')); ?>"
 							class="px-8 py-4 bg-chroma-yellow text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-white transition-colors">
 							Contact Support
 						</a>
-						<a href="<?php echo esc_url(home_url()); ?>"
+						<a href="<?php echo esc_url(home_url('/')); ?>"
 							class="px-8 py-4 border border-white/20 text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-white/10 transition-colors">
 							Back to Home
 						</a>

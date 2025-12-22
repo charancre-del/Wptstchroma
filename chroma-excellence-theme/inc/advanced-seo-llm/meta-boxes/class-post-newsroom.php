@@ -68,7 +68,10 @@ class Chroma_Post_Newsroom extends Chroma_Advanced_SEO_Meta_Box_Base
      */
     public function save_fields($post_id)
     {
-        $val = isset($_POST['chroma_show_in_newsroom']) ? '1' : '';
-        update_post_meta($post_id, '_chroma_show_in_newsroom', $val);
+        if (isset($_POST['chroma_show_in_newsroom'])) {
+            update_post_meta($post_id, '_chroma_show_in_newsroom', '1');
+        } else {
+            delete_post_meta($post_id, '_chroma_show_in_newsroom');
+        }
     }
 }

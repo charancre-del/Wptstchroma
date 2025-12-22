@@ -67,7 +67,7 @@ while (have_posts()):
 	// Get programs at this location
 	$programs_query = new WP_Query(array(
 		'post_type' => 'program',
-		'posts_per_page' => 6,
+		'posts_per_page' => -1,
 		'orderby' => 'menu_order',
 		'order' => 'ASC',
 		'meta_query' => array(
@@ -252,7 +252,7 @@ while (have_posts()):
 						if ($hero_review_text):
 							?>
 							<div
-								class="absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-float max-w-[200px] fade-in-up delay-300">
+								class="hidden lg:block absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-float max-w-[200px] fade-in-up delay-300 z-20">
 								<div class="flex items-center gap-1 mb-2">
 									<?php for ($i = 0; $i < 5; $i++): ?>
 										<i class="fa-solid fa-star text-chroma-yellow text-sm"></i>

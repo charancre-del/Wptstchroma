@@ -218,7 +218,7 @@ $programs_query = new WP_Query(array(
             <p class="text-brand-ink/80 mb-10">Every campus offers tours so you can meet the teachers, see the
                 classrooms, and experience the Chroma culture firsthand.</p>
             <div class="flex flex-wrap justify-center gap-4">
-                <a href="<?php echo esc_url(home_url('/locations')); ?>"
+                <a href="<?php echo esc_url(home_url('/locations/')); ?>"
                     class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors">Find
                     a Location</a>
                 <a href="#tour"

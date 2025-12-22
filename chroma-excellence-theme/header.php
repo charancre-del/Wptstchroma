@@ -91,7 +91,7 @@
 
 				<!-- CTA Button -->
 				<?php
-				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact/#tour'));
+				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact-us/#tour'));
 				// Ensure local links have trailing slash if not present
 				if (strpos($cta_url, home_url()) !== false && strpos($cta_url, '/#') !== false) {
 					// It already has slash? or needs one?
@@ -99,7 +99,7 @@
 					$cta_url = str_replace('/contact/#', '/contact/#', $cta_url); // No-op visually but let's just hardcode the default properly first.
 				}
 				// Actually, cleaner update:
-				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact/#tour'));
+				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact-us/#tour'));
 				// Manual check if likely internal
 				if (strpos($cta_url, 'contact/#') !== false && strpos($cta_url, 'contact/#') === false) {
 					// Logic is getting messy. Let's just fix the default first.

@@ -144,7 +144,7 @@ while (have_posts()):
 						<a href="#mission"
 							class="px-8 py-4 bg-brand-ink text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-chroma-blueDark transition-colors shadow-lg">Our
 							Mission</a>
-						<a href="<?php echo esc_url(home_url('/locations')); ?>"
+						<a href="<?php echo esc_url(home_url('/locations/')); ?>"
 							class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-yellow hover:text-chroma-yellow transition-colors">Find
 							a Campus</a>
 					</div>
@@ -351,7 +351,7 @@ while (have_posts()):
 										class="chroma-read-bio-btn text-sm font-bold text-chroma-blue hover:text-chroma-blueDark underline mt-2"
 										data-bio-target="bio-<?php the_ID(); ?>" data-member-name="<?php the_title_attribute(); ?>"
 										data-member-title="<?php echo esc_attr($member_title); ?>"
-										data-member-image="<?php echo esc_url(get_the_post_thumbnail_url(get_the_ID(), 'medium') ?: ''); ?>"
+										data-member-image="<?php echo esc_url(get_the_post_thumbnail_url(get_the_ID(), 'large') ?: ''); ?>"
 										aria-label="Read bio for <?php the_title_attribute(); ?>">
 										Read Bio
 									</button>
@@ -459,10 +459,10 @@ while (have_posts()):
 				</h2>
 				<p class="text-lg text-brand-ink/90 mb-10"><?php echo esc_html($cta_description); ?></p>
 				<div class="flex flex-wrap justify-center gap-4">
-					<a href="<?php echo esc_url(home_url('/locations')); ?>"
+					<a href="<?php echo esc_url(home_url('/locations/')); ?>"
 						class="px-8 py-4 bg-brand-cream border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors">Find
 						a Location</a>
-					<a href="<?php echo esc_url(home_url('/locations#tour')); ?>"
+					<a href="<?php echo esc_url(home_url('/locations/#tour')); ?>"
 						class="px-8 py-4 bg-chroma-blue text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-chroma-blueDark transition-colors shadow-lg">Schedule
 						a Tour</a>
 				</div>

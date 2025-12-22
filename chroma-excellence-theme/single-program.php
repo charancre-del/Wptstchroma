@@ -91,7 +91,7 @@ while (have_posts()):
 								View Lesson Plan
 							</a>
 						<?php endif; ?>
-						<a href="<?php echo esc_url(home_url('/programs')); ?>"
+						<a href="<?php echo esc_url(home_url('/programs/')); ?>"
 							class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
 							All Programs
 						</a>
@@ -329,15 +329,15 @@ while (have_posts()):
 			},
 			plugins: { legend: { display: false } }
 		}
-																});
-															};
+																	});
+																};
 		document.body.appendChild(script);
-														}
-													});
-												}, { rootMargin: '200px' }); // Start loading 200px before view
+															}
+														});
+													}, { rootMargin: '200px' }); // Start loading 200px before view
 		observer.observe(ctx);
-											}
-										});
+												}
+											});
 	</script>
 
 	<?php

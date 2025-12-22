@@ -53,7 +53,7 @@ function chroma_primary_nav_fallback()
 	);
 
 	foreach ($pages as $slug => $title) {
-		$url = home_url('/' . $slug);
+		$url = home_url('/' . $slug . '/');
 		echo '<a href="' . esc_url($url) . '" class="hover:text-chroma-blue transition">' . esc_html($title) . '</a>';
 	}
 }
@@ -87,7 +87,7 @@ function chroma_footer_nav_fallback()
 	);
 
 	foreach ($pages as $slug => $title) {
-		$url = ($slug === 'home') ? home_url('/') : home_url('/' . $slug);
+		$url = ($slug === 'home') ? home_url('/') : home_url('/' . $slug . '/');
 		echo '<a href="' . esc_url($url) . '" class="block hover:text-white transition">' . esc_html($title) . '</a>';
 	}
 }
@@ -113,11 +113,11 @@ function chroma_footer_contact_nav()
 			$program_slug => 'Programs',
 			'locations' => 'Locations',
 			'about' => 'About Us',
-			'contact' => 'Contact',
+			'contact-us' => 'Contact',
 		);
 
 		foreach ($pages as $slug => $title) {
-			$url = home_url('/' . $slug);
+			$url = home_url('/' . $slug . '/');
 			echo '<a href="' . esc_url($url) . '" class="block hover:text-white transition">' . esc_html($title) . '</a>';
 		}
 	}

@@ -49,7 +49,7 @@ function chroma_home_default_prismpath()
                         'heading' => 'Grounded in Expertise. Wrapped in Love.',
                         'subheading' => '',
                         'cta_label' => 'Meet the Team',
-                        'cta_url' => '/about',
+                        'cta_url' => '/about/',
                 ),
                 'cards' => array(
                         array(
@@ -65,7 +65,7 @@ function chroma_home_default_prismpath()
                                 'heading' => 'Expert Care, Extended Family.',
                                 'text' => 'Our educators are state-certified professionals who understand that the most important credential is kindness.',
                                 'button' => 'Meet the Team',
-                                'url' => '/about',
+                                'url' => '/about/',
                                 'icon_bg' => 'fa-solid fa-heart',
                                 'icon_badge' => 'fa-solid fa-user-check',
                         ),
@@ -726,7 +726,7 @@ function chroma_home_locations_preview()
         $heading = sanitize_text_field(get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
         $subheading = sanitize_text_field(get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.'));
         $cta_label = sanitize_text_field(get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
-        $cta_link = esc_url_raw(get_theme_mod('chroma_home_locations_cta_link', '/locations'));
+        $cta_link = esc_url_raw(get_theme_mod('chroma_home_locations_cta_link', '/locations/'));
         $taxonomy = 'location_region';
         $fallback = (object) array(
                 'name' => __('Other Areas', 'chroma-excellence'),
