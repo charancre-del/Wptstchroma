@@ -78,7 +78,7 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                 <br><br>
                 Conveniently located near major highways and down the road from local landmarks and top-rated
                 elementary schools, we are the convenient choice for <?php echo esc_html($city); ?> working parents.
-                Come by and see Balanced Learning® in action at one of our nearby campuses.
+                Come by and see Prismpath™ in action at one of our nearby campuses.
             </p>
         <?php endif; ?>
     </div>
@@ -244,8 +244,13 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                     </svg>
                 </summary>
                 <p class="mt-4 text-sm text-brand-ink/80">
-                    We serve children from 6 weeks old (Infant Care) up to 12 years old (After School).
-                    We also offer a Private Kindergarten option at select locations.
+                    We serve children from 6 weeks old (<a
+                        href="<?php echo esc_url(home_url('/programs/infant-care/')); ?>"
+                        class="text-chroma-blue hover:underline">Infant Care</a>) up to 12 years old (<a
+                        href="<?php echo esc_url(home_url('/programs/after-school/')); ?>"
+                        class="text-chroma-blue hover:underline">After School</a>).
+                    We also offer a <a href="<?php echo esc_url(home_url('/programs/pre-k/')); ?>"
+                        class="text-chroma-blue hover:underline">Private Kindergarten</a> option at select locations.
                 </p>
             </details>
 

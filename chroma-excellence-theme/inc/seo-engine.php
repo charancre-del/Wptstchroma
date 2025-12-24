@@ -983,4 +983,61 @@ function chroma_custom_robots_txt($output)
         $output .= 'Sitemap: ' . home_url('/sitemap.xml') . "\n";
         return $output;
 }
-add_filter('robots_txt', 'chroma_custom_robots_txt');
+
+/**
+ * Add FAQPage Schema to City Pages (Hidden, matches visible FAQ content)
+ */
+function chroma_city_faq_schema_output()
+{
+        if (!is_singular('city')) {
+                return;
+        }
+
+        $city = get_the_title();
+        $county = get_post_meta(get_the_ID(), 'city_county', true) ?: 'Local';
+
+        // Questions and Answers from single-city.php
+        // Q1
+        $q1 = "Do you offer GA Lottery Pre-K in $city?";
+        $a1 = "Yes! Our locations serving $city participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia.";
+
+        // Q2
+        $q2 = "Do you provide transportation from $city schools?";
+        $a2 = "We provide safe bus transportation from most major elementary schools in the $county School District. Check the specific campus page for a full list.";
+
+        // Q3
+        $q3 = "What ages do you accept at your $city centers?";
+        $a3 = "We serve children from 6 weeks old (<a href='" . home_url('/programs/infant-care/') . "'>Infant Care</a>) up to 12 years old (<a href='" . home_url('/programs/after-school/') . "'>After School</a>). We also offer a <a href='" . home_url('/programs/pre-k/') . "'>Private Kindergarten</a> option at select locations.";
+
+        // Q4
+        $q4 = "How do I enroll my child in $city?";
+        $a4 = "The best way to start is by scheduling a tour at your preferred location. You can book online or call us directly. We'll walk you through the enrollment process and answer all your questions.";
+
+        $faq_items = array(
+                array('question' => $q1, 'answer' => $a1),
+                array('question' => $q2, 'answer' => $a2),
+                array('question' => $q3, 'answer' => $a3),
+                array('question' => $q4, 'answer' => $a4),
+        );
+
+        $entities = array();
+        foreach ($faq_items as $item) {
+                $entities[] = array(
+                        '@type' => 'Question',
+                        'name' => $item['question'],
+                        'acceptedAnswer' => array(
+                                '@type' => 'Answer',
+                                'text' => $item['answer'],
+                        ),
+                );
+        }
+
+        $schema = array(
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => $entities,
+        );
+
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+}
+add_action('wp_head', 'chroma_city_faq_schema_output');
