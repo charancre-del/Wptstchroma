@@ -34,14 +34,27 @@ class Chroma_LLM_Data_Endpoints
 
         $entities = array();
         foreach ($faq_items as $item) {
+            // Validate: skip items with empty question or answer
+            $question = isset($item['question']) ? trim($item['question']) : '';
+            $answer = isset($item['answer']) ? trim($item['answer']) : '';
+
+            if (empty($question) || empty($answer)) {
+                continue;
+            }
+
             $entities[] = array(
                 '@type' => 'Question',
-                'name' => $item['question'],
+                'name' => $question,
                 'acceptedAnswer' => array(
                     '@type' => 'Answer',
-                    'text' => $item['answer'],
+                    'text' => $answer,
                 ),
             );
+        }
+
+        // Only output schema if we have valid entities
+        if (empty($entities)) {
+            return;
         }
 
         $schema = array(

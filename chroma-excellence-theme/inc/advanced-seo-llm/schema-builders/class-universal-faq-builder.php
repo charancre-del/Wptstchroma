@@ -32,14 +32,27 @@ class Chroma_Universal_FAQ_Builder
 
         $main_entity = [];
         foreach ($faqs as $faq) {
+            // Skip if question or answer is empty
+            $question = isset($faq['question']) ? trim($faq['question']) : '';
+            $answer = isset($faq['answer']) ? trim($faq['answer']) : '';
+
+            if (empty($question) || empty($answer)) {
+                continue;
+            }
+
             $main_entity[] = [
                 '@type' => 'Question',
-                'name' => $faq['question'],
+                'name' => $question,
                 'acceptedAnswer' => [
                     '@type' => 'Answer',
-                    'text' => $faq['answer']
+                    'text' => $answer
                 ]
             ];
+        }
+
+        // Only output if we have valid FAQ items
+        if (empty($main_entity)) {
+            return;
         }
 
         $schema = [
@@ -48,6 +61,6 @@ class Chroma_Universal_FAQ_Builder
             'mainEntity' => $main_entity
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
     }
 }
