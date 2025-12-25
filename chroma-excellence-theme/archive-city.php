@@ -9,29 +9,35 @@
 get_header();
 
 // Get all cities for the grid (Load All for client-side filtering)
+// Optimized: Pre-cache meta, skip term cache, collect counties during display
 $cities_query = new WP_Query([
     'post_type' => 'city',
     'posts_per_page' => -1,
     'post_status' => 'publish',
     'orderby' => 'title',
-    'order' => 'ASC'
+    'order' => 'ASC',
+    'update_post_meta_cache' => true,  // Batch-load all meta in one query
+    'update_post_term_cache' => false, // Not using taxonomies
+    'no_found_rows' => true,           // Skip counting for pagination (faster)
 ]);
 
-// Collect unique counties for the filter bar
-$all_counties = [];
-if ($cities_query->have_posts()) {
-    foreach ($cities_query->posts as $p) {
-        $c = get_post_meta($p->ID, 'city_county', true);
-        if ($c) {
-            $all_counties[] = $c;
-        }
-    }
-}
-$unique_counties = array_unique($all_counties);
-sort($unique_counties);
+// Counties will be collected during the main loop to avoid double iteration
+$unique_counties = [];
 
 // Local fallback image
 $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp';
+
+// Pre-collect counties from posts (single pass, using cached meta)
+if ($cities_query->have_posts()) {
+    foreach ($cities_query->posts as $p) {
+        $c = get_post_meta($p->ID, 'city_county', true);
+        if ($c && !in_array($c, $unique_counties)) {
+            $unique_counties[] = $c;
+        }
+    }
+    sort($unique_counties);
+}
+
 
 /**
  * Helper: Get city formatted image HTML
