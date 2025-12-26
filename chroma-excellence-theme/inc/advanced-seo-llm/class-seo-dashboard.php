@@ -879,17 +879,16 @@ class Chroma_SEO_Dashboard
                                     }
                                 }
                             });
-
-                            // Auto-save after AI fills data
-                            $('#chroma-inspector-save').trigger('click');
-                        } else {
-                            alert('AI Error: ' + (response.data && response.data.message ? response.data.message : 'Unknown error'));
-                        }
+                             // Auto-save after AI fills data
+                                    $('#chroma-inspector-save').trigger('click');
+                                } else {
+                                    alert('AI Error: ' + (response.data && response.data.message ? response.data.message : 'Unknown error'));
+                                }
+                            });
+                        });
                     });
-                });
-            });
-        </script>
-        <?php
+                </script>
+                <?php
     }
 
     /**
@@ -959,78 +958,78 @@ class Chroma_SEO_Dashboard
             }
             $available_types = Chroma_Schema_Types::get_definitions();
             ?>
-            <input type="hidden" id="chroma-inspector-post-id" value="<?php echo $post_id; ?>">
+                        <input type="hidden" id="chroma-inspector-post-id" value="<?php echo $post_id; ?>">
 
-            <!-- DEBUG PANEL - Remove after fixing -->
-            <details style="background: #fffbcc; border: 1px solid #e0d800; padding: 10px; margin-bottom: 15px;">
-                <summary style="cursor: pointer; font-weight: bold; color: #806600;">🔍 Debug: Click to see raw schema data from
-                    database</summary>
-                <pre style="background: #fff; padding: 10px; margin-top: 10px; overflow: auto; max-height: 300px; font-size: 11px;"><?php
-                echo "Post ID: {$post_id}\n\n";
-                echo "Raw _chroma_post_schemas meta:\n";
-                echo htmlspecialchars(print_r($existing_schemas, true));
-                ?></pre>
-            </details>
+                        <!-- DEBUG PANEL - Remove after fixing -->
+                        <details style="background: #fffbcc; border: 1px solid #e0d800; padding: 10px; margin-bottom: 15px;">
+                            <summary style="cursor: pointer; font-weight: bold; color: #806600;">🔍 Debug: Click to see raw schema data from
+                                database</summary>
+                            <pre style="background: #fff; padding: 10px; margin-top: 10px; overflow: auto; max-height: 300px; font-size: 11px;"><?php
+                            echo "Post ID: {$post_id}\n\n";
+                            echo "Raw _chroma_post_schemas meta:\n";
+                            echo htmlspecialchars(print_r($existing_schemas, true));
+                            ?></pre>
+                        </details>
 
-            <div id="chroma-active-schemas">
-                <?php
-                error_log('Chroma SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
+                        <div id="chroma-active-schemas">
+                            <?php
+                            error_log('Chroma SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
 
-                if (empty($existing_schemas)) {
-                    echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
-                } else {
-                    $valid_count = 0;
-                    foreach ($existing_schemas as $index => $schema) {
-                        // Log each schema item for debugging
-                        error_log("Chroma SEO: Schema item [{$index}]: " . print_r($schema, true));
+                            if (empty($existing_schemas)) {
+                                echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
+                            } else {
+                                $valid_count = 0;
+                                foreach ($existing_schemas as $index => $schema) {
+                                    // Log each schema item for debugging
+                                    error_log("Chroma SEO: Schema item [{$index}]: " . print_r($schema, true));
 
-                        if (!is_array($schema)) {
-                            error_log("Chroma SEO: Schema [{$index}] is not an array, skipping.");
-                            continue;
-                        }
-                        if (!isset($schema['type'])) {
-                            error_log("Chroma SEO: Schema [{$index}] missing 'type' key, skipping.");
-                            continue;
-                        }
-                        if (!isset($schema['data']) || !is_array($schema['data'])) {
-                            error_log("Chroma SEO: Schema [{$index}] missing or invalid 'data' key, skipping.");
-                            continue;
-                        }
-                        $valid_count++;
-                        $this->render_schema_block($schema['type'], $schema['data'], $index);
-                    }
-                    if ($valid_count === 0 && !empty($existing_schemas)) {
-                        echo '<div class="notice notice-error" style="padding: 10px; margin: 10px 0;">';
-                        echo '<p><strong>Warning:</strong> Schema data appears to be corrupted. The stored data is not in the expected format.</p>';
-                        echo '<p>Use the "Reset all Schemas for this Page" button above to clear and start fresh.</p>';
-                        echo '</div>';
-                    }
-                }
-                ?>
-            </div>
+                                    if (!is_array($schema)) {
+                                        error_log("Chroma SEO: Schema [{$index}] is not an array, skipping.");
+                                        continue;
+                                    }
+                                    if (!isset($schema['type'])) {
+                                        error_log("Chroma SEO: Schema [{$index}] missing 'type' key, skipping.");
+                                        continue;
+                                    }
+                                    if (!isset($schema['data']) || !is_array($schema['data'])) {
+                                        error_log("Chroma SEO: Schema [{$index}] missing or invalid 'data' key, skipping.");
+                                        continue;
+                                    }
+                                    $valid_count++;
+                                    $this->render_schema_block($schema['type'], $schema['data'], $index);
+                                }
+                                if ($valid_count === 0 && !empty($existing_schemas)) {
+                                    echo '<div class="notice notice-error" style="padding: 10px; margin: 10px 0;">';
+                                    echo '<p><strong>Warning:</strong> Schema data appears to be corrupted. The stored data is not in the expected format.</p>';
+                                    echo '<p>Use the "Reset all Schemas for this Page" button above to clear and start fresh.</p>';
+                                    echo '</div>';
+                                }
+                            }
+                            ?>
+                        </div>
 
-            <div
-                style="display: flex; gap: 20px; margin-top: 20px; margin-bottom: 20px; align-items: center; background: #fff; padding: 15px; border: 1px solid #ddd;">
-                <strong>Add New Schema:</strong>
-                <select id="chroma-schema-type-select">
-                    <option value="">-- Select Type --</option>
-                    <?php foreach ($available_types as $type => $def): ?>
-                        <option value="<?php echo esc_attr($type); ?>"><?php echo esc_html($def['label']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <button id="chroma-add-schema-btn" class="button button-secondary">Add Schema</button>
-            </div>
+                        <div
+                            style="display: flex; gap: 20px; margin-top: 20px; margin-bottom: 20px; align-items: center; background: #fff; padding: 15px; border: 1px solid #ddd;">
+                            <strong>Add New Schema:</strong>
+                            <select id="chroma-schema-type-select">
+                                <option value="">-- Select Type --</option>
+                                <?php foreach ($available_types as $type => $def): ?>
+                                        <option value="<?php echo esc_attr($type); ?>"><?php echo esc_html($def['label']); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <button id="chroma-add-schema-btn" class="button button-secondary">Add Schema</button>
+                        </div>
 
-            <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc;">
-                <button id="chroma-inspector-save" class="button button-primary button-large">Save All Schemas</button>
-            </div>
-            <?php
-            $html = ob_get_clean();
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #ccc;">
+                            <button id="chroma-inspector-save" class="button button-primary button-large">Save All Schemas</button>
+                        </div>
+                        <?php
+                        $html = ob_get_clean();
 
-            // Force clean response
-            @header('Content-Type: application/json; charset=utf-8');
-            echo json_encode(['success' => true, 'data' => ['html' => $html]]);
-            die();
+                        // Force clean response
+                        @header('Content-Type: application/json; charset=utf-8');
+                        echo json_encode(['success' => true, 'data' => ['html' => $html]]);
+                        die();
 
         } catch (Throwable $e) {
             ob_end_clean(); // Clean buffer if error
@@ -1050,69 +1049,69 @@ class Chroma_SEO_Dashboard
 
         $def = $definitions[$type];
         ?>
-        <div class="chroma-schema-block" data-type="<?php echo esc_attr($type); ?>"
-            style="background: #fff; border: 1px solid #ccd0d4; padding: 15px; margin-bottom: 15px; position: relative;">
-            <h3
-                style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <span><?php echo esc_html($def['label']); ?></span>
-                <div>
-                    <button class="button button-small chroma-ai-autofill" data-type="<?php echo esc_attr($type); ?>"
-                        style="margin-right: 10px; border-color: #8c64ff; color: #6b42e4;">
-                        <span class="dashicons dashicons-superhero"
-                            style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> Auto-Fill
-                    </button>
-                    <button class="chroma-remove-schema button-link-delete">Remove</button>
+                <div class="chroma-schema-block" data-type="<?php echo esc_attr($type); ?>"
+                    style="background: #fff; border: 1px solid #ccd0d4; padding: 15px; margin-bottom: 15px; position: relative;">
+                    <h3
+                        style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span><?php echo esc_html($def['label']); ?></span>
+                        <div>
+                            <button class="button button-small chroma-ai-autofill" data-type="<?php echo esc_attr($type); ?>"
+                                style="margin-right: 10px; border-color: #8c64ff; color: #6b42e4;">
+                                <span class="dashicons dashicons-superhero"
+                                    style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> Auto-Fill
+                            </button>
+                            <button class="chroma-remove-schema button-link-delete">Remove</button>
+                        </div>
+                    </h3>
+
+                    <table class="form-table" style="margin-top: 0;">
+                        <?php foreach ($def['fields'] as $key => $field):
+                            $val = isset($data[$key]) ? $data[$key] : '';
+
+                            // Handle array values for non-repeater fields (like sameAs)
+                            if (is_array($val) && $field['type'] !== 'repeater') {
+                                $val = implode(', ', $val);
+                            }
+                            ?>
+                                <tr>
+                                    <th scope="row" style="padding: 10px 0; width: 200px;">
+                                        <?php echo esc_html($field['label']); ?>
+                                        <?php if (!empty($field['description'])): ?>
+                                                <span class="dashicons dashicons-editor-help chroma-help-tip"
+                                                    title="<?php echo esc_attr($field['description']); ?>"
+                                                    style="color: #999; font-size: 16px; cursor: help;"></span>
+                                        <?php endif; ?>
+                                    </th>
+                                    <td style="padding: 10px 0;">
+                                        <?php if ($field['type'] === 'repeater'): ?>
+                                                <div class="chroma-repeater-wrapper" data-key="<?php echo esc_attr($key); ?>">
+                                                    <div class="chroma-repeater-items">
+                                                        <?php
+                                                        $sub_items = is_array($val) ? $val : [];
+                                                        if (empty($sub_items)) {
+                                                            // Add one empty row by default? No, let user add.
+                                                        }
+                                                        foreach ($sub_items as $sub_index => $sub_item) {
+                                                            $this->render_repeater_row($field['subfields'], $sub_item, $key);
+                                                        }
+                                                        ?>
+                                                    </div>
+                                                    <button class="button button-small chroma-add-repeater-row"
+                                                        data-fields="<?php echo esc_attr(json_encode($field['subfields'])); ?>">Add Row</button>
+                                                </div>
+                                        <?php elseif ($field['type'] === 'textarea'): ?>
+                                                <textarea class="chroma-schema-input large-text" data-name="<?php echo esc_attr($key); ?>"
+                                                    rows="3"><?php echo esc_textarea($val); ?></textarea>
+                                        <?php else: ?>
+                                                <input type="text" class="chroma-schema-input regular-text" data-name="<?php echo esc_attr($key); ?>"
+                                                    value="<?php echo esc_attr($val); ?>" style="width: 100%;">
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                        <?php endforeach; ?>
+                    </table>
                 </div>
-            </h3>
-
-            <table class="form-table" style="margin-top: 0;">
-                <?php foreach ($def['fields'] as $key => $field):
-                    $val = isset($data[$key]) ? $data[$key] : '';
-
-                    // Handle array values for non-repeater fields (like sameAs)
-                    if (is_array($val) && $field['type'] !== 'repeater') {
-                        $val = implode(', ', $val);
-                    }
-                    ?>
-                    <tr>
-                        <th scope="row" style="padding: 10px 0; width: 200px;">
-                            <?php echo esc_html($field['label']); ?>
-                            <?php if (!empty($field['description'])): ?>
-                                <span class="dashicons dashicons-editor-help chroma-help-tip"
-                                    title="<?php echo esc_attr($field['description']); ?>"
-                                    style="color: #999; font-size: 16px; cursor: help;"></span>
-                            <?php endif; ?>
-                        </th>
-                        <td style="padding: 10px 0;">
-                            <?php if ($field['type'] === 'repeater'): ?>
-                                <div class="chroma-repeater-wrapper" data-key="<?php echo esc_attr($key); ?>">
-                                    <div class="chroma-repeater-items">
-                                        <?php
-                                        $sub_items = is_array($val) ? $val : [];
-                                        if (empty($sub_items)) {
-                                            // Add one empty row by default? No, let user add.
-                                        }
-                                        foreach ($sub_items as $sub_index => $sub_item) {
-                                            $this->render_repeater_row($field['subfields'], $sub_item, $key);
-                                        }
-                                        ?>
-                                    </div>
-                                    <button class="button button-small chroma-add-repeater-row"
-                                        data-fields="<?php echo esc_attr(json_encode($field['subfields'])); ?>">Add Row</button>
-                                </div>
-                            <?php elseif ($field['type'] === 'textarea'): ?>
-                                <textarea class="chroma-schema-input large-text" data-name="<?php echo esc_attr($key); ?>"
-                                    rows="3"><?php echo esc_textarea($val); ?></textarea>
-                            <?php else: ?>
-                                <input type="text" class="chroma-schema-input regular-text" data-name="<?php echo esc_attr($key); ?>"
-                                    value="<?php echo esc_attr($val); ?>" style="width: 100%;">
-                            <?php endif; ?>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </table>
-        </div>
-        <?php
+                <?php
     }
 
     /**
@@ -1121,29 +1120,29 @@ class Chroma_SEO_Dashboard
     private function render_repeater_row($subfields, $data = [], $parent_key = '')
     {
         ?>
-        <div class="chroma-repeater-row"
-            style="background: #f9f9f9; padding: 10px; margin-bottom: 10px; border: 1px solid #eee;">
-            <div style="text-align: right; margin-bottom: 5px;">
-                <span class="chroma-remove-repeater-row dashicons dashicons-trash"
-                    style="cursor: pointer; color: #d63638;"></span>
-            </div>
-            <?php foreach ($subfields as $sub_key => $sub_field):
-                $val = isset($data[$sub_key]) ? $data[$sub_key] : '';
-                ?>
-                <div style="margin-bottom: 5px;">
-                    <label
-                        style="font-size: 12px; font-weight: 600; display: block;"><?php echo esc_html($sub_field['label']); ?></label>
-                    <?php if ($sub_field['type'] === 'textarea'): ?>
-                        <textarea class="chroma-repeater-input large-text" data-name="<?php echo esc_attr($sub_key); ?>" rows="2"
-                            style="width: 100%;"><?php echo esc_textarea($val); ?></textarea>
-                    <?php else: ?>
-                        <input type="text" class="chroma-repeater-input regular-text" data-name="<?php echo esc_attr($sub_key); ?>"
-                            value="<?php echo esc_attr($val); ?>" style="width: 100%;">
-                    <?php endif; ?>
+                <div class="chroma-repeater-row"
+                    style="background: #f9f9f9; padding: 10px; margin-bottom: 10px; border: 1px solid #eee;">
+                    <div style="text-align: right; margin-bottom: 5px;">
+                        <span class="chroma-remove-repeater-row dashicons dashicons-trash"
+                            style="cursor: pointer; color: #d63638;"></span>
+                    </div>
+                    <?php foreach ($subfields as $sub_key => $sub_field):
+                        $val = isset($data[$sub_key]) ? $data[$sub_key] : '';
+                        ?>
+                            <div style="margin-bottom: 5px;">
+                                <label
+                                    style="font-size: 12px; font-weight: 600; display: block;"><?php echo esc_html($sub_field['label']); ?></label>
+                                <?php if ($sub_field['type'] === 'textarea'): ?>
+                                        <textarea class="chroma-repeater-input large-text" data-name="<?php echo esc_attr($sub_key); ?>" rows="2"
+                                            style="width: 100%;"><?php echo esc_textarea($val); ?></textarea>
+                                <?php else: ?>
+                                        <input type="text" class="chroma-repeater-input regular-text" data-name="<?php echo esc_attr($sub_key); ?>"
+                                            value="<?php echo esc_attr($val); ?>" style="width: 100%;">
+                                <?php endif; ?>
+                            </div>
+                    <?php endforeach; ?>
                 </div>
-            <?php endforeach; ?>
-        </div>
-        <?php
+                <?php
     }
 
     /**
@@ -1187,24 +1186,38 @@ class Chroma_SEO_Dashboard
      */
     public function ajax_save_inspector_data()
     {
-        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        // Log incoming request for debugging
+        error_log('Chroma SEO Save: ajax_save_inspector_data called');
 
-        if (!current_user_can('edit_posts'))
-            wp_send_json_error();
+        if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
+            error_log('Chroma SEO Save: Nonce verification failed');
+            wp_send_json_error(['message' => 'Security check failed']);
+        }
+
+        if (!current_user_can('edit_posts')) {
+            error_log('Chroma SEO Save: User lacks edit_posts capability');
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
 
         $post_id = intval($_POST['post_id']);
         $schemas = isset($_POST['schemas']) ? $_POST['schemas'] : [];
 
-        if (!$post_id)
-            wp_send_json_error();
+        error_log('Chroma SEO Save: Post ID = ' . $post_id);
+        error_log('Chroma SEO Save: Raw schemas received = ' . print_r($schemas, true));
+
+        if (!$post_id) {
+            error_log('Chroma SEO Save: Invalid post ID');
+            wp_send_json_error(['message' => 'Invalid post ID']);
+        }
 
         // Sanitize
         $clean_schemas = [];
         if (is_array($schemas)) {
             foreach ($schemas as $s) {
-                if (isset($s['type']) && isset($s['data'])) {
+                // Be more lenient - accept schemas even if data is empty
+                if (isset($s['type'])) {
                     $clean_data = [];
-                    if (is_array($s['data'])) {
+                    if (isset($s['data']) && is_array($s['data'])) {
                         foreach ($s['data'] as $k => $v) {
                             if (is_array($v)) {
                                 // Handle Repeater (Array of Arrays)
@@ -1233,9 +1246,12 @@ class Chroma_SEO_Dashboard
             }
         }
 
-        update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
+        error_log('Chroma SEO Save: Cleaned schemas = ' . print_r($clean_schemas, true));
 
-        wp_send_json_success();
+        $result = update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
+        error_log('Chroma SEO Save: update_post_meta result = ' . ($result ? 'success/updated' : 'no change or failed'));
+
+        wp_send_json_success(['message' => 'Saved successfully', 'schemas_count' => count($clean_schemas)]);
     }
     /**
      * Render Social Preview Tab
@@ -1244,75 +1260,75 @@ class Chroma_SEO_Dashboard
     {
         $posts = get_posts(['post_type' => 'post', 'posts_per_page' => 50]);
         ?>
-        <div class="chroma-seo-card">
-            <h2>Social Media Preview</h2>
-            <p>Preview how your posts will look on Facebook, Twitter, and LinkedIn.</p>
-
-            <div style="margin: 20px 0;">
-                <label for="chroma-social-select"><strong>Select Post:</strong></label>
-                <select id="chroma-social-select">
-                    <option value="">-- Select a Post --</option>
-                    <?php foreach ($posts as $p): ?>
-                        <option value="<?php echo $p->ID; ?>"><?php echo esc_html($p->post_title); ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-
-            <div id="chroma-social-preview-container" style="display: none; max-width: 600px;">
                 <div class="chroma-seo-card">
-                    <h3>Facebook / OG Preview</h3>
-                    <div
-                        style="border: 1px solid #dadde1; border-radius: 8px; overflow: hidden; font-family: Helvetica, Arial, sans-serif;">
-                        <div id="chroma-og-image"
-                            style="height: 315px; background-color: #f0f2f5; background-size: cover; background-position: center;">
-                        </div>
-                        <div style="padding: 10px 12px; background: #f0f2f5; border-top: 1px solid #dadde1;">
-                            <div style="font-size: 12px; color: #606770; text-transform: uppercase;" id="chroma-og-site">
-                                <?php echo $_SERVER['HTTP_HOST']; ?>
+                    <h2>Social Media Preview</h2>
+                    <p>Preview how your posts will look on Facebook, Twitter, and LinkedIn.</p>
+
+                    <div style="margin: 20px 0;">
+                        <label for="chroma-social-select"><strong>Select Post:</strong></label>
+                        <select id="chroma-social-select">
+                            <option value="">-- Select a Post --</option>
+                            <?php foreach ($posts as $p): ?>
+                                    <option value="<?php echo $p->ID; ?>"><?php echo esc_html($p->post_title); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div id="chroma-social-preview-container" style="display: none; max-width: 600px;">
+                        <div class="chroma-seo-card">
+                            <h3>Facebook / OG Preview</h3>
+                            <div
+                                style="border: 1px solid #dadde1; border-radius: 8px; overflow: hidden; font-family: Helvetica, Arial, sans-serif;">
+                                <div id="chroma-og-image"
+                                    style="height: 315px; background-color: #f0f2f5; background-size: cover; background-position: center;">
+                                </div>
+                                <div style="padding: 10px 12px; background: #f0f2f5; border-top: 1px solid #dadde1;">
+                                    <div style="font-size: 12px; color: #606770; text-transform: uppercase;" id="chroma-og-site">
+                                        <?php echo $_SERVER['HTTP_HOST']; ?>
+                                    </div>
+                                    <div style="font-family: Georgia, serif; font-size: 16px; color: #1d2129; font-weight: 600; margin: 5px 0;"
+                                        id="chroma-og-title">Page Title</div>
+                                    <div style="font-size: 14px; color: #606770; line-height: 20px; max-height: 40px; overflow: hidden;"
+                                        id="chroma-og-desc">Page description goes here...</div>
+                                </div>
                             </div>
-                            <div style="font-family: Georgia, serif; font-size: 16px; color: #1d2129; font-weight: 600; margin: 5px 0;"
-                                id="chroma-og-title">Page Title</div>
-                            <div style="font-size: 14px; color: #606770; line-height: 20px; max-height: 40px; overflow: hidden;"
-                                id="chroma-og-desc">Page description goes here...</div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <script>
-            jQuery(document).ready(function ($) {
-                $('#chroma-social-select').on('change', function () {
-                    var pid = $(this).val();
-                    if (!pid) {
-                        $('#chroma-social-preview-container').hide();
-                        return;
-                    }
-
-                    $.post(ajaxurl, {
-                        action: 'chroma_fetch_social_preview',
-                        nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>',
-                        post_id: pid
-                    }, function (response) {
-                        if (response.success) {
-                            var data = response.data;
-                            $('#chroma-og-title').text(data.title);
-                            $('#chroma-og-desc').text(data.description);
-                            $('#chroma-og-site').text(data.site_name);
-
-                            if (data.image) {
-                                $('#chroma-og-image').css('background-image', 'url(' + data.image + ')');
-                            } else {
-                                $('#chroma-og-image').css('background-image', 'none');
+                <script>
+                    jQuery(document).ready(function ($) {
+                        $('#chroma-social-select').on('change', function () {
+                            var pid = $(this).val();
+                            if (!pid) {
+                                $('#chroma-social-preview-container').hide();
+                                return;
                             }
 
-                            $('#chroma-social-preview-container').show();
-                        }
+                            $.post(ajaxurl, {
+                                action: 'chroma_fetch_social_preview',
+                                nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>',
+                                post_id: pid
+                            }, function (response) {
+                                if (response.success) {
+                                    var data = response.data;
+                                    $('#chroma-og-title').text(data.title);
+                                    $('#chroma-og-desc').text(data.description);
+                                    $('#chroma-og-site').text(data.site_name);
+
+                                    if (data.image) {
+                                        $('#chroma-og-image').css('background-image', 'url(' + data.image + ')');
+                                    } else {
+                                        $('#chroma-og-image').css('background-image', 'none');
+                                    }
+
+                                    $('#chroma-social-preview-container').show();
+                                }
+                            });
+                        });
                     });
-                });
-            });
-        </script>
-        <?php
+                </script>
+                <?php
     }
 
     /**
@@ -1377,90 +1393,90 @@ class Chroma_SEO_Dashboard
 
         ob_start();
         ?>
-        <input type="hidden" id="chroma-llm-post-id" value="<?php echo $post_id; ?>">
+                <input type="hidden" id="chroma-llm-post-id" value="<?php echo $post_id; ?>">
 
-        <div style="background: #fff; padding: 20px; border: 1px solid #ddd; margin-bottom: 20px;">
-            <h3 style="margin-top: 0;">LLM Targeting for: <?php echo get_the_title($post_id); ?></h3>
+                <div style="background: #fff; padding: 20px; border: 1px solid #ddd; margin-bottom: 20px;">
+                    <h3 style="margin-top: 0;">LLM Targeting for: <?php echo get_the_title($post_id); ?></h3>
 
-            <p class="description" style="margin-bottom: 20px;">
-                <strong>Optimize how AI assistants (ChatGPT, Claude, Perplexity) recommend this page.</strong>
-                <button id="chroma-llm-autofill" class="button button-secondary"
-                    style="margin-left: 10px; border-color: #8c64ff; color: #6b42e4;">
-                    <span class="dashicons dashicons-superhero"
-                        style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> Auto-Fill with AI
-                </button>
-            </p>
-
-            <!-- Primary Intent -->
-            <div style="margin-bottom: 25px;">
-                <label for="seo_llm_primary_intent" style="display: block; font-weight: 600; margin-bottom: 8px;">
-                    Primary Intent
-                </label>
-                <input type="text" id="seo_llm_primary_intent" class="regular-text"
-                    value="<?php echo esc_attr($primary_intent); ?>"
-                    placeholder="e.g., childcare_discovery, program_information" style="width: 100%; max-width: 500px;">
-                <?php if (empty($primary_intent)): ?>
-                    <p class="description" style="color: #646970;">
-                        <em>Default: informational</em>
+                    <p class="description" style="margin-bottom: 20px;">
+                        <strong>Optimize how AI assistants (ChatGPT, Claude, Perplexity) recommend this page.</strong>
+                        <button id="chroma-llm-autofill" class="button button-secondary"
+                            style="margin-left: 10px; border-color: #8c64ff; color: #6b42e4;">
+                            <span class="dashicons dashicons-superhero"
+                                style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> Auto-Fill with AI
+                        </button>
                     </p>
-                <?php endif; ?>
-            </div>
 
-            <!-- Target Queries -->
-            <div style="margin-bottom: 25px;">
-                <h4 style="margin-bottom: 10px;">Target Queries</h4>
-                <p class="description" style="margin-bottom: 10px;">
-                    Natural language queries where LLMs should recommend this content.
-                </p>
-                <?php if (!empty($fallback_queries) && empty($target_queries)): ?>
-                    <p class="description" style="color: #646970; font-style: italic; margin-bottom: 10px;">
-                        Auto-generated examples: <?php echo implode(', ', array_slice($fallback_queries, 0, 2)); ?>
-                    </p>
-                <?php endif; ?>
-                <div id="llm-queries-container">
-                    <?php foreach ($target_queries as $query): ?>
-                        <div class="chroma-repeater-row" style="margin-bottom: 8px;">
-                            <input type="text" class="chroma-llm-query-input regular-text" value="<?php echo esc_attr($query); ?>"
-                                placeholder="e.g., best preschool curriculum" style="width: 80%;">
-                            <button class="button remove-llm-row">×</button>
+                    <!-- Primary Intent -->
+                    <div style="margin-bottom: 25px;">
+                        <label for="seo_llm_primary_intent" style="display: block; font-weight: 600; margin-bottom: 8px;">
+                            Primary Intent
+                        </label>
+                        <input type="text" id="seo_llm_primary_intent" class="regular-text"
+                            value="<?php echo esc_attr($primary_intent); ?>"
+                            placeholder="e.g., childcare_discovery, program_information" style="width: 100%; max-width: 500px;">
+                        <?php if (empty($primary_intent)): ?>
+                                <p class="description" style="color: #646970;">
+                                    <em>Default: informational</em>
+                                </p>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Target Queries -->
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="margin-bottom: 10px;">Target Queries</h4>
+                        <p class="description" style="margin-bottom: 10px;">
+                            Natural language queries where LLMs should recommend this content.
+                        </p>
+                        <?php if (!empty($fallback_queries) && empty($target_queries)): ?>
+                                <p class="description" style="color: #646970; font-style: italic; margin-bottom: 10px;">
+                                    Auto-generated examples: <?php echo implode(', ', array_slice($fallback_queries, 0, 2)); ?>
+                                </p>
+                        <?php endif; ?>
+                        <div id="llm-queries-container">
+                            <?php foreach ($target_queries as $query): ?>
+                                    <div class="chroma-repeater-row" style="margin-bottom: 8px;">
+                                        <input type="text" class="chroma-llm-query-input regular-text" value="<?php echo esc_attr($query); ?>"
+                                            placeholder="e.g., best preschool curriculum" style="width: 80%;">
+                                        <button class="button remove-llm-row">×</button>
+                                    </div>
+                            <?php endforeach; ?>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-                <button id="add-llm-query" class="button button-secondary">+ Add Query</button>
-            </div>
+                        <button id="add-llm-query" class="button button-secondary">+ Add Query</button>
+                    </div>
 
-            <!-- Key Differentiators -->
-            <div style="margin-bottom: 25px;">
-                <h4 style="margin-bottom: 10px;">Key Differentiators</h4>
-                <p class="description" style="margin-bottom: 10px;">
-                    What makes this content unique? LLMs use these as talking points.
-                </p>
-                <?php if (!empty($fallback_differentiators) && empty($key_differentiators)): ?>
-                    <p class="description" style="color: #646970; font-style: italic; margin-bottom: 10px;">
-                        Auto-discovered: <?php echo implode('; ', array_slice($fallback_differentiators, 0, 2)); ?>
-                    </p>
-                <?php endif; ?>
-                <div id="llm-diffs-container">
-                    <?php foreach ($key_differentiators as $diff): ?>
-                        <div class="chroma-repeater-row" style="margin-bottom: 8px;">
-                            <input type="text" class="chroma-llm-diff-input regular-text" value="<?php echo esc_attr($diff); ?>"
-                                placeholder="e.g., STEAM-focused curriculum" style="width: 80%;">
-                            <button class="button remove-llm-row">×</button>
+                    <!-- Key Differentiators -->
+                    <div style="margin-bottom: 25px;">
+                        <h4 style="margin-bottom: 10px;">Key Differentiators</h4>
+                        <p class="description" style="margin-bottom: 10px;">
+                            What makes this content unique? LLMs use these as talking points.
+                        </p>
+                        <?php if (!empty($fallback_differentiators) && empty($key_differentiators)): ?>
+                                <p class="description" style="color: #646970; font-style: italic; margin-bottom: 10px;">
+                                    Auto-discovered: <?php echo implode('; ', array_slice($fallback_differentiators, 0, 2)); ?>
+                                </p>
+                        <?php endif; ?>
+                        <div id="llm-diffs-container">
+                            <?php foreach ($key_differentiators as $diff): ?>
+                                    <div class="chroma-repeater-row" style="margin-bottom: 8px;">
+                                        <input type="text" class="chroma-llm-diff-input regular-text" value="<?php echo esc_attr($diff); ?>"
+                                            placeholder="e.g., STEAM-focused curriculum" style="width: 80%;">
+                                        <button class="button remove-llm-row">×</button>
+                                    </div>
+                            <?php endforeach; ?>
                         </div>
-                    <?php endforeach; ?>
-                </div>
-                <button id="add-llm-diff" class="button button-secondary">+ Add Differentiator</button>
-            </div>
+                        <button id="add-llm-diff" class="button button-secondary">+ Add Differentiator</button>
+                    </div>
 
-            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ccc;">
-                <button id="chroma-llm-save" class="button button-primary button-large">
-                    Save LLM Targeting
-                </button>
-            </div>
-        </div>
-        <?php
-        $html = ob_get_clean();
-        wp_send_json_success(['html' => $html]);
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ccc;">
+                        <button id="chroma-llm-save" class="button button-primary button-large">
+                            Save LLM Targeting
+                        </button>
+                    </div>
+                </div>
+                <?php
+                $html = ob_get_clean();
+                wp_send_json_success(['html' => $html]);
     }
 
     /**
@@ -1561,72 +1577,72 @@ class Chroma_SEO_Dashboard
 
         $sitemap_url = home_url('/sitemap.xml');
         ?>
-        <div class="chroma-seo-card">
-            <h2>🗺️ Sitemap Manager</h2>
-            <p>Manage your XML Sitemap configuration. <a href="<?php echo esc_url($sitemap_url); ?>" target="_blank"
-                    class="button">View Sitemap</a></p>
+                <div class="chroma-seo-card">
+                    <h2>🗺️ Sitemap Manager</h2>
+                    <p>Manage your XML Sitemap configuration. <a href="<?php echo esc_url($sitemap_url); ?>" target="_blank"
+                            class="button">View Sitemap</a></p>
 
-            <form method="post" enctype="multipart/form-data">
-                <?php wp_nonce_field('chroma_sitemap_options'); ?>
+                    <form method="post" enctype="multipart/form-data">
+                        <?php wp_nonce_field('chroma_sitemap_options'); ?>
 
-                <div class="chroma-doc-section" style="margin-top: 20px;">
-                    <h3>Content Types</h3>
-                    <p>Select which content types to include in the sitemap:</p>
-                    <fieldset>
-                        <label><input type="checkbox" name="enable_pages" <?php checked($options['enable_pages']); ?>>
-                            Pages</label><br>
-                        <label><input type="checkbox" name="enable_posts" <?php checked($options['enable_posts']); ?>> Blog
-                            Posts</label><br>
-                        <label><input type="checkbox" name="enable_locations" <?php checked($options['enable_locations']); ?>>
-                            Locations</label><br>
-                        <label><input type="checkbox" name="enable_programs" <?php checked($options['enable_programs']); ?>>
-                            Programs</label>
-                    </fieldset>
+                        <div class="chroma-doc-section" style="margin-top: 20px;">
+                            <h3>Content Types</h3>
+                            <p>Select which content types to include in the sitemap:</p>
+                            <fieldset>
+                                <label><input type="checkbox" name="enable_pages" <?php checked($options['enable_pages']); ?>>
+                                    Pages</label><br>
+                                <label><input type="checkbox" name="enable_posts" <?php checked($options['enable_posts']); ?>> Blog
+                                    Posts</label><br>
+                                <label><input type="checkbox" name="enable_locations" <?php checked($options['enable_locations']); ?>>
+                                    Locations</label><br>
+                                <label><input type="checkbox" name="enable_programs" <?php checked($options['enable_programs']); ?>>
+                                    Programs</label>
+                            </fieldset>
+                        </div>
+
+                        <div class="chroma-doc-section" style="margin-top: 20px;">
+                            <h3>Manual Control</h3>
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><label for="exclude_ids">Exclude Post IDs</label></th>
+                                    <td>
+                                        <input name="exclude_ids" type="text" id="exclude_ids"
+                                            value="<?php echo esc_attr($options['exclude_ids']); ?>" class="regular-text">
+                                        <p class="description">Comma-separated list of Post IDs to exclude (e.g.,
+                                            <code>12, 154, 404</code>)
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="custom_urls">Additional Custom URLs</label></th>
+                                    <td>
+                                        <textarea name="custom_urls" id="custom_urls" rows="5"
+                                            class="large-text code"><?php echo esc_textarea($options['custom_urls']); ?></textarea>
+                                        <p class="description">One URL per line. These will be appended to the sitemap.</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+
+                        <div class="chroma-doc-section" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
+                            <h3>📂 Upload Custom Sitemap</h3>
+                            <p>If you prefer to serve a static XML file instead of generating one dynamically.</p>
+
+                            <label><input type="checkbox" name="use_uploaded" <?php checked($options['use_uploaded']); ?>> <strong>Use
+                                    Uploaded Sitemap File</strong></label>
+                            <p class="description">If checked, the dynamic generation above is ignored, and the uploaded file is served.
+                            </p>
+                            <br>
+                            <input type="file" name="sitemap_upload" accept=".xml">
+                        </div>
+
+                        <p class="submit">
+                            <input type="submit" name="chroma_sitemap_save" id="submit" class="button button-primary"
+                                value="Save Changes & Flush Permalinks">
+                        </p>
+                    </form>
                 </div>
-
-                <div class="chroma-doc-section" style="margin-top: 20px;">
-                    <h3>Manual Control</h3>
-                    <table class="form-table">
-                        <tr>
-                            <th scope="row"><label for="exclude_ids">Exclude Post IDs</label></th>
-                            <td>
-                                <input name="exclude_ids" type="text" id="exclude_ids"
-                                    value="<?php echo esc_attr($options['exclude_ids']); ?>" class="regular-text">
-                                <p class="description">Comma-separated list of Post IDs to exclude (e.g.,
-                                    <code>12, 154, 404</code>)
-                                </p>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th scope="row"><label for="custom_urls">Additional Custom URLs</label></th>
-                            <td>
-                                <textarea name="custom_urls" id="custom_urls" rows="5"
-                                    class="large-text code"><?php echo esc_textarea($options['custom_urls']); ?></textarea>
-                                <p class="description">One URL per line. These will be appended to the sitemap.</p>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div class="chroma-doc-section" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
-                    <h3>📂 Upload Custom Sitemap</h3>
-                    <p>If you prefer to serve a static XML file instead of generating one dynamically.</p>
-
-                    <label><input type="checkbox" name="use_uploaded" <?php checked($options['use_uploaded']); ?>> <strong>Use
-                            Uploaded Sitemap File</strong></label>
-                    <p class="description">If checked, the dynamic generation above is ignored, and the uploaded file is served.
-                    </p>
-                    <br>
-                    <input type="file" name="sitemap_upload" accept=".xml">
-                </div>
-
-                <p class="submit">
-                    <input type="submit" name="chroma_sitemap_save" id="submit" class="button button-primary"
-                        value="Save Changes & Flush Permalinks">
-                </p>
-            </form>
-        </div>
-        <?php
+                <?php
     }
 
     /**
@@ -1647,306 +1663,306 @@ class Chroma_SEO_Dashboard
 
         $schema_definitions = class_exists('Chroma_Schema_Types') ? Chroma_Schema_Types::get_definitions() : [];
         ?>
-        <div class="chroma-seo-card">
-            <h2>📦 Bulk Operations</h2>
-            <p>Perform AI tasks on multiple pages at once. Build a queue of actions and apply them to all selected posts.</p>
+                <div class="chroma-seo-card">
+                    <h2>📦 Bulk Operations</h2>
+                    <p>Perform AI tasks on multiple pages at once. Build a queue of actions and apply them to all selected posts.</p>
 
-            <!-- Filter Bar -->
-            <div
-                style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; background: #f0f0f1; padding: 10px; border-radius: 4px;">
-                <label><strong>Post Type:</strong></label>
-                <select
-                    onchange="window.location.href='<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk&ptype='); ?>' + this.value">
-                    <option value="location" <?php selected($ptype, 'location'); ?>>Locations</option>
-                    <option value="program" <?php selected($ptype, 'program'); ?>>Programs</option>
-                    <option value="page" <?php selected($ptype, 'page'); ?>>Pages</option>
-                    <option value="city" <?php selected($ptype, 'city'); ?>>Cities</option>
-                    <option value="post" <?php selected($ptype, 'post'); ?>>Blog Posts</option>
-                </select>
-                <span class="count" style="color: #666;">(<?php echo $query->found_posts; ?> items found)</span>
-            </div>
-
-            <div style="display: flex; gap: 20px;">
-
-                <!-- Left: Post List -->
-                <div style="flex: 2;">
-                    <!-- Controls -->
+                    <!-- Filter Bar -->
                     <div
-                        style="padding: 10px; background: #fff; border: 1px solid #ddd; margin-bottom: -1px; border-radius: 4px 4px 0 0;">
-                        <label><input type="checkbox" id="cb-select-all-bulk"> Select All on Page</label>
+                        style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; background: #f0f0f1; padding: 10px; border-radius: 4px;">
+                        <label><strong>Post Type:</strong></label>
+                        <select
+                            onchange="window.location.href='<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk&ptype='); ?>' + this.value">
+                            <option value="location" <?php selected($ptype, 'location'); ?>>Locations</option>
+                            <option value="program" <?php selected($ptype, 'program'); ?>>Programs</option>
+                            <option value="page" <?php selected($ptype, 'page'); ?>>Pages</option>
+                            <option value="city" <?php selected($ptype, 'city'); ?>>Cities</option>
+                            <option value="post" <?php selected($ptype, 'post'); ?>>Blog Posts</option>
+                        </select>
+                        <span class="count" style="color: #666;">(<?php echo $query->found_posts; ?> items found)</span>
                     </div>
 
-                    <!-- List -->
-                    <div style="background: #fff; border: 1px solid #ddd; max-height: 500px; overflow-y: auto;">
-                        <table class="wp-list-table widefat fixed striped">
-                            <thead>
-                                <tr>
-                                    <td class="check-column"><input type="checkbox" disabled></td>
-                                    <th>Title</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if ($query->have_posts()):
-                                    while ($query->have_posts()):
-                                        $query->the_post(); ?>
-                                        <tr>
-                                            <th scope="row" class="check-column">
-                                                <input type="checkbox" name="bulk_post[]" value="<?php the_ID(); ?>">
-                                            </th>
-                                            <td>
-                                                <strong><?php the_title(); ?></strong>
-                                                <br>
-                                                <a href="<?php echo get_edit_post_link(); ?>" target="_blank"
-                                                    style="font-size: 11px;">Edit</a>
-                                                | <a href="<?php the_permalink(); ?>" target="_blank" style="font-size: 11px;">View</a>
-                                            </td>
-                                            <td id="status-<?php the_ID(); ?>">
-                                                <span class="dashicons dashicons-minus" style="color:#ccc;"></span>
-                                            </td>
-                                        </tr>
-                                    <?php endwhile; endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                    <?php
-                    // Pagination
-                    $big = 999999999;
-                    echo paginate_links(array(
-                        'base' => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
-                        'format' => '&paged=%#%',
-                        'current' => max(1, $paged),
-                        'total' => $query->max_num_pages
-                    ));
-                    ?>
-                </div>
+                    <div style="display: flex; gap: 20px;">
 
-                <!-- Right: Actions -->
-                <div style="flex: 1;">
-                    <div style="background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 4px;">
-                        <h3>🛠 Job Queue</h3>
-                        <p class="description">Define what to do for each selected post.</p>
-
-                        <div id="bulk-action-queue"
-                            style="margin-bottom: 20px; border: 1px solid #eee; min-height: 50px; background: #fafafa; padding: 10px;">
-                            <p id="queue-empty-msg" style="color: #999; font-style: italic; text-align: center; margin: 0;">
-                                Queue is empty.</p>
-                        </div>
-
-                        <div
-                            style="margin-bottom: 20px; padding: 10px; background: #f0f6fc; border: 1px solid #cce5ff; border-radius: 4px;">
-                            <label style="display: block; margin-bottom: 5px;"><strong>Add Action:</strong></label>
-                            <select id="bulk-add-action-selector" style="width: 100%; margin-bottom: 5px;">
-                                <option value="">-- Choose Action --</option>
-                                <option value="reset_schema" style="color: red;">❌ Reset/Clear All Schemas</option>
-                                <option value="llm_targeting">✨ Generate LLM Targeting</option>
-                                <optgroup label="Add Schema">
-                                    <?php foreach ($schema_definitions as $key => $def): ?>
-                                        <option value="schema:<?php echo esc_attr($key); ?>">Schema:
-                                            <?php echo esc_html($def['label']); ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </optgroup>
-                            </select>
-                            <button id="btn-add-to-queue" class="button button-secondary" style="width: 100%;">+ Add to
-                                Queue</button>
-                        </div>
-
-                        <hr>
-
-                        <div style="margin-top: 20px;">
-                            <button id="btn-run-bulk" class="button button-primary button-large" style="width: 100%;" disabled>
-                                ▶ Run Bulk Process
-                            </button>
-                        </div>
-
-                        <!-- Progress -->
-                        <div id="bulk-progress-container" style="display:none; margin-top: 20px;">
-                            <p><strong>Total Progress:</strong> <span id="bulk-counter">0/0</span></p>
-                            <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
-                                <div id="bulk-progress-bar"
-                                    style="width: 0%; height: 100%; background: #0073aa; transition: width 0.3s;"></div>
+                        <!-- Left: Post List -->
+                        <div style="flex: 2;">
+                            <!-- Controls -->
+                            <div
+                                style="padding: 10px; background: #fff; border: 1px solid #ddd; margin-bottom: -1px; border-radius: 4px 4px 0 0;">
+                                <label><input type="checkbox" id="cb-select-all-bulk"> Select All on Page</label>
                             </div>
-                            <textarea id="bulk-log"
-                                style="width: 100%; height: 200px; margin-top: 10px; font-family: monospace; font-size: 11px;"
-                                readonly></textarea>
+
+                            <!-- List -->
+                            <div style="background: #fff; border: 1px solid #ddd; max-height: 500px; overflow-y: auto;">
+                                <table class="wp-list-table widefat fixed striped">
+                                    <thead>
+                                        <tr>
+                                            <td class="check-column"><input type="checkbox" disabled></td>
+                                            <th>Title</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php if ($query->have_posts()):
+                                            while ($query->have_posts()):
+                                                $query->the_post(); ?>
+                                                        <tr>
+                                                            <th scope="row" class="check-column">
+                                                                <input type="checkbox" name="bulk_post[]" value="<?php the_ID(); ?>">
+                                                            </th>
+                                                            <td>
+                                                                <strong><?php the_title(); ?></strong>
+                                                                <br>
+                                                                <a href="<?php echo get_edit_post_link(); ?>" target="_blank"
+                                                                    style="font-size: 11px;">Edit</a>
+                                                                | <a href="<?php the_permalink(); ?>" target="_blank" style="font-size: 11px;">View</a>
+                                                            </td>
+                                                            <td id="status-<?php the_ID(); ?>">
+                                                                <span class="dashicons dashicons-minus" style="color:#ccc;"></span>
+                                                            </td>
+                                                        </tr>
+                                                <?php endwhile; endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php
+                            // Pagination
+                            $big = 999999999;
+                            echo paginate_links(array(
+                                'base' => str_replace($big, '%#%', esc_url(get_pagenum_link($big))),
+                                'format' => '&paged=%#%',
+                                'current' => max(1, $paged),
+                                'total' => $query->max_num_pages
+                            ));
+                            ?>
                         </div>
 
+                        <!-- Right: Actions -->
+                        <div style="flex: 1;">
+                            <div style="background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 4px;">
+                                <h3>🛠 Job Queue</h3>
+                                <p class="description">Define what to do for each selected post.</p>
+
+                                <div id="bulk-action-queue"
+                                    style="margin-bottom: 20px; border: 1px solid #eee; min-height: 50px; background: #fafafa; padding: 10px;">
+                                    <p id="queue-empty-msg" style="color: #999; font-style: italic; text-align: center; margin: 0;">
+                                        Queue is empty.</p>
+                                </div>
+
+                                <div
+                                    style="margin-bottom: 20px; padding: 10px; background: #f0f6fc; border: 1px solid #cce5ff; border-radius: 4px;">
+                                    <label style="display: block; margin-bottom: 5px;"><strong>Add Action:</strong></label>
+                                    <select id="bulk-add-action-selector" style="width: 100%; margin-bottom: 5px;">
+                                        <option value="">-- Choose Action --</option>
+                                        <option value="reset_schema" style="color: red;">❌ Reset/Clear All Schemas</option>
+                                        <option value="llm_targeting">✨ Generate LLM Targeting</option>
+                                        <optgroup label="Add Schema">
+                                            <?php foreach ($schema_definitions as $key => $def): ?>
+                                                    <option value="schema:<?php echo esc_attr($key); ?>">Schema:
+                                                        <?php echo esc_html($def['label']); ?>
+                                                    </option>
+                                            <?php endforeach; ?>
+                                        </optgroup>
+                                    </select>
+                                    <button id="btn-add-to-queue" class="button button-secondary" style="width: 100%;">+ Add to
+                                        Queue</button>
+                                </div>
+
+                                <hr>
+
+                                <div style="margin-top: 20px;">
+                                    <button id="btn-run-bulk" class="button button-primary button-large" style="width: 100%;" disabled>
+                                        ▶ Run Bulk Process
+                                    </button>
+                                </div>
+
+                                <!-- Progress -->
+                                <div id="bulk-progress-container" style="display:none; margin-top: 20px;">
+                                    <p><strong>Total Progress:</strong> <span id="bulk-counter">0/0</span></p>
+                                    <div style="background: #eee; height: 10px; border-radius: 5px; overflow: hidden;">
+                                        <div id="bulk-progress-bar"
+                                            style="width: 0%; height: 100%; background: #0073aa; transition: width 0.3s;"></div>
+                                    </div>
+                                    <textarea id="bulk-log"
+                                        style="width: 100%; height: 200px; margin-top: 10px; font-family: monospace; font-size: 11px;"
+                                        readonly></textarea>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <script>
-            jQuery(document).ready(function ($) {
-                var actionQueue = [];
-                var chroma_nonce = '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>';
+                <script>
+                    jQuery(document).ready(function ($) {
+                        var actionQueue = [];
+                        var chroma_nonce = '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>';
 
-                // Add to Queue
-                $('#btn-add-to-queue').on('click', function (e) {
-                    e.preventDefault();
-                    var val = $('#bulk-add-action-selector').val();
-                    var label = $('#bulk-add-action-selector option:selected').text();
+                        // Add to Queue
+                        $('#btn-add-to-queue').on('click', function (e) {
+                            e.preventDefault();
+                            var val = $('#bulk-add-action-selector').val();
+                            var label = $('#bulk-add-action-selector option:selected').text();
 
-                    if (!val) return;
+                            if (!val) return;
 
-                    var actionObj = { id: Date.now(), type: '', label: label };
-                    if (val === 'llm_targeting') {
-                        actionObj.type = 'llm_targeting';
-                    } else if (val === 'reset_schema') {
-                        actionObj.type = 'reset';
-                    } else if (val.startsWith('schema:')) {
-                        actionObj.type = 'schema';
-                        actionObj.schemaType = val.split(':')[1];
-                    }
+                            var actionObj = { id: Date.now(), type: '', label: label };
+                            if (val === 'llm_targeting') {
+                                actionObj.type = 'llm_targeting';
+                            } else if (val === 'reset_schema') {
+                                actionObj.type = 'reset';
+                            } else if (val.startsWith('schema:')) {
+                                actionObj.type = 'schema';
+                                actionObj.schemaType = val.split(':')[1];
+                            }
 
-                    actionQueue.push(actionObj);
-                    renderQueue();
-                });
+                            actionQueue.push(actionObj);
+                            renderQueue();
+                        });
 
-                // Remove from Queue
-                $(document).on('click', '.remove-queue-item', function (e) {
-                    e.preventDefault();
-                    var id = $(this).data('id');
-                    actionQueue = actionQueue.filter(function (item) { return item.id !== id; });
-                    renderQueue();
-                });
+                        // Remove from Queue
+                        $(document).on('click', '.remove-queue-item', function (e) {
+                            e.preventDefault();
+                            var id = $(this).data('id');
+                            actionQueue = actionQueue.filter(function (item) { return item.id !== id; });
+                            renderQueue();
+                        });
 
-                function renderQueue() {
-                    var container = $('#bulk-action-queue');
-                    container.empty();
+                        function renderQueue() {
+                            var container = $('#bulk-action-queue');
+                            container.empty();
 
-                    if (actionQueue.length === 0) {
-                        container.html('<p id="queue-empty-msg" style="color: #999; font-style: italic; text-align: center; margin: 0;">Queue is empty.</p>');
-                        $('#btn-run-bulk').prop('disabled', true);
-                        return;
-                    }
-
-                    $('#btn-run-bulk').prop('disabled', false);
-
-                    $.each(actionQueue, function (i, item) {
-                        var html = '<div style="background: #fff; border: 1px solid #ddd; padding: 5px 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">';
-                        html += '<span>' + (i + 1) + '. ' + item.label + '</span>';
-                        html += '<a href="#" class="remove-queue-item" data-id="' + item.id + '" style="color: #d63638; text-decoration: none;">&times;</a>';
-                        html += '</div>';
-                        container.append(html);
-                    });
-                }
-
-                // Select All
-                $('#cb-select-all-bulk').on('change', function () {
-                    $('input[name="bulk_post[]"]').prop('checked', $(this).is(':checked'));
-                });
-
-                // Run Process
-                $('#btn-run-bulk').on('click', function (e) {
-                    e.preventDefault();
-
-                    var posts = [];
-                    $('input[name="bulk_post[]"]:checked').each(function () {
-                        posts.push($(this).val());
-                    });
-
-                    if (posts.length === 0) {
-                        alert('Please select at least one post.');
-                        return;
-                    }
-
-                    if (actionQueue.length === 0) {
-                        alert('Please add at least one action to the queue.');
-                        return;
-                    }
-
-                    if (!confirm('Run ' + actionQueue.length + ' actions on ' + posts.length + ' posts? This may take a while.')) {
-                        return;
-                    }
-
-                    var total = posts.length;
-                    var processed = 0;
-
-                    // Reset UI
-                    $('#bulk-progress-container').show();
-                    $('#bulk-progress-bar').css('width', '0%');
-                    $('#bulk-counter').text('0/' + total);
-                    $('#bulk-log').val('--- Starting Batch Process ---\n');
-                    $(this).prop('disabled', true);
-
-                    // Recursive Worker
-                    function processNextPost() {
-                        if (posts.length === 0) {
-                            $('#bulk-log').val($('#bulk-log').val() + '✅ All Posts Completed!\n');
-                            $('#btn-run-bulk').prop('disabled', false);
-                            alert('Batch Processing Complete!');
-                            return;
-                        }
-
-                        var pid = posts.shift();
-                        var rowStatus = $('#status-' + pid);
-                        rowStatus.html('<span class="dashicons dashicons-update" style="color: blue; animation: spin 2s infinite linear;"></span>');
-
-                        log('Processing Post ID: ' + pid + '...');
-
-                        // Process Actions sequentially for this post
-                        var currentActions = [...actionQueue]; // Copy
-
-                        function processNextAction() {
-                            if (currentActions.length === 0) {
-                                // Post Done
-                                processed++;
-                                var pct = Math.round((processed / total) * 100);
-                                $('#bulk-progress-bar').css('width', pct + '%');
-                                $('#bulk-counter').text(processed + '/' + total);
-                                rowStatus.html('<span class="dashicons dashicons-yes" style="color: green;"></span>');
-                                log('> Done with Post ID: ' + pid);
-                                processNextPost();
+                            if (actionQueue.length === 0) {
+                                container.html('<p id="queue-empty-msg" style="color: #999; font-style: italic; text-align: center; margin: 0;">Queue is empty.</p>');
+                                $('#btn-run-bulk').prop('disabled', true);
                                 return;
                             }
 
-                            var action = currentActions.shift();
-                            log('> Running: ' + action.label + '...');
+                            $('#btn-run-bulk').prop('disabled', false);
 
-                            var ajaxAction = '';
-                            var payload = {
-                                post_id: pid,
-                                auto_save: 'true',
-                                nonce: chroma_nonce
-                            };
-
-                            if (action.type === 'schema') {
-                                payload.action = 'chroma_generate_schema';
-                                payload.schema_type = action.schemaType;
-                            } else if (action.type === 'reset') {
-                                payload.action = 'chroma_reset_post_schema';
-                            } else {
-                                payload.action = 'chroma_generate_llm_targeting';
-                            }
-
-                            $.post(ajaxurl, payload, function (response) {
-                                if (response.success) {
-                                    log('  ✓ Success');
-                                } else {
-                                    log('  ❌ Failed: ' + (response.data.message || 'Unknown'));
-                                }
-                                processNextAction();
-                            }).fail(function () {
-                                log('  ❌ Network Error');
-                                processNextAction(); // Continue anyway
+                            $.each(actionQueue, function (i, item) {
+                                var html = '<div style="background: #fff; border: 1px solid #ddd; padding: 5px 10px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">';
+                                html += '<span>' + (i + 1) + '. ' + item.label + '</span>';
+                                html += '<a href="#" class="remove-queue-item" data-id="' + item.id + '" style="color: #d63638; text-decoration: none;">&times;</a>';
+                                html += '</div>';
+                                container.append(html);
                             });
                         }
 
-                        processNextAction();
-                    }
+                        // Select All
+                        $('#cb-select-all-bulk').on('change', function () {
+                            $('input[name="bulk_post[]"]').prop('checked', $(this).is(':checked'));
+                        });
 
-                    function log(msg) {
-                        var area = $('#bulk-log');
-                        area.val(area.val() + msg + '\n');
-                        area.scrollTop(area[0].scrollHeight);
-                    }
+                        // Run Process
+                        $('#btn-run-bulk').on('click', function (e) {
+                            e.preventDefault();
 
-                    processNextPost();
-                });
-            });
-        </script>
-        <?php
+                            var posts = [];
+                            $('input[name="bulk_post[]"]:checked').each(function () {
+                                posts.push($(this).val());
+                            });
+
+                            if (posts.length === 0) {
+                                alert('Please select at least one post.');
+                                return;
+                            }
+
+                            if (actionQueue.length === 0) {
+                                alert('Please add at least one action to the queue.');
+                                return;
+                            }
+
+                            if (!confirm('Run ' + actionQueue.length + ' actions on ' + posts.length + ' posts? This may take a while.')) {
+                                return;
+                            }
+
+                            var total = posts.length;
+                            var processed = 0;
+
+                            // Reset UI
+                            $('#bulk-progress-container').show();
+                            $('#bulk-progress-bar').css('width', '0%');
+                            $('#bulk-counter').text('0/' + total);
+                            $('#bulk-log').val('--- Starting Batch Process ---\n');
+                            $(this).prop('disabled', true);
+
+                            // Recursive Worker
+                            function processNextPost() {
+                                if (posts.length === 0) {
+                                    $('#bulk-log').val($('#bulk-log').val() + '✅ All Posts Completed!\n');
+                                    $('#btn-run-bulk').prop('disabled', false);
+                                    alert('Batch Processing Complete!');
+                                    return;
+                                }
+
+                                var pid = posts.shift();
+                                var rowStatus = $('#status-' + pid);
+                                rowStatus.html('<span class="dashicons dashicons-update" style="color: blue; animation: spin 2s infinite linear;"></span>');
+
+                                log('Processing Post ID: ' + pid + '...');
+
+                                // Process Actions sequentially for this post
+                                var currentActions = [...actionQueue]; // Copy
+
+                                function processNextAction() {
+                                    if (currentActions.length === 0) {
+                                        // Post Done
+                                        processed++;
+                                        var pct = Math.round((processed / total) * 100);
+                                        $('#bulk-progress-bar').css('width', pct + '%');
+                                        $('#bulk-counter').text(processed + '/' + total);
+                                        rowStatus.html('<span class="dashicons dashicons-yes" style="color: green;"></span>');
+                                        log('> Done with Post ID: ' + pid);
+                                        processNextPost();
+                                        return;
+                                    }
+
+                                    var action = currentActions.shift();
+                                    log('> Running: ' + action.label + '...');
+
+                                    var ajaxAction = '';
+                                    var payload = {
+                                        post_id: pid,
+                                        auto_save: 'true',
+                                        nonce: chroma_nonce
+                                    };
+
+                                    if (action.type === 'schema') {
+                                        payload.action = 'chroma_generate_schema';
+                                        payload.schema_type = action.schemaType;
+                                    } else if (action.type === 'reset') {
+                                        payload.action = 'chroma_reset_post_schema';
+                                    } else {
+                                        payload.action = 'chroma_generate_llm_targeting';
+                                    }
+
+                                    $.post(ajaxurl, payload, function (response) {
+                                        if (response.success) {
+                                            log('  ✓ Success');
+                                        } else {
+                                            log('  ❌ Failed: ' + (response.data.message || 'Unknown'));
+                                        }
+                                        processNextAction();
+                                    }).fail(function () {
+                                        log('  ❌ Network Error');
+                                        processNextAction(); // Continue anyway
+                                    });
+                                }
+
+                                processNextAction();
+                            }
+
+                            function log(msg) {
+                                var area = $('#bulk-log');
+                                area.val(area.val() + msg + '\n');
+                                area.scrollTop(area[0].scrollHeight);
+                            }
+
+                            processNextPost();
+                        });
+                    });
+                </script>
+                <?php
     }
 }
