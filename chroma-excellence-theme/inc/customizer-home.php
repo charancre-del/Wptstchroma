@@ -70,6 +70,17 @@ function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
     $wp_customize->add_setting('chroma_home_hero_secondary_url', array('default' => $hero_defaults['secondary_url'], 'sanitize_callback' => 'esc_url_raw'));
     $wp_customize->add_control('chroma_home_hero_secondary_url', array('label' => __('Secondary CTA URL', 'chroma-excellence'), 'section' => 'chroma_home_hero_section', 'type' => 'url'));
 
+    // Hero Image
+    $wp_customize->add_setting('chroma_home_hero_image', array(
+        'default' => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ));
+    $wp_customize->add_control(new WP_Customize_Image_Control($wp_customize, 'chroma_home_hero_image', array(
+        'label' => __('Hero Image', 'chroma-excellence'),
+        'description' => __('Upload a hero image (recommended: 1200x800px). This appears in the main homepage hero section.', 'chroma-excellence'),
+        'section' => 'chroma_home_hero_section',
+    )));
+
     // Stats JSON.
     $wp_customize->add_section(
         'chroma_home_stats_section',
