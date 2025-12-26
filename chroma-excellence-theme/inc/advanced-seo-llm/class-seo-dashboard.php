@@ -879,7 +879,9 @@ class Chroma_SEO_Dashboard
                                     }
                                 }
                             });
-                            alert('✨ Content generated successfully!');
+
+                            // Auto-save after AI fills data
+                            $('#chroma-inspector-save').trigger('click');
                         } else {
                             alert('AI Error: ' + (response.data && response.data.message ? response.data.message : 'Unknown error'));
                         }
@@ -1591,7 +1593,8 @@ class Chroma_SEO_Dashboard
                                 <input name="exclude_ids" type="text" id="exclude_ids"
                                     value="<?php echo esc_attr($options['exclude_ids']); ?>" class="regular-text">
                                 <p class="description">Comma-separated list of Post IDs to exclude (e.g.,
-                                    <code>12, 154, 404</code>)</p>
+                                    <code>12, 154, 404</code>)
+                                </p>
                             </td>
                         </tr>
                         <tr>
