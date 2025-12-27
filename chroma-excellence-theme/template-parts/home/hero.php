@@ -1,12 +1,14 @@
 <?php
-/**
- * Home Hero Section
- *
- * @package Chroma_Excellence
- */
-
 $hero = chroma_home_hero();
-$home_id = chroma_get_home_page_id();
+
+// Ensure we're not in a loop context that could interfere
+wp_reset_postdata();
+
+// Get the static front page ID explicitly
+$home_id = get_option('page_on_front');
+
+// Debug: Uncomment to verify page ID
+// error_log('Hero home_id: ' . $home_id . ' | has_thumbnail: ' . (get_post_thumbnail_id($home_id) ? 'yes' : 'no'));
 ?>
 
 <section
