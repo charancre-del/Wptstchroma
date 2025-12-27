@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     };
 
-    if (window.Chart) {
+    const initChart = () => {
       // Use double requestAnimationFrame to prevent forced reflow during chart initialization
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
@@ -223,6 +223,27 @@ document.addEventListener('DOMContentLoaded', function () {
           });
         });
       });
+    };
+
+    if (window.Chart) {
+      initChart();
+    } else {
+      // Lazy load Chart.js
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            observer.disconnect();
+            if (window.chromaData && window.chromaData.themeUrl) {
+              const script = document.createElement('script');
+              script.src = `${window.chromaData.themeUrl}/assets/js/chart.min.js`;
+              script.async = true;
+              script.onload = initChart;
+              document.body.appendChild(script);
+            }
+          }
+        });
+      }, { rootMargin: '200px' });
+      observer.observe(curriculumChartEl);
     }
 
     curriculumButtons.forEach((btn) => {

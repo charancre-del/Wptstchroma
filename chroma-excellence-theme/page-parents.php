@@ -378,9 +378,11 @@ if (empty($gallery_images)) {
 							<i class="fa-solid fa-utensils text-chroma-orange"></i> Monthly Menus
 						</h3>
 						<div class="space-y-4">
-							<?php foreach ($menus as $menu): ?>
-								<a href="<?php echo esc_url($menu['url']); ?>"
-									class="flex items-center justify-between p-4 rounded-xl bg-brand-cream hover:bg-<?php echo esc_attr($menu['bgClass']); ?> transition-colors group">
+							<?php foreach ($menus as $index => $menu): ?>
+								<button type="button"
+									class="menu-popup-trigger w-full flex items-center justify-between p-4 rounded-xl bg-brand-cream hover:bg-<?php echo esc_attr($menu['bgClass']); ?> transition-colors group text-left"
+									data-menu-url="<?php echo esc_url($menu['url']); ?>"
+									data-menu-title="<?php echo esc_attr($menu['title']); ?>">
 									<div class="flex items-center gap-4">
 										<div
 											class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-<?php echo esc_attr($menu['color']); ?> shadow-sm">
@@ -395,8 +397,8 @@ if (empty($gallery_images)) {
 										</div>
 									</div>
 									<i
-										class="fa-solid fa-download text-brand-ink/20 group-hover:text-<?php echo esc_attr($menu['color']); ?>"></i>
-								</a>
+										class="fa-solid fa-eye text-brand-ink/20 group-hover:text-<?php echo esc_attr($menu['color']); ?>"></i>
+								</button>
 							<?php endforeach; ?>
 						</div>
 					</div>
@@ -499,3 +501,103 @@ if (empty($gallery_images)) {
 
 <?php
 get_footer();
+?>
+
+<!-- Menu Popup Modal -->
+<div id="menu-popup-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+	<!-- Backdrop -->
+	<div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="menu-popup-backdrop"></div>
+
+	<!-- Modal Container -->
+	<div
+		class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+		<!-- Header -->
+		<div
+			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
+			<h3 class="font-serif text-xl font-bold text-brand-ink" id="menu-popup-title">
+				<i class="fa-solid fa-utensils text-chroma-orange mr-2"></i>
+				<span id="menu-popup-title-text">Menu</span>
+			</h3>
+			<div class="flex items-center gap-4">
+				<a href="#" target="_blank" id="menu-popup-external"
+					class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:flex items-center gap-1">
+					<i class="fa-solid fa-arrow-up-right-from-square"></i>
+					Open in new tab
+				</a>
+				<a href="#" download id="menu-popup-download"
+					class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-green transition-colors hidden md:flex items-center gap-1">
+					<i class="fa-solid fa-download"></i>
+					Download
+				</a>
+				<button id="menu-popup-close"
+					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
+					<i class="fa-solid fa-xmark text-lg"></i>
+				</button>
+			</div>
+		</div>
+
+		<!-- PDF Container -->
+		<div class="flex-grow relative bg-gray-100">
+			<div id="menu-popup-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+				<div class="text-center">
+					<div
+						class="w-12 h-12 border-4 border-chroma-orange/20 border-t-chroma-orange rounded-full animate-spin mx-auto mb-4">
+					</div>
+					<p class="text-brand-ink/60 text-sm">Loading menu...</p>
+				</div>
+			</div>
+			<iframe id="menu-popup-frame" src="" class="w-full h-full border-0"></iframe>
+		</div>
+	</div>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		const modal = document.getElementById('menu-popup-modal');
+		const backdrop = document.getElementById('menu-popup-backdrop');
+		const closeBtn = document.getElementById('menu-popup-close');
+		const iframe = document.getElementById('menu-popup-frame');
+		const loader = document.getElementById('menu-popup-loader');
+		const titleText = document.getElementById('menu-popup-title-text');
+		const externalLink = document.getElementById('menu-popup-external');
+		const downloadLink = document.getElementById('menu-popup-download');
+		const triggers = document.querySelectorAll('.menu-popup-trigger');
+
+		function openModal(url, title) {
+			modal.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+			loader.classList.remove('hidden');
+			iframe.src = url;
+			titleText.textContent = title;
+			externalLink.href = url;
+			downloadLink.href = url;
+			iframe.onload = function () {
+				loader.classList.add('hidden');
+			};
+		}
+
+		function closeModal() {
+			modal.classList.add('hidden');
+			document.body.style.overflow = '';
+			iframe.src = '';
+		}
+
+		triggers.forEach(function (trigger) {
+			trigger.addEventListener('click', function () {
+				const url = this.getAttribute('data-menu-url');
+				const title = this.getAttribute('data-menu-title');
+				if (url && url !== '#') {
+					openModal(url, title);
+				}
+			});
+		});
+
+		if (closeBtn) closeBtn.addEventListener('click', closeModal);
+		if (backdrop) backdrop.addEventListener('click', closeModal);
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+				closeModal();
+			}
+		});
+	});
+</script>

@@ -29,9 +29,6 @@ function chroma_should_load_maps()
  */
 function chroma_enqueue_assets()
 {
-        // DEBUG: Confirm this function is executing
-        echo '<!-- DEBUG: chroma_enqueue_assets is running -->';
-
         $script_dependencies = array('jquery');
 
         // Font Awesome (Subset)
@@ -45,20 +42,9 @@ function chroma_enqueue_assets()
                 'all'
         );
 
+        // Chart.js is now lazy loaded in main.js
         if (is_front_page()) {
-                $chart_js_path = CHROMA_THEME_DIR . '/assets/js/chart.min.js';
-                $chart_js_version = file_exists($chart_js_path) ? filemtime($chart_js_path) : '4.4.1';
-
-                wp_enqueue_script(
-                        'chartjs',
-                        CHROMA_THEME_URI . '/assets/js/chart.min.js',
-                        array(),
-                        $chart_js_version,
-                        true
-                );
-
-                wp_script_add_data('chartjs', 'defer', true);
-                $script_dependencies[] = 'chartjs';
+                // Chart.js removed from initial load - saved ~200KB
         }
 
         // Compiled Tailwind CSS.
@@ -167,9 +153,6 @@ function chroma_enqueue_assets()
                 $js_version,
                 true
         );
-
-        // DEBUG: Confirm script was enqueued
-        echo '<!-- DEBUG: Enqueued chroma-main-js with URL: ' . CHROMA_THEME_URI . '/assets/js/main.js and version: ' . $js_version . ' -->';
 
         // Defer re-enabled for FCP optimization
         wp_script_add_data('chroma-main-js', 'defer', true);

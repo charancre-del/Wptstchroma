@@ -39,19 +39,35 @@ module.exports = {
     },
   },
   safelist: [
-    // Pulse animation classes for status indicators
-    'animate-pulse',
-    'w-2',
-    'h-2',
-    'rounded-full',
-    // Dynamic Chroma Colors (bg, text, border, gradients)
+    // Animations & Delays
+    'animate-pulse', 'animate-bounce', 'animate-spin', 'animate-fade-in-up',
+    'fade-in-up', 'delay-100', 'delay-200', 'delay-300',
+
+    // Custom shadows
+    'shadow-card', 'shadow-cardHover', 'shadow-float', 'shadow-glow', 'shadow-soft',
+
+    // Static utilities
+    'w-2', 'h-2', 'rounded-full',
+
+    // Chroma base colors (no opacity) - ALL prefixes
     {
-      pattern: /(bg|text|border|from)-chroma-(red|blue|green|yellow|purple|orange|teal)(Light|Dark)?/,
-      variants: ['hover', 'group-hover'],
+      pattern: /(bg|text|border|from|to)-chroma-(red|blue|green|yellow|purple|orange|teal)(Light|Dark)?$/,
+      variants: ['hover', 'group-hover', 'focus'],
     },
-    // Opacity variants for backgrounds and borders
+    // Chroma opacity variants - limit to actually used values
     {
-      pattern: /(bg|border|from)-chroma-(red|blue|green|yellow|purple|orange|teal)(Light|Dark)?\/(5|10|15|30|50)/,
+      pattern: /(bg|text|border|from|to)-chroma-(red|blue|green|yellow|purple|orange|teal)(Light|Dark)?\/(5|10|15|20|30|40|50|80|90)$/,
+      variants: ['hover'],
+    },
+
+    // Brand base colors
+    {
+      pattern: /(bg|text|border)-brand-(ink|cream|navy)$/,
+      variants: ['hover'],
+    },
+    // Brand opacity variants
+    {
+      pattern: /(bg|text|border)-brand-(ink|cream|navy)\/(5|10|20|30|40|50|60|70|80|90)$/,
       variants: ['hover'],
     },
   ],

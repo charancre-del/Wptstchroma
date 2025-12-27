@@ -122,6 +122,18 @@
   .shadow-card {
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
   }
+
+  .shadow-cardHover {
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.08);
+  }
+
+  .shadow-float {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(74, 108, 124, 0.3);
+  }
 }
 
 /**

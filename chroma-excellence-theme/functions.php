@@ -89,7 +89,6 @@ require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
 
 
 require_once CHROMA_THEME_DIR . '/inc/security.php';
-require_once CHROMA_THEME_DIR . '/inc/critical-css.php';
 
 /**
  * Remove Legacy JavaScript & Styles
@@ -313,7 +312,6 @@ function chroma_lazy_load_leadconnector()
                 script.setAttribute('data-resources-url', 'https://widgets.leadconnectorhq.com/chat-widget/loader.js');
                 script.async = true;
                 document.body.appendChild(script);
-                console.log('LeadConnector Widget Loaded');
             };
 
             // Device Detection Logic (Client-Side)
@@ -321,7 +319,6 @@ function chroma_lazy_load_leadconnector()
 
             if (isMobile) {
                 // Mobile: Lazy load after 3.5 seconds
-                console.log('Mobile detected: Lazy loading LeadConnector (3.5s delay)');
                 setTimeout(loadWidget, 3500);
 
                 // Or on user interaction
@@ -331,7 +328,6 @@ function chroma_lazy_load_leadconnector()
                 });
             } else {
                 // Desktop: Load immediately (but defer slightly to let LCP finish)
-                console.log('Desktop detected: Loading LeadConnector immediately');
                 setTimeout(loadWidget, 100);
             }
         })();

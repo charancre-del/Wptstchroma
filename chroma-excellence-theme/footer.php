@@ -93,7 +93,22 @@
 </footer>
 
 <?php wp_footer(); ?>
-<?php echo get_theme_mod('chroma_footer_scripts'); ?>
+<?php
+// Footer scripts from Customizer - sanitized for safety
+$footer_scripts = get_theme_mod('chroma_footer_scripts');
+if ($footer_scripts) {
+	echo wp_kses($footer_scripts, array(
+		'script' => array(
+			'src' => true,
+			'async' => true,
+			'defer' => true,
+			'type' => true,
+			'id' => true,
+		),
+		'noscript' => array(),
+	));
+}
+?>
 </body>
 
 </html>
