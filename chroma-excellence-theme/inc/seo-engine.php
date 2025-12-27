@@ -500,6 +500,54 @@ function chroma_truncate_social_title($title, $max_length = 60)
 }
 
 /**
+ * Get the best available image for social sharing
+ * Priority: 1) Featured image, 2) Custom meta field, 3) Site default
+ */
+function chroma_get_social_image()
+{
+        $image_url = '';
+
+        // Priority 1: Featured image
+        if (has_post_thumbnail()) {
+                $image_url = get_the_post_thumbnail_url(null, 'large');
+        }
+
+        // Priority 2: Custom meta field for social image (if set)
+        if (empty($image_url)) {
+                $post_id = get_the_ID();
+                if ($post_id) {
+                        $custom_image = get_post_meta($post_id, '_chroma_social_image', true);
+                        if (!empty($custom_image)) {
+                                $image_url = $custom_image;
+                        }
+                }
+        }
+
+        // Priority 3: Homepage featured image as site default
+        if (empty($image_url)) {
+                $home_id = get_option('page_on_front');
+                if ($home_id && has_post_thumbnail($home_id)) {
+                        $image_url = get_the_post_thumbnail_url($home_id, 'large');
+                }
+        }
+
+        // Priority 4: Theme customizer hero image
+        if (empty($image_url)) {
+                $hero_image = get_theme_mod('chroma_home_hero_image');
+                if (!empty($hero_image)) {
+                        $image_url = $hero_image;
+                }
+        }
+
+        // Priority 5: Hardcoded fallback
+        if (empty($image_url)) {
+                $image_url = get_template_directory_uri() . '/assets/images/chroma-social-default.jpg';
+        }
+
+        return $image_url;
+}
+
+/**
  * Open Graph Tags
  */
 function chroma_og_tags()
@@ -512,8 +560,12 @@ function chroma_og_tags()
         echo '<meta property="og:url" content="' . esc_url(get_permalink()) . '" />' . "\n";
         echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
 
-        if (has_post_thumbnail()) {
-                echo '<meta property="og:image" content="' . esc_url(get_the_post_thumbnail_url(null, 'full')) . '" />' . "\n";
+        // Always output an og:image with fallback chain
+        $social_image = chroma_get_social_image();
+        if (!empty($social_image)) {
+                echo '<meta property="og:image" content="' . esc_url($social_image) . '" />' . "\n";
+                echo '<meta property="og:image:width" content="1200" />' . "\n";
+                echo '<meta property="og:image:height" content="630" />' . "\n";
         }
 
         $description = get_the_excerpt() ?: chroma_global_seo_default_description();
@@ -532,8 +584,10 @@ function chroma_twitter_cards()
         echo '<meta name="twitter:card" content="summary_large_image" />' . "\n";
         echo '<meta name="twitter:title" content="' . esc_attr($twitter_title) . '" />' . "\n";
 
-        if (has_post_thumbnail()) {
-                echo '<meta name="twitter:image" content="' . esc_url(get_the_post_thumbnail_url(null, 'full')) . '" />' . "\n";
+        // Use the same fallback chain as OG tags
+        $social_image = chroma_get_social_image();
+        if (!empty($social_image)) {
+                echo '<meta name="twitter:image" content="' . esc_url($social_image) . '" />' . "\n";
         }
 
         $description = get_the_excerpt() ?: chroma_global_seo_default_description();
