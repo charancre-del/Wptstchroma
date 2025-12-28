@@ -97,16 +97,20 @@
 // Footer scripts from Customizer - sanitized for safety
 $footer_scripts = get_theme_mod('chroma_footer_scripts');
 if ($footer_scripts) {
-	echo wp_kses($footer_scripts, array(
-		'script' => array(
-			'src' => true,
-			'async' => true,
-			'defer' => true,
-			'type' => true,
-			'id' => true,
-		),
-		'noscript' => array(),
-	));
+	if (current_user_can('unfiltered_html')) {
+		echo $footer_scripts;
+	} else {
+		echo wp_kses($footer_scripts, array(
+			'script' => array(
+				'src' => true,
+				'async' => true,
+				'defer' => true,
+				'type' => true,
+				'id' => true,
+			),
+			'noscript' => array(),
+		));
+	}
 }
 ?>
 </body>

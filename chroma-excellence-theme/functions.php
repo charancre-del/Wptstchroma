@@ -334,52 +334,8 @@ function chroma_dequeue_leadconnector_plugin()
 }
 add_action('wp_enqueue_scripts', 'chroma_dequeue_leadconnector_plugin', 9999);
 
-/**
- * Lazy Load LeadConnector Widget
- * Delays loading until 3 seconds after page load or on first user interaction
- * This prevents the widget from blocking initial render and improves LCP/FCP
- */
-function chroma_lazy_load_leadconnector()
-{
 
-    ?>
-    <script>
-        (function() {
-            var loaded = false;
 
-            // Function to fully inject the widget
-            var injectWidget = function() {
-                if (loaded) return;
-                loaded = true;
-
-                // Load the loader script
-                var s = document.createElement('script');
-                s.src = "https://widgets.leadconnectorhq.com/loader.js";
-                s.setAttribute("data-resources-url", "https://widgets.leadconnectorhq.com/chat-widget/loader.js");
-                s.setAttribute("data-widget-id", "66d218991c55f87438761a17");
-                s.async = true;
-                document.body.appendChild(s);
-            };
-
-            // Delay loading to ensure LCP is not affected (3.5s)
-            var timer = setTimeout(injectWidget, 3500);
-
-            // Also load on user interaction for faster perception
-            var events = ['mousedown', 'touchstart', 'scroll', 'keydown'];
-            var onInteract = function() {
-                events.forEach(function(e) { window.removeEventListener(e, onInteract); });
-                // Slight delay on interaction to prioritize handling the interaction itself
-                if (!loaded) setTimeout(injectWidget, 1000);
-            };
-
-            events.forEach(function(event) {
-                window.addEventListener(event, onInteract, { once: true, passive: true });
-            });
-        })();
-    </script>
-    <?php
-}
-add_action('wp_footer', 'chroma_lazy_load_leadconnector', 999);
 
 /**
  * URL Consistency: Force trailing slashes on all URLs
