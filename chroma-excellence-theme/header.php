@@ -19,6 +19,12 @@
 	<link rel="preload" as="font"
 		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-SemiBold.woff2" type="font/woff2"
 		crossorigin>
+	<link rel="preload" as="font"
+		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-Bold.woff2" type="font/woff2"
+		crossorigin>
+	<link rel="preload" as="font"
+		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-ExtraBold.woff2" type="font/woff2"
+		crossorigin>
 
 	<?php wp_head(); ?>
 </head>
