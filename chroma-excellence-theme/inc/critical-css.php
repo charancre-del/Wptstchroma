@@ -295,9 +295,23 @@ function chroma_print_critical_css()
                 padding-left: 1.5rem;
                 padding-right: 1.5rem
             }
-        }
 
-        /* Critical Typography */
+            .lg\:pt-24 {
+                padding-top: 6rem
+            }
+        
+            .lg\:block {
+                display: block
+            }
+
+            .lg\:flex {
+                display: flex
+            }
+
+            .lg\:hidden {
+                display: none
+            }
+        }
         .font-bold {
             font-weight: 700
         }
@@ -454,6 +468,38 @@ function chroma_print_critical_css()
             animation: fadeInUp 1.1s ease forwards;
             opacity: 0;
             transform: translateY(24px)
+        }
+
+        /* Critical Mobile Menu */
+        .fixed {
+            position: fixed
+        }
+
+        .inset-0 {
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0
+        }
+
+        .relative {
+            position: relative
+        }
+
+        .translate-x-full {
+            transform: translateX(100%)
+        }
+
+        .flex-col {
+            flex-direction: column
+        }
+
+        .h-full {
+            height: 100%
+        }
+
+        .overflow-y-auto {
+            overflow-y: auto
         }
 
         /* Skip link accessibility */
