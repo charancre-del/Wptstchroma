@@ -374,12 +374,12 @@ $cta_description = get_post_meta($page_id, 'curriculum_cta_description', true) ?
 					<?php echo esc_html($cta_description); ?>
 				</p>
 				<div class="flex flex-wrap gap-4 justify-center">
-					<a href="/schedule-tour"
+					<a href="/schedule-tour/"
 						class="inline-flex items-center gap-2 px-8 py-4 bg-chroma-red text-white rounded-full font-bold hover:bg-chroma-red/90 transition-all shadow-md hover:shadow-lg">
 						<i class="fa-solid fa-calendar"></i>
 						Schedule a Tour
 					</a>
-					<a href="/locations"
+					<a href="/locations/"
 						class="inline-flex items-center gap-2 px-8 py-4 bg-white text-brand-ink rounded-full font-bold hover:bg-brand-ink/5 transition-all shadow-md">
 						<i class="fa-solid fa-map-marker-alt"></i>
 						Find a Location
