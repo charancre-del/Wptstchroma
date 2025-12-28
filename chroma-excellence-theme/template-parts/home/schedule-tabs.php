@@ -77,7 +77,10 @@ if (empty($tracks)) {
 						<div class="rounded-[2rem] overflow-hidden shadow-lg aspect-video bg-white/50">
 							<?php if (!empty($track['image'])): ?>
 								<img src="<?php echo esc_url($track['image']); ?>"
-									alt="<?php echo esc_attr($track['title']); ?>" class="w-full h-full object-cover" />
+									alt="<?php echo esc_attr($track['title']); ?>" 
+									class="w-full h-full object-cover"
+									loading="lazy"
+									decoding="async" />
 							<?php else: ?>
 								<div class="w-full h-full flex items-center justify-center text-chroma-blueDark/20 text-6xl">
 									<i class="fa-solid fa-image"></i>
