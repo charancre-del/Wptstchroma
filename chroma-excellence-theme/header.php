@@ -12,10 +12,12 @@
 	<link rel="preload" as="font"
 		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Regular.woff2" type="font/woff2"
 		crossorigin>
+	<link rel="preload" as="font" href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-SemiBold.woff2"
+		type="font/woff2" crossorigin>
 	<link rel="preload" as="font" href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Bold.woff2"
 		type="font/woff2" crossorigin>
 	<link rel="preload" as="font"
-		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-Bold.woff2" type="font/woff2"
+		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-SemiBold.woff2" type="font/woff2"
 		crossorigin>
 
 	<?php wp_head(); ?>
