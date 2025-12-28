@@ -385,3 +385,11 @@ function chroma_title_separator($sep)
     return '|';
 }
 add_filter('document_title_separator', 'chroma_title_separator');
+
+/**
+ * Disable Speculation Rules
+ * Prevents browser prefetching/prerendering which can cause issues with dynamic content
+ */
+add_action('send_headers', function () {
+    header('Speculation-Rules: null');
+});
