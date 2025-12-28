@@ -126,16 +126,26 @@ function chroma_remove_block_library_css() {
         // Remove WooCommerce block CSS (if any)
         wp_dequeue_style('wc-blocks-style');
         
-        // Remove individual block styles
-        wp_dequeue_style('wp-block-heading');
-        wp_dequeue_style('wp-block-paragraph');
-        wp_dequeue_style('wp-block-list');
-        
         // Remove global styles (theme.json generated)
         wp_dequeue_style('global-styles');
+        wp_dequeue_style('wp-block-navigation');
+        wp_dequeue_style('classic-theme-styles');
     }
 }
 add_action('wp_enqueue_scripts', 'chroma_remove_block_library_css', 100);
+
+// Disable separate block assets loading (WordPress 5.8+)
+add_filter('should_load_separate_core_block_assets', '__return_false');
+
+// Remove inline block styles for specific blocks
+add_action('wp_enqueue_scripts', function() {
+    // Get all registered block styles and remove them
+    $blocks_to_remove = ['heading', 'paragraph', 'list', 'list-item', 'quote', 'image', 'separator'];
+    foreach ($blocks_to_remove as $block) {
+        wp_dequeue_style("wp-block-{$block}");
+        wp_deregister_style("wp-block-{$block}");
+    }
+}, 200);
 
 /**
  * Exclude images with 'no-lazy' class from LiteSpeed lazy loading
