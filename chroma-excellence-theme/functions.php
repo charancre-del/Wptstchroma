@@ -391,18 +391,9 @@ add_filter('document_title_separator', 'chroma_title_separator');
  * Prevents browser prefetching/prerendering which can cause issues with dynamic content
  */
 add_action('send_headers', function () {
-    header('Speculation-Rules: null');
+    header('Speculation-Rules: "null"');
 });
 
-// Disable Speculation Rules API (WordPress Core / Performance Lab)
+// Programmatically disable Speculation Rules API from WordPress Core or Performance Lab plugin
 add_filter('wp_speculation_rules_configuration', '__return_empty_array');
 add_filter('pl_speculation_rules_configuration', '__return_empty_array');
-
-/**
- * Disable LiteSpeed Cache Instant Click specifically
- * The user setting is hard to find, so this kills the script on the frontend.
- */
-add_action('wp_enqueue_scripts', function () {
-    wp_dequeue_script('litespeed-cache-instant_click');
-    wp_dequeue_script('litespeed-instant-click'); // Alternative handle just in case
-}, 9999);

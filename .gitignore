@@ -2,3 +2,4 @@
 # Lighthouse Generated Reports (prevent filename too long errors)
 lighthouse-automation/lighthouse-out/reports/
 lighthouse-automation/lighthouse-out/json/
+lighthouse-automation/lighthouse-master-out/
