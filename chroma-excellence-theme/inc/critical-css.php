@@ -417,6 +417,53 @@ function chroma_print_critical_css()
             }
         }
 
+        /* Critical Grid System (Bento Grid) */
+        .grid {
+            display: grid
+        }
+
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr))
+        }
+
+        .gap-6 {
+            gap: 1.5rem
+        }
+
+        @media(min-width:768px) {
+            .md\:grid-cols-12 {
+                grid-template-columns: repeat(12, minmax(0, 1fr))
+            }
+
+            .md\:grid-rows-2 {
+                grid-template-rows: repeat(2, minmax(0, 1fr))
+            }
+
+            .md\:col-span-3 {
+                grid-column: span 3 / span 3
+            }
+
+            .md\:col-span-4 {
+                grid-column: span 4 / span 4
+            }
+
+            .md\:col-span-5 {
+                grid-column: span 5 / span 5
+            }
+
+            .md\:col-span-7 {
+                grid-column: span 7 / span 7
+            }
+
+            .md\:row-span-1 {
+                grid-row: span 1 / span 1
+            }
+
+            .md\:row-span-2 {
+                grid-row: span 2 / span 2
+            }
+        }
+
         .rounded-xl {
             border-radius: 0.75rem
         }
