@@ -390,10 +390,8 @@ add_filter('document_title_separator', 'chroma_title_separator');
  * Disable Speculation Rules
  * Prevents browser prefetching/prerendering which can cause issues with dynamic content
  */
-add_action('send_headers', function () {
-    header('Speculation-Rules: "null"');
-});
-
 // Programmatically disable Speculation Rules API from WordPress Core or Performance Lab plugin
-add_filter('wp_speculation_rules_configuration', '__return_empty_array');
-add_filter('pl_speculation_rules_configuration', '__return_empty_array');
+remove_action('wp_head', 'wp_speculation_rules');
+remove_action('wp_footer', 'wp_speculation_rules');
+add_filter('wp_speculation_rules_configuration', '__return_empty_array', PHP_INT_MAX);
+add_filter('pl_speculation_rules_configuration', '__return_empty_array', PHP_INT_MAX);
