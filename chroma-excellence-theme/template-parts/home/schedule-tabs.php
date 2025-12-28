@@ -79,6 +79,7 @@ if (empty($tracks)) {
 								<img src="<?php echo esc_url($track['image']); ?>"
 									alt="<?php echo esc_attr($track['title']); ?>" 
 									class="w-full h-full object-cover"
+									width="800" height="450"
 									loading="lazy"
 									decoding="async" />
 							<?php else: ?>

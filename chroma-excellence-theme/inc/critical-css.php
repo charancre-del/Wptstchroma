@@ -502,6 +502,15 @@ function chroma_print_critical_css()
             overflow-y: auto
         }
 
+        /* Critical Icons (Prevent CLS) */
+        .fa-solid, .fas {
+            display: inline-block;
+            width: 1.25em; /* Default width for standard icons */
+            height: 1em;
+            overflow: visible;
+            vertical-align: -0.125em;
+        }
+
         /* Skip link accessibility */
         .sr-only {
             position: absolute;
