@@ -481,6 +481,40 @@ function chroma_print_critical_css()
             }
         }
 
+        /* Critical Hero Grid & Layout */
+        .gap-14 {
+            gap: 3.5rem
+        }
+
+        .mt-8 {
+            margin-top: 2rem
+        }
+
+        @media(min-width:640px) {
+            .sm\:mt-0 {
+                margin-top: 0
+            }
+            .sm\:inset-y-0 {
+                top: 0;
+                bottom: 0
+            }
+            .sm\:left-12 {
+                left: 3rem
+            }
+            .sm\:right-0 {
+                right: 0
+            }
+        }
+
+        @media(min-width:1024px) {
+            .lg\:grid-cols-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+            .lg\:left-16 {
+                left: 4rem
+            }
+        }
+
         .rounded-xl {
             border-radius: 0.75rem
         }
