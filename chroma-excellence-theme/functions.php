@@ -113,6 +113,24 @@ function chroma_remove_legacy_assets()
 }
 add_action('init', 'chroma_remove_legacy_assets');
 
+/**
+ * Exclude images with 'no-lazy' class from LiteSpeed lazy loading
+ * This prevents CLS on hero images and other critical above-the-fold images
+ */
+add_filter('litespeed_media_lazy_img_excludes', function($excludes) {
+    $excludes[] = 'no-lazy';
+    $excludes[] = 'fetchpriority';
+    return $excludes;
+});
+
+// Also exclude from native WordPress lazy loading
+add_filter('wp_img_tag_add_loading_attr', function($value, $image, $context) {
+    if (strpos($image, 'no-lazy') !== false || strpos($image, 'fetchpriority') !== false) {
+        return false; // Don't add loading="lazy"
+    }
+    return $value;
+}, 10, 3);
+
 
 /**
  * Add CORS Headers for Font Files
