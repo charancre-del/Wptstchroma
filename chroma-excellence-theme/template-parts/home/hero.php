@@ -73,10 +73,10 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
                 class="absolute bottom-6 left-6 w-72 h-72 bg-chroma-yellowLight rounded-full -z-10 blur-2xl opacity-70 hidden sm:block">
             </div>
 
-            <!-- Main Image Frame -->
+            <!-- Main Image Frame - uses bg-brand-cream as placeholder until image loads -->
             <div
-                class="absolute inset-0 sm:inset-y-0 sm:left-12 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft bg-brand-cream/50 z-0"
-                style="aspect-ratio: 4/3;">
+                class="absolute inset-0 sm:inset-y-0 sm:left-12 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft z-0"
+                style="background: linear-gradient(135deg, #FFFCF8 0%, #E3E9EC 100%); contain: layout style paint;">
                 <?php if ($hero_image): ?>
                     <!-- Priority 1: Customizer hero image -->
                     <img src="<?php echo esc_url($hero_image); ?>" 
@@ -84,20 +84,23 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
                         alt="Chroma Classroom"
                         width="800" height="600"
                         fetchpriority="high" 
-                        data-no-lazy="1" />
+                        decoding="sync"
+                        data-no-lazy="1"
+                        data-no-async="1" />
                 <?php elseif ($home_id && has_post_thumbnail($home_id)): ?>
                     <!-- Priority 2: Homepage featured image -->
                     <?php echo get_the_post_thumbnail($home_id, 'hero-large', array(
                         'class' => 'w-full h-full object-cover no-lazy',
                         'fetchpriority' => 'high',
+                        'decoding' => 'sync',
                         'data-no-lazy' => '1',
+                        'data-no-async' => '1',
                         'width' => '800',
-                        'height' => '600',
-                        'style' => 'aspect-ratio: 4/3;'
+                        'height' => '600'
                     )); ?>
                 <?php elseif (file_exists($hero_video_path)): ?>
                     <!-- Priority 3: Hero video file -->
-                    <video autoplay muted playsinline loop class="w-full h-full object-cover" width="800" height="600" style="aspect-ratio: 4/3;">
+                    <video autoplay muted playsinline loop class="w-full h-full object-cover" width="800" height="600" preload="auto">
                         <source src="<?php echo esc_url($hero_video_url); ?>" type="video/mp4" />
                     </video>
                 <?php else: ?>
