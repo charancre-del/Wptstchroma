@@ -30,7 +30,7 @@ $corporate_address = get_post_meta($page_id, 'contact_corporate_address', true) 
 $corporate_phone = get_post_meta($page_id, 'contact_corporate_phone', true) ?: '(770) 555-0199';
 
 // Careers Section (Using existing meta if available, else standard fallback)
-$careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?: '/careers';
+$careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?: '/careers/';
 
 ?>
 
@@ -66,7 +66,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3">Looking for care?</h3>
 					<p class="text-brand-ink/60 text-sm mb-6">Find a school near you to check pricing, availability, and
 						book a tour.</p>
-					<a href="/locations"
+					<a href="/locations/"
 						class="inline-block w-full py-3 bg-chroma-red text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-red/90 transition-colors">Find
 						a School</a>
 				</div>
@@ -80,7 +80,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3">Current Family?</h3>
 					<p class="text-brand-ink/60 text-sm mb-6">Access the parent portal for tuition payments, daily
 						reports, and photos.</p>
-					<a href="/parents"
+					<a href="/parents/"
 						class="inline-block w-full py-3 bg-chroma-blue text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-blueDark transition-colors">Parent
 						Portal</a>
 				</div>
@@ -215,7 +215,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 								class="fa-solid fa-chevron-down"></i></span>
 					</summary>
 					<p class="mt-3 text-brand-ink/70 text-sm leading-relaxed">
-						The fastest way is to visit our <a href="/locations"
+						The fastest way is to visit our <a href="/locations/"
 							class="text-chroma-blue underline">Locations Page</a>, select your nearest campus, and use
 						the "Book Tour" button on that specific page. This ensures your request goes directly to that
 						school's director.
@@ -242,7 +242,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 					</summary>
 					<p class="mt-3 text-brand-ink/70 text-sm leading-relaxed">
 						Please email the director of your specific campus directly. You can find their contact
-						information on the specific <a href="/locations" class="text-chroma-blue underline">Location
+						information on the specific <a href="/locations/" class="text-chroma-blue underline">Location
 							Page</a>.
 					</p>
 				</details>
