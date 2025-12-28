@@ -85,7 +85,31 @@ function chroma_print_critical_css()
         body {
             margin: 0;
             line-height: inherit;
-            font-family: Outfit, system-ui, sans-serif;
+           	/* Font Metric Overrides to prevent CLS */
+	@font-face {
+		font-family: 'Outfit-Fallback';
+		src: local('Arial');
+		ascent-override: 98%;
+		descent-override: 24%;
+		line-gap-override: 0%;
+		size-adjust: 100%;
+	}
+	@font-face {
+		font-family: 'Playfair-Fallback';
+		src: local('Georgia');
+		ascent-override: 95%;
+		descent-override: 20%;
+		line-gap-override: 0%;
+		size-adjust: 100%;
+	}
+
+	body {
+		font-family: Outfit, "Outfit-Fallback", system-ui, sans-serif;
+	}
+
+	h1, h2, h3, h4, h5, h6, .font-serif {
+		font-family: "Playfair Display", "Playfair-Fallback", serif;
+	}
             overflow-x: hidden
         }
 
