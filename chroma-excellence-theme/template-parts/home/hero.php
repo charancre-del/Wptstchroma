@@ -1,14 +1,19 @@
 <?php
+/**
+ * Home Hero Section
+ *
+ * @package Chroma_Excellence
+ */
+
 $hero = chroma_home_hero();
 
-// Ensure we're not in a loop context that could interfere
-wp_reset_postdata();
-
-// Get the static front page ID explicitly
+// Get the static front page ID
 $home_id = get_option('page_on_front');
 
-// Debug: Uncomment to verify page ID
-// error_log('Hero home_id: ' . $home_id . ' | has_thumbnail: ' . (get_post_thumbnail_id($home_id) ? 'yes' : 'no'));
+// Get hero image sources
+$hero_image = get_theme_mod('chroma_home_hero_image');
+$hero_video_path = get_template_directory() . '/assets/video/hero-classroom.mp4';
+$hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.mp4';
 ?>
 
 <section
@@ -59,7 +64,6 @@ $home_id = get_option('page_on_front');
         </div>
 
         <!-- Hero Image Container -->
-        <!-- Hero Image Container -->
         <div class="relative w-full h-[400px] sm:h-[420px] lg:h-[500px] isolate mt-8 sm:mt-0">
             <!-- Background Decorations -->
             <div
@@ -72,23 +76,17 @@ $home_id = get_option('page_on_front');
             <!-- Main Image Frame -->
             <div
                 class="absolute inset-0 sm:inset-y-0 sm:left-12 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft bg-brand-cream/50 z-0">
-                <?php
-                $hero_video_path = get_template_directory() . '/assets/video/hero-classroom.mp4';
-                $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.mp4';
-                $hero_image = get_theme_mod('chroma_home_hero_image');
-
-                if (has_post_thumbnail($home_id)):
-                    // Priority 1: Homepage featured image
-                    echo get_the_post_thumbnail($home_id, 'hero-large', array(
+                <?php if ($hero_image): ?>
+                    <!-- Priority 1: Customizer hero image -->
+                    <img src="<?php echo esc_url($hero_image); ?>" class="w-full h-full object-cover no-lazy" alt="Chroma Classroom"
+                        fetchpriority="high" data-no-lazy="1" />
+                <?php elseif ($home_id && has_post_thumbnail($home_id)): ?>
+                    <!-- Priority 2: Homepage featured image -->
+                    <?php echo get_the_post_thumbnail($home_id, 'hero-large', array(
                         'class' => 'w-full h-full object-cover no-lazy',
                         'fetchpriority' => 'high',
                         'data-no-lazy' => '1'
-                    ));
-                elseif ($hero_image):
-                    // Priority 2: Customizer hero image
-                    ?>
-                    <img src="<?php echo esc_url($hero_image); ?>" class="w-full h-full object-cover no-lazy" alt="Chroma Classroom"
-                        fetchpriority="high" data-no-lazy="1" />
+                    )); ?>
                 <?php elseif (file_exists($hero_video_path)): ?>
                     <!-- Priority 3: Hero video file -->
                     <video autoplay muted playsinline loop class="w-full h-full object-cover">
