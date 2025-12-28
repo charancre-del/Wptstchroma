@@ -246,6 +246,23 @@ function chroma_print_critical_css()
             height: 82px
         }
 
+        /* Critical Hero Heights */
+        .h-\[400px\] {
+            height: 400px
+        }
+
+        @media(min-width:640px) {
+            .sm\:h-\[420px\] {
+                height: 420px
+            }
+        }
+
+        @media(min-width:1024px) {
+            .lg\:h-\[500px\] {
+                height: 500px
+            }
+        }
+
         .w-auto {
             width: auto
         }
