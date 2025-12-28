@@ -114,6 +114,30 @@ function chroma_remove_legacy_assets()
 add_action('init', 'chroma_remove_legacy_assets');
 
 /**
+ * Remove Gutenberg Block Library CSS on Frontend
+ * This theme doesn't use Gutenberg blocks, so we can remove these render-blocking styles
+ */
+function chroma_remove_block_library_css() {
+    if (!is_admin()) {
+        // Remove core block library CSS
+        wp_dequeue_style('wp-block-library');
+        wp_dequeue_style('wp-block-library-theme');
+        
+        // Remove WooCommerce block CSS (if any)
+        wp_dequeue_style('wc-blocks-style');
+        
+        // Remove individual block styles
+        wp_dequeue_style('wp-block-heading');
+        wp_dequeue_style('wp-block-paragraph');
+        wp_dequeue_style('wp-block-list');
+        
+        // Remove global styles (theme.json generated)
+        wp_dequeue_style('global-styles');
+    }
+}
+add_action('wp_enqueue_scripts', 'chroma_remove_block_library_css', 100);
+
+/**
  * Exclude images with 'no-lazy' class from LiteSpeed lazy loading
  * This prevents CLS on hero images and other critical above-the-fold images
  */
