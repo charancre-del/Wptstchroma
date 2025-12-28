@@ -80,7 +80,7 @@
 
 		<!-- Bottom Section -->
 		<div
-			class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/50">
+			class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80">
 			<p>&copy; <?php echo date('Y'); ?> Chroma Early Learning Academy. All rights reserved.</p>
 			<div class="flex gap-4">
 				<a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="hover:text-white">Privacy

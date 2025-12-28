@@ -248,7 +248,7 @@ function chroma_get_region_color_from_term($term_id)
 							<div class="bg-chroma-green w-4 h-4 rounded-full animate-bounce"
 								style="animation-delay: 0.5s;"></div>
 						</div>
-						<p class="absolute bottom-4 text-xs font-bold tracking-widest uppercase text-white/60">
+						<p class="absolute bottom-4 text-xs font-bold tracking-widest uppercase text-white/90">
 							<?php echo $locations_query->found_posts; ?>+ Locations in Metro Atlanta
 						</p>
 					</div>
@@ -258,7 +258,7 @@ function chroma_get_region_color_from_term($term_id)
 				<div class="w-full lg:w-1/2 relative z-10">
 					<h2 class="font-serif text-3xl md:text-5xl font-bold mb-6">Not sure which campus is right for you?
 					</h2>
-					<p class="text-white/70 text-lg mb-8">Our enrollment specialists can help you find the nearest
+					<p class="text-white/90 text-lg mb-8">Our enrollment specialists can help you find the nearest
 						location with openings for your child's age group.</p>
 					<div class="flex flex-wrap gap-4">
 						<a href="<?php echo esc_url(home_url('/contact/')); ?>"

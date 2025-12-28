@@ -423,7 +423,7 @@ if (empty($gallery_images)) {
 					<h2 class="text-3xl md:text-4xl font-serif font-bold mb-4">
 						<?php echo esc_html($safety_title); ?>
 					</h2>
-					<p class="text-white/60 max-w-2xl mx-auto">
+					<p class="text-white/90 max-w-2xl mx-auto">
 						<?php echo esc_html($safety_description); ?>
 					</p>
 				</div>
@@ -437,7 +437,7 @@ if (empty($gallery_images)) {
 							<h3 class="font-bold text-xl mb-3">
 								<?php echo esc_html($item['title']); ?>
 							</h3>
-							<p class="text-sm text-white/60 leading-relaxed">
+							<p class="text-sm text-white/90 leading-relaxed">
 								<?php echo esc_html($item['desc']); ?>
 							</p>
 						</div>

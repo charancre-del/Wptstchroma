@@ -274,7 +274,7 @@ while (have_posts()):
 			<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10">
 				<div class="text-center mb-16">
 					<h2 class="text-3xl md:text-4xl font-serif font-bold mb-4"><?php echo esc_html($values_title); ?></h2>
-					<p class="text-white/60 max-w-2xl mx-auto"><?php echo esc_html($values_description); ?></p>
+					<p class="text-white/90 max-w-2xl mx-auto"><?php echo esc_html($values_description); ?></p>
 				</div>
 
 				<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -296,7 +296,7 @@ while (have_posts()):
 									<i class="<?php echo esc_attr($value['icon']); ?>"></i>
 								</div>
 								<h3 class="font-serif text-xl font-bold mb-3"><?php echo esc_html($value['title']); ?></h3>
-								<p class="text-sm text-white/70"><?php echo esc_html($value['desc']); ?></p>
+								<p class="text-sm text-white/90"><?php echo esc_html($value['desc']); ?></p>
 							</div>
 						<?php endif; endforeach; ?>
 				</div>

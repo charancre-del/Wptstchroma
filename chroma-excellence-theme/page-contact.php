@@ -191,7 +191,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 				</div>
 
 				<h3 class="font-serif text-2xl font-bold mb-2 relative z-10">General Inquiries</h3>
-				<p class="text-white/60 text-sm mb-8 relative z-10">For general questions not related to a specific
+				<p class="text-white/90 text-sm mb-8 relative z-10">For general questions not related to a specific
 					campus tour.</p>
 
 				<div class="relative z-10">
