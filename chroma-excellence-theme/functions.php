@@ -344,44 +344,37 @@ function chroma_lazy_load_leadconnector()
 
     ?>
     <script>
-        (function () {
+        (function() {
             var loaded = false;
 
-            // Function to load the widget
-            var loadWidget = function () {
+            // Function to fully inject the widget
+            var injectWidget = function() {
                 if (loaded) return;
                 loaded = true;
 
-                // Find existing LeadConnector script if present and remove it
-                var existingScripts = document.querySelectorAll('script[src*="leadconnectorhq.com"]');
-                existingScripts.forEach(function (script) {
-                    script.remove();
-                });
-
-                // Load the widget script
-                var script = document.createElement('script');
-                script.src = 'https://widgets.leadconnectorhq.com/loader.js';
-                script.setAttribute('data-resources-url', 'https://widgets.leadconnectorhq.com/chat-widget/loader.js');
-                script.async = true;
-                document.body.appendChild(script);
+                // Load the loader script
+                var s = document.createElement('script');
+                s.src = "https://widgets.leadconnectorhq.com/loader.js";
+                s.setAttribute("data-resources-url", "https://widgets.leadconnectorhq.com/chat-widget/loader.js");
+                s.setAttribute("data-widget-id", "66d218991c55f87438761a17");
+                s.async = true;
+                document.body.appendChild(s);
             };
 
-            // Device Detection Logic (Client-Side)
-            var isMobile = window.innerWidth < 768;
+            // Delay loading to ensure LCP is not affected (3.5s)
+            var timer = setTimeout(injectWidget, 3500);
 
-            if (isMobile) {
-                // Mobile: Lazy load after 3.5 seconds
-                setTimeout(loadWidget, 3500);
+            // Also load on user interaction for faster perception
+            var events = ['mousedown', 'touchstart', 'scroll', 'keydown'];
+            var onInteract = function() {
+                events.forEach(function(e) { window.removeEventListener(e, onInteract); });
+                // Slight delay on interaction to prioritize handling the interaction itself
+                if (!loaded) setTimeout(injectWidget, 1000);
+            };
 
-                // Or on user interaction
-                var events = ['mousedown', 'touchstart', 'keydown', 'scroll'];
-                events.forEach(function (event) {
-                    window.addEventListener(event, loadWidget, { once: true, passive: true });
-                });
-            } else {
-                // Desktop: Load immediately (but defer slightly to let LCP finish)
-                setTimeout(loadWidget, 100);
-            }
+            events.forEach(function(event) {
+                window.addEventListener(event, onInteract, { once: true, passive: true });
+            });
         })();
     </script>
     <?php
