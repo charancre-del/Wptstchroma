@@ -397,3 +397,12 @@ add_action('send_headers', function () {
 // Disable Speculation Rules API (WordPress Core / Performance Lab)
 add_filter('wp_speculation_rules_configuration', '__return_empty_array');
 add_filter('pl_speculation_rules_configuration', '__return_empty_array');
+
+/**
+ * Disable LiteSpeed Cache Instant Click specifically
+ * The user setting is hard to find, so this kills the script on the frontend.
+ */
+add_action('wp_enqueue_scripts', function () {
+    wp_dequeue_script('litespeed-cache-instant_click');
+    wp_dequeue_script('litespeed-instant-click'); // Alternative handle just in case
+}, 9999);
