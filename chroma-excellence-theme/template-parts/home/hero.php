@@ -63,8 +63,8 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             </div>
         </div>
 
-        <!-- Hero Image Container -->
-        <div class="relative w-full h-[400px] sm:h-[420px] lg:h-[500px] isolate mt-8 sm:mt-0">
+        <!-- Hero Image Container - inline min-height ensures dimensions before CSS loads -->
+        <div class="relative w-full h-[400px] sm:h-[420px] lg:h-[500px] isolate mt-8 sm:mt-0" style="min-height: 400px;">
             <!-- Background Decorations -->
             <div
                 class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3 hidden sm:block">
