@@ -297,6 +297,18 @@ function chroma_dequeue_dashicons()
                 wp_deregister_style('dashicons');
         }
 }
+/**
+ * Preload Main CSS to minimize FOUC (Flash of Unstyled Content)
+ */
+function chroma_preload_main_css() {
+    $css_path = CHROMA_THEME_DIR . '/assets/css/main.css';
+    $css_version = file_exists($css_path) ? filemtime($css_path) : CHROMA_VERSION;
+    $css_url = CHROMA_THEME_URI . '/assets/css/main.css?ver=' . $css_version;
+    
+    echo '<link rel="preload" href="' . esc_url($css_url) . '" as="style">' . "\n";
+}
+add_action('wp_head', 'chroma_preload_main_css', 1);
+
 add_action('wp_enqueue_scripts', 'chroma_dequeue_dashicons');
 
 

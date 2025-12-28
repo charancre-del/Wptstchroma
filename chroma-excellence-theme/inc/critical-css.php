@@ -10,6 +10,64 @@ function chroma_print_critical_css()
 {
     ?>
     <style id="chroma-critical-css">
+        /* Critical Fonts */
+        @font-face {
+            font-family: 'Outfit';
+            font-style: normal;
+            font-weight: 300;
+            font-display: swap;
+            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Light.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Outfit';
+            font-style: normal;
+            font-weight: 400;
+            font-display: swap;
+            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Regular.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Outfit';
+            font-style: normal;
+            font-weight: 500;
+            font-display: swap;
+            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Medium.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Outfit';
+            font-style: normal;
+            font-weight: 600;
+            font-display: swap;
+            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-SemiBold.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Outfit';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Bold.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Playfair Display';
+            font-style: normal;
+            font-weight: 600;
+            font-display: swap;
+            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-SemiBold.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Playfair Display';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-Bold.woff2') format('woff2');
+        }
+        @font-face {
+            font-family: 'Playfair Display';
+            font-style: normal;
+            font-weight: 800;
+            font-display: swap;
+            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-ExtraBold.woff2') format('woff2');
+        }
+
         /* Critical Reset & Base */
         *,
         ::before,
@@ -256,6 +314,50 @@ function chroma_print_critical_css()
         }
 
         /* Critical Layout Utilities */
+        .block {
+            display: block
+        }
+
+        .w-full {
+            width: 100%
+        }
+
+        .text-center {
+            text-align: center
+        }
+
+        .mt-6 {
+            margin-top: 1.5rem
+        }
+
+        .py-4 {
+            padding-top: 1rem;
+            padding-bottom: 1rem
+        }
+
+        .px-6 {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem
+        }
+
+        .pt-20 {
+            padding-top: 5rem
+        }
+
+        @media(min-width:1024px) {
+            .lg\:pt-24 {
+                padding-top: 6rem
+            }
+        
+            .lg\:block {
+                display: block
+            }
+        }
+
+        .rounded-xl {
+            border-radius: 0.75rem
+        }
+
         .rounded-full {
             border-radius: 9999px
         }
