@@ -393,3 +393,7 @@ add_filter('document_title_separator', 'chroma_title_separator');
 add_action('send_headers', function () {
     header('Speculation-Rules: null');
 });
+
+// Disable Speculation Rules API (WordPress Core / Performance Lab)
+add_filter('wp_speculation_rules_configuration', '__return_empty_array');
+add_filter('pl_speculation_rules_configuration', '__return_empty_array');
