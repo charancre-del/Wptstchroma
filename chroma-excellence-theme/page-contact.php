@@ -134,7 +134,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 							<div>
 								<h4 class="font-bold text-brand-ink">Phone</h4>
 								<p class="text-brand-ink/60"><?php echo esc_html($corporate_phone); ?></p>
-								<p class="text-xs text-brand-ink/40 mt-1">Mon-Fri, 9am - 5pm EST</p>
+								<p class="text-xs text-brand-ink/70 mt-1">Mon-Fri, 9am - 5pm EST</p>
 							</div>
 						</div>
 					</div>
@@ -148,7 +148,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 							<i
 								class="fa-regular fa-envelope text-chroma-blue group-hover:scale-110 transition-transform"></i>
 							<div>
-								<span class="block text-xs font-bold uppercase text-brand-ink/50">Enrollment</span>
+								<span class="block text-xs font-bold uppercase text-brand-ink/70">Enrollment</span>
 								<span class="font-semibold text-brand-ink text-sm">enrollment@chromaela.com</span>
 							</div>
 						</a>
@@ -157,7 +157,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 							<i
 								class="fa-regular fa-envelope text-chroma-blue group-hover:scale-110 transition-transform"></i>
 							<div>
-								<span class="block text-xs font-bold uppercase text-brand-ink/50">Careers</span>
+								<span class="block text-xs font-bold uppercase text-brand-ink/70">Careers</span>
 								<span class="font-semibold text-brand-ink text-sm">careers@chromaela.com</span>
 							</div>
 						</a>
@@ -166,7 +166,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 							<i
 								class="fa-regular fa-envelope text-chroma-blue group-hover:scale-110 transition-transform"></i>
 							<div>
-								<span class="block text-xs font-bold uppercase text-brand-ink/50">Press / Media</span>
+								<span class="block text-xs font-bold uppercase text-brand-ink/70">Press / Media</span>
 								<span class="font-semibold text-brand-ink text-sm">media@chromaela.com</span>
 							</div>
 						</a>
@@ -175,7 +175,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 							<i
 								class="fa-regular fa-envelope text-chroma-blue group-hover:scale-110 transition-transform"></i>
 							<div>
-								<span class="block text-xs font-bold uppercase text-brand-ink/50">Acquisitions</span>
+								<span class="block text-xs font-bold uppercase text-brand-ink/70">Acquisitions</span>
 								<span class="font-semibold text-brand-ink text-sm">partnerships@chromaela.com</span>
 							</div>
 						</a>

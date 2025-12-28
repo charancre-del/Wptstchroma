@@ -142,7 +142,7 @@ $related_query = new WP_Query($related_args);
       <header class="py-20 text-center max-w-4xl mx-auto px-4">
         <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-chroma-blue mb-6">
           <span class="w-2 h-2 bg-chroma-blue rounded-full"></span> <?php echo esc_html($primary_category); ?>
-          <span class="text-brand-ink/50">•</span> <?php echo esc_html($post_date); ?>
+          <span class="text-brand-ink/70">•</span> <?php echo esc_html($post_date); ?>
         </div>
         <h1 class="font-serif text-4xl md:text-6xl text-brand-ink mb-8 leading-tight"><?php the_title(); ?></h1>
         <div class="flex items-center justify-center gap-4">

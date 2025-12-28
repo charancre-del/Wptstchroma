@@ -359,12 +359,12 @@ while (have_posts()):
 					</h3>
 					<div class="flex items-center gap-4">
 						<a href="<?php echo esc_url($lesson_plan_url); ?>" target="_blank" id="lesson-plan-external"
-							class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:flex items-center gap-1">
+							class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:flex items-center gap-1">
 							<i class="fa-solid fa-arrow-up-right-from-square"></i>
 							Open in new tab
 						</a>
 						<a href="<?php echo esc_url($lesson_plan_url); ?>" download
-							class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors hidden md:flex items-center gap-1">
+							class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors hidden md:flex items-center gap-1">
 							<i class="fa-solid fa-download"></i>
 							Download
 						</a>

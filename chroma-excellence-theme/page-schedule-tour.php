@@ -168,7 +168,7 @@ get_header();
                                 class="font-bold text-xl mb-1 group-hover:text-<?php echo esc_attr($data['color']); ?> transition-colors">
                                 <?php echo esc_html(str_replace('Location', '', $post['title'])); // Clean title if needed ?>
                             </h3>
-                            <p class="text-xs text-brand-ink/50 mb-4 flex-grow"><?php echo esc_html($post['address']); ?>
+                            <p class="text-xs text-brand-ink/70 mb-4 flex-grow"><?php echo esc_html($post['address']); ?>
                             </p>
 
                             <?php if ($post['booking']): ?>
@@ -204,7 +204,7 @@ get_header();
             <h3 class="font-serif text-xl font-bold text-brand-ink">Schedule Your Visit</h3>
             <div class="flex items-center gap-4">
                 <a href="#" id="chroma-tour-external" target="_blank"
-                    class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">
+                    class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:block">
                     Open in new tab <i class="fa-solid fa-external-link-alt ml-1"></i>
                 </a>
                 <button id="chroma-tour-close"
