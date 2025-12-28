@@ -519,6 +519,18 @@ function chroma_print_critical_css()
             border-radius: 0.75rem
         }
 
+        .rounded-\[3rem\] {
+            border-radius: 3rem
+        }
+
+        .p-10 {
+            padding: 2.5rem
+        }
+
+        .right-0 {
+            right: 0
+        }
+        
         .rounded-full {
             border-radius: 9999px
         }
