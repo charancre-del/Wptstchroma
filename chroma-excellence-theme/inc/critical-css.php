@@ -320,6 +320,6 @@ function chroma_print_critical_css()
     </style>
     <?php
 }
-// DISABLED - Critical CSS causes FOUC, keep disabled
-// add_action('wp_head', 'chroma_print_critical_css', 1);
+// Critical CSS enabled to support main.css deferral
+add_action('wp_head', 'chroma_print_critical_css', 1);
 

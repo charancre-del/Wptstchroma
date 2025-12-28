@@ -271,7 +271,7 @@ add_action('admin_enqueue_scripts', 'chroma_enqueue_admin_assets');
 function chroma_async_styles($html, $handle, $href, $media)
 {
         // Defer Font Awesome AND Main CSS (Critical CSS inlined in header)
-        if (in_array($handle, array('chroma-font-awesome'))) {
+        if (in_array($handle, array('chroma-font-awesome', 'chroma-main'))) {
                 // Add data-no-optimize to prevent LiteSpeed from combining/blocking this file
                 $html = str_replace('<link', '<link data-no-optimize="1"', $html);
 
