@@ -545,4 +545,105 @@ document.addEventListener('DOMContentLoaded', function () {
     locationCarousel.addEventListener('mouseenter', stopAutoplay);
     locationCarousel.addEventListener('mouseleave', startAutoplay);
   }
+
+  /**
+   * Enhanced Lazy Loading with IntersectionObserver
+   * - Uses data-lazy-src for deferred images
+   * - Adds smooth fade-in animation
+   * - Falls back to native loading="lazy" for unsupported browsers
+   */
+  const initEnhancedLazyLoading = () => {
+    // All images with data-lazy-src attribute
+    const lazyImages = document.querySelectorAll('img[data-lazy-src]');
+
+    // Also handle images with loading="lazy" that aren't above-the-fold
+    const nativeLazyImages = document.querySelectorAll('img[loading="lazy"]:not(.no-lazy)');
+
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+
+            // Handle data-lazy-src images
+            if (img.dataset.lazySrc) {
+              img.src = img.dataset.lazySrc;
+              if (img.dataset.lazySrcset) {
+                img.srcset = img.dataset.lazySrcset;
+              }
+              delete img.dataset.lazySrc;
+              delete img.dataset.lazySrcset;
+            }
+
+            // Add fade-in effect
+            img.style.opacity = '0';
+            img.style.transition = 'opacity 0.3s ease-in-out';
+
+            img.onload = () => {
+              img.style.opacity = '1';
+              img.classList.add('lazy-loaded');
+            };
+
+            // If image is already cached, trigger load immediately
+            if (img.complete) {
+              img.style.opacity = '1';
+              img.classList.add('lazy-loaded');
+            }
+
+            observer.unobserve(img);
+          }
+        });
+      }, {
+        rootMargin: '50px 0px', // Start loading 50px before entering viewport
+        threshold: 0.01
+      });
+
+      // Observe data-lazy-src images
+      lazyImages.forEach(img => imageObserver.observe(img));
+
+      // Observe native lazy images for fade-in effect
+      nativeLazyImages.forEach(img => {
+        // Add fade-in for when they load
+        if (!img.complete) {
+          img.style.opacity = '0';
+          img.style.transition = 'opacity 0.3s ease-in-out';
+          img.onload = () => {
+            img.style.opacity = '1';
+            img.classList.add('lazy-loaded');
+          };
+        }
+      });
+
+    } else {
+      // Fallback for browsers without IntersectionObserver
+      lazyImages.forEach(img => {
+        if (img.dataset.lazySrc) {
+          img.src = img.dataset.lazySrc;
+          if (img.dataset.lazySrcset) {
+            img.srcset = img.dataset.lazySrcset;
+          }
+        }
+      });
+    }
+  };
+
+  // Initialize lazy loading
+  initEnhancedLazyLoading();
+
+  // Also handle dynamically added images (for AJAX/SPA scenarios)
+  const lazyLoadObserver = new MutationObserver((mutations) => {
+    mutations.forEach(mutation => {
+      mutation.addedNodes.forEach(node => {
+        if (node.nodeType === 1) { // Element node
+          const newLazyImages = node.querySelectorAll ?
+            node.querySelectorAll('img[data-lazy-src]') : [];
+          if (newLazyImages.length > 0) {
+            initEnhancedLazyLoading();
+          }
+        }
+      });
+    });
+  });
+
+  lazyLoadObserver.observe(document.body, { childList: true, subtree: true });
 });
