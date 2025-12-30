@@ -144,6 +144,37 @@ class Chroma_Schema_Injector
         $schema = self::get_organization_schema_data();
         echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
     }
+
+    /**
+     * Output WebSite Schema with SearchAction
+     * Enables Sitelinks Search Box in Google SERPs
+     */
+    public static function output_website_schema()
+    {
+        if (!is_front_page()) {
+            return;
+        }
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            '@id' => home_url('/') . '#website',
+            'url' => home_url('/'),
+            'name' => get_bloginfo('name'),
+            'description' => get_bloginfo('description'),
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => [
+                    '@type' => 'EntryPoint',
+                    'urlTemplate' => home_url('/?s={search_term_string}')
+                ],
+                'query-input' => 'required name=search_term_string'
+            ],
+            'publisher' => ['@id' => home_url('/') . '#organization']
+        ];
+
+        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>' . "\n";
+    }
     /**
      * Get default schema data for a given post type
      * Used by Schema Builder to pre-fill with intelligent defaults
@@ -177,6 +208,26 @@ class Chroma_Schema_Injector
                         'priceRange' => '$$',
                     ]
                 ];
+                
+                // Add AggregateRating if reviews exist
+                $reviews = get_post_meta($post_id, 'location_reviews', true);
+                if (!empty($reviews) && is_array($reviews)) {
+                    $ratings = [];
+                    foreach ($reviews as $review) {
+                        if (!empty($review['rating'])) {
+                            $ratings[] = floatval($review['rating']);
+                        }
+                    }
+                    if (!empty($ratings)) {
+                        $defaults[0]['data']['aggregateRating'] = [
+                            '@type' => 'AggregateRating',
+                            'ratingValue' => round(array_sum($ratings) / count($ratings), 1),
+                            'reviewCount' => count($ratings),
+                            'bestRating' => '5',
+                            'worstRating' => '1'
+                        ];
+                    }
+                }
                 break;
 
             case 'program':
@@ -338,6 +389,88 @@ class Chroma_Schema_Injector
                                 'reviewBody' => isset($r['reviewBody']) ? $r['reviewBody'] : ''
                             ];
                         }
+                    } elseif ($key === 'hasCredential') {
+                        $schema_output['hasCredential'] = [];
+                        foreach ($value as $cred) {
+                            $cred_schema = [
+                                '@type' => 'EducationalOccupationalCredential',
+                                'name' => isset($cred['name']) ? $cred['name'] : ''
+                            ];
+                            if (!empty($cred['credentialCategory'])) {
+                                $cred_schema['credentialCategory'] = $cred['credentialCategory'];
+                            }
+                            if (!empty($cred['recognizedBy'])) {
+                                $cred_schema['recognizedBy'] = [
+                                    '@type' => 'Organization',
+                                    'name' => $cred['recognizedBy']
+                                ];
+                            }
+                            $schema_output['hasCredential'][] = $cred_schema;
+                        }
+                    } elseif ($key === 'amenityFeature') {
+                        $schema_output['amenityFeature'] = [];
+                        foreach ($value as $amenity) {
+                            $schema_output['amenityFeature'][] = [
+                                '@type' => 'LocationFeatureSpecification',
+                                'name' => isset($amenity['name']) ? $amenity['name'] : '',
+                                'value' => isset($amenity['value']) ? $amenity['value'] : 'true'
+                            ];
+                        }
+                    } elseif ($key === 'knowsLanguage') {
+                        // Handle comma-separated languages
+                        if (is_string($value) && strpos($value, ',') !== false) {
+                            $schema_output['knowsLanguage'] = array_map('trim', explode(',', $value));
+                        } else {
+                            $schema_output['knowsLanguage'] = $value;
+                        }
+                    } elseif ($key === 'hasMenuSection') {
+                        $schema_output['hasMenuSection'] = [];
+                        foreach ($value as $section) {
+                            $schema_output['hasMenuSection'][] = [
+                                '@type' => 'MenuSection',
+                                'name' => isset($section['name']) ? $section['name'] : '',
+                                'description' => isset($section['description']) ? $section['description'] : ''
+                            ];
+                        }
+                    } elseif ($key === 'itemListElement') {
+                        $schema_output['itemListElement'] = [];
+                        foreach ($value as $item) {
+                            $schema_output['itemListElement'][] = [
+                                '@type' => 'ListItem',
+                                'position' => isset($item['position']) ? intval($item['position']) : '',
+                                'name' => isset($item['name']) ? $item['name'] : '',
+                                'url' => isset($item['url']) ? $item['url'] : ''
+                            ];
+                        }
+                    } elseif ($key === 'image' && is_array($value) && isset($value[0])) {
+                        // Image gallery handling
+                        $schema_output['image'] = [];
+                        foreach ($value as $img) {
+                            $img_schema = [
+                                '@type' => 'ImageObject',
+                                'contentUrl' => isset($img['contentUrl']) ? $img['contentUrl'] : ''
+                            ];
+                            if (!empty($img['caption'])) {
+                                $img_schema['caption'] = $img['caption'];
+                            }
+                            if (!empty($img['description'])) {
+                                $img_schema['description'] = $img['description'];
+                            }
+                            $schema_output['image'][] = $img_schema;
+                        }
+                    } elseif ($key === 'openingHours' && is_array($value)) {
+                        // Convert openingHours repeater to OpeningHoursSpecification
+                        $schema_output['openingHoursSpecification'] = [];
+                        foreach ($value as $hours) {
+                            if (!empty($hours['dayOfWeek']) && !empty($hours['opens']) && !empty($hours['closes'])) {
+                                $schema_output['openingHoursSpecification'][] = [
+                                    '@type' => 'OpeningHoursSpecification',
+                                    'dayOfWeek' => $hours['dayOfWeek'],
+                                    'opens' => $hours['opens'],
+                                    'closes' => $hours['closes']
+                                ];
+                            }
+                        }
                     } else {
                         // Generic array output (if needed for other types)
                         $schema_output[$key] = $value;
@@ -407,6 +540,22 @@ class Chroma_Schema_Injector
                             ];
                             continue;
                         }
+                    }
+
+                    // Handle geo_lat and geo_lng to create GeoCoordinates (important for GMB)
+                    if ($key === 'geo_lat') {
+                        $lng = isset($fields['geo_lng']) ? $fields['geo_lng'] : '';
+                        if (!empty($value) && !empty($lng)) {
+                            $schema_output['geo'] = [
+                                '@type' => 'GeoCoordinates',
+                                'latitude' => floatval($value),
+                                'longitude' => floatval($lng)
+                            ];
+                        }
+                        continue;
+                    }
+                    if ($key === 'geo_lng') {
+                        continue; // Handled above with geo_lat
                     }
 
                     $schema_output[$key] = $value;

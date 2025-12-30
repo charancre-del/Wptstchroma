@@ -46,7 +46,18 @@ chroma_safe_require(__DIR__ . '/class-image-alt-automation.php');
 chroma_safe_require(__DIR__ . '/class-admin-help.php');
 chroma_safe_require(__DIR__ . '/class-breadcrumbs.php');
 chroma_safe_require(__DIR__ . '/class-schema-types.php');
+chroma_safe_require(__DIR__ . '/class-schema-validator.php');
 chroma_safe_require(__DIR__ . '/class-llm-client.php');
+chroma_safe_require(__DIR__ . '/class-google-places-client.php');
+chroma_safe_require(__DIR__ . '/class-llm-bulk-processor.php');
+chroma_safe_require(__DIR__ . '/class-schema-quality.php');
+chroma_safe_require(__DIR__ . '/class-advanced-features.php');
+
+// Load Admin UI
+chroma_safe_require(__DIR__ . '/admin/class-llm-admin-settings.php');
+
+// Load Editor Metabox
+chroma_safe_require(__DIR__ . '/meta-boxes/class-schema-editor-metabox.php');
 
 // Initialize LLM Client
 global $chroma_llm_client;
@@ -98,7 +109,8 @@ $schema_builders = [
 	'class-schema-injector.php',
 	'class-service-area-builder.php',
 	'class-universal-faq-builder.php',
-	'class-page-type-builder.php'
+	'class-page-type-builder.php',
+	'class-archive-itemlist-builder.php'
 ];
 
 foreach ($schema_builders as $file) {
@@ -165,6 +177,10 @@ function chroma_advanced_seo_init()
 		add_action('wp_head', ['Chroma_Universal_FAQ_Builder', 'output']);
 	if (class_exists('Chroma_Page_Type_Builder'))
 		add_action('wp_head', ['Chroma_Page_Type_Builder', 'output']);
+	if (class_exists('Chroma_Schema_Injector'))
+		add_action('wp_head', ['Chroma_Schema_Injector', 'output_website_schema']);
+	if (class_exists('Chroma_Archive_ItemList_Builder'))
+		add_action('wp_head', ['Chroma_Archive_ItemList_Builder', 'output']);
 
 	// Flush Rewrite Rules if KML rule is missing (One-time check)
 	if (get_option('chroma_seo_flush_rewrite') !== 'done') {

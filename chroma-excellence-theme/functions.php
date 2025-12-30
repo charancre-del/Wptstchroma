@@ -42,6 +42,7 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-cities.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
+require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
 
 // API Handlers
 require_once CHROMA_THEME_DIR . '/inc/careers-api.php';
@@ -85,6 +86,9 @@ require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 
 // Advanced SEO/LLM Module (Editable Fields)
 require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
+
+// SEO Automations (Internal Linking, Geo SEO, etc.)
+require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
 
 
 

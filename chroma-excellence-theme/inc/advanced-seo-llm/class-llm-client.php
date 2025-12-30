@@ -281,8 +281,54 @@ class Chroma_LLM_Client
             }
         }
 
-        // Prepare prompt based on schema type
-        $prompt = "Analyze the following content and extract data for a Schema.org '{$schema_type}' object.\n";
+        // Prepare prompt based on schema type - SEO EXPERT PERSONA
+        $prompt = "You are an SEO EXPERT specializing in Schema.org structured data and local SEO for businesses.\n";
+        $prompt .= "Your goal is to generate the MOST COMPREHENSIVE and GOOGLE-COMPLIANT schema data possible.\n\n";
+        
+        $prompt .= "Analyze the following content and extract data for a '{$schema_type}' object.\n\n";
+        
+        $prompt .= "=== YOUR SEO EXPERTISE ===\n";
+        $prompt .= "- You understand Google's Rich Results requirements\n";
+        $prompt .= "- You know which fields impact Google My Business rankings\n";
+        $prompt .= "- You prioritize fields that improve local pack visibility\n";
+        $prompt .= "- You ensure NAP (Name, Address, Phone) consistency\n";
+        $prompt .= "- You maximize rich snippet eligibility (stars, hours, etc.)\n\n";
+        
+        $prompt .= "=== DATA PRIORITY (USE IN THIS ORDER) ===\n";
+        $prompt .= "1. WEBSITE DATA (highest priority) - Use the live page content and meta data provided\n";
+        $prompt .= "2. GOOGLE MY BUSINESS - Use GMB URL to access your knowledge of this business listing\n";
+        $prompt .= "3. YOUR KNOWLEDGE - For missing fields, use web search/knowledge about this specific business\n";
+        $prompt .= "IMPORTANT: Website data is the source of truth. Only use GMB/web data to FILL GAPS, not override.\n\n";
+        
+        $prompt .= "=== BUSINESS CONTEXT ===\n";
+        $prompt .= "- Industry: Early Childhood Education / Licensed Childcare\n";
+        $prompt .= "- Service Type: Daycare, Preschool, Pre-K Programs\n";
+        $prompt .= "- Location Type: Physical Business Locations in Georgia\n";
+        $prompt .= "- Brand: Chroma Early Learning\n\n";
+        
+        $prompt .= "=== SCHEMA BEST PRACTICES ===\n";
+        $prompt .= "- Include geo coordinates (latitude/longitude) for local pack ranking\n";
+        $prompt .= "- Add openingHoursSpecification for 'Open Now' badge\n";
+        $prompt .= "- Include aggregateRating if reviews exist (critical for CTR)\n";
+        $prompt .= "- Add hasCredential for trust signals (licenses, accreditations)\n";
+        $prompt .= "- Use priceRange ($, $$, $$$) for filtering in maps\n";
+        $prompt .= "- Include sameAs with all social profiles and GMB URL\n";
+        $prompt .= "- Add amenityFeature for facility highlights\n\n";
+        
+        $prompt .= "=== VALIDATION RULES ===\n";
+        $prompt .= "- URLs must start with https://\n";
+        $prompt .= "- Dates must be ISO 8601 format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)\n";
+        $prompt .= "- Telephone should include area code (e.g., 770-555-0123)\n";
+        $prompt .= "- priceRange should be $, $$, or $$$\n";
+        $prompt .= "- ratingValue must be between 1 and 5\n";
+        $prompt .= "- geo coordinates must be valid lat/lng decimals\n\n";
+        
+        $prompt .= "=== FOR MISSING FIELDS ===\n";
+        $prompt .= "If you cannot find a field in the provided data:\n";
+        $prompt .= "1. Check your knowledge of the GMB listing (if URL provided)\n";
+        $prompt .= "2. Search the web for this specific business location\n";
+        $prompt .= "3. If still not found, leave the field empty - DO NOT HALLUCINATE\n\n";
+        
         $prompt .= "Return ONLY valid JSON. Do not include markdown formatting.\n";
 
         // Add custom instructions if provided
@@ -293,11 +339,11 @@ class Chroma_LLM_Client
         if (!empty($expected_keys)) {
             $prompt .= "Map the extracted data to the following JSON keys ONLY:\n";
             $prompt .= "- " . implode("\n- ", $expected_keys) . "\n";
-            $prompt .= "If a field cannot be found, leave it empty or omit it.\n";
+            $prompt .= "If a field cannot be found in website/GMB/web, leave it empty.\n";
         }
 
 
-        // Fetch and format meta
+        // Fetch and format meta (including ACF fields)
         $meta = get_post_meta($post_id);
         $meta_context = "";
         if ($meta) {
@@ -312,17 +358,54 @@ class Chroma_LLM_Client
                 }
             }
         }
+        
+        // Get ACF fields if available (higher priority)
+        $acf_context = "";
+        if (function_exists('get_fields')) {
+            $acf_fields = get_fields($post_id);
+            if ($acf_fields && is_array($acf_fields)) {
+                $acf_context .= "ACF Custom Fields:\n";
+                foreach ($acf_fields as $key => $value) {
+                    if (is_array($value)) {
+                        $value = json_encode($value);
+                    }
+                    $acf_context .= "- {$key}: {$value}\n";
+                }
+            }
+        }
+        
+        // Get featured image
+        $featured_image = "";
+        $thumbnail_id = get_post_thumbnail_id($post_id);
+        if ($thumbnail_id) {
+            $featured_image = wp_get_attachment_url($thumbnail_id);
+        }
+        
+        // Get site-wide settings
+        $site_context = "=== SITE-WIDE INFO ===\n";
+        $site_context .= "Site Name: " . get_bloginfo('name') . "\n";
+        $site_context .= "Tagline: " . get_bloginfo('description') . "\n";
+        $site_context .= "Main Phone: " . get_theme_mod('chroma_phone_number', '') . "\n";
+        $site_context .= "Main Email: " . get_theme_mod('chroma_email', '') . "\n";
 
-        $prompt .= "\nContent Context:\n";
+        $prompt .= "\n=== WEBSITE DATA (HIGHEST PRIORITY) ===\n";
         $prompt .= "Title: " . $post->post_title . "\n";
+        $prompt .= "URL: " . get_permalink($post_id) . "\n";
         $prompt .= "Excerpt: " . $post->post_excerpt . "\n";
-        $prompt .= "Meta Data:\n" . $meta_context . "\n";
-        $prompt .= "Main Content:\n" . strip_tags($post->post_content);
+        if ($featured_image) {
+            $prompt .= "Featured Image: " . $featured_image . "\n";
+        }
+        $prompt .= "\n" . $site_context . "\n";
+        if ($acf_context) {
+            $prompt .= $acf_context . "\n";
+        }
+        $prompt .= "Post Meta Data:\n" . $meta_context . "\n";
+        $prompt .= "Main Content:\n" . wp_trim_words(strip_tags($post->post_content), 500) . "\n";
 
-        // Add Web Context (Live Page + Homepage)
+        // Add Web Context (Live Page + GMB + Homepage)
         $web_context = $this->get_web_context($post_id);
         if ($web_context) {
-            $prompt .= "\n\nWeb Context (Live Site Info):\n" . $web_context;
+            $prompt .= "\n=== EXTERNAL DATA (USE TO FILL GAPS) ===\n" . $web_context;
         }
 
         $response = $this->make_request([
@@ -350,6 +433,25 @@ class Chroma_LLM_Client
 
         // Sanitize data against schema definition
         $json = $this->sanitize_schema_data($json, $schema_type);
+        
+        // Validate generated schema and provide feedback
+        if (class_exists('Chroma_Schema_Validator')) {
+            $test_schema = array_merge(
+                ['@context' => 'https://schema.org', '@type' => $schema_type],
+                $json
+            );
+            $validation = Chroma_Schema_Validator::validate_and_fix($test_schema, true);
+            
+            if (!empty($validation['warnings'])) {
+                $json['_validation_warnings'] = $validation['warnings'];
+            }
+            if (!empty($validation['fixed'])) {
+                $json['_auto_fixed'] = $validation['fixed'];
+            }
+            if (!empty($validation['errors'])) {
+                $json['_validation_errors'] = $validation['errors'];
+            }
+        }
 
         return $json;
     }
@@ -654,5 +756,224 @@ class Chroma_LLM_Client
         }
 
         return $data;
+    }
+
+    // =========================================================================
+    // PHASE 5: CORE INFRASTRUCTURE - Caching, Rate Limiting, Logging
+    // =========================================================================
+
+    /**
+     * Get cached LLM response
+     */
+    private function get_cached_response($cache_key) {
+        return get_transient('chroma_llm_cache_' . md5($cache_key));
+    }
+
+    /**
+     * Set cached LLM response
+     */
+    private function set_cached_response($cache_key, $data, $expiry = DAY_IN_SECONDS) {
+        set_transient('chroma_llm_cache_' . md5($cache_key), $data, $expiry);
+    }
+    
+    /**
+     * Clear cache for a specific post
+     */
+    public function clear_cache_for_post($post_id) {
+        delete_transient('chroma_llm_cache_' . md5('schema_' . $post_id));
+        delete_transient('chroma_llm_cache_' . md5('seo_' . $post_id));
+    }
+
+    /**
+     * Check rate limit
+     */
+    private function check_rate_limit() {
+        $limit = get_option('chroma_llm_rate_limit', 60); // requests per minute
+        $count = get_transient('chroma_llm_rate_count') ?: 0;
+        return $count < $limit;
+    }
+
+    /**
+     * Record rate limit usage
+     */
+    private function record_rate_limit() {
+        $count = get_transient('chroma_llm_rate_count') ?: 0;
+        set_transient('chroma_llm_rate_count', $count + 1, MINUTE_IN_SECONDS);
+    }
+
+    /**
+     * Log LLM request for debugging
+     */
+    private function log_request($status, $info, $tokens = 0, $duration = 0) {
+        if (!defined('WP_DEBUG') || !WP_DEBUG) return;
+        
+        error_log(sprintf(
+            '[Chroma LLM] %s | Info: %s | Tokens: %d | Duration: %.2fs',
+            $status,
+            is_string($info) ? substr($info, 0, 100) : json_encode($info),
+            $tokens,
+            $duration
+        ));
+    }
+
+    /**
+     * Track token usage for cost monitoring
+     */
+    private function track_usage($tokens, $post_id = 0) {
+        $month_key = 'chroma_llm_usage_' . date('Y-m');
+        $usage = get_option($month_key, [
+            'total_tokens' => 0, 
+            'requests' => 0,
+            'by_post_type' => [],
+            'by_day' => []
+        ]);
+        
+        $usage['total_tokens'] += $tokens;
+        $usage['requests'] += 1;
+        
+        // Track by post type
+        if ($post_id) {
+            $post_type = get_post_type($post_id) ?: 'unknown';
+            $usage['by_post_type'][$post_type] = ($usage['by_post_type'][$post_type] ?? 0) + $tokens;
+        }
+        
+        // Track by day
+        $day = date('Y-m-d');
+        $usage['by_day'][$day] = ($usage['by_day'][$day] ?? 0) + $tokens;
+        
+        update_option($month_key, $usage);
+    }
+    
+    /**
+     * Get usage statistics
+     */
+    public static function get_usage_stats($month = null) {
+        $month = $month ?: date('Y-m');
+        return get_option('chroma_llm_usage_' . $month, [
+            'total_tokens' => 0,
+            'requests' => 0,
+            'by_post_type' => [],
+            'by_day' => []
+        ]);
+    }
+    
+    /**
+     * Calculate estimated cost based on token usage
+     */
+    public static function estimate_cost($tokens, $model = 'gpt-4o-mini') {
+        // Pricing per 1M tokens (as of Dec 2024)
+        $pricing = [
+            'gpt-4o' => ['input' => 2.50, 'output' => 10.00],
+            'gpt-4o-mini' => ['input' => 0.15, 'output' => 0.60],
+            'gpt-4-turbo' => ['input' => 10.00, 'output' => 30.00],
+            'gpt-3.5-turbo' => ['input' => 0.50, 'output' => 1.50],
+        ];
+        
+        $rate = $pricing[$model] ?? $pricing['gpt-4o-mini'];
+        $avg_rate = ($rate['input'] + $rate['output']) / 2;
+        
+        return ($tokens / 1000000) * $avg_rate;
+    }
+
+    /**
+     * Make request with retry logic
+     */
+    private function make_request_with_retry($data, $max_retries = 3) {
+        $attempt = 0;
+        $last_error = null;
+        
+        while ($attempt < $max_retries) {
+            $attempt++;
+            $start_time = microtime(true);
+            
+            // Check rate limit
+            if (!$this->check_rate_limit()) {
+                $this->log_request('[RATE LIMITED]', 'Waiting...', 0, 0);
+                sleep(2);
+                continue;
+            }
+            
+            $response = $this->make_request_internal($data);
+            $duration = microtime(true) - $start_time;
+            
+            if (!is_wp_error($response)) {
+                // Success
+                $this->record_rate_limit();
+                $tokens = $response['usage']['total_tokens'] ?? 0;
+                $this->log_request('[SUCCESS]', 'Attempt ' . $attempt, $tokens, $duration);
+                $this->track_usage($tokens);
+                return $response;
+            }
+            
+            $last_error = $response;
+            $error_code = $response->get_error_code();
+            $error_msg = $response->get_error_message();
+            
+            $this->log_request('[ERROR]', "Attempt $attempt: $error_msg", 0, $duration);
+            
+            // Don't retry on auth errors
+            if (strpos($error_msg, 'Invalid API Key') !== false || $error_code === 'no_api_key') {
+                return $response;
+            }
+            
+            if ($attempt < $max_retries) {
+                $wait = pow(2, $attempt); // Exponential backoff
+                sleep($wait);
+            }
+        }
+        
+        return $last_error ?: new WP_Error('max_retries', 'Request failed after ' . $max_retries . ' attempts');
+    }
+    
+    /**
+     * Internal make request (no retry, no logging)
+     */
+    private function make_request_internal($data) {
+        $api_key = get_option('chroma_openai_api_key', '');
+        $model = get_option('chroma_llm_model', 'gpt-4o-mini');
+        $base_url = get_option('chroma_llm_base_url', 'https://api.openai.com/v1');
+
+        if (empty($api_key)) {
+            return new WP_Error('no_api_key', 'No API Key configured.');
+        }
+
+        $url = ($base_url ?: 'https://api.openai.com/v1') . '/chat/completions';
+
+        $body = array_merge([
+            'model' => $model ?: 'gpt-4o-mini',
+            'temperature' => 0.7,
+        ], $data);
+
+        $response = wp_remote_post($url, [
+            'body' => json_encode($body),
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $api_key
+            ],
+            'timeout' => 60
+        ]);
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $code = wp_remote_retrieve_response_code($response);
+        $body = wp_remote_retrieve_body($response);
+        $decoded = json_decode($body, true);
+
+        if ($code === 429) {
+            return new WP_Error('rate_limited', 'API rate limited. Try again later.');
+        }
+        
+        if ($code >= 500) {
+            return new WP_Error('server_error', 'API server error. Code: ' . $code);
+        }
+
+        if ($code !== 200) {
+            $msg = isset($decoded['error']['message']) ? $decoded['error']['message'] : 'Unknown API Error';
+            return new WP_Error('api_error', $msg);
+        }
+
+        return $decoded;
     }
 }

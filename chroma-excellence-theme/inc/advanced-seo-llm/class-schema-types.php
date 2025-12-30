@@ -36,6 +36,13 @@ class Chroma_Schema_Types
             'HowTo' => self::get_howto_schema(),
             'VideoObject' => self::get_video_object_schema(),
             'ChildCare' => self::get_childcare_schema(),
+            'Course' => self::get_course_schema(),
+            'Menu' => self::get_menu_schema(),
+            'ImageGallery' => self::get_image_gallery_schema(),
+            'SpecialAnnouncement' => self::get_special_announcement_schema(),
+            'ItemList' => self::get_item_list_schema(),
+            'CollectionPage' => self::get_collection_page_schema(),
+            'Speakable' => self::get_speakable_schema(),
         ];
     }
 
@@ -209,6 +216,30 @@ class Chroma_Schema_Types
                     'type' => 'text',
                     'label' => 'Map URL',
                     'description' => 'URL to a map of the location.'
+                ],
+                'hasCredential' => [
+                    'type' => 'repeater',
+                    'label' => 'Licenses & Certifications',
+                    'description' => 'State licenses, accreditations, or certifications.',
+                    'subfields' => [
+                        'name' => ['type' => 'text', 'label' => 'Credential Name'],
+                        'credentialCategory' => ['type' => 'text', 'label' => 'Type (e.g., State License, Accreditation)'],
+                        'recognizedBy' => ['type' => 'text', 'label' => 'Issuing Authority']
+                    ]
+                ],
+                'amenityFeature' => [
+                    'type' => 'repeater',
+                    'label' => 'Amenities & Features',
+                    'description' => 'Facility features like playground, security cameras, etc.',
+                    'subfields' => [
+                        'name' => ['type' => 'text', 'label' => 'Feature Name'],
+                        'value' => ['type' => 'text', 'label' => 'Value (e.g., true, yes, available)']
+                    ]
+                ],
+                'knowsLanguage' => [
+                    'type' => 'textarea',
+                    'label' => 'Languages Supported',
+                    'description' => 'Comma-separated list of languages (e.g., English, Spanish)'
                 ],
                 'custom_fields' => [
                     'type' => 'repeater',
@@ -784,6 +815,307 @@ class Chroma_Schema_Types
                     'type' => 'repeater',
                     'label' => 'Custom Fields',
                     'description' => 'Add any other Schema.org property.',
+                    'subfields' => [
+                        'key' => ['type' => 'text', 'label' => 'Property Name'],
+                        'value' => ['type' => 'textarea', 'label' => 'Value']
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Course (for curriculum programs)
+     */
+    private static function get_course_schema()
+    {
+        return [
+            'label' => 'Course / Curriculum Program',
+            'description' => 'An educational course or program (e.g., Infant Care, Pre-K)',
+            'fields' => [
+                'name' => [
+                    'type' => 'text',
+                    'label' => 'Program Name',
+                    'description' => 'e.g., Pre-K Academy'
+                ],
+                'description' => [
+                    'type' => 'textarea',
+                    'label' => 'Description'
+                ],
+                'provider' => [
+                    'type' => 'text',
+                    'label' => 'Provider Name',
+                    'description' => 'Leave blank to use site name'
+                ],
+                'educationalLevel' => [
+                    'type' => 'text',
+                    'label' => 'Educational Level',
+                    'description' => 'e.g., Infant, Toddler, Preschool, Pre-K'
+                ],
+                'coursePrerequisites' => [
+                    'type' => 'text',
+                    'label' => 'Prerequisites',
+                    'description' => 'e.g., Age 4 by September 1'
+                ],
+                'timeRequired' => [
+                    'type' => 'text',
+                    'label' => 'Duration',
+                    'description' => 'e.g., Full-day, Half-day'
+                ],
+                'offers' => [
+                    'type' => 'repeater',
+                    'label' => 'Tuition/Pricing',
+                    'subfields' => [
+                        'name' => ['type' => 'text', 'label' => 'Plan Name'],
+                        'price' => ['type' => 'text', 'label' => 'Price'],
+                        'priceCurrency' => ['type' => 'text', 'label' => 'Currency (USD)']
+                    ]
+                ],
+                'custom_fields' => [
+                    'type' => 'repeater',
+                    'label' => 'Custom Fields',
+                    'subfields' => [
+                        'key' => ['type' => 'text', 'label' => 'Property Name'],
+                        'value' => ['type' => 'textarea', 'label' => 'Value']
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Menu (for CACFP meal menus)
+     */
+    private static function get_menu_schema()
+    {
+        return [
+            'label' => 'Menu (Meal Program)',
+            'description' => 'Menu for CACFP meal programs',
+            'fields' => [
+                'name' => [
+                    'type' => 'text',
+                    'label' => 'Menu Name',
+                    'description' => 'e.g., Weekly Breakfast Menu'
+                ],
+                'description' => [
+                    'type' => 'textarea',
+                    'label' => 'Description'
+                ],
+                'hasMenuSection' => [
+                    'type' => 'repeater',
+                    'label' => 'Menu Sections',
+                    'subfields' => [
+                        'name' => ['type' => 'text', 'label' => 'Section Name (e.g., Monday)'],
+                        'description' => ['type' => 'textarea', 'label' => 'Menu Items']
+                    ]
+                ],
+                'custom_fields' => [
+                    'type' => 'repeater',
+                    'label' => 'Custom Fields',
+                    'subfields' => [
+                        'key' => ['type' => 'text', 'label' => 'Property Name'],
+                        'value' => ['type' => 'textarea', 'label' => 'Value']
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * ImageGallery (for photo galleries)
+     */
+    private static function get_image_gallery_schema()
+    {
+        return [
+            'label' => 'Image Gallery',
+            'description' => 'Collection of images (classrooms, facilities)',
+            'fields' => [
+                'name' => [
+                    'type' => 'text',
+                    'label' => 'Gallery Name',
+                    'description' => 'e.g., Our Classrooms'
+                ],
+                'description' => [
+                    'type' => 'textarea',
+                    'label' => 'Description'
+                ],
+                'image' => [
+                    'type' => 'repeater',
+                    'label' => 'Images',
+                    'subfields' => [
+                        'contentUrl' => ['type' => 'image', 'label' => 'Image URL'],
+                        'caption' => ['type' => 'text', 'label' => 'Caption'],
+                        'description' => ['type' => 'textarea', 'label' => 'Alt Text']
+                    ]
+                ],
+                'custom_fields' => [
+                    'type' => 'repeater',
+                    'label' => 'Custom Fields',
+                    'subfields' => [
+                        'key' => ['type' => 'text', 'label' => 'Property Name'],
+                        'value' => ['type' => 'textarea', 'label' => 'Value']
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * SpecialAnnouncement (for enrollment, alerts)
+     */
+    private static function get_special_announcement_schema()
+    {
+        return [
+            'label' => 'Special Announcement',
+            'description' => 'Enrollment periods, alerts, snow days',
+            'fields' => [
+                'name' => [
+                    'type' => 'text',
+                    'label' => 'Announcement Title',
+                    'description' => 'e.g., Fall 2025 Enrollment Now Open'
+                ],
+                'text' => [
+                    'type' => 'textarea',
+                    'label' => 'Announcement Text'
+                ],
+                'datePosted' => [
+                    'type' => 'date',
+                    'label' => 'Date Posted'
+                ],
+                'expires' => [
+                    'type' => 'date',
+                    'label' => 'Expiration Date'
+                ],
+                'url' => [
+                    'type' => 'text',
+                    'label' => 'More Info URL'
+                ],
+                'category' => [
+                    'type' => 'text',
+                    'label' => 'Category',
+                    'description' => 'e.g., enrollment, alert, closure'
+                ],
+                'custom_fields' => [
+                    'type' => 'repeater',
+                    'label' => 'Custom Fields',
+                    'subfields' => [
+                        'key' => ['type' => 'text', 'label' => 'Property Name'],
+                        'value' => ['type' => 'textarea', 'label' => 'Value']
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * ItemList (for lists of locations, programs)
+     */
+    private static function get_item_list_schema()
+    {
+        return [
+            'label' => 'Item List',
+            'description' => 'List of items (locations, programs)',
+            'fields' => [
+                'name' => [
+                    'type' => 'text',
+                    'label' => 'List Name',
+                    'description' => 'e.g., Our Locations'
+                ],
+                'description' => [
+                    'type' => 'textarea',
+                    'label' => 'Description'
+                ],
+                'numberOfItems' => [
+                    'type' => 'text',
+                    'label' => 'Number of Items'
+                ],
+                'itemListElement' => [
+                    'type' => 'repeater',
+                    'label' => 'List Items',
+                    'subfields' => [
+                        'position' => ['type' => 'text', 'label' => 'Position'],
+                        'name' => ['type' => 'text', 'label' => 'Item Name'],
+                        'url' => ['type' => 'text', 'label' => 'Item URL']
+                    ]
+                ],
+                'custom_fields' => [
+                    'type' => 'repeater',
+                    'label' => 'Custom Fields',
+                    'subfields' => [
+                        'key' => ['type' => 'text', 'label' => 'Property Name'],
+                        'value' => ['type' => 'textarea', 'label' => 'Value']
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * CollectionPage (for archive pages)
+     */
+    private static function get_collection_page_schema()
+    {
+        return [
+            'label' => 'Collection Page',
+            'description' => 'Archive or listing page',
+            'fields' => [
+                'name' => [
+                    'type' => 'text',
+                    'label' => 'Page Name',
+                    'description' => 'e.g., All Locations'
+                ],
+                'description' => [
+                    'type' => 'textarea',
+                    'label' => 'Description'
+                ],
+                'url' => [
+                    'type' => 'text',
+                    'label' => 'Page URL'
+                ],
+                'mainEntity' => [
+                    'type' => 'text',
+                    'label' => 'Main Entity Type',
+                    'description' => 'e.g., ItemList'
+                ],
+                'custom_fields' => [
+                    'type' => 'repeater',
+                    'label' => 'Custom Fields',
+                    'subfields' => [
+                        'key' => ['type' => 'text', 'label' => 'Property Name'],
+                        'value' => ['type' => 'textarea', 'label' => 'Value']
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Speakable (for voice search optimization)
+     */
+    private static function get_speakable_schema()
+    {
+        return [
+            'label' => 'Speakable (Voice Search)',
+            'description' => 'Sections suitable for voice search (Google Assistant, Alexa)',
+            'fields' => [
+                'name' => [
+                    'type' => 'text',
+                    'label' => 'Content Name',
+                    'description' => 'Name of the speakable content section'
+                ],
+                'cssSelector' => [
+                    'type' => 'textarea',
+                    'label' => 'CSS Selectors',
+                    'description' => 'Comma-separated CSS selectors pointing to speakable content (e.g., .hero-text, .main-description)'
+                ],
+                'xpath' => [
+                    'type' => 'textarea',
+                    'label' => 'XPath Expressions (alternative)',
+                    'description' => 'XPath expressions if CSS selectors not preferred'
+                ],
+                'custom_fields' => [
+                    'type' => 'repeater',
+                    'label' => 'Custom Fields',
                     'subfields' => [
                         'key' => ['type' => 'text', 'label' => 'Property Name'],
                         'value' => ['type' => 'textarea', 'label' => 'Value']

@@ -251,6 +251,21 @@ while (have_posts()):
 		</div>
 		</div>
 		</section>
+
+		<?php 
+		// Age Calculator Widget
+		Chroma_Program_Enhancements::render_age_calculator($program_id);
+		
+		// FAQ Section with Schema
+		Chroma_Program_Enhancements::render_faq_section($program_id);
+		
+		// Photo Gallery
+		Chroma_Program_Enhancements::render_gallery_section($program_id);
+		
+		// Parent Testimonials
+		Chroma_Program_Enhancements::render_testimonials_section($program_id);
+		?>
+
 	</main>
 
 	<style>
