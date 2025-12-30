@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daycare Near Me - Preview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Lora:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: #fff;
+            color: #263238;
+        }
+
+        .near-me-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .near-me-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .near-me-header h1 {
+            font-family: 'Lora', serif;
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .near-me-header p {
+            color: #666;
+            font-size: 18px;
+        }
+
+        #nearest-highlight {
+            margin-top: 20px;
+            padding: 15px 25px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            display: inline-block;
+        }
+
+        .nearest-badge {
+            background: #4caf50;
+            color: #fff;
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .locations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
+        }
+
+        .location-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .location-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .location-card.nearest {
+            border: 3px solid #4caf50;
+        }
+
+        .location-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .card-content {
+            padding: 24px;
+        }
+
+        .card-content h2 {
+            font-size: 20px;
+            margin: 0 0 8px;
+            font-family: 'Lora', serif;
+        }
+
+        .card-content h2 a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .location-city {
+            color: #666;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .address {
+            color: #888;
+            font-size: 14px;
+            margin: 12px 0;
+        }
+
+        .distance-display {
+            color: #0066cc;
+            font-weight: 600;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .btn-view,
+        .btn-call {
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-view {
+            background: #0066cc;
+            color: #fff;
+        }
+
+        .btn-view:hover {
+            background: #0055aa;
+        }
+
+        .btn-call {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .btn-call:hover {
+            background: #e0e0e0;
+        }
+
+        .data-source-note {
+            margin-top: 50px;
+            padding: 20px;
+            background: #fff9e6;
+            border: 2px dashed #ffc107;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .data-source-note h3 {
+            color: #7a6200;
+            margin-bottom: 10px;
+        }
+
+        .data-source-note code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="near-me-page">
+        <header class="near-me-header">
+            <h1>Daycare Near Me</h1>
+            <p>Find quality daycare locations near you.</p>
+
+            <div id="nearest-highlight">
+                <span class="nearest-badge">📍 Nearest to you:</span>
+                <strong>Chroma Cumming</strong>
+                <span>(2.3 mi)</span>
+            </div>
+        </header>
+
+        <section class="locations-grid">
+            <!-- Location 1 - Nearest -->
+            <article class="location-card nearest">
+                <img src="https://images.unsplash.com/photo-1567057419565-4349c49d8a04?w=600" alt="Chroma Cumming">
+                <div class="card-content">
+                    <h2><a href="#">Chroma Cumming</a></h2>
+                    <p class="location-city">Cumming, GA</p>
+                    <p class="address">2425 Dahlonega Hwy, Cumming, GA 30040</p>
+                    <p class="distance-display">📍 2.3 miles away</p>
+                    <div class="card-actions">
+                        <a href="#" class="btn-view">View Location</a>
+                        <a href="tel:770-123-4567" class="btn-call">Call Now</a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Location 2 -->
+            <article class="location-card">
+                <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=600" alt="Chroma Suwanee">
+                <div class="card-content">
+                    <h2><a href="#">Chroma Suwanee</a></h2>
+                    <p class="location-city">Suwanee, GA</p>
+                    <p class="address">1234 Peachtree Industrial Blvd, Suwanee, GA 30024</p>
+                    <p class="distance-display">📍 5.1 miles away</p>
+                    <div class="card-actions">
+                        <a href="#" class="btn-view">View Location</a>
+                        <a href="tel:770-234-5678" class="btn-call">Call Now</a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Location 3 -->
+            <article class="location-card">
+                <img src="https://images.unsplash.com/photo-1544717305-2782549b5136?w=600" alt="Chroma Milton">
+                <div class="card-content">
+                    <h2><a href="#">Chroma Milton</a></h2>
+                    <p class="location-city">Milton, GA</p>
+                    <p class="address">5678 State Route 9, Milton, GA 30004</p>
+                    <p class="distance-display">📍 7.8 miles away</p>
+                    <div class="card-actions">
+                        <a href="#" class="btn-view">View Location</a>
+                        <a href="tel:770-345-6789" class="btn-call">Call Now</a>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <div class="data-source-note">
+            <h3>🔄 How Locations Are Pulled (Dynamic)</h3>
+            <p>This data comes <strong>dynamically</strong> from your WordPress <code>location</code> post type:</p>
+            <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                <li><strong>Title</strong> → <code>post_title</code></li>
+                <li><strong>City</strong> → <code>get_post_meta($id, 'location_city', true)</code></li>
+                <li><strong>State</strong> → <code>get_post_meta($id, 'location_state', true)</code></li>
+                <li><strong>Address</strong> → <code>get_post_meta($id, 'location_address', true)</code></li>
+                <li><strong>Phone</strong> → <code>get_post_meta($id, 'location_phone', true)</code></li>
+                <li><strong>Latitude</strong> → <code>get_post_meta($id, 'geo_lat', true)</code></li>
+                <li><strong>Longitude</strong> → <code>get_post_meta($id, 'geo_lng', true)</code></li>
+                <li><strong>Image</strong> → <code>get_the_post_thumbnail_url($id, 'medium')</code></li>
+            </ul>
+            <p style="margin-top: 15px;">The distance is calculated using the <strong>Haversine formula</strong>
+                comparing user's location (from browser geolocation or IP) to each location's coordinates.</p>
+        </div>
+    </main>
+</body>
+
+</html>

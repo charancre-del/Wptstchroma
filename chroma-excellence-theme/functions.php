@@ -43,6 +43,7 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-cities.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
 require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
+require_once CHROMA_THEME_DIR . '/inc/class-amp-blog.php';
 
 // API Handlers
 require_once CHROMA_THEME_DIR . '/inc/careers-api.php';
