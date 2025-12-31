@@ -159,7 +159,7 @@ class Chroma_Dynamic_Titles
      */
     public function add_settings_page() {
         add_submenu_page(
-            'chroma-llm-settings',
+            'chroma-seo-dashboard',
             'Title Patterns',
             'Title Patterns',
             'manage_options',

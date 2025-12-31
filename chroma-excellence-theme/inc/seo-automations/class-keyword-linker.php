@@ -152,7 +152,7 @@ class Chroma_Keyword_Linker
      */
     public function add_settings_page() {
         add_submenu_page(
-            'chroma-llm-settings',
+            'chroma-seo-dashboard',
             'Keyword Linking',
             'Keyword Linking',
             'manage_options',
