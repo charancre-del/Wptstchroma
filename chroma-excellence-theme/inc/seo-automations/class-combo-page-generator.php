@@ -21,6 +21,7 @@ class Chroma_Combo_Page_Generator
         add_action('template_redirect', [$this, 'handle_combo_page']);
         add_action('template_redirect', [$this, 'handle_sitemap']); // Manual Sitemap Handler
         add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']);
+        add_filter('wpseo_canonical', [$this, 'fix_canonical_url']);
         add_action('admin_menu', [$this, 'add_admin_page'], 20);
         
         // Auto-flush rules if needed (Temporary for update)
@@ -753,6 +754,22 @@ class Chroma_Combo_Page_Generator
             <lastmod>' . esc_html($last_mod) . '</lastmod>
         </sitemap>';
         return $sitemap_index;
+    }
+
+    /**
+     * Fix Canonicals for Combo Pages
+     */
+    public function fix_canonical_url($canonical) {
+        if (get_query_var(self::REWRITE_TAG)) {
+            $program = get_query_var('combo_program');
+            $city = get_query_var('combo_city');
+            $state = get_query_var('combo_state');
+            
+            if ($program && $city && $state) {
+                return home_url("/{$program}-in-{$city}-{$state}/");
+            }
+        }
+        return $canonical;
     }
     
     /**
