@@ -61,7 +61,6 @@ class Chroma_Combo_Page_Generator
         // Find program
         $program = get_page_by_path($program_slug, OBJECT, 'program');
         if (!$program) {
-            // Try matching by title which mimics slug often
             $programs = get_posts([
                 'post_type' => 'program',
                 'name' => $program_slug,
@@ -96,13 +95,33 @@ class Chroma_Combo_Page_Generator
         $wp_query->queried_object_id = $program->ID;
         $wp_query->post = $program;
         
-        // Initializing variables for header checks (prevents notices/errors in some themes)
+        // Initializing variables for header checks
         $wp_query->posts = [$program];
         $wp_query->post_count = 1;
         $wp_query->found_posts = 1;
+
+        // Prepare data for Schema (must happen before get_header)
+        $city_name = ucwords(str_replace('-', ' ', $city_slug));
+        $loc_address = $location ? get_post_meta($location->ID, 'location_address', true) : '';
+        $loc_zip = $location ? get_post_meta($location->ID, 'location_zip', true) : '';
+        $age_range = get_post_meta($program->ID, 'program_age_range', true);
+
+        // Add Schema
+        add_action('wp_head', function() use ($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range) {
+            $this->output_schema($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range);
+        });
+
+        // Add Body Class
+        add_filter('body_class', function($classes) {
+            $classes[] = 'combo-page';
+            return $classes;
+        });
         
-        // Render the combo page
-        $this->render_combo_page($program, $city_slug, $state, $location);
+        // Render the page
+        status_header(200);
+        get_header();
+        echo $this->get_combo_page_html($program, $city_slug, $state, $location);
+        get_footer();
         exit;
     }
     
@@ -141,11 +160,10 @@ class Chroma_Combo_Page_Generator
     }
     
     /**
-     * Render the combo page
+     * Get combo page HTML content
      */
-    public function render_combo_page($program, $city_slug, $state, $location) {
+    public function get_combo_page_html($program, $city_slug, $state, $location) {
         $city_name = ucwords(str_replace('-', ' ', $city_slug));
-        $page_title = 'Best ' . $program->post_title . ' in ' . $city_name . ', ' . $state;
         
         // Get program details
         $age_range = get_post_meta($program->ID, 'program_age_range', true);
@@ -192,12 +210,11 @@ class Chroma_Combo_Page_Generator
             $neighborhoods = [$city_name . ' Downtown', $city_name . ' North', $city_name . ' South'];
         }
         
-        // Output schema in head
-        add_action('wp_head', function() use ($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range) {
-            $this->output_schema($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range);
-        });
+        // Output schema in head (still needs to run directly as it hooks to wp_head)
+        // Note: handle_combo_page will call this separately, or we can leave the hook here if we are careful.
+        // Better to move the hook to handle_combo_page to separate logic.
         
-        get_header();
+        ob_start();
         ?>
         <main class="combo-page bg-brand-cream">
             
@@ -413,7 +430,7 @@ class Chroma_Combo_Page_Generator
             
         </main>
         <?php
-        get_footer();
+        return ob_get_clean();
     }
     
     /**

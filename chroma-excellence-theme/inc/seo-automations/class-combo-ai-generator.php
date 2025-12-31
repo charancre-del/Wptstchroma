@@ -163,6 +163,7 @@ class Chroma_Combo_AI_Generator
      * Generate combo page content using LLM
      */
     private function generate_combo_content($program_name, $city_name, $state) {
+        /** @var Chroma_LLM_Client $chroma_llm_client */
         global $chroma_llm_client;
         
         if (!$chroma_llm_client) {
