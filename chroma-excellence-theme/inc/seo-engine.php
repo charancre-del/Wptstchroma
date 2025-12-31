@@ -1061,7 +1061,7 @@ function chroma_city_faq_schema_output()
 
         // Q3
         $q3 = "What ages do you accept at your $city centers?";
-        $a3 = "We serve children from 6 weeks old (<a href='" . home_url('/programs/infant-care/') . "'>Infant Care</a>) up to 12 years old (<a href='" . home_url('/programs/after-school/') . "'>After School</a>). We also offer a <a href='" . home_url('/programs/pre-k/') . "'>Private Kindergarten</a> option at select locations.";
+        $a3 = "We serve children from 6 weeks old (<a href='" . chroma_get_page_link('infant-care') . "'>Infant Care</a>) up to 12 years old (<a href='" . chroma_get_page_link('after-school') . "'>After School</a>). We also offer a <a href='" . chroma_get_page_link('pre-k-prep') . "'>Pre-K Prep</a> option at select locations.";
 
         // Q4
         $q4 = "How do I enroll my child in $city?";

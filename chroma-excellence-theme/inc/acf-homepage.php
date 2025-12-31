@@ -117,9 +117,9 @@ function chroma_home_hero()
                 'heading' => wp_kses_post(get_theme_mod('chroma_home_hero_heading', $defaults['heading'])),
                 'subheading' => sanitize_text_field(get_theme_mod('chroma_home_hero_subheading', $defaults['subheading'])),
                 'cta_label' => sanitize_text_field(get_theme_mod('chroma_home_hero_cta_label', $defaults['cta_label'])),
-                'cta_url' => esc_url_raw(get_theme_mod('chroma_home_hero_cta_url', $defaults['cta_url'])),
+                'cta_url' => user_trailingslashit(esc_url_raw(get_theme_mod('chroma_home_hero_cta_url', $defaults['cta_url']))),
                 'secondary_label' => sanitize_text_field(get_theme_mod('chroma_home_hero_secondary_label', $defaults['secondary_label'])),
-                'secondary_url' => esc_url_raw(get_theme_mod('chroma_home_hero_secondary_url', $defaults['secondary_url'])),
+                'secondary_url' => user_trailingslashit(esc_url_raw(get_theme_mod('chroma_home_hero_secondary_url', $defaults['secondary_url']))),
         );
 }
 
@@ -160,7 +160,7 @@ function chroma_home_prismpath_panels()
                 'heading' => sanitize_text_field(get_theme_mod('chroma_home_prismpath_heading', $feature['heading'])),
                 'subheading' => sanitize_text_field(get_theme_mod('chroma_home_prismpath_subheading', $feature['subheading'])),
                 'cta_label' => sanitize_text_field(get_theme_mod('chroma_home_prismpath_cta_label', $feature['cta_label'])),
-                'cta_url' => esc_url_raw(get_theme_mod('chroma_home_prismpath_cta_url', $feature['cta_url'])),
+                'cta_url' => user_trailingslashit(esc_url_raw(get_theme_mod('chroma_home_prismpath_cta_url', $feature['cta_url']))),
         );
 
         $cards = chroma_home_get_theme_mod_json('chroma_home_prismpath_cards_json', $defaults['cards']);
@@ -176,7 +176,7 @@ function chroma_home_prismpath_panels()
                                 'heading' => sanitize_text_field($card['heading'] ?? $default_card['heading'] ?? ''),
                                 'text' => sanitize_textarea_field($card['text'] ?? $default_card['text'] ?? ''),
                                 'button' => sanitize_text_field($card['button'] ?? $default_card['button'] ?? ''),
-                                'url' => esc_url_raw($card['url'] ?? $default_card['url'] ?? ''),
+                                'url' => user_trailingslashit(esc_url_raw($card['url'] ?? $default_card['url'] ?? '')),
                                 // Use ?: to check for empty strings, not just null - falls back to defaults
                                 'icon' => sanitize_text_field(($card['icon'] ?? '') ?: ($default_card['icon'] ?? '')),
                                 'icon_bg' => sanitize_text_field(($card['icon_bg'] ?? '') ?: ($default_card['icon_bg'] ?? '')),
@@ -946,7 +946,7 @@ function chroma_home_featured_stories()
                 array(
                         'title' => 'Inside the Prismpath™ Classroom',
                         'excerpt' => 'Take a peek at how our educators weave play and academics together each day.',
-                        'url' => '/stories/prismpath-classroom',
+                        'url' => '/stories/prismpath-classroom/',
                 ),
                 array(
                         'title' => 'Family-Style Dining at Chroma',

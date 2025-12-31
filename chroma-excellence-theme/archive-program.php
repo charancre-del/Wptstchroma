@@ -85,7 +85,7 @@ $programs_query = new WP_Query(array(
 						<!-- Program Card -->
 						<div
 							class="group bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition-all hover:-translate-y-1 flex flex-col h-full fade-in-up <?php echo esc_attr($delay_class); ?>">
-							<div class="h-48 rounded-[2rem] overflow-hidden mb-6 relative">
+							<a href="<?php the_permalink(); ?>" class="h-48 rounded-[2rem] overflow-hidden mb-6 relative block group-hover:opacity-90 transition-opacity">
 								<div
 									class="absolute inset-0 bg-<?php echo esc_attr($colors['light']); ?> group-hover:bg-transparent transition-colors duration-500 z-10">
 								</div>
@@ -105,9 +105,13 @@ $programs_query = new WP_Query(array(
 										<?php echo esc_html($age_range); ?>
 									</div>
 								<?php endif; ?>
-							</div>
+							</a>
 
-							<h2 class="font-serif text-2xl font-bold text-brand-ink mb-2"><?php the_title(); ?></h2>
+							<h2 class="font-serif text-2xl font-bold text-brand-ink mb-2">
+								<a href="<?php the_permalink(); ?>" class="hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
+									<?php the_title(); ?>
+								</a>
+							</h2>
 
 							<p class="text-sm text-brand-ink/90 mb-6 flex-grow">
 								<?php echo has_excerpt() ? get_the_excerpt() : wp_trim_words(get_the_content(), 20); ?>

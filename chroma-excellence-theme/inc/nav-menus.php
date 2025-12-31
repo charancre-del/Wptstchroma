@@ -49,11 +49,11 @@ function chroma_primary_nav_fallback()
 		'programs' => 'Programs',
 		'locations' => 'Locations',
 		'about' => 'About Us',
-		'contact' => 'Contact'
+		'contact-us' => 'Contact'
 	);
 
 	foreach ($pages as $slug => $title) {
-		$url = home_url('/' . $slug . '/');
+		$url = chroma_get_page_link($slug);
 		echo '<a href="' . esc_url($url) . '" class="hover:text-chroma-blue transition">' . esc_html($title) . '</a>';
 	}
 }

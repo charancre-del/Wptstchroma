@@ -316,8 +316,8 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                         class="text-chroma-blue hover:underline">Infant Care</a>) up to 12 years old (<a
                         href="<?php echo esc_url(home_url('/programs/after-school/')); ?>"
                         class="text-chroma-blue hover:underline">After School</a>).
-                    We also offer a <a href="<?php echo esc_url(home_url('/programs/pre-k/')); ?>"
-                        class="text-chroma-blue hover:underline">Private Kindergarten</a> option at select locations.
+                    We also offer a <a href="<?php echo esc_url(chroma_get_page_link('pre-k-prep')); ?>"
+                        class="text-chroma-blue hover:underline">Pre-K Prep</a> program.
                 </p>
             </details>
 
