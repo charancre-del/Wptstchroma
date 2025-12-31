@@ -630,7 +630,7 @@ class Chroma_LLM_Client
     /**
      * Make Request to OpenAI
      */
-    private function make_request($data)
+    public function make_request($data)
     {
         // Lazy-load settings fresh from database to ensure latest values are used
         $api_key = get_option('chroma_openai_api_key', '');
