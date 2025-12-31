@@ -21,7 +21,7 @@ class Chroma_Combo_Page_Generator
         add_action('template_redirect', [$this, 'handle_combo_page']);
         add_action('template_redirect', [$this, 'handle_sitemap']); // Manual Sitemap Handler
         add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']);
-        add_filter('wpseo_canonical', [$this, 'fix_canonical_url']);
+        add_filter('wpseo_canonical', [$this, 'fix_canonical_url'], 99);
         add_action('admin_menu', [$this, 'add_admin_page'], 20);
         
         // Auto-flush rules if needed (Temporary for update)
