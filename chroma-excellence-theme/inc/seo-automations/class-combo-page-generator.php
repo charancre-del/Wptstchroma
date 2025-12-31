@@ -53,6 +53,10 @@ class Chroma_Combo_Page_Generator
         if (!get_query_var(self::REWRITE_TAG)) {
             return;
         }
+
+        // DEBUG: Enable error reporting for blank page issue
+        error_reporting(E_ALL);
+        ini_set('display_errors', 1);
         
         $program_slug = sanitize_title(get_query_var('combo_program'));
         $city_slug = sanitize_title(get_query_var('combo_city'));
