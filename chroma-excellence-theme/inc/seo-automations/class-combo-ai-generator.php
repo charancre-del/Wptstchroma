@@ -16,6 +16,7 @@ class Chroma_Combo_AI_Generator
     public function __construct() {
         add_action('wp_ajax_chroma_combo_ai_generate', [$this, 'ajax_generate_single']);
         add_action('wp_ajax_chroma_combo_ai_bulk_generate', [$this, 'ajax_bulk_generate']);
+        add_action('wp_ajax_chroma_combo_bulk_status', [$this, 'ajax_bulk_status_update']);
         add_action('wp_ajax_chroma_combo_save_data', [$this, 'ajax_save_data']);
         add_action('wp_ajax_chroma_combo_get_data', [$this, 'ajax_get_data']);
     }
@@ -129,6 +130,43 @@ class Chroma_Combo_AI_Generator
             'results' => $results,
             'success_count' => $success_count,
             'error_count' => $error_count
+        ]);
+    }
+
+    /**
+     * Bulk status update (Draft/Publish/Auto)
+     */
+    public function ajax_bulk_status_update() {
+        check_ajax_referer('chroma_combo_ai', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        $combos = $_POST['combos'] ?? [];
+        $status = sanitize_text_field($_POST['status'] ?? 'draft');
+        
+        if (empty($combos)) {
+            wp_send_json_error('No combos selected');
+        }
+        
+        $success_count = 0;
+        
+        foreach ($combos as $combo) {
+            $program_slug = sanitize_title($combo['program_slug'] ?? '');
+            $city_slug = sanitize_title($combo['city_slug'] ?? '');
+            $state = strtoupper(sanitize_text_field($combo['state'] ?? 'GA'));
+            
+            if ($program_slug && $city_slug) {
+                if (Chroma_Combo_Page_Data::save($program_slug, $city_slug, $state, ['status' => $status])) {
+                    $success_count++;
+                }
+            }
+        }
+        
+        wp_send_json_success([
+            'success_count' => $success_count,
+            'message' => "Successfully updated $success_count items to $status"
         ]);
     }
     

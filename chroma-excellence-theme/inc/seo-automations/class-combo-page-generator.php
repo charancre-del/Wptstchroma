@@ -1107,9 +1107,22 @@ class Chroma_Combo_Page_Generator
                         }
                     });
                 } else {
-                    // Status change (simplified)
-                    $('#bulk-status').text('Status updates require backend implementation');
-                    $btn.prop('disabled', false).text('Apply');
+                    // Status change
+                    var status = action.replace('set_', '');
+                    $.post(ajaxurl, {
+                        action: 'chroma_combo_bulk_status',
+                        nonce: nonce,
+                        combos: combos,
+                        status: status
+                    }, function(response) {
+                        $btn.prop('disabled', false).text('Apply');
+                        if (response.success) {
+                            $('#bulk-status').text(response.data.message);
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            $('#bulk-status').text('Error: ' + response.data);
+                        }
+                    });
                 }
             });
         });
