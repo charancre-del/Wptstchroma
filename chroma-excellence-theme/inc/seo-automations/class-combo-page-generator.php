@@ -718,8 +718,8 @@ class Chroma_Combo_Page_Generator
         
         // Pagination
         $per_page_options = [25, 50, 100, 0];
-        $per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : 50;
-        if (!in_array($per_page, $per_page_options)) $per_page = 50;
+        $per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : 100;
+        if (!in_array($per_page, $per_page_options)) $per_page = 100;
         
         $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
         $total_pages = $per_page > 0 ? ceil($total / $per_page) : 1;
