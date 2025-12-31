@@ -26,6 +26,11 @@ class Chroma_Related_Programs
         }
         
         $post_type = get_post_type();
+
+        // Only append on single pages (prevent leakage into excerpts/loops)
+        if (!is_singular($post_type)) {
+            return $content;
+        }
         
         if ($post_type === 'location') {
             return $content . $this->get_programs_at_location(get_the_ID());
