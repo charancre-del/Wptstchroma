@@ -380,7 +380,7 @@ class Chroma_Combo_Page_Generator
                         <strong><?php echo implode('</strong>, <strong>', array_map('esc_html', array_slice($neighborhoods, 0, 3))); ?></strong>.
                         <br><br>
                         <?php if ($local_employers): ?>
-                        Whether you work at <strong><?php echo esc_html($local_employers); ?></strong> or commute via GA-400, our drop-off and pick-up hours (6:30 AM – 6:30 PM) are designed for working parents in <?php echo esc_html($county); ?> County.
+                        Whether you work at <strong><?php echo esc_html($local_employers); ?></strong> or commute via <?php echo esc_html($major_road ?: 'GA-400'); ?>, our drop-off and pick-up hours (6:30 AM – 6:30 PM) are designed for working parents in <?php echo esc_html($county); ?> County.
                         <?php else: ?>
                         Our convenient hours (6:30 AM – 6:30 PM) are designed for working parents in <?php echo esc_html($county); ?> County.
                         <?php endif; ?>
