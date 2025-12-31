@@ -120,22 +120,7 @@ class Chroma_Combo_Page_Generator
         // Render the page
         status_header(200);
         get_header();
-        
-        // DEBUG: Enable errors locally to see why it crashes
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-        echo "<!-- START COMBO RENDER -->";
-        
-        try {
-            $html = $this->get_combo_page_html($program, $city_slug, $state, $location);
-            echo "<!-- Content Generated Length: " . strlen($html) . " -->";
-            echo $html;
-        } catch (Throwable $e) {
-            echo "<!-- FATAL ERROR: " . esc_html($e->getMessage()) . " in " . esc_html($e->getFile()) . " on line " . $e->getLine() . " -->";
-            echo "<div class='error'>Error generating content: " . esc_html($e->getMessage()) . "</div>";
-        }
-        
-        echo "<!-- END COMBO RENDER -->";
+        echo $this->get_combo_page_html($program, $city_slug, $state, $location);
         get_footer();
         exit;
     }
@@ -211,7 +196,12 @@ class Chroma_Combo_Page_Generator
         $county = 'Forsyth'; // Default
         
         if ($city_page) {
-            $neighborhoods = array_filter(array_map('trim', explode(',', get_post_meta($city_page->ID, 'city_neighborhoods', true))));
+            $raw_neighborhoods = get_post_meta($city_page->ID, 'city_neighborhoods', true);
+            if (is_array($raw_neighborhoods)) {
+                $neighborhoods = $raw_neighborhoods;
+            } else {
+                $neighborhoods = array_filter(array_map('trim', explode(',', (string)$raw_neighborhoods)));
+            }
             $major_road = get_post_meta($city_page->ID, 'city_major_road', true);
             $local_employers = get_post_meta($city_page->ID, 'city_employers', true);
             $county = get_post_meta($city_page->ID, 'city_county', true) ?: 'Forsyth';
