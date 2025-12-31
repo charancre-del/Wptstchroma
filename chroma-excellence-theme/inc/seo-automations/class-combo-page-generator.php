@@ -19,9 +19,17 @@ class Chroma_Combo_Page_Generator
         add_action('init', [$this, 'add_rewrite_rules']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_combo_page']);
+        add_action('template_redirect', [$this, 'handle_sitemap']); // Manual Sitemap Handler
         add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']);
-        add_action('init', [$this, 'register_sitemap_provider']);
         add_action('admin_menu', [$this, 'add_admin_page'], 20);
+        
+        // Auto-flush rules if needed (Temporary for update)
+        if (!get_option('chroma_combo_sitemap_flush_Check')) {
+            add_action('init', function() {
+                flush_rewrite_rules();
+                update_option('chroma_combo_sitemap_flush_Check', true);
+            }, 99);
+        }
     }
 
     /**
@@ -42,6 +50,13 @@ class Chroma_Combo_Page_Generator
             'index.php?' . self::REWRITE_TAG . '=1&combo_program=$matches[1]&combo_city=$matches[2]&combo_state=$matches[3]',
             'top'
         );
+
+        // Custom Sitemap Rule: /sitemap-combos.xml
+        add_rewrite_rule(
+            '^sitemap-combos\.xml$',
+            'index.php?chroma_combo_sitemap=1',
+            'top'
+        );
     }
     
     /**
@@ -50,8 +65,10 @@ class Chroma_Combo_Page_Generator
     public function add_query_vars($vars) {
         $vars[] = self::REWRITE_TAG;
         $vars[] = 'combo_program';
+        $vars[] = 'combo_program';
         $vars[] = 'combo_city';
         $vars[] = 'combo_state';
+        $vars[] = 'chroma_combo_sitemap'; // Query var for sitemap
         return $vars;
     }
     
@@ -691,10 +708,45 @@ class Chroma_Combo_Page_Generator
     }
 
     /**
+     * Handle Manual Sitemap Request
+     */
+    public function handle_sitemap() {
+        if (get_query_var('chroma_combo_sitemap') == 1) {
+            header('Content-Type: application/xml; charset=utf-8');
+            echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+            echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+            
+            $combos = self::get_all_combos();
+            foreach ($combos as $combo) {
+                // Check published
+                $program_slug = $combo['program']->post_name;
+                $city_slug = sanitize_title($combo['city']);
+                $state = $combo['state'];
+                
+                $saved_data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
+                $status = $saved_data['status'] ?? 'auto';
+                
+                if ($status === 'published' || $status === 'publish') {
+                    echo '<url>' . "\n";
+                    echo '  <loc>' . esc_url($combo['url']) . '</loc>' . "\n";
+                    echo '  <lastmod>' . date('c') . '</lastmod>' . "\n";
+                    echo '  <changefreq>weekly</changefreq>' . "\n";
+                    echo '  <priority>0.8</priority>' . "\n";
+                    echo '</url>' . "\n";
+                }
+            }
+            
+            echo '</urlset>';
+            exit;
+        }
+    }
+
+    /**
      * Add to Yoast Sitemap
      */
     public function add_to_sitemap($sitemap_index) {
-        $sitemap_url = home_url('/wp-sitemap-combos-1.xml');
+        // Link to our custom manual sitemap (rewrite rule based)
+        $sitemap_url = home_url('/sitemap-combos.xml');
         $last_mod = date('c');
         $sitemap_index .= '<sitemap>
             <loc>' . esc_url($sitemap_url) . '</loc>
