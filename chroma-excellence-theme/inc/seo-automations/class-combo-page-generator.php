@@ -942,8 +942,32 @@ class Chroma_Combo_Page_Generator
                 $('#edit-state').val(state);
                 $('#modal-title').text('Edit: ' + $row.find('td:eq(1) strong').text());
                 
-                // Load existing data via AJAX (simplified - just show modal)
+                // Load existing data via AJAX
                 $('#combo-edit-modal').fadeIn(200);
+                
+                // Show loading state
+                $('#edit-custom-intro').val('Loading...');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_combo_get_data',
+                    nonce: nonce,
+                    program_slug: program,
+                    city_slug: city,
+                    state: state
+                }, function(response) {
+                    if (response.success) {
+                        var data = response.data;
+                        $('#edit-custom-intro').val(data.custom_intro || '');
+                        $('#edit-neighborhoods').val((data.neighborhoods || []).join(', '));
+                        $('#edit-major-road').val(data.major_road || '');
+                        $('#edit-employers').val(data.local_employers || '');
+                        $('#edit-county').val(data.county || '');
+                        $('#edit-status').val(data.status || 'auto');
+                    } else {
+                        $('#edit-custom-intro').val('');
+                        alert('Failed to load data.');
+                    }
+                });
             });
             
             // Close modal (only when clicking the background or cancel button)

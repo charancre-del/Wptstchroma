@@ -17,6 +17,7 @@ class Chroma_Combo_AI_Generator
         add_action('wp_ajax_chroma_combo_ai_generate', [$this, 'ajax_generate_single']);
         add_action('wp_ajax_chroma_combo_ai_bulk_generate', [$this, 'ajax_bulk_generate']);
         add_action('wp_ajax_chroma_combo_save_data', [$this, 'ajax_save_data']);
+        add_action('wp_ajax_chroma_combo_get_data', [$this, 'ajax_get_data']);
     }
     
     /**
@@ -157,6 +158,21 @@ class Chroma_Combo_AI_Generator
         Chroma_Combo_Page_Data::save($program_slug, $city_slug, $state, $data);
         
         wp_send_json_success('Saved successfully');
+    }
+
+    /**
+     * Get combo page data
+     */
+    public function ajax_get_data() {
+        check_ajax_referer('chroma_combo_ai', 'nonce');
+        
+        $program_slug = sanitize_title($_POST['program_slug'] ?? '');
+        $city_slug = sanitize_title($_POST['city_slug'] ?? '');
+        $state = strtoupper(sanitize_text_field($_POST['state'] ?? 'GA'));
+        
+        $data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
+        
+        wp_send_json_success($data);
     }
     
     /**
