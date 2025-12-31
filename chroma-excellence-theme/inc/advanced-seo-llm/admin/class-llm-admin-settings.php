@@ -16,7 +16,7 @@ class Chroma_LLM_Admin_Settings
     const MENU_SLUG = 'chroma-llm-settings';
     
     public function __construct() {
-        add_action('admin_menu', [$this, 'add_menu_page']);
+        add_action('admin_menu', [$this, 'add_menu_page'], 15); // Priority 15 - register submenus after parent
         add_action('admin_init', [$this, 'register_settings']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
     }

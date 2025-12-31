@@ -20,7 +20,7 @@ class Chroma_SEO_Dashboard
      */
     public function init()
     {
-        add_action('admin_menu', [$this, 'register_menu_page']);
+        add_action('admin_menu', [$this, 'register_menu_page'], 5); // Priority 5 - register parent menu first
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('wp_ajax_chroma_fetch_schema_inspector', [$this, 'ajax_fetch_inspector_data']);
         add_action('wp_ajax_chroma_save_schema_inspector', [$this, 'ajax_save_inspector_data']);
