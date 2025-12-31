@@ -148,9 +148,13 @@ class Chroma_Combo_Page_Generator
 
         // Force Canonical (Closure method to ensure context)
         $combo_canonical = home_url("/{$program_slug}-in-{$city_slug}-{$state}/");
-        add_filter('wpseo_canonical', function($current) use ($combo_canonical) {
-            return $combo_canonical;
-        }, 100);
+        
+        // High priority filter for Yoast Canonical AND OpenGraph URL
+        foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $filter) {
+            add_filter($filter, function($current) use ($combo_canonical) {
+                return $combo_canonical;
+            }, PHP_INT_MAX);
+        }
         
         // Render the page
         status_header(200);

@@ -42,7 +42,12 @@ class Chroma_Canonical_Enforcer
         }
         
         // Handle special cases
-        if (is_front_page()) {
+        if (get_query_var('chroma_combo')) {
+            $program_slug = get_query_var('combo_program');
+            $city_slug = get_query_var('combo_city');
+            $state = get_query_var('combo_state');
+            $url = home_url("/{$program_slug}-in-{$city_slug}-{$state}/");
+        } elseif (is_front_page()) {
             $url = home_url('/');
         } elseif (is_singular()) {
             $url = get_permalink();
