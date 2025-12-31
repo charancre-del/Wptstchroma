@@ -18,7 +18,7 @@ class Chroma_Dynamic_Titles
     public function __construct() {
         add_filter('document_title_parts', [$this, 'filter_title_parts'], 20);
         add_filter('pre_get_document_title', [$this, 'filter_title'], 20);
-        add_action('admin_menu', [$this, 'add_settings_page']);
+        add_action('admin_menu', [$this, 'add_settings_page'], 20);
         add_action('admin_init', [$this, 'register_settings']);
     }
     

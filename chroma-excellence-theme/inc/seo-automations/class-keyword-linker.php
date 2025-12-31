@@ -18,7 +18,7 @@ class Chroma_Keyword_Linker
     
     public function __construct() {
         add_filter('the_content', [$this, 'auto_link_keywords'], 15);
-        add_action('admin_menu', [$this, 'add_settings_page']);
+        add_action('admin_menu', [$this, 'add_settings_page'], 20);
         add_action('admin_init', [$this, 'register_settings']);
     }
     

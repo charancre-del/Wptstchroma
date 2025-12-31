@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 class Chroma_Link_Equity_Analyzer
 {
     public function __construct() {
-        add_action('admin_menu', [$this, 'add_dashboard_page']);
+        add_action('admin_menu', [$this, 'add_dashboard_page'], 20);
     }
     
     /**

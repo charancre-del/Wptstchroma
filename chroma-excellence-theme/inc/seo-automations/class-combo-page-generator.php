@@ -20,7 +20,7 @@ class Chroma_Combo_Page_Generator
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_combo_page']);
         add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']);
-        add_action('admin_menu', [$this, 'add_admin_page']);
+        add_action('admin_menu', [$this, 'add_admin_page'], 20);
     }
     
     /**
