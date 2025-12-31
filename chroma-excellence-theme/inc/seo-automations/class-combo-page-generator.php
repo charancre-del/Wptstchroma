@@ -248,10 +248,26 @@ class Chroma_Combo_Page_Generator
                             <a href="#tour" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-blue text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-brand-ink transition-all">
                                 Schedule Visit
                             </a>
-                            <?php if ($loc_address): ?>
+                            <?php 
+                            // Only show address if the location is actually IN this city
+                            $show_loc_details = false;
+                            if ($location) {
+                                $real_city = get_post_meta($location->ID, 'location_city', true);
+                                if (strcasecmp(trim($real_city), trim($city_slug)) === 0 || strcasecmp(trim($real_city), trim($city_name)) === 0) {
+                                    $show_loc_details = true;
+                                }
+                            }
+                            ?>
+
+                            <?php if ($show_loc_details && $loc_address): ?>
                             <span class="flex items-center gap-2 text-sm font-bold text-brand-ink/60 px-4 py-4">
                                 <svg class="w-4 h-4 text-chroma-red" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
                                 <?php echo esc_html($loc_address); ?>
+                            </span>
+                            <?php else: ?>
+                            <span class="flex items-center gap-2 text-sm font-bold text-brand-ink/60 px-4 py-4">
+                                <svg class="w-4 h-4 text-chroma-blue" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
+                                Serving <?php echo esc_html($city_name); ?> Families
                             </span>
                             <?php endif; ?>
                         </div>
@@ -329,7 +345,7 @@ class Chroma_Combo_Page_Generator
                         Our 
                         <?php endif; ?>
                         <?php echo esc_html($city_name); ?> campus is the preferred choice for families living in 
-                        <strong><?php echo esc_html(implode('</strong>, <strong>', array_slice($neighborhoods, 0, 3))); ?></strong>.
+                        <strong><?php echo implode('</strong>, <strong>', array_map('esc_html', array_slice($neighborhoods, 0, 3))); ?></strong>.
                         <br><br>
                         <?php if ($local_employers): ?>
                         Whether you work at <strong><?php echo esc_html($local_employers); ?></strong> or commute via GA-400, our drop-off and pick-up hours (6:30 AM – 6:30 PM) are designed for working parents in <?php echo esc_html($county); ?> County.
@@ -340,37 +356,71 @@ class Chroma_Combo_Page_Generator
                 </div>
             </section>
             
-            <!-- Tour Form Section -->
+            <!-- Tour/Location Selection Section -->
             <section id="tour" class="py-24 bg-chroma-blueDark text-white">
-                <div class="max-w-3xl mx-auto px-4 text-center">
-                    <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6">Visit Our <?php echo esc_html($city_name); ?> Classroom</h2>
-                    <p class="text-white/60 mb-10">See the <?php echo esc_html($program->post_title); ?> environment in person. Meet our Director and teachers.</p>
+                <div class="max-w-7xl mx-auto px-4 text-center">
+                    <?php 
+                    // Check for nearby locations from City Page
+                    $nearby_ids = [];
+                    if ($city_page) {
+                        $nearby_ids = get_post_meta($city_page->ID, 'city_nearby_locations', true);
+                    }
                     
-                    <form class="bg-white p-8 rounded-[2rem] text-left space-y-4 shadow-2xl" action="<?php echo esc_url(home_url('/schedule-a-tour/')); ?>" method="get">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label class="text-[10px] font-bold text-brand-ink/50 uppercase tracking-widest block mb-1">Parent Name</label>
-                                <input type="text" name="name" class="w-full p-3 bg-brand-cream rounded-lg text-brand-ink border-none focus:ring-2 focus:ring-chroma-blue" required>
+                    // Fallback to searching if no explicit links (optional, but requested to use checked ones)
+                    // If we have locations, show grid. Else show form.
+                    if (!empty($nearby_ids) && is_array($nearby_ids)): 
+                        $grid_query = new WP_Query([
+                            'post_type' => 'location',
+                            'post__in' => $nearby_ids,
+                            'orderby' => 'post__in',
+                            'posts_per_page' => -1
+                        ]);
+                    ?>
+                        <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6">Chroma Locations Serving <?php echo esc_html($city_name); ?></h2>
+                        <p class="text-white/60 mb-12">Select the campus closest to your home or work.</p>
+                        
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+                            <?php 
+                            while ($grid_query->have_posts()): $grid_query->the_post(); 
+                                $grid_id = get_the_ID();
+                                $grid_address = get_post_meta($grid_id, 'location_address', true);
+                                $grid_city = get_post_meta($grid_id, 'location_city', true);
+                                if ($grid_city && !$grid_address) $grid_address = $grid_city;
+                                $grid_rating = get_post_meta($grid_id, 'location_google_rating', true) ?: '4.9';
+                                $grid_image = get_the_post_thumbnail_url($grid_id, 'medium_large') ?: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?q=80&w=600&auto=format&fit=crop';
+                            ?>
+                            <div class="group p-6 rounded-3xl bg-white text-brand-ink shadow-2xl transition-all hover:-translate-y-1">
+                                <div class="h-48 rounded-2xl bg-brand-cream mb-6 overflow-hidden relative">
+                                    <img src="<?php echo esc_url($grid_image); ?>" class="w-full h-full object-cover" alt="<?php the_title_attribute(); ?>">
+                                    <div class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm text-brand-ink">
+                                        <?php echo esc_html($grid_rating); ?> ★
+                                    </div>
+                                </div>
+                                <h3 class="font-serif text-xl font-bold mb-2"><?php the_title(); ?></h3>
+                                <?php if ($grid_address): ?>
+                                <p class="text-sm opacity-60 mb-1"><?php echo esc_html($grid_address); ?></p>
+                                <?php endif; ?>
+                                <p class="text-xs font-bold uppercase tracking-widest mb-6 opacity-80">Serving <?php echo esc_html($city_name); ?> Families</p>
+                                <div class="mt-auto">
+                                    <a href="<?php the_permalink(); ?>" class="block w-full py-3 bg-chroma-blue text-white text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-ink transition-colors">
+                                        View Campus
+                                    </a>
+                                </div>
                             </div>
-                            <div>
-                                <label class="text-[10px] font-bold text-brand-ink/50 uppercase tracking-widest block mb-1">Phone</label>
-                                <input type="tel" name="phone" class="w-full p-3 bg-brand-cream rounded-lg text-brand-ink border-none focus:ring-2 focus:ring-chroma-blue" required>
+                            <?php endwhile; wp_reset_postdata(); ?>
+                        </div>
+
+                    <?php else: ?>
+                        <!-- Default Form Logic (Fallback) -->
+                        <div class="max-w-3xl mx-auto">
+                            <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6">Visit Our <?php echo esc_html($city_name); ?> Classroom</h2>
+                            <p class="text-white/60 mb-10">See the <?php echo esc_html($program->post_title); ?> environment in person. Meet our Director and teachers.</p>
+                            
+                            <div class="bg-white p-8 rounded-[2rem] text-left shadow-2xl">
+                                <?php echo do_shortcode('[chroma_tour_form]'); ?>
                             </div>
                         </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-brand-ink/50 uppercase tracking-widest block mb-1">Email</label>
-                            <input type="email" name="email" class="w-full p-3 bg-brand-cream rounded-lg text-brand-ink border-none focus:ring-2 focus:ring-chroma-blue" required>
-                        </div>
-                        
-                        <!-- Hidden fields -->
-                        <input type="hidden" name="program_interest" value="<?php echo esc_attr($program->post_title); ?>">
-                        <input type="hidden" name="location" value="<?php echo esc_attr($city_name); ?>">
-                        <input type="hidden" name="source" value="combo-page">
-                        
-                        <button type="submit" class="w-full py-4 bg-chroma-blue text-white font-bold rounded-lg uppercase tracking-widest hover:bg-brand-ink transition-colors">
-                            Request Tour
-                        </button>
-                    </form>
+                    <?php endif; ?>
                 </div>
             </section>
             

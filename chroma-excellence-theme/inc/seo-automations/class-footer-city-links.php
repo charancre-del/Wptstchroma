@@ -31,11 +31,19 @@ class Chroma_Footer_City_Links
         $cities = [];
         
         foreach ($locations as $loc) {
-            $city = get_post_meta($loc->ID, 'location_city', true);
-            $state = get_post_meta($loc->ID, 'location_state', true);
+            $city = trim(get_post_meta($loc->ID, 'location_city', true));
+            $state = trim(get_post_meta($loc->ID, 'location_state', true));
+            
+            // Default to GA if state is missing (most locations are in GA)
+            if (empty($state)) {
+                $state = 'GA';
+            }
+            $state = strtoupper($state);
             
             if ($city) {
+                // Use state in key to distinguish same city in diff states (e.g. Springfield)
                 $key = sanitize_title($city . '-' . $state);
+                
                 if (!isset($cities[$key])) {
                     $cities[$key] = [
                         'city' => $city,
