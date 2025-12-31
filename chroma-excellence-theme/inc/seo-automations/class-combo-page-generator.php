@@ -187,6 +187,11 @@ class Chroma_Combo_Page_Generator
             return $meta_desc;
         }, PHP_INT_MAX);
         
+        // Also output meta description tag directly (in case Yoast isn't outputting it)
+        add_action('wp_head', function() use ($meta_desc) {
+            echo '<meta name="description" content="' . esc_attr($meta_desc) . '" />' . "\n";
+        }, 1);
+        
         // Render the page
         status_header(200);
         get_header();

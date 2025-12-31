@@ -633,6 +633,11 @@ add_action('wp_head', 'chroma_hreflang_tags', 1);
  */
 function chroma_shared_meta_description()
 {
+        // Skip for combo pages - handled by class-combo-page-generator.php
+        if (get_query_var('chroma_combo')) {
+                return;
+        }
+        
         // 1. Manual Override (General SEO Meta Box)
         $post_id = get_the_ID();
         $manual_description = $post_id ? get_post_meta($post_id, 'meta_description', true) : '';
