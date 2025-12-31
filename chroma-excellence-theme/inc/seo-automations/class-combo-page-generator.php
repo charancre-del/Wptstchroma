@@ -16,11 +16,22 @@ class Chroma_Combo_Page_Generator
     const REWRITE_TAG = 'chroma_combo';
     
     public function __construct() {
+        require_once dirname(__FILE__) . '/class-combo-sitemap-provider.php';
+        
         add_action('init', [$this, 'add_rewrite_rules']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_combo_page']);
         add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']);
+        add_action('init', [$this, 'register_sitemap_provider']);
         add_action('admin_menu', [$this, 'add_admin_page'], 20);
+    }
+
+    /**
+     * Register WP Native Sitemap Provider
+     */
+    public function register_sitemap_provider() {
+        $provider = new Chroma_Combo_Sitemap_Provider();
+        wp_register_sitemap_provider('combos', $provider);
     }
     
     /**
