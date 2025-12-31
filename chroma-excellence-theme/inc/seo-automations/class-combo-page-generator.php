@@ -51,6 +51,7 @@ class Chroma_Combo_Page_Generator
      */
     public function handle_combo_page() {
         if (!get_query_var(self::REWRITE_TAG)) {
+            // echo 'DEBUG: Rewrite tag not set'; 
             return;
         }
 
@@ -58,9 +59,13 @@ class Chroma_Combo_Page_Generator
         error_reporting(E_ALL);
         ini_set('display_errors', 1);
         
+        echo "DEBUG: Entered handle_combo_page<br>";
+        
         $program_slug = sanitize_title(get_query_var('combo_program'));
         $city_slug = sanitize_title(get_query_var('combo_city'));
         $state = strtoupper(sanitize_text_field(get_query_var('combo_state')));
+        
+        echo "DEBUG: Slug: $program_slug, City: $city_slug, State: $state<br>";
         
         // Find program
         $program = get_page_by_path($program_slug, OBJECT, 'program');
