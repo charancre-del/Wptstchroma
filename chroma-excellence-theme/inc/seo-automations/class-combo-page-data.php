@@ -83,6 +83,7 @@ class Chroma_Combo_Page_Data
             'auto' => 'Auto',
             'draft' => 'Draft',
             'published' => 'Published',
+            'publish' => 'Published', // Alias for robustness
             'ai_pending' => 'AI Pending'
         ];
         return $labels[$status] ?? 'Unknown';

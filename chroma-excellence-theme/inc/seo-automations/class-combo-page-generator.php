@@ -763,8 +763,8 @@ class Chroma_Combo_Page_Generator
                     <select id="bulk-action-selector">
                         <option value="">Bulk Actions</option>
                         <option value="ai_generate">🤖 AI Generate Content</option>
-                        <option value="publish">📤 Set as Published</option>
-                        <option value="draft">📝 Set as Draft</option>
+                        <option value="set_published">📤 Set as Published</option>
+                        <option value="set_draft">📝 Set as Draft</option>
                     </select>
                     <button type="button" id="do-bulk-action" class="button">Apply</button>
                     <span id="bulk-status" style="margin-left: 10px;"></span>
