@@ -341,6 +341,58 @@ class Chroma_LLM_Admin_Settings
                     }
                 });
             });
+            
+            // GMB Sync for selected posts
+            $('#chroma-sync-gmb-selected').on('click', function() {
+                var selected = $('.gap-checkbox:checked').map(function() { 
+                    return $(this).val(); 
+                }).get();
+                
+                if (!selected.length) {
+                    alert('Select at least one post');
+                    return;
+                }
+                
+                var $btn = $(this);
+                $btn.prop('disabled', true).text('Syncing...');
+                
+                var completed = 0;
+                var errors = [];
+                var total = selected.length;
+                
+                // Process each post sequentially
+                function syncNext(index) {
+                    if (index >= selected.length) {
+                        $btn.prop('disabled', false).text('Sync GMB Data for Selected');
+                        if (errors.length) {
+                            alert('Completed: ' + completed + '/' + total + '\nErrors: ' + errors.join(', '));
+                        } else {
+                            alert('Successfully synced GMB data for ' + completed + ' posts!');
+                        }
+                        location.reload();
+                        return;
+                    }
+                    
+                    $.post(chromaLLM.ajaxUrl, {
+                        action: 'chroma_sync_gmb_data',
+                        nonce: chromaLLM.nonce,
+                        post_id: selected[index]
+                    }, function(response) {
+                        if (response.success) {
+                            completed++;
+                        } else {
+                            errors.push(selected[index] + ': ' + response.data.message);
+                        }
+                        $btn.text('Syncing... (' + (index + 1) + '/' + total + ')');
+                        syncNext(index + 1);
+                    }).fail(function() {
+                        errors.push(selected[index] + ': Request failed');
+                        syncNext(index + 1);
+                    });
+                }
+                
+                syncNext(0);
+            });
         });
         </script>
         <?php
