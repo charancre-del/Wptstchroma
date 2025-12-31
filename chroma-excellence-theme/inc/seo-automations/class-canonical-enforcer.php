@@ -119,6 +119,11 @@ class Chroma_Canonical_Enforcer
             return;
         }
         
+        // If Yoast SEO is active, let it handle the canonical to avoid duplicates
+        if (defined('WPSEO_VERSION')) {
+            return;
+        }
+        
         $canonical = $this->get_canonical_url();
         
         if ($canonical) {
