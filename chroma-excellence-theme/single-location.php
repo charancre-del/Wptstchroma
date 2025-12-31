@@ -455,7 +455,7 @@ while (have_posts()):
 							$programs_query->the_post();
 							$program_fields = chroma_get_program_fields();
 							$age_range = $program_fields['age_range'];
-							$excerpt = $program_fields['excerpt'] ?: get_the_excerpt();
+							$excerpt = $program_fields['excerpt'] ?: ($programs_query->post->post_excerpt ?: wp_trim_words(wp_strip_all_tags($programs_query->post->post_content), 25, '...'));
 							$slug = get_post_field('post_name');
 							$colors = $color_map[$slug] ?? $color_map['toddler'];
 							$prog_img = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
