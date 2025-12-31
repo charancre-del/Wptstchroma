@@ -77,8 +77,23 @@ class Chroma_Combo_Page_Generator
             return;
         }
         
+        
         // Find nearest location in this city/state
         $location = $this->find_location_in_city($city_slug, $state);
+        
+        // Setup global post for template compatibility
+        global $post, $wp_query;
+        $post = $program;
+        setup_postdata($post);
+        
+        // Trick WP into thinking this is a singular page to prevent theme errors
+        $wp_query->is_page = true;
+        $wp_query->is_singular = true;
+        $wp_query->is_home = false;
+        $wp_query->is_archive = false;
+        $wp_query->experiment_is_combo = true; // Flag for other plugins if needed
+        $wp_query->queried_object = $program;
+        $wp_query->queried_object_id = $program->ID;
         
         // Render the combo page
         $this->render_combo_page($program, $city_slug, $state, $location);
@@ -529,18 +544,27 @@ class Chroma_Combo_Page_Generator
             }
         }
         
-        // Source 3: Locations (ONLY to add location_id to existing cities, not create new)
+        // Source 3: Locations
         $locations = get_posts(['post_type' => 'location', 'posts_per_page' => -1]);
+        $use_locations_as_source = empty($cities); // FALLBACK: use locations if no cities from CPT or manual
+        
         foreach ($locations as $loc) {
             $city = get_post_meta($loc->ID, 'location_city', true);
             $state = get_post_meta($loc->ID, 'location_state', true);
             if ($city && $state) {
                 $key = sanitize_title($city . '-' . $state);
                 if (isset($cities[$key])) {
-                    // Only link location_id if city already exists from City CPT or manual
+                    // Link location_id if city already exists
                     $cities[$key]['location_id'] = $loc->ID;
+                } elseif ($use_locations_as_source) {
+                    // Create city from location as fallback
+                    $cities[$key] = [
+                        'city' => $city, 
+                        'state' => $state, 
+                        'location_id' => $loc->ID,
+                        'city_page_id' => null
+                    ];
                 }
-                // Note: We no longer create new cities from locations alone
             }
         }
         
@@ -844,9 +868,16 @@ class Chroma_Combo_Page_Generator
                 $('#combo-edit-modal').fadeIn(200);
             });
             
-            // Close modal
-            $('#close-modal-btn, #combo-edit-modal').on('click', function(e) {
-                if (e.target === this) $('#combo-edit-modal').fadeOut(200);
+            // Close modal (only when clicking the background or cancel button)
+            $('#close-modal-btn').on('click', function() {
+                $('#combo-edit-modal').fadeOut(200);
+            });
+            $('#combo-edit-modal').on('click', function(e) {
+                if (e.target === this) $(this).fadeOut(200);
+            });
+            // Prevent clicks inside modal content from bubbling to background
+            $('#combo-edit-modal > div').on('click', function(e) {
+                e.stopPropagation();
             });
             
             // Save combo data
