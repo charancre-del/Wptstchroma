@@ -96,6 +96,7 @@ require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
 
 
 require_once CHROMA_THEME_DIR . '/inc/security.php';
+require_once CHROMA_THEME_DIR . '/inc/force-trailing-slashes.php';
 
 /**
  * Remove Legacy JavaScript & Styles
