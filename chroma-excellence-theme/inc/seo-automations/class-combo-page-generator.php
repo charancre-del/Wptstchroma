@@ -156,6 +156,37 @@ class Chroma_Combo_Page_Generator
             }, PHP_INT_MAX);
         }
         
+        // Dynamic SEO Title (30-60 chars target)
+        $program_title = get_the_title($program);
+        $seo_title = "{$program_title} in {$city_name}, {$state} | Chroma";
+        
+        // Truncate if too long (max 60 chars)
+        if (strlen($seo_title) > 60) {
+            $seo_title = "{$program_title} in {$city_name} | Chroma";
+        }
+        if (strlen($seo_title) > 60) {
+            $seo_title = substr($seo_title, 0, 57) . '...';
+        }
+        
+        add_filter('wpseo_title', function($current) use ($seo_title) {
+            return $seo_title;
+        }, PHP_INT_MAX);
+        
+        add_filter('pre_get_document_title', function($current) use ($seo_title) {
+            return $seo_title;
+        }, PHP_INT_MAX);
+        
+        // Dynamic Meta Description (60-160 chars target)
+        $meta_desc = $this->generate_combo_meta_description($program, $city_name, $state, $age_range);
+        
+        add_filter('wpseo_metadesc', function($current) use ($meta_desc) {
+            return $meta_desc;
+        }, PHP_INT_MAX);
+        
+        add_filter('wpseo_opengraph_desc', function($current) use ($meta_desc) {
+            return $meta_desc;
+        }, PHP_INT_MAX);
+        
         // Render the page
         status_header(200);
         get_header();
@@ -196,6 +227,55 @@ class Chroma_Combo_Page_Generator
         
         // Return any location
         return $locations[0] ?? null;
+    }
+    
+    /**
+     * Generate dynamic meta description for combo page (60-160 chars)
+     */
+    public function generate_combo_meta_description($program, $city_name, $state, $age_range) {
+        $program_title = get_the_title($program);
+        $program_slug = $program->post_name;
+        
+        // Define templates based on program type
+        $templates = [
+            'infant-care' => "Trusted Infant Care in {$city_name}, {$state} for babies {$age_range}. Safe sleep, sensory play & nurturing caregivers. Tour today!",
+            'toddler-care' => "Quality Toddler Care in {$city_name}, {$state} for ages {$age_range}. Language-rich learning, guided play & caring teachers. Enroll now!",
+            'preschool' => "Explore Preschool in {$city_name}, {$state} for ages {$age_range}. Hands-on learning, small classes & dedicated teachers. Schedule a tour!",
+            'pre-k-prep' => "Pre-K Prep in {$city_name}, {$state} for ages {$age_range}. Kindergarten readiness, structured learning & social growth. Enroll today!",
+            'ga-pre-k' => "Free GA Pre-K in {$city_name} for 4-year-olds. State-funded, kindergarten-ready curriculum at Chroma. Limited spots—enroll now!",
+            'after-school' => "After School program in {$city_name}, {$state} for ages {$age_range}. Homework help, enrichment activities & safe transportation. Join us!",
+            'camp-summer-winter-fall' => "Summer & Holiday Camps in {$city_name}, {$state}. Fun activities, field trips & friendships for kids {$age_range}. Register today!",
+            'parents-day-out' => "Parents Day Out in {$city_name}, {$state} for ages {$age_range}. Flexible care, engaging activities & peace of mind. Book your spot!",
+        ];
+        
+        // Get template or generate a generic one
+        if (isset($templates[$program_slug])) {
+            $description = $templates[$program_slug];
+        } else {
+            // Generic fallback
+            $description = "{$program_title} in {$city_name}, {$state}";
+            if ($age_range) {
+                $description .= " for ages {$age_range}";
+            }
+            $description .= ". Quality early learning with caring teachers at Chroma Early Learning. Schedule a tour today!";
+        }
+        
+        // Handle empty age range
+        $description = str_replace(' for ages .', '.', $description);
+        $description = str_replace(' for babies .', '.', $description);
+        $description = str_replace(' for kids .', '.', $description);
+        
+        // Ensure within 160 chars
+        if (strlen($description) > 160) {
+            $description = substr($description, 0, 157) . '...';
+        }
+        
+        // Ensure minimum 60 chars
+        if (strlen($description) < 60) {
+            $description .= " Trusted childcare serving families in Metro Atlanta.";
+        }
+        
+        return $description;
     }
     
     /**
