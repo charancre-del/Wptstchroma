@@ -19,6 +19,9 @@ require_once __DIR__ . '/class-footer-city-links.php';
 
 // Phase 2: Auto-Generated Pages
 require_once __DIR__ . '/class-combo-page-generator.php';
+require_once __DIR__ . '/class-combo-page-data.php';
+require_once __DIR__ . '/class-combo-ai-generator.php';
+require_once __DIR__ . '/class-combo-internal-links.php';
 require_once __DIR__ . '/class-near-me-pages.php';
 
 // Phase 3: Technical SEO
@@ -67,7 +70,7 @@ add_action('after_setup_theme', function() {
  */
 add_action('admin_menu', function() {
     add_submenu_page(
-        'chroma-llm-settings',
+        'chroma-seo-dashboard',
         'SEO Automations',
         'SEO Automations',
         'manage_options',

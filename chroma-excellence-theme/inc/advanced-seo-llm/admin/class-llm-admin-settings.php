@@ -22,41 +22,30 @@ class Chroma_LLM_Admin_Settings
     }
     
     /**
-     * Add admin menu pages
+     * Add admin menu pages as subpages under SEO & LLM
      */
     public function add_menu_page() {
-        // Main menu
-        add_menu_page(
-            'LLM & Schema',
-            'LLM & Schema',
-            'manage_options',
-            self::MENU_SLUG,
-            [$this, 'render_settings_page'],
-            'dashicons-chart-area',
-            81
-        );
-        
-        // Subpages
+        // Add as submenu under SEO & LLM dashboard
         add_submenu_page(
-            self::MENU_SLUG,
-            'Settings',
-            'Settings',
+            'chroma-seo-dashboard',     // Parent slug
+            'LLM Settings',
+            'LLM Settings',
             'manage_options',
             self::MENU_SLUG,
             [$this, 'render_settings_page']
         );
         
         add_submenu_page(
-            self::MENU_SLUG,
-            'Usage Dashboard',
-            'Usage Dashboard',
+            'chroma-seo-dashboard',
+            'LLM Usage',
+            'LLM Usage',
             'manage_options',
             'chroma-llm-usage',
             [$this, 'render_usage_page']
         );
         
         add_submenu_page(
-            self::MENU_SLUG,
+            'chroma-seo-dashboard',
             'Bulk Operations',
             'Bulk Operations',
             'manage_options',
@@ -65,7 +54,7 @@ class Chroma_LLM_Admin_Settings
         );
         
         add_submenu_page(
-            self::MENU_SLUG,
+            'chroma-seo-dashboard',
             'Review Queue',
             'Review Queue',
             'manage_options',

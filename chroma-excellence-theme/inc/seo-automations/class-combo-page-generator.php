@@ -124,135 +124,345 @@ class Chroma_Combo_Page_Generator
      */
     private function render_combo_page($program, $city_slug, $state, $location) {
         $city_name = ucwords(str_replace('-', ' ', $city_slug));
-        $page_title = $program->post_title . ' in ' . $city_name . ', ' . $state;
+        $page_title = 'Best ' . $program->post_title . ' in ' . $city_name . ', ' . $state;
         
         // Get program details
         $age_range = get_post_meta($program->ID, 'program_age_range', true);
         $description = get_the_excerpt($program) ?: wp_trim_words($program->post_content, 50);
+        $program_image = get_the_post_thumbnail_url($program, 'large') ?: '';
         
-        // Get location details if found
-        $loc_name = $location ? $location->post_title : '';
-        $loc_address = $location ? get_post_meta($location->ID, 'location_address', true) : '';
-        $loc_phone = $location ? get_post_meta($location->ID, 'location_phone', true) : '';
-        $loc_url = $location ? get_permalink($location) : '';
+        // Try to get city page for enhanced local SEO data
+        $city_page = $this->find_city_page($city_slug, $state);
+        
+        // Location details (physical address, phone) - from location post
+        $loc_name = '';
+        $loc_address = '';
+        $loc_phone = '';
+        $loc_url = '';
+        $loc_zip = '';
+        
+        // Always get location details from the location post itself
+        if ($location) {
+            $loc_name = $location->post_title;
+            $loc_address = get_post_meta($location->ID, 'location_address', true);
+            $loc_phone = get_post_meta($location->ID, 'location_phone', true);
+            $loc_url = get_permalink($location);
+            $loc_zip = get_post_meta($location->ID, 'location_zip', true);
+        }
+        
+        // Local SEO data (neighborhoods, roads, employers) - from city page
+        $neighborhoods = [];
+        $major_road = '';
+        $local_employers = '';
+        $county = 'Forsyth'; // Default
+        
+        if ($city_page) {
+            $neighborhoods = array_filter(array_map('trim', explode(',', get_post_meta($city_page->ID, 'city_neighborhoods', true))));
+            $major_road = get_post_meta($city_page->ID, 'city_major_road', true);
+            $local_employers = get_post_meta($city_page->ID, 'city_employers', true);
+            $county = get_post_meta($city_page->ID, 'city_county', true) ?: 'Forsyth';
+        } elseif ($location) {
+            // Fallback: try to get county from location
+            $county = get_post_meta($location->ID, 'location_county', true) ?: 'Forsyth';
+        }
+        
+        // Fallback neighborhoods if none defined
+        if (empty($neighborhoods)) {
+            $neighborhoods = [$city_name . ' Downtown', $city_name . ' North', $city_name . ' South'];
+        }
+        
+        // Output schema in head
+        add_action('wp_head', function() use ($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range) {
+            $this->output_schema($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range);
+        });
         
         get_header();
         ?>
-        <main class="combo-page">
-            <article class="combo-content">
-                <header class="combo-header">
-                    <h1><?php echo esc_html($page_title); ?></h1>
-                    <?php if ($age_range): ?>
-                        <p class="age-badge">Ages: <?php echo esc_html($age_range); ?></p>
-                    <?php endif; ?>
-                </header>
-                
-                <section class="combo-intro">
-                    <p>Looking for quality <strong><?php echo esc_html($program->post_title); ?></strong> 
-                    in <strong><?php echo esc_html($city_name); ?>, <?php echo esc_html($state); ?></strong>? 
-                    Chroma Early Learning provides exceptional early childhood education programs designed 
-                    to nurture your child's development in a safe, engaging environment.</p>
-                </section>
-                
-                <section class="combo-program-details">
-                    <h2>About Our <?php echo esc_html($program->post_title); ?> Program</h2>
-                    <?php echo wp_kses_post($description); ?>
-                    <a href="<?php echo get_permalink($program); ?>" class="btn-learn-more">
-                        Learn More About This Program →
-                    </a>
-                </section>
-                
-                <?php if ($location): ?>
-                <section class="combo-location">
-                    <h2>Nearest Location in <?php echo esc_html($city_name); ?></h2>
-                    <div class="location-card">
-                        <?php if (has_post_thumbnail($location)): ?>
-                            <?php echo get_the_post_thumbnail($location, 'medium'); ?>
+        <main class="combo-page bg-brand-cream">
+            
+            <!-- Hero Section -->
+            <section class="relative pt-20 pb-24 bg-white overflow-hidden">
+                <div class="absolute top-0 right-0 w-2/3 h-full bg-gradient-to-l from-chroma-blue/5 to-transparent -z-10"></div>
+                <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <?php if ($age_range): ?>
+                        <div class="inline-flex items-center gap-2 bg-chroma-blue/10 text-chroma-blue px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-6">
+                            Now Enrolling: <?php echo esc_html($age_range); ?>
+                        </div>
                         <?php endif; ?>
-                        <div class="location-info">
-                            <h3><?php echo esc_html($loc_name); ?></h3>
+                        
+                        <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl text-brand-ink mb-6 leading-tight">
+                            Premier <?php echo esc_html($program->post_title); ?> in 
+                            <span class="italic text-chroma-blue"><?php echo esc_html($city_name); ?>, <?php echo esc_html($state); ?>.</span>
+                        </h1>
+                        
+                        <p class="text-lg text-brand-ink/70 mb-8 leading-relaxed">
+                            Searching for the best <?php echo esc_html(strtolower($program->post_title)); ?> near <?php echo esc_html($neighborhoods[0] ?? $city_name); ?>? 
+                            At Chroma <?php echo esc_html($city_name); ?>, we combine the safety you need with the enriching curriculum your child deserves.
+                        </p>
+                        
+                        <div class="flex flex-wrap gap-4">
+                            <a href="#tour" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-blue text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-brand-ink transition-all">
+                                Schedule Visit
+                            </a>
                             <?php if ($loc_address): ?>
-                                <p class="address"><?php echo esc_html($loc_address); ?></p>
+                            <span class="flex items-center gap-2 text-sm font-bold text-brand-ink/60 px-4 py-4">
+                                <svg class="w-4 h-4 text-chroma-red" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/></svg>
+                                <?php echo esc_html($loc_address); ?>
+                            </span>
                             <?php endif; ?>
-                            <?php if ($loc_phone): ?>
-                                <p class="phone"><a href="tel:<?php echo esc_attr($loc_phone); ?>"><?php echo esc_html($loc_phone); ?></a></p>
-                            <?php endif; ?>
-                            <div class="cta-buttons">
-                                <a href="<?php echo esc_url($loc_url); ?>" class="btn-primary">View Location</a>
-                                <a href="<?php echo esc_url($loc_url); ?>#schedule-tour" class="btn-secondary">Schedule a Tour</a>
-                            </div>
                         </div>
                     </div>
-                </section>
-                <?php endif; ?>
-                
-                <section class="combo-faq">
-                    <h2>Frequently Asked Questions</h2>
-                    <div class="faq-item">
-                        <h3>What ages does the <?php echo esc_html($program->post_title); ?> program serve?</h3>
-                        <p><?php echo $age_range ? 'Our program serves children ages ' . esc_html($age_range) . '.' : 'Contact us for age requirements.'; ?></p>
+                    
+                    <div class="relative h-[400px] lg:h-[450px] rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white">
+                        <?php if ($program_image): ?>
+                            <img src="<?php echo esc_url($program_image); ?>" 
+                                 class="w-full h-full object-cover" 
+                                 alt="<?php echo esc_attr($program->post_title); ?> students in <?php echo esc_attr($city_name); ?>" 
+                                 loading="eager">
+                        <?php else: ?>
+                            <div class="w-full h-full bg-gradient-to-br from-chroma-blue/20 to-chroma-red/20 flex items-center justify-center">
+                                <span class="text-6xl">🎨</span>
+                            </div>
+                        <?php endif; ?>
                     </div>
-                    <div class="faq-item">
-                        <h3>Is there a location in <?php echo esc_html($city_name); ?>?</h3>
-                        <p><?php echo $location ? 'Yes! Our ' . esc_html($loc_name) . ' location serves the ' . esc_html($city_name) . ' area.' : 'We serve the ' . esc_html($city_name) . ' area from our nearby locations.'; ?></p>
+                </div>
+            </section>
+            
+            <!-- Why Choose Section -->
+            <section class="py-20 bg-brand-cream">
+                <div class="max-w-7xl mx-auto px-4 lg:px-6">
+                    <div class="text-center mb-16 max-w-3xl mx-auto">
+                        <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
+                            Why <?php echo esc_html($city_name); ?> Parents Choose Our <?php echo esc_html($program->post_title); ?>
+                        </h2>
+                        <p class="text-brand-ink/60">
+                            We understand that choosing care in <?php echo esc_html($city_name); ?> is a big decision. Here is what sets our <?php echo esc_html($program->post_title); ?> apart.
+                        </p>
                     </div>
-                </section>
-            </article>
+                    
+                    <div class="grid md:grid-cols-3 gap-8">
+                        <!-- Benefit 1: Low Ratios -->
+                        <div class="bg-white p-8 rounded-3xl shadow-sm border border-brand-ink/5">
+                            <div class="w-12 h-12 bg-chroma-red/10 text-chroma-red rounded-xl flex items-center justify-center text-xl mb-4">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
+                            </div>
+                            <h3 class="font-bold text-xl mb-2">Low Ratios</h3>
+                            <p class="text-sm text-brand-ink/70">Our <?php echo esc_html($city_name); ?> campus maintains strict teacher-to-student ratios, ensuring your child gets the individual attention they need.</p>
+                        </div>
+                        
+                        <!-- Benefit 2: Prismpath -->
+                        <div class="bg-white p-8 rounded-3xl shadow-sm border border-brand-ink/5">
+                            <div class="w-12 h-12 bg-chroma-yellow/10 text-chroma-yellow rounded-xl flex items-center justify-center text-xl mb-4">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+                            </div>
+                            <h3 class="font-bold text-xl mb-2">Prismpath™ Curriculum</h3>
+                            <p class="text-sm text-brand-ink/70">Specifically designed for <?php echo esc_html($age_range ?: 'early learners'); ?>, our curriculum balances play-based learning with school readiness.</p>
+                        </div>
+                        
+                        <!-- Benefit 3: Real-Time Updates -->
+                        <div class="bg-white p-8 rounded-3xl shadow-sm border border-brand-ink/5">
+                            <div class="w-12 h-12 bg-chroma-green/10 text-chroma-green rounded-xl flex items-center justify-center text-xl mb-4">
+                                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg>
+                            </div>
+                            <h3 class="font-bold text-xl mb-2">Real-Time Updates</h3>
+                            <p class="text-sm text-brand-ink/70">Parents in <?php echo esc_html($city_name); ?> love our app. Get photos and updates throughout the workday straight to your phone.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Hyper-Local SEO Section -->
+            <section class="py-20 bg-white border-y border-brand-ink/5">
+                <div class="max-w-4xl mx-auto px-4 text-center">
+                    <h2 class="font-serif text-3xl font-bold mb-6">
+                        Serving Families in <?php echo esc_html($neighborhoods[0] ?? $city_name); ?> 
+                        <?php if (count($neighborhoods) > 1): ?> & <?php echo esc_html($neighborhoods[1]); ?><?php endif; ?>
+                    </h2>
+                    <p class="text-lg text-brand-ink/70 leading-relaxed">
+                        <?php if ($major_road): ?>
+                        Located conveniently off <strong><?php echo esc_html($major_road); ?></strong>, our 
+                        <?php else: ?>
+                        Our 
+                        <?php endif; ?>
+                        <?php echo esc_html($city_name); ?> campus is the preferred choice for families living in 
+                        <strong><?php echo esc_html(implode('</strong>, <strong>', array_slice($neighborhoods, 0, 3))); ?></strong>.
+                        <br><br>
+                        <?php if ($local_employers): ?>
+                        Whether you work at <strong><?php echo esc_html($local_employers); ?></strong> or commute via GA-400, our drop-off and pick-up hours (6:30 AM – 6:30 PM) are designed for working parents in <?php echo esc_html($county); ?> County.
+                        <?php else: ?>
+                        Our convenient hours (6:30 AM – 6:30 PM) are designed for working parents in <?php echo esc_html($county); ?> County.
+                        <?php endif; ?>
+                    </p>
+                </div>
+            </section>
+            
+            <!-- Tour Form Section -->
+            <section id="tour" class="py-24 bg-chroma-blueDark text-white">
+                <div class="max-w-3xl mx-auto px-4 text-center">
+                    <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6">Visit Our <?php echo esc_html($city_name); ?> Classroom</h2>
+                    <p class="text-white/60 mb-10">See the <?php echo esc_html($program->post_title); ?> environment in person. Meet our Director and teachers.</p>
+                    
+                    <form class="bg-white p-8 rounded-[2rem] text-left space-y-4 shadow-2xl" action="<?php echo esc_url(home_url('/schedule-a-tour/')); ?>" method="get">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-bold text-brand-ink/50 uppercase tracking-widest block mb-1">Parent Name</label>
+                                <input type="text" name="name" class="w-full p-3 bg-brand-cream rounded-lg text-brand-ink border-none focus:ring-2 focus:ring-chroma-blue" required>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-brand-ink/50 uppercase tracking-widest block mb-1">Phone</label>
+                                <input type="tel" name="phone" class="w-full p-3 bg-brand-cream rounded-lg text-brand-ink border-none focus:ring-2 focus:ring-chroma-blue" required>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-brand-ink/50 uppercase tracking-widest block mb-1">Email</label>
+                            <input type="email" name="email" class="w-full p-3 bg-brand-cream rounded-lg text-brand-ink border-none focus:ring-2 focus:ring-chroma-blue" required>
+                        </div>
+                        
+                        <!-- Hidden fields -->
+                        <input type="hidden" name="program_interest" value="<?php echo esc_attr($program->post_title); ?>">
+                        <input type="hidden" name="location" value="<?php echo esc_attr($city_name); ?>">
+                        <input type="hidden" name="source" value="combo-page">
+                        
+                        <button type="submit" class="w-full py-4 bg-chroma-blue text-white font-bold rounded-lg uppercase tracking-widest hover:bg-brand-ink transition-colors">
+                            Request Tour
+                        </button>
+                    </form>
+                </div>
+            </section>
+            
+            <!-- FAQ Section -->
+            <section class="py-24 bg-white border-t border-brand-ink/5">
+                <div class="max-w-4xl mx-auto px-4">
+                    <h2 class="font-serif text-3xl md:text-4xl font-bold text-center text-brand-ink mb-12">Common Questions</h2>
+                    
+                    <div class="space-y-4">
+                        <details class="group bg-brand-cream rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer">
+                            <summary class="flex items-center justify-between font-bold text-brand-ink list-none">
+                                <span>What are the tuition rates for <?php echo esc_html($program->post_title); ?> in <?php echo esc_html($city_name); ?>?</span>
+                                <span class="text-chroma-blue group-open:rotate-180 transition-transform">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </span>
+                            </summary>
+                            <p class="mt-3 text-sm text-brand-ink/70 leading-relaxed">
+                                Tuition varies based on the specific program and schedule (full-time vs. part-time). Please schedule a tour to receive a detailed tuition sheet for our <?php echo esc_html($city_name); ?> campus.
+                            </p>
+                        </details>
+                        
+                        <details class="group bg-brand-cream rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer">
+                            <summary class="flex items-center justify-between font-bold text-brand-ink list-none">
+                                <span>Is food included in the program?</span>
+                                <span class="text-chroma-blue group-open:rotate-180 transition-transform">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </span>
+                            </summary>
+                            <p class="mt-3 text-sm text-brand-ink/70 leading-relaxed">
+                                Yes! We provide a nutritious breakfast, hot lunch, and afternoon snack prepared fresh daily. Our menus are CACFP compliant and we accommodate most dietary restrictions.
+                            </p>
+                        </details>
+                        
+                        <details class="group bg-brand-cream rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer">
+                            <summary class="flex items-center justify-between font-bold text-brand-ink list-none">
+                                <span>Are the teachers at <?php echo esc_html($city_name); ?> certified?</span>
+                                <span class="text-chroma-blue group-open:rotate-180 transition-transform">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </span>
+                            </summary>
+                            <p class="mt-3 text-sm text-brand-ink/70 leading-relaxed">
+                                Absolutely. All lead teachers hold a CDA, TCC, or higher degree in Early Childhood Education. Every staff member is also CPR/First Aid certified and undergoes rigorous background checks.
+                            </p>
+                        </details>
+                        
+                        <?php if ($age_range): ?>
+                        <details class="group bg-brand-cream rounded-2xl p-6 shadow-sm border border-brand-ink/5 cursor-pointer">
+                            <summary class="flex items-center justify-between font-bold text-brand-ink list-none">
+                                <span>What ages does the <?php echo esc_html($program->post_title); ?> program serve?</span>
+                                <span class="text-chroma-blue group-open:rotate-180 transition-transform">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </span>
+                            </summary>
+                            <p class="mt-3 text-sm text-brand-ink/70 leading-relaxed">
+                                Our <?php echo esc_html($program->post_title); ?> program serves children ages <?php echo esc_html($age_range); ?>.
+                            </p>
+                        </details>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </section>
+            
         </main>
-        
-        <style>
-            .combo-page { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
-            .combo-header { text-align: center; margin-bottom: 40px; }
-            .combo-header h1 { font-size: 36px; margin-bottom: 10px; }
-            .age-badge { display: inline-block; background: #e8f4ff; color: #0066cc; padding: 5px 15px; border-radius: 20px; }
-            .combo-intro { font-size: 18px; line-height: 1.8; margin-bottom: 40px; }
-            .combo-program-details, .combo-location, .combo-faq { margin-bottom: 40px; }
-            .combo-program-details h2, .combo-location h2, .combo-faq h2 { font-size: 24px; margin-bottom: 20px; }
-            .btn-learn-more { display: inline-block; margin-top: 15px; color: #0066cc; }
-            .location-card { display: flex; gap: 20px; background: #f9f9f9; padding: 20px; border-radius: 12px; }
-            .location-card img { width: 200px; height: 150px; object-fit: cover; border-radius: 8px; }
-            .location-info h3 { margin: 0 0 10px; }
-            .location-info .address, .location-info .phone { margin: 5px 0; color: #666; }
-            .cta-buttons { display: flex; gap: 10px; margin-top: 15px; }
-            .btn-primary, .btn-secondary { padding: 10px 20px; border-radius: 6px; text-decoration: none; }
-            .btn-primary { background: #0066cc; color: #fff; }
-            .btn-secondary { background: #f0f0f0; color: #333; }
-            .faq-item { margin-bottom: 20px; padding: 20px; background: #f5f5f5; border-radius: 8px; }
-            .faq-item h3 { margin: 0 0 10px; font-size: 16px; }
-            .faq-item p { margin: 0; }
-        </style>
-        
         <?php
-        // Add schema
-        $this->output_schema($program, $city_name, $state, $location);
-        
         get_footer();
+    }
+    
+    /**
+     * Find city CPT page
+     */
+    private function find_city_page($city_slug, $state) {
+        $city_normalized = str_replace('-', ' ', $city_slug);
+        
+        $cities = get_posts([
+            'post_type' => 'city',
+            'posts_per_page' => 1,
+            'post_status' => 'publish',
+            'meta_query' => [
+                'relation' => 'OR',
+                [
+                    'key' => 'city_name',
+                    'value' => $city_normalized,
+                    'compare' => 'LIKE'
+                ]
+            ]
+        ]);
+        
+        if (!empty($cities)) {
+            return $cities[0];
+        }
+        
+        // Fallback: try by post title
+        $city = get_page_by_path($city_slug, OBJECT, 'city');
+        return $city ?: null;
     }
     
     /**
      * Output schema markup
      */
-    private function output_schema($program, $city_name, $state, $location) {
+    private function output_schema($program, $city_name, $state, $location, $loc_address = '', $loc_zip = '', $age_range = '') {
         $schema = [
             '@context' => 'https://schema.org',
-            '@type' => 'Course',
-            'name' => $program->post_title . ' in ' . $city_name . ', ' . $state,
-            'description' => get_the_excerpt($program) ?: wp_trim_words($program->post_content, 50),
+            '@type' => 'Service',
+            'serviceType' => $program->post_title,
             'provider' => [
-                '@type' => 'Organization',
-                'name' => 'Chroma Early Learning'
+                '@type' => 'Preschool',
+                'name' => 'Chroma Early Learning Academy - ' . $city_name,
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'addressLocality' => $city_name,
+                    'addressRegion' => $state
+                ]
+            ],
+            'areaServed' => [
+                '@type' => 'City',
+                'name' => $city_name
             ]
         ];
         
-        if ($location) {
-            $schema['provider']['address'] = [
-                '@type' => 'PostalAddress',
-                'addressLocality' => get_post_meta($location->ID, 'location_city', true),
-                'addressRegion' => get_post_meta($location->ID, 'location_state', true)
+        if ($loc_address) {
+            $schema['provider']['address']['streetAddress'] = $loc_address;
+        }
+        if ($loc_zip) {
+            $schema['provider']['address']['postalCode'] = $loc_zip;
+        }
+        
+        if ($age_range) {
+            $schema['audience'] = [
+                '@type' => 'EducationalAudience',
+                'educationalRole' => 'student',
+                'audienceType' => 'Children ' . $age_range
             ];
         }
         
-        echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>';
+        echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
     
     /**
@@ -270,7 +480,9 @@ class Chroma_Combo_Page_Generator
                     'program' => $prog,
                     'city' => $city['city'],
                     'state' => $city['state'],
-                    'url' => home_url('/' . $prog->post_name . '-in-' . sanitize_title($city['city']) . '-' . strtolower($city['state']) . '/')
+                    'url' => home_url('/' . $prog->post_name . '-in-' . sanitize_title($city['city']) . '-' . strtolower($city['state']) . '/'),
+                    'city_page_id' => $city['city_page_id'] ?? null,
+                    'location_id' => $city['location_id'] ?? null
                 ];
             }
         }
@@ -280,18 +492,24 @@ class Chroma_Combo_Page_Generator
     
     /**
      * Get all cities from hybrid sources
+     * Priority: City CPT → Manual additions → Locations (only for linking)
      */
     public static function get_all_cities() {
         $cities = [];
         
-        // Source 1: From location posts
-        $locations = get_posts(['post_type' => 'location', 'posts_per_page' => -1]);
-        foreach ($locations as $loc) {
-            $city = get_post_meta($loc->ID, 'location_city', true);
-            $state = get_post_meta($loc->ID, 'location_state', true);
-            if ($city && $state) {
-                $key = sanitize_title($city . '-' . $state);
-                $cities[$key] = ['city' => $city, 'state' => $state, 'location_id' => $loc->ID];
+        // Source 1: City CPT (PRIMARY SOURCE)
+        $city_posts = get_posts(['post_type' => 'city', 'posts_per_page' => -1, 'post_status' => 'publish']);
+        foreach ($city_posts as $city_post) {
+            $city_name = get_post_meta($city_post->ID, 'city_name', true) ?: $city_post->post_title;
+            $state = get_post_meta($city_post->ID, 'city_state', true) ?: 'GA';
+            if ($city_name && $state) {
+                $key = sanitize_title($city_name . '-' . $state);
+                $cities[$key] = [
+                    'city' => $city_name, 
+                    'state' => $state, 
+                    'location_id' => null,
+                    'city_page_id' => $city_post->ID
+                ];
             }
         }
         
@@ -301,8 +519,28 @@ class Chroma_Combo_Page_Generator
             if (!empty($m['city']) && !empty($m['state'])) {
                 $key = sanitize_title($m['city'] . '-' . $m['state']);
                 if (!isset($cities[$key])) {
-                    $cities[$key] = ['city' => $m['city'], 'state' => $m['state'], 'location_id' => null];
+                    $cities[$key] = [
+                        'city' => $m['city'], 
+                        'state' => $m['state'], 
+                        'location_id' => null,
+                        'city_page_id' => null
+                    ];
                 }
+            }
+        }
+        
+        // Source 3: Locations (ONLY to add location_id to existing cities, not create new)
+        $locations = get_posts(['post_type' => 'location', 'posts_per_page' => -1]);
+        foreach ($locations as $loc) {
+            $city = get_post_meta($loc->ID, 'location_city', true);
+            $state = get_post_meta($loc->ID, 'location_state', true);
+            if ($city && $state) {
+                $key = sanitize_title($city . '-' . $state);
+                if (isset($cities[$key])) {
+                    // Only link location_id if city already exists from City CPT or manual
+                    $cities[$key]['location_id'] = $loc->ID;
+                }
+                // Note: We no longer create new cities from locations alone
             }
         }
         
@@ -314,7 +552,7 @@ class Chroma_Combo_Page_Generator
      */
     public function add_admin_page() {
         add_submenu_page(
-            'chroma-llm-settings',
+            'chroma-seo-dashboard',
             'Auto Pages',
             'Auto Pages',
             'manage_options',
@@ -328,38 +566,183 @@ class Chroma_Combo_Page_Generator
      */
     public function render_admin_page() {
         $combos = self::get_all_combos();
+        $total = count($combos);
+        
+        // Add combo data to each
+        foreach ($combos as &$combo) {
+            $combo['data'] = Chroma_Combo_Page_Data::get(
+                $combo['program']->post_name,
+                sanitize_title($combo['city']),
+                $combo['state']
+            );
+        }
+        unset($combo);
+        
+        // Pagination
+        $per_page_options = [25, 50, 100, 0];
+        $per_page = isset($_GET['per_page']) ? intval($_GET['per_page']) : 50;
+        if (!in_array($per_page, $per_page_options)) $per_page = 50;
+        
+        $paged = isset($_GET['paged']) ? max(1, intval($_GET['paged'])) : 1;
+        $total_pages = $per_page > 0 ? ceil($total / $per_page) : 1;
+        
+        $offset = $per_page > 0 ? ($paged - 1) * $per_page : 0;
+        $display_combos = $per_page > 0 ? array_slice($combos, $offset, $per_page) : $combos;
+        $showing_count = count($display_combos);
+        
+        $base_url = admin_url('admin.php?page=chroma-auto-pages');
+        $auto_publish = get_option('chroma_combo_auto_publish', false);
+        $nonce = wp_create_nonce('chroma_combo_ai');
         ?>
         <div class="wrap">
-            <h1>Auto-Generated Pages</h1>
+            <h1>🚀 Auto-Generated Pages</h1>
             
-            <h2>Program + City Combo Pages (<?php echo count($combos); ?>)</h2>
-            <table class="wp-list-table widefat fixed striped">
+            <!-- Stats -->
+            <div class="combo-stats" style="display: flex; gap: 20px; margin: 20px 0;">
+                <div class="stat-box" style="background: #fff; border: 1px solid #ccc; padding: 15px 25px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: bold; color: #0073aa;"><?php echo $total; ?></div>
+                    <div style="color: #666;">Total Combos</div>
+                </div>
+                <div class="stat-box" style="background: #fff; border: 1px solid #ccc; padding: 15px 25px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: bold; color: #00a32a;">
+                        <?php echo count(array_filter($combos, fn($c) => $c['data']['status'] === 'published')); ?>
+                    </div>
+                    <div style="color: #666;">Published</div>
+                </div>
+                <div class="stat-box" style="background: #fff; border: 1px solid #ccc; padding: 15px 25px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 28px; font-weight: bold; color: #dba617;">
+                        <?php echo count(array_filter($combos, fn($c) => $c['data']['ai_generated'])); ?>
+                    </div>
+                    <div style="color: #666;">AI Enhanced</div>
+                </div>
+            </div>
+            
+            <h2>Program + City Combo Pages (<?php echo $total; ?>)</h2>
+            
+            <!-- Bulk Actions Toolbar -->
+            <div class="tablenav top" style="margin-bottom: 15px;">
+                <div class="alignleft actions bulkactions">
+                    <select id="bulk-action-selector">
+                        <option value="">Bulk Actions</option>
+                        <option value="ai_generate">🤖 AI Generate Content</option>
+                        <option value="publish">📤 Set as Published</option>
+                        <option value="draft">📝 Set as Draft</option>
+                    </select>
+                    <button type="button" id="do-bulk-action" class="button">Apply</button>
+                    <span id="bulk-status" style="margin-left: 10px;"></span>
+                </div>
+                
+                <div class="alignright" style="display: flex; gap: 10px; align-items: center;">
+                    <form method="get" style="display: inline;">
+                        <input type="hidden" name="page" value="chroma-auto-pages">
+                        <label>Show: 
+                            <select name="per_page" onchange="this.form.submit()">
+                                <option value="25" <?php selected($per_page, 25); ?>>25</option>
+                                <option value="50" <?php selected($per_page, 50); ?>>50</option>
+                                <option value="100" <?php selected($per_page, 100); ?>>100</option>
+                                <option value="0" <?php selected($per_page, 0); ?>>All</option>
+                            </select>
+                        </label>
+                    </form>
+                    <span>Showing <?php echo $offset + 1; ?>–<?php echo $offset + $showing_count; ?> of <?php echo $total; ?></span>
+                </div>
+            </div>
+            
+            <table class="wp-list-table widefat fixed striped" id="combo-table">
                 <thead>
                     <tr>
+                        <th style="width: 30px;"><input type="checkbox" id="select-all"></th>
                         <th>Page</th>
-                        <th>URL</th>
-                        <th>Actions</th>
+                        <th style="width: 100px;">Status</th>
+                        <th style="width: 80px;">City Page</th>
+                        <th style="width: 100px;">Last Updated</th>
+                        <th style="width: 200px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach (array_slice($combos, 0, 50) as $combo): ?>
-                    <tr>
-                        <td><?php echo esc_html($combo['program']->post_title . ' in ' . $combo['city'] . ', ' . $combo['state']); ?></td>
-                        <td><a href="<?php echo esc_url($combo['url']); ?>" target="_blank"><?php echo esc_html($combo['url']); ?></a></td>
-                        <td><a href="<?php echo esc_url($combo['url']); ?>" target="_blank">Preview</a></td>
+                    <?php foreach ($display_combos as $i => $combo): 
+                        $program_slug = $combo['program']->post_name;
+                        $city_slug = sanitize_title($combo['city']);
+                        $status = $combo['data']['status'];
+                        $status_color = $status === 'published' ? '#00a32a' : ($status === 'draft' ? '#dba617' : '#999');
+                    ?>
+                    <tr data-program="<?php echo esc_attr($program_slug); ?>" 
+                        data-city="<?php echo esc_attr($city_slug); ?>" 
+                        data-state="<?php echo esc_attr($combo['state']); ?>">
+                        <td><input type="checkbox" class="combo-checkbox"></td>
+                        <td>
+                            <strong><?php echo esc_html($combo['program']->post_title . ' in ' . $combo['city'] . ', ' . $combo['state']); ?></strong>
+                            <?php if ($combo['data']['ai_generated']): ?>
+                                <span style="background: #e7f3ff; color: #0073aa; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin-left: 5px;">AI</span>
+                            <?php endif; ?>
+                        </td>
+                        <td>
+                            <span style="color: <?php echo $status_color; ?>; font-weight: 500;">
+                                <?php echo esc_html(Chroma_Combo_Page_Data::get_status_label($status)); ?>
+                            </span>
+                        </td>
+                        <td>
+                            <?php if (!empty($combo['city_page_id'])): ?>
+                                <span style="color: #00a32a;">✓</span>
+                            <?php else: ?>
+                                <span style="color: #999;">—</span>
+                            <?php endif; ?>
+                        </td>
+                        <td style="font-size: 11px; color: #666;">
+                            <?php echo $combo['data']['last_updated'] ? date('M j, Y', $combo['data']['last_updated']) : '—'; ?>
+                        </td>
+                        <td>
+                            <a href="<?php echo esc_url($combo['url']); ?>" target="_blank" class="button button-small">Preview</a>
+                            <button type="button" class="button button-small edit-combo-btn" title="Edit">✏️ Edit</button>
+                            <button type="button" class="button button-small ai-generate-btn" title="AI Generate">🤖</button>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                 </tbody>
             </table>
             
-            <?php if (count($combos) > 50): ?>
-            <p><em>Showing 50 of <?php echo count($combos); ?> pages</em></p>
+            <!-- Pagination -->
+            <?php if ($per_page > 0 && $total_pages > 1): ?>
+            <div class="tablenav bottom" style="margin-top: 15px;">
+                <div class="tablenav-pages">
+                    <span class="pagination-links">
+                        <?php if ($paged > 1): ?>
+                            <a class="first-page button" href="<?php echo esc_url($base_url . '&paged=1&per_page=' . $per_page); ?>">«</a>
+                            <a class="prev-page button" href="<?php echo esc_url($base_url . '&paged=' . ($paged - 1) . '&per_page=' . $per_page); ?>">‹</a>
+                        <?php else: ?>
+                            <span class="button disabled">«</span>
+                            <span class="button disabled">‹</span>
+                        <?php endif; ?>
+                        
+                        <span class="paging-input"><?php echo $paged; ?> of <?php echo $total_pages; ?></span>
+                        
+                        <?php if ($paged < $total_pages): ?>
+                            <a class="next-page button" href="<?php echo esc_url($base_url . '&paged=' . ($paged + 1) . '&per_page=' . $per_page); ?>">›</a>
+                            <a class="last-page button" href="<?php echo esc_url($base_url . '&paged=' . $total_pages . '&per_page=' . $per_page); ?>">»</a>
+                        <?php else: ?>
+                            <span class="button disabled">›</span>
+                            <span class="button disabled">»</span>
+                        <?php endif; ?>
+                    </span>
+                </div>
+            </div>
             <?php endif; ?>
+            
+            <hr style="margin: 30px 0;">
             
             <h2>Settings</h2>
             <form method="post" action="options.php">
                 <?php settings_fields('chroma_auto_pages'); ?>
                 <table class="form-table">
+                    <tr>
+                        <th>Auto-Publish AI Content</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_combo_auto_publish" value="1" <?php checked($auto_publish); ?>>
+                                Automatically publish AI-generated content (otherwise saves as draft)
+                            </label>
+                        </td>
+                    </tr>
                     <tr>
                         <th>Manual Cities</th>
                         <td>
@@ -373,15 +756,199 @@ class Chroma_Combo_Page_Generator
                         </td>
                     </tr>
                 </table>
-                <?php submit_button('Save Cities'); ?>
+                <?php submit_button('Save Settings'); ?>
             </form>
         </div>
+        
+        <!-- Edit Modal -->
+        <div id="combo-edit-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100000;">
+            <div style="background: #fff; max-width: 600px; margin: 50px auto; padding: 20px; border-radius: 8px; max-height: 80vh; overflow-y: auto;">
+                <h2 id="modal-title">Edit Combo Page</h2>
+                <input type="hidden" id="edit-program-slug">
+                <input type="hidden" id="edit-city-slug">
+                <input type="hidden" id="edit-state">
+                
+                <table class="form-table">
+                    <tr>
+                        <th>Neighborhoods</th>
+                        <td><input type="text" id="edit-neighborhoods" class="regular-text" style="width: 100%;" placeholder="Downtown, North Side, South Side"></td>
+                    </tr>
+                    <tr>
+                        <th>Major Road</th>
+                        <td><input type="text" id="edit-major-road" class="regular-text" placeholder="GA-400"></td>
+                    </tr>
+                    <tr>
+                        <th>Local Employers</th>
+                        <td><input type="text" id="edit-employers" class="regular-text" style="width: 100%;" placeholder="Northside Hospital, Delta"></td>
+                    </tr>
+                    <tr>
+                        <th>County</th>
+                        <td><input type="text" id="edit-county" class="regular-text" placeholder="Forsyth"></td>
+                    </tr>
+                    <tr>
+                        <th>Custom Intro</th>
+                        <td><textarea id="edit-custom-intro" rows="3" style="width: 100%;"></textarea></td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            <select id="edit-status">
+                                <option value="auto">Auto</option>
+                                <option value="draft">Draft</option>
+                                <option value="published">Published</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" id="save-combo-btn" class="button button-primary">Save</button>
+                    <button type="button" id="ai-generate-modal-btn" class="button">🤖 AI Generate</button>
+                    <button type="button" id="close-modal-btn" class="button">Cancel</button>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+        jQuery(function($) {
+            var nonce = '<?php echo $nonce; ?>';
+            
+            // Select all checkbox
+            $('#select-all').on('change', function() {
+                $('.combo-checkbox').prop('checked', $(this).prop('checked'));
+            });
+            
+            // Edit button
+            $('.edit-combo-btn').on('click', function() {
+                var $row = $(this).closest('tr');
+                var program = $row.data('program');
+                var city = $row.data('city');
+                var state = $row.data('state');
+                
+                $('#edit-program-slug').val(program);
+                $('#edit-city-slug').val(city);
+                $('#edit-state').val(state);
+                $('#modal-title').text('Edit: ' + $row.find('td:eq(1) strong').text());
+                
+                // Load existing data via AJAX (simplified - just show modal)
+                $('#combo-edit-modal').fadeIn(200);
+            });
+            
+            // Close modal
+            $('#close-modal-btn, #combo-edit-modal').on('click', function(e) {
+                if (e.target === this) $('#combo-edit-modal').fadeOut(200);
+            });
+            
+            // Save combo data
+            $('#save-combo-btn').on('click', function() {
+                var $btn = $(this).prop('disabled', true).text('Saving...');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_combo_save_data',
+                    nonce: nonce,
+                    program_slug: $('#edit-program-slug').val(),
+                    city_slug: $('#edit-city-slug').val(),
+                    state: $('#edit-state').val(),
+                    neighborhoods: $('#edit-neighborhoods').val().split(',').map(s => s.trim()),
+                    major_road: $('#edit-major-road').val(),
+                    local_employers: $('#edit-employers').val(),
+                    county: $('#edit-county').val(),
+                    custom_intro: $('#edit-custom-intro').val(),
+                    status: $('#edit-status').val()
+                }, function(response) {
+                    $btn.prop('disabled', false).text('Save');
+                    if (response.success) {
+                        alert('Saved!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                });
+            });
+            
+            // Single AI Generate
+            $('.ai-generate-btn, #ai-generate-modal-btn').on('click', function() {
+                var $row = $(this).closest('tr');
+                if (!$row.length) $row = null; // Modal button
+                
+                var program = $row ? $row.data('program') : $('#edit-program-slug').val();
+                var city = $row ? $row.data('city') : $('#edit-city-slug').val();
+                var state = $row ? $row.data('state') : $('#edit-state').val();
+                
+                var $btn = $(this).prop('disabled', true);
+                var originalText = $btn.text();
+                $btn.text('⏳');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_combo_ai_generate',
+                    nonce: nonce,
+                    program_slug: program,
+                    city_slug: city,
+                    state: state
+                }, function(response) {
+                    $btn.prop('disabled', false).text(originalText);
+                    if (response.success) {
+                        alert('AI content generated!');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.data);
+                    }
+                });
+            });
+            
+            // Bulk action
+            $('#do-bulk-action').on('click', function() {
+                var action = $('#bulk-action-selector').val();
+                if (!action) return alert('Select a bulk action');
+                
+                var $checked = $('.combo-checkbox:checked');
+                if (!$checked.length) return alert('Select at least one item');
+                
+                var combos = [];
+                $checked.each(function() {
+                    var $row = $(this).closest('tr');
+                    combos.push({
+                        program_slug: $row.data('program'),
+                        city_slug: $row.data('city'),
+                        state: $row.data('state')
+                    });
+                });
+                
+                var $btn = $(this).prop('disabled', true).text('Processing...');
+                $('#bulk-status').text('Processing ' + combos.length + ' items...');
+                
+                if (action === 'ai_generate') {
+                    $.post(ajaxurl, {
+                        action: 'chroma_combo_ai_bulk_generate',
+                        nonce: nonce,
+                        combos: combos
+                    }, function(response) {
+                        $btn.prop('disabled', false).text('Apply');
+                        if (response.success) {
+                            $('#bulk-status').text('Done: ' + response.data.success_count + ' success, ' + response.data.error_count + ' errors');
+                            setTimeout(() => location.reload(), 2000);
+                        } else {
+                            $('#bulk-status').text('Error: ' + response.data);
+                        }
+                    });
+                } else {
+                    // Status change (simplified)
+                    $('#bulk-status').text('Status updates require backend implementation');
+                    $btn.prop('disabled', false).text('Apply');
+                }
+            });
+        });
+        </script>
         <?php
     }
 }
 
-// Save manual cities
+// Register settings
 add_action('admin_init', function() {
+    // Auto-publish toggle
+    register_setting('chroma_auto_pages', 'chroma_combo_auto_publish');
+    
+    // Manual cities
     register_setting('chroma_auto_pages', 'chroma_seo_manual_cities_raw', function($raw) {
         $cities = [];
         $lines = explode("\n", $raw);
