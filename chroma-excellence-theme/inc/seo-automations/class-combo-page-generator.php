@@ -689,6 +689,19 @@ class Chroma_Combo_Page_Generator
         
         return array_values($cities);
     }
+
+    /**
+     * Add to Yoast Sitemap
+     */
+    public function add_to_sitemap($sitemap_index) {
+        $sitemap_url = home_url('/wp-sitemap-combos-1.xml');
+        $last_mod = date('c');
+        $sitemap_index .= '<sitemap>
+            <loc>' . esc_url($sitemap_url) . '</loc>
+            <lastmod>' . esc_html($last_mod) . '</lastmod>
+        </sitemap>';
+        return $sitemap_index;
+    }
     
     /**
      * Add admin page
