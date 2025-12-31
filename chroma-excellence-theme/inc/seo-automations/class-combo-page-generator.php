@@ -568,13 +568,17 @@ class Chroma_Combo_Page_Generator
         $combos = self::get_all_combos();
         $total = count($combos);
         
-        // Add combo data to each
+        // Add combo data to each (if AI features enabled)
         foreach ($combos as &$combo) {
-            $combo['data'] = Chroma_Combo_Page_Data::get(
-                $combo['program']->post_name,
-                sanitize_title($combo['city']),
-                $combo['state']
-            );
+            if (class_exists('Chroma_Combo_Page_Data')) {
+                $combo['data'] = Chroma_Combo_Page_Data::get(
+                    $combo['program']->post_name,
+                    sanitize_title($combo['city']),
+                    $combo['state']
+                );
+            } else {
+                $combo['data'] = ['status' => 'auto', 'ai_generated' => false, 'last_updated' => null];
+            }
         }
         unset($combo);
         
@@ -678,7 +682,13 @@ class Chroma_Combo_Page_Generator
                         </td>
                         <td>
                             <span style="color: <?php echo $status_color; ?>; font-weight: 500;">
-                                <?php echo esc_html(Chroma_Combo_Page_Data::get_status_label($status)); ?>
+                                <?php 
+                                if (class_exists('Chroma_Combo_Page_Data')) {
+                                    echo esc_html(Chroma_Combo_Page_Data::get_status_label($status));
+                                } else {
+                                    echo esc_html(ucfirst($status));
+                                }
+                                ?>
                             </span>
                         </td>
                         <td>
