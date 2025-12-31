@@ -70,6 +70,7 @@ require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-seo.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
 
 // Legacy helper files (ACF plugin optional; helpers run on core WP functions only)
 require_once CHROMA_THEME_DIR . '/inc/acf-options.php';
