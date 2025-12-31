@@ -51,26 +51,17 @@ class Chroma_Combo_Page_Generator
      */
     public function handle_combo_page() {
         if (!get_query_var(self::REWRITE_TAG)) {
-            // echo 'DEBUG: Rewrite tag not set'; 
             return;
         }
-
-        // DEBUG: Enable error reporting for blank page issue
-        error_reporting(E_ALL);
-        ini_set('display_errors', 1);
-        
-        echo "DEBUG: Entered handle_combo_page<br>";
         
         $program_slug = sanitize_title(get_query_var('combo_program'));
         $city_slug = sanitize_title(get_query_var('combo_city'));
         $state = strtoupper(sanitize_text_field(get_query_var('combo_state')));
         
-        echo "DEBUG: Slug: $program_slug, City: $city_slug, State: $state<br>";
-        
         // Find program
         $program = get_page_by_path($program_slug, OBJECT, 'program');
         if (!$program) {
-            // Try matching by title
+            // Try matching by title which mimics slug often
             $programs = get_posts([
                 'post_type' => 'program',
                 'name' => $program_slug,
@@ -86,7 +77,6 @@ class Chroma_Combo_Page_Generator
             return;
         }
         
-        
         // Find nearest location in this city/state
         $location = $this->find_location_in_city($city_slug, $state);
         
@@ -95,14 +85,21 @@ class Chroma_Combo_Page_Generator
         $post = $program;
         setup_postdata($post);
         
-        // Trick WP into thinking this is a singular page to prevent theme errors
-        $wp_query->is_page = true;
+        // Configure main query to look like a singular program
+        $wp_query->is_page = false;
+        $wp_query->is_single = true;
         $wp_query->is_singular = true;
         $wp_query->is_home = false;
         $wp_query->is_archive = false;
-        $wp_query->experiment_is_combo = true; // Flag for other plugins if needed
+        $wp_query->is_404 = false;
         $wp_query->queried_object = $program;
         $wp_query->queried_object_id = $program->ID;
+        $wp_query->post = $program;
+        
+        // Initializing variables for header checks (prevents notices/errors in some themes)
+        $wp_query->posts = [$program];
+        $wp_query->post_count = 1;
+        $wp_query->found_posts = 1;
         
         // Render the combo page
         $this->render_combo_page($program, $city_slug, $state, $location);
@@ -112,7 +109,7 @@ class Chroma_Combo_Page_Generator
     /**
      * Find location in or near a city
      */
-    private function find_location_in_city($city_slug, $state) {
+    public function find_location_in_city($city_slug, $state) {
         $city_normalized = str_replace('-', ' ', $city_slug);
         
         $locations = get_posts([
@@ -146,7 +143,7 @@ class Chroma_Combo_Page_Generator
     /**
      * Render the combo page
      */
-    private function render_combo_page($program, $city_slug, $state, $location) {
+    public function render_combo_page($program, $city_slug, $state, $location) {
         $city_name = ucwords(str_replace('-', ' ', $city_slug));
         $page_title = 'Best ' . $program->post_title . ' in ' . $city_name . ', ' . $state;
         
@@ -422,7 +419,7 @@ class Chroma_Combo_Page_Generator
     /**
      * Find city CPT page
      */
-    private function find_city_page($city_slug, $state) {
+    public function find_city_page($city_slug, $state) {
         $city_normalized = str_replace('-', ' ', $city_slug);
         
         $cities = get_posts([
@@ -451,7 +448,7 @@ class Chroma_Combo_Page_Generator
     /**
      * Output schema markup
      */
-    private function output_schema($program, $city_name, $state, $location, $loc_address = '', $loc_zip = '', $age_range = '') {
+    public function output_schema($program, $city_name, $state, $location, $loc_address = '', $loc_zip = '', $age_range = '') {
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Service',
