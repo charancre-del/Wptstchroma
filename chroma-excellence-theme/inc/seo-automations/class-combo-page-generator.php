@@ -210,9 +210,42 @@ class Chroma_Combo_Page_Generator
             $county = get_post_meta($location->ID, 'location_county', true) ?: 'Forsyth';
         }
         
+        // OVERRIDE: Check for specific combo page data (AI Generated or Manual Edit)
+        // This is stored in options table via Chroma_Combo_Page_Data class
+        $combo_custom_data = Chroma_Combo_Page_Data::get($program->post_name, $city_slug, $state);
+        
+        if (!empty($combo_custom_data)) {
+            if (!empty($combo_custom_data['neighborhoods'])) {
+                $neighborhoods = $combo_custom_data['neighborhoods'];
+            }
+            if (!empty($combo_custom_data['major_road'])) {
+                $major_road = $combo_custom_data['major_road'];
+            }
+            if (!empty($combo_custom_data['local_employers'])) {
+                $local_employers = $combo_custom_data['local_employers'];
+            }
+            if (!empty($combo_custom_data['county'])) {
+                $county = $combo_custom_data['county'];
+            }
+        }
+
         // Fallback neighborhoods if none defined
         if (empty($neighborhoods)) {
             $neighborhoods = [$city_name . ' Downtown', $city_name . ' North', $city_name . ' South'];
+        }
+        
+        // Define Intro Text
+        $intro_text = '';
+        if (!empty($combo_custom_data['custom_intro'])) {
+            $intro_text = $combo_custom_data['custom_intro'];
+        } else {
+            // Default fallback logic
+            $intro_text = sprintf(
+                'Searching for the best %s near %s? At Chroma %s, we combine the safety you need with the enriching curriculum your child deserves.',
+                strtolower($program->post_title),
+                esc_html($neighborhoods[0] ?? $city_name),
+                esc_html($city_name)
+            );
         }
         
         // Output schema in head (still needs to run directly as it hooks to wp_head)
@@ -240,8 +273,7 @@ class Chroma_Combo_Page_Generator
                         </h1>
                         
                         <p class="text-lg text-brand-ink/70 mb-8 leading-relaxed">
-                            Searching for the best <?php echo esc_html(strtolower($program->post_title)); ?> near <?php echo esc_html($neighborhoods[0] ?? $city_name); ?>? 
-                            At Chroma <?php echo esc_html($city_name); ?>, we combine the safety you need with the enriching curriculum your child deserves.
+                            <?php echo wp_kses_post($intro_text); ?>
                         </p>
                         
                         <div class="flex flex-wrap gap-4">
