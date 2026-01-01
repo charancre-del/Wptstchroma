@@ -126,7 +126,44 @@ class Chroma_Breadcrumbs
             'url' => home_url('/')
         ];
 
-        if ($is_home) {
+        // Check for Combo Page (Query Var)
+        if (get_query_var('chroma_combo')) {
+            $city_slug = get_query_var('combo_city');
+            $program_slug = get_query_var('combo_program');
+            
+            // Link to Communities Archive
+            $items[] = [
+                'label' => 'Communities',
+                'url' => get_post_type_archive_link('city')
+            ];
+
+            // Link to City Page
+            $city_page = get_page_by_path($city_slug, OBJECT, 'city');
+            if ($city_page) {
+                $items[] = [
+                    'label' => get_the_title($city_page),
+                    'url' => get_permalink($city_page)
+                ];
+            } else {
+                // Fallback if city page doesn't exist (e.g. manual city)
+                $city_name = ucwords(str_replace('-', ' ', $city_slug));
+                $items[] = [
+                    'label' => $city_name,
+                    'url' => '' // No link if no page
+                ];
+            }
+
+            // Current Program Item
+            $program = get_page_by_path($program_slug, OBJECT, 'program');
+            if ($program) {
+                $items[] = [
+                    'label' => get_the_title($program),
+                    'url' => '' // Current page
+                ];
+            }
+            
+            return $items;
+        }
             $items[] = [
                 'label' => 'Blog',
                 'url' => get_post_type_archive_link('post')
@@ -137,8 +174,12 @@ class Chroma_Breadcrumbs
             if ($post_type !== 'page' && $post_type !== 'post') {
                 $post_type_obj = get_post_type_object($post_type);
                 if ($post_type_obj && $post_type_obj->has_archive) {
+                    $label = $post_type_obj->labels->name;
+                    if ($post_type === 'city') {
+                        $label = 'Communities';
+                    }
                     $items[] = [
-                        'label' => $post_type_obj->labels->name,
+                        'label' => $label,
                         'url' => get_post_type_archive_link($post_type)
                     ];
                 }
@@ -255,6 +296,7 @@ class Chroma_Breadcrumbs
                     <option value="program">Programs</option>
                     <option value="page">Pages</option>
                     <option value="post">Blog Posts</option>
+                    <option value="combo">Combo Page (Simulated)</option>
                 </select>
 
                 <select id="chroma-breadcrumb-preview-select" style="min-width: 250px;" disabled>
@@ -307,6 +349,14 @@ class Chroma_Breadcrumbs
 
                 if(!type) return;
 
+                if(type === 'combo') {
+                    // Direct simulation
+                    target.prop('disabled', false);
+                    target.append($('<option></option>').val('-1').text('Simulated: Preschool in Canton, GA'));
+                    target.val('-1').trigger('change');
+                    return;
+                }
+
                 $('#chroma-breadcrumb-spinner').addClass('is-active');
 
                 $.post(ajaxurl, {
@@ -316,11 +366,6 @@ class Chroma_Breadcrumbs
                     $('#chroma-breadcrumb-spinner').removeClass('is-active');
                     if(response.success) {
                         target.prop('disabled', false);
-                        if (Object.keys(response.data).length === 0) {
-                             target.append($('<option></option>').text('No posts found'));
-                        } else {
-                            $.each(response.data, function(id, title) {
-                                target.append($('<option></option>').val(id).text(title));
                             });
                         }
                     } else {
@@ -399,7 +444,18 @@ class Chroma_Breadcrumbs
         // which is hard to fake perfectly in AJAX without complex mocking.
         // Instead, we will refactor get_breadcrumb_items to accept a post_id optionally.
         
-        $items = $this->get_breadcrumb_items($post_id);
+        if ($post_id === -1) {
+            // Simulated Combo Page
+            // Mock Query Vars for get_breadcrumb_items
+            set_query_var('chroma_combo', 1);
+            set_query_var('combo_city', 'canton-ga');
+            set_query_var('combo_program', 'preschool');
+            
+            // We need to pass a valid ID for syntax, but the function will check query vars first
+            $items = $this->get_breadcrumb_items(0);
+        } else {
+            $items = $this->get_breadcrumb_items($post_id);
+        }
         
         // Generate HTML
         ob_start();
