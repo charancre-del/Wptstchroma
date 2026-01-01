@@ -164,6 +164,9 @@ class Chroma_Breadcrumbs
             
             return $items;
         }
+
+        // Blog Archive
+        if ($is_home) {
             $items[] = [
                 'label' => 'Blog',
                 'url' => get_post_type_archive_link('post')
