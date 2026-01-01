@@ -56,10 +56,37 @@ function chroma_organization_schema()
         if ($email) {
                 $schema['email'] = $email;
         }
+        
+        // Phonetic Name for Voice Search (Tier 12 - TT)
+        $phonetic = get_option('chroma_global_brand_phonetic');
+        if ($phonetic) {
+            $schema['phoneticName'] = $phonetic;
+        }
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
 add_action('wp_head', 'chroma_organization_schema');
+
+/**
+ * HTTP Header Signals (Tier 7 - Y)
+ * Provides canonical and dns-prefetch hints at the HTTP header level for faster parsing
+ */
+function chroma_seo_headers() {
+    if (headers_sent()) return;
+    
+    // Canonical Link Header
+    if (is_singular()) {
+        $link = get_permalink();
+        if ($link) {
+            header("Link: <$link>; rel=\"canonical\"", false);
+        }
+    }
+    
+    // DNS Prefetch for Google Services
+    header("Link: <https://www.google-analytics.com>; rel=\"dns-prefetch\"", false);
+    header("Link: <https://www.googletagmanager.com>; rel=\"dns-prefetch\"", false);
+}
+add_action('send_headers', 'chroma_seo_headers');
 
 /**
  * Add WebSite Schema to Homepage (for Sitelinks Search Box)
@@ -136,8 +163,15 @@ function chroma_location_schema()
 
         // 2. SCHEMA CONSTRUCTION
         // ----------------------
+        $types = array('ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness');
+        
+        // Event Venue (Tier 19 - RRR) - Add if location is marked as event venue
+        if (get_post_meta($location_id, '_chroma_is_event_venue', true)) {
+            $types[] = 'EventVenue';
+        }
+        
         $schema = array(
-                '@type' => array('ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness'),
+                '@type' => $types,
                 '@id' => get_permalink() . '#organization',
                 'name' => $name,
                 'description' => $description,
@@ -167,14 +201,16 @@ function chroma_location_schema()
                 $schema['sameAs'] = array_values($socials);
         }
 
-        // Geo Coordinates
+        // Geo Coordinates & Area Served
+        $area_served = array();
+        
         if ($service_area) {
                 $schema['geo'] = array(
                         '@type' => 'GeoCoordinates',
                         'latitude' => $service_area['lat'],
                         'longitude' => $service_area['lng'],
                 );
-                $schema['areaServed'] = array(
+                $area_served[] = array(
                         '@type' => 'GeoCircle',
                         'geoMidpoint' => $schema['geo'],
                         'geoRadius' => ($service_area['radius'] * 1609.34) // Miles to meters
@@ -186,10 +222,40 @@ function chroma_location_schema()
                         'longitude' => $location_fields['longitude'],
                 );
         }
+        
+        // Bus Routes / Schools Served (Tier 10 - VV)
+        $schools_served = get_post_meta($location_id, 'location_schools_served', true);
+        if (!empty($schools_served)) {
+            if (is_array($schools_served)) {
+                foreach ($schools_served as $school) {
+                    $s_name = is_array($school) ? ($school['school_name'] ?? '') : $school;
+                    if ($s_name) {
+                        $area_served[] = array(
+                            '@type' => 'Place',
+                            'name' => trim($s_name) . ' (Transportation Offered)'
+                        );
+                    }
+                }
+            } else {
+                // Comma-separated fallback
+                foreach (explode(',', $schools_served) as $s) {
+                    if (trim($s)) {
+                        $area_served[] = array('@type' => 'Place', 'name' => trim($s));
+                    }
+                }
+            }
+        }
+        
+        if (!empty($area_served)) {
+            $schema['areaServed'] = $area_served;
+        }
 
-        // Google Maps
-        if ($location_fields['map_link']) {
-                $schema['hasMap'] = $location_fields['map_link']; // Assuming this exists or we construct it
+        // Google Maps CID Link (Tier 30 - DDDDD)
+        $cid = get_post_meta($location_id, '_chroma_google_maps_cid', true);
+        if ($cid) {
+            $schema['hasMap'] = "https://www.google.com/maps?cid=$cid";
+        } elseif ($location_fields['map_link']) {
+                $schema['hasMap'] = $location_fields['map_link'];
         } else {
                 // Construct Google Maps URL from address
                 $addr_string = urlencode($location_fields['address'] . ', ' . $location_fields['city'] . ', ' . $location_fields['state'] . ' ' . $location_fields['zip']);
@@ -228,6 +294,35 @@ function chroma_location_schema()
 
         // Attributes & Credentials
         $knowsAbout = array();
+        
+        // Initialize amenityFeature array
+        if (!isset($schema['amenityFeature'])) {
+            $schema['amenityFeature'] = array();
+        }
+        
+        // License/Permit (Tier 5 - AA)
+        $license_num = get_post_meta($location_id, '_chroma_license_number', true);
+        if ($license_num) {
+            $schema['hasCredential'] = array(
+                '@type' => 'EducationalOccupationalCredential',
+                'credentialCategory' => 'license',
+                'name' => 'Georgia DECAL License',
+                'identifier' => $license_num
+            );
+        }
+        
+        // Safety Amenities (Tier 5 - BB)
+        $amenities = get_post_meta($location_id, '_chroma_amenities', true);
+        if (is_array($amenities) && !empty($amenities)) {
+            foreach ($amenities as $amenity) {
+                $schema['amenityFeature'][] = array(
+                    '@type' => 'LocationFeatureSpecification',
+                    'name' => $amenity,
+                    'value' => true
+                );
+            }
+        }
+        
         if ($quality_rated) {
                 $knowsAbout[] = 'Quality Rated Provider';
                 $schema['amenityFeature'][] = array(
@@ -245,6 +340,11 @@ function chroma_location_schema()
         }
         if (!empty($knowsAbout)) {
                 $schema['knowsAbout'] = $knowsAbout;
+        }
+        
+        // Clean empty amenityFeature array
+        if (empty($schema['amenityFeature'])) {
+            unset($schema['amenityFeature']);
         }
 
         // Audience (Ages)
@@ -322,6 +422,39 @@ function chroma_location_schema()
         }
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        
+        // Open House Event Schema (Tier 4 - I)
+        $open_house_date = get_post_meta($location_id, '_chroma_open_house_date', true);
+        if ($open_house_date) {
+            $event_schema = array(
+                '@context' => 'https://schema.org',
+                '@type' => 'Event',
+                'name' => 'Open House - ' . $name,
+                'startDate' => date('c', strtotime($open_house_date)),
+                'endDate' => date('c', strtotime($open_house_date) + 7200), // Default 2 hours
+                'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+                'eventStatus' => 'https://schema.org/EventScheduled',
+                'location' => array(
+                    '@type' => 'Place',
+                    'name' => $name,
+                    'address' => array(
+                        '@type' => 'PostalAddress',
+                        'streetAddress' => $location_fields['address'],
+                        'addressLocality' => $location_fields['city'],
+                        'addressRegion' => $location_fields['state'],
+                        'postalCode' => $location_fields['zip'],
+                        'addressCountry' => 'US'
+                    )
+                ),
+                'description' => "Join us for an Open House at $name. Meet the teachers, tour the classrooms, and learn about our curriculum.",
+                'organizer' => array(
+                    '@type' => 'Organization',
+                    'name' => $name,
+                    'url' => get_permalink()
+                )
+            );
+            echo '<script type="application/ld+json">' . wp_json_encode($event_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        }
 }
 add_action('wp_head', 'chroma_location_schema');
 

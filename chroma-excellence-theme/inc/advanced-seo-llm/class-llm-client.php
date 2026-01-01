@@ -800,6 +800,76 @@ class Chroma_LLM_Client
         $count = get_transient('chroma_llm_rate_count') ?: 0;
         set_transient('chroma_llm_rate_count', $count + 1, MINUTE_IN_SECONDS);
     }
+    
+    /**
+     * Generate Amenities Data (Tier 5 - BB)
+     * Uses LLM to extract safety amenities from post content
+     */
+    public function generate_amenities_data($post_id)
+    {
+        $post = get_post($post_id);
+        if (!$post) {
+            return new WP_Error('not_found', 'Post not found');
+        }
+
+        $amenities_list = [
+            "Keypad Access", 
+            "AI Monitored Cameras", 
+            "Privacy Fenced Playgrounds", 
+            "Zono Sanitizing Machine", 
+            "Biometric Entry", 
+            "Clean Air HVAC", 
+            "Storm Shelter / Safe Room", 
+            "Automatic Locking Doors",
+            "CPR Certified Staff",
+            "Fingerprint Check-in"
+        ];
+
+        $prompt = "Analyze the following childcare location content and identify which safety/facility amenities are explicitly mentioned or clearly implied.\n";
+        $prompt .= "Return ONLY a JSON array of strings containing the matches from this specific list:\n";
+        $prompt .= "- " . implode("\n- ", $amenities_list) . "\n\n";
+        $prompt .= "If none are found, return an empty array []. Do not invent new terms.\n\n";
+
+        $prompt .= "Content:\n" . wp_trim_words(strip_tags($post->post_content), 1000) . "\n";
+        
+        $meta = get_post_meta($post_id);
+        if($meta) {
+             $prompt .= "\nMeta Data keywords:\n";
+             foreach($meta as $k => $v) {
+                 if(strpos($k, '_')!==0) $prompt .= "$k: " . implode(', ', $v) . "\n";
+             }
+        }
+
+        $response = $this->make_request([
+            'messages' => [
+                ['role' => 'system', 'content' => 'You are a data extractor. Return JSON array only.'],
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'response_format' => ['type' => 'json_object']
+        ]);
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $content = $response['choices'][0]['message']['content'];
+        $json = json_decode($content, true);
+
+        // API often returns { "amenities": [...] } or just [...]
+        if (isset($json['amenities']) && is_array($json['amenities'])) {
+            return $json['amenities'];
+        }
+        if (is_array($json)) {
+             // Check if it's a list of strings
+             if (isset($json[0]) && is_string($json[0])) return $json;
+             // Sometimes returns { "matches": [...] }
+             foreach($json as $key => $val) {
+                 if(is_array($val)) return $val;
+             }
+        }
+        
+        return [];
+    }
 
     /**
      * Log LLM request for debugging

@@ -80,7 +80,8 @@ $meta_boxes = [
 	'class-hreflang-options.php',
 	'class-city-landing-meta.php',
 	'class-location-citation-facts.php',
-	'class-post-newsroom.php'
+	'class-post-newsroom.php',
+	'class-location-advanced-schema.php' // Tier 5: License, CID, Open House, Event Venue
 ];
 
 foreach ($meta_boxes as $file) {
@@ -149,7 +150,8 @@ function chroma_advanced_seo_init()
 		'Chroma_Universal_FAQ',
 		'Chroma_Hreflang_Options',
 		'Chroma_City_Landing_Meta',
-		'Chroma_Post_Newsroom'
+		'Chroma_Post_Newsroom',
+		'Chroma_Location_Advanced_Schema' // Tier 5: License, CID, Open House, Event Venue
 	];
 
 	// Fallback for class names if files haven't been updated yet

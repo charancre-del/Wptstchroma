@@ -22,6 +22,24 @@
 		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-ExtraBold.woff2" type="font/woff2"
 		crossorigin>
 
+	<!-- Tier 3: Instant Navigation (Speculation Rules API) -->
+	<script type="speculationrules">
+	{
+		"prerender": [
+			{
+				"source": "document",
+				"where": {
+					"and": [
+						{ "href_matches": "/*" },
+						{ "not": { "href_matches": "/wp-admin/*" } }
+					]
+				},
+				"eagerness": "moderate"
+			}
+		]
+	}
+	</script>
+
 	<?php wp_head(); ?>
 </head>
 

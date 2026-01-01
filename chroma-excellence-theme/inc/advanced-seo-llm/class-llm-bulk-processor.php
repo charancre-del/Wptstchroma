@@ -142,6 +142,20 @@ class Chroma_LLM_Bulk_Processor
                     return true;
                 }
             }
+            elseif ($type === 'amenities') {
+                // Tier 5: Safety Amenities Extraction
+                $amenities = $chroma_llm_client->generate_amenities_data($post_id);
+                
+                if (is_wp_error($amenities)) {
+                     error_log('[Chroma Bulk] Amenities Error: ' . $amenities->get_error_message());
+                     return false;
+                }
+                
+                if (is_array($amenities)) {
+                    update_post_meta($post_id, '_chroma_amenities', $amenities);
+                    return true;
+                }
+            }
         } catch (Exception $e) {
             error_log('[Chroma Bulk] Error processing post ' . $post_id . ': ' . $e->getMessage());
         }

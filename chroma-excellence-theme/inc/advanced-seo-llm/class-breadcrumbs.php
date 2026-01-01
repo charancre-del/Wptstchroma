@@ -369,8 +369,9 @@ class Chroma_Breadcrumbs
                     $('#chroma-breadcrumb-spinner').removeClass('is-active');
                     if(response.success) {
                         target.prop('disabled', false);
-                            });
-                        }
+                        $.each(response.data, function(id, title) {
+                            target.append($('<option></option>').val(id).text(title));
+                        });
                     } else {
                         alert('Error: ' + (response.data && response.data.message ? response.data.message : 'Unknown error'));
                     }
