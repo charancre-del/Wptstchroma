@@ -1756,6 +1756,7 @@ class Chroma_SEO_Dashboard
                                         <option value="">-- Choose Action --</option>
                                         <option value="reset_schema" style="color: red;">❌ Reset/Clear All Schemas</option>
                                         <option value="llm_targeting">✨ Generate LLM Targeting</option>
+                                        <option value="amenities">🛡️ Extract Safety Amenities (AI)</option>
                                         <optgroup label="Add Schema">
                                             <?php foreach ($schema_definitions as $key => $def): ?>
                                                     <option value="schema:<?php echo esc_attr($key); ?>">Schema:

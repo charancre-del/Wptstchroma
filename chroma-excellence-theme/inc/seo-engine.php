@@ -58,7 +58,7 @@ function chroma_organization_schema()
         }
         
         // Phonetic Name for Voice Search (Tier 12 - TT)
-        $phonetic = get_option('chroma_global_brand_phonetic');
+        $phonetic = get_theme_mod('chroma_global_brand_phonetic', '');
         if ($phonetic) {
             $schema['phoneticName'] = $phonetic;
         }

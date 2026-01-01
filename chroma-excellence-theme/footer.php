@@ -78,6 +78,15 @@
 			</div>
 		</div>
 
+		<!-- Footer SEO Text (Tier 12 - SS) -->
+		<?php
+		$seo_text = get_theme_mod('chroma_footer_seo_text');
+		if ($seo_text): ?>
+			<div class="border-t border-white/10 pt-6 mb-6 text-[11px] text-white/60 leading-relaxed text-center max-w-5xl mx-auto">
+				<?php echo wp_kses_post($seo_text); ?>
+			</div>
+		<?php endif; ?>
+
 		<!-- Bottom Section -->
 		<div
 			class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80">

@@ -164,6 +164,41 @@ function chroma_seo_customizer_settings($wp_customize) {
             'placeholder' => 'https://youtube.com/@chromaela',
         ],
     ]);
+    
+    // =========================================
+    // Advanced SEO Settings (Rank #1)
+    // =========================================
+    
+    // Brand Phonetic Name (Tier 12 - TT)
+    $wp_customize->add_setting('chroma_global_brand_phonetic', [
+        'default'           => '',
+        'sanitize_callback' => 'sanitize_text_field',
+        'transport'         => 'refresh',
+    ]);
+    
+    $wp_customize->add_control('chroma_global_brand_phonetic', [
+        'label'       => __('Brand Phonetic Name', 'chroma-excellence'),
+        'description' => __('How your brand is pronounced (for voice search). E.g., "KROH-muh Early Learning"', 'chroma-excellence'),
+        'section'     => 'chroma_seo_settings',
+        'type'        => 'text',
+        'input_attrs' => [
+            'placeholder' => 'KROH-muh Early Learning',
+        ],
+    ]);
+    
+    // Footer SEO Text (Tier 12 - SS)
+    $wp_customize->add_setting('chroma_footer_seo_text', [
+        'default'           => '',
+        'sanitize_callback' => 'wp_kses_post',
+        'transport'         => 'refresh',
+    ]);
+    
+    $wp_customize->add_control('chroma_footer_seo_text', [
+        'label'       => __('Footer SEO Text (NLP)', 'chroma-excellence'),
+        'description' => __('Proximity-based footer copy for local SEO. Include city names and "near me" keywords.', 'chroma-excellence'),
+        'section'     => 'chroma_seo_settings',
+        'type'        => 'textarea',
+    ]);
 }
 add_action('customize_register', 'chroma_seo_customizer_settings');
 
