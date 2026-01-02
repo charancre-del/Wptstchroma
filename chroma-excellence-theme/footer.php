@@ -10,7 +10,7 @@
 <footer class="bg-brand-ink text-white py-12 px-4 lg:px-6">
 	<div class="max-w-7xl mx-auto">
 		<!-- Top Section -->
-		<div class="grid md:grid-cols-4 gap-8 mb-8">
+		<div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
 			<!-- Logo and Description -->
 			<div class="md:col-span-1">
 				<a href="<?php echo esc_url(home_url('/')); ?>" class="block mb-4">
@@ -76,6 +76,37 @@
 					</a>
 				</div>
 			</div>
+
+			<!-- Latest News -->
+			<div class="md:col-span-1 lg:col-span-1">
+				<h3 class="font-bold text-sm mb-3">Blogs</h3>
+				<?php
+				$footer_blog_query = new WP_Query(array(
+					'post_type'      => 'post',
+					'posts_per_page' => 4,
+					'ignore_sticky_posts' => 1,
+				));
+
+				if ($footer_blog_query->have_posts()) : ?>
+					<div class="grid grid-cols-2 gap-2">
+						<?php while ($footer_blog_query->have_posts()) : $footer_blog_query->the_post(); ?>
+							<a href="<?php the_permalink(); ?>" class="block aspect-square relative rounded-lg overflow-hidden group bg-brand-ink/10">
+								<?php if (has_post_thumbnail()) : ?>
+									<?php the_post_thumbnail('thumbnail', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-110')); ?>
+								<?php else : ?>
+									<div class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
+										<i class="fa-solid fa-newspaper"></i>
+									</div>
+								<?php endif; ?>
+								<div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+							</a>
+						<?php endwhile; ?>
+					</div>
+					<?php wp_reset_postdata(); ?>
+				<?php else : ?>
+					<p class="text-xs text-white/60">No recent updates.</p>
+				<?php endif; ?>
+			</div>
 		</div>
 
 		<!-- Footer SEO Text (Tier 12 - SS) -->
@@ -100,6 +131,40 @@
 		</div>
 	</div>
 </footer>
+
+
+<?php
+// Global Sticky CTA Logic
+$show_sticky_cta = true;
+$sticky_text = 'Ready to experience the Chroma difference?';
+$sticky_btn_text = 'Schedule a Tour';
+$sticky_url = home_url('/schedule-a-tour/');
+
+if (is_page('schedule-a-tour')) {
+	$show_sticky_cta = false;
+} elseif (is_singular('program')) {
+	$sticky_text = 'Ready to enroll in <strong>' . get_the_title() . '</strong>?';
+} elseif (is_singular('location')) {
+	$sticky_text = 'Ready to visit our <strong>' . get_the_title() . '</strong> campus?';
+} elseif (is_page('careers')) {
+	$show_sticky_cta = false;
+}
+
+if ($show_sticky_cta):
+	?>
+	<div id="sticky-cta"
+		class="transform translate-y-full fixed bottom-0 left-0 right-0 bg-brand-ink/95 backdrop-blur-md text-white py-4 px-6 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] border-t border-white/10 transition-transform duration-500 ease-out">
+		<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+			<span class="text-sm md:text-base font-medium tracking-wide">
+				<?php echo $sticky_text; // Allowed html tags ?>
+			</span>
+			<a href="<?php echo esc_url($sticky_url); ?>"
+				class="inline-block bg-chroma-red text-white text-xs font-bold uppercase tracking-wider px-8 py-3 rounded-full hover:bg-white hover:text-chroma-red transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+				<?php echo esc_html($sticky_btn_text); ?>
+			</a>
+		</div>
+	</div>
+<?php endif; ?>
 
 <?php wp_footer(); ?>
 <?php

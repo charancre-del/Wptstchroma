@@ -349,7 +349,7 @@ while (have_posts()):
 								class="absolute inset-0 bg-<?php echo esc_attr($region_colors['text']); ?> rounded-[2.5rem] rotate-3">
 							</div>
 							<img src="<?php echo esc_url($director_photo); ?>" alt="<?php echo esc_attr($director_name); ?>"
-								class="relative rounded-[2.5rem] w-full object-cover shadow-2xl grayscale hover:grayscale-0 transition-all duration-500" />
+								class="relative rounded-[2.5rem] w-full object-cover shadow-2xl grayscale transition-all duration-1000 ease-out" data-reveal-color />
 						</div>
 					<?php endif; ?>
 
@@ -461,14 +461,15 @@ while (have_posts()):
 							$prog_img = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
 							?>
 							<div
-								class="bg-white rounded-3xl shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition group overflow-hidden flex flex-col">
+								class="bg-white rounded-3xl shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition group overflow-hidden flex flex-col relative">
+								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0" aria-label="Learn more about <?php the_title_attribute(); ?>"></a>
 								<?php if ($prog_img): ?>
-									<div class="h-48 overflow-hidden">
+									<div class="h-48 overflow-hidden relative z-0">
 										<img src="<?php echo esc_url($prog_img); ?>" alt="<?php the_title(); ?>"
 											class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
 									</div>
 								<?php endif; ?>
-								<div class="p-6 flex-1 flex flex-col">
+								<div class="p-6 flex-1 flex flex-col relative z-0">
 									<div class="flex justify-between items-start mb-4">
 										<?php if ($age_range): ?>
 											<span
@@ -480,7 +481,7 @@ while (have_posts()):
 									<h3 class="font-serif text-xl font-bold text-brand-ink mb-2"><?php the_title(); ?></h3>
 									<p class="text-sm text-brand-ink/90 mb-6 flex-1"><?php echo esc_html($excerpt); ?></p>
 									<a href="<?php the_permalink(); ?>"
-										class="text-xs font-bold text-<?php echo esc_attr($colors['text']); ?> uppercase tracking-wider hover:underline mt-auto">
+										class="relative z-10 text-xs font-bold text-<?php echo esc_attr($colors['text']); ?> uppercase tracking-wider hover:underline mt-auto">
 										Learn More <i class="fa-solid fa-arrow-right text-[10px]"></i>
 									</a>
 								</div>

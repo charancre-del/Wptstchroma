@@ -17,7 +17,7 @@ class Chroma_Program_Enhancements
         add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
         add_action('save_post_program', [$this, 'save_meta']);
         add_action('wp_head', [$this, 'output_faq_schema']);
-        add_action('wp_footer', [$this, 'render_sticky_cta']);
+
     }
     
     /**

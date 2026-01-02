@@ -139,6 +139,25 @@ function chroma_enqueue_assets()
                 /* Accessibility: Increase contrast for muted text */
                 .text-brand-ink\/60 { color: rgba(38, 50, 56, 0.9) !important; }
                 .text-brand-ink\/70 { color: rgba(38, 50, 56, 0.95) !important; }
+
+                /* Animations (Moved from templates for AMP compatibility) */
+                .fade-in-up {
+                    animation: fadeInUp 0.8s ease forwards;
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                .delay-100 { animation-delay: 0.1s; }
+                .delay-200 { animation-delay: 0.2s; }
+                .delay-300 { animation-delay: 0.3s; }
+                @keyframes fadeInUp {
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                /* Custom Scrollbar for Job Board */
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #334155; }
         ";
         wp_add_inline_style('chroma-main', $custom_css);
 

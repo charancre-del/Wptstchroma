@@ -92,6 +92,10 @@ while (have_posts()):
 								View Lesson Plan
 							</button>
 						<?php endif; ?>
+						<a href="<?php echo esc_url(get_post_type_archive_link('location')); ?>"
+							class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
+							View Locations
+						</a>
 						<a href="<?php echo esc_url(home_url('/programs/')); ?>"
 							class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
 							All Programs

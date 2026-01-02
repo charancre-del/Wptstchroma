@@ -157,27 +157,33 @@ get_header();
                 <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <?php foreach ($data['posts'] as $post): ?>
                         <!-- <?php echo esc_html($post['title']); ?> -->
-                        <div
-                            class="bg-white p-5 rounded-3xl shadow-sm border border-brand-ink/5 hover:shadow-md transition-shadow group flex flex-col">
-                            <div class="h-40 rounded-2xl overflow-hidden mb-4 relative">
+                        <?php
+                        // Determine the main link for the card
+                        $card_link = $post['booking'] ? $post['booking'] : $post['permalink'] . '#contact';
+                        $is_booking = !empty($post['booking']);
+                        ?>
+                        <div class="relative bg-white p-5 rounded-3xl shadow-sm border border-brand-ink/5 hover:shadow-md transition-shadow group flex flex-col text-left">
+                            <a href="<?php echo esc_url($post['permalink']); ?>" class="absolute inset-0 z-0" aria-label="View location details for <?php echo esc_attr($post['title']); ?>"></a>
+                            
+                            <div class="h-40 rounded-2xl overflow-hidden mb-4 relative z-0">
                                 <img src="<?php echo esc_url($post['thumb']); ?>"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="<?php echo esc_attr($post['title']); ?>">
                             </div>
                             <h3
-                                class="font-bold text-xl mb-1 group-hover:text-<?php echo esc_attr($data['color']); ?> transition-colors">
+                                class="font-bold text-xl mb-1 group-hover:text-<?php echo esc_attr($data['color']); ?> transition-colors text-brand-ink relative z-0">
                                 <?php echo esc_html(str_replace('Location', '', $post['title'])); // Clean title if needed ?>
                             </h3>
-                            <p class="text-xs text-brand-ink/70 mb-4 flex-grow"><?php echo esc_html($post['address']); ?>
+                            <p class="text-xs text-brand-ink/70 mb-4 flex-grow relative z-0"><?php echo esc_html($post['address']); ?>
                             </p>
 
                             <?php if ($post['booking']): ?>
                                 <a href="<?php echo esc_url($post['booking']); ?>"
-                                    class="booking-btn block w-full py-3 bg-<?php echo esc_attr($data['color']); ?> <?php echo esc_attr($data['text']); ?> text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark hover:text-white transition-colors">Schedule
+                                    class="booking-btn relative z-10 block w-full py-3 bg-<?php echo esc_attr($data['color']); ?> <?php echo esc_attr($data['text']); ?> text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark hover:text-white transition-colors">Schedule
                                     Visit</a>
                             <?php else: ?>
                                 <a href="<?php echo esc_url($post['permalink']); ?>#contact"
-                                    class="block w-full py-3 bg-brand-cream text-brand-ink border border-brand-ink/10 text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark hover:text-white transition-colors">Contact
+                                    class="relative z-10 block w-full py-3 bg-brand-cream text-brand-ink border border-brand-ink/10 text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark hover:text-white transition-colors">Contact
                                     Us</a>
                             <?php endif; ?>
                         </div>
