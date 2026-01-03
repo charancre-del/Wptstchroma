@@ -362,6 +362,9 @@ class Chroma_AMP_Blog
         // Remove inline styles (not allowed in AMP)
         $content = preg_replace('/\s+style=["\'][^"\']*["\']/i', '', $content);
         
+        // Remove style blocks (not allowed in body)
+        $content = preg_replace('/<style[^>]*>.*?<\/style>/is', '', $content);
+        
         // Remove onclick and other JS handlers
         $content = preg_replace('/\s+on\w+=["\'][^"\']*["\']/i', '', $content);
         
