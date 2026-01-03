@@ -16,7 +16,7 @@ class Chroma_Accessibility_SEO
     public function __construct() {
         add_action('wp_body_open', [$this, 'add_skip_nav']);
         add_action('wp_head', [$this, 'add_accessibility_styles']);
-        add_filter('the_content', [$this, 'enhance_content_accessibility']);
+        // add_filter('the_content', [$this, 'enhance_content_accessibility']);
         add_filter('post_thumbnail_html', [$this, 'ensure_alt_text'], 10, 5);
         add_action('admin_notices', [$this, 'alt_text_warnings']);
     }
