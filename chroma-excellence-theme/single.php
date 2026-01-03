@@ -121,9 +121,9 @@ $related_query = new WP_Query($related_args);
   <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-chroma-blue/10">
     <div class="max-w-7xl mx-auto px-4 lg:px-6 h-[82px] flex items-center justify-between">
       <a href="<?php echo esc_url(home_url('/')); ?>">
-        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo.png'); ?>"
-          srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo.png'); ?> 1x,
-                     <?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo-highres.png'); ?> 2x" alt="Chroma Early Learning" class="h-10 w-auto" />
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?>"
+          srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?> 1x,
+                     <?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp'); ?> 2x" alt="Chroma Early Learning" class="h-12 w-auto" />
       </a>
       <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-ink/80">
         <?php $stories_url = chroma_smart_link('stories'); ?>

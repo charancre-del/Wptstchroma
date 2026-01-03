@@ -79,26 +79,32 @@
 
 			<!-- Latest News -->
 			<div class="md:col-span-1 lg:col-span-1">
-				<h3 class="font-bold text-sm mb-3">Blogs</h3>
+				<h3 class="font-bold text-sm mb-4">Latest Blogs</h3>
 				<?php
 				$footer_blog_query = new WP_Query(array(
 					'post_type'      => 'post',
-					'posts_per_page' => 4,
+					'posts_per_page' => 2,
 					'ignore_sticky_posts' => 1,
 				));
 
 				if ($footer_blog_query->have_posts()) : ?>
-					<div class="grid grid-cols-2 gap-2">
+					<div class="space-y-4">
 						<?php while ($footer_blog_query->have_posts()) : $footer_blog_query->the_post(); ?>
-							<a href="<?php the_permalink(); ?>" class="block aspect-square relative rounded-lg overflow-hidden group bg-brand-ink/10">
-								<?php if (has_post_thumbnail()) : ?>
-									<?php the_post_thumbnail('thumbnail', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-110')); ?>
-								<?php else : ?>
-									<div class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
-										<i class="fa-solid fa-newspaper"></i>
-									</div>
-								<?php endif; ?>
-								<div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+							<a href="<?php the_permalink(); ?>" class="group block">
+								<div class="aspect-video relative rounded-lg overflow-hidden bg-brand-ink/10 mb-2">
+									<?php if (has_post_thumbnail()) : ?>
+										<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105')); ?>
+									<?php else : ?>
+										<div class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
+											<i class="fa-solid fa-newspaper text-xl"></i>
+										</div>
+									<?php endif; ?>
+									<div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+								</div>
+								<h4 class="text-xs font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-2">
+									<?php the_title(); ?>
+								</h4>
+								<span class="text-[10px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
 							</a>
 						<?php endwhile; ?>
 					</div>
