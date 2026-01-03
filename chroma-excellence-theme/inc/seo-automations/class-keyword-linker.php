@@ -130,8 +130,12 @@ class Chroma_Keyword_Linker
     private function replace_keyword($content, $keyword, $url, $max) {
         $count = 0;
         
-        // Pattern: match keyword not already inside a link
-        $pattern = '/(?<!["\'>])(\b' . preg_quote($keyword, '/') . '\b)(?![^<]*<\/a>)/i';
+        // Pattern: match keyword not inside a link AND not inside valid HTML tags/attributes
+        // 1. (?<!["\'>]) : Not preceded by quotes (partial attribute check)
+        // 2. \bKEYWORD\b : Whole word match
+        // 3. (?![^<]*<\/a>) : Not inside an existing link
+        // 4. (?![^<]*>) : Not inside an HTML tag (to protect src, alt, title, etc)
+        $pattern = '/(?<!["\'>])(\b' . preg_quote($keyword, '/') . '\b)(?![^<]*<\/a>)(?![^<]*>)/i';
         
         $content = preg_replace_callback($pattern, function($matches) use ($url, $max, $keyword, &$count) {
             if ($count >= $max) {
