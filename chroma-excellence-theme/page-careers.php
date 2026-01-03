@@ -122,8 +122,8 @@ $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
 						<?php foreach ($jobs as $job): ?>
 							<div
 								class="relative group border border-brand-ink/10 rounded-2xl p-6 hover:border-chroma-red/50 transition-colors flex flex-col md:flex-row justify-between items-center gap-4 bg-white">
-								<a href="<?php echo esc_url($job['url']); ?>" class="job-modal-trigger absolute inset-0 z-0" aria-label="Apply for <?php echo esc_attr($job['title']); ?>"></a>
-								<div class="relative z-0">
+								<a href="<?php echo esc_url($job['url']); ?>" class="job-modal-trigger absolute inset-0 z-10" aria-label="Apply for <?php echo esc_attr($job['title']); ?>"></a>
+								<div>
 									<h3 class="font-bold text-xl text-brand-ink">
 										<?php echo esc_html($job['title']); ?>
 									</h3>
@@ -133,7 +133,7 @@ $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
 									</p>
 								</div>
 								<a href="<?php echo esc_url($job['url']); ?>" 
-									class="job-modal-trigger relative z-10 px-6 py-3 border border-brand-ink/20 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-colors whitespace-nowrap">
+									class="job-modal-trigger relative z-20 px-6 py-3 border border-brand-ink/20 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-colors whitespace-nowrap">
 									Apply Now
 								</a>
 							</div>

@@ -153,14 +153,14 @@ $locations_query = new WP_Query(array(
 								class="bg-white rounded-[2rem] p-6 shadow-card border border-<?php echo esc_attr($is_featured ? $colors['border'] . ' border-opacity-50' : 'brand-ink/5'); ?> hover:border-<?php echo esc_attr($colors['border']); ?>/30 transition-all hover:-translate-y-1 h-full flex flex-col relative overflow-hidden">
 										
 								<!-- Overlay Link for entire card -->
-								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0" aria-label="View <?php echo esc_attr($location_name); ?>"></a>
+								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-10" aria-label="View <?php echo esc_attr($location_name); ?>"></a>
 
 								<div
-									class="absolute top-0 right-0 bg-<?php echo esc_attr($is_new ? $colors['text'] : $colors['border']); ?> text-<?php echo esc_attr($is_new ? 'brand-ink' : 'white'); ?> text-[10px] font-bold uppercase px-4 py-1 rounded-bl-xl tracking-wider z-10">
+									class="absolute top-0 right-0 bg-<?php echo esc_attr($is_new ? $colors['text'] : $colors['border']); ?> text-<?php echo esc_attr($is_new ? 'brand-ink' : 'white'); ?> text-[10px] font-bold uppercase px-4 py-1 rounded-bl-xl tracking-wider">
 									<?php echo esc_html($badge_text); ?>
 								</div>
 
-								<div class="flex justify-between items-start mb-4 mt-2 relative z-10">
+								<div class="flex justify-between items-start mb-4 mt-2">
 									<span
 										class="bg-<?php echo esc_attr($colors['bg']); ?> text-<?php echo esc_attr($colors['text']); ?> px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
 										<?php echo esc_html($region_name); ?>
@@ -175,17 +175,17 @@ $locations_query = new WP_Query(array(
 								</div>
 
 								<h2
-									class="font-serif text-2xl font-bold text-brand-ink mb-2 group-hover:text-<?php echo esc_attr($colors['text']); ?> transition-colors relative z-10">
+									class="font-serif text-2xl font-bold text-brand-ink mb-2 group-hover:text-<?php echo esc_attr($colors['text']); ?> transition-colors">
 									<?php echo esc_html($location_name); ?>
 								</h2>
 
-								<p class="text-sm text-brand-ink/90 mb-4 flex-grow relative z-10">
+								<p class="text-sm text-brand-ink/90 mb-4 flex-grow">
 									<?php echo esc_html($address); ?><br>
 									<?php echo esc_html("$city, $state $zip"); ?>
 								</p>
 
 								<div
-									class="flex flex-wrap gap-2 mb-6 text-[10px] font-bold uppercase tracking-wider text-brand-ink relative z-10">
+									class="flex flex-wrap gap-2 mb-6 text-[10px] font-bold uppercase tracking-wider text-brand-ink">
 									<span
 										class="border border-brand-ink/10 px-2 py-1 rounded-md"><?php echo esc_html($ages_served); ?></span>
 									<?php foreach (array_slice($special_programs, 0, 2) as $program): ?>
@@ -197,7 +197,7 @@ $locations_query = new WP_Query(array(
 								<?php
 							$booking_link = get_post_meta($location_id, 'location_tour_booking_link', true);
 							?>
-							<div class="grid grid-cols-2 gap-3 mt-auto relative z-10">
+							<div class="grid grid-cols-2 gap-3 mt-auto relative z-20">
 								<a href="<?php the_permalink(); ?>"
 									class="flex items-center justify-center py-3 rounded-xl bg-brand-ink/5 text-brand-ink text-xs font-bold uppercase tracking-wider hover:bg-brand-ink hover:text-white transition-colors">
 									View Campus
