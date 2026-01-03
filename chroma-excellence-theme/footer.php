@@ -88,7 +88,7 @@
 				));
 
 				if ($footer_blog_query->have_posts()) : ?>
-					<div class="space-y-4">
+					<div class="grid grid-cols-2 gap-4">
 						<?php while ($footer_blog_query->have_posts()) : $footer_blog_query->the_post(); ?>
 							<a href="<?php the_permalink(); ?>" class="group block">
 								<div class="aspect-video relative rounded-lg overflow-hidden bg-brand-ink/10 mb-2">
@@ -101,10 +101,10 @@
 									<?php endif; ?>
 									<div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
 								</div>
-								<h4 class="text-xs font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-2">
+								<h4 class="text-[10px] font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
 									<?php the_title(); ?>
 								</h4>
-								<span class="text-[10px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
+								<span class="text-[9px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
 							</a>
 						<?php endwhile; ?>
 					</div>
