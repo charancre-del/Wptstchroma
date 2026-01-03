@@ -153,7 +153,7 @@ if (is_page('schedule-a-tour')) {
 if ($show_sticky_cta):
 	?>
 	<div id="sticky-cta"
-		class="transform translate-y-full fixed bottom-0 left-0 right-0 bg-brand-ink/95 backdrop-blur-md text-white py-4 px-6 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] border-t border-white/10 transition-transform duration-500 ease-out">
+		class="md:hidden will-change-transform transform translate-y-full fixed bottom-0 left-0 right-0 bg-brand-ink/95 backdrop-blur-md text-white py-4 px-6 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] border-t border-white/10 transition-transform duration-500 ease-out">
 		<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
 			<span class="text-sm md:text-base font-medium tracking-wide">
 				<?php echo $sticky_text; // Allowed html tags ?>

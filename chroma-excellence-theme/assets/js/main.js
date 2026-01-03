@@ -672,34 +672,27 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   /**
-   * Sticky CTA Bar Scroll Logic
+   * Sticky CTA Bar Scroll Logic (Performance Optimized)
+   * - Uses one-time trigger to avoid continuous scroll processing
+   * - Removes listener after activation for zero ongoing cost
    */
   const stickyCta = document.getElementById('sticky-cta');
   if (stickyCta) {
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-
-    // Initial check
-    if (lastScrollY > 300) {
+    // Check if already scrolled on page load
+    if (window.scrollY > 300) {
       stickyCta.classList.remove('translate-y-full');
       stickyCta.classList.add('translate-y-0');
+    } else {
+      // Only add listener if not already past threshold
+      const showStickyCta = () => {
+        if (window.scrollY > 300) {
+          stickyCta.classList.remove('translate-y-full');
+          stickyCta.classList.add('translate-y-0');
+          // Remove listener after showing - no ongoing cost
+          window.removeEventListener('scroll', showStickyCta);
+        }
+      };
+      window.addEventListener('scroll', showStickyCta, { passive: true });
     }
-
-    window.addEventListener('scroll', () => {
-      lastScrollY = window.scrollY;
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          if (lastScrollY > 300) {
-            stickyCta.classList.remove('translate-y-full');
-            stickyCta.classList.add('translate-y-0');
-          } else {
-            stickyCta.classList.add('translate-y-full');
-            stickyCta.classList.remove('translate-y-0');
-          }
-          ticking = false;
-        });
-        ticking = true;
-      }
-    }, { passive: true });
   }
 });

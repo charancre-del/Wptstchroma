@@ -151,13 +151,16 @@ $locations_query = new WP_Query(array(
 							data-name="<?php echo esc_attr($location_name . ' ' . $city . ' ' . $zip); ?>">
 							<div
 								class="bg-white rounded-[2rem] p-6 shadow-card border border-<?php echo esc_attr($is_featured ? $colors['border'] . ' border-opacity-50' : 'brand-ink/5'); ?> hover:border-<?php echo esc_attr($colors['border']); ?>/30 transition-all hover:-translate-y-1 h-full flex flex-col relative overflow-hidden">
+										
+								<!-- Overlay Link for entire card -->
+								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0" aria-label="View <?php echo esc_attr($location_name); ?>"></a>
 
 								<div
-									class="absolute top-0 right-0 bg-<?php echo esc_attr($is_new ? $colors['text'] : $colors['border']); ?> text-<?php echo esc_attr($is_new ? 'brand-ink' : 'white'); ?> text-[10px] font-bold uppercase px-4 py-1 rounded-bl-xl tracking-wider">
+									class="absolute top-0 right-0 bg-<?php echo esc_attr($is_new ? $colors['text'] : $colors['border']); ?> text-<?php echo esc_attr($is_new ? 'brand-ink' : 'white'); ?> text-[10px] font-bold uppercase px-4 py-1 rounded-bl-xl tracking-wider z-10">
 									<?php echo esc_html($badge_text); ?>
 								</div>
 
-								<div class="flex justify-between items-start mb-4 mt-2">
+								<div class="flex justify-between items-start mb-4 mt-2 relative z-10">
 									<span
 										class="bg-<?php echo esc_attr($colors['bg']); ?> text-<?php echo esc_attr($colors['text']); ?> px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
 										<?php echo esc_html($region_name); ?>
@@ -172,17 +175,17 @@ $locations_query = new WP_Query(array(
 								</div>
 
 								<h2
-									class="font-serif text-2xl font-bold text-brand-ink mb-2 group-hover:text-<?php echo esc_attr($colors['text']); ?> transition-colors">
+									class="font-serif text-2xl font-bold text-brand-ink mb-2 group-hover:text-<?php echo esc_attr($colors['text']); ?> transition-colors relative z-10">
 									<?php echo esc_html($location_name); ?>
 								</h2>
 
-								<p class="text-sm text-brand-ink/90 mb-4 flex-grow">
+								<p class="text-sm text-brand-ink/90 mb-4 flex-grow relative z-10">
 									<?php echo esc_html($address); ?><br>
 									<?php echo esc_html("$city, $state $zip"); ?>
 								</p>
 
 								<div
-									class="flex flex-wrap gap-2 mb-6 text-[10px] font-bold uppercase tracking-wider text-brand-ink">
+									class="flex flex-wrap gap-2 mb-6 text-[10px] font-bold uppercase tracking-wider text-brand-ink relative z-10">
 									<span
 										class="border border-brand-ink/10 px-2 py-1 rounded-md"><?php echo esc_html($ages_served); ?></span>
 									<?php foreach (array_slice($special_programs, 0, 2) as $program): ?>
@@ -191,18 +194,28 @@ $locations_query = new WP_Query(array(
 									<?php endforeach; ?>
 								</div>
 
-								<div class="grid grid-cols-2 gap-3 mt-auto">
-									<a href="<?php the_permalink(); ?>"
-										class="flex items-center justify-center py-3 rounded-xl bg-brand-ink/5 text-brand-ink text-xs font-bold uppercase tracking-wider hover:bg-brand-ink hover:text-white transition-colors">
-										View Campus
-									</a>
-									<a href="<?php the_permalink(); ?>#tour"
-										class="flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
+								<?php
+							$booking_link = get_post_meta($location_id, 'location_tour_booking_link', true);
+							?>
+							<div class="grid grid-cols-2 gap-3 mt-auto relative z-10">
+								<a href="<?php the_permalink(); ?>"
+									class="flex items-center justify-center py-3 rounded-xl bg-brand-ink/5 text-brand-ink text-xs font-bold uppercase tracking-wider hover:bg-brand-ink hover:text-white transition-colors">
+									View Campus
+								</a>
+								<?php if ($booking_link): ?>
+									<a href="<?php echo esc_url($booking_link); ?>"
+										class="booking-btn flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
 										Book Tour
 									</a>
-								</div>
+								<?php else: ?>
+									<a href="<?php the_permalink(); ?>#contact"
+										class="flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
+										Contact Us
+									</a>
+								<?php endif; ?>
 							</div>
 						</div>
+					</div>
 
 					<?php endwhile;
 					wp_reset_postdata();
@@ -353,7 +366,94 @@ $locations_query = new WP_Query(array(
 			}
 		});
 
-		if (noResults) noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+
+	if (noResults) noResults.style.display = visibleCount === 0 ? 'block' : 'none';
+	});
+</script>
+
+<!-- Tour Booking Modal -->
+<div id="chroma-tour-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+	<!-- Backdrop -->
+	<div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="chroma-tour-backdrop">
+	</div>
+
+	<!-- Modal Container -->
+	<div
+		class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+		<!-- Header -->
+		<div
+			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
+			<h3 class="font-serif text-xl font-bold text-brand-ink">Schedule Your Visit</h3>
+			<div class="flex items-center gap-4">
+				<a href="#" id="chroma-tour-external" target="_blank"
+					class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:block">
+					Open in new tab <i class="fa-solid fa-external-link-alt ml-1"></i>
+				</a>
+				<button id="chroma-tour-close"
+					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
+					<i class="fa-solid fa-xmark text-lg"></i>
+				</button>
+			</div>
+		</div>
+
+		<!-- Iframe Container -->
+		<div class="flex-grow relative bg-white">
+			<div id="chroma-tour-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+				<div class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin">
+				</div>
+			</div>
+			<iframe id="chroma-tour-frame" src="" class="w-full h-full border-0"
+				allow="camera; microphone; autoplay; encrypted-media;"></iframe>
+		</div>
+	</div>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		const modal = document.getElementById('chroma-tour-modal');
+		const backdrop = document.getElementById('chroma-tour-backdrop');
+		const closeBtn = document.getElementById('chroma-tour-close');
+		const iframe = document.getElementById('chroma-tour-frame');
+		const externalLink = document.getElementById('chroma-tour-external');
+		const loader = document.getElementById('chroma-tour-loader');
+
+		function openModal(url) {
+			modal.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+			loader.classList.remove('hidden');
+			iframe.src = url;
+			externalLink.href = url;
+			iframe.onload = function () {
+				loader.classList.add('hidden');
+			};
+		}
+
+		function closeModal() {
+			modal.classList.add('hidden');
+			document.body.style.overflow = '';
+			iframe.src = '';
+		}
+
+		// Attach listeners to booking buttons
+		const bookingBtns = document.querySelectorAll('.booking-btn');
+		bookingBtns.forEach(btn => {
+			btn.addEventListener('click', function (e) {
+				const url = this.getAttribute('href');
+				if (url && url.startsWith('http')) {
+					e.preventDefault();
+					openModal(url);
+				}
+			});
+		});
+
+		// Close actions
+		if (closeBtn) closeBtn.addEventListener('click', closeModal);
+		if (backdrop) backdrop.addEventListener('click', closeModal);
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+				closeModal();
+			}
+		});
 	});
 </script>
 
