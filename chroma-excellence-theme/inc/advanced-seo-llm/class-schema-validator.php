@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Schema Validator
  * Validates JSON-LD schema before output to ensure compliance with Schema.org and Google requirements
@@ -366,6 +366,7 @@ class Chroma_Schema_Validator
                 break;
         }
     }
+
     /**
      * Validate FAQPage structure per Google Requirements
      */
@@ -552,19 +553,6 @@ class Chroma_Schema_Validator
     }
 
     /**
-     * Validate date format (ISO 8601)
-     */
-    private static function validate_date($date)
-    {
-        if (!is_string($date)) {
-            return false;
-        }
-        // Check if it's a valid ISO 8601 date
-        $parsed = date_parse($date);
-        return $parsed['error_count'] === 0 && $parsed['warning_count'] === 0;
-    }
-
-    /**
      * Validate image field (can be URL or ImageObject)
      */
     private static function validate_image_field($image, $context = '')
@@ -587,36 +575,6 @@ class Chroma_Schema_Validator
         }
         
         return false;
-    }
-
-    /**
-     * Deep validation of nested objects
-     */
-    private static function validate_nested_object($obj, $expected_type, $context)
-    {
-        if (!is_array($obj)) {
-            return false;
-        }
-
-        $type = self::get_schema_type($obj);
-        if ($type !== $expected_type) {
-            self::$warnings[] = "$context: Expected $expected_type, got: $type";
-            return false;
-        }
-
-        // Recursively validate the nested object
-        return self::validate($obj, $context);
-    }
-
-[{$idx}]");
-                    }
-                }
-                // Single nested object
-                elseif (is_array($value) && isset($value['@type'])) {
-                    self::validate($value, "{$context}.{$field}");
-                }
-            }
-        }
     }
 
     /**
