@@ -2161,7 +2161,8 @@ class Chroma_SEO_Dashboard
                     }
                     if (!messages) messages = '<span style="color:#ccc;">No issues</span>';
 
-                    var actionBtn = item.valid ? 
+                    var hasWarnings = item.warnings && item.warnings.length > 0;
+                    var actionBtn = (item.valid && !hasWarnings) ? 
                         `<a href="${item.permalink}" target="_blank" class="button button-small">View Page</a>` :
                         `<button class="button button-secondary chroma-open-bulk-fix" data-id="${item.id}">🔍 View & Fix</button>`;
 
@@ -2193,13 +2194,13 @@ class Chroma_SEO_Dashboard
                     $('#error-count').text(errorCount);
                     $('#valid-count').text(validCount);
                     
-                    // Add Fix All Button if errors exist
-                    $('#chroma-bulk-fix-all-btn').remove(); // distinct ID to prevent dupes
+                    // Add Fix All Button if errors OR warnings exist
+                    $('#chroma-bulk-fix-all-btn').remove(); 
                     if (errorCount > 0) {
                         $('#bulk-scan-summary .notice').append(`
                             <div style="margin-top:10px; border-top:1px solid #ddd; padding-top:10px;">
                                 <button id="chroma-bulk-fix-all-btn" class="button button-primary">
-                                    ✨ Fix All ${errorCount} Issues with AI
+                                    ✨ Fix All Issues with AI (Errors + Warnings)
                                 </button>
                                 <span id="bulk-fix-progress" style="display:none; margin-left:10px; color:#666;">
                                     Processing: <span id="bulk-fix-current">0</span>/${errorCount}...
@@ -2217,7 +2218,7 @@ class Chroma_SEO_Dashboard
 
                 // Bulk Fix All Handler
                 $(document).on('click', '#chroma-bulk-fix-all-btn', function() {
-                    if (!confirm('This will sequentially auto-repair all ' + errorCount + ' invalid pages using AI and SAVE the changes to the database. This process may take some time.\n\nAre you sure you want to proceed?')) {
+                    if (!confirm('This will sequentially auto-repair all invalid pages (and warnings) using AI and SAVE the changes to the database. This process may take some time.\n\nAre you sure you want to proceed?')) {
                         return;
                     }
 
@@ -2225,15 +2226,22 @@ class Chroma_SEO_Dashboard
                     $btn.prop('disabled', true);
                     $('#bulk-fix-progress').show();
                     
-                    // Build Queue
+                    // Build Queue (Errors OR Warnings)
                     var fixQueue = [];
                     $.each(scanResults, function(id, item) {
-                        if (!item.valid) {
+                        if (!item.valid || (item.warnings && item.warnings.length)) {
                             fixQueue.push(item);
                         }
                     });
 
                     var totalToFix = fixQueue.length;
+                    
+                    if (totalToFix === 0) {
+                        alert('Nothing to fix!');
+                        $btn.prop('disabled', false);
+                        return;
+                    }
+
                     var fixedSoFar = 0;
 
                     function processNextFix(index) {
@@ -2253,12 +2261,14 @@ class Chroma_SEO_Dashboard
                         // 1. Generate Fix
                         var schemaJson = item.schema && item.schema.length ? item.schema[0] : '';
                         if (item.schema.length > 1) schemaJson = item.schema.join('\n\n');
+                        
+                        var allIssues = (item.errors || []).concat(item.warnings || []);
 
                         $.post(ajaxurl, {
                             action: 'chroma_fix_schema_with_ai',
                             nonce: chroma_fix_nonce,
                             schema: schemaJson,
-                            errors: item.errors
+                            errors: allIssues, // Send combined issues
                         }, function(res1) {
                             if (res1.success) {
                                 var fixedSchema = res1.data.fixed_schema;
@@ -2353,13 +2363,14 @@ class Chroma_SEO_Dashboard
                      
                      // Send ALL schemas to AI
                      var allSchemas = currentSchemaData.schema;
+                     var allIssues = (currentSchemaData.errors || []).concat(currentSchemaData.warnings || []);
                      
                      // Step 1: Fix with AI
                      $.post(ajaxurl, {
                         action: 'chroma_fix_schema_with_ai',
                         nonce: '<?php echo wp_create_nonce('chroma_schema_inspector_nonce'); ?>',
                         schemas: allSchemas,
-                        errors: currentSchemaData.errors
+                        errors: allIssues
                      }, function(response) {
                         if (response.success) {
                             var fixedSchemas = response.data.fixed_schemas;

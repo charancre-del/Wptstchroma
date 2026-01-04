@@ -94,28 +94,40 @@ jQuery(document).ready(function ($) {
                     <div class="chroma-schema-details" id="detail-${item.index}">
             `;
 
-            // Errors
-            if (item.errors && item.errors.length) {
-                itemsHtml += '<h4>Errors</h4><ul class="chroma-error-list">';
-                item.errors.forEach(e => itemsHtml += `<li>${e}</li>`);
-                itemsHtml += '</ul>';
+            // Combine Errors and Warnings for Fixing
+            const allIssues = (item.errors || []).concat(item.warnings || []);
+            const hasIssuesItem = allIssues.length > 0;
 
-                // Fix Button
+            if (hasIssuesItem) {
+                // Determine header color
+                if ((item.errors || []).length > 0) hasErrors = true;
+
+                // Show Errors
+                if (item.errors && item.errors.length) {
+                    itemsHtml += '<h4>Errors</h4><ul class="chroma-error-list">';
+                    item.errors.forEach(e => itemsHtml += `<li>${e}</li>`);
+                    itemsHtml += '</ul>';
+                }
+
+                // Show Warnings
+                if (item.warnings && item.warnings.length) {
+                    itemsHtml += '<h4>Warnings</h4><ul class="chroma-warning-list">';
+                    item.warnings.forEach(w => itemsHtml += `<li>${w}</li>`);
+                    itemsHtml += '</ul>';
+                }
+
+                // Fix Button (Available for both errors and warnings)
                 itemsHtml += `
                     <div style="margin-bottom:15px;">
-                        <button class="chroma-fix-btn" data-schema="${encodeURIComponent(item.raw)}" data-errors="${encodeURIComponent(JSON.stringify(item.errors))}" data-index="${item.index}">
+                        <button class="chroma-fix-btn" data-schema="${encodeURIComponent(item.raw)}" data-errors="${encodeURIComponent(JSON.stringify(allIssues))}" data-index="${item.index}">
                             ✨ Auto-Fix with AI
                         </button>
                         <div class="fix-result-container" id="fix-result-${item.index}" style="display:none; margin-top:10px;"></div>
                     </div>
                 `;
-            }
-
-            // Warnings
-            if (item.warnings && item.warnings.length) {
-                itemsHtml += '<h4>Warnings</h4><ul class="chroma-warning-list">';
-                item.warnings.forEach(w => itemsHtml += `<li>${w}</li>`);
-                itemsHtml += '</ul>';
+            } else {
+                // Just Warnings (if any left over logic?) - actually handled above.
+                // If valid and no warnings, show nothing extra.
             }
 
             // Raw JSON
@@ -128,8 +140,12 @@ jQuery(document).ready(function ($) {
             itemsHtml += `</div></div>`;
         });
 
-        // Prepend Actions Toolbar if errors exist
-        if (hasErrors) {
+        // Prepend Actions Toolbar if issues exist
+        if (hasErrors) { // Keep red toolbar mainly for errors, or change to cover both?
+            // User asked to fix warnings too, so let's allow bulk fix if there are errors OR warnings?
+            // For now, let's keep "Fix All" focused on Errors to avoid overwhelming API costs on minor warnings
+            // unless we want to expand scope. Let's stick to hasErrors for the big red button for now,
+            // but the individual buttons now work for warnings.
             const toolbar = `
                 <div style="margin-bottom:20px; padding:15px; background:#fff1f0; border:1px solid #ffccc7; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
                     <span style="color:#d32f2f; font-weight:bold;">⚠️ Issues Detected</span>
