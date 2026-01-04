@@ -2024,17 +2024,48 @@ class Chroma_SEO_Dashboard
                     <!-- Results injected here -->
                 </tbody>
             </table>
+            
+            <!-- Bulk Fix Modal -->
+            <div id="chroma-bulk-modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(2px);">
+                <div style="background-color:#fefefe; margin:50px auto; padding:0; border:1px solid #888; width:90%; max-width:1100px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
+                    <div style="padding:15px 20px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; border-radius:8px 8px 0 0;">
+                        <h2 style="margin:0; font-size:18px; color:#333;">🔍 Schema Inspector & Fixer</h2>
+                        <span id="chroma-bulk-close" style="color:#aaa; font-size:28px; font-weight:bold; cursor:pointer; line-height:1;">&times;</span>
+                    </div>
+                    <div style="padding:20px; display:flex; gap:20px; height:70vh;">
+                        <div style="flex:1; display:flex; flex-direction:column;">
+                            <h3 style="margin-top:0;">Current Schema (JSON-LD)</h3>
+                            <textarea id="bulk-schema-viewer" style="flex:1; width:100%; font-family:monospace; font-size:12px; padding:10px; background:#f0f0f1; border:1px solid #ccc; white-space:pre; overflow:auto;" readonly></textarea>
+                        </div>
+                        <div style="flex:1; display:flex; flex-direction:column;">
+                            <h3 style="margin-top:0;">Validation Report</h3>
+                            <div id="bulk-error-report" style="flex:1; overflow-y:auto; border:1px solid #eee; padding:10px; background:#fff; margin-bottom:15px;"></div>
+                            
+                            <div id="bulk-fix-actions" style="border-top:1px solid #eee; padding-top:15px;">
+                                <button id="bulk-fix-btn" class="button button-primary button-large" style="width:100%;">✨ Auto-Fix with AI</button>
+                                <div id="bulk-fix-result" style="display:none; margin-top:15px;">
+                                    <h4 style="margin:0 0 5px; color:#2e7d32;">✅ Fixed Schema</h4>
+                                    <textarea id="bulk-fixed-schema" style="width:100%; height:150px; font-family:monospace; font-size:11px; padding:10px; border:1px solid #46b450; background:#e8fdf5;"></textarea>
+                                    <button class="button" onclick="navigator.clipboard.writeText(jQuery('#bulk-fixed-schema').val()); alert('Copied!');" style="margin-top:5px;">Copy Fixed JSON</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <script>
             jQuery(document).ready(function($) {
                 var isScanning = false;
                 var postTypes = <?php echo json_encode($post_types); ?>;
-                var queue = [];
-                var totalPosts = 0;
                 var processedPosts = 0;
                 var errorCount = 0;
                 var validCount = 0;
+                var totalPosts = 0;
+                
+                // Store results for modal
+                var scanResults = {};
 
                 $('#start-bulk-scan').on('click', function() {
                     if (isScanning) return;
@@ -2045,22 +2076,18 @@ class Chroma_SEO_Dashboard
                     $('#bulk-results-table').show().find('tbody').empty();
                     $('#bulk-scan-summary').hide();
                     
-                    // Reset stats
                     processedPosts = 0;
                     errorCount = 0;
                     validCount = 0;
+                    scanResults = {};
                     $('#scan-count').text(0);
                     $('#scan-progress-bar').css('width', '0%');
 
-                    // Step 1: Initialize Scan (Get Counts)
                     log('Initializing scan...');
-                    
-                    // We will just process post types sequentially
                     startBatchProcess();
                 });
 
                 function startBatchProcess() {
-                    // Start recursive batch
                     processBatch(0, 0); 
                 }
 
@@ -2081,36 +2108,28 @@ class Chroma_SEO_Dashboard
                         if (response.success) {
                             var data = response.data;
                             
-                            // Update Totals (First run for this type sets the total?) 
-                            // Actuallly, we can just track processed.
-                            // Ideally we'd get the total count first, but for simplicity let's just increment.
-                            
                             if (offset === 0 && data.total_in_type) {
                                 totalPosts += data.total_in_type;
                                 $('#scan-total').text(totalPosts);
                             }
 
-                            // Render Results
                             if (data.results && data.results.length > 0) {
                                 data.results.forEach(function(item) {
                                     processedPosts++;
+                                    scanResults[item.id] = item; // Store for modal
                                     renderRow(item);
                                 });
                                 
-                                // Update Progress
                                 $('#scan-count').text(processedPosts);
                                 var pct = totalPosts > 0 ? (processedPosts / totalPosts) * 100 : 5;
                                 $('#scan-progress-bar').css('width', pct + '%');
 
-                                // Continue Next Batch
                                 if (data.has_more) {
                                     processBatch(typeIndex, offset + data.batch_size);
                                 } else {
-                                    // Done with this type, move to next
                                     processBatch(typeIndex + 1, 0);
                                 }
                             } else {
-                                // No results? Maybe empty type
                                  processBatch(typeIndex + 1, 0);
                             }
 
@@ -2126,15 +2145,11 @@ class Chroma_SEO_Dashboard
 
                 function renderRow(item) {
                     var statusIcon = item.valid ? '✅' : '❌';
-                    var statusClass = item.valid ? (item.warnings > 0 ? 'warning' : 'valid') : 'invalid';
                     var statusText = item.valid ? 'Valid' : 'Invalid';
                     
                     if (item.valid) validCount++;
                     else errorCount++;
 
-                    // Only show rows with issues or errors for cleanliness, or show all?
-                    // Let's show all but highlight errors.
-                    
                     var messages = '';
                     if (item.errors && item.errors.length) {
                         messages += '<div style="color:#d63638; margin-bottom:4px;"><strong>Errors:</strong><br>' + item.errors.join('<br>') + '</div>';
@@ -2143,6 +2158,10 @@ class Chroma_SEO_Dashboard
                         messages += '<div style="color:#dba617;"><strong>Warnings:</strong><br>' + item.warnings.join('<br>') + '</div>';
                     }
                     if (!messages) messages = '<span style="color:#ccc;">No issues</span>';
+
+                    var actionBtn = item.valid ? 
+                        `<a href="${item.permalink}" target="_blank" class="button button-small">View Page</a>` :
+                        `<button class="button button-secondary chroma-open-bulk-fix" data-id="${item.id}">🔍 View & Fix</button>`;
 
                     var html = `
                         <tr>
@@ -2153,13 +2172,10 @@ class Chroma_SEO_Dashboard
                             <td>${item.type}</td>
                             <td>${statusIcon} ${statusText}</td>
                             <td>${messages}</td>
-                            <td>
-                                <a href="${item.permalink}" target="_blank" class="button button-small">View</a>
-                            </td>
+                            <td>${actionBtn}</td>
                         </tr>
                     `;
 
-                    // Prepend errors to top, append valid to bottom
                     if (!item.valid) {
                         $('#bulk-results-table tbody').prepend(html);
                     } else {
@@ -2182,12 +2198,93 @@ class Chroma_SEO_Dashboard
                     }
                 }
 
+                // Modal Logic
+                var $modal = $('#chroma-bulk-modal');
+                var currentSchemaData = null;
+
+                $(document).on('click', '.chroma-open-bulk-fix', function(e) {
+                    e.preventDefault();
+                    var id = $(this).data('id');
+                    var data = scanResults[id];
+                    
+                    if (!data) return;
+                    currentSchemaData = data;
+
+                    // Populate Modal
+                    var schemaJson = data.schema && data.schema.length ? data.schema[0] : '';
+                    if (data.schema.length > 1) {
+                        schemaJson = data.schema.join('\n\n// NEXT SCHEMA BLOCK //\n\n');
+                    }
+                    
+                    $('#bulk-schema-viewer').val(schemaJson || '// No Schema Found');
+                    
+                    var reportHtml = '';
+                    if (data.errors && data.errors.length) {
+                        reportHtml += '<h4 style="color:#d63638; margin-top:0;">❌ Errors</h4><ul style="color:#d63638; list-style:disc; padding-left:20px;">';
+                        data.errors.forEach(e => reportHtml += `<li>${e}</li>`);
+                        reportHtml += '</ul>';
+                    }
+                    if (data.warnings && data.warnings.length) {
+                        reportHtml += '<h4 style="color:#dba617;">⚠️ Warnings</h4><ul style="color:#dba617; list-style:disc; padding-left:20px;">';
+                        data.warnings.forEach(w => reportHtml += `<li>${w}</li>`);
+                        reportHtml += '</ul>';
+                    }
+                    $('#bulk-error-report').html(reportHtml);
+                    
+                    // Reset Fix UI
+                    $('#bulk-fix-result').hide();
+                    $('#bulk-fix-btn').prop('disabled', false).text('✨ Auto-Fix with AI');
+                    
+                    $modal.show();
+                });
+
+                $('#chroma-bulk-close').on('click', function() {
+                    $modal.hide();
+                });
+                
+                // Fix Handler
+                $('#bulk-fix-btn').on('click', function() {
+                     if (!currentSchemaData || !currentSchemaData.schema || !currentSchemaData.schema.length) {
+                         alert('No schema to fix!');
+                         return;
+                     }
+                     
+                     var btn = $(this);
+                     btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Fixing...');
+                     
+                     // Use the first schema block for now if multiple, or ask user? 
+                     // Simplest: Fix the first block usually contains the main entity.
+                     var rawSchema = currentSchemaData.schema[0]; 
+                     
+                     $.post(ajaxurl, {
+                        action: 'chroma_fix_schema_with_ai', // Reuse existing endpoint
+                        nonce: '<?php echo wp_create_nonce('chroma_schema_inspector_nonce'); ?>', // Note: using different nonce, need to ensure dashboard generated this correct nonce?
+                        // Wait, chroma_fix_schema_with_ai uses 'chroma_schema_inspector_nonce'.
+                        // We need to generate that nonce here.
+                        schema: rawSchema,
+                        errors: currentSchemaData.errors
+                    }, function(response) {
+                        btn.prop('disabled', false).text('✨ Auto-Fix with AI');
+                        
+                        if (response.success) {
+                            $('#bulk-fix-result').show();
+                            $('#bulk-fixed-schema').val(response.data.fixed_schema);
+                        } else {
+                            alert('AI Fix Failed: ' + (response.data.message || 'Unknown error'));
+                        }
+                    });
+                });
+
                 function log(msg) {
                     console.log('[Bulk Validator] ' + msg);
                 }
             });
         </script>
         <?php
+        // We need to make sure the nonce for fix_schema is available if it differs.
+        // The fix_schema endpoint uses 'chroma_schema_inspector_nonce'.
+        // So let's generate it here for safety.
+        echo '<script>var chroma_fix_nonce = "' . wp_create_nonce('chroma_schema_inspector_nonce') . '";</script>';
     }
 
     /**
