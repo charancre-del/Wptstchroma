@@ -382,11 +382,18 @@ class Chroma_LLM_Client
         }
         
         // Get site-wide settings
+        // Get site-wide settings (Plugin Option > Theme Mod Fallback)
+        $phone = get_option('chroma_seo_phone');
+        if (empty($phone)) $phone = get_theme_mod('chroma_phone_number', '');
+
+        $email = get_option('chroma_seo_email');
+        if (empty($email)) $email = get_theme_mod('chroma_email', '');
+
         $site_context = "=== SITE-WIDE INFO ===\n";
         $site_context .= "Site Name: " . get_bloginfo('name') . "\n";
         $site_context .= "Tagline: " . get_bloginfo('description') . "\n";
-        $site_context .= "Main Phone: " . get_theme_mod('chroma_phone_number', '') . "\n";
-        $site_context .= "Main Email: " . get_theme_mod('chroma_email', '') . "\n";
+        $site_context .= "Main Phone: " . $phone . "\n";
+        $site_context .= "Main Email: " . $email . "\n";
 
         $prompt .= "\n=== WEBSITE DATA (HIGHEST PRIORITY) ===\n";
         $prompt .= "Title: " . $post->post_title . "\n";

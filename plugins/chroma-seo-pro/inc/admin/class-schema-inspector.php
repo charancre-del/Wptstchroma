@@ -70,11 +70,11 @@ class Chroma_Schema_Inspector
         ));
 
         // 3. Enqueue Core JS (Dependent on jquery AND our data handle)
-        $js_path = get_template_directory() . '/assets/js/schema-inspector.js';
+        $js_path = CHROMA_SEO_PATH . 'assets/js/schema-inspector.js';
         if (file_exists($js_path)) {
             wp_enqueue_script(
                 'chroma-schema-inspector-core', 
-                get_template_directory_uri() . '/assets/js/schema-inspector.js', 
+                CHROMA_SEO_URL . 'assets/js/schema-inspector.js', 
                 ['jquery', 'chroma-schema-inspector-data'], 
                 '1.0.1', 
                 true

@@ -32,7 +32,8 @@ function chroma_general_content_schema() {
         }
     }
 }
-add_action('wp_head', 'chroma_general_content_schema', 1);
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_general_content_schema', 1);
 
 /**
  * Add Organization Schema to Homepage
@@ -99,7 +100,8 @@ function chroma_organization_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
-add_action('wp_head', 'chroma_organization_schema');
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_organization_schema');
 
 /**
  * HTTP Header Signals (Tier 7 - Y)
@@ -155,7 +157,8 @@ function chroma_website_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
-add_action('wp_head', 'chroma_website_schema');
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_website_schema');
 
 /**
  * Add LocalBusiness Schema to Location Pages
@@ -521,7 +524,8 @@ function chroma_location_schema()
             echo '<script type="application/ld+json">' . wp_json_encode($event_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
         }
 }
-add_action('wp_head', 'chroma_location_schema');
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_location_schema');
 
 /**
  * Add Service Schema to City Pages
@@ -591,7 +595,8 @@ function chroma_city_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
-add_action('wp_head', 'chroma_city_schema');
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_city_schema');
 
 /**
  * Add Service Schema to Program Pages
@@ -644,7 +649,8 @@ function chroma_program_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
-add_action('wp_head', 'chroma_program_schema');
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_program_schema');
 
 /**
  * Add FAQPage Schema to Homepage (when FAQ section exists)
@@ -705,7 +711,8 @@ function chroma_faq_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
-add_action('wp_head', 'chroma_faq_schema');
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_faq_schema');
 
 /**
  * Breadcrumb Schema is now handled by inc/advanced-seo-llm/class-breadcrumbs.php
@@ -1333,4 +1340,5 @@ function chroma_city_faq_schema_output()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
-add_action('wp_head', 'chroma_city_faq_schema_output');
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_city_faq_schema_output');

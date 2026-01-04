@@ -73,7 +73,12 @@ class Chroma_LLM_Admin_Settings
         register_setting('chroma_llm_settings', 'chroma_llm_model');
         register_setting('chroma_llm_settings', 'chroma_llm_base_url');
         register_setting('chroma_llm_settings', 'chroma_llm_rate_limit');
+        register_setting('chroma_llm_settings', 'chroma_llm_rate_limit');
         register_setting('chroma_llm_settings', 'chroma_llm_cache_duration');
+        
+        // Organization Settings (migrated from Theme Mods)
+        register_setting('chroma_llm_settings', 'chroma_seo_phone');
+        register_setting('chroma_llm_settings', 'chroma_seo_email');
     }
     
     /**
@@ -82,8 +87,8 @@ class Chroma_LLM_Admin_Settings
     public function enqueue_assets($hook) {
         if (strpos($hook, 'chroma-llm') === false) return;
         
-        wp_enqueue_style('chroma-llm-admin', get_template_directory_uri() . '/assets/css/admin-llm.css', [], '1.0.0');
-        wp_enqueue_script('chroma-llm-admin', get_template_directory_uri() . '/assets/js/admin-llm.js', ['jquery'], '1.0.0', true);
+        wp_enqueue_style('chroma-llm-admin', CHROMA_SEO_URL . 'assets/css/admin-llm.css', [], '1.0.0');
+        wp_enqueue_script('chroma-llm-admin', CHROMA_SEO_URL . 'assets/js/admin-llm.js', ['jquery'], '1.0.0', true);
         
         wp_localize_script('chroma-llm-admin', 'chromaLLM', [
             'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -142,6 +147,26 @@ class Chroma_LLM_Admin_Settings
                                 value="<?php echo esc_attr(get_option('chroma_llm_base_url', 'https://api.openai.com/v1')); ?>" 
                                 class="regular-text">
                             <p class="description">Change for OpenRouter or local models</p>
+                        </td>
+                    </tr>
+                </table>
+
+                <h2>Organization Information</h2>
+                <table class="form-table">
+                    <tr>
+                        <th>Main Phone Number</th>
+                        <td>
+                            <input type="text" name="chroma_seo_phone" 
+                                value="<?php echo esc_attr(get_option('chroma_seo_phone')); ?>" 
+                                class="regular-text" placeholder="(555) 123-4567">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Main Email Address</th>
+                        <td>
+                            <input type="email" name="chroma_seo_email" 
+                                value="<?php echo esc_attr(get_option('chroma_seo_email')); ?>" 
+                                class="regular-text" placeholder="info@example.com">
                         </td>
                     </tr>
                 </table>

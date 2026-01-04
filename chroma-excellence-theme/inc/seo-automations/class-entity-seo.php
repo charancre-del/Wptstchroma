@@ -14,7 +14,8 @@ if (!defined('ABSPATH')) {
 class Chroma_Entity_SEO
 {
     public function __construct() {
-        add_action('wp_head', [$this, 'output_organization_schema']);
+        // DISABLED - Moved to Chroma SEO Pro Plugin
+        // add_action('wp_head', [$this, 'output_organization_schema']);
         add_filter('the_content', [$this, 'add_semantic_markup'], 5);
     }
     

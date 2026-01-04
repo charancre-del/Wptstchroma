@@ -57,6 +57,9 @@ chroma_safe_require(__DIR__ . '/class-advanced-features.php');
 chroma_safe_require(__DIR__ . '/admin/class-llm-admin-settings.php');
 chroma_safe_require(__DIR__ . '/admin/class-schema-inspector.php');
 
+// Load Theme Schema Compatibility (migrated from seo-engine.php)
+chroma_safe_require(__DIR__ . '/class-theme-schema-compat.php');
+
 // Load Editor Metabox
 chroma_safe_require(__DIR__ . '/meta-boxes/class-schema-editor-metabox.php');
 

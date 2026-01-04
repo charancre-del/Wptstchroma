@@ -42,6 +42,8 @@ class Chroma_SEO_Dashboard
     {
         register_setting('chroma_llm_options', 'chroma_llm_brand_voice');
         register_setting('chroma_llm_options', 'chroma_llm_brand_context');
+        register_setting('chroma_llm_options', 'chroma_seo_phone');
+        register_setting('chroma_llm_options', 'chroma_seo_email');
     }
 
     /**
