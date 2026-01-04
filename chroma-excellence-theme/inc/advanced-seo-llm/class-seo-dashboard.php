@@ -2446,8 +2446,19 @@ class Chroma_SEO_Dashboard
             $pid = $post->ID;
             $permalink = get_permalink($pid);
             
+            // Add cache busting to ensure we see the latest validation fixes
+            $fetch_url = add_query_arg('chroma_nocache', time(), $permalink);
+            
             // Fetch Live Page
-            $response = wp_remote_get($permalink, ['timeout' => 10, 'sslverify' => false]);
+            $response = wp_remote_get($fetch_url, [
+                'timeout' => 15, 
+                'sslverify' => false,
+                'headers' => [
+                   'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                   'Pragma' => 'no-cache',
+                   'Expires' => '0'
+                ]
+            ]);
             $is_valid = false;
             $errors = [];
             $warnings = [];
