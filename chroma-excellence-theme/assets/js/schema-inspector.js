@@ -28,7 +28,8 @@ jQuery(document).ready(function ($) {
     const $loading = $modal.find('.chroma-loading');
 
     // Open Modal
-    $(document).on('click', '.chroma-inspector-trigger', function (e) {
+    // Target the specific admin bar node ID (and its link child) for robustness
+    $(document).on('click', '#wp-admin-bar-chroma-validate-schema > .ab-item, .chroma-inspector-trigger', function (e) {
         e.preventDefault();
 
         $modal.show();
