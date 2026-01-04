@@ -23,6 +23,12 @@ class Chroma_Universal_FAQ_Builder
             return;
         }
 
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta(get_the_ID(), '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
         $post_id = get_the_ID();
         $faqs = get_post_meta($post_id, 'chroma_faq_items', true);
 

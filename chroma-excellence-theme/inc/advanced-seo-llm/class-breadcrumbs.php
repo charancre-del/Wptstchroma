@@ -73,6 +73,13 @@ class Chroma_Breadcrumbs
             return;
         }
 
+        // Check for manual override (AI Fixed Schema)
+        // If an override exists, we assume it handles breadcrumbs or the user wants to suppress themes breadcrumbs.
+        $override = get_post_meta(get_the_ID(), '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
         $items = $this->get_breadcrumb_items();
         $schema_items = [];
 

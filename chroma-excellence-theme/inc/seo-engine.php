@@ -655,6 +655,13 @@ function chroma_faq_schema()
                 return;
         }
 
+        // Check for manual override on homepage
+        $homepage_id = get_option('page_on_front');
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
         // Check if FAQ data exists
         if (!function_exists('chroma_home_has_faq') || !chroma_home_has_faq()) {
                 return;
