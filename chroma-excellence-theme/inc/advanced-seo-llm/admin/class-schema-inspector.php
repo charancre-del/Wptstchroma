@@ -155,10 +155,12 @@ class Chroma_Schema_Inspector
             wp_send_json_error(['message' => 'Permission denied']);
         }
 
-        $raw_schema = wp_unslash($_POST['schema'] ?? '');
+        // Support both single schema and multiple schemas
+        $schemas_array = $_POST['schemas'] ?? null;
+        $single_schema = $_POST['schema'] ?? null;
         $errors = $_POST['errors'] ?? [];
 
-        if (empty($raw_schema)) {
+        if (empty($schemas_array) && empty($single_schema)) {
             wp_send_json_error(['message' => 'No schema provided']);
         }
 
@@ -167,18 +169,34 @@ class Chroma_Schema_Inspector
             wp_send_json_error(['message' => 'LLM Client not initialized']);
         }
 
-        // Call the AI fix method (which we will add to LLM Client next)
         if (!method_exists($chroma_llm_client, 'fix_schema_with_ai')) {
              wp_send_json_error(['message' => 'AI Fix method not implemented yet']);
         }
 
-        $fixed_schema = $chroma_llm_client->fix_schema_with_ai($raw_schema, $errors);
+        // Handle multiple schemas
+        if ($schemas_array && is_array($schemas_array)) {
+            $fixed_schemas = [];
+            foreach ($schemas_array as $raw_schema) {
+                $raw_schema = wp_unslash($raw_schema);
+                $fixed = $chroma_llm_client->fix_schema_with_ai($raw_schema, $errors);
+                
+                if (is_wp_error($fixed)) {
+                    wp_send_json_error(['message' => 'Failed to fix schema: ' . $fixed->get_error_message()]);
+                }
+                $fixed_schemas[] = $fixed;
+            }
+            wp_send_json_success(['fixed_schemas' => $fixed_schemas]);
+        } else {
+            // Handle single schema (backward compatibility)
+            $raw_schema = wp_unslash($single_schema);
+            $fixed_schema = $chroma_llm_client->fix_schema_with_ai($raw_schema, $errors);
 
-        if (is_wp_error($fixed_schema)) {
-            wp_send_json_error(['message' => $fixed_schema->get_error_message()]);
+            if (is_wp_error($fixed_schema)) {
+                wp_send_json_error(['message' => $fixed_schema->get_error_message()]);
+            }
+
+            wp_send_json_success(['fixed_schema' => $fixed_schema]);
         }
-
-        wp_send_json_success(['fixed_schema' => $fixed_schema]);
     }
 }
 

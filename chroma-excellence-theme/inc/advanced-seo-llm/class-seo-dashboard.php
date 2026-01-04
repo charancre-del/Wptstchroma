@@ -30,6 +30,8 @@ class Chroma_SEO_Dashboard
         add_action('wp_ajax_chroma_fetch_llm_data', [$this, 'ajax_fetch_llm_data']);
         add_action('wp_ajax_chroma_save_llm_targeting', [$this, 'ajax_save_llm_targeting']);
         add_action('wp_ajax_chroma_reset_post_schema', [$this, 'ajax_reset_post_schema']);
+        add_action('wp_ajax_chroma_scan_schema_batch', [$this, 'ajax_scan_schema_batch']);
+        add_action('wp_ajax_chroma_apply_schema_fix', [$this, 'ajax_apply_schema_fix']);
         add_action('admin_init', [$this, 'register_settings']);
     }
 
@@ -2250,26 +2252,41 @@ class Chroma_SEO_Dashboard
                      }
                      
                      var btn = $(this);
-                     btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Fixing...');
+                     btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Fixing & Applying...');
                      
-                     // Use the first schema block for now if multiple, or ask user? 
-                     // Simplest: Fix the first block usually contains the main entity.
-                     var rawSchema = currentSchemaData.schema[0]; 
+                     // Send ALL schemas to AI
+                     var allSchemas = currentSchemaData.schema;
                      
+                     // Step 1: Fix with AI
                      $.post(ajaxurl, {
-                        action: 'chroma_fix_schema_with_ai', // Reuse existing endpoint
-                        nonce: '<?php echo wp_create_nonce('chroma_schema_inspector_nonce'); ?>', // Note: using different nonce, need to ensure dashboard generated this correct nonce?
-                        // Wait, chroma_fix_schema_with_ai uses 'chroma_schema_inspector_nonce'.
-                        // We need to generate that nonce here.
-                        schema: rawSchema,
+                        action: 'chroma_fix_schema_with_ai',
+                        nonce: '<?php echo wp_create_nonce('chroma_schema_inspector_nonce'); ?>',
+                        schemas: allSchemas,
                         errors: currentSchemaData.errors
-                    }, function(response) {
-                        btn.prop('disabled', false).text('✨ Auto-Fix with AI');
-                        
+                     }, function(response) {
                         if (response.success) {
-                            $('#bulk-fix-result').show();
-                            $('#bulk-fixed-schema').val(response.data.fixed_schema);
+                            var fixedSchemas = response.data.fixed_schemas;
+                            
+                            // Step 2: Auto-Apply fix
+                            $.post(ajaxurl, {
+                                action: 'chroma_apply_schema_fix',
+                                nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>',
+                                post_id: currentSchemaData.id,
+                                schemas: fixedSchemas
+                            }, function(applyResponse) {
+                                btn.prop('disabled', false).text('✨ Auto-Fix with AI');
+                                
+                                if (applyResponse.success) {
+                                    alert('✅ All Schemas Fixed!\n\nFixed ' + fixedSchemas.length + ' schema block(s) automatically.');
+                                    $modal.hide();
+                                    var row = $('#bulk-results-table').find(`[data-id="${currentSchemaData.id}"]`).closest('tr');
+                                    row.find('td:eq(2)').html('✅ Valid (Fixed)');
+                                } else {
+                                    alert('Apply failed: ' + (applyResponse.data.message || 'Unknown error'));
+                                }
+                            });
                         } else {
+                            btn.prop('disabled', false).text('✨ Auto-Fix with AI');
                             alert('AI Fix Failed: ' + (response.data.message || 'Unknown error'));
                         }
                     });
@@ -2381,4 +2398,69 @@ class Chroma_SEO_Dashboard
             'has_more' => ($offset + $batch_size) < $total_in_type
         ]);
     }
+
+    /**
+     * AJAX: Apply Fixed Schema(s) to Post
+     */
+    public function ajax_apply_schema_fix()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
+        $post_id = intval($_POST['post_id'] ?? 0);
+        
+        // Support both single schema and multiple schemas
+        $schemas_array = $_POST['schemas'] ?? null;
+        $single_schema = $_POST['schema'] ?? null;
+
+        if (!$post_id) {
+            wp_send_json_error(['message' => 'Missing post ID']);
+        }
+
+        if (empty($schemas_array) && empty($single_schema)) {
+            wp_send_json_error(['message' => 'Missing schema data']);
+        }
+
+        // Handle multiple schemas
+        if ($schemas_array && is_array($schemas_array)) {
+            // Validate all schemas
+            foreach ($schemas_array as $schema) {
+                $decoded = json_decode($schema);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    wp_send_json_error(['message' => 'Invalid JSON in one of the schemas: ' . json_last_error_msg()]);
+                }
+            }
+            
+            // Save as multiple script tags
+            $combined = '';
+            foreach ($schemas_array as $schema) {
+                $combined .= '<script type="application/ld+json">' . $schema . '</script>' . "\n";
+            }
+            update_post_meta($post_id, '_chroma_schema_override', trim($combined));
+            
+            wp_send_json_success([
+                'message' => 'All schemas applied successfully',
+                'post_id' => $post_id,
+                'count' => count($schemas_array)
+            ]);
+        } else {
+            // Handle single schema (backward compatibility)
+            $schema = wp_unslash($single_schema);
+            $decoded = json_decode($schema);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                wp_send_json_error(['message' => 'Invalid JSON: ' . json_last_error_msg()]);
+            }
+
+            update_post_meta($post_id, '_chroma_schema_override', $schema);
+
+            wp_send_json_success([
+                'message' => 'Schema applied successfully',
+                'post_id' => $post_id
+            ]);
+        }
+    }
+
 }

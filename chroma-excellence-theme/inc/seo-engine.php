@@ -123,6 +123,18 @@ function chroma_location_schema()
         }
 
         $location_id = get_the_ID();
+        
+        // Check for manual override first
+        $override = get_post_meta($location_id, '_chroma_schema_override', true);
+        if ($override) {
+                // Check if it's already formatted with script tags or raw JSON
+                if (strpos($override, '<script') !== false) {
+                        echo $override; // Already contains script tags
+                } else {
+                        echo '<script type="application/ld+json">' . $override . '</script>';
+                }
+                return;
+        }
 
         // Ensure Advanced SEO classes are available
         if (!class_exists('Chroma_Fallback_Resolver')) {
@@ -535,6 +547,17 @@ function chroma_program_schema()
         }
 
         $program_id = get_the_ID();
+        
+        // Check for manual override first
+        $override = get_post_meta($program_id, '_chroma_schema_override', true);
+        if ($override) {
+                if (strpos($override, '<script') !== false) {
+                        echo $override;
+                } else {
+                        echo '<script type="application/ld+json">' . $override . '</script>';
+                }
+                return;
+        }
 
         // Get custom values or fallbacks
         $name = get_post_meta($program_id, 'schema_prog_name', true) ?: get_the_title();
