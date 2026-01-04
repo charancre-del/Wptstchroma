@@ -1074,13 +1074,21 @@ class Chroma_LLM_Client
         $prompt .= "=== BROKEN SCHEMA ===\n";
         $prompt .= $raw_schema;
 
+        // Determine efficient max_tokens based on model
+        $model = get_option('chroma_llm_model', 'gpt-4o-mini');
+        $max_tokens = 4096; // Standard limit for GPT-4o / Turbo
+        
+        if (strpos($model, 'mini') !== false) {
+            $max_tokens = 16000; // GPT-4o-mini supports 16k output
+        }
+
         $response = $this->make_request([
             'messages' => [
                 ['role' => 'system', 'content' => 'You are a JSON repair expert. Output valid JSON only.'],
                 ['role' => 'user', 'content' => $prompt]
             ],
             'response_format' => ['type' => 'json_object'],
-            'max_tokens' => 4000 // Prevent truncation for large schemas
+            'max_tokens' => $max_tokens
         ]);
 
         if (is_wp_error($response)) {
