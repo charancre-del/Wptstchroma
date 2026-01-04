@@ -1065,10 +1065,17 @@ class Chroma_LLM_Client
         $prompt .= "\n";
         
         $prompt .= "=== INSTRUCTIONS ===\n";
-        $prompt .= "1. Fix validation errors listed above.\n";
-        $prompt .= "2. CONSOLIDATE: If multiple schemas exist (e.g. multiple Organizations, Breadcrumbs), merge them into a single `@graph` structure.\n";
-        $prompt .= "3. DEDUPLICATE: Do not output duplicate entities. If the same Organization appears twice, merge their properties (e.g. combine `sameAs` arrays) and output it ONCE.\n";
-        $prompt .= "4. PRIORITIZE: If conflicting data exists, keep the most specific/richer data.\n";
+        $prompt .= "1. **SINGLE OUTPUT**: You must output EXACTLY ONE valid JSON-LD structure wrapped in a SINGLE `<script type=\"application/ld+json\">` tag. Do NOT output multiple script tags or separate JSON blocks.\n";
+        $prompt .= "2. **USE @GRAPH**: Wrap all entities in a root `@graph` array.\n";
+        $prompt .= "3. **AGGRESSIVE DEDUPLICATION**: The input contains MANY duplicate schemas (e.g. 5 Organizations, 5 Breadcrumbs). You must FILTER these out.\n";
+        $prompt .= "   - Create ONLY ONE `Organization` node (consolidate properties).\n";
+        $prompt .= "   - Create ONLY ONE `BreadcrumbList` node.\n";
+        $prompt .= "   - Create ONLY ONE `FAQPage` node (merge questions).\n";
+        $prompt .= "   - Create ONLY ONE `WebPage` node.\n";
+        $prompt .= "4. **CONSOLIDATE**: If multiple similar entities exist, merge them into the richest possible version. Discard the redundant ones.\n";
+        $prompt .= "5. **FIX ERRORS**: Fix the validation errors listed above.\n";
+        $prompt .= "6. **CLEAN UP**: Remove empty properties or duplicate values in arrays.\n";
+        $prompt .= "7. **FINAL FORMAT**: Return ONLY the JSON-LD script code. No markdown formatting, no explanations.\n";he most specific/richer data.\n";
         $prompt .= "5. Ensure all dates are in ISO 8601 format and URLs are valid (https://).\n";
         $prompt .= "6. CRITICAL: Return ONLY the fixed JSON object (preferably using `@graph`).\n\n";
         
