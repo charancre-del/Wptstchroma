@@ -12,6 +12,29 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Global Schema Override Handler (for standard pages/posts)
+ * Hooks early to catch generic pages that have manual fixes
+ */
+function chroma_general_content_schema() {
+    if (is_singular('location') || is_singular('program') || is_singular('city') || is_front_page()) {
+        return; // Handled by specific functions below
+    }
+
+    $post_id = get_the_ID();
+    if (!$post_id) return;
+
+    $override = get_post_meta($post_id, '_chroma_schema_override', true);
+    if ($override) {
+        if (strpos($override, '<script') !== false) {
+            echo $override;
+        } else {
+            echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+        }
+    }
+}
+add_action('wp_head', 'chroma_general_content_schema', 1);
+
+/**
  * Add Organization Schema to Homepage
  */
 function chroma_organization_schema()
@@ -21,6 +44,17 @@ function chroma_organization_schema()
         }
 
         $homepage_id = get_option('page_on_front');
+
+        // Check for manual override first
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) {
+            if (strpos($override, '<script') !== false) {
+                echo $override;
+            } else {
+                echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+            }
+            return;
+        }
 
         // Get custom values or fallbacks
         $name = get_post_meta($homepage_id, 'schema_org_name', true) ?: get_bloginfo('name');
@@ -96,6 +130,9 @@ function chroma_website_schema()
         if (!is_front_page()) {
                 return;
         }
+        
+        // Note: We don't override this individually because usually the main Org schema override covers the whole page,
+        // or the user keeps this as is. If they pasted a @graph, the Org override above handles it.
 
         $schema = array(
                 '@context' => 'https://schema.org',
@@ -489,6 +526,18 @@ function chroma_city_schema()
         }
 
         $post_id = get_the_ID();
+        
+        // Check for manual override
+        $override = get_post_meta($post_id, '_chroma_schema_override', true);
+        if ($override) {
+            if (strpos($override, '<script') !== false) {
+                echo $override;
+            } else {
+                echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+            }
+            return;
+        }
+
         $city_name = get_the_title();
         $location_ids = get_post_meta($post_id, 'city_nearby_locations', true);
 
