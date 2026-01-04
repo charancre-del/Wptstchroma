@@ -2104,54 +2104,60 @@ class Chroma_SEO_Dashboard
 
                     var currentType = postTypes[typeIndex];
 
-                    $.post(ajaxurl, {
-                        action: 'chroma_scan_schema_batch',
-                        post_type: currentType,
-                        offset: offset,
-                        nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>'
-                    }, function(response) {
-                        if (response.success) {
-                            var data = response.data;
-                            
-                            if (offset === 0 && data.total_in_type) {
-                                totalPosts += data.total_in_type;
-                                $('#scan-total').text(totalPosts);
-                            }
-
-                            if (data.results && data.results.length > 0) {
-                                data.results.forEach(function(item) {
-                                    processedPosts++;
-                                    scanResults[item.id] = item; // Store for modal
-                                    renderRow(item);
-                                });
+                    $.ajax({
+                        url: ajaxurl,
+                        method: 'POST',
+                        timeout: 15000, // 15s timeout forces client to give up if server hangs
+                        data: {
+                            action: 'chroma_scan_schema_batch',
+                            post_type: currentType,
+                            offset: offset,
+                            nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>'
+                        },
+                        success: function(response) {
+                             if (response.success) {
+                                var data = response.data;
                                 
-                                $('#scan-count').text(processedPosts);
-                                var pct = totalPosts > 0 ? (processedPosts / totalPosts) * 100 : 5;
-                                $('#scan-progress-bar').css('width', pct + '%');
-
-                                if (data.has_more) {
-                                    processBatch(typeIndex, offset + data.batch_size);
-                                } else {
-                                    processBatch(typeIndex + 1, 0);
+                                if (offset === 0 && data.total_in_type) {
+                                    totalPosts += data.total_in_type;
+                                    $('#scan-total').text(totalPosts);
                                 }
+    
+                                if (data.results && data.results.length > 0) {
+                                    data.results.forEach(function(item) {
+                                        processedPosts++;
+                                        scanResults[item.id] = item; // Store for modal
+                                        renderRow(item);
+                                    });
+                                    
+                                    $('#scan-count').text(processedPosts);
+                                    var pct = totalPosts > 0 ? (processedPosts / totalPosts) * 100 : 5;
+                                    $('#scan-progress-bar').css('width', pct + '%');
+    
+                                    if (data.has_more) {
+                                        processBatch(typeIndex, offset + data.batch_size);
+                                    } else {
+                                        processBatch(typeIndex + 1, 0);
+                                    }
+                                } else {
+                                     processBatch(typeIndex + 1, 0);
+                                }
+    
                             } else {
-                                 processBatch(typeIndex + 1, 0);
+                                // PHP returned explicit error (e.g. permission or unexpected logic)
+                                // Do NOT abort. Log and continue.
+                                console.warn('Batch Error: ' + (response.data.message || 'Unknown'));
+                                // Attempt to skip this batch (size 1)
+                                processBatch(typeIndex, offset + 1);
                             }
-
-                        } else {
-                            // PHP returned explicit error (e.g. permission or unexpected logic)
-                            // Do NOT abort. Log and continue.
-                            console.warn('Batch Error: ' + (response.data.message || 'Unknown'));
-                            // Attempt to skip this batch (size 1)
-                            processBatch(typeIndex, offset + 1);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Network/Server Error/Timeout at offset ' + offset + ': ' + error);
+                            // Skip this batch (size 1) and continue.
+                            setTimeout(function() {
+                                processBatch(typeIndex, offset + 1);
+                            }, 1000);
                         }
-                    }).fail(function(xhr, status, error) {
-                        console.error('Network/Server Error at offset ' + offset + ': ' + error);
-                        // Likely a 504 Timeout or 500 Fatal Error. 
-                        // Skip this batch (size 1) and continue.
-                        setTimeout(function() {
-                            processBatch(typeIndex, offset + 1);
-                        }, 1000);
                     });
                 }
 

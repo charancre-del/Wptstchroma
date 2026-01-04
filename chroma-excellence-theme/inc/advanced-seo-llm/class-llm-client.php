@@ -1113,7 +1113,13 @@ class Chroma_LLM_Client
         $content = $response['choices'][0]['message']['content'];
         
         // Clean potential wrappers (even in json mode, sometimes it's wrapped)
+        // Clean potential wrappers (even in json mode, sometimes it's wrapped)
         if (preg_match('/```(?:json)?\s*(\{.*\})\s*```/s', $content, $matches)) {
+            $content = $matches[1];
+        }
+
+        // Clean <script> tags if present (requested in prompt but breaks json_decode)
+        if (preg_match('/<script[^>]*>(.*?)<\/script>/s', $content, $matches)) {
             $content = $matches[1];
         }
         
