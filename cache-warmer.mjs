@@ -18,9 +18,11 @@ const config = {
     delay: 100,           // Delay between requests in ms
     timeout: 30000,       // Request timeout in ms
     userAgent: 'CacheWarmer/1.0 (+https://chromaela.com)',
+    mobileUserAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
     verbose: false,
     dryRun: false,
     passes: 1,            // Number of warm-up passes
+    mobile: false,        // Also warm up mobile cache
 };
 
 // Parse command line arguments
@@ -38,6 +40,8 @@ for (const arg of args) {
         config.verbose = true;
     } else if (arg === '--dry-run') {
         config.dryRun = true;
+    } else if (arg === '--mobile') {
+        config.mobile = true;
     } else if (arg.startsWith('--passes=')) {
         config.passes = parseInt(arg.substring(9), 10);
     } else if (!arg.startsWith('--')) {
@@ -53,6 +57,7 @@ if (!sitemapUrl) {
     console.log('  --timeout=<sec>    Request timeout in seconds (default: 30)');
     console.log('  --passes=<num>     Number of warm-up passes (default: 1)');
     console.log('  --user-agent=<ua>  Custom user agent string');
+    console.log('  --mobile           Also warm up mobile cache (simulates iPhone)');
     console.log('  --verbose          Show detailed output for each request');
     console.log('  --dry-run          Parse sitemap but don\'t make requests');
     process.exit(1);
@@ -61,11 +66,11 @@ if (!sitemapUrl) {
 /**
  * Fetch URL content
  */
-function fetchUrl(url, warmCache = false) {
+function fetchUrl(url, warmCache = false, userAgent = config.userAgent) {
     return new Promise((resolve) => {
         const protocol = url.startsWith('https') ? https : http;
         const headers = {
-            'User-Agent': config.userAgent,
+            'User-Agent': userAgent,
         };
 
         if (warmCache) {
@@ -197,6 +202,7 @@ async function runWarmUpPass(allUrls, passNumber) {
         const progress = `[${current}/${totalUrls}]`.padEnd(12);
         const shortUrl = url.loc.length > 50 ? '...' + url.loc.slice(-47) : url.loc;
 
+        // Desktop Request
         process.stdout.write(`${progress} ${shortUrl} `);
 
         let result;
@@ -211,7 +217,7 @@ async function runWarmUpPass(allUrls, passNumber) {
                 delay = Math.min(delay * 2, 5000); // Double delay, max 5 seconds
                 stats.retries++;
             }
-            result = await fetchUrl(url.loc, true);
+            result = await fetchUrl(url.loc, true, config.userAgent);
             retryCount++;
         } while (result.httpCode === 429 && retryCount < maxRetries);
 
@@ -241,7 +247,48 @@ async function runWarmUpPass(allUrls, passNumber) {
             }
         }
 
-        // Delay between requests
+        // Mobile Request (Optional)
+        if (config.mobile) {
+            // Basic wait between desktop and mobile request
+            if (config.delay > 0) await sleep(config.delay);
+
+            process.stdout.write(`${' '.repeat(13)} 📱 Mobile: `);
+
+            let mResult;
+            let mRetryCount = 0;
+            let mDelay = config.delay;
+
+            do {
+                if (mRetryCount > 0) {
+                    process.stdout.write(`⏳ `);
+                    await sleep(mDelay);
+                    mDelay = Math.min(mDelay * 2, 5000);
+                    stats.retries++;
+                }
+                mResult = await fetchUrl(url.loc, true, config.mobileUserAgent);
+                mRetryCount++;
+            } while (mResult.httpCode === 429 && mRetryCount < maxRetries);
+
+            if (mResult.httpCode >= 200 && mResult.httpCode < 400) {
+                stats.success++;
+                stats.totalTime += mResult.totalTime;
+                stats.totalSize += mResult.size;
+
+                const mTimeStr = Math.round(mResult.totalTime * 1000) + 'ms';
+                const mSizeStr = formatBytes(mResult.size);
+
+                console.log(`✅ ${mResult.httpCode} (${mTimeStr}, ${mSizeStr})`);
+            } else {
+                stats.failed++;
+                let mErrorMsg = `❌ ${mResult.httpCode}`;
+                if (mResult.error) {
+                    mErrorMsg += ` - ${mResult.error}`;
+                }
+                console.log(mErrorMsg);
+            }
+        }
+
+        // Delay between URL items
         if (i < totalUrls - 1) {
             await sleep(config.delay);
         }
