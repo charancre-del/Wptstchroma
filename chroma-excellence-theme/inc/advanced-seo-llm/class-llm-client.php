@@ -1076,20 +1076,27 @@ class Chroma_LLM_Client
 
         // Determine efficient max_tokens based on model
         $model = get_option('chroma_llm_model', 'gpt-4o-mini');
-        $max_tokens = 4096; // Standard limit for GPT-4o / Turbo
+        $max_tokens = 4096; // Standard limit for GPT-4o / Turbo / Legacy
         
-        if (strpos($model, 'mini') !== false) {
-            $max_tokens = 16000; // GPT-4o-mini supports 16k output
+        // High-context models (Gemini, Flash, Mini)
+        if (strpos($model, 'mini') !== false || strpos($model, 'gemini') !== false || strpos($model, 'flash') !== false) {
+            $max_tokens = 16000; // Allow large output for efficient models
         }
 
-        $response = $this->make_request([
+        $request_args = [
             'messages' => [
                 ['role' => 'system', 'content' => 'You are a JSON repair expert. Output valid JSON only.'],
                 ['role' => 'user', 'content' => $prompt]
             ],
-            'response_format' => ['type' => 'json_object'],
             'max_tokens' => $max_tokens
-        ]);
+        ];
+
+        // Add JSON mode for compatible models
+        if (strpos($model, 'gpt') !== false || strpos($model, 'gemini') !== false) {
+             $request_args['response_format'] = ['type' => 'json_object'];
+        }
+
+        $response = $this->make_request($request_args);
 
         if (is_wp_error($response)) {
             return $response;
