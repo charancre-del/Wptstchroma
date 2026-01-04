@@ -2044,11 +2044,14 @@ class Chroma_SEO_Dashboard
                             <div id="bulk-error-report" style="flex:1; overflow-y:auto; border:1px solid #eee; padding:10px; background:#fff; margin-bottom:15px;"></div>
                             
                             <div id="bulk-fix-actions" style="border-top:1px solid #eee; padding-top:15px;">
-                                <button id="bulk-fix-btn" class="button button-primary button-large" style="width:100%;">✨ Auto-Fix with AI</button>
-                                <div id="bulk-fix-result" style="display:none; margin-top:15px;">
-                                    <h4 style="margin:0 0 5px; color:#2e7d32;">✅ Fixed Schema</h4>
-                                    <textarea id="bulk-fixed-schema" style="width:100%; height:150px; font-family:monospace; font-size:11px; padding:10px; border:1px solid #46b450; background:#e8fdf5;"></textarea>
-                                    <button class="button" onclick="navigator.clipboard.writeText(jQuery('#bulk-fixed-schema').val()); alert('Copied!');" style="margin-top:5px;">Copy Fixed JSON</button>
+                                <div style="display:flex; gap:10px; margin-bottom:15px;">
+                                    <button id="bulk-fix-btn" class="button button-secondary button-large" style="flex:1;">✨ Generate AI Proposal</button>
+                                    <button id="bulk-apply-btn" class="button button-primary button-large" style="flex:1; display:none;">💾 Apply Changes</button>
+                                </div>
+                                <div id="bulk-fix-result" style="display:none;">
+                                    <h4 style="margin:0 0 5px; color:#2e7d32;">📝 Proposed Fix (Editable)</h4>
+                                    <p style="margin:0 0 5px; font-size:11px; color:#666;">Review and edit the JSON below before saving.</p>
+                                    <textarea id="bulk-fixed-schema" style="width:100%; height:200px; font-family:monospace; font-size:12px; padding:10px; border:1px solid #46b450; background:#fff; color:#333;"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -2136,14 +2139,18 @@ class Chroma_SEO_Dashboard
                             }
 
                         } else {
-                            alert('Scanning Error: ' + (response.data.message || 'Unknown'));
-                            finishScan();
+                            // PHP returned explicit error (e.g. permission or unexpected logic)
+                            // Do NOT abort. Log and continue.
+                            console.warn('Batch Error: ' + (response.data.message || 'Unknown'));
+                            // Attempt to skip this batch (size 1)
+                            processBatch(typeIndex, offset + 1);
                         }
-                    }).fail(function() {
-                        console.error('Network Error/Timeout at offset ' + offset + '. Skipping this batch.');
-                        // Skip this batch (size 2) and continue. Use small delay to let server breathe.
+                    }).fail(function(xhr, status, error) {
+                        console.error('Network/Server Error at offset ' + offset + ': ' + error);
+                        // Likely a 504 Timeout or 500 Fatal Error. 
+                        // Skip this batch (size 1) and continue.
                         setTimeout(function() {
-                            processBatch(typeIndex, offset + 2);
+                            processBatch(typeIndex, offset + 1);
                         }, 1000);
                     });
                 }
@@ -2354,7 +2361,7 @@ class Chroma_SEO_Dashboard
                     $modal.hide();
                 });
                 
-                // Fix Handler
+                // Fix Handler (Step 1: Generate Proposal)
                 $('#bulk-fix-btn').on('click', function() {
                      if (!currentSchemaData || !currentSchemaData.schema || !currentSchemaData.schema.length) {
                          alert('No schema to fix!');
@@ -2362,13 +2369,15 @@ class Chroma_SEO_Dashboard
                      }
                      
                      var btn = $(this);
-                     btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Fixing & Applying...');
+                     btn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Generating Proposal...');
                      
-                     // Send ALL schemas to AI
+                     // Reset previous results
+                     $('#bulk-fix-result').hide();
+                     $('#bulk-apply-btn').hide();
+                     
                      var allSchemas = currentSchemaData.schema;
                      var allIssues = (currentSchemaData.errors || []).concat(currentSchemaData.warnings || []);
                      
-                     // Step 1: Fix with AI
                      $.post(ajaxurl, {
                         action: 'chroma_fix_schema_with_ai',
                         nonce: '<?php echo wp_create_nonce('chroma_schema_inspector_nonce'); ?>',
@@ -2377,29 +2386,77 @@ class Chroma_SEO_Dashboard
                      }, function(response) {
                         if (response.success) {
                             var fixedSchemas = response.data.fixed_schemas;
+                            var combinedJson = '';
                             
-                            // Step 2: Auto-Apply fix
-                            $.post(ajaxurl, {
-                                action: 'chroma_apply_schema_fix',
-                                nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>',
-                                post_id: currentSchemaData.id,
-                                schemas: fixedSchemas
-                            }, function(applyResponse) {
-                                btn.prop('disabled', false).text('✨ Auto-Fix with AI');
-                                
-                                if (applyResponse.success) {
-                                    alert('✅ All Schemas Fixed!\n\nFixed ' + fixedSchemas.length + ' schema block(s) automatically.');
-                                    $modal.hide();
-                                    var row = $('#bulk-results-table').find(`[data-id="${currentSchemaData.id}"]`).closest('tr');
-                                    row.find('td:eq(2)').html('✅ Valid (Fixed)');
-                                } else {
-                                    alert('Apply failed: ' + (applyResponse.data.message || 'Unknown error'));
-                                }
-                            });
+                            // Combine if array, or just use string
+                            if (Array.isArray(fixedSchemas)) {
+                                combinedJson = fixedSchemas.join('\n\n');
+                            } else {
+                                combinedJson = fixedSchemas;
+                            }
+                            
+                            // Show Proposal
+                            $('#bulk-fixed-schema').val(combinedJson);
+                            $('#bulk-fix-result').show();
+                            $('#bulk-apply-btn').show();
+                            
+                            btn.prop('disabled', false).text('✨ Regenerate AI Proposal');
+                            
                         } else {
-                            btn.prop('disabled', false).text('✨ Auto-Fix with AI');
-                            alert('AI Fix Failed: ' + (response.data.message || 'Unknown error'));
+                            btn.prop('disabled', false).text('✨ Generate AI Proposal');
+                            alert('AI Generation Failed: ' + (response.data.message || 'Unknown error'));
                         }
+                    }).fail(function() {
+                        btn.prop('disabled', false).text('✨ Generate AI Proposal');
+                        alert('Network Error during AI Reqest');
+                    });
+                });
+
+                // Apply Handler (Step 2: Save Edited Schema)
+                $('#bulk-apply-btn').on('click', function() {
+                    var btn = $(this);
+                    var editedSchema = $('#bulk-fixed-schema').val();
+                    
+                    if (!editedSchema.trim()) {
+                        alert('Proposed schema is empty!');
+                        return;
+                    }
+
+                    btn.prop('disabled', true).text('💾 Saving...');
+                    
+                    // We send the EDITED content as a single block (or array if we parse it, but server handles strings too)
+                    // The server expects 'schemas' (array) or 'schema' (string). 
+                    // Let's treat the textarea content as the final single output (since we merged duplicates).
+                    
+                    $.post(ajaxurl, {
+                        action: 'chroma_apply_schema_fix',
+                        nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>',
+                        post_id: currentSchemaData.id,
+                        schema: editedSchema // Send as single string 
+                    }, function(applyResponse) {
+                        btn.prop('disabled', false).text('💾 Apply Changes');
+                        
+                        if (applyResponse.success) {
+                            alert('✅ Schema Saved Successfully!');
+                            $modal.hide();
+                            
+                            // Update Table Row
+                            var row = $('#bulk-results-table').find(`[data-id="${currentSchemaData.id}"]`).closest('tr');
+                            row.find('td:eq(2)').html('✅ Valid (Fixed)');
+                            
+                            // Update stored data locally in case they open it again without rescanning
+                            currentSchemaData.schema = [editedSchema];
+                            currentSchemaData.valid = true;
+                            currentSchemaData.errors = [];
+                            currentSchemaData.warnings = [];
+                            scanResults[currentSchemaData.id] = currentSchemaData;
+                            
+                        } else {
+                            alert('Save failed: ' + (applyResponse.data.message || 'Unknown error'));
+                        }
+                    }).fail(function() {
+                        btn.prop('disabled', false).text('💾 Apply Changes');
+                        alert('Network Error during Save');
                     });
                 });
 
@@ -2428,7 +2485,8 @@ class Chroma_SEO_Dashboard
 
         $post_type = sanitize_text_field($_POST['post_type']);
         $offset = intval($_POST['offset']);
-        $batch_size = 2; // Reduced batch size to 2 to prevent PHP timeouts (2 * 15s = 30s max)
+        $batch_size = 1; // Reduced to 1 to isolate crashes/heavy pages
+        set_time_limit(120); // Give plenty of time for complex pages
 
         // Fetch Posts
         $args = [

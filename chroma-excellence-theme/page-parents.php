@@ -234,8 +234,9 @@ if (empty($gallery_images)) {
 
 				<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
 					<?php foreach ($resources as $resource): ?>
-						<a href="<?php echo esc_url($resource['url']); ?>" target="_blank"
-							class="bg-white p-8 rounded-[2rem] shadow-card hover:-translate-y-1 transition-transform group border border-brand-ink/5 flex flex-col items-center text-center">
+						<a href="<?php echo esc_url($resource['url']); ?>" 
+						   data-resource-title="<?php echo esc_attr($resource['title']); ?>"
+						   class="resource-popup-trigger bg-white p-8 rounded-[2rem] shadow-card hover:-translate-y-1 transition-transform group border border-brand-ink/5 flex flex-col items-center text-center">
 							<div
 								class="w-16 h-16 bg-<?php echo esc_attr($resource['colorClass']); ?>/10 rounded-2xl flex items-center justify-center text-3xl mb-4 text-<?php echo esc_attr($resource['colorClass']); ?> group-hover:bg-<?php echo esc_attr($resource['colorClass']); ?> group-hover:text-white transition-colors">
 								<i class="<?php echo esc_attr($resource['icon']); ?>"></i>
@@ -380,9 +381,9 @@ if (empty($gallery_images)) {
 						<div class="space-y-4">
 							<?php foreach ($menus as $index => $menu): ?>
 								<button type="button"
-									class="menu-popup-trigger w-full flex items-center justify-between p-4 rounded-xl bg-brand-cream hover:bg-<?php echo esc_attr($menu['bgClass']); ?> transition-colors group text-left"
-									data-menu-url="<?php echo esc_url($menu['url']); ?>"
-									data-menu-title="<?php echo esc_attr($menu['title']); ?>">
+									class="resource-popup-trigger w-full flex items-center justify-between p-4 rounded-xl bg-brand-cream hover:bg-<?php echo esc_attr($menu['bgClass']); ?> transition-colors group text-left"
+									data-resource-url="<?php echo esc_url($menu['url']); ?>"
+									data-resource-title="<?php echo esc_attr($menu['title']); ?>">
 									<div class="flex items-center gap-4">
 										<div
 											class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-<?php echo esc_attr($menu['color']); ?> shadow-sm">
@@ -503,10 +504,10 @@ if (empty($gallery_images)) {
 get_footer();
 ?>
 
-<!-- Menu Popup Modal -->
-<div id="menu-popup-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+<!-- Generic Resource Popup Modal -->
+<div id="resource-popup-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
 	<!-- Backdrop -->
-	<div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="menu-popup-backdrop"></div>
+	<div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="resource-popup-backdrop"></div>
 
 	<!-- Modal Container -->
 	<div
@@ -514,63 +515,57 @@ get_footer();
 		<!-- Header -->
 		<div
 			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
-			<h3 class="font-serif text-xl font-bold text-brand-ink" id="menu-popup-title">
-				<i class="fa-solid fa-utensils text-chroma-orange mr-2"></i>
-				<span id="menu-popup-title-text">Menu</span>
+			<h3 class="font-serif text-xl font-bold text-brand-ink" id="resource-popup-title">
+				<i class="fa-solid fa-link text-chroma-blue mr-2"></i>
+				<span id="resource-popup-title-text">Resource</span>
 			</h3>
 			<div class="flex items-center gap-4">
-				<a href="#" target="_blank" id="menu-popup-external"
+				<a href="#" target="_blank" id="resource-popup-external"
 					class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:flex items-center gap-1">
 					<i class="fa-solid fa-arrow-up-right-from-square"></i>
 					Open in new tab
 				</a>
-				<a href="#" download id="menu-popup-download"
-					class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-green transition-colors hidden md:flex items-center gap-1">
-					<i class="fa-solid fa-download"></i>
-					Download
-				</a>
-				<button id="menu-popup-close"
+				<button id="resource-popup-close"
 					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
 					<i class="fa-solid fa-xmark text-lg"></i>
 				</button>
 			</div>
 		</div>
 
-		<!-- PDF Container -->
+		<!-- Iframe Container -->
 		<div class="flex-grow relative bg-gray-100">
-			<div id="menu-popup-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+			<div id="resource-popup-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
 				<div class="text-center">
 					<div
-						class="w-12 h-12 border-4 border-chroma-orange/20 border-t-chroma-orange rounded-full animate-spin mx-auto mb-4">
+						class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin mx-auto mb-4">
 					</div>
-					<p class="text-brand-ink/60 text-sm">Loading menu...</p>
+					<p class="text-brand-ink/60 text-sm">Loading content...</p>
 				</div>
 			</div>
-			<iframe id="menu-popup-frame" src="" class="w-full h-full border-0"></iframe>
+			<iframe id="resource-popup-frame" src="" class="w-full h-full border-0"></iframe>
 		</div>
 	</div>
 </div>
 
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
-		const modal = document.getElementById('menu-popup-modal');
-		const backdrop = document.getElementById('menu-popup-backdrop');
-		const closeBtn = document.getElementById('menu-popup-close');
-		const iframe = document.getElementById('menu-popup-frame');
-		const loader = document.getElementById('menu-popup-loader');
-		const titleText = document.getElementById('menu-popup-title-text');
-		const externalLink = document.getElementById('menu-popup-external');
-		const downloadLink = document.getElementById('menu-popup-download');
-		const triggers = document.querySelectorAll('.menu-popup-trigger');
+		const modal = document.getElementById('resource-popup-modal');
+		const backdrop = document.getElementById('resource-popup-backdrop');
+		const closeBtn = document.getElementById('resource-popup-close');
+		const iframe = document.getElementById('resource-popup-frame');
+		const loader = document.getElementById('resource-popup-loader');
+		const titleText = document.getElementById('resource-popup-title-text');
+		const externalLink = document.getElementById('resource-popup-external');
+		const triggers = document.querySelectorAll('.resource-popup-trigger');
 
 		function openModal(url, title) {
 			modal.classList.remove('hidden');
 			document.body.style.overflow = 'hidden';
 			loader.classList.remove('hidden');
 			iframe.src = url;
-			titleText.textContent = title;
+			titleText.textContent = title || 'Resource';
 			externalLink.href = url;
-			downloadLink.href = url;
+			
 			iframe.onload = function () {
 				loader.classList.add('hidden');
 			};
@@ -583,12 +578,21 @@ get_footer();
 		}
 
 		triggers.forEach(function (trigger) {
-			trigger.addEventListener('click', function () {
-				const url = this.getAttribute('data-menu-url');
-				const title = this.getAttribute('data-menu-title');
-				if (url && url !== '#') {
+			trigger.addEventListener('click', function (e) {
+                // If it's a link, determine URL from href
+                let url = this.getAttribute('data-resource-url');
+                if (!url && this.tagName === 'A') {
+                    url = this.getAttribute('href');
+                }
+
+				const title = this.getAttribute('data-resource-title');
+				
+                // Skip modal for # links or empty
+				if (url && url !== '#' && !url.startsWith('mailto:')) {
+                    e.preventDefault(); // Prevent navigation only for valid popup links
 					openModal(url, title);
 				}
+                // If it's a mailto or other generic link, let it behave normally (if it was an A tag)
 			});
 		});
 

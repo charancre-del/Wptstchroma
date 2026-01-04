@@ -1075,7 +1075,7 @@ class Chroma_LLM_Client
         $prompt .= "4. **CONSOLIDATE**: If multiple similar entities exist, merge them into the richest possible version. Discard the redundant ones.\n";
         $prompt .= "5. **FIX ERRORS**: Fix the validation errors listed above.\n";
         $prompt .= "6. **CLEAN UP**: Remove empty properties or duplicate values in arrays.\n";
-        $prompt .= "7. **FINAL FORMAT**: Return ONLY the JSON-LD script code. No markdown formatting, no explanations.\n";he most specific/richer data.\n";
+        $prompt .= "7. **FINAL FORMAT**: Return ONLY the JSON-LD script code. No markdown formatting, no explanations.\n";
         $prompt .= "5. Ensure all dates are in ISO 8601 format and URLs are valid (https://).\n";
         $prompt .= "6. CRITICAL: Return ONLY the fixed JSON object (preferably using `@graph`).\n\n";
         
