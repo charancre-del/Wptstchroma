@@ -2270,6 +2270,7 @@ class Chroma_SEO_Dashboard
                 'permalink' => $permalink,
                 'edit_url' => get_edit_post_link($pid),
                 'valid' => $is_valid,
+                'schema' => isset($schemas) ? $schemas : [], // Return raw schemas
                 'errors' => array_unique($errors),
                 'warnings' => array_unique($warnings)
             ];

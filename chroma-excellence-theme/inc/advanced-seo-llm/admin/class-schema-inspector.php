@@ -41,7 +41,6 @@ class Chroma_Schema_Inspector
             'title' => '<span class="ab-icon dashicons dashicons-yes-alt"></span> Validate Schema',
             'href'  => '#',
             'meta'  => [
-                'onclick' => 'return false;', 
                 'class' => 'chroma-inspector-trigger',
                 'title' => 'Validate Schema on this page'
             ]
@@ -57,12 +56,12 @@ class Chroma_Schema_Inspector
             return;
         }
 
-        // Enqueue bundled JS or inline it for simplicity since it's admin-only
-        wp_register_script('chroma-schema-inspector', false);
-        wp_enqueue_script('chroma-schema-inspector');
+        // 1. Register Dummy Handle for Inline Data
+        wp_register_script('chroma-schema-inspector-data', false);
+        wp_enqueue_script('chroma-schema-inspector-data');
         
-        // Pass AJAX URL and Nonce
-        wp_add_inline_script('chroma-schema-inspector', sprintf(
+        // 2. Add Inline Data
+        wp_add_inline_script('chroma-schema-inspector-data', sprintf(
             'const ChromaInspector = %s;',
             json_encode([
                 'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -70,11 +69,16 @@ class Chroma_Schema_Inspector
             ])
         ));
 
-        // Inline JS logic (splitting to a file is cleaner, but inline works for immediate deployment)
+        // 3. Enqueue Core JS (Dependent on jquery AND our data handle)
         $js_path = get_template_directory() . '/assets/js/schema-inspector.js';
         if (file_exists($js_path)) {
-            // If file exists, use it (we will create this file next)
-            wp_enqueue_script('chroma-schema-inspector-core', get_template_directory_uri() . '/assets/js/schema-inspector.js', ['jquery'], '1.0.0', true);
+            wp_enqueue_script(
+                'chroma-schema-inspector-core', 
+                get_template_directory_uri() . '/assets/js/schema-inspector.js', 
+                ['jquery', 'chroma-schema-inspector-data'], 
+                '1.0.1', 
+                true
+            );
         }
         
         // Add minimal CSS for the modal
