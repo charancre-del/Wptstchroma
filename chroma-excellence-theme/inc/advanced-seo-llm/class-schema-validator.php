@@ -111,6 +111,9 @@ class Chroma_Schema_Validator
         // 6. Validate nested objects
         self::validate_nested_objects($schema, $context);
 
+        // 7. Run type-specific validation (Google Rich Results requirements)
+        self::validate_type_specific($schema, $type, $context);
+
         return empty(self::$errors);
     }
 
@@ -327,7 +330,277 @@ class Chroma_Schema_Validator
                 // Array of objects
                 if (is_array($value) && isset($value[0]) && is_array($value[0])) {
                     foreach ($value as $idx => $nested) {
-                        self::validate($nested, "{$context}.{$field}[{$idx}]");
+                        self::validate($nested, "{$context}.{$field}
+
+
+    /**
+     * Run type-specific validation based on schema type
+     */
+    private static function validate_type_specific($schema, $type, $context)
+    {
+        switch ($type) {
+            case 'FAQPage':
+                self::validate_faq_page($schema, $context);
+                break;
+            case 'Organization':
+                self::validate_organization($schema, $context);
+                break;
+            case 'Person':
+                self::validate_person($schema, $context);
+                break;
+            case 'LocalBusiness':
+            case 'ChildCare':
+            case 'Preschool':
+                self::validate_local_business($schema, $context);
+                break;
+            case 'BreadcrumbList':
+                self::validate_breadcrumb_list($schema, $context);
+                break;
+        }
+    }
+    /**
+     * Validate FAQPage structure per Google Requirements
+     */
+    private static function validate_faq_page($schema, $context)
+    {
+        if (!isset($schema['mainEntity']) || !is_array($schema['mainEntity'])) {
+            self::$errors[] = "$context: FAQPage missing mainEntity array";
+            return;
+        }
+
+        foreach ($schema['mainEntity'] as $index => $entity) {
+            $qContext = "$context > Question #" . ($index + 1);
+            
+            // Each entity must be a Question
+            $type = self::get_schema_type($entity);
+            if ($type !== 'Question') {
+                self::$errors[] = "$qContext: mainEntity must be Question, got: $type";
+                continue;
+            }
+
+            // Question must have name
+            if (empty($entity['name'])) {
+                self::$errors[] = "$qContext: Missing required field 'name'";
+            }
+
+            // Question must have acceptedAnswer
+            if (empty($entity['acceptedAnswer'])) {
+                self::$errors[] = "$qContext: Missing required field 'acceptedAnswer'";
+                continue;
+            }
+
+            // Validate Answer
+            $answer = $entity['acceptedAnswer'];
+            $aContext = "$qContext > Answer";
+            
+            if (is_array($answer)) {
+                $ansType = self::get_schema_type($answer);
+                if ($ansType !== 'Answer') {
+                    self::$errors[] = "$aContext: acceptedAnswer must be Answer type, got: $ansType";
+                }
+                
+                if (empty($answer['text'])) {
+                    self::$errors[] = "$aContext: Answer missing required field 'text'";
+                }
+            }
+        }
+    }
+
+    /**
+     * Validate Organization per Google Requirements
+     */
+    private static function validate_organization($schema, $context)
+    {
+        // name is required (already checked in required_fields)
+        
+        // logo should be ImageObject or valid URL
+        if (isset($schema['logo'])) {
+            if (!self::validate_image_field($schema['logo'], "$context > logo")) {
+                self::$warnings[] = "$context: logo should be valid URL or ImageObject";
+            }
+        } else {
+            self::$warnings[] = "$context: Missing recommended field 'logo'";
+        }
+
+        // contactPoint should be valid
+        if (isset($schema['contactPoint']) && is_array($schema['contactPoint'])) {
+            if (empty($schema['contactPoint']['@type']) || $schema['contactPoint']['@type'] !== 'ContactPoint') {
+                self::$warnings[] = "$context > contactPoint: Should be ContactPoint type";
+            }
+        }
+
+        // sameAs should be array of URLs
+        if (isset($schema['sameAs'])) {
+            if (!is_array($schema['sameAs'])) {
+                self::$warnings[] = "$context: sameAs should be an array";
+            } else {
+                foreach ($schema['sameAs'] as $url) {
+                    if (!self::validate_url($url)) {
+                        self::$warnings[] = "$context > sameAs: Invalid URL: $url";
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Validate Person per Google Requirements
+     */
+    private static function validate_person($schema, $context)
+    {
+        // Check jobTitle
+        if (empty($schema['jobTitle'])) {
+            self::$warnings[] = "$context: Missing recommended field 'jobTitle'";
+        }
+
+        // Check worksFor (should be Organization)
+        if (isset($schema['worksFor']) && is_array($schema['worksFor'])) {
+            $orgType = self::get_schema_type($schema['worksFor']);
+            if ($orgType !== 'Organization') {
+                self::$warnings[] = "$context > worksFor: Should be Organization type, got: $orgType";
+            }
+        }
+
+        // Validate image
+        if (isset($schema['image']) && !self::validate_image_field($schema['image'], "$context > image")) {
+            self::$warnings[] = "$context: image should be valid URL or ImageObject";
+        }
+    }
+
+    /**
+     * Validate LocalBusiness per Google Requirements
+     */
+    private static function validate_local_business($schema, $context)
+    {
+        // Validate address (PostalAddress)
+        if (isset($schema['address'])) {
+            if (is_array($schema['address'])) {
+                $addrType = self::get_schema_type($schema['address']);
+                if ($addrType !== 'PostalAddress') {
+                    self::$errors[] = "$context > address: Must be PostalAddress type, got: $addrType";
+                } else {
+                    // Check required address fields
+                    $requiredAddr = ['streetAddress', 'addressLocality', 'addressRegion', 'postalCode'];
+                    foreach ($requiredAddr as $field) {
+                        if (empty($schema['address'][$field])) {
+                            self::$warnings[] = "$context > address: Missing recommended field '$field'";
+                        }
+                    }
+                }
+            }
+        }
+
+        // Validate geo (GeoCoordinates)
+        if (isset($schema['geo']) && is_array($schema['geo'])) {
+            $geoType = self::get_schema_type($schema['geo']);
+            if ($geoType !== 'GeoCoordinates') {
+                self::$warnings[] = "$context > geo: Should be GeoCoordinates type, got: $geoType";
+            } else {
+                if (empty($schema['geo']['latitude']) || empty($schema['geo']['longitude'])) {
+                    self::$warnings[] = "$context > geo: GeoCoordinates missing latitude or longitude";
+                }
+            }
+        }
+    }
+
+    /**
+     * Validate BreadcrumbList per Google Requirements
+     */
+    private static function validate_breadcrumb_list($schema, $context)
+    {
+        if (empty($schema['itemListElement']) || !is_array($schema['itemListElement'])) {
+            self::$errors[] = "$context: BreadcrumbList missing itemListElement array";
+            return;
+        }
+
+        foreach ($schema['itemListElement'] as $index => $item) {
+            $iContext = "$context > Item #" . ($index + 1);
+            
+            $itemType = self::get_schema_type($item);
+            if ($itemType !== 'ListItem') {
+                self::$errors[] = "$iContext: Must be ListItem type, got: $itemType";
+                continue;
+            }
+
+            if (!isset($item['position'])) {
+                self::$errors[] = "$iContext: ListItem missing 'position'";
+            }
+
+            if (empty($item['name']) && empty($item['item'])) {
+                self::$errors[] = "$iContext: ListItem must have 'name' or 'item'";
+            }
+        }
+    }
+
+    /**
+     * Validate URL format
+     */
+    private static function validate_url($url)
+    {
+        if (!is_string($url)) {
+            return false;
+        }
+        return filter_var($url, FILTER_VALIDATE_URL) !== false;
+    }
+
+    /**
+     * Validate date format (ISO 8601)
+     */
+    private static function validate_date($date)
+    {
+        if (!is_string($date)) {
+            return false;
+        }
+        // Check if it's a valid ISO 8601 date
+        $parsed = date_parse($date);
+        return $parsed['error_count'] === 0 && $parsed['warning_count'] === 0;
+    }
+
+    /**
+     * Validate image field (can be URL or ImageObject)
+     */
+    private static function validate_image_field($image, $context = '')
+    {
+        if (is_string($image)) {
+            return self::validate_url($image);
+        }
+        
+        if (is_array($image)) {
+            $type = self::get_schema_type($image);
+            if ($type === 'ImageObject') {
+                if (empty($image['url'])) {
+                    if ($context) {
+                        self::$warnings[] = "$context: ImageObject missing 'url'";
+                    }
+                    return false;
+                }
+                return self::validate_url($image['url']);
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * Deep validation of nested objects
+     */
+    private static function validate_nested_object($obj, $expected_type, $context)
+    {
+        if (!is_array($obj)) {
+            return false;
+        }
+
+        $type = self::get_schema_type($obj);
+        if ($type !== $expected_type) {
+            self::$warnings[] = "$context: Expected $expected_type, got: $type";
+            return false;
+        }
+
+        // Recursively validate the nested object
+        return self::validate($obj, $context);
+    }
+
+[{$idx}]");
                     }
                 }
                 // Single nested object
