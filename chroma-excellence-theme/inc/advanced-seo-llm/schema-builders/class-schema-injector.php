@@ -96,8 +96,13 @@ class Chroma_Schema_Injector
         $post_id = get_the_ID();
         $title = get_the_title($post_id);
 
-        // Only apply to Pre-K or educational programs
         if (stripos($title, 'Pre-K') === false && stripos($title, 'Preschool') === false && stripos($title, 'Kindergarten') === false) {
+            return;
+        }
+
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta($post_id, '_chroma_schema_override', true);
+        if ($override) {
             return;
         }
 
@@ -147,6 +152,12 @@ class Chroma_Schema_Injector
             return;
         }
 
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta(get_option('page_on_front'), '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
         $schema = self::get_organization_schema_data();
         echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
     }
@@ -158,6 +169,12 @@ class Chroma_Schema_Injector
     public static function output_website_schema()
     {
         if (!is_front_page()) {
+            return;
+        }
+
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta(get_option('page_on_front'), '_chroma_schema_override', true);
+        if ($override) {
             return;
         }
 
@@ -282,6 +299,12 @@ class Chroma_Schema_Injector
     public static function output_modular_schemas()
     {
         if (!is_singular()) {
+            return;
+        }
+
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
+        if ($override) {
             return;
         }
 

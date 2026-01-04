@@ -1065,11 +1065,12 @@ class Chroma_LLM_Client
         $prompt .= "\n";
         
         $prompt .= "=== INSTRUCTIONS ===\n";
-        $prompt .= "1. Fix ONLY the errors listed above.\n";
-        $prompt .= "2. Do NOT change legitimate data values (names, descriptions) unless they are causing the error.\n";
-        $prompt .= "3. Ensure all dates are in ISO 8601 format.\n";
-        $prompt .= "4. Ensure all URLs are valid and start with https://.\n";
-        $prompt .= "5. CRITICAL: Return ONLY the fixed JSON object in your response.\n\n";
+        $prompt .= "1. Fix validation errors listed above.\n";
+        $prompt .= "2. CONSOLIDATE: If multiple schemas exist (e.g. multiple Organizations, Breadcrumbs), merge them into a single `@graph` structure.\n";
+        $prompt .= "3. DEDUPLICATE: Do not output duplicate entities. If the same Organization appears twice, merge their properties (e.g. combine `sameAs` arrays) and output it ONCE.\n";
+        $prompt .= "4. PRIORITIZE: If conflicting data exists, keep the most specific/richer data.\n";
+        $prompt .= "5. Ensure all dates are in ISO 8601 format and URLs are valid (https://).\n";
+        $prompt .= "6. CRITICAL: Return ONLY the fixed JSON object (preferably using `@graph`).\n\n";
         
         $prompt .= "=== BROKEN SCHEMA ===\n";
         $prompt .= $raw_schema;

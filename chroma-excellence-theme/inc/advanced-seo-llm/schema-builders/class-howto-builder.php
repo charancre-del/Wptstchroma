@@ -55,6 +55,12 @@ class Chroma_HowTo_Schema_Builder
             return;
         }
 
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
         $schema = self::build(get_the_ID());
         if ($schema) {
             echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';

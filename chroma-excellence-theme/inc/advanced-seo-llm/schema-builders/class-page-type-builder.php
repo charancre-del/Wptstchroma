@@ -23,6 +23,12 @@ class Chroma_Page_Type_Builder
             return;
         }
 
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
         $post_id = get_the_ID();
         $slug = get_post_field('post_name', $post_id);
         $schema = null;

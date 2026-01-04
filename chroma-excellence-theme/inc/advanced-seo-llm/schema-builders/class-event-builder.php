@@ -77,6 +77,12 @@ class Chroma_Event_Schema_Builder
             return;
         }
 
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
         $schemas = self::build(get_the_ID());
         if ($schemas) {
             foreach ($schemas as $schema) {
