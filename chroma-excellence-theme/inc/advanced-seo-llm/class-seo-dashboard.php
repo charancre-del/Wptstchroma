@@ -2546,21 +2546,24 @@ class Chroma_SEO_Dashboard
         }
 
         // Handle multiple schemas
-        if ($schemas_array && is_array($schemas_array)) {
-            // Validate all schemas
-            foreach ($schemas_array as $schema) {
-                $decoded = json_decode($schema);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    wp_send_json_error(['message' => 'Invalid JSON in one of the schemas: ' . json_last_error_msg()]);
-                }
+    if ($schemas_array && is_array($schemas_array)) {
+        // Validate all schemas
+        foreach ($schemas_array as $k => $schema) {
+            $schema = wp_unslash($schema); // FIX: Remove WP slashes
+            $decoded = json_decode($schema);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                wp_send_json_error(['message' => 'Invalid JSON in one of the schemas: ' . json_last_error_msg()]);
             }
-            
-            // Save as multiple script tags
-            $combined = '';
-            foreach ($schemas_array as $schema) {
-                $combined .= '<script type="application/ld+json">' . $schema . '</script>' . "\n";
-            }
-            update_post_meta($post_id, '_chroma_schema_override', trim($combined));
+            // Update array with unslashed version for saving
+            $schemas_array[$k] = $schema;
+        }
+        
+        // Save as multiple script tags
+        $combined = '';
+        foreach ($schemas_array as $schema) {
+            $combined .= '<script type="application/ld+json">' . $schema . '</script>' . "\n";
+        }
+        update_post_meta($post_id, '_chroma_schema_override', trim($combined));
             
             wp_send_json_success([
                 'message' => 'All schemas applied successfully',
