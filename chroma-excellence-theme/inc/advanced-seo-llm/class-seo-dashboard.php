@@ -2140,8 +2140,11 @@ class Chroma_SEO_Dashboard
                             finishScan();
                         }
                     }).fail(function() {
-                        alert('Network Error. Stopping scan.');
-                        finishScan();
+                        console.error('Network Error/Timeout at offset ' + offset + '. Skipping this batch.');
+                        // Skip this batch (size 2) and continue. Use small delay to let server breathe.
+                        setTimeout(function() {
+                            processBatch(typeIndex, offset + 2);
+                        }, 1000);
                     });
                 }
 
@@ -2425,7 +2428,7 @@ class Chroma_SEO_Dashboard
 
         $post_type = sanitize_text_field($_POST['post_type']);
         $offset = intval($_POST['offset']);
-        $batch_size = 5; // Reduced batch size to prevent timeouts during HTTP requests
+        $batch_size = 2; // Reduced batch size to 2 to prevent PHP timeouts (2 * 15s = 30s max)
 
         // Fetch Posts
         $args = [
