@@ -330,8 +330,16 @@ class Chroma_Schema_Validator
                 // Array of objects
                 if (is_array($value) && isset($value[0]) && is_array($value[0])) {
                     foreach ($value as $idx => $nested) {
-                        self::validate($nested, "{$context}.{$field}
-
+                        self::validate($nested, "{$context}.{$field}[{$idx}]");
+                    }
+                }
+                // Single nested object
+                elseif (is_array($value) && isset($value['@type'])) {
+                    self::validate($value, "{$context}.{$field}");
+                }
+            }
+        }
+    }
 
     /**
      * Run type-specific validation based on schema type
