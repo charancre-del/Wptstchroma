@@ -170,16 +170,32 @@ class Chroma_Schema_Validator
             ];
         }
 
-        // 2. Validate structure
-        $valid = true;
-        if (isset($parsed['@graph'])) {
-            $valid = self::validate_graph($parsed);
+        // Determine if it's a single schema or a @graph
+        if (isset($parsed['@graph']) && is_array($parsed['@graph'])) {
+            $graph = $parsed['@graph'];
+            $context = 'Graph';
+
+            // 2. Validate @context for the graph
+            if (!isset($parsed['@context'])) {
+                self::$errors[] = 'Missing @context in schema graph';
+            }
+
+            // 3. Validate each node in the graph
+            foreach ($graph as $i => $node) {
+                $nodeContext = count($graph) > 1 ? "$context > Node $i" : $context;
+                self::validate($node, $nodeContext); // Use the main validate function for each node
+            }
+
+            // 4. Validate Graph Integrity (Linkages)
+            self::validate_graph_integrity($graph);
+
         } else {
-            $valid = self::validate($parsed);
+            // Single schema object
+            self::validate($parsed);
         }
 
         return [
-            'valid' => $valid && empty(self::$errors),
+            'valid' => empty(self::$errors),
             'errors' => self::$errors,
             'warnings' => self::$warnings,
             'parsed' => $parsed
@@ -351,6 +367,8 @@ class Chroma_Schema_Validator
                 self::validate_faq_page($schema, $context);
                 break;
             case 'Organization':
+            case 'Corporation':
+            case 'EducationalOrganization':
                 self::validate_organization($schema, $context);
                 break;
             case 'Person':
@@ -364,6 +382,142 @@ class Chroma_Schema_Validator
             case 'BreadcrumbList':
                 self::validate_breadcrumb_list($schema, $context);
                 break;
+            case 'Article':
+            case 'BlogPosting':
+            case 'NewsArticle':
+            case 'TechArticle':
+                self::validate_article($schema, $context);
+                break;
+            case 'Event':
+                self::validate_event($schema, $context);
+                break;
+            case 'HowTo':
+                self::validate_howto($schema, $context);
+                break;
+            case 'VideoObject':
+                self::validate_video_object($schema, $context);
+                break;
+            case 'AggregateRating':
+                self::validate_aggregate_rating($schema, $context);
+                break;
+            case 'WebPage':
+                self::validate_webpage($schema, $context);
+                break;
+        }
+    }
+
+    /**
+     * Validate Article/BlogPosting per Google Requirements
+     */
+    private static function validate_article($schema, $context)
+    {
+        // Recommended fields
+        $recommended = ['headline', 'image', 'datePublished', 'dateModified', 'author', 'publisher'];
+        foreach ($recommended as $field) {
+            if (empty($schema[$field])) {
+                self::$warnings[] = "$context: Missing recommended field '$field'";
+            }
+        }
+
+        // Validate Image
+        if (isset($schema['image']) && !self::validate_image_field($schema['image'], "$context > image")) {
+            self::$warnings[] = "$context: image should be valid URL or ImageObject";
+        }
+
+        // Validate Author
+        if (isset($schema['author'])) {
+            $authType = self::get_schema_type($schema['author']);
+            if (!in_array($authType, ['Person', 'Organization'])) {
+                self::$warnings[] = "$context > author: Should be Person or Organization, got: $authType";
+            }
+        }
+
+        // Validate Publisher
+        if (isset($schema['publisher'])) {
+            $pubType = self::get_schema_type($schema['publisher']);
+            if ($pubType !== 'Organization') {
+                self::$warnings[] = "$context > publisher: Should be Organization, got: $pubType";
+            }
+        }
+    }
+
+    /**
+     * Validate Event per Google Requirements
+     */
+    private static function validate_event($schema, $context)
+    {
+        // Required fields
+        $required = ['startDate', 'location', 'eventAttendanceMode', 'eventStatus'];
+        foreach ($required as $field) {
+            if (empty($schema[$field])) {
+                self::$errors[] = "$context: Missing required field '$field'";
+            }
+        }
+
+        // Validate Dates
+        if (isset($schema['startDate']) && !self::is_valid_date($schema['startDate'])) {
+             self::$errors[] = "$context > startDate: Invalid date format";
+        }
+        if (isset($schema['endDate']) && !self::is_valid_date($schema['endDate'])) {
+             self::$errors[] = "$context > endDate: Invalid date format";
+        }
+
+        // Validate Location
+        if (isset($schema['location'])) {
+            $locType = self::get_schema_type($schema['location']);
+            if (!in_array($locType, ['Place', 'VirtualLocation', 'PostalAddress'])) {
+                self::$warnings[] = "$context > location: Should be Place or VirtualLocation, got: $locType";
+            }
+            // Check address if Place
+            if ($locType === 'Place' && isset($schema['location']['address'])) {
+                $addrType = self::get_schema_type($schema['location']['address']);
+                if ($addrType !== 'PostalAddress') {
+                    self::$warnings[] = "$context > location > address: Should be PostalAddress";
+                }
+            }
+        }
+
+        // Validate Offers
+        if (isset($schema['offers'])) {
+             $offerType = self::get_schema_type($schema['offers']);
+             if ($offerType !== 'Offer') {
+                  self::$warnings[] = "$context > offers: Should be Offer type";
+             }
+        }
+    }
+
+    /**
+     * Validate HowTo per Google Requirements
+     */
+    private static function validate_howto($schema, $context)
+    {
+        // Required: name, step
+        if (empty($schema['step'])) { 
+             self::$errors[] = "$context: Missing required field 'step'";
+             return;
+        }
+
+        // Validate Steps
+        $steps = isset($schema['step']) ? $schema['step'] : [];
+        if (!is_array($steps)) $steps = [$steps];
+
+        foreach ($steps as $i => $step) {
+            $sContext = "$context > step[$i]";
+            $stepType = self::get_schema_type($step);
+            
+            if (!in_array($stepType, ['HowToStep', 'HowToSection'])) {
+                self::$warnings[] = "$sContext: Should be HowToStep or HowToSection, got: $stepType";
+                continue;
+            }
+
+            // HowToStep validation
+            if ($stepType === 'HowToStep') {
+                // Must have text, image, video, OR itemListElement
+                $hasContent = !empty($step['text']) || !empty($step['image']) || !empty($step['video']) || !empty($step['itemListElement']) || !empty($step['url']);
+                if (!$hasContent) {
+                    self::$warnings[] = "$sContext: HowToStep missing content (text, image, video, url, or itemListElement)";
+                }
+            }
         }
     }
 
@@ -431,10 +585,18 @@ class Chroma_Schema_Validator
             self::$warnings[] = "$context: Missing recommended field 'logo'";
         }
 
+        // Check telephone
+        if (isset($schema['telephone'])) {
+            self::validate_telephone($schema['telephone'], "$context > telephone");
+        }
+
         // contactPoint should be valid
         if (isset($schema['contactPoint']) && is_array($schema['contactPoint'])) {
             if (empty($schema['contactPoint']['@type']) || $schema['contactPoint']['@type'] !== 'ContactPoint') {
                 self::$warnings[] = "$context > contactPoint: Should be ContactPoint type";
+            }
+            if (isset($schema['contactPoint']['telephone'])) {
+                self::validate_telephone($schema['contactPoint']['telephone'], "$context > contactPoint > telephone");
             }
         }
 
@@ -453,6 +615,27 @@ class Chroma_Schema_Validator
     }
 
     /**
+     * Helper: Validate Telephone
+     * Google recommends international format, but we at least check for meaningful content.
+     */
+    private static function validate_telephone($tel, $context)
+    {
+        if (empty($tel)) {
+            self::$warnings[] = "$context: Empty telephone number";
+            return false;
+        }
+        
+        // Remove common separators to check for digits
+        $clean = preg_replace('/[\s\-\+\(\)\.]/', '', $tel);
+        if (strlen($clean) < 5) {
+            self::$errors[] = "$context: Invalid telephone number '$tel'. Must contain at least 5 digits.";
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
      * Validate Person per Google Requirements
      */
     private static function validate_person($schema, $context)
@@ -462,11 +645,13 @@ class Chroma_Schema_Validator
             self::$warnings[] = "$context: Missing recommended field 'jobTitle'";
         }
 
-        // Check worksFor (should be Organization)
+        // Check worksFor (should be Organization or subtype)
         if (isset($schema['worksFor']) && is_array($schema['worksFor'])) {
             $orgType = self::get_schema_type($schema['worksFor']);
-            if ($orgType !== 'Organization') {
-                self::$warnings[] = "$context > worksFor: Should be Organization type, got: $orgType";
+            $validOrgTypes = ['Organization', 'Corporation', 'LocalBusiness', 'ChildCare', 'Preschool', 'School', 'EducationalOrganization', 'NGO', 'GovernmentOrganization'];
+            
+            if (!in_array($orgType, $validOrgTypes)) {
+                self::$warnings[] = "$context > worksFor: Should be Organization type (or subtype), got: $orgType";
             }
         }
 
@@ -481,6 +666,9 @@ class Chroma_Schema_Validator
      */
     private static function validate_local_business($schema, $context)
     {
+        // Inherit Organization validation (logo, contactPoint, telephone, etc.)
+        self::validate_organization($schema, $context);
+
         // Validate address (PostalAddress)
         if (isset($schema['address'])) {
             if (is_array($schema['address'])) {
@@ -570,6 +758,12 @@ class Chroma_Schema_Validator
                     }
                     return false;
                 }
+                
+                // Check dimensions (Google Recommended)
+                if (!isset($image['width']) || !isset($image['height'])) {
+                     self::$warnings[] = "$context: ImageObject should have explicit 'width' and 'height'";
+                }
+
                 return self::validate_url($image['url']);
             }
         }
@@ -578,29 +772,139 @@ class Chroma_Schema_Validator
     }
 
     /**
+     * Validate VideoObject
+     */
+    private static function validate_video_object($schema, $context)
+    {
+        $required = ['name', 'description', 'uploadDate', 'thumbnailUrl'];
+        foreach ($required as $field) {
+            if (empty($schema[$field])) {
+                self::$errors[] = "$context: VideoObject missing required field '$field'";
+            }
+        }
+
+        if (isset($schema['uploadDate']) && !self::is_valid_date($schema['uploadDate'])) {
+            self::$errors[] = "$context > uploadDate: Invalid date format";
+        }
+
+        if (isset($schema['thumbnailUrl'])) {
+            $thumbs = is_array($schema['thumbnailUrl']) ? $schema['thumbnailUrl'] : [$schema['thumbnailUrl']];
+            foreach ($thumbs as $url) {
+                if (!self::validate_url($url)) {
+                     self::$warnings[] = "$context > thumbnailUrl: Invalid URL '$url'";
+                }
+            }
+        }
+    }
+
+    /**
+     * Validate AggregateRating
+     */
+    private static function validate_aggregate_rating($schema, $context)
+    {
+        if (!isset($schema['ratingValue'])) {
+            self::$errors[] = "$context: Missing 'ratingValue'";
+            return;
+        }
+
+        $val = $schema['ratingValue'];
+        $min = isset($schema['worstRating']) ? (float)$schema['worstRating'] : 1;
+        $max = isset($schema['bestRating']) ? (float)$schema['bestRating'] : 5;
+
+        if (!is_numeric($val) || $val < $min || $val > $max) {
+             self::$errors[] = "$context > ratingValue: Must be between $min and $max, got '$val'";
+        }
+    }
+
+    /**
+     * Validate WebPage
+     */
+    private static function validate_webpage($schema, $context)
+    {
+        if (empty($schema['name']) && empty($schema['headline'])) {
+             self::$warnings[] = "$context: WebPage should have 'name' or 'headline'";
+        }
+
+        if (isset($schema['breadcrumb'])) {
+             $bcType = self::get_schema_type($schema['breadcrumb']);
+             if ($bcType !== 'BreadcrumbList') {
+                 self::$warnings[] = "$context > breadcrumb: Should be BreadcrumbList, got $bcType";
+             }
+        }
+    }    
+
+    /**
      * Check if date string is valid ISO 8601
      */
     private static function is_valid_date($date)
     {
-        // Accept various ISO 8601 formats
-        $formats = [
-            'Y-m-d',
-            'Y-m-d\TH:i:s',
-            'Y-m-d\TH:i:sP',
-            'Y-m-d\TH:i:s\Z',
-            \DateTime::ISO8601,
-            \DateTime::ATOM
-        ];
+        // Simple ISO 8601 check (simplified)
+        // Accepts: 2024-01-01, 2024-01-01T12:00:00, 2024-01-01T12:00:00+00:00
+        if (!is_string($date)) return false;
+        
+        // Use DateTime to verify
+        // Try multiple formats or just constructor
+        try {
+            new DateTime($date);
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
 
-        foreach ($formats as $format) {
-            $dt = \DateTime::createFromFormat($format, $date);
-            if ($dt !== false) {
-                return true;
+    /**
+     * Validate Graph Integrity (Broken Links)
+     */
+    private static function validate_graph_integrity($graph)
+    {
+        $ids = [];
+        $refs = [];
+
+        // 1. Collect all IDs and References recursively
+        self::scan_graph_for_ids_and_refs($graph, $ids, $refs);
+
+        // 2. meaningful refs (only those that look like local IDs or start with #)
+        foreach ($refs as $ref) {
+            // We only care if it points to a local ID (e.g. #id or matching URL)
+            // If it's an external URL, we can't validate it easily here.
+            
+            // If it starts with #, strictly check validity
+            if (strpos($ref, '#') === 0) {
+                 if (!in_array($ref, $ids) && !in_array(ltrim($ref, '#'), $ids)) {
+                     // Try loose matching (sometimes ID is full URL ending in #hash)
+                     $found = false;
+                     foreach ($ids as $id) {
+                         if (strpos($id, $ref) !== false) $found = true;
+                     }
+                     if (!$found) {
+                         self::$warnings[] = "Graph Integrity: Broken reference '$ref' (target node not found)";
+                     }
+                 }
             }
         }
+    }
 
-        // Also accept timestamps that strtotime can parse
-        return strtotime($date) !== false;
+    /**
+     * Recursive scan for @id definitions and usages
+     */
+    private static function scan_graph_for_ids_and_refs($data, &$ids, &$refs)
+    {
+        if (is_array($data)) {
+            // Check if this object defines an ID
+            if (isset($data['@id'])) {
+                $ids[] = $data['@id'];
+            }
+            
+            // Check if this object IS ONLY a reference (e.g. {"@id": "..."})
+            // and has no other keys (roughly). Or usually property: {"@id": "..."}
+            if (isset($data['@id']) && count($data) === 1) {
+                $refs[] = $data['@id'];
+            }
+
+            foreach ($data as $key => $value) {
+                self::scan_graph_for_ids_and_refs($value, $ids, $refs);
+            }
+        }
     }
 
     /**

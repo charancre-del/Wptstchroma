@@ -71,6 +71,9 @@ jQuery(document).ready(function ($) {
 
     // Render Results
     function renderResults(results) {
+        let hasErrors = false;
+        let itemsHtml = '';
+
         results.forEach(function (item) {
             const type = item.parsed && item.parsed['@type'] ?
                 (Array.isArray(item.parsed['@type']) ? item.parsed['@type'][0] : item.parsed['@type'])
@@ -80,7 +83,9 @@ jQuery(document).ready(function ($) {
             const statusIcon = item.valid ? (item.warnings.length ? '⚠️' : '✅') : '❌';
             const statusText = item.valid ? (item.warnings.length ? 'Valid with Warnings' : 'Valid') : 'Invalid';
 
-            let html = `
+            if (!item.valid) hasErrors = true;
+
+            itemsHtml += `
                 <div class="chroma-schema-item">
                     <div class="chroma-schema-header ${statusClass}" data-index="${item.index}">
                         <span><strong>${statusIcon} ${type}</strong> <span style="color:#666; font-size:12px;">(${statusText})</span></span>
@@ -91,12 +96,12 @@ jQuery(document).ready(function ($) {
 
             // Errors
             if (item.errors && item.errors.length) {
-                html += '<h4>Errors</h4><ul class="chroma-error-list">';
-                item.errors.forEach(e => html += `<li>${e}</li>`);
-                html += '</ul>';
+                itemsHtml += '<h4>Errors</h4><ul class="chroma-error-list">';
+                item.errors.forEach(e => itemsHtml += `<li>${e}</li>`);
+                itemsHtml += '</ul>';
 
                 // Fix Button
-                html += `
+                itemsHtml += `
                     <div style="margin-bottom:15px;">
                         <button class="chroma-fix-btn" data-schema="${encodeURIComponent(item.raw)}" data-errors="${encodeURIComponent(JSON.stringify(item.errors))}" data-index="${item.index}">
                             ✨ Auto-Fix with AI
@@ -108,25 +113,108 @@ jQuery(document).ready(function ($) {
 
             // Warnings
             if (item.warnings && item.warnings.length) {
-                html += '<h4>Warnings</h4><ul class="chroma-warning-list">';
-                item.warnings.forEach(w => html += `<li>${w}</li>`);
-                html += '</ul>';
+                itemsHtml += '<h4>Warnings</h4><ul class="chroma-warning-list">';
+                item.warnings.forEach(w => itemsHtml += `<li>${w}</li>`);
+                itemsHtml += '</ul>';
             }
 
             // Raw JSON
-            html += `
+            itemsHtml += `
                 <h4>JSON-LD Source</h4>
                 <div class="chroma-json-pre">${escapeHtml(item.raw)}</div>
                 <button class="chroma-copy-btn" onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(item.raw)}')); alert('Copied!');">Copy JSON</button>
             `;
 
-            html += `</div></div>`;
-            $results.append(html);
+            itemsHtml += `</div></div>`;
         });
+
+        // Prepend Actions Toolbar if errors exist
+        if (hasErrors) {
+            const toolbar = `
+                <div style="margin-bottom:20px; padding:15px; background:#fff1f0; border:1px solid #ffccc7; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:#d32f2f; font-weight:bold;">⚠️ Issues Detected</span>
+                    <button id="chroma-fix-all-btn" class="chroma-fix-btn" style="background:#d32f2f;">
+                        ✨ Fix All Issues with AI
+                    </button>
+                </div>
+            `;
+            $results.append(toolbar);
+        }
+
+        $results.append(itemsHtml);
     }
 
+    // Fix All Click
+    $(document).on('click', '#chroma-fix-all-btn', function () {
+        if (!confirm('This will process all schemas with errors sequentially. Continue?')) return;
+
+        const $btn = $(this);
+        $btn.prop('disabled', true).text('Processing...');
+
+        // Find all fix buttons
+        const $fixQueue = $('.chroma-fix-btn[data-index]');
+        let currentIndex = 0;
+
+        function processNext() {
+            if (currentIndex >= $fixQueue.length) {
+                $btn.text('✅ All Done!');
+                alert('All AI fixes generated! Please review and apply them.');
+                return;
+            }
+
+            const $currentBtn = $($fixQueue[currentIndex]);
+            const btnIndex = $currentBtn.data('index');
+
+            // Scroll to item
+            $('html, body, #chroma-schema-modal-body').animate({
+                scrollTop: $currentBtn.offset().top - 200
+            }, 500);
+
+            // Trigger click on individual button logic (simulated)
+            $currentBtn.prop('disabled', true).html('<span class="chroma-spinner"></span> Fixing...');
+
+            const schema = decodeURIComponent($currentBtn.data('schema'));
+            const errors = JSON.parse(decodeURIComponent($currentBtn.data('errors')));
+
+            $.post(ChromaInspector.ajaxUrl, {
+                action: 'chroma_fix_schema_with_ai',
+                nonce: ChromaInspector.nonce,
+                schema: schema,
+                errors: errors
+            }, function (response) {
+                $currentBtn.prop('disabled', false).text('✨ Auto-Fix with AI');
+
+                if (response.success) {
+                    const fixed = response.data.fixed_schema;
+                    $('#fix-result-' + btnIndex).show().html(`
+                        <div style="background:#e8fdf5; border:1px solid #46b450; padding:15px; border-radius:4px;">
+                            <h4 style="margin-top:0; color:#2e7d32;">✅ AI Fixed Implementation</h4>
+                            <p style="font-size:12px;">Replace the existing schema with this code:</p>
+                            <div class="chroma-json-pre" style="max-height:300px; overflow-y:auto;">${escapeHtml(fixed)}</div>
+                            <button class="chroma-copy-btn" onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(fixed)}')); alert('Copied!');">Copy Fixed JSON</button>
+                        </div>
+                    `);
+                    // Open details if closed
+                    $('#detail-' + btnIndex).slideDown();
+                }
+
+                // Next
+                currentIndex++;
+                setTimeout(processNext, 500); // Small delay
+
+            }).fail(function () {
+                $currentBtn.prop('disabled', false).text('Failed');
+                // Even if failed, try next
+                currentIndex++;
+                processNext();
+            });
+        }
+
+        processNext();
+    });
+
     // Fix with AI Click
-    $(document).on('click', '.chroma-fix-btn', function () {
+    $(document).on('click', '.chroma-fix-btn:not(#chroma-fix-all-btn)', function () {
         const btn = $(this);
         const container = $('#fix-result-' + btn.data('index'));
         const schema = decodeURIComponent(btn.data('schema'));

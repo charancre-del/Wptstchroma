@@ -2193,12 +2193,109 @@ class Chroma_SEO_Dashboard
                     $('#error-count').text(errorCount);
                     $('#valid-count').text(validCount);
                     
+                    // Add Fix All Button if errors exist
+                    $('#chroma-bulk-fix-all-btn').remove(); // distinct ID to prevent dupes
+                    if (errorCount > 0) {
+                        $('#bulk-scan-summary .notice').append(`
+                            <div style="margin-top:10px; border-top:1px solid #ddd; padding-top:10px;">
+                                <button id="chroma-bulk-fix-all-btn" class="button button-primary">
+                                    ✨ Fix All ${errorCount} Issues with AI
+                                </button>
+                                <span id="bulk-fix-progress" style="display:none; margin-left:10px; color:#666;">
+                                    Processing: <span id="bulk-fix-current">0</span>/${errorCount}...
+                                </span>
+                            </div>
+                        `);
+                    }
+
                     if (errorCount === 0) {
                          alert('🎉 Great job! No validation errors found on the site.');
                     } else {
                          alert('Scan complete. Found ' + errorCount + ' pages with errors.');
                     }
                 }
+
+                // Bulk Fix All Handler
+                $(document).on('click', '#chroma-bulk-fix-all-btn', function() {
+                    if (!confirm('This will sequentially auto-repair all ' + errorCount + ' invalid pages using AI and SAVE the changes to the database. This process may take some time.\n\nAre you sure you want to proceed?')) {
+                        return;
+                    }
+
+                    var $btn = $(this);
+                    $btn.prop('disabled', true);
+                    $('#bulk-fix-progress').show();
+                    
+                    // Build Queue
+                    var fixQueue = [];
+                    $.each(scanResults, function(id, item) {
+                        if (!item.valid) {
+                            fixQueue.push(item);
+                        }
+                    });
+
+                    var totalToFix = fixQueue.length;
+                    var fixedSoFar = 0;
+
+                    function processNextFix(index) {
+                        if (index >= totalToFix) {
+                            $btn.text('✅ All Fixed!');
+                            alert('Batch Fix Complete! All ' + totalToFix + ' pages have been updated.');
+                            return;
+                        }
+
+                        var item = fixQueue[index];
+                        $('#bulk-fix-current').text(index + 1);
+
+                        // Visual indicator on row
+                        var $rowBtn = $('.chroma-open-bulk-fix[data-id="' + item.id + '"]');
+                        $rowBtn.text('⏳ Fixing...').prop('disabled', true);
+
+                        // 1. Generate Fix
+                        var schemaJson = item.schema && item.schema.length ? item.schema[0] : '';
+                        if (item.schema.length > 1) schemaJson = item.schema.join('\n\n');
+
+                        $.post(ajaxurl, {
+                            action: 'chroma_fix_schema_with_ai',
+                            nonce: chroma_fix_nonce,
+                            schema: schemaJson,
+                            errors: item.errors
+                        }, function(res1) {
+                            if (res1.success) {
+                                var fixedSchema = res1.data.fixed_schema;
+
+                                // 2. Apply Fix
+                                $.post(ajaxurl, {
+                                    action: 'chroma_apply_schema_fix',
+                                    nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>', // specific nonce
+                                    post_id: item.id,
+                                    schema: fixedSchema
+                                }, function(res2) {
+                                    if (res2.success) {
+                                        // Update UI
+                                        fixedSoFar++;
+                                        $rowBtn.replaceWith('<span class="chroma-badge chroma-badge-manual">✅ Fixed</span>');
+                                        // Process Next
+                                        processNextFix(index + 1);
+                                    } else {
+                                        $rowBtn.text('❌ Save Failed').prop('disabled', false);
+                                        console.error('Save failed for ' + item.id, res2);
+                                        processNextFix(index + 1); // Continue anyway
+                                    }
+                                });
+                            } else {
+                                $rowBtn.text('❌ AI Failed').prop('disabled', false);
+                                console.error('AI Fix failed for ' + item.id, res1);
+                                processNextFix(index + 1); // Continue anyway
+                            }
+                        }).fail(function() {
+                            $rowBtn.text('❌ Net Error').prop('disabled', false);
+                            processNextFix(index + 1);
+                        });
+                    }
+
+                    // Start
+                    processNextFix(0);
+                });
 
                 // Modal Logic
                 var $modal = $('#chroma-bulk-modal');
@@ -2354,17 +2451,41 @@ class Chroma_SEO_Dashboard
                     $schemas = $matches[1];
                     $has_valid_schema = false;
                     
+                    $type_counts = [];
+                    
                     foreach ($schemas as $json) {
                         if (class_exists('Chroma_Schema_Validator')) {
                             $res = Chroma_Schema_Validator::validate_json_ld($json);
                             if ($res['valid']) {
                                 $has_valid_schema = true;
+                                
+                                // Count types for duplicate detection
+                                if (isset($res['parsed']['@type'])) {
+                                    $t = $res['parsed']['@type'];
+                                    if (is_array($t)) {
+                                        foreach ($t as $subT) {
+                                            if (!isset($type_counts[$subT])) $type_counts[$subT] = 0;
+                                            $type_counts[$subT]++;
+                                        }
+                                    } else {
+                                        if (!isset($type_counts[$t])) $type_counts[$t] = 0;
+                                        $type_counts[$t]++;
+                                    }
+                                }
                             }
                             if (!$res['valid']) {
                                 foreach ($res['errors'] as $e) $errors[] = $e;
                             }
                             foreach ($res['warnings'] as $w) $warnings[] = $w;
                         }
+                    }
+
+                    // Check for Duplicates (Google SEO Best Practices)
+                    if (isset($type_counts['FAQPage']) && $type_counts['FAQPage'] > 1) {
+                        $warnings[] = "Multiple FAQPage schemas found (" . $type_counts['FAQPage'] . "). Google recommends a single FAQPage per page.";
+                    }
+                    if (isset($type_counts['BreadcrumbList']) && $type_counts['BreadcrumbList'] > 1) {
+                        $warnings[] = "Multiple BreadcrumbList schemas found (" . $type_counts['BreadcrumbList'] . "). This may cause search confusion.";
                     }
                     
                     if ($has_valid_schema && empty($errors)) {
