@@ -1046,4 +1046,53 @@ class Chroma_LLM_Client
 
         return $decoded;
     }
+    /**
+     * Fix Schema Errors with AI
+     * 
+     * @param string $raw_schema JSON string
+     * @param array $errors List of validation errors
+     * @return string|WP_Error Fixed JSON string or error
+     */
+    public function fix_schema_with_ai($raw_schema, $errors)
+    {
+        $prompt = "You are an expert JSON-LD Schema validator and fixer.\n";
+        $prompt .= "Your task is to FIX the following JSON-LD schema which has failed validation.\n\n";
+        
+        $prompt .= "=== VALIDATION ERRORS ===\n";
+        foreach ($errors as $error) {
+            $prompt .= "- $error\n";
+        }
+        $prompt .= "\n";
+        
+        $prompt .= "=== INSTRUCTIONS ===\n";
+        $prompt .= "1. Fix ONLY the errors listed above.\n";
+        $prompt .= "2. Do NOT change legitimate data values (names, descriptions) unless they are causing the error.\n";
+        $prompt .= "3. Ensure all dates are in ISO 8601 format.\n";
+        $prompt .= "4. Ensure all URLs are valid and start with https://.\n";
+        $prompt .= "5. Return ONLY the valid JSON object. No markdown, no explanations.\n\n";
+        
+        $prompt .= "=== BROKEN SCHEMA ===\n";
+        $prompt .= $raw_schema;
+
+        $response = $this->make_request([
+            'messages' => [
+                ['role' => 'system', 'content' => 'You are a JSON repair expert.'],
+                ['role' => 'user', 'content' => $prompt]
+            ],
+            'response_format' => ['type' => 'json_object']
+        ]);
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $content = $response['choices'][0]['message']['content'];
+        
+        // Validate that it returned valid JSON
+        if (json_decode($content) === null) {
+            return new WP_Error('json_error', 'AI returned invalid JSON');
+        }
+
+        return $content;
+    }
 }

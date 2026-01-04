@@ -49,7 +49,7 @@ class Chroma_Credential_Badges
     public function __construct() {
         add_shortcode('credential_badges', [$this, 'shortcode']);
         add_filter('the_content', [$this, 'auto_append_badges'], 25);
-        add_action('wp_head', [$this, 'output_credentials_schema']);
+        // add_action('wp_head', [$this, 'output_credentials_schema']);
     }
     
     /**

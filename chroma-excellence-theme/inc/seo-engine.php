@@ -307,7 +307,16 @@ function chroma_location_schema()
                 '@type' => 'EducationalOccupationalCredential',
                 'credentialCategory' => 'license',
                 'name' => 'Georgia DECAL License',
-                'identifier' => $license_num
+                'identifier' => array(
+                    '@type' => 'PropertyValue',
+                    'propertyID' => 'License Number',
+                    'value' => $license_num
+                ),
+                'recognizedBy' => array(
+                    '@type' => 'GovernmentOrganization',
+                    'name' => 'Georgia Department of Early Care and Learning',
+                    'url' => 'https://www.decal.ga.gov/'
+                )
             );
         }
         

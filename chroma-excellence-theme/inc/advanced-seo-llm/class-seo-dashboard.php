@@ -24,6 +24,7 @@ class Chroma_SEO_Dashboard
         add_action('admin_enqueue_scripts', [$this, 'enqueue_assets']);
         add_action('wp_ajax_chroma_fetch_schema_inspector', [$this, 'ajax_fetch_inspector_data']);
         add_action('wp_ajax_chroma_save_schema_inspector', [$this, 'ajax_save_inspector_data']);
+        add_action('wp_ajax_chroma_scan_schema_batch', [$this, 'ajax_scan_schema_batch']);
         add_action('wp_ajax_chroma_get_schema_fields', [$this, 'ajax_get_schema_fields']);
         add_action('wp_ajax_chroma_fetch_social_preview', [$this, 'ajax_fetch_social_preview']);
         add_action('wp_ajax_chroma_fetch_llm_data', [$this, 'ajax_fetch_llm_data']);
@@ -133,7 +134,9 @@ class Chroma_SEO_Dashboard
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=social'); ?>"
                     class="nav-tab <?php echo $active_tab === 'social' ? 'nav-tab-active' : ''; ?>">Social Preview</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk'); ?>"
-                    class="nav-tab <?php echo $active_tab === 'bulk' ? 'nav-tab-active' : ''; ?>">Bulk Operations</a>
+                    class="nav-tab <?php echo $active_tab === 'bulk' ? 'nav-tab-active' : ''; ?>">Bulk Builder</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk-validation'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'bulk-validation' ? 'nav-tab-active' : ''; ?>">Bulk Validation</a>
                 <?php do_action('chroma_seo_dashboard_tabs'); ?>
             </nav>
 
@@ -180,6 +183,9 @@ class Chroma_SEO_Dashboard
                     break;
                 case 'bulk':
                     $this->render_bulk_ops_tab();
+                    break;
+                case 'bulk-validation':
+                    $this->render_bulk_validation_tab();
                     break;
                 default:
                     // Allow other tabs to render via action
@@ -1965,5 +1971,316 @@ class Chroma_SEO_Dashboard
                     });
                 </script>
                 <?php
+    }
+
+    /**
+     * Render Bulk Validation Tab
+     */
+    private function render_bulk_validation_tab()
+    {
+        $post_types = ['location', 'program', 'page', 'post'];
+        ?>
+        <div class="chroma-seo-card">
+            <h2>🔍 Bulk Schema Validator</h2>
+            <p>Scan your entire site for Schema.org validation errors. This process fetches the live frontend of each page to ensure accurate results.</p>
+            
+            <div class="chroma-inspector-controls">
+                <button id="start-bulk-scan" class="button button-primary button-large">
+                    <span class="dashicons dashicons-search" style="line-height: 28px;"></span> Start Full Site Scan
+                </button>
+                <div id="scan-progress-wrapper" style="display:none; flex: 1; margin-left: 20px;">
+                    <div style="background: #f0f0f1; border-radius: 4px; overflow: hidden; height: 20px; border: 1px solid #c3c4c7;">
+                        <div id="scan-progress-bar" style="background: #2271b1; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                    </div>
+                    <div style="font-size: 12px; margin-top: 5px; color: #666;">
+                        Scanned: <span id="scan-count">0</span> / <span id="scan-total">0</span> pages
+                    </div>
+                </div>
+            </div>
+
+            <div id="bulk-scan-summary" style="margin-top: 20px; display: none;">
+                <div class="notice notice-info inline" style="margin: 0;">
+                    <p>
+                        <strong>Scan Complete!</strong> 
+                        Found <span id="error-count" style="color:red; font-weight:bold;">0</span> invalid pages 
+                        and <span id="valid-count" style="color:green; font-weight:bold;">0</span> valid pages.
+                    </p>
+                </div>
+            </div>
+
+            <br>
+
+            <table class="chroma-seo-table widefat fixed striped" id="bulk-results-table" style="display:none;">
+                <thead>
+                    <tr>
+                        <th style="width: 250px;">Page</th>
+                        <th style="width: 100px;">Type</th>
+                        <th style="width: 100px;">Status</th>
+                        <th>Issues Found</th>
+                        <th style="width: 100px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Results injected here -->
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            jQuery(document).ready(function($) {
+                var isScanning = false;
+                var postTypes = <?php echo json_encode($post_types); ?>;
+                var queue = [];
+                var totalPosts = 0;
+                var processedPosts = 0;
+                var errorCount = 0;
+                var validCount = 0;
+
+                $('#start-bulk-scan').on('click', function() {
+                    if (isScanning) return;
+                    isScanning = true;
+                    
+                    $(this).prop('disabled', true).text('Scanning...');
+                    $('#scan-progress-wrapper').show();
+                    $('#bulk-results-table').show().find('tbody').empty();
+                    $('#bulk-scan-summary').hide();
+                    
+                    // Reset stats
+                    processedPosts = 0;
+                    errorCount = 0;
+                    validCount = 0;
+                    $('#scan-count').text(0);
+                    $('#scan-progress-bar').css('width', '0%');
+
+                    // Step 1: Initialize Scan (Get Counts)
+                    log('Initializing scan...');
+                    
+                    // We will just process post types sequentially
+                    startBatchProcess();
+                });
+
+                function startBatchProcess() {
+                    // Start recursive batch
+                    processBatch(0, 0); 
+                }
+
+                function processBatch(typeIndex, offset) {
+                    if (typeIndex >= postTypes.length) {
+                        finishScan();
+                        return;
+                    }
+
+                    var currentType = postTypes[typeIndex];
+
+                    $.post(ajaxurl, {
+                        action: 'chroma_scan_schema_batch',
+                        post_type: currentType,
+                        offset: offset,
+                        nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>'
+                    }, function(response) {
+                        if (response.success) {
+                            var data = response.data;
+                            
+                            // Update Totals (First run for this type sets the total?) 
+                            // Actuallly, we can just track processed.
+                            // Ideally we'd get the total count first, but for simplicity let's just increment.
+                            
+                            if (offset === 0 && data.total_in_type) {
+                                totalPosts += data.total_in_type;
+                                $('#scan-total').text(totalPosts);
+                            }
+
+                            // Render Results
+                            if (data.results && data.results.length > 0) {
+                                data.results.forEach(function(item) {
+                                    processedPosts++;
+                                    renderRow(item);
+                                });
+                                
+                                // Update Progress
+                                $('#scan-count').text(processedPosts);
+                                var pct = totalPosts > 0 ? (processedPosts / totalPosts) * 100 : 5;
+                                $('#scan-progress-bar').css('width', pct + '%');
+
+                                // Continue Next Batch
+                                if (data.has_more) {
+                                    processBatch(typeIndex, offset + data.batch_size);
+                                } else {
+                                    // Done with this type, move to next
+                                    processBatch(typeIndex + 1, 0);
+                                }
+                            } else {
+                                // No results? Maybe empty type
+                                 processBatch(typeIndex + 1, 0);
+                            }
+
+                        } else {
+                            alert('Scanning Error: ' + (response.data.message || 'Unknown'));
+                            finishScan();
+                        }
+                    }).fail(function() {
+                        alert('Network Error. Stopping scan.');
+                        finishScan();
+                    });
+                }
+
+                function renderRow(item) {
+                    var statusIcon = item.valid ? '✅' : '❌';
+                    var statusClass = item.valid ? (item.warnings > 0 ? 'warning' : 'valid') : 'invalid';
+                    var statusText = item.valid ? 'Valid' : 'Invalid';
+                    
+                    if (item.valid) validCount++;
+                    else errorCount++;
+
+                    // Only show rows with issues or errors for cleanliness, or show all?
+                    // Let's show all but highlight errors.
+                    
+                    var messages = '';
+                    if (item.errors && item.errors.length) {
+                        messages += '<div style="color:#d63638; margin-bottom:4px;"><strong>Errors:</strong><br>' + item.errors.join('<br>') + '</div>';
+                    }
+                    if (item.warnings && item.warnings.length) {
+                        messages += '<div style="color:#dba617;"><strong>Warnings:</strong><br>' + item.warnings.join('<br>') + '</div>';
+                    }
+                    if (!messages) messages = '<span style="color:#ccc;">No issues</span>';
+
+                    var html = `
+                        <tr>
+                            <td>
+                                <strong><a href="${item.edit_url}" target="_blank">${item.title}</a></strong>
+                                <br><small><a href="${item.permalink}" target="_blank">${item.permalink}</a></small>
+                            </td>
+                            <td>${item.type}</td>
+                            <td>${statusIcon} ${statusText}</td>
+                            <td>${messages}</td>
+                            <td>
+                                <a href="${item.permalink}" target="_blank" class="button button-small">View</a>
+                            </td>
+                        </tr>
+                    `;
+
+                    // Prepend errors to top, append valid to bottom
+                    if (!item.valid) {
+                        $('#bulk-results-table tbody').prepend(html);
+                    } else {
+                        $('#bulk-results-table tbody').append(html);
+                    }
+                }
+
+                function finishScan() {
+                    isScanning = false;
+                    $('#start-bulk-scan').prop('disabled', false).text('Start Full Site Scan');
+                    $('#scan-progress-bar').css('width', '100%');
+                    $('#bulk-scan-summary').show();
+                    $('#error-count').text(errorCount);
+                    $('#valid-count').text(validCount);
+                    
+                    if (errorCount === 0) {
+                         alert('🎉 Great job! No validation errors found on the site.');
+                    } else {
+                         alert('Scan complete. Found ' + errorCount + ' pages with errors.');
+                    }
+                }
+
+                function log(msg) {
+                    console.log('[Bulk Validator] ' + msg);
+                }
+            });
+        </script>
+        <?php
+    }
+
+    /**
+     * AJAX: Scan Schema Batch
+     */
+    public function ajax_scan_schema_batch()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
+        $post_type = sanitize_text_field($_POST['post_type']);
+        $offset = intval($_POST['offset']);
+        $batch_size = 5; // Reduced batch size to prevent timeouts during HTTP requests
+
+        // Fetch Posts
+        $args = [
+            'post_type' => $post_type,
+            'posts_per_page' => $batch_size,
+            'offset' => $offset,
+            'post_status' => 'publish',
+            'orderby' => 'ID',
+            'order' => 'DESC'
+        ];
+
+        $posts = get_posts($args);
+        $total_in_type = wp_count_posts($post_type)->publish;
+
+        $results = [];
+
+        foreach ($posts as $post) {
+            $pid = $post->ID;
+            $permalink = get_permalink($pid);
+            
+            // Fetch Live Page
+            $response = wp_remote_get($permalink, ['timeout' => 10, 'sslverify' => false]);
+            $is_valid = false;
+            $errors = [];
+            $warnings = [];
+
+            if (is_wp_error($response)) {
+                $errors[] = 'HTTP Fetch Failed: ' . $response->get_error_message();
+            } else {
+                $body = wp_remote_retrieve_body($response);
+                
+                // Extract JSON-LD (Robust Regex)
+                if (preg_match_all('/<script[^>]+type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/script>/s', $body, $matches)) {
+                    $schemas = $matches[1];
+                    $has_valid_schema = false;
+                    
+                    foreach ($schemas as $json) {
+                        if (class_exists('Chroma_Schema_Validator')) {
+                            $res = Chroma_Schema_Validator::validate_json_ld($json);
+                            if ($res['valid']) {
+                                $has_valid_schema = true;
+                            }
+                            if (!$res['valid']) {
+                                foreach ($res['errors'] as $e) $errors[] = $e;
+                            }
+                            foreach ($res['warnings'] as $w) $warnings[] = $w;
+                        }
+                    }
+                    
+                    if ($has_valid_schema && empty($errors)) {
+                        $is_valid = true;
+                    }
+                } else {
+                    // No schema found
+                    $warnings[] = 'No JSON-LD schema found on page.';
+                    // Not necessarily an error if not expected, but for us usually is.
+                }
+            }
+
+            $results[] = [
+                'id' => $pid,
+                'title' => $post->post_title,
+                'type' => $post_type,
+                'permalink' => $permalink,
+                'edit_url' => get_edit_post_link($pid),
+                'valid' => $is_valid,
+                'errors' => array_unique($errors),
+                'warnings' => array_unique($warnings)
+            ];
+        }
+
+        wp_send_json_success([
+            'results' => $results,
+            'total_in_type' => intval($total_in_type),
+            'offset' => $offset,
+            'batch_size' => $batch_size,
+            'has_more' => ($offset + $batch_size) < $total_in_type
+        ]);
     }
 }
