@@ -131,6 +131,13 @@ function chroma_website_schema()
                 return;
         }
         
+        // Check for manual override (yield to main override if present)
+        $homepage_id = get_option('page_on_front');
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
         // Note: We don't override this individually because usually the main Org schema override covers the whole page,
         // or the user keeps this as is. If they pasted a @graph, the Org override above handles it.
 
@@ -1264,6 +1271,12 @@ function chroma_city_faq_schema_output()
 {
         if (!is_singular('city')) {
                 return;
+        }
+
+        // Check for manual override
+        $override = get_post_meta(get_the_ID(), '_chroma_schema_override', true);
+        if ($override) {
+            return;
         }
 
         $city = get_the_title();
