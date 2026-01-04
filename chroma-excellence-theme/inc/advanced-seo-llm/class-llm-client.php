@@ -1069,17 +1069,18 @@ class Chroma_LLM_Client
         $prompt .= "2. Do NOT change legitimate data values (names, descriptions) unless they are causing the error.\n";
         $prompt .= "3. Ensure all dates are in ISO 8601 format.\n";
         $prompt .= "4. Ensure all URLs are valid and start with https://.\n";
-        $prompt .= "5. CRITICAL: Return ONLY the raw JSON object. No markdown, no code blocks, no explanations, no extra text.\n";
-        $prompt .= "6. Start your response directly with { and end with }\n\n";
+        $prompt .= "5. CRITICAL: Return ONLY the fixed JSON object in your response.\n\n";
         
         $prompt .= "=== BROKEN SCHEMA ===\n";
         $prompt .= $raw_schema;
 
         $response = $this->make_request([
             'messages' => [
-                ['role' => 'system', 'content' => 'You are a JSON repair expert. Always return raw JSON without markdown formatting.'],
+                ['role' => 'system', 'content' => 'You are a JSON repair expert. Output valid JSON only.'],
                 ['role' => 'user', 'content' => $prompt]
-            ]
+            ],
+            'response_format' => ['type' => 'json_object'],
+            'max_tokens' => 4000 // Prevent truncation for large schemas
         ]);
 
         if (is_wp_error($response)) {
@@ -1088,15 +1089,14 @@ class Chroma_LLM_Client
 
         $content = $response['choices'][0]['message']['content'];
         
-        // Try to extract JSON from markdown code blocks if present
+        // Clean potential wrappers (even in json mode, sometimes it's wrapped)
         if (preg_match('/```(?:json)?\s*(\{.*\})\s*```/s', $content, $matches)) {
             $content = $matches[1];
         }
         
-        // Trim any whitespace
         $content = trim($content);
         
-        // Validate that it returned valid JSON
+        // Validate
         $decoded = json_decode($content);
         if (json_last_error() !== JSON_ERROR_NONE) {
             return new WP_Error('json_error', 'AI returned invalid JSON: ' . json_last_error_msg() . '. Response preview: ' . substr($content, 0, 200));
