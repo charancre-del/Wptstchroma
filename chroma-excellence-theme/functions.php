@@ -276,15 +276,12 @@ add_filter('upload_mimes', 'chroma_mime_types');
 
 
 /**
- * Move jQuery to footer for better performance
- * This prevents jQuery from blocking initial render
-/**
  * Defer non-critical third-party scripts.
  */
 function chroma_defer_scripts($tag, $handle, $src)
 {
-    // List of scripts to defer
-    $defer_scripts = array('jquery.min.js', 'jquery-migrate.min.js', 'gtag', 'did-0014');
+    // List of scripts to defer (Removed jQuery to prevent "jQuery is not defined" errors)
+    $defer_scripts = array('gtag', 'did-0014');
 
     foreach ($defer_scripts as $script) {
         if ($src && strpos($src, $script) !== false) {
