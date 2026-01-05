@@ -552,7 +552,6 @@ if (!function_exists('chroma_organization_schema_pro')) {
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
 }
-}
 add_action('wp_head', 'chroma_organization_schema_pro', 5);
 
 if (!function_exists('chroma_website_schema_pro')) {
@@ -580,7 +579,6 @@ if (!function_exists('chroma_website_schema_pro')) {
         ];
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
-}
 }
 add_action('wp_head', 'chroma_website_schema_pro', 6);
 
@@ -619,7 +617,6 @@ if (!function_exists('chroma_faq_schema_pro')) {
         ];
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
-}
 }
 add_action('wp_head', 'chroma_faq_schema_pro', 10);
 
