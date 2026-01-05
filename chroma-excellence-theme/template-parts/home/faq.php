@@ -18,7 +18,7 @@ if (!$faq_data || empty($faq_data['items'])) {
         <!-- Section Header -->
         <div class="text-center mb-12">
             <h2 class="text-4xl md:text-5xl font-bold text-brand-ink mb-4">
-                <?php echo esc_html($faq_data['heading'] ?: 'Frequently Asked Questions'); ?>
+                <?php echo esc_html($faq_data['heading'] ?: __('Frequently Asked Questions', 'chroma-excellence')); ?>
             </h2>
             <?php if (!empty($faq_data['subheading'])): ?>
                 <p class="text-xl text-brand-ink">
@@ -59,7 +59,7 @@ if (!$faq_data || empty($faq_data['items'])) {
                 </p>
                 <a href="<?php echo esc_url($faq_data['cta_link']); ?>"
                     class="inline-block bg-chroma-red text-white px-8 py-3 rounded-full font-bold hover:bg-chroma-red/90 transition-colors">
-                    <?php echo esc_html($faq_data['cta_label'] ?: 'Contact Us'); ?>
+                    <?php echo esc_html($faq_data['cta_label'] ?: __('Contact Us', 'chroma-excellence')); ?>
                 </a>
             </div>
         <?php endif; ?>

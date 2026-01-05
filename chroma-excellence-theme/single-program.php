@@ -21,7 +21,7 @@ while (have_posts()):
 	$hero_description = get_post_meta($program_id, 'program_hero_description', true) ?: get_the_excerpt();
 
 	// Prismpath section
-	$prism_title = get_post_meta($program_id, 'program_prism_title', true) ?: 'Our Prismpath™ Focus';
+	$prism_title = get_post_meta($program_id, 'program_prism_title', true) ?: __('Our Prismpath™ Focus', 'chroma-excellence');
 	$prism_description = get_post_meta($program_id, 'program_prism_description', true);
 	$prism_focus_items = get_post_meta($program_id, 'program_prism_focus_items', true);
 
@@ -33,7 +33,7 @@ while (have_posts()):
 	$prism_creative = get_post_meta($program_id, 'program_prism_creative', true) ?: '50';
 
 	// Schedule
-	$schedule_title = get_post_meta($program_id, 'program_schedule_title', true) ?: 'A Rhythm, Not a Routine';
+	$schedule_title = get_post_meta($program_id, 'program_schedule_title', true) ?: __('A Rhythm, Not a Routine', 'chroma-excellence');
 	$schedule_items = get_post_meta($program_id, 'program_schedule_items', true);
 
 	// Color mapping

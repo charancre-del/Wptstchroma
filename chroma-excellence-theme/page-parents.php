@@ -299,9 +299,8 @@ if (empty($gallery_images)) {
 		<section class="py-24 bg-white overflow-hidden">
 			<div class="max-w-7xl mx-auto px-4 lg:px-6">
 				<div class="text-center mb-16">
-					<span class="text-chroma-orange font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Life at
-						Chroma</span>
-					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink">Moments of Joy</h2>
+					<span class="text-chroma-orange font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Life at Chroma', 'chroma-excellence'); ?></span>
+					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink"><?php _e('Moments of Joy', 'chroma-excellence'); ?></h2>
 				</div>
 
 				<div class="relative w-full max-w-5xl mx-auto aspect-video md:aspect-[21/9] rounded-[2rem] overflow-hidden shadow-2xl border-4 border-white"
@@ -376,7 +375,7 @@ if (empty($gallery_images)) {
 					<!-- Menu Downloads -->
 					<div class="bg-white p-8 rounded-[2rem] shadow-soft border border-brand-ink/5">
 						<h3 class="font-bold text-xl text-brand-ink mb-6 flex items-center gap-3">
-							<i class="fa-solid fa-utensils text-chroma-orange"></i> Monthly Menus
+							<i class="fa-solid fa-utensils text-chroma-orange"></i> <?php _e('Monthly Menus', 'chroma-excellence'); ?>
 						</h3>
 						<div class="space-y-4">
 							<?php foreach ($menus as $index => $menu): ?>
@@ -410,7 +409,7 @@ if (empty($gallery_images)) {
 							alt="<?php echo esc_attr($nutrition_title); ?>" />
 						<div
 							class="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-4 py-2 rounded-xl text-xs font-bold text-brand-ink shadow-sm">
-							<i class="fa-solid fa-check-circle text-chroma-green mr-1"></i> Fresh Fruit Daily
+							<i class="fa-solid fa-check-circle text-chroma-green mr-1"></i> <?php _e('Fresh Fruit Daily', 'chroma-excellence'); ?>
 						</div>
 					</div>
 				</div>

@@ -21,11 +21,9 @@ if (empty($tracks)) {
 	<div class="max-w-6xl mx-auto px-4 lg:px-6" data-schedule
 		data-tracks='<?php echo esc_attr(wp_json_encode($tracks)); ?>'>
 		<div class="text-center mb-12">
-			<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-4 block">Day by
-				Day</span>
-			<h2 class="text-3xl md:text-4xl font-serif text-brand-ink mb-3">A Daily Rhythm of Joy</h2>
-			<p class="text-brand-ink max-w-2xl mx-auto">We don't just fill time. Every classroom follows
-				a thoughtful flow designed to balance stimulation, nourishment, and rest.</p>
+			<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-4 block"><?php _e('Day by Day', 'chroma-excellence'); ?></span>
+			<h2 class="text-3xl md:text-4xl font-serif text-brand-ink mb-3"><?php _e('A Daily Rhythm of Joy', 'chroma-excellence'); ?></h2>
+			<p class="text-brand-ink max-w-2xl mx-auto"><?php _e('We don\'t just fill time. Every classroom follows a thoughtful flow designed to balance stimulation, nourishment, and rest.', 'chroma-excellence'); ?></p>
 		</div>
 
 		<div class="flex justify-center mb-12">

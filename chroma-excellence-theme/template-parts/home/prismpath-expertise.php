@@ -29,8 +29,7 @@ $readiness_text = $readiness['description'];
 	<div class="max-w-[1200px] mx-auto">
 		<!-- Section Header -->
 		<div class="text-center mb-12">
-			<span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block">The Chroma
-				Standard</span>
+			<span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('The Chroma Standard', 'chroma-excellence'); ?></span>
 			<h2 class="text-3xl md:text-5xl font-serif text-brand-ink"><?php echo esc_html($heading); ?></h2>
 			<?php if ($subheading): ?>
 				<p class="text-brand-ink mt-4 max-w-2xl mx-auto"><?php echo esc_html($subheading); ?></p>

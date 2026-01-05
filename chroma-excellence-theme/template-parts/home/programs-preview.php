@@ -22,7 +22,7 @@ $program_slug = chroma_get_program_base_slug();
         <!-- Section Header -->
         <div class="text-center mb-12">
             <h2 class="text-4xl md:text-5xl font-bold text-brand-ink mb-4">
-                <?php echo esc_html($programs['heading'] ?: 'Our Programs'); ?>
+                <?php echo esc_html($programs['heading'] ?: __('Our Programs', 'chroma-excellence')); ?>
             </h2>
             <?php if (!empty($programs['subheading'])): ?>
                 <p class="text-xl text-brand-ink max-w-3xl mx-auto">
@@ -71,7 +71,7 @@ $program_slug = chroma_get_program_base_slug();
             <div class="text-center">
                 <a href="<?php echo esc_url($programs['cta_link']); ?>"
                     class="inline-block bg-brand-navy text-brand-cream px-8 py-4 rounded-lg font-bold text-lg hover:bg-brand-navy/90 transition-colors">
-                    <?php echo esc_html($programs['cta_label'] ?: 'View All Programs'); ?>
+                    <?php echo esc_html($programs['cta_label'] ?: __('View All Programs', 'chroma-excellence')); ?>
                 </a>
             </div>
         <?php endif; ?>

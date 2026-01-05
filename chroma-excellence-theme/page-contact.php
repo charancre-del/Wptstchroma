@@ -16,15 +16,15 @@ get_header();
 $page_id = get_the_ID();
 
 // Hero Section
-$hero_badge = get_post_meta($page_id, 'contact_hero_badge', true) ?: 'Get in Touch';
-$hero_title = get_post_meta($page_id, 'contact_hero_title', true) ?: 'How can we support your family today?';
-$hero_description = get_post_meta($page_id, 'contact_hero_description', true) ?: 'Whether you are looking for a new school, applying for a job, or have a media inquiry, we are here to connect you with the right team.';
+$hero_badge = get_post_meta($page_id, 'contact_hero_badge', true) ?: __('Get in Touch', 'chroma-excellence');
+$hero_title = get_post_meta($page_id, 'contact_hero_title', true) ?: __('How can we support your family today?', 'chroma-excellence');
+$hero_description = get_post_meta($page_id, 'contact_hero_description', true) ?: __('Whether you are looking for a new school, applying for a job, or have a media inquiry, we are here to connect you with the right team.', 'chroma-excellence');
 
 // Form Settings
-$form_submit_text = get_post_meta($page_id, 'contact_form_submit_text', true) ?: 'Send Message';
+$form_submit_text = get_post_meta($page_id, 'contact_form_submit_text', true) ?: __('Send Message', 'chroma-excellence');
 
 // Corporate Office
-$corporate_title = get_post_meta($page_id, 'contact_corporate_title', true) ?: 'Corporate Office';
+$corporate_title = get_post_meta($page_id, 'contact_corporate_title', true) ?: __('Corporate Office', 'chroma-excellence');
 $corporate_name = get_post_meta($page_id, 'contact_corporate_name', true) ?: 'Chroma Early Learning HQ';
 $corporate_address = get_post_meta($page_id, 'contact_corporate_address', true) ?: "123 Holcomb Bridge Rd, Suite 200\nRoswell, GA 30076";
 $corporate_phone = get_post_meta($page_id, 'contact_corporate_phone', true) ?: '(770) 555-0199';
@@ -63,12 +63,10 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 					<div
 						class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
 						👶</div>
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3">Looking for care?</h3>
-					<p class="text-brand-ink/60 text-sm mb-6">Find a school near you to check pricing, availability, and
-						book a tour.</p>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php _e('Looking for care?', 'chroma-excellence'); ?></h3>
+					<p class="text-brand-ink/60 text-sm mb-6"><?php _e('Find a school near you to check pricing, availability, and book a tour.', 'chroma-excellence'); ?></p>
 					<a href="/locations/"
-						class="inline-block w-full py-3 bg-chroma-red text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-red/90 transition-colors">Find
-						a School</a>
+						class="inline-block w-full py-3 bg-chroma-red text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-red/90 transition-colors"><?php _e('Find a School', 'chroma-excellence'); ?></a>
 				</div>
 
 				<!-- Current Families -->
@@ -77,12 +75,10 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 					<div
 						class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
 						👨‍👩‍👧</div>
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3">Current Family?</h3>
-					<p class="text-brand-ink/60 text-sm mb-6">Access the parent portal for tuition payments, daily
-						reports, and photos.</p>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php _e('Current Family?', 'chroma-excellence'); ?></h3>
+					<p class="text-brand-ink/60 text-sm mb-6"><?php _e('Access the parent portal for tuition payments, daily reports, and photos.', 'chroma-excellence'); ?></p>
 					<a href="/parents/"
-						class="inline-block w-full py-3 bg-chroma-blue text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-blueDark transition-colors">Parent
-						Portal</a>
+						class="inline-block w-full py-3 bg-chroma-blue text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-blueDark transition-colors"><?php _e('Parent Portal', 'chroma-excellence'); ?></a>
 						class="inline-block w-full py-3 bg-chroma-blue text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-blueDark transition-colors"><?php _e('Parent Portal', 'chroma-excellence'); ?></a>
 				</div>
 
@@ -111,8 +107,7 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 					<h2 class="font-serif text-3xl font-bold text-brand-ink mb-6">
 						<?php echo esc_html($corporate_title); ?></h2>
 					<p class="text-brand-ink/70 leading-relaxed mb-6">
-						While our schools are the heart of what we do, our administrative team supports operations from
-						our central office in Roswell.
+						<?php _e('While our schools are the heart of what we do, our administrative team supports operations from our central office in Roswell.', 'chroma-excellence'); ?>
 					</p>
 					<div class="space-y-4">
 						<div class="flex items-start gap-4">
