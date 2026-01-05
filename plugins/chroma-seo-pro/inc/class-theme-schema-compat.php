@@ -38,6 +38,17 @@ function chroma_general_content_schema() {
 add_action('wp_head', 'chroma_general_content_schema', 1);
 
 /**
+ * Helper: Get Schema Value (English or Spanish)
+ */
+function chroma_get_schema_val($post_id, $es_meta_key, $en_val) {
+    if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+        $es_val = get_post_meta($post_id, $es_meta_key, true);
+        return $es_val ?: $en_val;
+    }
+    return $en_val;
+}
+
+/**
  * Add LocalBusiness Schema to Location Pages
  */
 function chroma_location_schema()
@@ -73,20 +84,24 @@ function chroma_location_schema()
     $service_area = Chroma_Fallback_Resolver::get_service_area_circle($location_id);
 
     // Meta Fields
-    $name = get_post_meta($location_id, 'schema_loc_name', true) ?: get_the_title();
-    $description = get_post_meta($location_id, 'schema_loc_description', true) ?: get_the_excerpt();
+    $en_name = get_post_meta($location_id, 'schema_loc_name', true) ?: get_the_title();
+    $name = chroma_get_schema_val($location_id, '_chroma_es_title', $en_name);
+    
+    $en_desc = get_post_meta($location_id, 'schema_loc_description', true) ?: get_the_excerpt();
+    $description = chroma_get_schema_val($location_id, '_chroma_es_excerpt', $en_desc);
+
     $telephone = get_post_meta($location_id, 'schema_loc_telephone', true) ?: ($location_fields['phone'] ?? '');
     $email = get_post_meta($location_id, 'schema_loc_email', true) ?: ($location_fields['email'] ?? '');
     $opening_hours_raw = get_post_meta($location_id, 'schema_loc_opening_hours', true) ?: ($location_fields['hours'] ?? '');
     $payment = get_post_meta($location_id, 'schema_loc_payment_accepted', true);
+    
+    // Address Fields (Localized)
+    $street = chroma_get_schema_val($location_id, '_chroma_es_location_address', ($location_fields['address'] ?? ''));
+    $city   = chroma_get_schema_val($location_id, '_chroma_es_location_city', ($location_fields['city'] ?? ''));
+    
     $price_range = get_post_meta($location_id, 'seo_llm_price_min', true);
     $quality_rated = get_post_meta($location_id, 'location_quality_rated', true);
-    $ages_served = get_post_meta($location_id, 'location_ages_served', true);
-    $school_pickups = get_post_meta($location_id, 'location_school_pickups', true);
-    $director_name = get_post_meta($location_id, 'location_director_name', true);
-    $director_bio = get_post_meta($location_id, 'location_director_bio', true);
-    $director_photo = get_post_meta($location_id, 'location_director_photo', true);
-
+    
     // Price Range Formatting
     if ($price_range) {
         $price_max = get_post_meta($location_id, 'seo_llm_price_max', true);
@@ -116,7 +131,7 @@ function chroma_location_schema()
         '@id' => get_permalink() . '#organization',
         'name' => $name,
         'description' => $description,
-        'url' => get_permalink(),
+        'url' => get_permalink(), // URL is automatically filtered by Multilingual Manager? Yes.
         'image' => get_the_post_thumbnail_url($location_id, 'full'),
         'logo' => $logo,
         'telephone' => $telephone,
@@ -124,8 +139,8 @@ function chroma_location_schema()
         'priceRange' => $price_range,
         'address' => array(
             '@type' => 'PostalAddress',
-            'streetAddress' => $location_fields['address'] ?? '',
-            'addressLocality' => $location_fields['city'] ?? '',
+            'streetAddress' => $street,
+            'addressLocality' => $city,
             'addressRegion' => $location_fields['state'] ?? '',
             'postalCode' => $location_fields['zip'] ?? '',
             'addressCountry' => 'US'
@@ -239,7 +254,11 @@ function chroma_location_schema()
     }
 
     // Director
+    $director_name = get_post_meta($location_id, 'location_director_name', true);
     if ($director_name) {
+        $director_bio = get_post_meta($location_id, 'location_director_bio', true);
+        $director_photo = get_post_meta($location_id, 'location_director_photo', true);
+        
         $schema['employee'] = array(
             '@type' => 'Person',
             'name' => $director_name,
@@ -294,7 +313,12 @@ function chroma_city_schema()
         return;
     }
 
-    $city_name = get_the_title();
+    $en_name = get_the_title();
+    $city_name = chroma_get_schema_val($post_id, '_chroma_es_title', $en_name);
+
+    $en_desc = get_the_excerpt() ?: "Premier child care and early education services in $en_name, GA.";
+    $desc = chroma_get_schema_val($post_id, '_chroma_es_excerpt', $en_desc);
+    
     $location_ids = get_post_meta($post_id, 'city_nearby_locations', true);
 
     $schema = array(
@@ -311,18 +335,19 @@ function chroma_city_schema()
             '@type' => 'City',
             'name' => $city_name
         ),
-        'description' => get_the_excerpt() ?: "Premier child care and early education services in $city_name, GA.",
+        'description' => $desc,
         'url' => get_permalink()
     );
 
     if (!empty($location_ids) && is_array($location_ids)) {
         $offers = array();
         foreach ($location_ids as $loc_id) {
+            $loc_name = chroma_get_schema_val($loc_id, '_chroma_es_title', get_the_title($loc_id));
             $offers[] = array(
                 '@type' => 'Offer',
                 'itemOffered' => array(
                     '@type' => 'ChildCare',
-                    'name' => get_the_title($loc_id),
+                    'name' => $loc_name,
                     'url' => get_permalink($loc_id)
                 )
             );
@@ -359,8 +384,12 @@ function chroma_program_schema()
         return;
     }
 
-    $name = get_post_meta($program_id, 'schema_prog_name', true) ?: get_the_title();
-    $description = get_post_meta($program_id, 'schema_prog_description', true) ?: get_the_excerpt();
+    $en_name = get_post_meta($program_id, 'schema_prog_name', true) ?: get_the_title();
+    $name = chroma_get_schema_val($program_id, '_chroma_es_title', $en_name);
+
+    $en_desc = get_post_meta($program_id, 'schema_prog_description', true) ?: get_the_excerpt();
+    $description = chroma_get_schema_val($program_id, '_chroma_es_excerpt', $en_desc);
+
     $service_type = get_post_meta($program_id, 'schema_prog_service_type', true) ?: 'Early Childhood Education';
     $provider_name = get_post_meta($program_id, 'schema_prog_provider_name', true) ?: get_bloginfo('name');
     $area_served = get_post_meta($program_id, 'schema_prog_area_served', true) ?: 'Metro Atlanta';

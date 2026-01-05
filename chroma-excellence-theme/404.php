@@ -87,19 +87,15 @@ if (!is_admin()) {
 
   <main class="flex-grow flex flex-col items-center justify-center text-center px-4">
     <div class="text-9xl font-serif font-bold text-chroma-yellow opacity-50 mb-4">404</div>
-    <h1 class="text-4xl md:text-5xl font-serif font-bold text-brand-ink mb-6">Ruh-roh! This page is playing
-      hide-and-seek.</h1>
-    <p class="text-lg text-brand-ink max-w-md mb-10">We've checked the toy bin, looked under the rugs, and even asked
-      the goldfish, but we can't find this page anywhere. It must be really good at hiding!</p>
+    <h1 class="text-4xl md:text-5xl font-serif font-bold text-brand-ink mb-6"><?php _e('Ruh-roh! This page is playing hide-and-seek.', 'chroma-excellence'); ?></h1>
+    <p class="text-lg text-brand-ink max-w-md mb-10"><?php _e('We\'ve checked the toy bin, looked under the rugs, and even asked the goldfish, but we can\'t find this page anywhere. It must be really good at hiding!', 'chroma-excellence'); ?></p>
 
     <div class="flex flex-wrap justify-center gap-4">
       <a href="<?php echo esc_url(home_url('/')); ?>"
-        class="px-8 py-3 bg-brand-ink text-white font-bold rounded-full uppercase tracking-widest text-xs hover:bg-chroma-blue transition-colors">Go
-        Home</a>
-      <?php $locations_url = chroma_smart_link('locations'); ?>
+        class="px-8 py-3 bg-brand-ink text-white font-bold rounded-full uppercase tracking-widest text-xs hover:bg-chroma-blue transition-colors"><?php _e('Go Home', 'chroma-excellence'); ?></a>
+      <?php $locations_url = function_exists('chroma_smart_link') ? chroma_smart_link('locations') : home_url('/locations'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
-        class="px-8 py-3 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-widest text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors">Find
-        a School</a>
+        class="px-8 py-3 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-widest text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors"><?php _e('Find a School', 'chroma-excellence'); ?></a>
     </div>
   </main>
 

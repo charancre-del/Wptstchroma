@@ -21,7 +21,7 @@ $grouped = $locations_data['grouped'] ?? array();
         <!-- Section Header -->
         <div class="text-center mb-12">
             <h2 class="text-4xl md:text-5xl font-bold text-brand-ink mb-3">
-                <?php echo esc_html($locations_data['heading'] ?: 'Our Locations'); ?>
+                <?php echo esc_html($locations_data['heading'] ?: __('Our Locations', 'chroma-excellence')); ?>
             </h2>
             <?php if (!empty($locations_data['subheading'])): ?>
                 <p class="text-brand-ink text-sm md:text-base max-w-2xl mx-auto">
@@ -111,7 +111,7 @@ $grouped = $locations_data['grouped'] ?? array();
             <div class="text-center">
                 <a href="<?php echo esc_url($locations_data['cta_link']); ?>"
                     class="inline-block bg-brand-ink text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-chroma-blueDark transition-colors">
-                    <?php echo esc_html($locations_data['cta_label'] ?: get_theme_mod('chroma_locations_label', 'View All Locations')); ?>
+                    <?php echo esc_html($locations_data['cta_label'] ?: get_theme_mod('chroma_locations_label', __('View All Locations', 'chroma-excellence'))); ?>
                 </a>
             </div>
         <?php endif; ?>

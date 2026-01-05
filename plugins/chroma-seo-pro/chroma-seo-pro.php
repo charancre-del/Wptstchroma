@@ -41,7 +41,16 @@ add_action( 'plugins_loaded', 'chroma_seo_init' );
  * Activation Hook
  */
 function chroma_seo_activate() {
-    // Standard flush rewrite rules or DB setup if needed
+    // Load bootstrap to get class definitions
+    require_once CHROMA_SEO_PATH . 'inc/bootstrap.php';
+    
+    // Register multilingual rewrite rules
+    if (class_exists('Chroma_Multilingual_Manager')) {
+        $manager = new Chroma_Multilingual_Manager();
+        $manager->setup_rewrites();
+    }
+    
+    // Flush rewrite rules to apply changes
     flush_rewrite_rules();
 }
 register_activation_hook( __FILE__, 'chroma_seo_activate' );

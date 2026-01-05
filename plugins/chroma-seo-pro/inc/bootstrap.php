@@ -50,12 +50,20 @@ chroma_safe_require(__DIR__ . '/class-schema-validator.php');
 chroma_safe_require(__DIR__ . '/class-llm-client.php');
 chroma_safe_require(__DIR__ . '/class-google-places-client.php');
 chroma_safe_require(__DIR__ . '/class-llm-bulk-processor.php');
+chroma_safe_require(__DIR__ . '/class-translation-engine.php');
 chroma_safe_require(__DIR__ . '/class-schema-quality.php');
 chroma_safe_require(__DIR__ . '/class-advanced-features.php');
+chroma_safe_require(__DIR__ . '/class-multilingual-manager.php');
 
 // Load Admin UI
 chroma_safe_require(__DIR__ . '/admin/class-llm-admin-settings.php');
 chroma_safe_require(__DIR__ . '/admin/class-schema-inspector.php');
+chroma_safe_require(__DIR__ . '/admin/class-theme-translator.php');
+chroma_safe_require(__DIR__ . '/admin/class-content-inspector.php');
+chroma_safe_require(__DIR__ . '/admin/class-hreflang-auditor.php');
+chroma_safe_require(__DIR__ . '/class-sitemap-integrator.php');
+chroma_safe_require(__DIR__ . '/class-cli-commands.php');
+chroma_safe_require(__DIR__ . '/class-translation-api.php');
 
 // Load Theme Schema Compatibility (migrated from seo-engine.php)
 chroma_safe_require(__DIR__ . '/class-theme-schema-compat.php');
@@ -85,7 +93,8 @@ $meta_boxes = [
 	'class-city-landing-meta.php',
 	'class-location-citation-facts.php',
 	'class-post-newsroom.php',
-	'class-location-advanced-schema.php' // Tier 5: License, CID, Open House, Event Venue
+	'class-location-advanced-schema.php', // Tier 5: License, CID, Open House, Event Venue
+	'class-spanish-content.php'
 ];
 
 foreach ($meta_boxes as $file) {
@@ -138,6 +147,20 @@ function chroma_advanced_seo_init()
 		(new Chroma_Admin_Help())->init();
 	if (class_exists('Chroma_Breadcrumbs'))
 		(new Chroma_Breadcrumbs())->init();
+	if (class_exists('Chroma_Multilingual_Manager'))
+		(new Chroma_Multilingual_Manager())->init();
+	if (class_exists('Chroma_Translation_Engine'))
+		Chroma_Translation_Engine::init();
+	if (class_exists('Chroma_Theme_Translator'))
+		(new Chroma_Theme_Translator())->init();
+	if (class_exists('Chroma_Content_Inspector'))
+		(new Chroma_Content_Inspector())->init();
+	if (class_exists('Chroma_Sitemap_Integrator'))
+		(new Chroma_Sitemap_Integrator())->init();
+	if (class_exists('Chroma_Hreflang_Auditor'))
+		(new Chroma_Hreflang_Auditor())->init();
+	if (class_exists('Chroma_Translation_API'))
+		(new Chroma_Translation_API())->init();
 
 	// Meta Boxes
 	$meta_classes = [
@@ -155,7 +178,8 @@ function chroma_advanced_seo_init()
 		'Chroma_Hreflang_Options',
 		'Chroma_City_Landing_Meta',
 		'Chroma_Post_Newsroom',
-		'Chroma_Location_Advanced_Schema' // Tier 5: License, CID, Open House, Event Venue
+		'Chroma_Location_Advanced_Schema', // Tier 5: License, CID, Open House, Event Venue
+		'Chroma_Spanish_Content_Meta_Box'
 	];
 
 	// Fallback for class names if files haven't been updated yet
