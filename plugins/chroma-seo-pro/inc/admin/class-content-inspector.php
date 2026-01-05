@@ -100,70 +100,11 @@ class Chroma_Content_Inspector
                     </button>
                     <span id="bulk-status" style="margin-left: 10px;"></span>
                 </div>
-                <script>
-                $(document).ready(function($) {
-                    var untranslated = <?php echo json_encode($untranslated_ids); ?>;
-                    var current = 0;
-                    
-                    // BULK ALL
-                    $('#chroma-bulk-translate-all').click(function() {
-                        if (!confirm('This will use AI tokens to translate ' + untranslated.length + ' pages. Continue?')) return;
-                        
-                        $(this).prop('disabled', true);
-                        translateNext();
-                    });
-                    
-                    function translateNext() {
-                        if (current >= untranslated.length) {
-                            $('#bulk-status').text('Done! Refresh to see results.').css('color', 'green');
-                            return;
-                        }
-                        
-                        var postId = untranslated[current];
-                        $('#bulk-status').text('Translating ' + (current + 1) + ' of ' + untranslated.length + '...');
-                        
-                        translateSinglePost(postId, function() {
-                            current++;
-                            translateNext();
-                        });
-                    }
-
-                    // SINGLE ROW TRANSLATE
-                    $('.chroma-translate-single').click(function() {
-                        var btn = $(this);
-                        var postId = btn.data('post-id');
-                        
-                        // Indicate loading
-                        btn.prop('disabled', true).html('<span class="spinner is-active" style="float:none; margin:0;"></span>');
-                        
-                        translateSinglePost(postId, function(success) {
-                            btn.prop('disabled', false).html('<span class="dashicons dashicons-translation" style="line-height:28px;"></span> AI Translate');
-                            if (success) {
-                                // Update status icon
-                                $('.status-cell[data-post-id="' + postId + '"]').html('<span class="dashicons dashicons-yes" style="color:green"></span>');
-                                // Maybe flash row green
-                                btn.closest('tr').css('background-color', '#e6fffa');
-                            } else {
-                                alert('Translation failed. Check console.');
-                            }
-                        });
-                    });
-
-                    function translateSinglePost(postId, callback) {
-                        $.post(ajaxurl, {
-                            action: 'chroma_auto_translate_post',
-                            post_id: postId,
-                            force: 'true', // Always force fresh translation from here
-                            nonce: '<?php echo wp_create_nonce('chroma_seo_nonce'); ?>'
-                        }, function(response) {
-                            if (callback) callback(response.success);
-                        }).fail(function() {
-                            if (callback) callback(false);
-                        });
-                    }
-                });
-                </script>
                 <?php endif; ?>
+                <?php if (!empty($untranslated_ids)): ?>
+                    <script>window.chromaUntranslated = <?php echo json_encode($untranslated_ids); ?>;</script>
+                <?php endif; ?>
+            </div>
             </div>
 
             <div class="card" style="padding: 20px; max-width: 1200px;">
@@ -234,6 +175,72 @@ class Chroma_Content_Inspector
                 </table>
             </div>
         </div>
+        <script>
+        jQuery(document).ready(function($) {
+            // BULK ALL
+            $('#chroma-bulk-translate-all').click(function() {
+                var untranslated = window.chromaUntranslated || [];
+                if (untranslated.length === 0) return;
+                
+                if (!confirm('This will use AI tokens to translate ' + untranslated.length + ' pages. Continue?')) return;
+                
+                $(this).prop('disabled', true);
+                var current = 0;
+                
+                function translateNext() {
+                    if (current >= untranslated.length) {
+                        $('#bulk-status').text('Done! Refresh to see results.').css('color', 'green');
+                        setTimeout(function(){ location.reload(); }, 2000);
+                        return;
+                    }
+                    
+                    var postId = untranslated[current];
+                    $('#bulk-status').text('Translating ' + (current + 1) + ' of ' + untranslated.length + '...');
+                    
+                    translateSinglePost(postId, function() {
+                        current++;
+                        translateNext();
+                    });
+                }
+                
+                translateNext();
+            });
+
+            // SINGLE ROW TRANSLATE (Event Delegation)
+            $(document).on('click', '.chroma-translate-single', function() {
+                var btn = $(this);
+                var postId = btn.data('post-id');
+                
+                // Indicate loading
+                btn.prop('disabled', true).html('<span class="spinner is-active" style="float:none; margin:0;"></span>');
+                
+                translateSinglePost(postId, function(success, msg) {
+                    btn.prop('disabled', false).html('<span class="dashicons dashicons-translation" style="line-height:28px;"></span> AI Translate');
+                    if (success) {
+                        // Update status icon
+                        $('.status-cell[data-post-id="' + postId + '"]').html('<span class="dashicons dashicons-yes" style="color:green"></span>');
+                        // Flash row green
+                        btn.closest('tr').css('background-color', '#e6fffa');
+                    } else {
+                        alert('Translation failed: ' + (msg || 'Unknown error'));
+                    }
+                });
+            });
+
+            function translateSinglePost(postId, callback) {
+                $.post(ajaxurl, {
+                    action: 'chroma_auto_translate_post',
+                    post_id: postId,
+                    force: 'true', // Always force
+                    nonce: '<?php echo wp_create_nonce('chroma_seo_nonce'); ?>'
+                }, function(response) {
+                    if (callback) callback(response.success, response.data && response.data.message);
+                }).fail(function() {
+                    if (callback) callback(false, 'Network error');
+                });
+            }
+        });
+        </script>
         <?php
     }
 
