@@ -79,7 +79,6 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 					<p class="text-brand-ink/60 text-sm mb-6"><?php _e('Access the parent portal for tuition payments, daily reports, and photos.', 'chroma-excellence'); ?></p>
 					<a href="/parents/"
 						class="inline-block w-full py-3 bg-chroma-blue text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-blueDark transition-colors"><?php _e('Parent Portal', 'chroma-excellence'); ?></a>
-						class="inline-block w-full py-3 bg-chroma-blue text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-blueDark transition-colors"><?php _e('Parent Portal', 'chroma-excellence'); ?></a>
 				</div>
 
 				<!-- Careers -->

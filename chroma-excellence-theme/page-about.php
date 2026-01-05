@@ -309,15 +309,39 @@ while (have_posts()):
 							<?php echo esc_html($leadership_title); ?>
 						</h2>
 					</div>
-<!-- ... -->
-									<button
-										class="chroma-read-bio-btn text-sm font-bold text-chroma-blue hover:text-chroma-blueDark underline mt-2"
-										data-bio-target="bio-<?php the_ID(); ?>" data-member-name="<?php the_title_attribute(); ?>"
-										data-member-title="<?php echo esc_attr($member_title); ?>"
-										data-member-image="<?php echo esc_url(get_the_post_thumbnail_url(get_the_ID(), 'large') ?: ''); ?>"
-										aria-label="<?php esc_attr_e('Read bio for', 'chroma-excellence'); ?> <?php the_title_attribute(); ?>">
-										<?php _e('Read Bio', 'chroma-excellence'); ?>
-									</button>
+					<div class="grid md:grid-cols-3 gap-8">
+						<?php while ($team_members->have_posts()):
+							$team_members->the_post();
+							$member_title = chroma_get_translated_meta(get_the_ID(), 'team_member_title');
+							$member_bio = apply_filters('the_content', get_the_content());
+							?>
+							<div class="text-center group">
+								<div
+									class="relative w-48 h-48 mx-auto mb-6 rounded-full overflow-hidden shadow-lg border-4 border-white">
+									<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500')); ?>
+								</div>
+								<h3 class="font-serif text-xl font-bold text-brand-ink"><?php the_title(); ?></h3>
+								<p class="text-xs font-bold uppercase tracking-wider text-chroma-blue mb-2">
+									<?php echo esc_html($member_title); ?>
+								</p>
+								<button
+									class="chroma-read-bio-btn text-sm font-bold text-chroma-blue hover:text-chroma-blueDark underline mt-2"
+									data-bio-target="bio-<?php the_ID(); ?>" data-member-name="<?php the_title_attribute(); ?>"
+									data-member-title="<?php echo esc_attr($member_title); ?>"
+									data-member-image="<?php echo esc_url(get_the_post_thumbnail_url(get_the_ID(), 'large') ?: ''); ?>"
+									aria-label="<?php esc_attr_e('Read bio for', 'chroma-excellence'); ?> <?php the_title_attribute(); ?>">
+									<?php _e('Read Bio', 'chroma-excellence'); ?>
+								</button>
+								<div id="bio-<?php the_ID(); ?>" class="hidden">
+									<?php echo wp_kses_post($member_bio); ?>
+								</div>
+							</div>
+						<?php endwhile;
+						wp_reset_postdata(); ?>
+					</div>
+				</div>
+			</section>
+		<?php endif; ?>
 <!-- ... -->
 		<!-- Nutrition & Wellness -->
 		<section class="py-24 bg-white border-t border-brand-ink/5">
@@ -327,7 +351,31 @@ while (have_posts()):
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
 						<?php echo esc_html($nutrition_title); ?>
 					</h2>
-<!-- ... -->
+					<p class="text-brand-ink/80 text-lg mb-8 leading-relaxed">
+						<?php echo esc_html($nutrition_description); ?>
+					</p>
+					<ul class="space-y-4">
+						<?php
+						$nut_bullets = array(
+							array('icon' => $nutrition_bullet1_icon, 'text' => $nutrition_bullet1_text),
+							array('icon' => $nutrition_bullet2_icon, 'text' => $nutrition_bullet2_text),
+							array('icon' => $nutrition_bullet3_icon, 'text' => $nutrition_bullet3_text),
+						);
+						foreach ($nut_bullets as $bullet):
+							if ($bullet['text']): ?>
+								<li class="flex items-center gap-3">
+									<i class="<?php echo esc_attr($bullet['icon']); ?> text-chroma-green text-xl"></i>
+									<span class="text-brand-ink/90 font-medium"><?php echo esc_html($bullet['text']); ?></span>
+								</li>
+							<?php endif; endforeach; ?>
+					</ul>
+				</div>
+				<div class="relative h-[400px] rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white">
+					<img src="<?php echo esc_url($nutrition_image); ?>" class="w-full h-full object-cover"
+						alt="<?php echo esc_attr($nutrition_title); ?>" />
+				</div>
+			</div>
+		</section>
 		<!-- Philanthropy Section -->
 		<section class="py-24 bg-brand-cream border-t border-brand-ink/5">
 			<div class="max-w-6xl mx-auto px-4 lg:px-6 grid md:grid-cols-2 gap-16 items-center">
@@ -341,15 +389,47 @@ while (have_posts()):
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
 						<?php echo esc_html($philanthropy_title); ?>
 					</h2>
-<!-- ... -->
-				<div class="flex flex-wrap justify-center gap-4">
-					<a href="<?php echo esc_url(home_url('/locations/')); ?>"
-						class="px-8 py-4 bg-brand-cream border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors"><?php _e('Find a Location', 'chroma-excellence'); ?></a>
-					<a href="<?php echo esc_url(home_url('/locations/#tour')); ?>"
-						class="px-8 py-4 bg-chroma-blue text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-chroma-blueDark transition-colors shadow-lg"><?php _e('Schedule a Tour', 'chroma-excellence'); ?></a>
+					<?php if ($philanthropy_subtitle): ?>
+						<h3 class="text-lg font-bold text-chroma-blue mb-4">
+							<?php echo esc_html($philanthropy_subtitle); ?>
+						</h3>
+					<?php endif; ?>
+					<div class="text-brand-ink/80 text-lg mb-8 leading-relaxed">
+						<?php echo wp_kses_post(wpautop($philanthropy_description)); ?>
+					</div>
+					<ul class="space-y-4 mb-8">
+						<?php
+						$phil_bullets = array(
+							array('icon' => $philanthropy_bullet1_icon, 'text' => $philanthropy_bullet1_text),
+							array('icon' => $philanthropy_bullet2_icon, 'text' => $philanthropy_bullet2_text),
+							array('icon' => $philanthropy_bullet3_icon, 'text' => $philanthropy_bullet3_text),
+						);
+						foreach ($phil_bullets as $bullet):
+							if ($bullet['text']): ?>
+								<li class="flex items-center gap-3">
+									<div
+										class="w-8 h-8 rounded-full bg-brand-cream border border-brand-ink/10 flex items-center justify-center text-chroma-blue">
+										<i class="<?php echo esc_attr($bullet['icon']); ?>"></i>
+									</div>
+									<span class="text-brand-ink/90 font-medium"><?php echo esc_html($bullet['text']); ?></span>
+								</li>
+							<?php endif; endforeach; ?>
+					</ul>
+					<?php if ($cta_title): ?>
+					<div class="mt-8 pt-8 border-t border-brand-ink/5">
+						<h4 class="font-serif text-2xl font-bold text-brand-ink mb-2"><?php echo esc_html($cta_title); ?></h4>
+						<p class="text-brand-ink/80 mb-6"><?php echo esc_html($cta_description); ?></p>
+						<div class="flex flex-wrap gap-4">
+							<a href="<?php echo esc_url(home_url('/locations/')); ?>"
+								class="px-6 py-3 bg-brand-ink text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-chroma-blueDark transition-colors"><?php _e('Find a Location', 'chroma-excellence'); ?></a>
+							<a href="<?php echo esc_url(home_url('/locations/#tour')); ?>"
+								class="px-6 py-3 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-red hover:text-chroma-red transition-colors"><?php _e('Schedule a Tour', 'chroma-excellence'); ?></a>
+						</div>
+					</div>
+					<?php endif; ?>
 				</div>
-			</section>
-		<?php endif; ?>
+			</div>
+		</section>
 
 	</main>
 

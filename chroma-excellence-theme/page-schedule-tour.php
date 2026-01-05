@@ -144,7 +144,7 @@ get_header();
         <section id="<?php echo esc_attr($slug); ?>" class="py-20 <?php echo esc_attr($data['bg']); ?>">
             <div class="max-w-7xl mx-auto px-4 lg:px-6">
                 <div class="flex items-center gap-4 mb-10">
-                        class="w-12 h-12 rounded-full bg-<?php echo esc_attr($data['color']); ?> <?php echo ($slug === 'south-metro') ? 'text-brand-ink' : 'text-white'; ?> flex items-center justify-center text-xl">
+                    <div class="w-12 h-12 rounded-full bg-<?php echo esc_attr($data['color']); ?> <?php echo ($slug === 'south-metro') ? 'text-brand-ink' : 'text-white'; ?> flex items-center justify-center text-xl">
                         <?php echo $data['icon']; ?> <!-- Allowed HTML from array -->
                     </div>
                     <h2 class="font-serif text-3xl font-bold text-brand-ink"><?php echo esc_html($data['title']); ?>
