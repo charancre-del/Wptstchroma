@@ -67,6 +67,16 @@ class Chroma_Translation_Engine
             wp_send_json_error(['message' => $translated['_error']]);
         }
 
+        // SAVE TO DATABASE
+        foreach ($translated as $key => $value) {
+            // Sanitize based on key type (content allows HTML, titles plain text)
+            if (strpos($key, 'content') !== false) {
+                update_post_meta($post_id, $key, wp_kses_post($value));
+            } else {
+                update_post_meta($post_id, $key, sanitize_text_field($value));
+            }
+        }
+
         wp_send_json_success($translated);
     }
 

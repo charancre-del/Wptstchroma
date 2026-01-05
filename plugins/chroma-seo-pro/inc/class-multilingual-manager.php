@@ -168,8 +168,27 @@ class Chroma_Multilingual_Manager
     public function filter_home_url($url, $path)
     {
         if (self::is_spanish() && !is_admin()) {
-            // Avoid double stacking if path already contains /es/ (though rare with home_url)
-            return home_url('/es' . $path); 
+            // Prevent infinite loop by using site_url/get_option instead of home_url()
+            // And avoid double-stacking if the input $url already has /es/ (which might happen if passed from other filters)
+            
+            // If the RESULTING url ($url passed in) already has /es/, return strict
+            if (strpos($url, '/es/') !== false || substr($url, -3) === '/es') {
+                return $url;
+            }
+
+            // Construct safe base
+            $home = get_option('home');
+            
+            // Clean paths
+            $path = ltrim($path, '/');
+            $home = rtrim($home, '/');
+            
+            // Check if path already starts with es/
+            if (strpos($path, 'es/') === 0 || $path === 'es') {
+                return $home . '/' . $path;
+            }
+
+            return $home . '/es/' . $path;
         }
         return $url;
     }

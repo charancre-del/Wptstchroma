@@ -114,13 +114,7 @@ class Chroma_Content_Inspector
                             nonce: '<?php echo wp_create_nonce('chroma_seo_nonce'); ?>'
                         }, function(response) {
                             if (response.success) {
-                                // Save the translated data
-                                $.post(ajaxurl, {
-                                    action: 'chroma_save_translation',
-                                    post_id: postId,
-                                    data: response.data,
-                                    nonce: '<?php echo wp_create_nonce('chroma_seo_nonce'); ?>'
-                                });
+                                // Data is saved by the endpoint now
                             }
                             current++;
                             translateNext();
