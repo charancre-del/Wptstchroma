@@ -7,7 +7,7 @@
  * Author:      Chroma
  * Author URI:  https://chroma.com
  * Text Domain: chroma-seo-pro
- * License:     GPL-2.0+
+ * License:     GPLv2 or later
  */
 
 // Exit if accessed directly.
