@@ -241,3 +241,16 @@ function chroma_url_needs_update($url)
 
     return false;
 }
+
+/**
+ * Helper to generate localized URL
+ * Wraps home_url() so it can be filtered by the plugin for Spanish routing
+ * 
+ * @param string $path Path relative to home
+ * @return string Full URL
+ */
+if (!function_exists('chroma_url')) {
+    function chroma_url($path = '/') {
+         return home_url($path);
+    }
+}
