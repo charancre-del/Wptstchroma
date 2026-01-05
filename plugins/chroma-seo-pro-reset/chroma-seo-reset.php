@@ -3,7 +3,7 @@
  * Plugin Name: Chroma SEO Pro
  * Plugin URI:  https://chroma.com
  * Description: Advanced AI-powered Schema validation, automated fixes, and SEO enhancements for WordPress.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Chroma
  * Author URI:  https://chroma.com
  * Text Domain: chroma-seo-pro
@@ -16,7 +16,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define Constants
-define( 'CHROMA_SEO_VERSION', '1.0.0' );
+define( 'CHROMA_SEO_VERSION', '1.0.1' );
 define( 'CHROMA_SEO_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHROMA_SEO_URL', plugin_dir_url( __FILE__ ) );
 
