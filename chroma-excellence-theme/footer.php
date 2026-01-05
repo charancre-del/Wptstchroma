@@ -21,13 +21,13 @@
 						class="h-12 w-12 opacity-90 hover:opacity-100 transition-opacity" />
 				</a>
 				<p class="text-[11px] text-white/80 leading-relaxed">
-					Premium childcare & early education across Metro Atlanta.
+					<?php _e('Premium childcare & early education across Metro Atlanta.', 'chroma-excellence'); ?>
 				</p>
 			</div>
 
 			<!-- Quick Links -->
 			<div class="md:col-span-1">
-				<h3 class="font-bold text-sm mb-3">Quick Links</h3>
+				<h3 class="font-bold text-sm mb-3"><?php _e('Quick Links', 'chroma-excellence'); ?></h3>
 				<div class="text-xs text-white/90 space-y-2">
 					<?php chroma_footer_nav(); ?>
 				</div>
@@ -35,7 +35,7 @@
 
 			<!-- Contact Info -->
 			<div class="md:col-span-1">
-				<h3 class="font-bold text-sm mb-3">Contact</h3>
+				<h3 class="font-bold text-sm mb-3"><?php _e('Contact', 'chroma-excellence'); ?></h3>
 				<div class="space-y-2 text-xs text-white/90">
 					<?php
 					// Get contact info from customizer (with fallback to global settings)
@@ -62,7 +62,7 @@
 
 			<!-- Social Links -->
 			<div class="md:col-span-1">
-				<h3 class="font-bold text-sm mb-3">Connect With Us</h3>
+				<h3 class="font-bold text-sm mb-3"><?php _e('Connect With Us', 'chroma-excellence'); ?></h3>
 				<div class="flex gap-3">
 					<a href="https://www.facebook.com/ChromaPreschool/" target="_blank" rel="noopener noreferrer"
 						class="w-12 h-12 flex items-center justify-center bg-white/10 rounded-full hover:bg-white/20 transition"
@@ -79,7 +79,7 @@
 
 			<!-- Latest News -->
 			<div class="md:col-span-1 lg:col-span-1">
-				<h3 class="font-bold text-sm mb-4">Latest Blogs</h3>
+				<h3 class="font-bold text-sm mb-4"><?php _e('Latest Blogs', 'chroma-excellence'); ?></h3>
 				<?php
 				$footer_blog_query = new WP_Query(array(
 					'post_type'      => 'post',
@@ -110,7 +110,7 @@
 					</div>
 					<?php wp_reset_postdata(); ?>
 				<?php else : ?>
-					<p class="text-xs text-white/60">No recent updates.</p>
+					<p class="text-xs text-white/60"><?php _e('No recent updates.', 'chroma-excellence'); ?></p>
 				<?php endif; ?>
 			</div>
 		</div>
@@ -127,12 +127,18 @@
 		<!-- Bottom Section -->
 		<div
 			class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80">
-			<p>&copy; <?php echo date('Y'); ?> Chroma Early Learning Academy. All rights reserved.</p>
-			<div class="flex gap-4">
-				<a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="hover:text-white">Privacy
-					Policy</a>
-				<a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>" class="hover:text-white">Terms of
-					Service</a>
+			<p>&copy; <?php echo date('Y'); ?> <?php _e('Chroma Early Learning Academy. All rights reserved.', 'chroma-excellence'); ?></p>
+			
+			<div class="flex items-center gap-6">
+				<?php 
+				if ( function_exists( 'chroma_render_language_switcher' ) ) {
+					chroma_render_language_switcher( 'footer' );
+				}
+				?>
+				<div class="flex gap-4 border-l border-white/10 pl-6">
+					<a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="hover:text-white"><?php _e('Privacy Policy', 'chroma-excellence'); ?></a>
+					<a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>" class="hover:text-white"><?php _e('Terms of Service', 'chroma-excellence'); ?></a>
+				</div>
 			</div>
 		</div>
 	</div>
@@ -142,16 +148,16 @@
 <?php
 // Global Sticky CTA Logic
 $show_sticky_cta = true;
-$sticky_text = 'Ready to experience the Chroma difference?';
-$sticky_btn_text = 'Schedule a Tour';
+$sticky_text = __('Ready to experience the Chroma difference?', 'chroma-excellence');
+$sticky_btn_text = __('Schedule a Tour', 'chroma-excellence');
 $sticky_url = home_url('/schedule-a-tour/');
 
 if (is_page('schedule-a-tour')) {
 	$show_sticky_cta = false;
 } elseif (is_singular('program')) {
-	$sticky_text = 'Ready to enroll in <strong>' . get_the_title() . '</strong>?';
+	$sticky_text = sprintf( __('Ready to enroll in <strong>%s</strong>?', 'chroma-excellence'), get_the_title() );
 } elseif (is_singular('location')) {
-	$sticky_text = 'Ready to visit our <strong>' . get_the_title() . '</strong> campus?';
+	$sticky_text = sprintf( __('Ready to visit our <strong>%s</strong> campus?', 'chroma-excellence'), get_the_title() );
 } elseif (is_page('careers')) {
 	$show_sticky_cta = false;
 }

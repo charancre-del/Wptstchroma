@@ -53,12 +53,12 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             <div class="flex flex-wrap items-center gap-5 text-[12px] text-brand-ink">
                 <div class="flex items-center gap-2">
                     <span class="text-chroma-yellow text-lg">★★★★★</span>
-                    <span>4.8 Average Parent Rating</span>
+                    <span><?php _e('4.8 Average Parent Rating', 'chroma-excellence'); ?></span>
                 </div>
                 <div class="hidden sm:block w-[1px] h-5 bg-chroma-blue/20"></div>
                 <div class="flex items-center gap-2">
                     <span class="w-2 h-2 rounded-full bg-chroma-green"></span>
-                    <span>Licensed • Quality Rated • GA Pre-K Partner</span>
+                    <span><?php _e('Licensed • Quality Rated • GA Pre-K Partner', 'chroma-excellence'); ?></span>
                 </div>
             </div>
         </div>
@@ -109,7 +109,7 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
                         class="w-full h-full bg-gradient-to-br from-chroma-blue/20 via-chroma-green/20 to-chroma-yellow/20 flex items-center justify-center">
                         <div class="text-center text-chroma-blueDark/30">
                             <i class="fa-solid fa-image text-6xl mb-4"></i>
-                            <p class="text-sm font-semibold">Hero Image Coming Soon</p>
+                            <p class="text-sm font-semibold"><?php _e('Hero Image Coming Soon', 'chroma-excellence'); ?></p>
                         </div>
                     </div>
                 <?php endif; ?>
@@ -123,8 +123,8 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
                 <div>
-                    <p class="font-bold text-xs sm:text-sm text-brand-ink">Kindergarten Ready</p>
-                    <p class="text-[10px] sm:text-[11px] text-brand-ink">Comprehensive Prep</p>
+                    <p class="font-bold text-xs sm:text-sm text-brand-ink"><?php _e('Kindergarten Ready', 'chroma-excellence'); ?></p>
+                    <p class="text-[10px] sm:text-[11px] text-brand-ink"><?php _e('Comprehensive Prep', 'chroma-excellence'); ?></p>
                 </div>
             </div>
         </div>

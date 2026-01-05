@@ -43,10 +43,8 @@ function chroma_get_wizard_color_classes($key)
     <div class="max-w-5xl mx-auto px-4 lg:px-6">
 
         <div class="text-center mb-10 fade-in-up">
-            <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-3">Find the right program in 10
-                seconds</h2>
-            <p class="text-brand-ink text-sm md:text-base max-w-2xl mx-auto">Choose your child's age and we'll
-                suggest the Chroma program designed for their development stage and your family's needs.</p>
+            <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-3"><?php _e('Find the right program in 10 seconds', 'chroma-excellence'); ?></h2>
+            <p class="text-brand-ink text-sm md:text-base max-w-2xl mx-auto"><?php _e('Choose your child\'s age and we\'ll suggest the Chroma program designed for their development stage and your family\'s needs.', 'chroma-excellence'); ?></p>
         </div>
 
         <div class="bg-white rounded-3xl p-6 md:p-8 border border-chroma-blue/10 shadow-soft fade-in-up"
@@ -82,12 +80,12 @@ function chroma_get_wizard_color_classes($key)
                         <div class="flex flex-wrap gap-3 text-xs pt-2 justify-center md:justify-start">
                             <a class="inline-flex items-center justify-center px-6 py-3 rounded-full border border-chroma-blue/20 bg-white text-brand-ink font-semibold hover:border-chroma-blue hover:text-chroma-blue transition shadow-sm"
                                 data-program-wizard-link href="<?php echo esc_url($program_archive_url); ?>"
-                                aria-label="View all programs">
-                                View All Programs
+                                aria-label="<?php esc_attr_e('View all programs', 'chroma-excellence'); ?>">
+                                <?php _e('View All Programs', 'chroma-excellence'); ?>
                             </a>
                             <a href="#tour"
                                 class="inline-flex items-center justify-center px-6 py-3 rounded-full bg-chroma-red text-white font-semibold hover:bg-chroma-red/90 transition shadow-soft">
-                                Speak to an enrollment specialist
+                                <?php _e('Speak to an enrollment specialist', 'chroma-excellence'); ?>
                             </a>
 
                         </div>
@@ -96,7 +94,7 @@ function chroma_get_wizard_color_classes($key)
                     <!-- Image (Right) -->
                     <div
                         class="order-1 md:order-2 relative h-48 md:h-64 rounded-2xl overflow-hidden shadow-card border-4 border-white transform rotate-2 transition-transform duration-700 hover:rotate-0">
-                        <img src="" alt="Program Preview" class="w-full h-full object-cover"
+                        <img src="" alt="<?php esc_attr_e('Program Preview', 'chroma-excellence'); ?>" class="w-full h-full object-cover"
                             data-program-wizard-image />
                     </div>
                 </div>
@@ -106,7 +104,7 @@ function chroma_get_wizard_color_classes($key)
                     <button type="button"
                         class="text-brand-ink hover:text-chroma-blue underline decoration-dotted text-sm transition-colors"
                         data-program-wizard-reset>
-                        Start Over
+                        <?php _e('Start Over', 'chroma-excellence'); ?>
                     </button>
                 </div>
 

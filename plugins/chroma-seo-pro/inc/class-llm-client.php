@@ -29,6 +29,7 @@ class Chroma_LLM_Client
         add_action('wp_ajax_chroma_generate_schema', [$this, 'ajax_generate_schema']);
         add_action('wp_ajax_chroma_generate_llm_targeting', [$this, 'ajax_generate_llm_targeting']);
         add_action('wp_ajax_chroma_generate_general_seo_meta', [$this, 'ajax_generate_general_seo_meta']);
+        add_action('wp_ajax_chroma_translate_text', [$this, 'ajax_translate_text']);
     }
 
     /**
@@ -632,6 +633,83 @@ class Chroma_LLM_Client
         }
 
         return $json;
+    }
+
+    /**
+     * AJAX: Translate Text
+     */
+    public function ajax_translate_text()
+    {
+        check_ajax_referer('chroma_seo_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
+        $text = isset($_POST['text']) ? wp_unslash($_POST['text']) : '';
+        $target_lang = sanitize_text_field($_POST['target_lang'] ?? 'es');
+        $context = sanitize_textarea_field($_POST['context'] ?? '');
+
+        if (!$text) {
+            wp_send_json_error(['message' => 'No text provided']);
+        }
+
+        $translation = $this->translate_text($text, $target_lang, $context);
+
+        if (is_wp_error($translation)) {
+            wp_send_json_error(['message' => $translation->get_error_message()]);
+        }
+
+        wp_send_json_success(['translation' => $translation]);
+    }
+
+    /**
+     * Translate Text (Public API)
+     * 
+     * @param string $text
+     * @param string $target_lang
+     * @param string $context
+     * @return string|WP_Error
+     */
+    public function translate_text($text, $target_lang = 'es', $context = '')
+    {
+        // Simple cache key
+        $cache_key = 'trans_' . md5($text . $target_lang . $context);
+        $cached = $this->get_cached_response($cache_key);
+        if ($cached) return $cached;
+
+        $prompt = "You are a professional translator for a high-end childcare brand.\n";
+        $prompt .= "Translate the following content to " . ($target_lang === 'es' ? 'Spanish (Latin American)' : $target_lang) . ".\n";
+        $prompt .= "Maintain HTML tags exactly if present.\n";
+        $prompt .= "Tone: Warm, professional, educational, and welcoming.\n";
+        
+        if ($context) {
+            $prompt .= "Context: " . $context . "\n";
+        }
+        
+        $prompt .= "\nContent to Translate:\n" . $text;
+
+        $response = $this->make_request([
+            'messages' => [
+                ['role' => 'system', 'content' => 'You are a professional translator.'],
+                ['role' => 'user', 'content' => $prompt]
+            ]
+        ]);
+
+        if (is_wp_error($response)) {
+            return $response;
+        }
+
+        $content = $response['choices'][0]['message']['content'] ?? '';
+        
+        // Remove markdown code blocks if AI wraps output
+        $content = preg_replace('/^```html\s*|```$/', '', trim($content));
+        
+        if ($content) {
+            $this->set_cached_response($cache_key, $content, WEEK_IN_SECONDS);
+        }
+
+        return $content;
     }
 
     /**
