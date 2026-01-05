@@ -45,52 +45,90 @@ class Chroma_Translation_Engine
             wp_send_json_error(['message' => 'Post not found']);
         }
 
-        // Prepare fields to translate
-        $fields = [
-            '_chroma_es_title' => $post->post_title,
-            '_chroma_es_content' => $post->post_content,
-            '_chroma_es_excerpt' => $post->post_excerpt,
-        ];
+        // Register shutdown function to catch fatal errors
+        register_shutdown_function(function() {
+            $error = error_get_last();
+            if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_COMPILE_ERROR)) {
+                // Clean any previous output
+                if (ob_get_length()) ob_clean();
+                wp_send_json_error(['message' => 'Fatal Error: ' . $error['message'] . ' in ' . $error['file'] . ':' . $error['line']]);
+            }
+        });
 
-        // Add Post Type specific fields
-        if ($post->post_type === 'location') {
-            $fields['_chroma_es_location_city'] = get_post_meta($post_id, 'location_city', true);
-            $fields['_chroma_es_location_address'] = get_post_meta($post_id, 'location_address', true);
-            $fields['_chroma_es_location_hero_subtitle'] = get_post_meta($post_id, 'location_hero_subtitle', true);
-            $fields['_chroma_es_location_ages_served'] = get_post_meta($post_id, 'location_ages_served', true);
-            $fields['_chroma_es_location_open_text'] = 'Now Open'; 
-            $fields['_chroma_es_location_intro_text'] = get_post_meta($post_id, 'location_intro_text', true);
-            $fields['_chroma_es_location_hours'] = get_post_meta($post_id, 'location_hours', true);
-            $fields['_chroma_es_location_special_programs'] = get_post_meta($post_id, 'location_special_programs', true);
-            $fields['_chroma_es_location_tour_booking_link'] = get_post_meta($post_id, 'location_tour_booking_link', true);
-        } elseif ($post->post_type === 'program') {
-            $fields['_chroma_es_program_age_range'] = get_post_meta($post_id, 'program_age_range', true);
-            $fields['_chroma_es_program_cta_text'] = get_post_meta($post_id, 'program_cta_text', true);
-            $fields['_chroma_es_program_features'] = get_post_meta($post_id, 'program_features', true);
-            $fields['_chroma_es_program_hero_title'] = get_post_meta($post_id, 'program_hero_title', true);
-            $fields['_chroma_es_program_hero_description'] = get_post_meta($post_id, 'program_hero_description', true);
-            $fields['_chroma_es_program_prism_title'] = get_post_meta($post_id, 'program_prism_title', true);
-            $fields['_chroma_es_program_prism_description'] = get_post_meta($post_id, 'program_prism_description', true);
-            $fields['_chroma_es_program_prism_physical'] = get_post_meta($post_id, 'program_prism_physical', true);
-            $fields['_chroma_es_program_prism_emotional'] = get_post_meta($post_id, 'program_prism_emotional', true);
-            $fields['_chroma_es_program_prism_social'] = get_post_meta($post_id, 'program_prism_social', true);
-            $fields['_chroma_es_program_prism_academic'] = get_post_meta($post_id, 'program_prism_academic', true);
-            $fields['_chroma_es_program_prism_creative'] = get_post_meta($post_id, 'program_prism_creative', true);
-            $fields['_chroma_es_program_schedule_title'] = get_post_meta($post_id, 'program_schedule_title', true);
-        } elseif ($post->post_type === 'city') {
-            $fields['_chroma_es_city_intro_text'] = get_post_meta($post_id, 'city_intro_text', true);
-            $fields['_chroma_es_city_state'] = get_post_meta($post_id, 'city_state', true);
-            $fields['_chroma_es_city_county'] = get_post_meta($post_id, 'city_county', true);
-            // Arrays like neighborhoods need handling? JSON encode if text, or specific handling. 
+        try {
+            // Prepare fields to translate
+            $fields = [
+                '_chroma_es_title' => $post->post_title,
+                '_chroma_es_content' => $post->post_content,
+                '_chroma_es_excerpt' => $post->post_excerpt,
+            ];
+
+            // Add Post Type specific fields
+            if ($post->post_type === 'location') {
+                $fields['_chroma_es_location_city'] = get_post_meta($post_id, 'location_city', true);
+                $fields['_chroma_es_location_address'] = get_post_meta($post_id, 'location_address', true);
+                $fields['_chroma_es_location_hero_subtitle'] = get_post_meta($post_id, 'location_hero_subtitle', true);
+                $fields['_chroma_es_location_ages_served'] = get_post_meta($post_id, 'location_ages_served', true);
+                $fields['_chroma_es_location_open_text'] = 'Now Open'; 
+                $fields['_chroma_es_location_intro_text'] = get_post_meta($post_id, 'location_intro_text', true);
+                $fields['_chroma_es_location_hours'] = get_post_meta($post_id, 'location_hours', true);
+                $fields['_chroma_es_location_special_programs'] = get_post_meta($post_id, 'location_special_programs', true);
+                $fields['_chroma_es_location_tour_booking_link'] = get_post_meta($post_id, 'location_tour_booking_link', true);
+            } elseif ($post->post_type === 'program') {
+                $fields['_chroma_es_program_age_range'] = get_post_meta($post_id, 'program_age_range', true);
+                $fields['_chroma_es_program_cta_text'] = get_post_meta($post_id, 'program_cta_text', true);
+                $fields['_chroma_es_program_features'] = get_post_meta($post_id, 'program_features', true);
+                $fields['_chroma_es_program_hero_title'] = get_post_meta($post_id, 'program_hero_title', true);
+                $fields['_chroma_es_program_hero_description'] = get_post_meta($post_id, 'program_hero_description', true);
+                $fields['_chroma_es_program_prism_title'] = get_post_meta($post_id, 'program_prism_title', true);
+                $fields['_chroma_es_program_prism_description'] = get_post_meta($post_id, 'program_prism_description', true);
+                $fields['_chroma_es_program_prism_physical'] = get_post_meta($post_id, 'program_prism_physical', true);
+                $fields['_chroma_es_program_prism_emotional'] = get_post_meta($post_id, 'program_prism_emotional', true);
+                $fields['_chroma_es_program_prism_social'] = get_post_meta($post_id, 'program_prism_social', true);
+                $fields['_chroma_es_program_prism_academic'] = get_post_meta($post_id, 'program_prism_academic', true);
+                $fields['_chroma_es_program_prism_creative'] = get_post_meta($post_id, 'program_prism_creative', true);
+                $fields['_chroma_es_program_schedule_title'] = get_post_meta($post_id, 'program_schedule_title', true);
+            } elseif ($post->post_type === 'city') {
+                $fields['_chroma_es_city_intro_text'] = get_post_meta($post_id, 'city_intro_text', true);
+                $fields['_chroma_es_city_state'] = get_post_meta($post_id, 'city_state', true);
+                $fields['_chroma_es_city_county'] = get_post_meta($post_id, 'city_county', true);
+            }
+            
+            // Template specific
+            $template = get_page_template_slug($post_id);
+            $template_keys = $this->get_keys_for_template($template);
+            
+            foreach ($template_keys as $tkey) {
+                $fields['_chroma_es_' . $tkey] = get_post_meta($post_id, $tkey, true);
+            }
+            
             // For now, assume simple text/HTML fields for translation engine.
-        }
-        
-        // Template specific
-        $template = get_page_template_slug($post_id);
-        $template_keys = $this->get_keys_for_template($template);
-        
-        foreach ($template_keys as $tkey) {
-            $fields['_chroma_es_' . $tkey] = get_post_meta($post_id, $tkey, true);
+
+            // Translate
+            $force = isset($_POST['force']) && $_POST['force'] === 'true';
+            $translated = self::translate_bulk($fields, 'es', 'Translate for a childcare website. Use Spanish (Latin American).', $force);
+
+            if (isset($translated['_error'])) {
+                $err_msg = !empty($translated['_error']) ? $translated['_error'] : 'LLM Client returned an empty error.';
+                wp_send_json_error(['message' => $err_msg]);
+            }
+
+            // SAVE TO DATABASE
+            foreach ($translated as $key => $value) {
+                // Sanitize based on key type (content allows HTML, titles plain text)
+                if (strpos($key, 'content') !== false) {
+                    update_post_meta($post_id, $key, wp_kses_post($value));
+                } else {
+                    update_post_meta($post_id, $key, sanitize_text_field($value));
+                }
+            }
+
+            wp_send_json_success($translated);
+
+        } catch (Exception $e) {
+            wp_send_json_error(['message' => 'Exception: ' . $e->getMessage()]);
+        } catch (Error $e) {
+            wp_send_json_error(['message' => 'Fatal Error: ' . $e->getMessage()]);
         }
     }
 
