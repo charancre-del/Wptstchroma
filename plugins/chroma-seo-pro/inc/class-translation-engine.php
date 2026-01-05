@@ -213,7 +213,8 @@ class Chroma_Translation_Engine
         }
 
         // Translate
-        $translated = self::translate_bulk($fields, 'es', 'Translate for a childcare website. Use Spanish (Latin American).');
+        $force = isset($_POST['force']) && $_POST['force'] === 'true';
+        $translated = self::translate_bulk($fields, 'es', 'Translate for a childcare website. Use Spanish (Latin American).', $force);
 
         if (isset($translated['_error'])) {
             wp_send_json_error(['message' => $translated['_error']]);
@@ -241,7 +242,7 @@ class Chroma_Translation_Engine
      * @param string $context Context description
      * @return array Translated fields ['key1' => 'Translated 1', ...]
      */
-    public static function translate_bulk($fields, $target_lang = 'es', $context = '')
+    public static function translate_bulk($fields, $target_lang = 'es', $context = '', $force = false)
     {
         // Instantiate client directly
         $client = new Chroma_LLM_Client();
@@ -255,11 +256,13 @@ class Chroma_Translation_Engine
         // Translation Memory: Check cache by content hash
         $content_hash = md5(json_encode($fields_to_translate) . $target_lang);
         $cache_key = 'chroma_trans_' . $content_hash;
-        $cached = get_transient($cache_key);
         
-        if ($cached !== false) {
-            // Return cached translation
-            return array_merge($fields, $cached);
+        if (!$force) {
+            $cached = get_transient($cache_key);
+            if ($cached !== false) {
+                // Return cached translation
+                return array_merge($fields, $cached);
+            }
         }
 
         // Construct a structured prompt for bulk translation

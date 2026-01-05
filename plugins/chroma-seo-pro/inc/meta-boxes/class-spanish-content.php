@@ -137,6 +137,7 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
                 $.post(ajaxurl, {
                     action: 'chroma_auto_translate_post',
                     post_id: <?php echo $post->ID; ?>,
+                    force: 'true',
                     nonce: '<?php echo wp_create_nonce('chroma_seo_nonce'); ?>'
                 }, function(response) {
                     btn.prop('disabled', false);
