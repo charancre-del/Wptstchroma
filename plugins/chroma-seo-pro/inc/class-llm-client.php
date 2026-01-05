@@ -662,7 +662,7 @@ class Chroma_LLM_Client
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $api_key
             ],
-            'timeout' => 30
+            'timeout' => 120
         ];
 
         $response = wp_remote_post($url, $args);

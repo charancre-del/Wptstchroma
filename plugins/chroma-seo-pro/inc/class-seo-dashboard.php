@@ -247,49 +247,42 @@ class Chroma_SEO_Dashboard
             echo '<hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">';
         }
 
-        // Get all posts for selector
-        $locations = get_posts(['post_type' => 'location', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC']);
-        $programs = get_posts(['post_type' => 'program', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC']);
-        $pages = get_posts(['post_type' => 'page', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC']);
-        $posts = get_posts(['post_type' => 'post', 'posts_per_page' => 50, 'orderby' => 'date', 'order' => 'DESC']);
+        // Efficient: Fetch only ID and Title via WPDB to avoid object hydration
+        global $wpdb;
+        $locations = $wpdb->get_results("SELECT ID, post_title FROM $wpdb->posts WHERE post_type='location' AND post_status='publish' ORDER BY post_title ASC LIMIT 500");
+        $programs = $wpdb->get_results("SELECT ID, post_title FROM $wpdb->posts WHERE post_type='program' AND post_status='publish' ORDER BY post_title ASC LIMIT 500");
+        $pages = $wpdb->get_results("SELECT ID, post_title FROM $wpdb->posts WHERE post_type='page' AND post_status='publish' ORDER BY post_title ASC LIMIT 500");
+        $posts = $wpdb->get_results("SELECT ID, post_title FROM $wpdb->posts WHERE post_type='post' AND post_status='publish' ORDER BY post_date DESC LIMIT 50");
 
         $selected_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
         ?>
         <div class="chroma-llm-controls">
             <label><strong>Select Page to Edit LLM Targeting:</strong></label>
             <select id="chroma-llm-select" style="min-width: 300px;">
-                <option value="">-- Select a Page --</option>
+                <option value="">-- Select a Page (Showing top 500) --</option>
                 <optgroup label="Locations">
-                    <?php foreach ($locations as $loc):
-                        if (!$loc || !is_a($loc, 'WP_Post'))
-                            continue; ?>
+                    <?php foreach ($locations as $loc): ?>
                         <option value="<?php echo $loc->ID; ?>" <?php selected($selected_id, $loc->ID); ?>>
                             <?php echo esc_html($loc->post_title); ?>
                         </option>
                     <?php endforeach; ?>
                 </optgroup>
                 <optgroup label="Programs">
-                    <?php foreach ($programs as $prog):
-                        if (!$prog || !is_a($prog, 'WP_Post'))
-                            continue; ?>
+                    <?php foreach ($programs as $prog): ?>
                         <option value="<?php echo $prog->ID; ?>" <?php selected($selected_id, $prog->ID); ?>>
                             <?php echo esc_html($prog->post_title); ?>
                         </option>
                     <?php endforeach; ?>
                 </optgroup>
                 <optgroup label="Pages">
-                    <?php foreach ($pages as $pg):
-                        if (!$pg || !is_a($pg, 'WP_Post'))
-                            continue; ?>
+                    <?php foreach ($pages as $pg): ?>
                         <option value="<?php echo $pg->ID; ?>" <?php selected($selected_id, $pg->ID); ?>>
                             <?php echo esc_html($pg->post_title); ?>
                         </option>
                     <?php endforeach; ?>
                 </optgroup>
                 <optgroup label="Blog Posts">
-                    <?php foreach ($posts as $pt):
-                        if (!$pt || !is_a($pt, 'WP_Post'))
-                            continue; ?>
+                    <?php foreach ($posts as $pt): ?>
                         <option value="<?php echo $pt->ID; ?>" <?php selected($selected_id, $pt->ID); ?>>
                             <?php echo esc_html($pt->post_title); ?>
                         </option>
@@ -2491,121 +2484,95 @@ class Chroma_SEO_Dashboard
             wp_send_json_error(['message' => 'Permission denied']);
         }
 
-        $post_type = sanitize_text_field($_POST['post_type']);
-        $offset = intval($_POST['offset']);
-        $batch_size = 1; // Reduced to 1 to isolate crashes/heavy pages
-        set_time_limit(120); // Give plenty of time for complex pages
+        try {
+            $post_type = sanitize_text_field($_POST['post_type']);
+            $offset = intval($_POST['offset']);
+            $batch_size = 1; // Reduced to 1 to isolate crashes/heavy pages
+            set_time_limit(120); // Give plenty of time for complex pages
 
-        // Fetch Posts
-        $args = [
-            'post_type' => $post_type,
-            'posts_per_page' => $batch_size,
-            'offset' => $offset,
-            'post_status' => 'publish',
-            'orderby' => 'ID',
-            'order' => 'DESC'
-        ];
+            // Fetch Posts
+            $args = [
+                'post_type' => $post_type,
+                'posts_per_page' => $batch_size,
+                'offset' => $offset,
+                'post_status' => 'publish',
+                'orderby' => 'ID',
+                'order' => 'DESC'
+            ];
 
-        $posts = get_posts($args);
-        $total_in_type = wp_count_posts($post_type)->publish;
+            $posts = get_posts($args);
+            $total_in_type = wp_count_posts($post_type)->publish;
 
-        $results = [];
+            $results = [];
 
-        foreach ($posts as $post) {
-            $pid = $post->ID;
-            $permalink = get_permalink($pid);
-            
-            // Add cache busting to ensure we see the latest validation fixes
-            $fetch_url = add_query_arg('chroma_nocache', time(), $permalink);
-            
-            // Fetch Live Page
-            $response = wp_remote_get($fetch_url, [
-                'timeout' => 15, 
-                'sslverify' => false,
-                'headers' => [
-                   'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                   'Pragma' => 'no-cache',
-                   'Expires' => '0'
-                ]
-            ]);
-            $is_valid = false;
-            $errors = [];
-            $warnings = [];
+            if (empty($posts)) {
+                wp_send_json_success([
+                    'done' => true,
+                    'message' => 'Scan Complete'
+                ]);
+            }
 
-            if (is_wp_error($response)) {
-                $errors[] = 'HTTP Fetch Failed: ' . $response->get_error_message();
-            } else {
-                $body = wp_remote_retrieve_body($response);
+            foreach ($posts as $post) {
+                $pid = $post->ID;
+                $permalink = get_permalink($pid);
                 
-                // Extract JSON-LD (Robust Regex)
-                if (preg_match_all('/<script[^>]+type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/script>/s', $body, $matches)) {
-                    $schemas = $matches[1];
-                    $has_valid_schema = false;
+                // Add cache busting to ensure we see the latest validation fixes
+                $fetch_url = add_query_arg('chroma_nocache', time(), $permalink);
+                
+                // Fetch Live Page
+                $response = wp_remote_get($fetch_url, [
+                    'timeout' => 20, // Increased timeout slightly
+                    'sslverify' => false,
+                    'headers' => [
+                       'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                       'Pragma' => 'no-cache',
+                       'Expires' => '0'
+                    ]
+                ]);
+                
+                $is_valid = false;
+                $errors = [];
+                $warnings = [];
+
+                if (is_wp_error($response)) {
+                    $errors[] = 'HTTP Fetch Failed: ' . $response->get_error_message();
+                } else {
+                    $body = wp_remote_retrieve_body($response);
                     
-                    $type_counts = [];
-                    
-                    foreach ($schemas as $json) {
-                        if (class_exists('Chroma_Schema_Validator')) {
-                            $res = Chroma_Schema_Validator::validate_json_ld($json);
-                            if ($res['valid']) {
-                                $has_valid_schema = true;
-                                
-                                // Count types for duplicate detection
-                                if (isset($res['parsed']['@type'])) {
-                                    $t = $res['parsed']['@type'];
-                                    if (is_array($t)) {
-                                        foreach ($t as $subT) {
-                                            if (!isset($type_counts[$subT])) $type_counts[$subT] = 0;
-                                            $type_counts[$subT]++;
+                    // Extract JSON-LD (Robust Regex)
+                    if (preg_match_all('/<script[^>]+type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/script>/s', $body, $matches)) {
+                        $schemas = $matches[1];
+                        $has_valid_schema = false;
+                        
+                        $type_counts = [];
+                        
+                        foreach ($schemas as $json) {
+                            if (class_exists('Chroma_Schema_Validator')) {
+                                $res = Chroma_Schema_Validator::validate_json_ld($json);
+                                if ($res['valid']) {
+                                    $has_valid_schema = true;
+                                    
+                                    // Count types for duplicate detection
+                                    if (isset($res['parsed']['@type'])) {
+                                        $t = $res['parsed']['@type'];
+                                        if (is_array($t)) {
+                                            foreach ($t as $subT) {
+                                                $type_counts[$subT] = ($type_counts[$subT] ?? 0) + 1;
+                                            }
+                                        } else {
+                                            $type_counts[$t] = ($type_counts[$t] ?? 0) + 1;
                                         }
-                                    } else {
-                                        if (!isset($type_counts[$t])) $type_counts[$t] = 0;
-                                        $type_counts[$t]++;
+                                    }
+                                } else {
+                                    // Collect errors (de-duplicate)
+                                    foreach ($res['errors'] as $e) {
+                                        if (!in_array($e, $errors)) $errors[] = $e;
+                                    }
+                                    foreach ($res['warnings'] as $w) {
+                                        if (!in_array($w, $warnings)) $warnings[] = $w;
                                     }
                                 }
                             }
-                            if (!$res['valid']) {
-                                foreach ($res['errors'] as $e) $errors[] = $e;
-                            }
-                            foreach ($res['warnings'] as $w) $warnings[] = $w;
-                        }
-                    }
-
-                    // Check for Duplicates (Google SEO Best Practices)
-                    if (isset($type_counts['FAQPage']) && $type_counts['FAQPage'] > 1) {
-                        $warnings[] = "Multiple FAQPage schemas found (" . $type_counts['FAQPage'] . "). Google recommends a single FAQPage per page.";
-                    }
-                    if (isset($type_counts['BreadcrumbList']) && $type_counts['BreadcrumbList'] > 1) {
-                        $warnings[] = "Multiple BreadcrumbList schemas found (" . $type_counts['BreadcrumbList'] . "). This may cause search confusion.";
-                    }
-                    
-                    if ($has_valid_schema && empty($errors)) {
-                        $is_valid = true;
-                    }
-                } else {
-                    // No schema found
-                    $warnings[] = 'No JSON-LD schema found on page.';
-                    // Not necessarily an error if not expected, but for us usually is.
-                }
-            }
-
-            $results[] = [
-                'id' => $pid,
-                'title' => $post->post_title,
-                'type' => $post_type,
-                'permalink' => $permalink,
-                'edit_url' => get_edit_post_link($pid),
-                'valid' => $is_valid,
-                'schema' => isset($schemas) ? $schemas : [], // Return raw schemas
-                'errors' => array_unique($errors),
-                'warnings' => array_unique($warnings)
-            ];
-        }
-
-        wp_send_json_success([
-            'results' => $results,
-            'total_in_type' => intval($total_in_type),
-            'offset' => $offset,
             'batch_size' => $batch_size,
             'has_more' => ($offset + $batch_size) < $total_in_type
         ]);
