@@ -53,11 +53,31 @@ class Chroma_Translation_Engine
             $fields['_chroma_es_location_address'] = get_post_meta($post_id, 'location_address', true);
             $fields['_chroma_es_location_hero_subtitle'] = get_post_meta($post_id, 'location_hero_subtitle', true);
             $fields['_chroma_es_location_ages_served'] = get_post_meta($post_id, 'location_ages_served', true);
-            $fields['_chroma_es_location_open_text'] = 'Now Open'; // Default or fetch if exists
+            $fields['_chroma_es_location_open_text'] = 'Now Open'; 
+            $fields['_chroma_es_location_intro_text'] = get_post_meta($post_id, 'location_intro_text', true);
+            $fields['_chroma_es_location_hours'] = get_post_meta($post_id, 'location_hours', true);
+            $fields['_chroma_es_location_special_programs'] = get_post_meta($post_id, 'location_special_programs', true);
+            $fields['_chroma_es_location_tour_booking_link'] = get_post_meta($post_id, 'location_tour_booking_link', true);
         } elseif ($post->post_type === 'program') {
             $fields['_chroma_es_program_age_range'] = get_post_meta($post_id, 'program_age_range', true);
             $fields['_chroma_es_program_cta_text'] = get_post_meta($post_id, 'program_cta_text', true);
             $fields['_chroma_es_program_features'] = get_post_meta($post_id, 'program_features', true);
+            $fields['_chroma_es_program_hero_title'] = get_post_meta($post_id, 'program_hero_title', true);
+            $fields['_chroma_es_program_hero_description'] = get_post_meta($post_id, 'program_hero_description', true);
+            $fields['_chroma_es_program_prism_title'] = get_post_meta($post_id, 'program_prism_title', true);
+            $fields['_chroma_es_program_prism_description'] = get_post_meta($post_id, 'program_prism_description', true);
+            $fields['_chroma_es_program_prism_physical'] = get_post_meta($post_id, 'program_prism_physical', true);
+            $fields['_chroma_es_program_prism_emotional'] = get_post_meta($post_id, 'program_prism_emotional', true);
+            $fields['_chroma_es_program_prism_social'] = get_post_meta($post_id, 'program_prism_social', true);
+            $fields['_chroma_es_program_prism_academic'] = get_post_meta($post_id, 'program_prism_academic', true);
+            $fields['_chroma_es_program_prism_creative'] = get_post_meta($post_id, 'program_prism_creative', true);
+            $fields['_chroma_es_program_schedule_title'] = get_post_meta($post_id, 'program_schedule_title', true);
+        } elseif ($post->post_type === 'city') {
+            $fields['_chroma_es_city_intro_text'] = get_post_meta($post_id, 'city_intro_text', true);
+            $fields['_chroma_es_city_state'] = get_post_meta($post_id, 'city_state', true);
+            $fields['_chroma_es_city_county'] = get_post_meta($post_id, 'city_county', true);
+            // Arrays like neighborhoods need handling? JSON encode if text, or specific handling. 
+            // For now, assume simple text/HTML fields for translation engine.
         }
         
         // Template specific
