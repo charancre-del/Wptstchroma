@@ -488,3 +488,132 @@ function chroma_city_faq_schema_output()
 }
 add_action('wp_head', 'chroma_city_faq_schema_output');
 
+
+/**
+ * Theme Schema Compatibility
+ * Added via Audit Migration
+ */
+
+if (!function_exists('chroma_organization_schema')) {
+    function chroma_organization_schema() {
+        if (!is_front_page()) return;
+        $homepage_id = get_option('page_on_front');
+        
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) {
+            echo (strpos($override, '<script') !== false) ? $override : '<script type="application/ld+json">' . $override . '</script>';
+            return;
+        }
+
+        $en_name = get_post_meta($homepage_id, 'schema_org_name', true) ?: get_bloginfo('name');
+        $name = chroma_get_schema_val($homepage_id, '_chroma_es_title', $en_name);
+
+        $url = get_post_meta($homepage_id, 'schema_org_url', true) ?: home_url();
+        if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+            $url = home_url('/es');
+        }
+
+        $logo = get_post_meta($homepage_id, 'schema_org_logo', true) ?: (function_exists('chroma_get_global_setting') ? chroma_get_global_setting('global_logo', '') : '');
+        
+        $en_desc = get_post_meta($homepage_id, 'schema_org_description', true) ?: (function_exists('chroma_global_seo_default_description') ? chroma_global_seo_default_description() : '');
+        $description = chroma_get_schema_val($homepage_id, '_chroma_es_excerpt', $en_desc);
+
+        $area_served = get_post_meta($homepage_id, 'schema_org_area_served', true) ?: 'Atlanta';
+        $telephone = get_post_meta($homepage_id, 'schema_org_telephone', true);
+        $email = get_post_meta($homepage_id, 'schema_org_email', true);
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'ChildCare',
+            'name' => $name,
+            'url' => $url,
+            'logo' => $logo,
+            'description' => $description,
+            'areaServed' => [
+                '@type' => 'City',
+                'name' => $area_served,
+            ],
+            'sameAs' => [],
+        ];
+        
+        if (function_exists('chroma_global_facebook_url')) {
+             $schema['sameAs'] = array_filter([
+                chroma_global_facebook_url(),
+                chroma_global_instagram_url(),
+                chroma_global_linkedin_url(),
+            ]);
+        }
+
+        if ($telephone) $schema['telephone'] = $telephone;
+        if ($email) $schema['email'] = $email;
+
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    }
+}
+add_action('wp_head', 'chroma_organization_schema', 5);
+
+if (!function_exists('chroma_website_schema')) {
+    function chroma_website_schema() {
+        if (!is_front_page()) return;
+        $homepage_id = get_option('page_on_front');
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) return;
+
+        $url = home_url();
+        if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+            $url = home_url('/es');
+        }
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebSite',
+            'name' => get_bloginfo('name'),
+            'url' => $url,
+            'potentialAction' => [
+                '@type' => 'SearchAction',
+                'target' => home_url('/?s={search_term_string}'),
+                'query-input' => 'required name=search_term_string',
+            ],
+        ];
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    }
+}
+add_action('wp_head', 'chroma_website_schema', 6);
+
+if (!function_exists('chroma_faq_schema')) {
+    function chroma_faq_schema() {
+        if (!is_front_page()) return;
+        $homepage_id = get_option('page_on_front');
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) return;
+
+        if (!function_exists('chroma_home_has_faq') || !chroma_home_has_faq()) return;
+        if (!function_exists('chroma_home_faq')) return;
+
+        $faq_data = chroma_home_faq();
+        if (empty($faq_data['items'])) return;
+
+        $main_entity = [];
+        foreach ($faq_data['items'] as $item) {
+            if (empty($item['question']) || empty($item['answer'])) continue;
+            $main_entity[] = [
+                '@type' => 'Question',
+                'name' => $item['question'],
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => wp_strip_all_tags($item['answer']),
+                ],
+            ];
+        }
+
+        if (empty($main_entity)) return;
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'FAQPage',
+            'mainEntity' => $main_entity,
+        ];
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    }
+}
+add_action('wp_head', 'chroma_faq_schema', 10);

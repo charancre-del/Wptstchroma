@@ -2572,7 +2572,37 @@ class Chroma_SEO_Dashboard
                                         if (!in_array($w, $warnings)) $warnings[] = $w;
                                     }
                                 }
-                            }
+                            } // foreach schemas
+                        } // if preg_match
+                    } // if body retrieval
+                } // if wp_remote_get
+
+                // Determine final status
+                $status = 'valid';
+                if (!empty($errors)) $status = 'error';
+                elseif (!empty($warnings)) $status = 'warning';
+                elseif (!$has_valid_schema) {
+                     $status = 'warning'; 
+                     $warnings[] = 'No Schema found';
+                }
+
+                $results[] = [
+                    'id' => $pid,
+                    'title' => $post->post_title,
+                    'url' => $permalink,
+                    'status' => $status,
+                    'errors' => $errors,
+                    'warnings' => $warnings,
+                    'schema_types' => $type_counts ?? []
+                ];
+            } // foreach posts
+
+       } catch (Throwable $e) {
+            wp_send_json_error(['message' => 'Batch Error: ' . $e->getMessage()]);
+       }
+
+        wp_send_json_success([
+            'results' => $results,
             'batch_size' => $batch_size,
             'has_more' => ($offset + $batch_size) < $total_in_type
         ]);

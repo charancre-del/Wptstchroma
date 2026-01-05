@@ -40,6 +40,7 @@ function chroma_general_content_schema() {
 /**
  * Add Organization Schema to Homepage
  */
+if (!function_exists('chroma_organization_schema')) {
 function chroma_organization_schema()
 {
         if (!is_front_page()) {
@@ -102,6 +103,7 @@ function chroma_organization_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 // DISABLED - Moved to Chroma SEO Pro Plugin
 // add_action('wp_head', 'chroma_organization_schema');
 
@@ -129,6 +131,7 @@ add_action('send_headers', 'chroma_seo_headers');
 /**
  * Add WebSite Schema to Homepage (for Sitelinks Search Box)
  */
+if (!function_exists('chroma_website_schema')) {
 function chroma_website_schema()
 {
         if (!is_front_page()) {
@@ -158,6 +161,7 @@ function chroma_website_schema()
         );
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+}
 }
 // DISABLED - Moved to Chroma SEO Pro Plugin
 // add_action('wp_head', 'chroma_website_schema');
@@ -663,6 +667,7 @@ function chroma_program_schema()
 /**
  * Add FAQPage Schema to Homepage (when FAQ section exists)
  */
+if (!function_exists('chroma_faq_schema')) {
 function chroma_faq_schema()
 {
         if (!is_front_page()) {
@@ -718,6 +723,7 @@ function chroma_faq_schema()
         );
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+}
 }
 // DISABLED - Moved to Chroma SEO Pro Plugin
 // add_action('wp_head', 'chroma_faq_schema');
@@ -866,7 +872,9 @@ function chroma_hreflang_tags()
                 echo '<link rel="alternate" hreflang="es" href="' . esc_url($alternate_es) . '" />' . "\n";
         }
 }
-add_action('wp_head', 'chroma_hreflang_tags', 1);
+if (!class_exists('Chroma_Multilingual_Manager')) {
+    add_action('wp_head', 'chroma_hreflang_tags', 1);
+}
 
 /**
  * Shared meta description output with fallbacks
