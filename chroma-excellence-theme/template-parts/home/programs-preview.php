@@ -59,7 +59,7 @@ $program_slug = chroma_get_program_base_slug();
                         <a href="<?php echo esc_url($url); ?>"
                             class="inline-block bg-chroma-teal text-white px-6 py-3 rounded-lg font-semibold hover:bg-chroma-teal/90 transition-colors"
                             aria-label="Learn more about <?php echo esc_attr($program['title']); ?>">
-                            Learn More
+                            Learn About <?php echo esc_html($program['title']); ?>
                         </a>
                     </div>
                 </div>

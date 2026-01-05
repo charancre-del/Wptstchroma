@@ -141,3 +141,170 @@ function chroma_lead_log_render_details($post)
 	echo '</tbody>';
 	echo '</table>';
 }
+
+/**
+ * Register Lead Log Settings
+ */
+function chroma_lead_log_register_settings()
+{
+	register_setting('chroma_lead_log_options', 'chroma_lead_log_webhook_url', array(
+		'type' => 'string',
+		'sanitize_callback' => 'esc_url_raw',
+		'default' => ''
+	));
+}
+add_action('admin_init', 'chroma_lead_log_register_settings');
+
+/**
+ * Add Settings Page to Menu
+ */
+function chroma_lead_log_admin_menu()
+{
+	add_submenu_page(
+		'edit.php?post_type=lead_log',
+		'Lead Log Settings',
+		'Settings',
+		'manage_options',
+		'chroma-lead-log-settings',
+		'chroma_lead_log_settings_page'
+	);
+}
+add_action('admin_menu', 'chroma_lead_log_admin_menu');
+
+/**
+ * Render Settings Page
+ */
+function chroma_lead_log_settings_page()
+{
+	if (!current_user_can('manage_options')) {
+		return;
+	}
+	?>
+	<div class="wrap">
+		<h1>Lead Log Settings</h1>
+		<form action="options.php" method="post">
+			<?php
+			settings_fields('chroma_lead_log_options');
+			do_settings_sections('chroma_lead_log_options');
+			?>
+			<table class="form-table">
+				<tr valign="top">
+					<th scope="row">Global Webhook URL (GoHighLevel)</th>
+					<td>
+						<input type="url" name="chroma_lead_log_webhook_url"
+							value="<?php echo esc_attr(get_option('chroma_lead_log_webhook_url')); ?>" class="regular-text"
+							placeholder="https://services.leadconnectorhq.com/hooks/..." />
+						<p class="description">
+							Enter your GoHighLevel (or other CRM) webhook URL here. All new leads (from any form) will be
+							posted to this URL as JSON.
+						</p>
+					</td>
+				</tr>
+			</table>
+			<?php submit_button(); ?>
+		</form>
+
+		<div class="card" style="max-width: 600px; margin-top: 20px;">
+			<h2 class="title">Webhook Payload Example</h2>
+			<p>When a new lead is created, the following JSON data is sent to your webhook:</p>
+			<pre style="background: #f0f0f1; padding: 10px; border-radius: 4px; overflow-x: auto;">
+	{
+	  "event": "new_lead",
+	  "lead_id": 123,
+	  "lead_title": "Tour: John Doe",
+	  "lead_type": "tour",
+	  "lead_name": "John Doe",
+	  "lead_email": "john@example.com",
+	  "lead_phone": "555-0199",
+	  "submitted_at": "2024-03-20 14:30:00",
+	  "data": {
+		"Parent Name": "John Doe",
+		"Phone": "555-0199",
+		"Email": "john@example.com",
+		"Preferred Location": "Atlanta Campus"
+	  }
+	}
+				</pre>
+		</div>
+	</div>
+	<?php
+}
+
+/**
+ * Trigger Webhook on New Lead Creation
+ */
+function chroma_lead_log_trigger_webhook($post_id, $post, $update)
+{
+	// Only run for lead_log post type
+	if ($post->post_type !== 'lead_log') {
+		return;
+	}
+
+	// Only run on creation (not update), or if specifically desired, logic can be adjusted.
+	// However, wp_insert_post fires even on updates. We often want to avoid firing multiple times.
+	// A simple check is to see if it's a revision or autosave.
+	if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+		return;
+	}
+
+	// Check if this is a valid published post
+	if ($post->post_status !== 'publish') {
+		return;
+	}
+
+	// Prevent infinite loops if updating post meta triggers save again
+	// (though we are just reading here, not saving back to post)
+
+	// Check if webhook is configured
+	$webhook_url = get_option('chroma_lead_log_webhook_url');
+	if (empty($webhook_url)) {
+		return;
+	}
+
+	// Delay slightly to ensure meta is saved (if this hook fires before meta save)
+	// 'save_post' fires after post is saved, but meta might be added separately.
+	// Using 'updated_post_meta' might be cleaner, but 'save_post' with a slight check is standard.
+	// Since the form plugins use wp_insert_post with meta_input, the meta should be there.
+
+	$lead_type = get_post_meta($post_id, 'lead_type', true);
+	$lead_name = get_post_meta($post_id, 'lead_name', true);
+	$lead_email = get_post_meta($post_id, 'lead_email', true);
+	$lead_phone = get_post_meta($post_id, 'lead_phone', true); // Some forms might not save this top-level yet, but payload has it.
+	$payload_json = get_post_meta($post_id, 'lead_payload', true);
+	$payload_data = json_decode($payload_json, true) ?: array();
+
+	// If lead type is missing, it might be an empty draft or initial save
+	if (empty($lead_type) && empty($payload_data)) {
+		return;
+	}
+
+	// Avoid duplicate sends? (Optional: check a 'webhook_sent' meta flag)
+	if (get_post_meta($post_id, '_chroma_webhook_sent', true)) {
+		return;
+	}
+
+	// Prepare Payload
+	$body = array(
+		'event' => 'new_lead',
+		'lead_id' => $post_id,
+		'lead_title' => $post->post_title,
+		'lead_type' => $lead_type,
+		'lead_name' => $lead_name,
+		'lead_email' => $lead_email,
+		'lead_phone' => $lead_phone, // Might be empty if not explicitly saved as meta key
+		'submitted_at' => current_time('mysql'),
+		'data' => $payload_data
+	);
+
+	// Send Request
+	$response = wp_remote_post($webhook_url, array(
+		'body' => wp_json_encode($body),
+		'headers' => array('Content-Type' => 'application/json'),
+		'timeout' => 15,
+		'blocking' => false // Don't wait, just fire
+	));
+
+	// Mark as sent
+	update_post_meta($post_id, '_chroma_webhook_sent', time());
+}
+add_action('save_post', 'chroma_lead_log_trigger_webhook', 10, 3);

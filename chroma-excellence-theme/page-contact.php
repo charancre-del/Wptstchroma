@@ -16,120 +16,240 @@ get_header();
 $page_id = get_the_ID();
 
 // Hero Section
-$hero_badge = get_post_meta($page_id, 'contact_hero_badge', true) ?: 'Start Your Journey';
-$hero_title = get_post_meta($page_id, 'contact_hero_title', true) ?: 'We\'d love to meet you.';
-$hero_description = get_post_meta($page_id, 'contact_hero_description', true) ?: 'Ready to experience the Chroma difference? Schedule a tour or ask us a question below to get started.';
+$hero_badge = get_post_meta($page_id, 'contact_hero_badge', true) ?: 'Get in Touch';
+$hero_title = get_post_meta($page_id, 'contact_hero_title', true) ?: 'How can we support your family today?';
+$hero_description = get_post_meta($page_id, 'contact_hero_description', true) ?: 'Whether you are looking for a new school, applying for a job, or have a media inquiry, we are here to connect you with the right team.';
 
 // Form Settings
-$form_submit_text = get_post_meta($page_id, 'contact_form_submit_text', true) ?: 'Submit Request';
+$form_submit_text = get_post_meta($page_id, 'contact_form_submit_text', true) ?: 'Send Message';
 
 // Corporate Office
 $corporate_title = get_post_meta($page_id, 'contact_corporate_title', true) ?: 'Corporate Office';
 $corporate_name = get_post_meta($page_id, 'contact_corporate_name', true) ?: 'Chroma Early Learning HQ';
-$corporate_address = get_post_meta($page_id, 'contact_corporate_address', true) ?: "123 Education Way, Suite 400\nAtlanta, GA 30309";
-$corporate_phone = get_post_meta($page_id, 'contact_corporate_phone', true) ?: '(404) 555-0199';
+$corporate_address = get_post_meta($page_id, 'contact_corporate_address', true) ?: "123 Holcomb Bridge Rd, Suite 200\nRoswell, GA 30076";
+$corporate_phone = get_post_meta($page_id, 'contact_corporate_phone', true) ?: '(770) 555-0199';
 
-// Careers Section
-$careers_title = get_post_meta($page_id, 'contact_careers_title', true) ?: 'Careers';
-$careers_description = get_post_meta($page_id, 'contact_careers_description', true) ?: 'Passionate about early childhood education? We are always looking for dedicated teachers and directors.';
-$careers_link_text = get_post_meta($page_id, 'contact_careers_link_text', true) ?: 'View Open Positions';
-$careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?: '/careers';
+// Careers Section (Using existing meta if available, else standard fallback)
+$careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?: '/careers/';
 
-// Press Section
-$press_title = get_post_meta($page_id, 'contact_press_title', true) ?: 'Press Inquiries';
-$press_description = get_post_meta($page_id, 'contact_press_description', true) ?: 'For media kits and interview requests with our leadership team.';
-$press_link_text = get_post_meta($page_id, 'contact_press_link_text', true) ?: 'Visit Newsroom';
-$press_link_url = get_post_meta($page_id, 'contact_press_link_url', true) ?: '/newsroom';
 ?>
 
-<main id="primary" class="site-main" role="main">
-	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
+<main>
+	<!-- Hero Section (FCP Optimized - No Form) -->
+	<section class="relative bg-white pt-20 pb-20 overflow-hidden">
+		<div
+			class="absolute top-0 right-0 w-[500px] h-[500px] bg-chroma-greenLight rounded-full blur-[100px] opacity-40 translate-x-1/3 -translate-y-1/3">
+		</div>
+		<div
+			class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-chroma-redLight rounded-full blur-[80px] opacity-40 -translate-x-1/3 translate-y-1/3">
+		</div>
 
-		<!-- Hero -->
-		<section class="py-20 bg-white text-center">
-			<div class="max-w-4xl mx-auto px-4">
-				<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
-					<?php echo esc_html($hero_badge); ?>
-				</span>
-				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6">
-					Contact Chroma Early Learning
-				</h1>
-				<p class="text-lg text-brand-ink/90">
+		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10">
+			<div class="text-center max-w-3xl mx-auto mb-16">
+				<span
+					class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-4 block"><?php echo esc_html($hero_badge); ?></span>
+				<h1 class="font-serif text-4xl md:text-6xl font-bold text-brand-ink mb-6">
+					<?php echo esc_html($hero_title); ?></h1>
+				<p class="text-lg text-brand-ink/70">
 					<?php echo esc_html($hero_description); ?>
 				</p>
 			</div>
-		</section>
 
-		<!-- Contact Grid -->
-		<section class="pb-24 bg-white">
-			<div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-16">
+			<!-- Routing Grid (Directs users before they scroll to form) -->
+			<div class="grid md:grid-cols-3 gap-6">
+				<!-- Prospective Families -->
+				<div
+					class="bg-brand-cream border border-chroma-blue/10 p-8 rounded-[2rem] hover:shadow-card transition-all group text-center">
+					<div
+						class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+						👶</div>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3">Looking for care?</h3>
+					<p class="text-brand-ink/60 text-sm mb-6">Find a school near you to check pricing, availability, and
+						book a tour.</p>
+					<a href="/locations/"
+						class="inline-block w-full py-3 bg-chroma-red text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-red/90 transition-colors">Find
+						a School</a>
+				</div>
 
-				<!-- Form -->
-				<div class="bg-brand-cream p-10 rounded-[3rem] border border-brand-ink/5 shadow-soft">
+				<!-- Current Families -->
+				<div
+					class="bg-brand-cream border border-chroma-blue/10 p-8 rounded-[2rem] hover:shadow-card transition-all group text-center">
+					<div
+						class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+						👨‍👩‍👧</div>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3">Current Family?</h3>
+					<p class="text-brand-ink/60 text-sm mb-6">Access the parent portal for tuition payments, daily
+						reports, and photos.</p>
+					<a href="/parents/"
+						class="inline-block w-full py-3 bg-chroma-blue text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-blueDark transition-colors">Parent
+						Portal</a>
+				</div>
+
+				<!-- Careers -->
+				<div
+					class="bg-brand-cream border border-chroma-blue/10 p-8 rounded-[2rem] hover:shadow-card transition-all group text-center">
+					<div
+						class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
+						🍎</div>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3">Join the team?</h3>
+					<p class="text-brand-ink/60 text-sm mb-6">We are always hiring passionate educators. View open
+						positions today.</p>
+					<a href="<?php echo esc_url($careers_link_url); ?>"
+						class="inline-block w-full py-3 bg-chroma-yellow text-brand-ink font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white transition-colors">View
+						Careers</a>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Corporate Info & Departments -->
+	<section class="py-20 bg-white border-y border-chroma-blue/10">
+		<div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-16">
+
+			<!-- Contact Info -->
+			<div class="space-y-10">
+				<div>
+					<h2 class="font-serif text-3xl font-bold text-brand-ink mb-6">
+						<?php echo esc_html($corporate_title); ?></h2>
+					<p class="text-brand-ink/70 leading-relaxed mb-6">
+						While our schools are the heart of what we do, our administrative team supports operations from
+						our central office in Roswell.
+					</p>
+					<div class="space-y-4">
+						<div class="flex items-start gap-4">
+							<div
+								class="w-10 h-10 bg-chroma-blue/10 rounded-full flex items-center justify-center text-chroma-blue shrink-0">
+								<i class="fa-solid fa-location-dot"></i></div>
+							<div>
+								<h4 class="font-bold text-brand-ink">Mailing Address</h4>
+								<p class="text-brand-ink/60">
+									<?php echo nl2br(esc_html($corporate_address)); ?>
+								</p>
+							</div>
+						</div>
+						<div class="flex items-start gap-4">
+							<div
+								class="w-10 h-10 bg-chroma-blue/10 rounded-full flex items-center justify-center text-chroma-blue shrink-0">
+								<i class="fa-solid fa-phone"></i></div>
+							<div>
+								<h4 class="font-bold text-brand-ink">Phone</h4>
+								<p class="text-brand-ink/60"><?php echo esc_html($corporate_phone); ?></p>
+								<p class="text-xs text-brand-ink/70 mt-1">Mon-Fri, 9am - 5pm EST</p>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="pt-8 border-t border-gray-100">
+					<h3 class="font-serif text-xl font-bold text-brand-ink mb-4">Department Emails</h3>
+					<div class="grid sm:grid-cols-2 gap-4">
+						<a href="mailto:enrollment@chromaela.com"
+							class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-chroma-blue/30 hover:bg-chroma-blue/5 transition-all group">
+							<i
+								class="fa-regular fa-envelope text-chroma-blue group-hover:scale-110 transition-transform"></i>
+							<div>
+								<span class="block text-xs font-bold uppercase text-brand-ink/70">Enrollment</span>
+								<span class="font-semibold text-brand-ink text-sm">enrollment@chromaela.com</span>
+							</div>
+						</a>
+						<a href="mailto:careers@chromaela.com"
+							class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-chroma-blue/30 hover:bg-chroma-blue/5 transition-all group">
+							<i
+								class="fa-regular fa-envelope text-chroma-blue group-hover:scale-110 transition-transform"></i>
+							<div>
+								<span class="block text-xs font-bold uppercase text-brand-ink/70">Careers</span>
+								<span class="font-semibold text-brand-ink text-sm">careers@chromaela.com</span>
+							</div>
+						</a>
+						<a href="mailto:media@chromaela.com"
+							class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-chroma-blue/30 hover:bg-chroma-blue/5 transition-all group">
+							<i
+								class="fa-regular fa-envelope text-chroma-blue group-hover:scale-110 transition-transform"></i>
+							<div>
+								<span class="block text-xs font-bold uppercase text-brand-ink/70">Press / Media</span>
+								<span class="font-semibold text-brand-ink text-sm">media@chromaela.com</span>
+							</div>
+						</a>
+						<a href="mailto:partnerships@chromaela.com"
+							class="flex items-center gap-3 p-4 rounded-xl border border-gray-100 hover:border-chroma-blue/30 hover:bg-chroma-blue/5 transition-all group">
+							<i
+								class="fa-regular fa-envelope text-chroma-blue group-hover:scale-110 transition-transform"></i>
+							<div>
+								<span class="block text-xs font-bold uppercase text-brand-ink/70">Acquisitions</span>
+								<span class="font-semibold text-brand-ink text-sm">partnerships@chromaela.com</span>
+							</div>
+						</a>
+					</div>
+				</div>
+			</div>
+
+			<!-- General Inquiry Form (Below Fold) -->
+			<div id="general-form"
+				class="bg-brand-ink rounded-[2.5rem] p-8 md:p-10 text-white relative overflow-hidden">
+				<div
+					class="absolute top-0 right-0 w-64 h-64 bg-chroma-blue rounded-full blur-[80px] opacity-20 -translate-y-1/2 translate-x-1/2">
+				</div>
+
+				<h3 class="font-serif text-2xl font-bold mb-2 relative z-10">General Inquiries</h3>
+				<p class="text-white/90 text-sm mb-8 relative z-10">For general questions not related to a specific
+					campus tour.</p>
+
+				<div class="relative z-10">
 					<?php echo do_shortcode('[chroma_contact_form]'); ?>
 				</div>
-
-				<!-- Info -->
-				<div class="flex flex-col justify-center gap-10">
-					<!-- Corporate Office -->
-					<div>
-						<h2 class="font-serif text-2xl font-bold text-brand-ink mb-4">
-							<?php echo esc_html($corporate_title); ?>
-						</h2>
-						<p class="text-brand-ink/80 leading-relaxed">
-							<?php
-							if (!empty($corporate_name)) {
-								echo esc_html($corporate_name) . '<br>';
-							}
-							echo nl2br(esc_html($corporate_address));
-							?>
-						</p>
-						<?php if (!empty($corporate_phone)): ?>
-							<p class="mt-4 text-chroma-blue font-bold">
-								<?php echo esc_html($corporate_phone); ?>
-							</p>
-						<?php endif; ?>
-					</div>
-
-					<div class="h-px bg-brand-ink/10 w-full"></div>
-
-					<!-- Careers -->
-					<div>
-						<h2 class="font-serif text-2xl font-bold text-brand-ink mb-4">
-							<?php echo esc_html($careers_title); ?>
-						</h2>
-						<p class="text-brand-ink/80 mb-4">
-							<?php echo esc_html($careers_description); ?>
-						</p>
-						<a href="<?php echo esc_url($careers_link_url); ?>"
-							class="text-chroma-red font-bold text-sm uppercase tracking-wider hover:text-chroma-blue flex items-center gap-2">
-							<?php echo esc_html($careers_link_text); ?>
-							<i class="fa-solid fa-arrow-right"></i>
-						</a>
-					</div>
-
-					<div class="h-px bg-brand-ink/10 w-full"></div>
-
-					<!-- Press Inquiries -->
-					<div>
-						<h2 class="font-serif text-2xl font-bold text-brand-ink mb-4">
-							<?php echo esc_html($press_title); ?>
-						</h2>
-						<p class="text-brand-ink/80 mb-4">
-							<?php echo esc_html($press_description); ?>
-						</p>
-						<a href="<?php echo esc_url($press_link_url); ?>"
-							class="text-chroma-green font-bold text-sm uppercase tracking-wider hover:text-chroma-blue flex items-center gap-2">
-							<?php echo esc_html($press_link_text); ?>
-							<i class="fa-solid fa-arrow-right"></i>
-						</a>
-					</div>
-				</div>
-
 			</div>
-		</section>
 
-	</article>
+		</div>
+	</section>
+
+	<!-- FAQ Section -->
+	<section class="py-20 bg-brand-cream">
+		<div class="max-w-4xl mx-auto px-4 lg:px-6">
+			<h2 class="font-serif text-3xl font-bold text-brand-ink mb-10 text-center">Frequently Asked Questions</h2>
+			<div class="space-y-4">
+				<details class="group bg-white rounded-2xl px-6 py-4 border border-chroma-blue/10 shadow-sm">
+					<summary
+						class="flex items-center justify-between gap-3 cursor-pointer list-none font-bold text-brand-ink">
+						How do I schedule a tour?
+						<span class="text-chroma-blue group-open:rotate-180 transition-transform"><i
+								class="fa-solid fa-chevron-down"></i></span>
+					</summary>
+					<p class="mt-3 text-brand-ink/70 text-sm leading-relaxed">
+						The fastest way is to visit our <a href="/locations/"
+							class="text-chroma-blue underline">Locations Page</a>, select your nearest campus, and use
+						the "Book Tour" button on that specific page. This ensures your request goes directly to that
+						school's director.
+					</p>
+				</details>
+				<details class="group bg-white rounded-2xl px-6 py-4 border border-chroma-blue/10 shadow-sm">
+					<summary
+						class="flex items-center justify-between gap-3 cursor-pointer list-none font-bold text-brand-ink">
+						Are meals included in tuition?
+						<span class="text-chroma-blue group-open:rotate-180 transition-transform"><i
+								class="fa-solid fa-chevron-down"></i></span>
+					</summary>
+					<p class="mt-3 text-brand-ink/70 text-sm leading-relaxed">
+						Yes! We participate in the USDA food program. Breakfast, lunch, and afternoon snack are prepared
+						fresh daily and are included in tuition for all age groups eating solid foods.
+					</p>
+				</details>
+				<details class="group bg-white rounded-2xl px-6 py-4 border border-chroma-blue/10 shadow-sm">
+					<summary
+						class="flex items-center justify-between gap-3 cursor-pointer list-none font-bold text-brand-ink">
+						How do I check my position on a waitlist?
+						<span class="text-chroma-blue group-open:rotate-180 transition-transform"><i
+								class="fa-solid fa-chevron-down"></i></span>
+					</summary>
+					<p class="mt-3 text-brand-ink/70 text-sm leading-relaxed">
+						Please email the director of your specific campus directly. You can find their contact
+						information on the specific <a href="/locations/" class="text-chroma-blue underline">Location
+							Page</a>.
+					</p>
+				</details>
+			</div>
+		</div>
+	</section>
+
 </main>
 
 <?php

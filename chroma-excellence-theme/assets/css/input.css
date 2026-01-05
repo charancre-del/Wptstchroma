@@ -122,6 +122,18 @@
   .shadow-card {
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.04);
   }
+
+  .shadow-cardHover {
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.08);
+  }
+
+  .shadow-float {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px rgba(74, 108, 124, 0.3);
+  }
 }
 
 /**
@@ -138,6 +150,31 @@
     to {
       opacity: 1;
       transform: translateY(0);
+    }
+  }
+
+  /* Lazy Loading Styles */
+  img[data-lazy-src] {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  img.lazy-loaded {
+    opacity: 1;
+    background: none;
+    animation: none;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+
+    100% {
+      background-position: -200% 0;
     }
   }
 }

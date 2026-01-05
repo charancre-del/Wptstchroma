@@ -36,7 +36,7 @@ if (empty($tracks)) {
 					$is_active = 0 === $index;
 					$tab_classes = $is_active
 						? 'bg-chroma-blue text-white shadow-soft'
-						: 'text-brand-ink hover:text-chroma-blue';
+						: 'text-gray-900 hover:text-chroma-blue';
 					?>
 					<button
 						class="schedule-tab px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 <?php echo esc_attr($tab_classes); ?>"
@@ -77,7 +77,11 @@ if (empty($tracks)) {
 						<div class="rounded-[2rem] overflow-hidden shadow-lg aspect-video bg-white/50">
 							<?php if (!empty($track['image'])): ?>
 								<img src="<?php echo esc_url($track['image']); ?>"
-									alt="<?php echo esc_attr($track['title']); ?>" class="w-full h-full object-cover" />
+									alt="<?php echo esc_attr($track['title']); ?>" 
+									class="w-full h-full object-cover"
+									width="800" height="450"
+									loading="lazy"
+									decoding="async" />
 							<?php else: ?>
 								<div class="w-full h-full flex items-center justify-center text-chroma-blueDark/20 text-6xl">
 									<i class="fa-solid fa-image"></i>
@@ -105,7 +109,7 @@ if (empty($tracks)) {
 									: 'bg-white text-brand-ink hover:text-brand-ink hover:bg-white/80';
 								?>
 								<button
-									class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
+									class="min-w-[3.5rem] h-14 md:h-16 px-4 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
 									data-schedule-step-trigger data-title="<?php echo esc_attr($step['title']); ?>"
 									data-copy="<?php echo esc_attr($step['copy']); ?>"
 									aria-label="<?php echo esc_attr($step['time']); ?>">
@@ -122,7 +126,7 @@ if (empty($tracks)) {
 								$btn_classes = 'bg-white text-brand-ink hover:text-brand-ink hover:bg-white/80';
 								?>
 								<button
-									class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
+									class="min-w-[3.5rem] h-14 md:h-16 px-4 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
 									data-schedule-step-trigger data-title="<?php echo esc_attr($step['title']); ?>"
 									data-copy="<?php echo esc_attr($step['copy']); ?>"
 									aria-label="<?php echo esc_attr($step['time']); ?>">

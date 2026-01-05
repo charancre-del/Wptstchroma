@@ -12,8 +12,34 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Global Schema Override Handler (for standard pages/posts)
+ * Hooks early to catch generic pages that have manual fixes
+ */
+if (!function_exists('chroma_general_content_schema')) {
+function chroma_general_content_schema() {
+    if (is_singular('location') || is_singular('program') || is_singular('city') || is_front_page()) {
+        return; // Handled by specific functions below
+    }
+
+    $post_id = get_the_ID();
+    if (!$post_id) return;
+
+    $override = get_post_meta($post_id, '_chroma_schema_override', true);
+    if ($override) {
+        if (strpos($override, '<script') !== false) {
+            echo $override;
+        } else {
+            echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+        }
+    }
+}
+}
+add_action('wp_head', 'chroma_general_content_schema', 1);
+
+/**
  * Add Organization Schema to Homepage
  */
+if (!function_exists('chroma_organization_schema')) {
 function chroma_organization_schema()
 {
         if (!is_front_page()) {
@@ -21,6 +47,17 @@ function chroma_organization_schema()
         }
 
         $homepage_id = get_option('page_on_front');
+
+        // Check for manual override first
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) {
+            if (strpos($override, '<script') !== false) {
+                echo $override;
+            } else {
+                echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+            }
+            return;
+        }
 
         // Get custom values or fallbacks
         $name = get_post_meta($homepage_id, 'schema_org_name', true) ?: get_bloginfo('name');
@@ -56,19 +93,58 @@ function chroma_organization_schema()
         if ($email) {
                 $schema['email'] = $email;
         }
+        
+        // Phonetic Name for Voice Search (Tier 12 - TT)
+        $phonetic = get_theme_mod('chroma_global_brand_phonetic', '');
+        if ($phonetic) {
+            $schema['phoneticName'] = $phonetic;
+        }
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+}
 }
 add_action('wp_head', 'chroma_organization_schema');
 
 /**
+ * HTTP Header Signals (Tier 7 - Y)
+ * Provides canonical and dns-prefetch hints at the HTTP header level for faster parsing
+ */
+function chroma_seo_headers() {
+    if (headers_sent()) return;
+    
+    // Canonical Link Header
+    if (is_singular()) {
+        $link = get_permalink();
+        if ($link) {
+            header("Link: <$link>; rel=\"canonical\"", false);
+        }
+    }
+    
+    // DNS Prefetch for Google Services
+    header("Link: <https://www.google-analytics.com>; rel=\"dns-prefetch\"", false);
+    header("Link: <https://www.googletagmanager.com>; rel=\"dns-prefetch\"", false);
+}
+add_action('send_headers', 'chroma_seo_headers');
+
+/**
  * Add WebSite Schema to Homepage (for Sitelinks Search Box)
  */
+if (!function_exists('chroma_website_schema')) {
 function chroma_website_schema()
 {
         if (!is_front_page()) {
                 return;
         }
+        
+        // Check for manual override (yield to main override if present)
+        $homepage_id = get_option('page_on_front');
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
+        // Note: We don't override this individually because usually the main Org schema override covers the whole page,
+        // or the user keeps this as is. If they pasted a @graph, the Org override above handles it.
 
         $schema = array(
                 '@context' => 'https://schema.org',
@@ -84,11 +160,13 @@ function chroma_website_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 add_action('wp_head', 'chroma_website_schema');
 
 /**
  * Add LocalBusiness Schema to Location Pages
  */
+if (!function_exists('chroma_location_schema')) {
 function chroma_location_schema()
 {
         if (!is_singular('location')) {
@@ -96,6 +174,18 @@ function chroma_location_schema()
         }
 
         $location_id = get_the_ID();
+        
+        // Check for manual override first
+        $override = get_post_meta($location_id, '_chroma_schema_override', true);
+        if ($override) {
+                // Check if it's already formatted with script tags or raw JSON
+                if (strpos($override, '<script') !== false) {
+                        echo $override; // Already contains script tags
+                } else {
+                        echo '<script type="application/ld+json">' . $override . '</script>';
+                }
+                return;
+        }
 
         // Ensure Advanced SEO classes are available
         if (!class_exists('Chroma_Fallback_Resolver')) {
@@ -136,8 +226,15 @@ function chroma_location_schema()
 
         // 2. SCHEMA CONSTRUCTION
         // ----------------------
+        $types = array('ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness');
+        
+        // Event Venue (Tier 19 - RRR) - Add if location is marked as event venue
+        if (get_post_meta($location_id, '_chroma_is_event_venue', true)) {
+            $types[] = 'EventVenue';
+        }
+        
         $schema = array(
-                '@type' => array('ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness'),
+                '@type' => $types,
                 '@id' => get_permalink() . '#organization',
                 'name' => $name,
                 'description' => $description,
@@ -167,14 +264,16 @@ function chroma_location_schema()
                 $schema['sameAs'] = array_values($socials);
         }
 
-        // Geo Coordinates
+        // Geo Coordinates & Area Served
+        $area_served = array();
+        
         if ($service_area) {
                 $schema['geo'] = array(
                         '@type' => 'GeoCoordinates',
                         'latitude' => $service_area['lat'],
                         'longitude' => $service_area['lng'],
                 );
-                $schema['areaServed'] = array(
+                $area_served[] = array(
                         '@type' => 'GeoCircle',
                         'geoMidpoint' => $schema['geo'],
                         'geoRadius' => ($service_area['radius'] * 1609.34) // Miles to meters
@@ -186,10 +285,40 @@ function chroma_location_schema()
                         'longitude' => $location_fields['longitude'],
                 );
         }
+        
+        // Bus Routes / Schools Served (Tier 10 - VV)
+        $schools_served = get_post_meta($location_id, 'location_schools_served', true);
+        if (!empty($schools_served)) {
+            if (is_array($schools_served)) {
+                foreach ($schools_served as $school) {
+                    $s_name = is_array($school) ? ($school['school_name'] ?? '') : $school;
+                    if ($s_name) {
+                        $area_served[] = array(
+                            '@type' => 'Place',
+                            'name' => trim($s_name) . ' (Transportation Offered)'
+                        );
+                    }
+                }
+            } else {
+                // Comma-separated fallback
+                foreach (explode(',', $schools_served) as $s) {
+                    if (trim($s)) {
+                        $area_served[] = array('@type' => 'Place', 'name' => trim($s));
+                    }
+                }
+            }
+        }
+        
+        if (!empty($area_served)) {
+            $schema['areaServed'] = $area_served;
+        }
 
-        // Google Maps
-        if ($location_fields['map_link']) {
-                $schema['hasMap'] = $location_fields['map_link']; // Assuming this exists or we construct it
+        // Google Maps CID Link (Tier 30 - DDDDD)
+        $cid = get_post_meta($location_id, '_chroma_google_maps_cid', true);
+        if ($cid) {
+            $schema['hasMap'] = "https://www.google.com/maps?cid=$cid";
+        } elseif ($location_fields['map_link']) {
+                $schema['hasMap'] = $location_fields['map_link'];
         } else {
                 // Construct Google Maps URL from address
                 $addr_string = urlencode($location_fields['address'] . ', ' . $location_fields['city'] . ', ' . $location_fields['state'] . ' ' . $location_fields['zip']);
@@ -228,6 +357,44 @@ function chroma_location_schema()
 
         // Attributes & Credentials
         $knowsAbout = array();
+        
+        // Initialize amenityFeature array
+        if (!isset($schema['amenityFeature'])) {
+            $schema['amenityFeature'] = array();
+        }
+        
+        // License/Permit (Tier 5 - AA)
+        $license_num = get_post_meta($location_id, '_chroma_license_number', true);
+        if ($license_num) {
+            $schema['hasCredential'] = array(
+                '@type' => 'EducationalOccupationalCredential',
+                'credentialCategory' => 'license',
+                'name' => 'Georgia DECAL License',
+                'identifier' => array(
+                    '@type' => 'PropertyValue',
+                    'propertyID' => 'License Number',
+                    'value' => $license_num
+                ),
+                'recognizedBy' => array(
+                    '@type' => 'GovernmentOrganization',
+                    'name' => 'Georgia Department of Early Care and Learning',
+                    'url' => 'https://www.decal.ga.gov/'
+                )
+            );
+        }
+        
+        // Safety Amenities (Tier 5 - BB)
+        $amenities = get_post_meta($location_id, '_chroma_amenities', true);
+        if (is_array($amenities) && !empty($amenities)) {
+            foreach ($amenities as $amenity) {
+                $schema['amenityFeature'][] = array(
+                    '@type' => 'LocationFeatureSpecification',
+                    'name' => $amenity,
+                    'value' => true
+                );
+            }
+        }
+        
         if ($quality_rated) {
                 $knowsAbout[] = 'Quality Rated Provider';
                 $schema['amenityFeature'][] = array(
@@ -245,6 +412,11 @@ function chroma_location_schema()
         }
         if (!empty($knowsAbout)) {
                 $schema['knowsAbout'] = $knowsAbout;
+        }
+        
+        // Clean empty amenityFeature array
+        if (empty($schema['amenityFeature'])) {
+            unset($schema['amenityFeature']);
         }
 
         // Audience (Ages)
@@ -322,12 +494,47 @@ function chroma_location_schema()
         }
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        
+        // Open House Event Schema (Tier 4 - I)
+        $open_house_date = get_post_meta($location_id, '_chroma_open_house_date', true);
+        if ($open_house_date) {
+            $event_schema = array(
+                '@context' => 'https://schema.org',
+                '@type' => 'Event',
+                'name' => 'Open House - ' . $name,
+                'startDate' => date('c', strtotime($open_house_date)),
+                'endDate' => date('c', strtotime($open_house_date) + 7200), // Default 2 hours
+                'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+                'eventStatus' => 'https://schema.org/EventScheduled',
+                'location' => array(
+                    '@type' => 'Place',
+                    'name' => $name,
+                    'address' => array(
+                        '@type' => 'PostalAddress',
+                        'streetAddress' => $location_fields['address'],
+                        'addressLocality' => $location_fields['city'],
+                        'addressRegion' => $location_fields['state'],
+                        'postalCode' => $location_fields['zip'],
+                        'addressCountry' => 'US'
+                    )
+                ),
+                'description' => "Join us for an Open House at $name. Meet the teachers, tour the classrooms, and learn about our curriculum.",
+                'organizer' => array(
+                    '@type' => 'Organization',
+                    'name' => $name,
+                    'url' => get_permalink()
+                )
+            );
+            echo '<script type="application/ld+json">' . wp_json_encode($event_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        }
+}
 }
 add_action('wp_head', 'chroma_location_schema');
 
 /**
  * Add Service Schema to City Pages
  */
+if (!function_exists('chroma_city_schema')) {
 function chroma_city_schema()
 {
         if (!is_singular('city')) {
@@ -335,6 +542,18 @@ function chroma_city_schema()
         }
 
         $post_id = get_the_ID();
+        
+        // Check for manual override
+        $override = get_post_meta($post_id, '_chroma_schema_override', true);
+        if ($override) {
+            if (strpos($override, '<script') !== false) {
+                echo $override;
+            } else {
+                echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+            }
+            return;
+        }
+
         $city_name = get_the_title();
         $location_ids = get_post_meta($post_id, 'city_nearby_locations', true);
 
@@ -381,11 +600,13 @@ function chroma_city_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 add_action('wp_head', 'chroma_city_schema');
 
 /**
  * Add Service Schema to Program Pages
  */
+if (!function_exists('chroma_program_schema')) {
 function chroma_program_schema()
 {
         if (!is_singular('program')) {
@@ -393,6 +614,17 @@ function chroma_program_schema()
         }
 
         $program_id = get_the_ID();
+        
+        // Check for manual override first
+        $override = get_post_meta($program_id, '_chroma_schema_override', true);
+        if ($override) {
+                if (strpos($override, '<script') !== false) {
+                        echo $override;
+                } else {
+                        echo '<script type="application/ld+json">' . $override . '</script>';
+                }
+                return;
+        }
 
         // Get custom values or fallbacks
         $name = get_post_meta($program_id, 'schema_prog_name', true) ?: get_the_title();
@@ -423,15 +655,24 @@ function chroma_program_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 add_action('wp_head', 'chroma_program_schema');
 
 /**
  * Add FAQPage Schema to Homepage (when FAQ section exists)
  */
+if (!function_exists('chroma_faq_schema')) {
 function chroma_faq_schema()
 {
         if (!is_front_page()) {
                 return;
+        }
+
+        // Check for manual override on homepage
+        $homepage_id = get_option('page_on_front');
+        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
+        if ($override) {
+            return;
         }
 
         // Check if FAQ data exists
@@ -477,6 +718,7 @@ function chroma_faq_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 add_action('wp_head', 'chroma_faq_schema');
 
 /**
@@ -484,17 +726,88 @@ add_action('wp_head', 'chroma_faq_schema');
  */
 
 /**
+ * Truncate social media title to optimal length
+ * 
+ * @param string $title The title to truncate
+ * @param int $max_length Maximum character length (default: 60 for OG)
+ * @return string Truncated title
+ */
+function chroma_truncate_social_title($title, $max_length = 60)
+{
+        if (strlen($title) <= $max_length) {
+                return $title;
+        }
+        // Truncate and add ellipsis
+        return substr($title, 0, $max_length - 3) . '...';
+}
+
+/**
+ * Get the best available image for social sharing
+ * Priority: 1) Featured image, 2) Custom meta field, 3) Site default
+ */
+function chroma_get_social_image()
+{
+        $image_url = '';
+
+        // Priority 1: Featured image
+        if (has_post_thumbnail()) {
+                $image_url = get_the_post_thumbnail_url(null, 'large');
+        }
+
+        // Priority 2: Custom meta field for social image (if set)
+        if (empty($image_url)) {
+                $post_id = get_the_ID();
+                if ($post_id) {
+                        $custom_image = get_post_meta($post_id, '_chroma_social_image', true);
+                        if (!empty($custom_image)) {
+                                $image_url = $custom_image;
+                        }
+                }
+        }
+
+        // Priority 3: Homepage featured image as site default
+        if (empty($image_url)) {
+                $home_id = get_option('page_on_front');
+                if ($home_id && has_post_thumbnail($home_id)) {
+                        $image_url = get_the_post_thumbnail_url($home_id, 'large');
+                }
+        }
+
+        // Priority 4: Theme customizer hero image
+        if (empty($image_url)) {
+                $hero_image = get_theme_mod('chroma_home_hero_image');
+                if (!empty($hero_image)) {
+                        $image_url = $hero_image;
+                }
+        }
+
+        // Priority 5: Hardcoded fallback
+        if (empty($image_url)) {
+                $image_url = get_template_directory_uri() . '/assets/images/chroma-social-default.jpg';
+        }
+
+        return $image_url;
+}
+
+/**
  * Open Graph Tags
  */
 function chroma_og_tags()
 {
+        // Truncate OG title to 60 characters max
+        $og_title = chroma_truncate_social_title(get_the_title(), 60);
+
         echo '<meta property="og:type" content="website" />' . "\n";
-        echo '<meta property="og:title" content="' . esc_attr(get_the_title()) . '" />' . "\n";
+        echo '<meta property="og:title" content="' . esc_attr($og_title) . '" />' . "\n";
         echo '<meta property="og:url" content="' . esc_url(get_permalink()) . '" />' . "\n";
         echo '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '" />' . "\n";
 
-        if (has_post_thumbnail()) {
-                echo '<meta property="og:image" content="' . esc_url(get_the_post_thumbnail_url(null, 'full')) . '" />' . "\n";
+        // Always output an og:image with fallback chain
+        $social_image = chroma_get_social_image();
+        if (!empty($social_image)) {
+                echo '<meta property="og:image" content="' . esc_url($social_image) . '" />' . "\n";
+                echo '<meta property="og:image:width" content="1200" />' . "\n";
+                echo '<meta property="og:image:height" content="630" />' . "\n";
         }
 
         $description = get_the_excerpt() ?: chroma_global_seo_default_description();
@@ -507,11 +820,16 @@ add_action('wp_head', 'chroma_og_tags', 5);
  */
 function chroma_twitter_cards()
 {
-        echo '<meta name="twitter:card" content="summary_large_image" />' . "\n";
-        echo '<meta name="twitter:title" content="' . esc_attr(get_the_title()) . '" />' . "\n";
+        // Truncate Twitter title to 55 characters max
+        $twitter_title = chroma_truncate_social_title(get_the_title(), 55);
 
-        if (has_post_thumbnail()) {
-                echo '<meta name="twitter:image" content="' . esc_url(get_the_post_thumbnail_url(null, 'full')) . '" />' . "\n";
+        echo '<meta name="twitter:card" content="summary_large_image" />' . "\n";
+        echo '<meta name="twitter:title" content="' . esc_attr($twitter_title) . '" />' . "\n";
+
+        // Use the same fallback chain as OG tags
+        $social_image = chroma_get_social_image();
+        if (!empty($social_image)) {
+                echo '<meta name="twitter:image" content="' . esc_url($social_image) . '" />' . "\n";
         }
 
         $description = get_the_excerpt() ?: chroma_global_seo_default_description();
@@ -547,7 +865,9 @@ function chroma_hreflang_tags()
                 echo '<link rel="alternate" hreflang="es" href="' . esc_url($alternate_es) . '" />' . "\n";
         }
 }
-add_action('wp_head', 'chroma_hreflang_tags', 1);
+if (!class_exists('Chroma_Multilingual_Manager')) {
+    add_action('wp_head', 'chroma_hreflang_tags', 1);
+}
 
 /**
  * Shared meta description output with fallbacks
@@ -557,6 +877,11 @@ add_action('wp_head', 'chroma_hreflang_tags', 1);
  */
 function chroma_shared_meta_description()
 {
+        // Skip for combo pages - handled by class-combo-page-generator.php
+        if (get_query_var('chroma_combo')) {
+                return;
+        }
+        
         // 1. Manual Override (General SEO Meta Box)
         $post_id = get_the_ID();
         $manual_description = $post_id ? get_post_meta($post_id, 'meta_description', true) : '';
@@ -755,82 +1080,276 @@ add_action('wp_head', 'chroma_meta_keywords', 3);
  */
 function chroma_custom_sitemap()
 {
-        if (!(isset($_GET['sitemap']) && 'xml' === $_GET['sitemap'])) {
+        if (get_query_var('sitemap') !== 'xml') {
                 return;
         }
 
+        // Get Options
+        $options = get_option('chroma_sitemap_options', array(
+                'enable_pages' => true,
+                'enable_posts' => true,
+                'enable_locations' => true,
+                'enable_programs' => true,
+                'exclude_ids' => '',
+                'custom_urls' => '',
+                'use_uploaded' => false,
+        ));
+
         header('Content-Type: application/xml; charset=utf-8');
 
+        // 1. Check for Static Upload Override
+        if (!empty($options['use_uploaded'])) {
+                $upload_dir = wp_upload_dir();
+                $static_path = $upload_dir['basedir'] . '/chroma-sitemap-manual.xml';
+                if (file_exists($static_path)) {
+                        readfile($static_path);
+                        exit;
+                }
+        }
+
+        // 2. Dynamic Generation
         echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
-        // Homepage.
+        // Homepage
         echo '<url>' . "\n";
-        echo '  <loc>' . esc_url(home_url('/')) . '</loc>' . "\n";
+        echo '  <loc>' . esc_url(user_trailingslashit(home_url('/'))) . '</loc>' . "\n";
         echo '  <lastmod>' . date('c') . '</lastmod>' . "\n";
         echo '  <changefreq>daily</changefreq>' . "\n";
         echo '  <priority>1.0</priority>' . "\n";
         echo '</url>' . "\n";
 
-        // Pages.
-        $pages = get_posts(
-                array(
+        $exclude_ids = array();
+        if (!empty($options['exclude_ids'])) {
+                $exclude_ids = array_map('trim', explode(',', $options['exclude_ids']));
+        }
+
+        // Pages
+        if (!empty($options['enable_pages'])) {
+                $pages = get_posts(array(
                         'post_type' => 'page',
                         'posts_per_page' => -1,
-                )
-        );
-        foreach ($pages as $page) {
-                echo '<url>' . "\n";
-                echo '  <loc>' . esc_url(get_permalink($page->ID)) . '</loc>' . "\n";
-                echo '  <lastmod>' . get_the_modified_date('c', $page->ID) . '</lastmod>' . "\n";
-                echo '  <changefreq>weekly</changefreq>' . "\n";
-                echo '  <priority>0.8</priority>' . "\n";
-                echo '</url>' . "\n";
+                        'exclude' => $exclude_ids,
+                        'post_status' => 'publish'
+                ));
+                foreach ($pages as $page) {
+                        echo '<url>' . "\n";
+                        echo '  <loc>' . esc_url(user_trailingslashit(get_permalink($page->ID))) . '</loc>' . "\n";
+                        echo '  <lastmod>' . get_the_modified_date('c', $page->ID) . '</lastmod>' . "\n";
+                        echo '  <changefreq>weekly</changefreq>' . "\n";
+                        echo '  <priority>0.8</priority>' . "\n";
+                        echo '</url>' . "\n";
+                }
         }
 
-        // Programs.
-        $programs = get_posts(
-                array(
+        // Programs
+        if (!empty($options['enable_programs'])) {
+                $programs = get_posts(array(
                         'post_type' => 'program',
                         'posts_per_page' => -1,
-                )
-        );
-        foreach ($programs as $program) {
-                echo '<url>' . "\n";
-                echo '  <loc>' . esc_url(get_permalink($program->ID)) . '</loc>' . "\n";
-                echo '  <lastmod>' . get_the_modified_date('c', $program->ID) . '</lastmod>' . "\n";
-                echo '  <changefreq>monthly</changefreq>' . "\n";
-                echo '  <priority>0.9</priority>' . "\n";
-                echo '</url>' . "\n";
+                        'exclude' => $exclude_ids,
+                        'post_status' => 'publish'
+                ));
+                foreach ($programs as $program) {
+                        echo '<url>' . "\n";
+                        echo '  <loc>' . esc_url(user_trailingslashit(get_permalink($program->ID))) . '</loc>' . "\n";
+                        echo '  <lastmod>' . get_the_modified_date('c', $program->ID) . '</lastmod>' . "\n";
+                        echo '  <changefreq>monthly</changefreq>' . "\n";
+                        echo '  <priority>0.9</priority>' . "\n";
+                        echo '</url>' . "\n";
+                }
         }
 
-        // Locations.
-        $locations = get_posts(
-                array(
+        // Locations
+        if (!empty($options['enable_locations'])) {
+                $locations = get_posts(array(
                         'post_type' => 'location',
                         'posts_per_page' => -1,
-                )
-        );
-        foreach ($locations as $location) {
-                echo '<url>' . "\n";
-                echo '  <loc>' . esc_url(get_permalink($location->ID)) . '</loc>' . "\n";
-                echo '  <lastmod>' . get_the_modified_date('c', $location->ID) . '</lastmod>' . "\n";
-                echo '  <changefreq>monthly</changefreq>' . "\n";
-                echo '  <priority>0.9</priority>' . "\n";
-                echo '</url>' . "\n";
+                        'exclude' => $exclude_ids,
+                        'post_status' => 'publish'
+                ));
+                foreach ($locations as $location) {
+                        echo '<url>' . "\n";
+                        echo '  <loc>' . esc_url(user_trailingslashit(get_permalink($location->ID))) . '</loc>' . "\n";
+                        echo '  <lastmod>' . get_the_modified_date('c', $location->ID) . '</lastmod>' . "\n";
+                        echo '  <changefreq>monthly</changefreq>' . "\n";
+                        echo '  <priority>0.9</priority>' . "\n";
+                        echo '</url>' . "\n";
+                }
+        }
+
+        // Posts
+        if (!empty($options['enable_posts'])) {
+                $posts = get_posts(array(
+                        'post_type' => 'post',
+                        'posts_per_page' => 100, // Limit blog posts to recent 100
+                        'exclude' => $exclude_ids,
+                        'post_status' => 'publish'
+                ));
+                foreach ($posts as $post) {
+                        echo '<url>' . "\n";
+                        echo '  <loc>' . esc_url(user_trailingslashit(get_permalink($post->ID))) . '</loc>' . "\n";
+                        echo '  <lastmod>' . get_the_modified_date('c', $post->ID) . '</lastmod>' . "\n";
+                        echo '  <changefreq>weekly</changefreq>' . "\n";
+                        echo '  <priority>0.7</priority>' . "\n";
+                        echo '</url>' . "\n";
+                }
+        }
+
+        // Custom URLs
+        if (!empty($options['custom_urls'])) {
+                $custom_urls = explode("\n", $options['custom_urls']);
+                foreach ($custom_urls as $url) {
+                        $url = trim($url);
+                        if (!empty($url)) {
+                                echo '<url>' . "\n";
+                                // Ensure manual URLs also get slashes if they look like internal directories
+                                $url = user_trailingslashit($url);
+                                echo '  <loc>' . esc_url($url) . '</loc>' . "\n";
+                                echo '  <changefreq>monthly</changefreq>' . "\n";
+                                echo '  <priority>0.6</priority>' . "\n";
+                                echo '</url>' . "\n";
+                        }
+                }
         }
 
         echo '</urlset>';
         exit;
 }
-add_action('template_redirect', 'chroma_custom_sitemap');
+// Disable Custom Sitemap Template Redirect
+// add_action('template_redirect', 'chroma_custom_sitemap');
+
+/**
+ * Custom Robots.txt
+ */
+/**
+ * Register Sitemap Rewrite Rules
+ */
+function chroma_register_sitemap_rewrites()
+{
+        add_rewrite_rule('^sitemap\.xml$', 'index.php?sitemap=xml', 'top');
+}
+// Disable Custom Sitemap Rewrite Rules in favor of Native
+// add_action('init', 'chroma_register_sitemap_rewrites');
+
+/**
+ * Register Sitemap Query Var
+ */
+function chroma_register_sitemap_query_var($vars)
+{
+        $vars[] = 'sitemap';
+        return $vars;
+}
+add_filter('query_vars', 'chroma_register_sitemap_query_var');
+
+/**
+ * Disable Default WP Sitemap - REMOVED to use Native Sitemap with filters
+ */
+// remove_action('init', 'wp_sitemaps_get_server');
+
+/**
+ * Configure Native WordPress Sitemap
+ */
+function chroma_sitemap_config()
+{
+        // 1. Post Types: Only allow specific types
+        add_filter('wp_sitemaps_post_types', function ($post_types) {
+                $allowed = array('post', 'page', 'location', 'program', 'city');
+                foreach ($post_types as $pt => $obj) {
+                        if (!in_array($pt, $allowed)) {
+                                unset($post_types[$pt]);
+                        }
+                }
+                return $post_types;
+        });
+
+        // 2. Taxonomies: Disable ALL taxonomies
+        add_filter('wp_sitemaps_taxonomies', function ($taxonomies) {
+                return array(); // Empty array removes all taxonomies
+        });
+
+        // 3. Users: Disable user sitemaps
+        add_filter('wp_sitemaps_add_provider', function ($provider, $name) {
+                if ('users' === $name) {
+                        return false;
+                }
+                return $provider;
+        }, 10, 2);
+}
+add_action('init', 'chroma_sitemap_config');
 
 /**
  * Custom Robots.txt
  */
 function chroma_custom_robots_txt($output)
 {
-        $output .= 'Sitemap: ' . home_url('/?sitemap=xml') . "\n";
+        $output .= 'Sitemap: ' . home_url('/sitemap.xml') . "\n";
         return $output;
 }
-add_filter('robots_txt', 'chroma_custom_robots_txt');
+
+/**
+ * Add FAQPage Schema to City Pages (Hidden, matches visible FAQ content)
+ */
+if (!function_exists('chroma_city_faq_schema_output')) {
+function chroma_city_faq_schema_output()
+{
+        if (!is_singular('city')) {
+                return;
+        }
+
+        // Check for manual override
+        $override = get_post_meta(get_the_ID(), '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
+        $city = get_the_title();
+        $county = get_post_meta(get_the_ID(), 'city_county', true) ?: 'Local';
+
+        // Questions and Answers from single-city.php
+        // Q1
+        $q1 = "Do you offer GA Lottery Pre-K in $city?";
+        $a1 = "Yes! Our locations serving $city participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia.";
+
+        // Q2
+        $q2 = "Do you provide transportation from $city schools?";
+        $a2 = "We provide safe bus transportation from most major elementary schools in the $county School District. Check the specific campus page for a full list.";
+
+        // Q3
+        $q3 = "What ages do you accept at your $city centers?";
+        $a3 = "We serve children from 6 weeks old (<a href='" . chroma_get_page_link('infant-care') . "'>Infant Care</a>) up to 12 years old (<a href='" . chroma_get_page_link('after-school') . "'>After School</a>). We also offer a <a href='" . chroma_get_page_link('pre-k-prep') . "'>Pre-K Prep</a> option at select locations.";
+
+        // Q4
+        $q4 = "How do I enroll my child in $city?";
+        $a4 = "The best way to start is by scheduling a tour at your preferred location. You can book online or call us directly. We'll walk you through the enrollment process and answer all your questions.";
+
+        $faq_items = array(
+                array('question' => $q1, 'answer' => $a1),
+                array('question' => $q2, 'answer' => $a2),
+                array('question' => $q3, 'answer' => $a3),
+                array('question' => $q4, 'answer' => $a4),
+        );
+
+        $entities = array();
+        foreach ($faq_items as $item) {
+                $entities[] = array(
+                        '@type' => 'Question',
+                        'name' => $item['question'],
+                        'acceptedAnswer' => array(
+                                '@type' => 'Answer',
+                                'text' => $item['answer'],
+                        ),
+                );
+        }
+
+        $schema = array(
+                '@context' => 'https://schema.org',
+                '@type' => 'FAQPage',
+                'mainEntity' => $entities,
+        );
+
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+}
+}
+// DISABLED - Moved to Chroma SEO Pro Plugin
+// add_action('wp_head', 'chroma_city_faq_schema_output');

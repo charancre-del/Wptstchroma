@@ -84,8 +84,9 @@ $programs_query = new WP_Query(array(
 
 						<!-- Program Card -->
 						<div
-							class="group bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition-all hover:-translate-y-1 flex flex-col h-full fade-in-up <?php echo esc_attr($delay_class); ?>">
-							<div class="h-48 rounded-[2rem] overflow-hidden mb-6 relative">
+							class="relative group bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition-all hover:-translate-y-1 flex flex-col h-full fade-in-up <?php echo esc_attr($delay_class); ?>">
+							<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0" aria-label="View details for <?php the_title_attribute(); ?>"></a>
+							<a href="<?php the_permalink(); ?>" class="h-48 rounded-[2rem] overflow-hidden mb-6 relative block group-hover:opacity-90 transition-opacity">
 								<div
 									class="absolute inset-0 bg-<?php echo esc_attr($colors['light']); ?> group-hover:bg-transparent transition-colors duration-500 z-10">
 								</div>
@@ -105,9 +106,13 @@ $programs_query = new WP_Query(array(
 										<?php echo esc_html($age_range); ?>
 									</div>
 								<?php endif; ?>
-							</div>
+							</a>
 
-							<h2 class="font-serif text-2xl font-bold text-brand-ink mb-2"><?php the_title(); ?></h2>
+							<h2 class="font-serif text-2xl font-bold text-brand-ink mb-2">
+								<a href="<?php the_permalink(); ?>" class="hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
+									<?php the_title(); ?>
+								</a>
+							</h2>
 
 							<p class="text-sm text-brand-ink/90 mb-6 flex-grow">
 								<?php echo has_excerpt() ? get_the_excerpt() : wp_trim_words(get_the_content(), 20); ?>
@@ -126,7 +131,7 @@ $programs_query = new WP_Query(array(
 
 							<a href="<?php echo esc_url($cta_link); ?>"
 								aria-label="<?php echo esc_attr($cta_text . ' for ' . get_the_title()); ?>"
-								class="w-full py-3 rounded-xl border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-wider text-center hover:bg-<?php echo esc_attr($colors['main']); ?> hover:text-white hover:border-<?php echo esc_attr($colors['main']); ?> transition-colors">
+								class="relative z-10 w-full py-3 rounded-xl border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-wider text-center hover:bg-<?php echo esc_attr($colors['main']); ?> hover:text-white hover:border-<?php echo esc_attr($colors['main']); ?> transition-colors">
 								<?php echo esc_html($cta_text); ?>
 							</a>
 						</div>
@@ -229,32 +234,7 @@ $programs_query = new WP_Query(array(
 	</section>
 </main>
 
-<style>
-	.fade-in-up {
-		animation: fadeInUp 0.8s ease forwards;
-		opacity: 0;
-		transform: translateY(20px);
-	}
 
-	.delay-100 {
-		animation-delay: 0.1s;
-	}
-
-	.delay-200 {
-		animation-delay: 0.2s;
-	}
-
-	.delay-300 {
-		animation-delay: 0.3s;
-	}
-
-	@keyframes fadeInUp {
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-</style>
 
 <?php
 get_footer();

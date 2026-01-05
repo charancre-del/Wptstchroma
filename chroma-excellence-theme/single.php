@@ -34,7 +34,6 @@ $related_query = new WP_Query($related_args);
 
 <head>
   <meta charset="<?php bloginfo('charset'); ?>" />
-  <title><?php echo esc_html(get_the_title() . ' | ' . get_bloginfo('name')); ?></title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -122,22 +121,16 @@ $related_query = new WP_Query($related_args);
   <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-chroma-blue/10">
     <div class="max-w-7xl mx-auto px-4 lg:px-6 h-[82px] flex items-center justify-between">
       <a href="<?php echo esc_url(home_url('/')); ?>">
-        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo.png'); ?>"
-          srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo.png'); ?> 1x,
-                     <?php echo esc_url(get_template_directory_uri() . '/assets/images/chroma-logo-highres.png'); ?> 2x" alt="Chroma Early Learning" class="h-10 w-auto" />
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?>"
+          srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?> 1x,
+                     <?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp'); ?> 2x" alt="Chroma Early Learning" class="h-12 w-auto" />
       </a>
       <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-ink/80">
-        <?php
-        $stories_page = get_page_by_path('stories');
-        $stories_url = $stories_page ? get_permalink($stories_page->ID) : home_url('/stories/');
-        ?>
+        <?php $stories_url = chroma_smart_link('stories'); ?>
         <a href="<?php echo esc_url($stories_url); ?>" class="hover:text-chroma-blue flex items-center gap-2"><i
             class="fa-solid fa-arrow-left"></i> Back to Stories</a>
       </nav>
-      <?php
-      $locations_page = get_page_by_path('locations');
-      $locations_url = $locations_page ? get_permalink($locations_page->ID) : home_url('/locations/');
-      ?>
+      <?php $locations_url = chroma_smart_link('locations'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
         class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft">Book
         Tour</a>
@@ -149,7 +142,7 @@ $related_query = new WP_Query($related_args);
       <header class="py-20 text-center max-w-4xl mx-auto px-4">
         <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-chroma-blue mb-6">
           <span class="w-2 h-2 bg-chroma-blue rounded-full"></span> <?php echo esc_html($primary_category); ?>
-          <span class="text-brand-ink/50">•</span> <?php echo esc_html($post_date); ?>
+          <span class="text-brand-ink/70">•</span> <?php echo esc_html($post_date); ?>
         </div>
         <h1 class="font-serif text-4xl md:text-6xl text-brand-ink mb-8 leading-tight"><?php the_title(); ?></h1>
         <div class="flex items-center justify-center gap-4">

@@ -334,6 +334,7 @@ function chroma_acquisition_form_shortcode()
     ?>
     <form class="chroma-acquisition-form space-y-4" method="post" action="">
         <?php wp_nonce_field('chroma_acquisition_submit', 'chroma_acquisition_nonce'); ?>
+        <input type="hidden" name="chroma_acquisition_redirect" value="<?php echo esc_url(get_permalink()); ?>" />
 
         <div class="grid md:grid-cols-2 gap-4">
             <?php foreach ($fields as $field):
@@ -426,7 +427,7 @@ function chroma_handle_acquisition_submission()
     }
 
     $redirect_fallback = home_url('/acquisitions/');
-    $redirect_target = wp_get_referer() ?: $redirect_fallback;
+    $redirect_target = !empty($_POST['chroma_acquisition_redirect']) ? esc_url_raw(wp_unslash($_POST['chroma_acquisition_redirect'])) : (wp_get_referer() ?: $redirect_fallback);
     $redirect_url = wp_validate_redirect($redirect_target, $redirect_fallback);
 
     if ($has_error || empty($email)) {

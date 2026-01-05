@@ -3,6 +3,19 @@
 RewriteEngine On
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteBase /
+
+# Force Non-WWW (chromaela.com)
+# Force Non-WWW
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+# Force Trailing Slash (prevent duplicate URLs in sitemap)
+# Skip if it's an actual file or already has trailing slash
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_URI} !(.*)/$
+RewriteCond %{REQUEST_URI} !\.(xml|json|txt|html|php|css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|pdf)$
+RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1/ [R=301,L]
+
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

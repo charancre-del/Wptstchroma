@@ -42,6 +42,8 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-cities.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
+require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
+require_once CHROMA_THEME_DIR . '/inc/class-amp-blog.php';
 
 // API Handlers
 require_once CHROMA_THEME_DIR . '/inc/careers-api.php';
@@ -61,11 +63,14 @@ require_once CHROMA_THEME_DIR . '/inc/general-seo-meta.php';
 
 // Utility Functions
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
+require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
 require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-home.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-seo.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
 
 // Legacy helper files (ACF plugin optional; helpers run on core WP functions only)
 require_once CHROMA_THEME_DIR . '/inc/acf-options.php';
@@ -82,13 +87,16 @@ require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 // LLM SEO / Citation Module (Legacy - Disabled to prevent conflict with Advanced SEO/LLM)
 // require_once CHROMA_THEME_DIR . '/inc/llm-seo/bootstrap.php';
 
-// Advanced SEO/LLM Module (Editable Fields)
-require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
+// Advanced SEO/LLM Module - MOVED TO PLUGIN
+// require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
+
+// SEO Automations (Internal Linking, Geo SEO, etc.)
+require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
 
 
 
 require_once CHROMA_THEME_DIR . '/inc/security.php';
-require_once CHROMA_THEME_DIR . '/inc/critical-css.php';
+require_once CHROMA_THEME_DIR . '/inc/force-trailing-slashes.php';
 
 /**
  * Remove Legacy JavaScript & Styles
@@ -113,6 +121,88 @@ function chroma_remove_legacy_assets()
 }
 add_action('init', 'chroma_remove_legacy_assets');
 
+/**
+ * Remove Gutenberg Block Library CSS on Frontend
+ * This theme doesn't use Gutenberg blocks, so we can remove these render-blocking styles
+ */
+function chroma_remove_block_library_css() {
+    if (!is_admin()) {
+        // Remove core block library CSS
+        wp_dequeue_style('wp-block-library');
+        wp_dequeue_style('wp-block-library-theme');
+        
+        // Remove WooCommerce block CSS (if any)
+        wp_dequeue_style('wc-blocks-style');
+        
+        // Remove global styles (theme.json generated)
+        wp_dequeue_style('global-styles');
+        wp_dequeue_style('wp-block-navigation');
+        wp_dequeue_style('classic-theme-styles');
+    }
+}
+add_action('wp_enqueue_scripts', 'chroma_remove_block_library_css', 100);
+
+// Disable separate block assets loading (WordPress 5.8+)
+add_filter('should_load_separate_core_block_assets', '__return_false');
+
+// Remove inline block styles for specific blocks
+add_action('wp_enqueue_scripts', function() {
+    // Get all registered block styles and remove them
+    $blocks_to_remove = ['heading', 'paragraph', 'list', 'list-item', 'quote', 'image', 'separator'];
+    foreach ($blocks_to_remove as $block) {
+        wp_dequeue_style("wp-block-{$block}");
+        wp_deregister_style("wp-block-{$block}");
+    }
+}, 200);
+
+/**
+ * Exclude images with 'no-lazy' class from LiteSpeed lazy loading
+ * This prevents CLS on hero images and other critical above-the-fold images
+ */
+add_filter('litespeed_media_lazy_img_excludes', function($excludes) {
+    $excludes[] = 'no-lazy';
+    $excludes[] = 'fetchpriority';
+    return $excludes;
+});
+
+// Also exclude from native WordPress lazy loading
+add_filter('wp_img_tag_add_loading_attr', function($value, $image, $context) {
+    if (strpos($image, 'no-lazy') !== false || strpos($image, 'fetchpriority') !== false) {
+        return false; // Don't add loading="lazy"
+    }
+    return $value;
+}, 10, 3);
+
+
+/**
+ * Add CORS Headers for Font Files
+ * Fixes: Cross-origin font loading when site is accessed via www vs non-www
+ */
+function chroma_add_cors_headers()
+{
+    // Only add headers for font file requests
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+
+    if (preg_match('/\.(woff2?|ttf|otf|eot)$/i', $request_uri)) {
+        header('Access-Control-Allow-Origin: *');
+        header('Access-Control-Allow-Methods: GET, OPTIONS');
+        header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept');
+    }
+}
+add_action('send_headers', 'chroma_add_cors_headers');
+
+/**
+ * Add CORS headers to font files served by WordPress
+ * This filter adds headers when fonts are served through WordPress
+ */
+function chroma_cors_font_headers($headers, $path)
+{
+    if (preg_match('/\.(woff2?|ttf|otf|eot)$/i', $path)) {
+        $headers['Access-Control-Allow-Origin'] = '*';
+    }
+    return $headers;
+}
+add_filter('wp_get_attachment_headers', 'chroma_cors_font_headers', 10, 2);
 
 /**
  * Performance Optimizations - Phase 1 (Safe Mode)
@@ -186,15 +276,12 @@ add_filter('upload_mimes', 'chroma_mime_types');
 
 
 /**
- * Move jQuery to footer for better performance
- * This prevents jQuery from blocking initial render
-/**
  * Defer non-critical third-party scripts.
  */
 function chroma_defer_scripts($tag, $handle, $src)
 {
-    // List of scripts to defer
-    $defer_scripts = array('jquery.min.js', 'jquery-migrate.min.js', 'gtag', 'did-0014');
+    // List of scripts to defer (Removed jQuery to prevent "jQuery is not defined" errors)
+    $defer_scripts = array('gtag', 'did-0014');
 
     foreach ($defer_scripts as $script) {
         if ($src && strpos($src, $script) !== false) {
@@ -252,60 +339,64 @@ function chroma_dequeue_leadconnector_plugin()
 }
 add_action('wp_enqueue_scripts', 'chroma_dequeue_leadconnector_plugin', 9999);
 
+
+
+
 /**
- * Lazy Load LeadConnector Widget
- * Delays loading until 3 seconds after page load or on first user interaction
- * This prevents the widget from blocking initial render and improves LCP/FCP
+ * URL Consistency: Force trailing slashes on all URLs
+ * This prevents duplicate content issues like /programs vs /programs/
  */
-function chroma_lazy_load_leadconnector()
+function chroma_enforce_trailing_slash($url, $type)
 {
+    // Skip files (anything with an extension)
+    if (preg_match('/\.[a-zA-Z0-9]+(\?|$)/', $url)) {
+        return $url;
+    }
 
-    ?>
-    <script>
-        (function () {
-            var loaded = false;
+    // Skip feed URLs
+    if ($type === 'single_feed' || $type === 'category_feed') {
+        return $url;
+    }
 
-            // Function to load the widget
-            var loadWidget = function () {
-                if (loaded) return;
-                loaded = true;
-
-                // Find existing LeadConnector script if present and remove it
-                var existingScripts = document.querySelectorAll('script[src*="leadconnectorhq.com"]');
-                existingScripts.forEach(function (script) {
-                    script.remove();
-                });
-
-                // Load the widget script
-                var script = document.createElement('script');
-                script.src = 'https://widgets.leadconnectorhq.com/loader.js';
-                script.setAttribute('data-resources-url', 'https://widgets.leadconnectorhq.com/chat-widget/loader.js');
-                script.async = true;
-                document.body.appendChild(script);
-                console.log('LeadConnector Widget Loaded');
-            };
-
-            // Device Detection Logic (Client-Side)
-            var isMobile = window.innerWidth < 768;
-
-            if (isMobile) {
-                // Mobile: Lazy load after 3.5 seconds
-                console.log('Mobile detected: Lazy loading LeadConnector (3.5s delay)');
-                setTimeout(loadWidget, 3500);
-
-                // Or on user interaction
-                var events = ['mousedown', 'touchstart', 'keydown', 'scroll'];
-                events.forEach(function (event) {
-                    window.addEventListener(event, loadWidget, { once: true, passive: true });
-                });
-            } else {
-                // Desktop: Load immediately (but defer slightly to let LCP finish)
-                console.log('Desktop detected: Loading LeadConnector immediately');
-                setTimeout(loadWidget, 100);
-            }
-        })();
-    </script>
-    <?php
+    return trailingslashit($url);
 }
-add_action('wp_footer', 'chroma_lazy_load_leadconnector', 999);
+add_filter('user_trailingslashit', 'chroma_enforce_trailing_slash', 10, 2);
 
+/**
+ * Title Length Optimization for SEO
+ * Ensures titles stay within recommended limits
+ */
+function chroma_optimize_title_length($title_parts)
+{
+    // Truncate very long titles
+    if (isset($title_parts['title']) && mb_strlen($title_parts['title']) > 50) {
+        $title_parts['title'] = mb_substr($title_parts['title'], 0, 47) . '...';
+    }
+
+    // Use shorter site name suffix on blog posts
+    if (is_single() && isset($title_parts['site'])) {
+        $title_parts['site'] = 'Chroma';
+    }
+
+    return $title_parts;
+}
+add_filter('document_title_parts', 'chroma_optimize_title_length', 10);
+
+/**
+ * Use shorter title separator for cleaner titles
+ */
+function chroma_title_separator($sep)
+{
+    return '|';
+}
+add_filter('document_title_separator', 'chroma_title_separator');
+
+/**
+ * Disable Speculation Rules
+ * Prevents browser prefetching/prerendering which can cause issues with dynamic content
+ */
+// Programmatically disable Speculation Rules API from WordPress Core or Performance Lab plugin
+remove_action('wp_head', 'wp_speculation_rules');
+remove_action('wp_footer', 'wp_speculation_rules');
+add_filter('wp_speculation_rules_configuration', '__return_empty_array', PHP_INT_MAX);
+add_filter('pl_speculation_rules_configuration', '__return_empty_array', PHP_INT_MAX);

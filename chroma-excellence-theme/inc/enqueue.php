@@ -29,9 +29,6 @@ function chroma_should_load_maps()
  */
 function chroma_enqueue_assets()
 {
-        // DEBUG: Confirm this function is executing
-        echo '<!-- DEBUG: chroma_enqueue_assets is running -->';
-
         $script_dependencies = array('jquery');
 
         // Font Awesome (Subset)
@@ -45,20 +42,9 @@ function chroma_enqueue_assets()
                 'all'
         );
 
+        // Chart.js is now lazy loaded in main.js
         if (is_front_page()) {
-                $chart_js_path = CHROMA_THEME_DIR . '/assets/js/chart.min.js';
-                $chart_js_version = file_exists($chart_js_path) ? filemtime($chart_js_path) : '4.4.1';
-
-                wp_enqueue_script(
-                        'chartjs',
-                        CHROMA_THEME_URI . '/assets/js/chart.min.js',
-                        array(),
-                        $chart_js_version,
-                        true
-                );
-
-                wp_script_add_data('chartjs', 'defer', true);
-                $script_dependencies[] = 'chartjs';
+                // Chart.js removed from initial load - saved ~200KB
         }
 
         // Compiled Tailwind CSS.
@@ -153,6 +139,25 @@ function chroma_enqueue_assets()
                 /* Accessibility: Increase contrast for muted text */
                 .text-brand-ink\/60 { color: rgba(38, 50, 56, 0.9) !important; }
                 .text-brand-ink\/70 { color: rgba(38, 50, 56, 0.95) !important; }
+
+                /* Animations (Moved from templates for AMP compatibility) */
+                .fade-in-up {
+                    animation: fadeInUp 0.8s ease forwards;
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                .delay-100 { animation-delay: 0.1s; }
+                .delay-200 { animation-delay: 0.2s; }
+                .delay-300 { animation-delay: 0.3s; }
+                @keyframes fadeInUp {
+                    to { opacity: 1; transform: translateY(0); }
+                }
+
+                /* Custom Scrollbar for Job Board */
+                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #334155; }
         ";
         wp_add_inline_style('chroma-main', $custom_css);
 
@@ -167,9 +172,6 @@ function chroma_enqueue_assets()
                 $js_version,
                 true
         );
-
-        // DEBUG: Confirm script was enqueued
-        echo '<!-- DEBUG: Enqueued chroma-main-js with URL: ' . CHROMA_THEME_URI . '/assets/js/main.js and version: ' . $js_version . ' -->';
 
         // Defer re-enabled for FCP optimization
         wp_script_add_data('chroma-main-js', 'defer', true);
@@ -288,7 +290,7 @@ add_action('admin_enqueue_scripts', 'chroma_enqueue_admin_assets');
 function chroma_async_styles($html, $handle, $href, $media)
 {
         // Defer Font Awesome AND Main CSS (Critical CSS inlined in header)
-        if (in_array($handle, array('chroma-font-awesome'))) {
+        if (in_array($handle, array('chroma-font-awesome', 'chroma-main'))) {
                 // Add data-no-optimize to prevent LiteSpeed from combining/blocking this file
                 $html = str_replace('<link', '<link data-no-optimize="1"', $html);
 
@@ -314,6 +316,18 @@ function chroma_dequeue_dashicons()
                 wp_deregister_style('dashicons');
         }
 }
+/**
+ * Preload Main CSS to minimize FOUC (Flash of Unstyled Content)
+ */
+function chroma_preload_main_css() {
+    $css_path = CHROMA_THEME_DIR . '/assets/css/main.css';
+    $css_version = file_exists($css_path) ? filemtime($css_path) : CHROMA_VERSION;
+    $css_url = CHROMA_THEME_URI . '/assets/css/main.css?ver=' . $css_version;
+    
+    echo '<link rel="preload" href="' . esc_url($css_url) . '" as="style">' . "\n";
+}
+add_action('wp_head', 'chroma_preload_main_css', 1);
+
 add_action('wp_enqueue_scripts', 'chroma_dequeue_dashicons');
 
 

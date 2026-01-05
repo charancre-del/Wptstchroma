@@ -53,27 +53,7 @@ $cta_description = get_post_meta($page_id, 'careers_cta_description', true) ?: '
 $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
 ?>
 
-<style>
-	/* Custom Scrollbar for Job Board */
-	.custom-scrollbar::-webkit-scrollbar {
-		width: 6px;
-	}
 
-	.custom-scrollbar::-webkit-scrollbar-track {
-		background: #f1f1f1;
-		border-radius: 4px;
-	}
-
-	.custom-scrollbar::-webkit-scrollbar-thumb {
-		background: #1e293b;
-		/* brand-ink */
-		border-radius: 4px;
-	}
-
-	.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-		background: #334155;
-	}
-</style>
 
 <main id="primary" class="site-main" role="main">
 	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
@@ -141,7 +121,8 @@ $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
 					<?php if (!empty($jobs)): ?>
 						<?php foreach ($jobs as $job): ?>
 							<div
-								class="border border-brand-ink/10 rounded-2xl p-6 hover:border-chroma-red/50 transition-colors flex flex-col md:flex-row justify-between items-center gap-4 bg-white">
+								class="relative group border border-brand-ink/10 rounded-2xl p-6 hover:border-chroma-red/50 transition-colors flex flex-col md:flex-row justify-between items-center gap-4 bg-white">
+								<a href="<?php echo esc_url($job['url']); ?>" class="job-modal-trigger absolute inset-0 z-10" aria-label="Apply for <?php echo esc_attr($job['title']); ?>"></a>
 								<div>
 									<h3 class="font-bold text-xl text-brand-ink">
 										<?php echo esc_html($job['title']); ?>
@@ -151,8 +132,8 @@ $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
 										<?php echo esc_html($job['type']); ?>
 									</p>
 								</div>
-								<a href="<?php echo esc_url($job['url']); ?>" target="_blank" rel="noopener noreferrer"
-									class="px-6 py-3 border border-brand-ink/20 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-colors whitespace-nowrap">
+								<a href="<?php echo esc_url($job['url']); ?>" 
+									class="job-modal-trigger relative z-20 px-6 py-3 border border-brand-ink/20 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-colors whitespace-nowrap">
 									Apply Now
 								</a>
 							</div>
@@ -186,6 +167,93 @@ $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
 
 	</article>
 </main>
+
+<!-- Job Application Modal -->
+<div id="chroma-job-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+	<!-- Backdrop -->
+	<div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="chroma-job-backdrop">
+	</div>
+
+	<!-- Modal Container -->
+	<div
+		class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+		<!-- Header -->
+		<div
+			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
+			<h3 class="font-serif text-xl font-bold text-brand-ink">Apply for Position</h3>
+			<div class="flex items-center gap-4">
+				<a href="#" id="chroma-job-external" target="_blank"
+					class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:block">
+					Open in new tab <i class="fa-solid fa-external-link-alt ml-1"></i>
+				</a>
+				<button id="chroma-job-close"
+					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
+					<i class="fa-solid fa-xmark text-lg"></i>
+				</button>
+			</div>
+		</div>
+
+		<!-- Iframe Container -->
+		<div class="flex-grow relative bg-white">
+			<div id="chroma-job-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+				<div class="w-12 h-12 border-4 border-chroma-red/20 border-t-chroma-red rounded-full animate-spin">
+				</div>
+			</div>
+			<iframe id="chroma-job-frame" src="" class="w-full h-full border-0"
+				title="Job Application Frame"
+				allow="camera; microphone; autoplay; encrypted-media;"></iframe>
+		</div>
+	</div>
+</div>
+
+<script>
+	document.addEventListener('DOMContentLoaded', function () {
+		const modal = document.getElementById('chroma-job-modal');
+		const backdrop = document.getElementById('chroma-job-backdrop');
+		const closeBtn = document.getElementById('chroma-job-close');
+		const iframe = document.getElementById('chroma-job-frame');
+		const externalLink = document.getElementById('chroma-job-external');
+		const loader = document.getElementById('chroma-job-loader');
+
+		function openModal(url) {
+			modal.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+			loader.classList.remove('hidden');
+			iframe.src = url;
+			externalLink.href = url;
+			iframe.onload = function () {
+				loader.classList.add('hidden');
+			};
+		}
+
+		function closeModal() {
+			modal.classList.add('hidden');
+			document.body.style.overflow = '';
+			iframe.src = '';
+		}
+
+		// Attach listeners to job triggers
+		const triggers = document.querySelectorAll('.job-modal-trigger');
+		triggers.forEach(trigger => {
+			trigger.addEventListener('click', function (e) {
+				const url = this.getAttribute('href');
+				if (url && url.startsWith('http')) {
+					e.preventDefault();
+					openModal(url);
+				}
+			});
+		});
+
+		// Close actions
+		if (closeBtn) closeBtn.addEventListener('click', closeModal);
+		if (backdrop) backdrop.addEventListener('click', closeModal);
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+				closeModal();
+			}
+		});
+	});
+</script>
 
 <?php
 get_footer();

@@ -50,3 +50,9 @@ All rights reserved. This theme is proprietary software.
         height: 4rem;
     }
 }
+
+/* Prevent horizontal scroll from off-canvas menu */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}
