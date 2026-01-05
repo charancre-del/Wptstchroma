@@ -33,7 +33,7 @@ class Chroma_Content_Inspector
 
     public function render_page()
     {
-        $post_types = ['page', 'location', 'program'];
+        $post_types = ['page', 'location', 'program', 'city'];
         $posts = get_posts([
             'post_type' => $post_types,
             'posts_per_page' => -1,
@@ -46,7 +46,20 @@ class Chroma_Content_Inspector
         $translated = 0;
         $untranslated_ids = [];
         foreach ($posts as $post) {
-            if (get_post_meta($post->ID, '_chroma_es_content', true)) {
+            // Check for content OR specific meta keys depending on type
+            $is_translated = get_post_meta($post->ID, '_chroma_es_content', true);
+            
+            if (!$is_translated) {
+                if ($post->post_type === 'location') {
+                    $is_translated = get_post_meta($post->ID, '_chroma_es_location_address', true);
+                } elseif ($post->post_type === 'program') {
+                    $is_translated = get_post_meta($post->ID, '_chroma_es_program_age_range', true);
+                } elseif ($post->post_type === 'city') {
+                    $is_translated = get_post_meta($post->ID, '_chroma_es_city_state', true);
+                }
+            }
+
+            if ($is_translated) {
                 $translated++;
             } else {
                 $untranslated_ids[] = $post->ID;
@@ -150,6 +163,18 @@ class Chroma_Content_Inspector
                             $es_url = $alternates['es'] ?? 'N/A';
                             
                             $has_content = get_post_meta($post->ID, '_chroma_es_content', true);
+                            
+                            // Enhanced check for table rows
+                            if (!$has_content) {
+                                if ($post->post_type === 'location') {
+                                    $has_content = get_post_meta($post->ID, '_chroma_es_location_address', true);
+                                } elseif ($post->post_type === 'program') {
+                                    $has_content = get_post_meta($post->ID, '_chroma_es_program_age_range', true);
+                                } elseif ($post->post_type === 'city') {
+                                    $has_content = get_post_meta($post->ID, '_chroma_es_city_state', true);
+                                }
+                            }
+
                             $manual_url = get_post_meta($post->ID, 'alternate_url_es', true);
                             
                             $status_icon = $has_content ? '<span class="dashicons dashicons-yes" style="color:green"></span>' : '<span class="dashicons dashicons-minus" style="color:#ccc"></span>';
