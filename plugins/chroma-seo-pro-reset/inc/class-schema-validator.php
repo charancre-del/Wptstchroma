@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Schema Validator
  * Validates JSON-LD schema before output to ensure compliance with Schema.org and Google requirements
