@@ -1218,7 +1218,7 @@ class Chroma_LLM_Client
 
         return $content;
     }
-    }
+
 
     /**
      * Get Cached Response
