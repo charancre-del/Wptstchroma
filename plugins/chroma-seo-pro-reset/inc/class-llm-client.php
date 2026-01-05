@@ -1160,9 +1160,8 @@ class Chroma_LLM_Client
         $prompt .= "4. **CONSOLIDATE**: If multiple similar entities exist, merge them into the richest possible version. Discard the redundant ones.\n";
         $prompt .= "5. **FIX ERRORS**: Fix the validation errors listed above.\n";
         $prompt .= "6. **CLEAN UP**: Remove empty properties or duplicate values in arrays.\n";
-        $prompt .= "7. **FINAL FORMAT**: Return ONLY the JSON-LD script code. No markdown formatting, no explanations.\n";
-        $prompt .= "5. Ensure all dates are in ISO 8601 format and URLs are valid (https://).\n";
-        $prompt .= "6. CRITICAL: Return ONLY the fixed JSON object (preferably using `@graph`).\n\n";
+        $prompt .= "7. **FINAL FORMAT**: Return ONLY valid JSON. If multiple items exist, they MUST be inside a root `@graph` array.\n";
+        $prompt .= "8. **CRITICAL**: Do NOT output multiple separate JSON objects (e.g. `}{`). Output exactly one JSON object.\n\n";
         
         $prompt .= "=== BROKEN SCHEMA ===\n";
         $prompt .= $raw_schema;
@@ -1197,21 +1196,40 @@ class Chroma_LLM_Client
 
         $content = $response['choices'][0]['message']['content'];
         
-        // Clean potential wrappers (even in json mode, sometimes it's wrapped)
-        // Clean potential wrappers (even in json mode, sometimes it's wrapped)
+        // Clean potential wrappers
         if (preg_match('/```(?:json)?\s*(\{.*\})\s*```/s', $content, $matches)) {
             $content = $matches[1];
         }
 
-        // Clean <script> tags if present (requested in prompt but breaks json_decode)
+        // Clean <script> tags
         if (preg_match('/<script[^>]*>(.*?)<\/script>/s', $content, $matches)) {
             $content = $matches[1];
         }
         
         $content = trim($content);
+
+        // Attempt normalization if valid JSON is not found immediately
+        json_decode($content);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+             // Handle "concatenated JSON" error (e.g. {...} {...})
+             // Replace "}{" with "},{" and wrap in brackets
+             $normalized = preg_replace('/}\s*{/', '},{', $content);
+             $normalized = '[' . $normalized . ']';
+             
+             // Check if that fixed it
+             $check = json_decode($normalized, true);
+             if ($check) {
+                 // Convert list to @graph format if needed
+                 if (count($check) > 1 || !isset($check['@graph'])) {
+                     $content = json_encode(['@context' => 'https://schema.org', '@graph' => $check]);
+                 } else {
+                     $content = json_encode($check[0]);
+                 }
+             }
+        }
         
-        // Validate
-        $decoded = json_decode($content);
+        // Validate final
+        $decoded = json_decode($content, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             return new WP_Error('json_error', 'AI returned invalid JSON: ' . json_last_error_msg() . '. Response preview: ' . substr($content, 0, 200));
         }
