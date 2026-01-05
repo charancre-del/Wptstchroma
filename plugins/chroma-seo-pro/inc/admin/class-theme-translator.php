@@ -278,11 +278,10 @@ class Chroma_Theme_Translator
 
                 $content = file_get_contents($file);
                 
-                // Match: __(), _e(), esc_attr__(), esc_html__(), etc. 
-                // Regex: /[\s=\(\.]__(?:'|")(.+?)(?:'|")\s*,\s*(?:'|")chroma-excellence(?:'|")\s*\)/
-                // Simplified regex for single/double quotes and text domain
+                // Match: __(), _e(), _x(), esc_html__(), etc.
+                // Supports single/double quotes and multiline strings (s modifier)
                 
-                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__)\(\s*(['\"])(.+?)\1\s*,\s*(['\"])" . preg_quote($this->text_domain) . "\3\s*\)/", $content, $matches);
+                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__|_x|esc_html_x|esc_attr_x)\(\s*(['\"])(.+?)\1\s*,\s*(['\"])" . preg_quote($this->text_domain) . "\3(?:\s*,\s*[^)]+)?\s*\)/s", $content, $matches);
                 
                 if (!empty($matches[2])) {
                     foreach ($matches[2] as $match) {

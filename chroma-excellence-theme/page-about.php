@@ -15,95 +15,95 @@ while (have_posts()):
 
 	// Hero Section
 	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: 'Established 2015';
-	$hero_title = chroma_get_translated_meta($page_id, 'about_hero_title') ?: 'More than a school. <span class="text-chroma-yellow italic">A second home.</span>';
-	$hero_description = chroma_get_translated_meta($page_id, 'about_hero_description') ?: 'We founded Chroma on a simple belief: Early education should be a perfect blend of rigorous cognitive development and the comforting warmth of family.';
+	$hero_title = chroma_get_translated_meta($page_id, 'about_hero_title') ?: __('More than a school. <span class="text-chroma-yellow italic">A second home.</span>', 'chroma-excellence');
+	$hero_description = chroma_get_translated_meta($page_id, 'about_hero_description') ?: __('We founded Chroma on a simple belief: Early education should be a perfect blend of rigorous cognitive development and the comforting warmth of family.', 'chroma-excellence');
 	$hero_image = chroma_get_translated_meta($page_id, 'about_hero_image') ?: 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1000&auto=format&fit=crop';
 
 	// Mission Section
-	$mission_quote = chroma_get_translated_meta($page_id, 'about_mission_quote') ?: '"To cultivate a vibrant community of lifelong learners by blending academic rigor with the nurturing warmth of home, ensuring every child feels seen, valued, and capable."';
+	$mission_quote = chroma_get_translated_meta($page_id, 'about_mission_quote') ?: __('"To cultivate a vibrant community of lifelong learners by blending academic rigor with the nurturing warmth of home, ensuring every child feels seen, valued, and capable."', 'chroma-excellence');
 
 	// Story Section
-	$story_title = chroma_get_translated_meta($page_id, 'about_story_title') ?: 'From one classroom to a community.';
-	$story_paragraph1 = chroma_get_translated_meta($page_id, 'about_story_paragraph1') ?: 'Chroma Early Learning Academy began with a single location in Lawrenceville and a mission to redefine "daycare." We didn\'t just want to watch children; we wanted to ignite them.';
-	$story_paragraph2 = chroma_get_translated_meta($page_id, 'about_story_paragraph2') ?: 'Over the last decade, we have grown into a network of 19+ campuses across Metro Atlanta, yet each location retains the intimacy and personal touch of that very first school. We are locally owned, operated by educators, and driven by the success of our families.';
+	$story_title = chroma_get_translated_meta($page_id, 'about_story_title') ?: __('From one classroom to a community.', 'chroma-excellence');
+	$story_paragraph1 = chroma_get_translated_meta($page_id, 'about_story_paragraph1') ?: __('Chroma Early Learning Academy began with a single location in Lawrenceville and a mission to redefine "daycare." We didn\'t just want to watch children; we wanted to ignite them.', 'chroma-excellence');
+	$story_paragraph2 = chroma_get_translated_meta($page_id, 'about_story_paragraph2') ?: __('Over the last decade, we have grown into a network of 19+ campuses across Metro Atlanta, yet each location retains the intimacy and personal touch of that very first school. We are locally owned, operated by educators, and driven by the success of our families.', 'chroma-excellence');
 	$story_image = chroma_get_translated_meta($page_id, 'about_story_image') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
 
 	$stat1_value = chroma_get_translated_meta($page_id, 'about_stat1_value') ?: '19+';
-	$stat1_label = chroma_get_translated_meta($page_id, 'about_stat1_label') ?: 'Locations';
+	$stat1_label = chroma_get_translated_meta($page_id, 'about_stat1_label') ?: __('Locations', 'chroma-excellence');
 	$stat2_value = chroma_get_translated_meta($page_id, 'about_stat2_value') ?: '2k+';
-	$stat2_label = chroma_get_translated_meta($page_id, 'about_stat2_label') ?: 'Students';
+	$stat2_label = chroma_get_translated_meta($page_id, 'about_stat2_label') ?: __('Students', 'chroma-excellence');
 	$stat3_value = chroma_get_translated_meta($page_id, 'about_stat3_value') ?: '450+';
-	$stat3_label = chroma_get_translated_meta($page_id, 'about_stat3_label') ?: 'Educators';
+	$stat3_label = chroma_get_translated_meta($page_id, 'about_stat3_label') ?: __('Educators', 'chroma-excellence');
 	$stat4_value = chroma_get_translated_meta($page_id, 'about_stat4_value') ?: '100%';
-	$stat4_label = chroma_get_translated_meta($page_id, 'about_stat4_label') ?: 'Licensed';
+	$stat4_label = chroma_get_translated_meta($page_id, 'about_stat4_label') ?: __('Licensed', 'chroma-excellence');
 
 	// Educators Section
-	$educators_title = chroma_get_translated_meta($page_id, 'about_educators_title') ?: 'The Heart of Chroma.';
-	$educators_description = chroma_get_translated_meta($page_id, 'about_educators_description') ?: 'We don\'t just hire supervisors; we hire career educators. Our teachers are the most valuable asset in our classrooms, selected for their passion, patience, and professional credentials.';
+	$educators_title = chroma_get_translated_meta($page_id, 'about_educators_title') ?: __('The Heart of Chroma.', 'chroma-excellence');
+	$educators_description = chroma_get_translated_meta($page_id, 'about_educators_description') ?: __('We don\'t just hire supervisors; we hire career educators. Our teachers are the most valuable asset in our classrooms, selected for their passion, patience, and professional credentials.', 'chroma-excellence');
 
 	$educator1_icon = chroma_get_translated_meta($page_id, 'about_educator1_icon') ?: 'fa-solid fa-certificate';
-	$educator1_title = chroma_get_translated_meta($page_id, 'about_educator1_title') ?: 'Certified & Credentialed';
-	$educator1_desc = chroma_get_translated_meta($page_id, 'about_educator1_desc') ?: 'Lead teachers hold a CDA (Child Development Associate), TCC, or higher degree in Early Childhood Education. We support ongoing education for every staff member.';
+	$educator1_title = chroma_get_translated_meta($page_id, 'about_educator1_title') ?: __('Certified & Credentialed', 'chroma-excellence');
+	$educator1_desc = chroma_get_translated_meta($page_id, 'about_educator1_desc') ?: __('Lead teachers hold a CDA (Child Development Associate), TCC, or higher degree in Early Childhood Education. We support ongoing education for every staff member.', 'chroma-excellence');
 
 	$educator2_icon = chroma_get_translated_meta($page_id, 'about_educator2_icon') ?: 'fa-solid fa-user-shield';
-	$educator2_title = chroma_get_translated_meta($page_id, 'about_educator2_title') ?: 'Safety First';
-	$educator2_desc = chroma_get_translated_meta($page_id, 'about_educator2_desc') ?: 'Every team member undergoes rigorous federal and state background checks. All staff are certified in CPR and First Aid, with regular refresher courses.';
+	$educator2_title = chroma_get_translated_meta($page_id, 'about_educator2_title') ?: __('Safety First', 'chroma-excellence');
+	$educator2_desc = chroma_get_translated_meta($page_id, 'about_educator2_desc') ?: __('Every team member undergoes rigorous federal and state background checks. All staff are certified in CPR and First Aid, with regular refresher courses.', 'chroma-excellence');
 
 	$educator3_icon = chroma_get_translated_meta($page_id, 'about_educator3_icon') ?: 'fa-solid fa-chalkboard-user';
-	$educator3_title = chroma_get_translated_meta($page_id, 'about_educator3_title') ?: 'Continuous Growth';
-	$educator3_desc = chroma_get_translated_meta($page_id, 'about_educator3_desc') ?: 'Our educators participate in 20+ hours of annual professional development, specializing in the Prismpath™ curriculum and social-emotional learning.';
+	$educator3_title = chroma_get_translated_meta($page_id, 'about_educator3_title') ?: __('Continuous Growth', 'chroma-excellence');
+	$educator3_desc = chroma_get_translated_meta($page_id, 'about_educator3_desc') ?: __('Our educators participate in 20+ hours of annual professional development, specializing in the Prismpath™ curriculum and social-emotional learning.', 'chroma-excellence');
 
 	// Core Values Section
-	$values_title = chroma_get_translated_meta($page_id, 'about_values_title') ?: 'The Chroma Standard';
-	$values_description = chroma_get_translated_meta($page_id, 'about_values_description') ?: 'Our culture is built on four non-negotiable pillars that guide every decision we make, from hiring teachers to designing playgrounds.';
+	$values_title = chroma_get_translated_meta($page_id, 'about_values_title') ?: __('The Chroma Standard', 'chroma-excellence');
+	$values_description = chroma_get_translated_meta($page_id, 'about_values_description') ?: __('Our culture is built on four non-negotiable pillars that guide every decision we make, from hiring teachers to designing playgrounds.', 'chroma-excellence');
 
 	$value1_icon = chroma_get_translated_meta($page_id, 'about_value1_icon') ?: 'fa-solid fa-heart';
-	$value1_title = chroma_get_translated_meta($page_id, 'about_value1_title') ?: 'Unconditional Joy';
-	$value1_desc = chroma_get_translated_meta($page_id, 'about_value1_desc') ?: 'We believe childhood should be magical. We prioritize laughter, play, and warmth in every interaction.';
+	$value1_title = chroma_get_translated_meta($page_id, 'about_value1_title') ?: __('Unconditional Joy', 'chroma-excellence');
+	$value1_desc = chroma_get_translated_meta($page_id, 'about_value1_desc') ?: __('We believe childhood should be magical. We prioritize laughter, play, and warmth in every interaction.', 'chroma-excellence');
 
 	$value2_icon = chroma_get_translated_meta($page_id, 'about_value2_icon') ?: 'fa-solid fa-shield-halved';
-	$value2_title = chroma_get_translated_meta($page_id, 'about_value2_title') ?: 'Radical Safety';
-	$value2_desc = chroma_get_translated_meta($page_id, 'about_value2_desc') ?: 'Physical safety is our baseline; emotional safety is our goal. Kids learn best when they feel secure.';
+	$value2_title = chroma_get_translated_meta($page_id, 'about_value2_title') ?: __('Radical Safety', 'chroma-excellence');
+	$value2_desc = chroma_get_translated_meta($page_id, 'about_value2_desc') ?: __('Physical safety is our baseline; emotional safety is our goal. Kids learn best when they feel secure.', 'chroma-excellence');
 
 	$value3_icon = chroma_get_translated_meta($page_id, 'about_value3_icon') ?: 'fa-solid fa-graduation-cap';
-	$value3_title = chroma_get_translated_meta($page_id, 'about_value3_title') ?: 'Academic Excellence';
-	$value3_desc = chroma_get_translated_meta($page_id, 'about_value3_desc') ?: 'Using our Prismpath™ model, we deliver rigorous, age-appropriate learning that feels like play.';
+	$value3_title = chroma_get_translated_meta($page_id, 'about_value3_title') ?: __('Academic Excellence', 'chroma-excellence');
+	$value3_desc = chroma_get_translated_meta($page_id, 'about_value3_desc') ?: __('Using our Prismpath™ model, we deliver rigorous, age-appropriate learning that feels like play.', 'chroma-excellence');
 
 	$value4_icon = chroma_get_translated_meta($page_id, 'about_value4_icon') ?: 'fa-solid fa-users';
-	$value4_title = chroma_get_translated_meta($page_id, 'about_value4_title') ?: 'Open Partnership';
-	$value4_desc = chroma_get_translated_meta($page_id, 'about_value4_desc') ?: 'Parents are partners. We maintain open doors, transparent communication, and daily updates.';
+	$value4_title = chroma_get_translated_meta($page_id, 'about_value4_title') ?: __('Open Partnership', 'chroma-excellence');
+	$value4_desc = chroma_get_translated_meta($page_id, 'about_value4_desc') ?: __('Parents are partners. We maintain open doors, transparent communication, and daily updates.', 'chroma-excellence');
 
 	// Leadership Section
-	$leadership_title = chroma_get_translated_meta($page_id, 'about_leadership_title') ?: 'Led by educators, not investors.';
+	$leadership_title = chroma_get_translated_meta($page_id, 'about_leadership_title') ?: __('Led by educators, not investors.', 'chroma-excellence');
 
 	// Nutrition Section
-	$nutrition_title = chroma_get_translated_meta($page_id, 'about_nutrition_title') ?: 'Fueling growing minds.';
-	$nutrition_description = chroma_get_translated_meta($page_id, 'about_nutrition_description') ?: 'We believe nutrition is a key part of education. Our in-house chefs prepare balanced, nut-free meals daily using fresh ingredients.';
+	$nutrition_title = chroma_get_translated_meta($page_id, 'about_nutrition_title') ?: __('Fueling growing minds.', 'chroma-excellence');
+	$nutrition_description = chroma_get_translated_meta($page_id, 'about_nutrition_description') ?: __('We believe nutrition is a key part of education. Our in-house chefs prepare balanced, nut-free meals daily using fresh ingredients.', 'chroma-excellence');
 	$nutrition_image = chroma_get_translated_meta($page_id, 'about_nutrition_image') ?: 'https://images.unsplash.com/photo-1606914506133-2230d94922b5?q=80&w=800&auto=format&fit=crop';
 
 	$nutrition_bullet1_icon = chroma_get_translated_meta($page_id, 'about_nutrition_bullet1_icon') ?: 'fa-solid fa-apple-whole';
-	$nutrition_bullet1_text = chroma_get_translated_meta($page_id, 'about_nutrition_bullet1_text') ?: 'CACFP Certified Menus';
+	$nutrition_bullet1_text = chroma_get_translated_meta($page_id, 'about_nutrition_bullet1_text') ?: __('CACFP Certified Menus', 'chroma-excellence');
 	$nutrition_bullet2_icon = chroma_get_translated_meta($page_id, 'about_nutrition_bullet2_icon') ?: 'fa-solid fa-carrot';
-	$nutrition_bullet2_text = chroma_get_translated_meta($page_id, 'about_nutrition_bullet2_text') ?: 'Family-Style Dining to teach manners';
+	$nutrition_bullet2_text = chroma_get_translated_meta($page_id, 'about_nutrition_bullet2_text') ?: __('Family-Style Dining to teach manners', 'chroma-excellence');
 	$nutrition_bullet3_icon = chroma_get_translated_meta($page_id, 'about_nutrition_bullet3_icon') ?: 'fa-solid fa-ban';
-	$nutrition_bullet3_text = chroma_get_translated_meta($page_id, 'about_nutrition_bullet3_text') ?: 'Strict Nut-Free & Allergy Protocols';
+	$nutrition_bullet3_text = chroma_get_translated_meta($page_id, 'about_nutrition_bullet3_text') ?: __('Strict Nut-Free & Allergy Protocols', 'chroma-excellence');
 
 	// Philanthropy Section
-	$philanthropy_title = chroma_get_translated_meta($page_id, 'about_philanthropy_title') ?: 'Giving back to our future.';
+	$philanthropy_title = chroma_get_translated_meta($page_id, 'about_philanthropy_title') ?: __('Giving back to our future.', 'chroma-excellence');
 	$philanthropy_subtitle = chroma_get_translated_meta($page_id, 'about_philanthropy_subtitle') ?: 'Foundations For Learning Inc.';
-	$philanthropy_description = chroma_get_translated_meta($page_id, 'about_philanthropy_description') ?: 'At Chroma, our commitment extends beyond our classroom walls. Through our partnership with <strong>Foundations For Learning Inc.</strong>, we work to ensure that quality early education is accessible to every child in our community.';
+	$philanthropy_description = chroma_get_translated_meta($page_id, 'about_philanthropy_description') ?: __('At Chroma, our commitment extends beyond our classroom walls. Through our partnership with <strong>Foundations For Learning Inc.</strong>, we work to ensure that quality early education is accessible to every child in our community.', 'chroma-excellence');
 	$philanthropy_image = chroma_get_translated_meta($page_id, 'about_philanthropy_image') ?: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop';
 
 	$philanthropy_bullet1_icon = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet1_icon') ?: 'fa-solid fa-hand-holding-heart';
-	$philanthropy_bullet1_text = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet1_text') ?: 'Scholarship opportunities for families';
+	$philanthropy_bullet1_text = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet1_text') ?: __('Scholarship opportunities for families', 'chroma-excellence');
 	$philanthropy_bullet2_icon = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet2_icon') ?: 'fa-solid fa-chalkboard-user';
-	$philanthropy_bullet2_text = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet2_text') ?: 'Teacher training grants';
+	$philanthropy_bullet2_text = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet2_text') ?: __('Teacher training grants', 'chroma-excellence');
 	$philanthropy_bullet3_icon = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet3_icon') ?: 'fa-solid fa-people-roof';
-	$philanthropy_bullet3_text = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet3_text') ?: 'Community outreach programs';
+	$philanthropy_bullet3_text = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet3_text') ?: __('Community outreach programs', 'chroma-excellence');
 
 	// CTA Section
-	$cta_title = chroma_get_translated_meta($page_id, 'about_cta_title') ?: 'Ready to join the family?';
-	$cta_description = chroma_get_translated_meta($page_id, 'about_cta_description') ?: 'Come see why over 2,000 families trust Chroma with their children\'s early years.';
+	$cta_title = chroma_get_translated_meta($page_id, 'about_cta_title') ?: __('Ready to join the family?', 'chroma-excellence');
+	$cta_description = chroma_get_translated_meta($page_id, 'about_cta_description') ?: __('Come see why over 2,000 families trust Chroma with their children\'s early years.', 'chroma-excellence');
 
 	// Get Team Members
 	$team_members = new WP_Query(array(
