@@ -212,25 +212,33 @@ class Chroma_Translation_Engine
                 return [];
         }
 
-        // Translate
-        $force = isset($_POST['force']) && $_POST['force'] === 'true';
-        $translated = self::translate_bulk($fields, 'es', 'Translate for a childcare website. Use Spanish (Latin American).', $force);
+        try {
+            // Translate
+            $force = isset($_POST['force']) && $_POST['force'] === 'true';
+            $translated = self::translate_bulk($fields, 'es', 'Translate for a childcare website. Use Spanish (Latin American).', $force);
 
-        if (isset($translated['_error'])) {
-            wp_send_json_error(['message' => $translated['_error']]);
-        }
-
-        // SAVE TO DATABASE
-        foreach ($translated as $key => $value) {
-            // Sanitize based on key type (content allows HTML, titles plain text)
-            if (strpos($key, 'content') !== false) {
-                update_post_meta($post_id, $key, wp_kses_post($value));
-            } else {
-                update_post_meta($post_id, $key, sanitize_text_field($value));
+            if (isset($translated['_error'])) {
+                $err_msg = !empty($translated['_error']) ? $translated['_error'] : 'LLM Client returned an empty error.';
+                wp_send_json_error(['message' => $err_msg]);
             }
-        }
 
-        wp_send_json_success($translated);
+            // SAVE TO DATABASE
+            foreach ($translated as $key => $value) {
+                // Sanitize based on key type (content allows HTML, titles plain text)
+                if (strpos($key, 'content') !== false) {
+                    update_post_meta($post_id, $key, wp_kses_post($value));
+                } else {
+                    update_post_meta($post_id, $key, sanitize_text_field($value));
+                }
+            }
+
+            wp_send_json_success($translated);
+
+        } catch (Exception $e) {
+            wp_send_json_error(['message' => 'Exception: ' . $e->getMessage()]);
+        } catch (Error $e) {
+            wp_send_json_error(['message' => 'Fatal Error: ' . $e->getMessage()]);
+        }
     }
 
     /**
