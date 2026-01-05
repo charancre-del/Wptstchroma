@@ -1220,27 +1220,5 @@ class Chroma_LLM_Client
     }
 
 
-    /**
-     * Get Cached Response
-     * 
-     * @param string $key
-     * @return mixed|false
-     */
-    private function get_cached_response($key)
-    {
-        return get_transient('chroma_llm_' . $key);
-    }
 
-    /**
-     * Set Cached Response
-     * 
-     * @param string $key
-     * @param mixed $value
-     * @param int $expiration
-     * @return bool
-     */
-    private function set_cached_response($key, $value, $expiration = 3600)
-    {
-        return set_transient('chroma_llm_' . $key, $value, $expiration);
-    }
 }
