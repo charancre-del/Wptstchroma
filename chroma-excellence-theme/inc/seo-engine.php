@@ -15,6 +15,7 @@ if (!defined('ABSPATH')) {
  * Global Schema Override Handler (for standard pages/posts)
  * Hooks early to catch generic pages that have manual fixes
  */
+if (!function_exists('chroma_general_content_schema')) {
 function chroma_general_content_schema() {
     if (is_singular('location') || is_singular('program') || is_singular('city') || is_front_page()) {
         return; // Handled by specific functions below
@@ -31,6 +32,7 @@ function chroma_general_content_schema() {
             echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
         }
     }
+}
 }
 // DISABLED - Moved to Chroma SEO Pro Plugin
 // add_action('wp_head', 'chroma_general_content_schema', 1);
@@ -163,6 +165,7 @@ function chroma_website_schema()
 /**
  * Add LocalBusiness Schema to Location Pages
  */
+if (!function_exists('chroma_location_schema')) {
 function chroma_location_schema()
 {
         if (!is_singular('location')) {
@@ -524,12 +527,14 @@ function chroma_location_schema()
             echo '<script type="application/ld+json">' . wp_json_encode($event_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
         }
 }
+}
 // DISABLED - Moved to Chroma SEO Pro Plugin
 // add_action('wp_head', 'chroma_location_schema');
 
 /**
  * Add Service Schema to City Pages
  */
+if (!function_exists('chroma_city_schema')) {
 function chroma_city_schema()
 {
         if (!is_singular('city')) {
@@ -595,12 +600,14 @@ function chroma_city_schema()
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 // DISABLED - Moved to Chroma SEO Pro Plugin
 // add_action('wp_head', 'chroma_city_schema');
 
 /**
  * Add Service Schema to Program Pages
  */
+if (!function_exists('chroma_program_schema')) {
 function chroma_program_schema()
 {
         if (!is_singular('program')) {
@@ -648,6 +655,7 @@ function chroma_program_schema()
         }
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+}
 }
 // DISABLED - Moved to Chroma SEO Pro Plugin
 // add_action('wp_head', 'chroma_program_schema');
@@ -1281,6 +1289,7 @@ function chroma_custom_robots_txt($output)
 /**
  * Add FAQPage Schema to City Pages (Hidden, matches visible FAQ content)
  */
+if (!function_exists('chroma_city_faq_schema_output')) {
 function chroma_city_faq_schema_output()
 {
         if (!is_singular('city')) {
@@ -1339,6 +1348,7 @@ function chroma_city_faq_schema_output()
         );
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+}
 }
 // DISABLED - Moved to Chroma SEO Pro Plugin
 // add_action('wp_head', 'chroma_city_faq_schema_output');
