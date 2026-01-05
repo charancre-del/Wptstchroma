@@ -18,20 +18,22 @@ if (!defined('ABSPATH')) {
  * Global Schema Override Handler (for standard pages/posts)
  * Hooks early to catch generic pages that have manual fixes
  */
-function chroma_general_content_schema() {
-    if (is_singular('location') || is_singular('program') || is_singular('city') || is_front_page()) {
-        return; // Handled by specific functions below
-    }
+if (!function_exists('chroma_general_content_schema')) {
+    function chroma_general_content_schema() {
+        if (is_singular('location') || is_singular('program') || is_singular('city') || is_front_page()) {
+            return; // Handled by specific functions below
+        }
 
-    $post_id = get_the_ID();
-    if (!$post_id) return;
+        $post_id = get_the_ID();
+        if (!$post_id) return;
 
-    $override = get_post_meta($post_id, '_chroma_schema_override', true);
-    if ($override) {
-        if (strpos($override, '<script') !== false) {
-            echo $override;
-        } else {
-            echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+        $override = get_post_meta($post_id, '_chroma_schema_override', true);
+        if ($override) {
+            if (strpos($override, '<script') !== false) {
+                echo $override;
+            } else {
+                echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+            }
         }
     }
 }
@@ -40,6 +42,7 @@ add_action('wp_head', 'chroma_general_content_schema', 1);
 /**
  * Add LocalBusiness Schema to Location Pages
  */
+if (!function_exists('chroma_location_schema')) {
 function chroma_location_schema()
 {
     if (!is_singular('location')) {
@@ -271,11 +274,13 @@ function chroma_location_schema()
 
     echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 add_action('wp_head', 'chroma_location_schema');
 
 /**
  * Add Service Schema to City Pages
  */
+if (!function_exists('chroma_city_schema')) {
 function chroma_city_schema()
 {
     if (!is_singular('city')) {
@@ -336,11 +341,13 @@ function chroma_city_schema()
 
     echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 add_action('wp_head', 'chroma_city_schema');
 
 /**
  * Add Service Schema to Program Pages
  */
+if (!function_exists('chroma_program_schema')) {
 function chroma_program_schema()
 {
     if (!is_singular('program')) {
@@ -386,12 +393,14 @@ function chroma_program_schema()
 
     echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 add_action('wp_head', 'chroma_program_schema');
 
 /**
  * Add FAQPage Schema to City Pages
  * Generates common FAQ questions about childcare in the specific city
  */
+if (!function_exists('chroma_city_faq_schema_output')) {
 function chroma_city_faq_schema_output()
 {
     if (!is_singular('city')) {
@@ -447,4 +456,6 @@ function chroma_city_faq_schema_output()
 
     echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
+}
 add_action('wp_head', 'chroma_city_faq_schema_output');
+

@@ -24,15 +24,15 @@ define( 'CHROMA_SEO_URL', plugin_dir_url( __FILE__ ) );
  * Initialize the Plugin
  */
 function chroma_seo_init() {
-    // Load Bootstrap (handles all includes and hooks)
-    require_once CHROMA_SEO_PATH . 'inc/bootstrap.php';
-    
-    // Initialize Dashboard (if not already done by bootstrap)
-    if ( class_exists( 'Chroma_SEO_Dashboard' ) ) {
-        // bootstrap.php calls chroma_advanced_seo_init() on 'init' hook, 
-        // but we are on 'plugins_loaded'. 
-        // bootstrap.php adds its own 'init' hook.
-        // So we just need to require the file.
+    try {
+        // Load Bootstrap (handles all includes and hooks)
+        require_once CHROMA_SEO_PATH . 'inc/bootstrap.php';
+    } catch (Throwable $e) {
+        // Catch any PHP errors and show admin notice instead of crashing
+        add_action('admin_notices', function() use ($e) {
+            echo '<div class="notice notice-error"><p><strong>Chroma SEO Pro Error:</strong> ' . esc_html($e->getMessage()) . ' in ' . esc_html($e->getFile()) . ' on line ' . esc_html($e->getLine()) . '</p></div>';
+        });
+        return;
     }
 }
 add_action( 'plugins_loaded', 'chroma_seo_init' );

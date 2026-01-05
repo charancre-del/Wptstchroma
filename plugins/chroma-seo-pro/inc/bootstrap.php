@@ -19,15 +19,17 @@ $chroma_missing_seo_files = [];
 /**
  * Helper to safely load files
  */
-function chroma_safe_require($path)
-{
-	global $chroma_missing_seo_files;
-	if (file_exists($path)) {
-		require_once $path;
-		return true;
+if (!function_exists('chroma_safe_require')) {
+	function chroma_safe_require($path)
+	{
+		global $chroma_missing_seo_files;
+		if (file_exists($path)) {
+			require_once $path;
+			return true;
+		}
+		$chroma_missing_seo_files[] = basename($path);
+		return false;
 	}
-	$chroma_missing_seo_files[] = basename($path);
-	return false;
 }
 
 /**
@@ -125,6 +127,7 @@ foreach ($schema_builders as $file) {
 /**
  * Initialize Modules
  */
+if (!function_exists('chroma_advanced_seo_init')) {
 function chroma_advanced_seo_init()
 {
 	// Core Modules
@@ -195,10 +198,12 @@ function chroma_advanced_seo_init()
 	}
 }
 add_action('init', 'chroma_advanced_seo_init');
+}
 
 /**
  * Admin Assets
  */
+if (!function_exists('chroma_advanced_seo_admin_assets')) {
 function chroma_advanced_seo_admin_assets($hook)
 {
 	// Only load on SEO Dashboard or Post Edit screens
@@ -300,10 +305,12 @@ function chroma_advanced_seo_admin_assets($hook)
 }
 
 add_action('admin_enqueue_scripts', 'chroma_advanced_seo_admin_assets');
+} // Close function_exists for chroma_advanced_seo_admin_assets
 
 /**
  * Admin Notice for Missing Files
  */
+if (!function_exists('chroma_seo_missing_files_notice')) {
 function chroma_seo_missing_files_notice()
 {
 	global $chroma_missing_seo_files;
@@ -320,3 +327,4 @@ function chroma_seo_missing_files_notice()
 	}
 }
 add_action('admin_notices', 'chroma_seo_missing_files_notice');
+}
