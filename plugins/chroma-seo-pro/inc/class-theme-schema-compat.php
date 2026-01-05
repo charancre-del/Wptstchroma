@@ -629,16 +629,12 @@ add_action('wp_head', 'chroma_faq_schema_pro', 10);
  * IMPORTANT: Must match priorities used in theme's seo-engine.php exactly.
  */
 add_action('after_setup_theme', function() {
-    remove_action('wp_head', 'chroma_organization_schema', 5);
-    remove_action('wp_head', 'chroma_website_schema', 6);
+    // Legacy theme used default priority 10 for these (mostly)
+    remove_action('wp_head', 'chroma_organization_schema', 10); 
+    remove_action('wp_head', 'chroma_website_schema', 10);
     remove_action('wp_head', 'chroma_faq_schema', 10);
-    remove_action('wp_head', 'chroma_general_content_schema', 1);
+    remove_action('wp_head', 'chroma_general_content_schema', 1); // Explicitly 1 in theme
     
-    // These might be default 10 or specifically hooked in other files. 
-    // Checking previous grep results for 'chroma_location_schema' usage if needed.
-    // Based on previous reads, they were guarded but didn't show add_action in the file I read snippet of.
-    // Assuming they are hooked. I see add_action('wp_head', 'chroma_location_schema'); in previous view.
-    // Default priority is 10.
     remove_action('wp_head', 'chroma_location_schema', 10);
     remove_action('wp_head', 'chroma_city_schema', 10);
     remove_action('wp_head', 'chroma_program_schema', 10);
