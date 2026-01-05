@@ -27,7 +27,12 @@ class Chroma_Translation_Engine
      */
     public static function ajax_auto_translate_post()
     {
-        check_ajax_referer('chroma_seo_nonce', 'nonce');
+        error_log('Chroma Translate: Ajax Request Received for post ' . ($_POST['post_id'] ?? 'unknown'));
+        // Verify nonce manually to debug
+        if (!check_ajax_referer('chroma_seo_nonce', 'nonce', false)) {
+            error_log('Chroma Translate: Invalid Nonce');
+            wp_send_json_error(['message' => 'Invalid Nonce (Session Expired?)']);
+        }
 
         if (!current_user_can('edit_posts')) {
             wp_send_json_error(['message' => 'Permission denied']);

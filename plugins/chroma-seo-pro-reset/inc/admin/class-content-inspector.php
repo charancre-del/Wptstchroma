@@ -234,9 +234,15 @@ class Chroma_Content_Inspector
                     force: 'true', // Always force
                     nonce: '<?php echo wp_create_nonce('chroma_seo_nonce'); ?>'
                 }, function(response) {
-                    if (callback) callback(response.success, response.data && response.data.message);
-                }).fail(function() {
-                    if (callback) callback(false, 'Network error');
+                    if (typeof response === 'string' && response.trim() === '-1') {
+                         console.error('AJAX Nonce Failure');
+                         if (callback) callback(false, 'Session Expired (Nonce)');
+                         return;
+                    }
+                    if (callback) callback(response.success, (response.data && response.data.message) ? response.data.message : 'Invalid Resp: ' + JSON.stringify(response));
+                }).fail(function(xhr, status, error) {
+                    console.error('AJAX Fail', xhr, status, error);
+                    if (callback) callback(false, 'Net Err: ' + status + ' ' + error);
                 });
             }
         });
