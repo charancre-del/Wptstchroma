@@ -11,43 +11,43 @@ get_header();
 $page_id = get_the_ID();
 
 // Hero Section
-$hero_badge = get_post_meta($page_id, 'careers_hero_badge', true) ?: 'Join Our Team';
-$hero_title = get_post_meta($page_id, 'careers_hero_title', true) ?: 'Shape the future. <br><span class="italic text-chroma-red">Love your work.</span>';
-$hero_description = get_post_meta($page_id, 'careers_hero_description', true) ?: 'We don\'t just hire staff; we invest in educators. At Chroma, you\'ll find a supportive community, career pathways, and the resources you need to change lives.';
-$hero_button_text = get_post_meta($page_id, 'careers_hero_button_text', true) ?: 'View Current Openings';
-$hero_button_url = get_post_meta($page_id, 'careers_hero_button_url', true) ?: '#openings';
+$hero_badge = chroma_get_translated_meta($page_id, 'careers_hero_badge') ?: __('Join Our Team', 'chroma-excellence');
+$hero_title = chroma_get_translated_meta($page_id, 'careers_hero_title') ?: __('Shape the future. <br><span class="italic text-chroma-red">Love your work.</span>', 'chroma-excellence');
+$hero_description = chroma_get_translated_meta($page_id, 'careers_hero_description') ?: __('We don\'t just hire staff; we invest in educators. At Chroma, you\'ll find a supportive community, career pathways, and the resources you need to change lives.', 'chroma-excellence');
+$hero_button_text = chroma_get_translated_meta($page_id, 'careers_hero_button_text') ?: __('View Current Openings', 'chroma-excellence');
+$hero_button_url = chroma_get_translated_meta($page_id, 'careers_hero_button_url') ?: '#openings';
 
 // Culture Section
-$culture_title = get_post_meta($page_id, 'careers_culture_title', true) ?: 'Why Chroma?';
-$culture_description = get_post_meta($page_id, 'careers_culture_description', true) ?: 'We take care of you, so you can take care of them.';
+$culture_title = chroma_get_translated_meta($page_id, 'careers_culture_title') ?: __('Why Chroma?', 'chroma-excellence');
+$culture_description = chroma_get_translated_meta($page_id, 'careers_culture_description') ?: __('We take care of you, so you can take care of them.', 'chroma-excellence');
 
 $benefits = array(
 	array(
-		'icon' => get_post_meta($page_id, 'careers_benefit1_icon', true) ?: 'fa-solid fa-money-bill-wave',
+		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit1_icon') ?: 'fa-solid fa-money-bill-wave',
 		'color' => 'chroma-green',
-		'title' => get_post_meta($page_id, 'careers_benefit1_title', true) ?: 'Competitive Pay & 401k',
-		'desc' => get_post_meta($page_id, 'careers_benefit1_desc', true) ?: 'Above-market salaries, annual performance bonuses, and retirement matching.',
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit1_title') ?: __('Competitive Pay & 401k', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit1_desc') ?: __('Above-market salaries, annual performance bonuses, and retirement matching.', 'chroma-excellence'),
 	),
 	array(
-		'icon' => get_post_meta($page_id, 'careers_benefit2_icon', true) ?: 'fa-solid fa-graduation-cap',
+		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit2_icon') ?: 'fa-solid fa-graduation-cap',
 		'color' => 'chroma-blue',
-		'title' => get_post_meta($page_id, 'careers_benefit2_title', true) ?: 'Paid Tuition & CDA',
-		'desc' => get_post_meta($page_id, 'careers_benefit2_desc', true) ?: 'We pay for your Child Development Associate (CDA) credential and offer college tuition assistance.',
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit2_title') ?: __('Paid Tuition & CDA', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit2_desc') ?: __('We pay for your Child Development Associate (CDA) credential and offer college tuition assistance.', 'chroma-excellence'),
 	),
 	array(
-		'icon' => get_post_meta($page_id, 'careers_benefit3_icon', true) ?: 'fa-solid fa-heart-pulse',
+		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit3_icon') ?: 'fa-solid fa-heart-pulse',
 		'color' => 'chroma-red',
-		'title' => get_post_meta($page_id, 'careers_benefit3_title', true) ?: 'Health & Wellness',
-		'desc' => get_post_meta($page_id, 'careers_benefit3_desc', true) ?: 'Comprehensive medical, dental, and vision insurance, plus free childcare discounts.',
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit3_title') ?: __('Health & Wellness', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit3_desc') ?: __('Comprehensive medical, dental, and vision insurance, plus free childcare discounts.', 'chroma-excellence'),
 	),
 );
 
 // Openings Section
-$openings_title = get_post_meta($page_id, 'careers_openings_title', true) ?: 'Current Opportunities';
+$openings_title = chroma_get_translated_meta($page_id, 'careers_openings_title') ?: __('Current Opportunities', 'chroma-excellence');
 
 // CTA Section
-$cta_title = get_post_meta($page_id, 'careers_cta_title', true) ?: 'Don\'t see your role?';
-$cta_description = get_post_meta($page_id, 'careers_cta_description', true) ?: 'We are always growing. Send us your resume and we\'ll keep it on file.';
+$cta_title = chroma_get_translated_meta($page_id, 'careers_cta_title') ?: __('Don\'t see your role?', 'chroma-excellence');
+$cta_description = chroma_get_translated_meta($page_id, 'careers_cta_description') ?: __('We are always growing. Send us your resume and we\'ll keep it on file.', 'chroma-excellence');
 
 // Fetch jobs from API
 $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();

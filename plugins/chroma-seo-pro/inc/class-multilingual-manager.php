@@ -496,3 +496,14 @@ function chroma_get_alternates($post_id = null) {
     }
     return [];
 }
+
+/**
+ * Get translated meta field with fallback
+ */
+function chroma_get_translated_meta($post_id, $key, $single = true) {
+    if (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) {
+        $es_val = get_post_meta($post_id, '_chroma_es_' . $key, $single);
+        if ($es_val) return $es_val;
+    }
+    return get_post_meta($post_id, $key, $single);
+}

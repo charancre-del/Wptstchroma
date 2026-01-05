@@ -41,13 +41,13 @@ get_header();
 
     <!-- Benefits Section -->
     <?php
-    $benefits = get_post_meta(get_the_ID(), 'acquisition_benefits', true);
+    $benefits = chroma_get_translated_meta(get_the_ID(), 'acquisition_benefits');
     if ($benefits):
         ?>
         <section class="py-16 bg-brand-cream">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold text-brand-ink mb-10 text-center">
-                    Why Partner With Chroma?
+                    <?php _e('Why Partner With Chroma?', 'chroma-excellence'); ?>
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <?php foreach ($benefits as $benefit): ?>
@@ -75,10 +75,10 @@ get_header();
         <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-8">
                 <h2 class="text-3xl font-bold text-brand-ink mb-4">
-                    Start the Conversation
+                    <?php _e('Start the Conversation', 'chroma-excellence'); ?>
                 </h2>
                 <p class="text-xl text-brand-ink/90">
-                    Fill out the form below and our acquisitions team will be in touch.
+                    <?php _e('Fill out the form below and our acquisitions team will be in touch.', 'chroma-excellence'); ?>
                 </p>
             </div>
 
@@ -90,10 +90,9 @@ get_header();
                 } else {
                     ?>
                     <div class="text-center text-brand-ink/90 py-8">
-                        <p class="mb-4">Acquisitions form plugin not activated.</p>
-                        <p class="text-sm">Please activate the "Chroma Acquisitions Form" plugin to display the acquisition
-                            form.</p>
-                        <p class="mt-6">In the meantime, reach out to:</p>
+                        <p class="mb-4"><?php _e('Acquisitions form plugin not activated.', 'chroma-excellence'); ?></p>
+                        <p class="text-sm"><?php _e('Please activate the "Chroma Acquisitions Form" plugin to display the acquisition form.', 'chroma-excellence'); ?></p>
+                        <p class="mt-6"><?php _e('In the meantime, reach out to:', 'chroma-excellence'); ?></p>
                         <p class="font-semibold text-chroma-teal mt-2">
                             <a href="mailto:acquisitions@chromaela.com">acquisitions@chromaela.com</a>
                         </p>
@@ -107,13 +106,13 @@ get_header();
 
     <!-- Process Timeline -->
     <?php
-    $process_steps = get_post_meta(get_the_ID(), 'acquisition_process', true);
+    $process_steps = chroma_get_translated_meta(get_the_ID(), 'acquisition_process');
     if ($process_steps):
         ?>
         <section class="py-16 bg-brand-cream">
             <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
                 <h2 class="text-3xl font-bold text-brand-ink mb-10 text-center">
-                    Our Process
+                    <?php _e('Our Process', 'chroma-excellence'); ?>
                 </h2>
                 <div class="space-y-6">
                     <?php foreach ($process_steps as $index => $step): ?>

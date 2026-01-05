@@ -30,7 +30,7 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
 // Pre-collect counties from posts (single pass, using cached meta)
 if ($cities_query->have_posts()) {
     foreach ($cities_query->posts as $p) {
-        $c = get_post_meta($p->ID, 'city_county', true);
+        $c = chroma_get_translated_meta($p->ID, 'city_county');
         if ($c && !in_array($c, $unique_counties)) {
             $unique_counties[] = $c;
         }
@@ -86,17 +86,16 @@ if (!function_exists('chroma_get_city_image_html')) {
         <div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
             <div
                 class="inline-flex items-center gap-2 bg-white border border-chroma-blue/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-blue shadow-sm mb-6 fade-in-up">
-                <i class="fa-solid fa-city"></i> <?php echo $cities_query->found_posts; ?> Communities
+                <i class="fa-solid fa-city"></i> <?php echo $cities_query->found_posts; ?> <?php _e('Communities', 'chroma-excellence'); ?>
             </div>
 
             <h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6 fade-in-up"
                 style="animation-delay: 0.1s;">
-                Our <span class="text-chroma-blue italic">Communities</span>
+                <?php _e('Our <span class="text-chroma-blue italic">Communities</span>', 'chroma-excellence'); ?>
             </h1>
 
             <p class="text-lg text-brand-ink/90 max-w-2xl mx-auto mb-10 fade-in-up" style="animation-delay: 0.2s;">
-                Discover our network of excellence across Georgia's most vibrant neighborhoods. Select your city to find
-                local campuses.
+                <?php _e('Discover our network of excellence across Georgia\'s most vibrant neighborhoods. Select your city to find local campuses.', 'chroma-excellence'); ?>
             </p>
 
             <!-- Filter Bar -->
@@ -104,14 +103,14 @@ if (!function_exists('chroma_get_city_image_html')) {
                 style="animation-delay: 0.3s;">
                 <div class="relative flex-grow max-w-md">
                     <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-brand-ink"></i>
-                    <input type="text" id="city-search" placeholder="Search for your city..."
+                    <input type="text" id="city-search" placeholder="<?php esc_attr_e('Search for your city...', 'chroma-excellence'); ?>"
                         class="w-full pl-12 pr-4 py-3 rounded-full focus:outline-none text-brand-ink bg-white" />
                 </div>
                 <div
                     class="flex gap-2 justify-start lg:justify-center flex-wrap flex-grow items-center overflow-x-auto pb-2 lg:pb-0">
                     <button onclick="filterCities('all')" data-county="all"
                         class="filter-btn px-6 py-3 rounded-full font-semibold bg-chroma-blue text-white hover:shadow-glow transition-all duration-300 whitespace-nowrap">
-                        All
+                        <?php _e('All', 'chroma-excellence'); ?>
                     </button>
                     <?php foreach ($unique_counties as $county):
                         $slug = sanitize_title($county);
@@ -136,11 +135,11 @@ if (!function_exists('chroma_get_city_image_html')) {
                     <?php while ($cities_query->have_posts()):
                         $cities_query->the_post();
                         $city_id = get_the_ID();
-                        $county = get_post_meta($city_id, 'city_county', true) ?: 'Other';
+                        $county = chroma_get_translated_meta($city_id, 'city_county') ?: __('Other', 'chroma-excellence');
                         $county_slug = sanitize_title($county);
 
                         $city_html = chroma_get_city_image_html($post, $local_fallback);
-                        $city_description = get_post_meta($city_id, 'city_intro_text', true);
+                        $city_description = chroma_get_translated_meta($city_id, 'city_intro_text');
                         ?>
                         <div class="city-card group" data-county="<?php echo esc_attr($county_slug); ?>"
                             data-name="<?php echo esc_attr(strtolower(get_the_title())); ?>">
@@ -181,7 +180,7 @@ if (!function_exists('chroma_get_city_image_html')) {
 
                                     <span
                                         class="text-xs font-bold uppercase tracking-wider text-chroma-red inline-flex items-center gap-2">
-                                        View Schools
+                                        <?php _e('View Schools', 'chroma-excellence'); ?>
                                         <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none"
                                             stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -194,12 +193,12 @@ if (!function_exists('chroma_get_city_image_html')) {
                     <?php endwhile; ?>
                     <?php wp_reset_postdata(); ?>
                 <?php else: ?>
-                    <p class="col-span-full text-center text-xl text-brand-ink/60">No communities found.</p>
+                    <p class="col-span-full text-center text-xl text-brand-ink/60"><?php _e('No communities found.', 'chroma-excellence'); ?></p>
                 <?php endif; ?>
 
                 <!-- No Results Msg -->
                 <div id="no-results" class="hidden col-span-full text-center py-12">
-                    <p class="text-xl text-brand-ink/60">No cities match your search.</p>
+                    <p class="text-xl text-brand-ink/60"><?php _e('No cities match your search.', 'chroma-excellence'); ?></p>
                 </div>
 
             </div>
@@ -209,12 +208,11 @@ if (!function_exists('chroma_get_city_image_html')) {
     <!-- CTA -->
     <section class="bg-chroma-blueDark py-16 text-white text-center">
         <div class="max-w-4xl mx-auto px-4">
-            <h2 class="font-serif text-3xl font-bold mb-4">Don't see your city?</h2>
-            <p class="text-white/80 mb-8 max-w-2xl mx-auto">We are constantly expanding. Contact our enrollment team to
-                find the nearest campus to you.</p>
-            <a href="<?php echo esc_url(home_url('/contact')); ?>"
+            <h2 class="font-serif text-3xl font-bold mb-4"><?php _e('Don\'t see your city?', 'chroma-excellence'); ?></h2>
+            <p class="text-white/80 mb-8 max-w-2xl mx-auto"><?php _e('We are constantly expanding. Contact our enrollment team to find the nearest campus to you.', 'chroma-excellence'); ?></p>
+            <a href="<?php echo esc_url(chroma_get_page_link('contact')); ?>"
                 class="inline-block bg-chroma-yellow text-brand-ink font-bold rounded-full px-8 py-4 uppercase tracking-widest text-xs hover:bg-white transition-colors">
-                Contact Us
+                <?php _e('Contact Us', 'chroma-excellence'); ?>
             </a>
         </div>
     </section>

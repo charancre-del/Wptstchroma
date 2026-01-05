@@ -128,8 +128,7 @@ while (have_posts()):
 					</div>
 					<div class="order-1 lg:order-2">
 						<span
-							class="text-<?php echo esc_attr($colors['main']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Prismpath™
-							Focus</span>
+							class="text-<?php echo esc_attr($colors['main']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Prismpath™ Focus', 'chroma-excellence'); ?></span>
 						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
 							<?php echo esc_html($prism_title); ?>
 						</h2>
@@ -374,18 +373,18 @@ while (have_posts()):
 					class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
 					<h3 class="font-serif text-xl font-bold text-brand-ink">
 						<i class="fa-solid fa-file-signature text-<?php echo esc_attr($colors['main']); ?> mr-2"></i>
-						<?php echo esc_html(get_the_title()); ?> Lesson Plan
+						<?php printf(__('%s Lesson Plan', 'chroma-excellence'), esc_html(get_the_title())); ?>
 					</h3>
 					<div class="flex items-center gap-4">
 						<a href="<?php echo esc_url($lesson_plan_url); ?>" target="_blank" id="lesson-plan-external"
 							class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:flex items-center gap-1">
 							<i class="fa-solid fa-arrow-up-right-from-square"></i>
-							Open in new tab
+							<?php _e('Open in new tab', 'chroma-excellence'); ?>
 						</a>
 						<a href="<?php echo esc_url($lesson_plan_url); ?>" download
 							class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors hidden md:flex items-center gap-1">
 							<i class="fa-solid fa-download"></i>
-							Download
+							<?php _e('Download', 'chroma-excellence'); ?>
 						</a>
 						<button id="lesson-plan-close"
 							class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
@@ -401,7 +400,7 @@ while (have_posts()):
 							<div
 								class="w-12 h-12 border-4 border-<?php echo esc_attr($colors['main']); ?>/20 border-t-<?php echo esc_attr($colors['main']); ?> rounded-full animate-spin mx-auto mb-4">
 							</div>
-							<p class="text-brand-ink/60 text-sm">Loading lesson plan...</p>
+							<p class="text-brand-ink/60 text-sm"><?php _e('Loading lesson plan...', 'chroma-excellence'); ?></p>
 						</div>
 					</div>
 					<iframe id="lesson-plan-frame" src="" class="w-full h-full border-0"></iframe>

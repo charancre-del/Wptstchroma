@@ -26,14 +26,13 @@ $programs_query = new WP_Query(array(
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
 			<div
 				class="inline-flex items-center gap-2 bg-white border border-chroma-red/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-red shadow-sm mb-6 fade-in-up">
-				<i class="fa-solid fa-shapes"></i> Ages 6 weeks to 12 years
+				<i class="fa-solid fa-shapes"></i> <?php _e('Ages 6 weeks to 12 years', 'chroma-excellence'); ?>
 			</div>
 			<h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6 fade-in-up delay-100">
-				Programs and Curriculum that grows <span class="text-chroma-red italic">with them.</span>
+				<?php _e('Programs and Curriculum that grows <span class="text-chroma-red italic">with them.</span>', 'chroma-excellence'); ?>
 			</h1>
 			<p class="text-lg text-brand-ink/90 max-w-2xl mx-auto mb-10 fade-in-up delay-200">
-				From sensory discovery in our infant suites to the project-based learning of Pre-K, every program uses
-				our proprietary Prismpath™ model to meet children exactly where they are.
+				<?php _e('From sensory discovery in our infant suites to the project-based learning of Pre-K, every program uses our proprietary Prismpath™ model to meet children exactly where they are.', 'chroma-excellence'); ?>
 			</p>
 		</div>
 	</section>
@@ -50,10 +49,10 @@ $programs_query = new WP_Query(array(
 						$programs_query->the_post();
 
 						// Get program meta
-						$age_range = get_post_meta(get_the_ID(), 'program_age_range', true);
-						$features = get_post_meta(get_the_ID(), 'program_features', true);
-						$cta_text = get_post_meta(get_the_ID(), 'program_cta_text', true) ?: 'Schedule Tour';
-						$cta_link = get_post_meta(get_the_ID(), 'program_cta_link', true) ?: '#tour';
+						$age_range = chroma_get_translated_meta(get_the_ID(), 'program_age_range');
+						$features = chroma_get_translated_meta(get_the_ID(), 'program_features');
+						$cta_text = chroma_get_translated_meta(get_the_ID(), 'program_cta_text') ?: __('Schedule Tour', 'chroma-excellence');
+						$cta_link = chroma_get_translated_meta(get_the_ID(), 'program_cta_link') ?: '#tour';
 						$color_scheme = get_post_meta(get_the_ID(), 'program_color_scheme', true) ?: 'red';
 
 						// Parse features into array
@@ -141,8 +140,7 @@ $programs_query = new WP_Query(array(
 				</div>
 			<?php else: ?>
 				<div class="text-center py-20">
-					<p class="text-brand-ink/90 text-lg">No programs found. Please add programs from the WordPress admin.
-					</p>
+					<p class="text-brand-ink/90 text-lg"><?php _e('No programs found. Please add programs from the WordPress admin.', 'chroma-excellence'); ?></p>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -157,59 +155,55 @@ $programs_query = new WP_Query(array(
 					class="relative bg-chroma-blueDark text-white rounded-[3rem] p-10 lg:p-12 shadow-2xl overflow-hidden">
 					<div class="absolute top-0 right-0 p-12 opacity-10 text-9xl"><i
 							class="fa-brands fa-connectdevelop"></i></div>
-					<h2 class="font-serif text-3xl font-bold mb-6 relative z-10">The Prismpath™ Model</h2>
+					<h2 class="font-serif text-3xl font-bold mb-6 relative z-10"><?php _e('The Prismpath™ Model', 'chroma-excellence'); ?></h2>
 					<p class="text-white/80 text-lg leading-relaxed mb-8 relative z-10">
-						Just as a prism refracts light into a full spectrum of color, our proprietary curriculum
-						refracts play into five key pillars of development.
+						<?php _e('Just as a prism refracts light into a full spectrum of color, our proprietary curriculum refracts play into five key pillars of development.', 'chroma-excellence'); ?>
 					</p>
 					<ul class="space-y-4 relative z-10">
 						<li class="flex items-center gap-4">
 							<span
 								class="w-8 h-8 rounded-full bg-chroma-red flex items-center justify-center text-xs font-bold">1</span>
-							<span>Physical & Sensory Health</span>
+							<span><?php _e('Physical & Sensory Health', 'chroma-excellence'); ?></span>
 						</li>
 						<li class="flex items-center gap-4">
 							<span
 								class="w-8 h-8 rounded-full bg-chroma-yellow flex items-center justify-center text-xs font-bold text-brand-ink">2</span>
-							<span>Emotional Intelligence</span>
+							<span><?php _e('Emotional Intelligence', 'chroma-excellence'); ?></span>
 						</li>
 						<li class="flex items-center gap-4">
 							<span
 								class="w-8 h-8 rounded-full bg-chroma-green flex items-center justify-center text-xs font-bold">3</span>
-							<span>Social Connection</span>
+							<span><?php _e('Social Connection', 'chroma-excellence'); ?></span>
 						</li>
 						<li class="flex items-center gap-4">
 							<span
 								class="w-8 h-8 rounded-full bg-chroma-blue flex items-center justify-center text-xs font-bold">4</span>
-							<span>Academic Logic</span>
+							<span><?php _e('Academic Logic', 'chroma-excellence'); ?></span>
 						</li>
 						<li class="flex items-center gap-4">
 							<span
 								class="w-8 h-8 rounded-full bg-white text-brand-ink flex items-center justify-center text-xs font-bold">5</span>
-							<span>Creative Expression</span>
+							<span><?php _e('Creative Expression', 'chroma-excellence'); ?></span>
 						</li>
 					</ul>
 				</div>
 			</div>
 			<div class="order-1 lg:order-2">
-				<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Our
-					Methodology</span>
-				<h2 class="text-3xl md:text-5xl font-serif font-bold text-brand-ink mb-6">More than just daycare.</h2>
+				<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Our Methodology', 'chroma-excellence'); ?></span>
+				<h2 class="text-3xl md:text-5xl font-serif font-bold text-brand-ink mb-6"><?php _e('More than just daycare.', 'chroma-excellence'); ?></h2>
 				<p class="text-brand-ink text-lg leading-relaxed mb-8">
-					We believe that education isn't just about filling a bucket, but lighting a fire. Our curriculum
-					ensures that by the time your child graduates from Chroma, they are not just "school ready"—they are
-					life ready.
+					<?php _e('We believe that education isn\'t just about filling a bucket, but lighting a fire. Our curriculum ensures that by the time your child graduates from Chroma, they are not just "school ready"—they are life ready.', 'chroma-excellence'); ?>
 				</p>
 				<div class="grid grid-cols-2 gap-6">
 					<div class="bg-brand-cream p-6 rounded-2xl border border-brand-ink/5">
 						<div class="text-3xl mb-2">🧠</div>
-						<h3 class="font-bold text-brand-ink mb-1">Cognitive Growth</h3>
-						<p class="text-xs text-brand-ink/90">Critical thinking & problem solving.</p>
+						<h3 class="font-bold text-brand-ink mb-1"><?php _e('Cognitive Growth', 'chroma-excellence'); ?></h3>
+						<p class="text-xs text-brand-ink/90"><?php _e('Critical thinking & problem solving.', 'chroma-excellence'); ?></p>
 					</div>
 					<div class="bg-brand-cream p-6 rounded-2xl border border-brand-ink/5">
 						<div class="text-3xl mb-2">❤️</div>
-						<h3 class="font-bold text-brand-ink mb-1">Emotional IQ</h3>
-						<p class="text-xs text-brand-ink/90">Empathy, regulation & kindness.</p>
+						<h3 class="font-bold text-brand-ink mb-1"><?php _e('Emotional IQ', 'chroma-excellence'); ?></h3>
+						<p class="text-xs text-brand-ink/90"><?php _e('Empathy, regulation & kindness.', 'chroma-excellence'); ?></p>
 					</div>
 				</div>
 			</div>
@@ -219,16 +213,13 @@ $programs_query = new WP_Query(array(
 	<!-- CTA Section -->
 	<section class="py-20 bg-brand-cream">
 		<div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">
-			<h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-6">Ready to find your fit?</h2>
-			<p class="text-brand-ink mb-10">Every campus offers tours so you can meet the teachers, see the
-				classrooms, and experience the Chroma culture firsthand.</p>
+			<h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-6"><?php _e('Ready to find your fit?', 'chroma-excellence'); ?></h2>
+			<p class="text-brand-ink mb-10"><?php _e('Every campus offers tours so you can meet the teachers, see the classrooms, and experience the Chroma culture firsthand.', 'chroma-excellence'); ?></p>
 			<div class="flex flex-wrap justify-center gap-4">
 				<a href="<?php echo esc_url(home_url('/locations')); ?>"
-					class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors">Find
-					a Location</a>
+					class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors"><?php _e('Find a Location', 'chroma-excellence'); ?></a>
 				<a href="#tour"
-					class="px-8 py-4 bg-chroma-red text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-chroma-red/90 transition-colors shadow-lg">Schedule
-					a Tour</a>
+					class="px-8 py-4 bg-chroma-red text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-chroma-red/90 transition-colors shadow-lg"><?php _e('Schedule a Tour', 'chroma-excellence'); ?></a>
 			</div>
 		</div>
 	</section>

@@ -24,6 +24,10 @@ class Chroma_Theme_Translator
         add_action('wp_ajax_chroma_bulk_translate_strings', [$this, 'ajax_bulk_translate_strings']);
         add_action('wp_ajax_chroma_export_po', [$this, 'ajax_export_po']);
         
+        // TEMP DEBUG
+        add_action('wp_ajax_chroma_debug_meta', [$this, 'ajax_debug_meta']);
+        add_action('wp_ajax_nopriv_chroma_debug_meta', [$this, 'ajax_debug_meta']);
+
         // Runtime Translation Hook
         add_filter('gettext', [$this, 'filter_gettext'], 10, 3);
     }
@@ -278,10 +282,10 @@ class Chroma_Theme_Translator
                 // Regex: /[\s=\(\.]__(?:'|")(.+?)(?:'|")\s*,\s*(?:'|")chroma-excellence(?:'|")\s*\)/
                 // Simplified regex for single/double quotes and text domain
                 
-                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__)\(\s*['\"](.+?)['\"]\s*,\s*['\"]" . preg_quote($this->text_domain) . "['\"]/", $content, $matches);
+                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__)\(\s*(['\"])(.+?)\1\s*,\s*(['\"])" . preg_quote($this->text_domain) . "\3\s*\)/", $content, $matches);
                 
-                if (!empty($matches[1])) {
-                    foreach ($matches[1] as $match) {
+                if (!empty($matches[2])) {
+                    foreach ($matches[2] as $match) {
                         $strings[] = $match;
                     }
                 }
@@ -408,5 +412,22 @@ class Chroma_Theme_Translator
             'filename' => 'chroma-excellence-es_ES.po',
             'count' => count($translations)
         ]);
+    }
+
+    public function ajax_debug_meta() {
+        $page = get_page_by_path('about');
+        if (!$page) $page = get_page_by_path('about-us');
+        
+        if ($page) {
+            $meta = get_post_meta($page->ID);
+            wp_send_json_success([
+                'id' => $page->ID,
+                'title' => $page->post_title,
+                'es_content' => $meta['_chroma_es_content'][0] ?? 'MISSING',
+                'es_title' => $meta['_chroma_es_title'][0] ?? 'MISSING',
+                'all_meta' => $meta
+            ]);
+        }
+        wp_send_json_error('Page not found');
     }
 }

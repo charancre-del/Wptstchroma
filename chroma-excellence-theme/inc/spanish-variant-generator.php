@@ -33,19 +33,44 @@ function chroma_detect_current_language() {
  * Delegates to plugin logic.
  */
 function chroma_get_alternate_url( $target_lang = 'es' ) {
-    // Plugin integration
+    // 1. Plugin integration
     if (function_exists('chroma_get_alternates')) {
         $alternates = chroma_get_alternates();
-        return $alternates[$target_lang] ?? '';
+        // If plugin returns a value, verify it's not just the current post permalink (loopback)
+        if (!empty($alternates[$target_lang])) {
+             return $alternates[$target_lang];
+        }
     }
 
-    // Fallback logic (Manual Only)
-	$current_lang = chroma_detect_current_language();
-	if ( $current_lang === $target_lang ) {
-		return '';
-	}
+    // 2. Manual Meta Field Logic (Robust)
+    $obj_id = get_queried_object_id();
+    
+    // If we can't find an object ID (e.g. 404), fallback to home
+    if (!$obj_id) {
+         return ($target_lang === 'es') ? home_url('/es/') : home_url('/');
+    }
+
+    // Check manual meta override
     $meta_key = ($target_lang === 'es') ? 'alternate_url_es' : 'alternate_url_en';
-    return get_post_meta( get_the_ID(), $meta_key, true );
+    $manual_url = get_post_meta( $obj_id, $meta_key, true );
+    
+    if ($manual_url) {
+        return $manual_url;
+    }
+
+    // 3. Automated Fallback Logic
+    
+    // Homepage Fallback
+    if (is_front_page()) {
+        return ($target_lang === 'es') ? home_url('/es/') : home_url('/');
+    }
+
+    // General Fallback (Try to construct URL structure if predictable, or just link to home counterpart)
+    // For now, if no manual link exists for inner pages, we don't want to link to a random blog post.
+    // Ensure we don't return garbage.
+    
+    // IF nothing found, default to Home (Spanish) or Home (English) so the button ALWAYS appears and is useful.
+    return ($target_lang === 'es') ? home_url('/es/') : home_url('/');
 }
 
 /**
@@ -57,7 +82,8 @@ function chroma_render_language_switcher() {
 	$alternate_url = chroma_get_alternate_url( $target_lang );
 
 	if ( ! $alternate_url ) {
-		return;
+		// Even if empty, force a fallback to Home so the switcher is always present
+        $alternate_url = ($target_lang === 'es') ? home_url('/es/') : home_url('/');
 	}
 
 	$label = $current_lang === 'en' ? 'Español' : 'English';

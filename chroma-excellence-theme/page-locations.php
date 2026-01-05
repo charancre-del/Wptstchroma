@@ -39,7 +39,7 @@ function chroma_get_region_color_from_term($term_id)
 }
 ?>
 
-<main>
+
 	<!-- Hero Section -->
 	<section class="relative pt-16 pb-12 lg:pt-24 lg:pb-20 bg-white overflow-hidden">
 		<!-- Decor -->
@@ -50,16 +50,16 @@ function chroma_get_region_color_from_term($term_id)
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
 			<div
 				class="inline-flex items-center gap-2 bg-white border border-chroma-green/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-green shadow-sm mb-6 fade-in-up">
-				<i class="fa-solid fa-map-pin"></i> <?php echo $locations_query->found_posts; ?>+ Campuses
+				<i class="fa-solid fa-map-pin"></i> <?php echo $locations_query->found_posts; ?>+ <?php _e('Campuses', 'chroma-excellence'); ?>
 			</div>
 
 			<h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6 fade-in-up"
 				style="animation-delay: 0.1s;">
-				<?php echo wp_kses_post(get_theme_mod('chroma_locations_archive_title', 'Find your Chroma <span class="text-chroma-green italic">community.</span>')); ?>
+				<?php echo wp_kses_post(get_theme_mod('chroma_locations_archive_title', __('Find your Chroma <span class="text-chroma-green italic">community.</span>', 'chroma-excellence'))); ?>
 			</h1>
 
 			<p class="text-lg text-brand-ink/80 max-w-2xl mx-auto mb-10 fade-in-up" style="animation-delay: 0.2s;">
-				<?php echo has_excerpt() ? get_the_excerpt() : esc_html(get_theme_mod('chroma_locations_archive_subtitle', 'Serving families across Metro Atlanta with the same high standards of safety, curriculum, and care at every single location.')); ?>
+				<?php echo has_excerpt() ? get_the_excerpt() : esc_html(get_theme_mod('chroma_locations_archive_subtitle', __('Serving families across Metro Atlanta with the same high standards of safety, curriculum, and care at every single location.', 'chroma-excellence'))); ?>
 			</p>
 
 			<!-- Filter Bar -->
@@ -67,13 +67,13 @@ function chroma_get_region_color_from_term($term_id)
 				style="animation-delay: 0.3s;">
 				<div class="relative flex-grow">
 					<i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-brand-ink/30"></i>
-					<input type="text" id="location-search" placeholder="Search by city, zip, or campus name..."
+					<input type="text" id="location-search" placeholder="<?php esc_attr_e('Search by city, zip, or campus name...', 'chroma-excellence'); ?>"
 						class="w-full pl-12 pr-6 py-4 rounded-full bg-brand-cream/50 focus:bg-white focus:ring-2 ring-chroma-green/20 outline-none text-brand-ink placeholder:text-brand-ink/60 transition-all" />
 				</div>
 				<div class="flex gap-2 overflow-x-auto pb-2 md:pb-0 px-2 md:px-0 no-scrollbar" id="region-filters">
 					<button onclick="filterLocations('all')"
 						class="filter-btn active whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-ink text-white shadow-md transition-all">
-						<?php echo esc_html(get_theme_mod('chroma_locations_label', 'All Locations')); ?>
+						<?php echo esc_html(get_theme_mod('chroma_locations_label', __('All Locations', 'chroma-excellence'))); ?>
 					</button>
 					<?php if (!empty($all_regions) && !is_wp_error($all_regions)): ?>
 						<?php foreach ($all_regions as $region_term):
@@ -99,13 +99,12 @@ function chroma_get_region_color_from_term($term_id)
 				<div
 					class="w-16 h-16 bg-brand-ink/5 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
 					🤔</div>
-				<h3 class="font-serif text-xl font-bold text-brand-ink">No locations found</h3>
-				<p class="text-brand-ink/80 mt-2">Try adjusting your search terms or selecting
-					"<?php echo esc_html(get_theme_mod('chroma_locations_label', 'All Locations')); ?>".</p>
+				<h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('No locations found', 'chroma-excellence'); ?></h3>
+				<p class="text-brand-ink/80 mt-2"><?php printf(__('Try adjusting your search terms or selecting "%s".', 'chroma-excellence'), esc_html(get_theme_mod('chroma_locations_label', __('All Locations', 'chroma-excellence')))); ?></p>
 				<button onclick="filterLocations('all')"
 					class="mt-6 text-chroma-blue font-bold text-sm underline decoration-2 underline-offset-4">
-					View
-					<?php echo esc_html(strtolower(get_theme_mod('chroma_locations_label', 'All Locations'))); ?>
+					<?php _e('View', 'chroma-excellence'); ?>
+					<?php echo esc_html(strtolower(get_theme_mod('chroma_locations_label', __('All Locations', 'chroma-excellence')))); ?>
 				</button>
 			</div>
 
@@ -148,8 +147,8 @@ function chroma_get_region_color_from_term($term_id)
 						$is_open = true; // Can add logic for operating hours
 				
 						// Get age ranges/programs
-						$ages_served = get_post_meta($location_id, 'location_ages_served', true) ?: 'Infant - 12y';
-						$special_programs_raw = get_post_meta($location_id, 'location_special_programs', true);
+						$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('Infant - 12y', 'chroma-excellence');
+						$special_programs_raw = chroma_get_translated_meta($location_id, 'location_special_programs');
 
 						if ($special_programs_raw) {
 							// Explode comma-separated string
@@ -167,7 +166,7 @@ function chroma_get_region_color_from_term($term_id)
 								<?php if ($is_new || $is_enrolling): ?>
 									<div
 										class="absolute top-0 right-0 bg-<?php echo esc_attr($is_new ? $colors['text'] : $colors['border']); ?> text-<?php echo esc_attr($is_new ? 'brand-ink' : 'white'); ?> text-[10px] font-bold uppercase px-4 py-1 rounded-bl-xl tracking-wider">
-										<?php echo $is_new ? 'New Campus' : 'Now Enrolling'; ?>
+										<?php echo $is_new ? __('New Campus', 'chroma-excellence') : __('Now Enrolling', 'chroma-excellence'); ?>
 									</div>
 								<?php endif; ?>
 
@@ -178,7 +177,7 @@ function chroma_get_region_color_from_term($term_id)
 										<?php echo esc_html($region_name); ?>
 									</span>
 									<?php if ($is_open): ?>
-										<div class="w-2 h-2 rounded-full bg-chroma-green animate-pulse" title="Open Now"></div>
+										<div class="w-2 h-2 rounded-full bg-chroma-green animate-pulse" title="<?php esc_attr_e('Open Now', 'chroma-excellence'); ?>"></div>
 									<?php endif; ?>
 								</div>
 
@@ -205,11 +204,11 @@ function chroma_get_region_color_from_term($term_id)
 								<div class="grid grid-cols-2 gap-3 mt-auto">
 									<a href="<?php the_permalink(); ?>"
 										class="flex items-center justify-center py-3 rounded-xl bg-brand-ink/5 text-brand-ink text-xs font-bold uppercase tracking-wider hover:bg-brand-ink hover:text-white transition-colors">
-										View Campus
+										<?php _e('View Campus', 'chroma-excellence'); ?>
 									</a>
 									<a href="<?php the_permalink(); ?>#tour"
 										class="flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
-										Book Tour
+										<?php _e('Book Tour', 'chroma-excellence'); ?>
 									</a>
 								</div>
 							</div>
@@ -256,18 +255,17 @@ function chroma_get_region_color_from_term($term_id)
 
 				<!-- CTA Content -->
 				<div class="w-full lg:w-1/2 relative z-10">
-					<h2 class="font-serif text-3xl md:text-5xl font-bold mb-6">Not sure which campus is right for you?
+					<h2 class="font-serif text-3xl md:text-5xl font-bold mb-6"><?php _e('Not sure which campus is right for you?', 'chroma-excellence'); ?>
 					</h2>
-					<p class="text-white/90 text-lg mb-8">Our enrollment specialists can help you find the nearest
-						location with openings for your child's age group.</p>
+					<p class="text-white/90 text-lg mb-8"><?php _e('Our enrollment specialists can help you find the nearest location with openings for your child\'s age group.', 'chroma-excellence'); ?></p>
 					<div class="flex flex-wrap gap-4">
 						<a href="<?php echo esc_url(chroma_get_page_link('contact')); ?>"
 							class="px-8 py-4 bg-chroma-yellow text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-white transition-colors">
-							Contact Support
+							<?php _e('Contact Support', 'chroma-excellence'); ?>
 						</a>
 						<a href="<?php echo esc_url(home_url('/')); ?>"
 							class="px-8 py-4 border border-white/20 text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-white/10 transition-colors">
-							Back to Home
+							<?php _e('Back to Home', 'chroma-excellence'); ?>
 						</a>
 					</div>
 				</div>
@@ -278,7 +276,7 @@ function chroma_get_region_color_from_term($term_id)
 			</div>
 		</div>
 	</section>
-</main>
+
 
 <!-- Filter Logic -->
 <script>

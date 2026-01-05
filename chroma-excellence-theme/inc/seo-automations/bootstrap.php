@@ -37,6 +37,7 @@ require_once __DIR__ . '/class-geographic-seo.php';
 require_once __DIR__ . '/class-credential-badges.php';
 require_once __DIR__ . '/class-entity-seo.php';
 require_once __DIR__ . '/class-accessibility-seo.php';
+require_once __DIR__ . '/class-schema-bulk-ops.php';
 
 /**
  * Register default options

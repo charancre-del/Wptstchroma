@@ -33,7 +33,12 @@ function chroma_trimmed_excerpt($length = 20, $post_id = null)
  */
 function chroma_get_meta_value($post_id, $key, $default = '')
 {
-    $value = get_post_meta($post_id, $key, true);
+    // Use translation helper if available, otherwise fall back to get_post_meta
+    if (function_exists('chroma_get_translated_meta')) {
+        $value = chroma_get_translated_meta($post_id, $key);
+    } else {
+        $value = get_post_meta($post_id, $key, true);
+    }
 
     if ('' === $value || null === $value) {
         return $default;

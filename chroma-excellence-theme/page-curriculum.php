@@ -16,13 +16,13 @@ get_header();
 $page_id = get_the_ID();
 
 // Hero Section
-$hero_badge = get_post_meta($page_id, 'curriculum_hero_badge', true) ?: 'The Chroma Difference';
-$hero_title = get_post_meta($page_id, 'curriculum_hero_title', true) ?: 'Scientific rigor. <br><span class="italic text-chroma-green">Joyful delivery.</span>';
-$hero_description = get_post_meta($page_id, 'curriculum_hero_description', true) ?: 'Our proprietary Prismpath™ curriculum isn\'t just about ABCs. It\'s a comprehensive framework designed to build the critical thinking, emotional intelligence, and social skills needed for the 21st century.';
+$hero_badge = chroma_get_translated_meta($page_id, 'curriculum_hero_badge') ?: __('The Chroma Difference', 'chroma-excellence');
+$hero_title = chroma_get_translated_meta($page_id, 'curriculum_hero_title') ?: __('Scientific rigor. <br><span class="italic text-chroma-green">Joyful delivery.</span>', 'chroma-excellence');
+$hero_description = chroma_get_translated_meta($page_id, 'curriculum_hero_description') ?: __('Our proprietary Prismpath™ curriculum isn\'t just about ABCs. It\'s a comprehensive framework designed to build the critical thinking, emotional intelligence, and social skills needed for the 21st century.', 'chroma-excellence');
 
 // Framework Section
-$framework_title = get_post_meta($page_id, 'curriculum_framework_title', true) ?: 'The Prismpath™ Framework';
-$framework_description = get_post_meta($page_id, 'curriculum_framework_description', true) ?: 'Just as a prism refracts light into a spectrum, our curriculum refracts "play" into five distinct pillars of development. Every activity in our classrooms targets one or more of these areas.';
+$framework_title = chroma_get_translated_meta($page_id, 'curriculum_framework_title') ?: __('The Prismpath™ Framework', 'chroma-excellence');
+$framework_description = chroma_get_translated_meta($page_id, 'curriculum_framework_description') ?: __('Just as a prism refracts light into a spectrum, our curriculum refracts "play" into five distinct pillars of development. Every activity in our classrooms targets one or more of these areas.', 'chroma-excellence');
 
 $pillars = array(
 	array(
@@ -30,107 +30,107 @@ $pillars = array(
 		'borderClass' => 'border-chroma-red',
 		'bgClass' => 'bg-chroma-red/10',
 		'textClass' => 'text-chroma-red',
-		'icon' => get_post_meta($page_id, 'curriculum_pillar_physical_icon', true) ?: 'fa-solid fa-person-running',
-		'title' => get_post_meta($page_id, 'curriculum_pillar_physical_title', true) ?: 'Physical',
-		'desc' => get_post_meta($page_id, 'curriculum_pillar_physical_desc', true) ?: 'Gross motor coordination, fine motor grip strength, sensory integration, and nutritional health.',
+		'icon' => chroma_get_translated_meta($page_id, 'curriculum_pillar_physical_icon') ?: 'fa-solid fa-person-running',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_pillar_physical_title') ?: __('Physical', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_pillar_physical_desc') ?: __('Gross motor coordination, fine motor grip strength, sensory integration, and nutritional health.', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'emotional',
 		'borderClass' => 'border-chroma-yellow',
 		'bgClass' => 'bg-chroma-yellow/10',
 		'textClass' => 'text-chroma-yellow',
-		'icon' => get_post_meta($page_id, 'curriculum_pillar_emotional_icon', true) ?: 'fa-solid fa-face-smile',
-		'title' => get_post_meta($page_id, 'curriculum_pillar_emotional_title', true) ?: 'Emotional',
-		'desc' => get_post_meta($page_id, 'curriculum_pillar_emotional_desc', true) ?: 'Self-regulation, identifying feelings, building resilience, and developing a secure sense of self.',
+		'icon' => chroma_get_translated_meta($page_id, 'curriculum_pillar_emotional_icon') ?: 'fa-solid fa-face-smile',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_pillar_emotional_title') ?: __('Emotional', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_pillar_emotional_desc') ?: __('Self-regulation, identifying feelings, building resilience, and developing a secure sense of self.', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'social',
 		'borderClass' => 'border-chroma-green',
 		'bgClass' => 'bg-chroma-green/10',
 		'textClass' => 'text-chroma-green',
-		'icon' => get_post_meta($page_id, 'curriculum_pillar_social_icon', true) ?: 'fa-solid fa-users',
-		'title' => get_post_meta($page_id, 'curriculum_pillar_social_title', true) ?: 'Social',
-		'desc' => get_post_meta($page_id, 'curriculum_pillar_social_desc', true) ?: 'Conflict resolution, collaboration, empathy, communication, and understanding community roles.',
+		'icon' => chroma_get_translated_meta($page_id, 'curriculum_pillar_social_icon') ?: 'fa-solid fa-users',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_pillar_social_title') ?: __('Social', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_pillar_social_desc') ?: __('Conflict resolution, collaboration, empathy, communication, and understanding community roles.', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'academic',
 		'borderClass' => 'border-chroma-blue',
 		'bgClass' => 'bg-chroma-blue/10',
 		'textClass' => 'text-chroma-blue',
-		'icon' => get_post_meta($page_id, 'curriculum_pillar_academic_icon', true) ?: 'fa-solid fa-brain',
-		'title' => get_post_meta($page_id, 'curriculum_pillar_academic_title', true) ?: 'Academic',
-		'desc' => get_post_meta($page_id, 'curriculum_pillar_academic_desc', true) ?: 'Early literacy, logic & numeracy, scientific inquiry, critical thinking, and language acquisition.',
+		'icon' => chroma_get_translated_meta($page_id, 'curriculum_pillar_academic_icon') ?: 'fa-solid fa-brain',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_pillar_academic_title') ?: __('Academic', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_pillar_academic_desc') ?: __('Early literacy, logic & numeracy, scientific inquiry, critical thinking, and language acquisition.', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'creative',
 		'borderClass' => 'border-chroma-blueDark',
 		'bgClass' => 'bg-chroma-blueDark/10',
 		'textClass' => 'text-chroma-blueDark',
-		'icon' => get_post_meta($page_id, 'curriculum_pillar_creative_icon', true) ?: 'fa-solid fa-palette',
-		'title' => get_post_meta($page_id, 'curriculum_pillar_creative_title', true) ?: 'Creative',
-		'desc' => get_post_meta($page_id, 'curriculum_pillar_creative_desc', true) ?: 'Divergent thinking, artistic expression, music & movement, and dramatic/imaginative play.',
+		'icon' => chroma_get_translated_meta($page_id, 'curriculum_pillar_creative_icon') ?: 'fa-solid fa-palette',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_pillar_creative_title') ?: __('Creative', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_pillar_creative_desc') ?: __('Divergent thinking, artistic expression, music & movement, and dramatic/imaginative play.', 'chroma-excellence'),
 	),
 );
 
 // Timeline Section
-$timeline_badge = get_post_meta($page_id, 'curriculum_timeline_badge', true) ?: 'Learning Journey';
-$timeline_title = get_post_meta($page_id, 'curriculum_timeline_title', true) ?: 'How learning evolves.';
-$timeline_description = get_post_meta($page_id, 'curriculum_timeline_description', true) ?: 'Our curriculum is not static. It shifts and matures alongside your child, moving from sensory-based discovery to logic-based inquiry.';
-$timeline_image = get_post_meta($page_id, 'curriculum_timeline_image', true) ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
+$timeline_badge = chroma_get_translated_meta($page_id, 'curriculum_timeline_badge') ?: __('Learning Journey', 'chroma-excellence');
+$timeline_title = chroma_get_translated_meta($page_id, 'curriculum_timeline_title') ?: __('How learning evolves.', 'chroma-excellence');
+$timeline_description = chroma_get_translated_meta($page_id, 'curriculum_timeline_description') ?: __('Our curriculum is not static. It shifts and matures alongside your child, moving from sensory-based discovery to logic-based inquiry.', 'chroma-excellence');
+$timeline_image = chroma_get_translated_meta($page_id, 'curriculum_timeline_image') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
 
 $stages = array(
 	array(
 		'name' => 'foundation',
 		'borderClass' => 'border-chroma-red',
 		'bgClass' => 'bg-chroma-red',
-		'title' => get_post_meta($page_id, 'curriculum_stage_foundation_title', true) ?: 'Foundation (0-18 Months)',
-		'desc' => get_post_meta($page_id, 'curriculum_stage_foundation_desc', true) ?: 'Focus on security and senses. Learning happens through touch, sound, and responsive caregiving.',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_stage_foundation_title') ?: __('Foundation (0-18 Months)', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_stage_foundation_desc') ?: __('Focus on security and senses. Learning happens through touch, sound, and responsive caregiving.', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'discovery',
 		'borderClass' => 'border-chroma-yellow',
 		'bgClass' => 'bg-chroma-yellow',
-		'title' => get_post_meta($page_id, 'curriculum_stage_discovery_title', true) ?: 'Discovery (18 Months - 3 Years)',
-		'desc' => get_post_meta($page_id, 'curriculum_stage_discovery_desc', true) ?: 'Focus on autonomy and language. "I can do it!" is the theme as we support potty training and early speech.',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_stage_discovery_title') ?: __('Discovery (18 Months - 3 Years)', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_stage_discovery_desc') ?: __('Focus on autonomy and language. "I can do it!" is the theme as we support potty training and early speech.', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'readiness',
 		'borderClass' => 'border-chroma-green',
 		'bgClass' => 'bg-chroma-green',
-		'title' => get_post_meta($page_id, 'curriculum_stage_readiness_title', true) ?: 'Readiness (3 Years - 5 Years)',
-		'desc' => get_post_meta($page_id, 'curriculum_stage_readiness_desc', true) ?: 'Focus on executive function and logic. Multi-step projects, early writing, and complex social play prepare for Kindergarten.',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_stage_readiness_title') ?: __('Readiness (3 Years - 5 Years)', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_stage_readiness_desc') ?: __('Focus on executive function and logic. Multi-step projects, early writing, and complex social play prepare for Kindergarten.', 'chroma-excellence'),
 	),
 );
 
 // Environment Section
-$env_badge = get_post_meta($page_id, 'curriculum_env_badge', true) ?: 'Environment';
-$env_title = get_post_meta($page_id, 'curriculum_env_title', true) ?: 'The classroom is the "Third Teacher."';
-$env_description = get_post_meta($page_id, 'curriculum_env_description', true) ?: 'We believe the environment itself acts as a teacher, guiding learning alongside our educators. Our classrooms are intentionally designed zones that invite exploration, curiosity, and independence without needing constant adult direction.';
+$env_badge = chroma_get_translated_meta($page_id, 'curriculum_env_badge') ?: __('Environment', 'chroma-excellence');
+$env_title = chroma_get_translated_meta($page_id, 'curriculum_env_title') ?: __('The classroom is the "Third Teacher."', 'chroma-excellence');
+$env_description = chroma_get_translated_meta($page_id, 'curriculum_env_description') ?: __('We believe the environment itself acts as a teacher, guiding learning alongside our educators. Our classrooms are intentionally designed zones that invite exploration, curiosity, and independence without needing constant adult direction.', 'chroma-excellence');
 
 $zones = array(
 	array(
 		'name' => 'construction',
-		'emoji' => get_post_meta($page_id, 'curriculum_zone_construction_emoji', true) ?: '🧱',
-		'title' => get_post_meta($page_id, 'curriculum_zone_construction_title', true) ?: 'Construction Zone',
-		'desc' => get_post_meta($page_id, 'curriculum_zone_construction_desc', true) ?: 'Blocks and engineering tools to teach balance, gravity, and spatial reasoning.',
+		'emoji' => chroma_get_translated_meta($page_id, 'curriculum_zone_construction_emoji') ?: '🧱',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_zone_construction_title') ?: __('Construction Zone', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_zone_construction_desc') ?: __('Blocks and engineering tools to teach balance, gravity, and spatial reasoning.', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'atelier',
-		'emoji' => get_post_meta($page_id, 'curriculum_zone_atelier_emoji', true) ?: '🎨',
-		'title' => get_post_meta($page_id, 'curriculum_zone_atelier_title', true) ?: 'Atelier (Art Studio)',
-		'desc' => get_post_meta($page_id, 'curriculum_zone_atelier_desc', true) ?: 'Open access to paints, clays, and loose parts for unrestricted creative expression.',
+		'emoji' => chroma_get_translated_meta($page_id, 'curriculum_zone_atelier_emoji') ?: '🎨',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_zone_atelier_title') ?: __('Atelier (Art Studio)', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_zone_atelier_desc') ?: __('Open access to paints, clays, and loose parts for unrestricted creative expression.', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'literacy',
-		'emoji' => get_post_meta($page_id, 'curriculum_zone_literacy_emoji', true) ?: '📖',
-		'title' => get_post_meta($page_id, 'curriculum_zone_literacy_title', true) ?: 'Literacy Nook',
-		'desc' => get_post_meta($page_id, 'curriculum_zone_literacy_desc', true) ?: 'Cozy, soft spaces with diverse books to foster a lifelong love of reading.',
+		'emoji' => chroma_get_translated_meta($page_id, 'curriculum_zone_literacy_emoji') ?: '📖',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_zone_literacy_title') ?: __('Literacy Nook', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_zone_literacy_desc') ?: __('Cozy, soft spaces with diverse books to foster a lifelong love of reading.', 'chroma-excellence'),
 	),
 );
 
 // Milestones Section
-$milestones_title = get_post_meta($page_id, 'curriculum_milestones_title', true) ?: 'Measuring Milestones';
-$milestones_subtitle = get_post_meta($page_id, 'curriculum_milestones_subtitle', true) ?: 'We don\'t just watch them grow; we measure it to ensure no child falls behind.';
+$milestones_title = chroma_get_translated_meta($page_id, 'curriculum_milestones_title') ?: __('Measuring Milestones', 'chroma-excellence');
+$milestones_subtitle = chroma_get_translated_meta($page_id, 'curriculum_milestones_subtitle') ?: __('We don\'t just watch them grow; we measure it to ensure no child falls behind.', 'chroma-excellence');
 
 $milestone_cards = array(
 	array(
@@ -139,11 +139,11 @@ $milestone_cards = array(
 		'borderClass' => 'border-chroma-blue/20',
 		'iconBg' => 'bg-chroma-blue/10',
 		'textClass' => 'text-chroma-blue',
-		'icon' => get_post_meta($page_id, 'curriculum_milestone_tracking_icon', true) ?: 'fa-solid fa-chart-line',
-		'title' => get_post_meta($page_id, 'curriculum_milestone_tracking_title', true) ?: 'Daily Progress Tracking',
-		'desc' => get_post_meta($page_id, 'curriculum_milestone_tracking_desc', true) ?: 'We use a digital portfolio system to capture daily moments of learning. From an infant\'s first roll to a preschooler\'s first written letter, these micro-wins are documented and shared with you in real-time.',
-		'bullet1' => get_post_meta($page_id, 'curriculum_milestone_tracking_bullet1', true) ?: 'Photo/Video Evidence',
-		'bullet2' => get_post_meta($page_id, 'curriculum_milestone_tracking_bullet2', true) ?: 'Daily Activity Reports',
+		'icon' => chroma_get_translated_meta($page_id, 'curriculum_milestone_tracking_icon') ?: 'fa-solid fa-chart-line',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_milestone_tracking_title') ?: __('Daily Progress Tracking', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_milestone_tracking_desc') ?: __('We use a digital portfolio system to capture daily moments of learning. From an infant\'s first roll to a preschooler\'s first written letter, these micro-wins are documented and shared with you in real-time.', 'chroma-excellence'),
+		'bullet1' => chroma_get_translated_meta($page_id, 'curriculum_milestone_tracking_bullet1') ?: __('Photo/Video Evidence', 'chroma-excellence'),
+		'bullet2' => chroma_get_translated_meta($page_id, 'curriculum_milestone_tracking_bullet2') ?: __('Daily Activity Reports', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'screenings',
@@ -151,11 +151,11 @@ $milestone_cards = array(
 		'borderClass' => 'border-chroma-red/20',
 		'iconBg' => 'bg-chroma-red/10',
 		'textClass' => 'text-chroma-red',
-		'icon' => get_post_meta($page_id, 'curriculum_milestone_screenings_icon', true) ?: 'fa-solid fa-magnifying-glass-chart',
-		'title' => get_post_meta($page_id, 'curriculum_milestone_screenings_title', true) ?: 'Developmental Screenings',
-		'desc' => get_post_meta($page_id, 'curriculum_milestone_screenings_desc', true) ?: 'We utilize the <strong>ASQ-3 (Ages & Stages Questionnaires)</strong> standard to conduct formal screenings at key age intervals. This helps us identify strengths and potential areas for early intervention support proactively.',
-		'bullet1' => get_post_meta($page_id, 'curriculum_milestone_screenings_bullet1', true) ?: 'Conducted at 4, 8, 12, 18, 24 Months',
-		'bullet2' => get_post_meta($page_id, 'curriculum_milestone_screenings_bullet2', true) ?: 'Partnership with Specialists',
+		'icon' => chroma_get_translated_meta($page_id, 'curriculum_milestone_screenings_icon') ?: 'fa-solid fa-magnifying-glass-chart',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_milestone_screenings_title') ?: __('Developmental Screenings', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_milestone_screenings_desc') ?: __('We utilize the <strong>ASQ-3 (Ages & Stages Questionnaires)</strong> standard to conduct formal screenings at key age intervals. This helps us identify strengths and potential areas for early intervention support proactively.', 'chroma-excellence'),
+		'bullet1' => chroma_get_translated_meta($page_id, 'curriculum_milestone_screenings_bullet1') ?: __('Conducted at 4, 8, 12, 18, 24 Months', 'chroma-excellence'),
+		'bullet2' => chroma_get_translated_meta($page_id, 'curriculum_milestone_screenings_bullet2') ?: __('Partnership with Specialists', 'chroma-excellence'),
 	),
 	array(
 		'name' => 'assessments',
@@ -163,17 +163,17 @@ $milestone_cards = array(
 		'borderClass' => 'border-chroma-yellow/20',
 		'iconBg' => 'bg-chroma-yellow/10',
 		'textClass' => 'text-chroma-yellow',
-		'icon' => get_post_meta($page_id, 'curriculum_milestone_assessments_icon', true) ?: 'fa-solid fa-file-signature',
-		'title' => get_post_meta($page_id, 'curriculum_milestone_assessments_title', true) ?: 'Formal Assessments',
-		'desc' => get_post_meta($page_id, 'curriculum_milestone_assessments_desc', true) ?: 'Twice a year (Fall and Spring), teachers conduct comprehensive assessments aligning with Georgia Early Learning and Development Standards (GELDS). These form the basis for our detailed Parent-Teacher Conferences.',
-		'bullet1' => get_post_meta($page_id, 'curriculum_milestone_assessments_bullet1', true) ?: 'Biannual Conferences',
-		'bullet2' => get_post_meta($page_id, 'curriculum_milestone_assessments_bullet2', true) ?: 'Individualized Lesson Planning',
+		'icon' => chroma_get_translated_meta($page_id, 'curriculum_milestone_assessments_icon') ?: 'fa-solid fa-file-signature',
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_milestone_assessments_title') ?: __('Formal Assessments', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_milestone_assessments_desc') ?: __('Twice a year (Fall and Spring), teachers conduct comprehensive assessments aligning with Georgia Early Learning and Development Standards (GELDS). These form the basis for our detailed Parent-Teacher Conferences.', 'chroma-excellence'),
+		'bullet1' => chroma_get_translated_meta($page_id, 'curriculum_milestone_assessments_bullet1') ?: __('Biannual Conferences', 'chroma-excellence'),
+		'bullet2' => chroma_get_translated_meta($page_id, 'curriculum_milestone_assessments_bullet2') ?: __('Individualized Lesson Planning', 'chroma-excellence'),
 	),
 );
 
 // CTA Section
-$cta_title = get_post_meta($page_id, 'curriculum_cta_title', true) ?: 'See the curriculum in action.';
-$cta_description = get_post_meta($page_id, 'curriculum_cta_description', true) ?: 'Schedule a tour to see our "Third Teacher" classrooms and meet the educators bringing Prismpath™ to life.';
+$cta_title = chroma_get_translated_meta($page_id, 'curriculum_cta_title') ?: __('See the curriculum in action.', 'chroma-excellence');
+$cta_description = chroma_get_translated_meta($page_id, 'curriculum_cta_description') ?: __('Schedule a tour to see our "Third Teacher" classrooms and meet the educators bringing Prismpath™ to life.', 'chroma-excellence');
 ?>
 
 <main id="primary" class="site-main" role="main">

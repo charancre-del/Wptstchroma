@@ -122,11 +122,11 @@ $locations_query = new WP_Query(array(
 						$is_enrolling = get_post_meta($location_id, 'location_enrolling', true);
 
 						// Dynamic Open Status
-						$hours_string = get_post_meta($location_id, 'location_hours', true);
+						$hours_string = chroma_get_translated_meta($location_id, 'location_hours');
 						$is_open = chroma_is_location_open($hours_string);
 
 						// Badge Text Logic
-						$hero_subtitle = get_post_meta($location_id, 'location_hero_subtitle', true);
+						$hero_subtitle = chroma_get_translated_meta($location_id, 'location_hero_subtitle');
 						if (!empty($hero_subtitle)) {
 							$badge_text = $hero_subtitle;
 						} elseif ($is_new) {
@@ -136,8 +136,8 @@ $locations_query = new WP_Query(array(
 						}
 
 						// Get age ranges/programs
-						$ages_served = get_post_meta($location_id, 'location_ages_served', true) ?: __('Infant - 12y', 'chroma-excellence');
-						$special_programs_raw = get_post_meta($location_id, 'location_special_programs', true);
+						$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('Infant - 12y', 'chroma-excellence');
+						$special_programs_raw = chroma_get_translated_meta($location_id, 'location_special_programs');
 
 						if ($special_programs_raw) {
 							// Explode comma-separated string
@@ -195,7 +195,7 @@ $locations_query = new WP_Query(array(
 								</div>
 
 								<?php
-							$booking_link = get_post_meta($location_id, 'location_tour_booking_link', true);
+							$booking_link = chroma_get_translated_meta($location_id, 'location_tour_booking_link');
 							?>
 							<div class="grid grid-cols-2 gap-3 mt-auto relative z-20">
 								<a href="<?php the_permalink(); ?>"

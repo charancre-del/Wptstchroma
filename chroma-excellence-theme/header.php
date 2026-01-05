@@ -168,4 +168,7 @@
 	</div>
 
 	<main id="main-content" class="pt-20 lg:pt-24">
-		<?php do_action('chroma_breadcrumbs'); ?>
+		<?php 
+		// Disabled to prevent duplication with external plugins
+		// do_action('chroma_breadcrumbs'); 
+		?>

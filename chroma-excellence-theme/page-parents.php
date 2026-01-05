@@ -11,177 +11,177 @@ get_header();
 $page_id = get_the_ID();
 
 // Hero Section
-$hero_badge = get_post_meta($page_id, 'parents_hero_badge', true) ?: 'Parent Dashboard';
-$hero_title = get_post_meta($page_id, 'parents_hero_title', true) ?: 'Partners in your child\'s journey.';
-$hero_description = get_post_meta($page_id, 'parents_hero_description', true) ?: 'Everything you need to manage your enrollment, stay connected, and engage with the Chroma community.';
+$hero_badge = chroma_get_translated_meta($page_id, 'parents_hero_badge') ?: __('Parent Dashboard', 'chroma-excellence');
+$hero_title = chroma_get_translated_meta($page_id, 'parents_hero_title') ?: __('Partners in your child\'s journey.', 'chroma-excellence');
+$hero_description = chroma_get_translated_meta($page_id, 'parents_hero_description') ?: __('Everything you need to manage your enrollment, stay connected, and engage with the Chroma community.', 'chroma-excellence');
 
 // Parent Essentials Section
-$essentials_title = get_post_meta($page_id, 'parents_essentials_title', true) ?: 'Parent Essentials';
+$essentials_title = chroma_get_translated_meta($page_id, 'parents_essentials_title') ?: __('Parent Essentials', 'chroma-excellence');
 
 $resources = array(
 	array(
 		'name' => 'procare',
-		'icon' => get_post_meta($page_id, 'parents_resource_procare_icon', true) ?: 'fa-solid fa-cloud',
-		'title' => get_post_meta($page_id, 'parents_resource_procare_title', true) ?: 'Procare Cloud',
-		'description' => get_post_meta($page_id, 'parents_resource_procare_desc', true) ?: 'Daily reports, photos, and attendance tracking.',
-		'url' => get_post_meta($page_id, 'parents_resource_procare_url', true) ?: '#',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_procare_icon') ?: 'fa-solid fa-cloud',
+		'title' => chroma_get_translated_meta($page_id, 'parents_resource_procare_title') ?: __('Procare Cloud', 'chroma-excellence'),
+		'description' => chroma_get_translated_meta($page_id, 'parents_resource_procare_desc') ?: __('Daily reports, photos, and attendance tracking.', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_resource_procare_url') ?: '#',
 		'colorClass' => 'chroma-blue',
 	),
 	array(
 		'name' => 'tuition',
-		'icon' => get_post_meta($page_id, 'parents_resource_tuition_icon', true) ?: 'fa-solid fa-credit-card',
-		'title' => get_post_meta($page_id, 'parents_resource_tuition_title', true) ?: 'Tuition Portal',
-		'description' => get_post_meta($page_id, 'parents_resource_tuition_desc', true) ?: 'Securely view statements and make payments.',
-		'url' => get_post_meta($page_id, 'parents_resource_tuition_url', true) ?: '#',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_tuition_icon') ?: 'fa-solid fa-credit-card',
+		'title' => chroma_get_translated_meta($page_id, 'parents_resource_tuition_title') ?: __('Tuition Portal', 'chroma-excellence'),
+		'description' => chroma_get_translated_meta($page_id, 'parents_resource_tuition_desc') ?: __('Securely view statements and make payments.', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_resource_tuition_url') ?: '#',
 		'colorClass' => 'chroma-green',
 	),
 	array(
 		'name' => 'handbook',
-		'icon' => get_post_meta($page_id, 'parents_resource_handbook_icon', true) ?: 'fa-solid fa-book-open',
-		'title' => get_post_meta($page_id, 'parents_resource_handbook_title', true) ?: 'Parent Handbook',
-		'description' => get_post_meta($page_id, 'parents_resource_handbook_desc', true) ?: 'Policies, procedures, and operational details.',
-		'url' => get_post_meta($page_id, 'parents_resource_handbook_url', true) ?: '#',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_handbook_icon') ?: 'fa-solid fa-book-open',
+		'title' => chroma_get_translated_meta($page_id, 'parents_resource_handbook_title') ?: __('Parent Handbook', 'chroma-excellence'),
+		'description' => chroma_get_translated_meta($page_id, 'parents_resource_handbook_desc') ?: __('Policies, procedures, and operational details.', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_resource_handbook_url') ?: '#',
 		'colorClass' => 'chroma-yellow',
 	),
 	array(
 		'name' => 'enrollment',
-		'icon' => get_post_meta($page_id, 'parents_resource_enrollment_icon', true) ?: 'fa-solid fa-file-signature',
-		'title' => get_post_meta($page_id, 'parents_resource_enrollment_title', true) ?: 'Enrollment Agreement',
-		'description' => get_post_meta($page_id, 'parents_resource_enrollment_desc', true) ?: 'Update your annual enrollment documents.',
-		'url' => get_post_meta($page_id, 'parents_resource_enrollment_url', true) ?: '#',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_enrollment_icon') ?: 'fa-solid fa-file-signature',
+		'title' => chroma_get_translated_meta($page_id, 'parents_resource_enrollment_title') ?: __('Enrollment Agreement', 'chroma-excellence'),
+		'description' => chroma_get_translated_meta($page_id, 'parents_resource_enrollment_desc') ?: __('Update your annual enrollment documents.', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_resource_enrollment_url') ?: '#',
 		'colorClass' => 'chroma-red',
 	),
 	array(
 		'name' => 'prekga',
-		'icon' => get_post_meta($page_id, 'parents_resource_prekga_icon', true) ?: 'fa-solid fa-graduation-cap',
-		'title' => get_post_meta($page_id, 'parents_resource_prekga_title', true) ?: 'GA Pre-K Enrollment',
-		'description' => get_post_meta($page_id, 'parents_resource_prekga_desc', true) ?: 'Lottery registration and required state forms.',
-		'url' => get_post_meta($page_id, 'parents_resource_prekga_url', true) ?: '#',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_prekga_icon') ?: 'fa-solid fa-graduation-cap',
+		'title' => chroma_get_translated_meta($page_id, 'parents_resource_prekga_title') ?: __('GA Pre-K Enrollment', 'chroma-excellence'),
+		'description' => chroma_get_translated_meta($page_id, 'parents_resource_prekga_desc') ?: __('Lottery registration and required state forms.', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_resource_prekga_url') ?: '#',
 		'colorClass' => 'brand-ink',
 	),
 	array(
 		'name' => 'waitlist',
-		'icon' => get_post_meta($page_id, 'parents_resource_waitlist_icon', true) ?: 'fa-solid fa-clock',
-		'title' => get_post_meta($page_id, 'parents_resource_waitlist_title', true) ?: 'Join Waitlist',
-		'description' => get_post_meta($page_id, 'parents_resource_waitlist_desc', true) ?: 'Reserve a spot for siblings or future terms.',
-		'url' => get_post_meta($page_id, 'parents_resource_waitlist_url', true) ?: '#',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_waitlist_icon') ?: 'fa-solid fa-clock',
+		'title' => chroma_get_translated_meta($page_id, 'parents_resource_waitlist_title') ?: __('Join Waitlist', 'chroma-excellence'),
+		'description' => chroma_get_translated_meta($page_id, 'parents_resource_waitlist_desc') ?: __('Reserve a spot for siblings or future terms.', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_resource_waitlist_url') ?: '#',
 		'colorClass' => 'brand-ink',
 	),
 );
 
 // Events Section
-$events_badge = get_post_meta($page_id, 'parents_events_badge', true) ?: 'Community';
-$events_title = get_post_meta($page_id, 'parents_events_title', true) ?: 'Traditions & Celebrations';
-$events_description = get_post_meta($page_id, 'parents_events_description', true) ?: 'We believe in building a village. Our calendar is peppered with events designed to bring families together and celebrate our students\' milestones.';
-$events_image = get_post_meta($page_id, 'parents_events_image', true) ?: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=800&auto=format&fit=crop';
+$events_badge = chroma_get_translated_meta($page_id, 'parents_events_badge') ?: __('Community', 'chroma-excellence');
+$events_title = chroma_get_translated_meta($page_id, 'parents_events_title') ?: __('Traditions & Celebrations', 'chroma-excellence');
+$events_description = chroma_get_translated_meta($page_id, 'parents_events_description') ?: __('We believe in building a village. Our calendar is peppered with events designed to bring families together and celebrate our students\' milestones.', 'chroma-excellence');
+$events_image = chroma_get_translated_meta($page_id, 'parents_events_image') ?: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?q=80&w=800&auto=format&fit=crop';
 
 $events = array(
 	array(
-		'icon' => get_post_meta($page_id, 'parents_event1_icon', true) ?: 'fa-solid fa-calendar-days',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_event1_icon') ?: 'fa-solid fa-calendar-days',
 		'color' => 'chroma-yellow',
-		'title' => get_post_meta($page_id, 'parents_event1_title', true) ?: 'Quarterly Family Events',
-		'desc' => get_post_meta($page_id, 'parents_event1_desc', true) ?: 'Every season brings a reason to gather. From our Fall Festival and Winter "Cookies & Cocoa" to our Spring Art Show and Summer Splash Days, we create memories for the whole family.',
+		'title' => chroma_get_translated_meta($page_id, 'parents_event1_title') ?: __('Quarterly Family Events', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'parents_event1_desc') ?: __('Every season brings a reason to gather. From our Fall Festival and Winter "Cookies & Cocoa" to our Spring Art Show and Summer Splash Days, we create memories for the whole family.', 'chroma-excellence'),
 	),
 	array(
-		'icon' => get_post_meta($page_id, 'parents_event2_icon', true) ?: 'fa-solid fa-star',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_event2_icon') ?: 'fa-solid fa-star',
 		'color' => 'chroma-red',
-		'title' => get_post_meta($page_id, 'parents_event2_title', true) ?: 'Pre-K Graduation',
-		'desc' => get_post_meta($page_id, 'parents_event2_desc', true) ?: 'A cap-and-gown ceremony celebrating our 4 and 5-year-olds as they transition to Kindergarten. It\'s the highlight of our academic year!',
+		'title' => chroma_get_translated_meta($page_id, 'parents_event2_title') ?: __('Pre-K Graduation', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'parents_event2_desc') ?: __('A cap-and-gown ceremony celebrating our 4 and 5-year-olds as they transition to Kindergarten. It\'s the highlight of our academic year!', 'chroma-excellence'),
 	),
 	array(
-		'icon' => get_post_meta($page_id, 'parents_event3_icon', true) ?: 'fa-solid fa-handshake',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_event3_icon') ?: 'fa-solid fa-handshake',
 		'color' => 'chroma-green',
-		'title' => get_post_meta($page_id, 'parents_event3_title', true) ?: 'Parent-Teacher Conferences',
-		'desc' => get_post_meta($page_id, 'parents_event3_desc', true) ?: 'Twice a year, we sit down to review your child\'s developmental portfolio, set goals, and celebrate their individual growth curve.',
+		'title' => chroma_get_translated_meta($page_id, 'parents_event3_title') ?: __('Parent-Teacher Conferences', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'parents_event3_desc') ?: __('Twice a year, we sit down to review your child\'s developmental portfolio, set goals, and celebrate their individual growth curve.', 'chroma-excellence'),
 	),
 );
 
 // Nutrition Section
-$nutrition_badge = get_post_meta($page_id, 'parents_nutrition_badge', true) ?: 'Wellness';
-$nutrition_title = get_post_meta($page_id, 'parents_nutrition_title', true) ?: 'What\'s for lunch?';
-$nutrition_description = get_post_meta($page_id, 'parents_nutrition_description', true) ?: 'Our in-house chefs prepare balanced, CACFP-compliant meals fresh daily. We are a nut-aware facility.';
-$nutrition_image = get_post_meta($page_id, 'parents_nutrition_image', true) ?: 'https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?q=80&w=800&auto=format&fit=crop';
+$nutrition_badge = chroma_get_translated_meta($page_id, 'parents_nutrition_badge') ?: __('Wellness', 'chroma-excellence');
+$nutrition_title = chroma_get_translated_meta($page_id, 'parents_nutrition_title') ?: __('What\'s for lunch?', 'chroma-excellence');
+$nutrition_description = chroma_get_translated_meta($page_id, 'parents_nutrition_description') ?: __('Our in-house chefs prepare balanced, CACFP-compliant meals fresh daily. We are a nut-aware facility.', 'chroma-excellence');
+$nutrition_image = chroma_get_translated_meta($page_id, 'parents_nutrition_image') ?: 'https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?q=80&w=800&auto=format&fit=crop';
 
 $menus = array(
 	array(
-		'icon' => get_post_meta($page_id, 'parents_menu1_icon', true) ?: 'fa-solid fa-carrot',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_menu1_icon') ?: 'fa-solid fa-carrot',
 		'color' => 'chroma-green',
 		'bgClass' => 'chroma-greenLight',
-		'title' => get_post_meta($page_id, 'parents_menu1_title', true) ?: 'Current Month Menu',
-		'subtitle' => get_post_meta($page_id, 'parents_menu1_subtitle', true) ?: 'Standard (Ages 1-12)',
-		'url' => get_post_meta($page_id, 'parents_menu1_url', true) ?: '#',
+		'title' => chroma_get_translated_meta($page_id, 'parents_menu1_title') ?: __('Current Month Menu', 'chroma-excellence'),
+		'subtitle' => chroma_get_translated_meta($page_id, 'parents_menu1_subtitle') ?: __('Standard (Ages 1-12)', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_menu1_url') ?: '#',
 	),
 	array(
-		'icon' => get_post_meta($page_id, 'parents_menu2_icon', true) ?: 'fa-solid fa-baby',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_menu2_icon') ?: 'fa-solid fa-baby',
 		'color' => 'chroma-blue',
 		'bgClass' => 'chroma-blueLight',
-		'title' => get_post_meta($page_id, 'parents_menu2_title', true) ?: 'Infant Puree Menu',
-		'subtitle' => get_post_meta($page_id, 'parents_menu2_subtitle', true) ?: 'Stage 1 & 2 Solids',
-		'url' => get_post_meta($page_id, 'parents_menu2_url', true) ?: '#',
+		'title' => chroma_get_translated_meta($page_id, 'parents_menu2_title') ?: __('Infant Puree Menu', 'chroma-excellence'),
+		'subtitle' => chroma_get_translated_meta($page_id, 'parents_menu2_subtitle') ?: __('Stage 1 & 2 Solids', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_menu2_url') ?: '#',
 	),
 	array(
-		'icon' => get_post_meta($page_id, 'parents_menu3_icon', true) ?: 'fa-solid fa-wheat-awn-circle-exclamation',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_menu3_icon') ?: 'fa-solid fa-wheat-awn-circle-exclamation',
 		'color' => 'chroma-red',
 		'bgClass' => 'chroma-redLight',
-		'title' => get_post_meta($page_id, 'parents_menu3_title', true) ?: 'Allergy Statement',
-		'subtitle' => get_post_meta($page_id, 'parents_menu3_subtitle', true) ?: 'Our Nut-Free Protocols',
-		'url' => get_post_meta($page_id, 'parents_menu3_url', true) ?: '#',
+		'title' => chroma_get_translated_meta($page_id, 'parents_menu3_title') ?: __('Allergy Statement', 'chroma-excellence'),
+		'subtitle' => chroma_get_translated_meta($page_id, 'parents_menu3_subtitle') ?: __('Our Nut-Free Protocols', 'chroma-excellence'),
+		'url' => chroma_get_translated_meta($page_id, 'parents_menu3_url') ?: '#',
 	),
 );
 
 // Safety Section
-$safety_title = get_post_meta($page_id, 'parents_safety_title', true) ?: 'Safe. Secure. Connected.';
-$safety_description = get_post_meta($page_id, 'parents_safety_description', true) ?: 'We employ enterprise-grade security measures and transparent communication protocols so you can have total peace of mind while you work.';
+$safety_title = chroma_get_translated_meta($page_id, 'parents_safety_title') ?: __('Safe. Secure. Connected.', 'chroma-excellence');
+$safety_description = chroma_get_translated_meta($page_id, 'parents_safety_description') ?: __('We employ enterprise-grade security measures and transparent communication protocols so you can have total peace of mind while you work.', 'chroma-excellence');
 
 $safety_items = array(
 	array(
-		'icon' => get_post_meta($page_id, 'parents_safety1_icon', true) ?: 'fa-solid fa-video',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_safety1_icon') ?: 'fa-solid fa-video',
 		'color' => 'chroma-green',
-		'title' => get_post_meta($page_id, 'parents_safety1_title', true) ?: '24/7 Monitored Cameras',
-		'desc' => get_post_meta($page_id, 'parents_safety1_desc', true) ?: 'Our facilities are equipped with high-definition closed-circuit cameras in every classroom, hallway, and playground. Feeds are monitored by leadership to ensure policy adherence and safety.',
+		'title' => chroma_get_translated_meta($page_id, 'parents_safety1_title') ?: __('24/7 Monitored Cameras', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'parents_safety1_desc') ?: __('Our facilities are equipped with high-definition closed-circuit cameras in every classroom, hallway, and playground. Feeds are monitored by leadership to ensure policy adherence and safety.', 'chroma-excellence'),
 	),
 	array(
-		'icon' => get_post_meta($page_id, 'parents_safety2_icon', true) ?: 'fa-solid fa-mobile-screen-button',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_safety2_icon') ?: 'fa-solid fa-mobile-screen-button',
 		'color' => 'chroma-blue',
-		'title' => get_post_meta($page_id, 'parents_safety2_title', true) ?: 'Real-Time Updates',
-		'desc' => get_post_meta($page_id, 'parents_safety2_desc', true) ?: 'Through the Procare app, you receive real-time notifications for meals, naps, and diaper changes, plus photos of your child engaging in the curriculum throughout the day.',
+		'title' => chroma_get_translated_meta($page_id, 'parents_safety2_title') ?: __('Real-Time Updates', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'parents_safety2_desc') ?: __('Through the Procare app, you receive real-time notifications for meals, naps, and diaper changes, plus photos of your child engaging in the curriculum throughout the day.', 'chroma-excellence'),
 	),
 	array(
-		'icon' => get_post_meta($page_id, 'parents_safety3_icon', true) ?: 'fa-solid fa-lock',
+		'icon' => chroma_get_translated_meta($page_id, 'parents_safety3_icon') ?: 'fa-solid fa-lock',
 		'color' => 'chroma-red',
-		'title' => get_post_meta($page_id, 'parents_safety3_title', true) ?: 'Secure Access Control',
-		'desc' => get_post_meta($page_id, 'parents_safety3_desc', true) ?: 'Our lobbies are secured with coded keypad entry systems. Codes are unique to each family and change regularly. ID is strictly required for any alternative pickups.',
+		'title' => chroma_get_translated_meta($page_id, 'parents_safety3_title') ?: __('Secure Access Control', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'parents_safety3_desc') ?: __('Our lobbies are secured with coded keypad entry systems. Codes are unique to each family and change regularly. ID is strictly required for any alternative pickups.', 'chroma-excellence'),
 	),
 );
 
 // FAQ Section
-$faq_title = get_post_meta($page_id, 'parents_faq_title', true) ?: 'Operational Policy FAQ';
-$faq_description = get_post_meta($page_id, 'parents_faq_description', true) ?: 'Quick answers to common day-to-day questions.';
+$faq_title = chroma_get_translated_meta($page_id, 'parents_faq_title') ?: __('Operational Policy FAQ', 'chroma-excellence');
+$faq_description = chroma_get_translated_meta($page_id, 'parents_faq_description') ?: __('Quick answers to common day-to-day questions.', 'chroma-excellence');
 
 $faqs = array(
 	array(
-		'question' => get_post_meta($page_id, 'parents_faq1_question', true) ?: 'What is the sick child policy?',
-		'answer' => get_post_meta($page_id, 'parents_faq1_answer', true) ?: 'Children must be symptom-free (fever under 100.4°F, no vomiting/diarrhea) for 24 hours without medication before returning to school. Please report any contagious illnesses to the Director immediately.',
+		'question' => chroma_get_translated_meta($page_id, 'parents_faq1_question') ?: __('What is the sick child policy?', 'chroma-excellence'),
+		'answer' => chroma_get_translated_meta($page_id, 'parents_faq1_answer') ?: __('Children must be symptom-free (fever under 100.4°F, no vomiting/diarrhea) for 24 hours without medication before returning to school. Please report any contagious illnesses to the Director immediately.', 'chroma-excellence'),
 	),
 	array(
-		'question' => get_post_meta($page_id, 'parents_faq2_question', true) ?: 'How do you handle inclement weather?',
-		'answer' => get_post_meta($page_id, 'parents_faq2_answer', true) ?: 'We generally follow the local county school system for weather closures, but we make independent decisions based on staff safety. Alerts will be sent via Procare and posted on our Facebook page by 6:00 AM.',
+		'question' => chroma_get_translated_meta($page_id, 'parents_faq2_question') ?: __('How do you handle inclement weather?', 'chroma-excellence'),
+		'answer' => chroma_get_translated_meta($page_id, 'parents_faq2_answer') ?: __('We generally follow the local county school system for weather closures, but we make independent decisions based on staff safety. Alerts will be sent via Procare and posted on our Facebook page by 6:00 AM.', 'chroma-excellence'),
 	),
 	array(
-		'question' => get_post_meta($page_id, 'parents_faq3_question', true) ?: 'What is the late pickup policy?',
-		'answer' => get_post_meta($page_id, 'parents_faq3_answer', true) ?: 'We close promptly at 6:00 PM. A late fee of $1 per minute is charged to your account for pickups after 6:05 PM to compensate our staff who stay late.',
+		'question' => chroma_get_translated_meta($page_id, 'parents_faq3_question') ?: __('What is the late pickup policy?', 'chroma-excellence'),
+		'answer' => chroma_get_translated_meta($page_id, 'parents_faq3_answer') ?: __('We close promptly at 6:00 PM. A late fee of $1 per minute is charged to your account for pickups after 6:05 PM to compensate our staff who stay late.', 'chroma-excellence'),
 	),
 );
 
 // Referral Banner
-$referral_title = get_post_meta($page_id, 'parents_referral_title', true) ?: 'Love the Chroma family?';
-$referral_description = get_post_meta($page_id, 'parents_referral_description', true) ?: 'Refer a friend and receive a <strong>$100 tuition credit</strong> when they enroll.';
-$referral_button_text = get_post_meta($page_id, 'parents_referral_button_text', true) ?: 'Refer a Friend';
-$referral_button_url = get_post_meta($page_id, 'parents_referral_button_url', true) ?: 'mailto:director@chromaela.com?subject=Parent%20Referral';
+$referral_title = chroma_get_translated_meta($page_id, 'parents_referral_title') ?: __('Love the Chroma family?', 'chroma-excellence');
+$referral_description = chroma_get_translated_meta($page_id, 'parents_referral_description') ?: __('Refer a friend and receive a <strong>$100 tuition credit</strong> when they enroll.', 'chroma-excellence');
+$referral_button_text = chroma_get_translated_meta($page_id, 'parents_referral_button_text') ?: __('Refer a Friend', 'chroma-excellence');
+$referral_button_url = chroma_get_translated_meta($page_id, 'parents_referral_button_url') ?: 'mailto:director@chromaela.com?subject=Parent%20Referral';
 
 // Life at Chroma Gallery
 // Moments of Joy Gallery
-$gallery_raw = get_post_meta($page_id, 'parents_moments_gallery', true);
+$gallery_raw = chroma_get_translated_meta($page_id, 'parents_moments_gallery');
 $gallery_images = array();
 if (!empty($gallery_raw)) {
 	$lines = explode("\n", $gallery_raw);
