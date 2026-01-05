@@ -110,8 +110,8 @@
 			<nav class="hidden lg:flex items-center gap-8">
 				<?php chroma_primary_nav(); ?>
 
-				<!-- Language Switcher -->
-				<?php if (function_exists('chroma_render_language_switcher')): ?>
+				<!-- Language Switcher (Hidden from public until launch) -->
+				<?php if (current_user_can('manage_options') && function_exists('chroma_render_language_switcher')): ?>
 					<?php chroma_render_language_switcher(); ?>
 				<?php endif; ?>
 
@@ -153,9 +153,9 @@
 		<nav class="flex-1 px-6 py-6 overflow-y-auto">
 			<?php chroma_mobile_nav(); ?>
 
-			<!-- Mobile Language Switcher -->
+			<!-- Mobile Language Switcher (Hidden from public until launch) -->
 			<div class="mt-6 mb-4">
-				<?php if (function_exists('chroma_render_language_switcher')): ?>
+				<?php if (current_user_can('manage_options') && function_exists('chroma_render_language_switcher')): ?>
 					<?php chroma_render_language_switcher(); ?>
 				<?php endif; ?>
 			</div>
