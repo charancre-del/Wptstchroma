@@ -2589,11 +2589,14 @@ class Chroma_SEO_Dashboard
                 $results[] = [
                     'id' => $pid,
                     'title' => $post->post_title,
-                    'url' => $permalink,
+                    'permalink' => $permalink, // JS expects permalink, PHP sent url. JS lines 2184 uses item.permalink
+                    'edit_url' => get_edit_post_link($pid),
                     'status' => $status,
                     'errors' => $errors,
                     'warnings' => $warnings,
-                    'schema_types' => $type_counts ?? []
+                    'schema_types' => $type_counts ?? [],
+                    'type' => !empty($type_counts) ? implode(', ', array_keys($type_counts)) : 'None',
+                    'schema' => $schemas ?? [] // Pass raw schemas for the modal
                 ];
             } // foreach posts
 
