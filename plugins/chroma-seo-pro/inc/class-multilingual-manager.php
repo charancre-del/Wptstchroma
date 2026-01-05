@@ -264,6 +264,7 @@ class Chroma_Multilingual_Manager
         remove_filter('page_link', [$instance, 'filter_permalink'], 10);
         remove_filter('post_link', [$instance, 'filter_permalink'], 10);
         remove_filter('post_type_link', [$instance, 'filter_permalink'], 10);
+        remove_filter('home_url', [$instance, 'filter_home_url'], 10);
 
         $en_url = get_permalink($post_id);
 
@@ -271,6 +272,7 @@ class Chroma_Multilingual_Manager
         add_filter('page_link', [$instance, 'filter_permalink'], 10, 2);
         add_filter('post_link', [$instance, 'filter_permalink'], 10, 2);
         add_filter('post_type_link', [$instance, 'filter_permalink'], 10, 2);
+        add_filter('home_url', [$instance, 'filter_home_url'], 10, 2);
 
         // Check for manual English override
         $manual_en = get_post_meta($post_id, 'alternate_url_en', true);

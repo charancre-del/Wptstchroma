@@ -252,30 +252,46 @@ class Chroma_Theme_Translator
         check_ajax_referer('chroma_seo_nonce', 'nonce');
         if (!current_user_can('manage_options')) wp_send_json_error(['message' => 'Denied']);
 
-        $theme_dir = get_template_directory();
-        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($theme_dir));
-        $strings = [];
+        try {
+            // Increase time limit for large themes
+            set_time_limit(120);
 
-        foreach ($files as $file) {
-            if ($file->isDir()) continue;
-            if (pathinfo($file, PATHINFO_EXTENSION) !== 'php') continue;
+            $theme_dir = get_template_directory();
+            
+            if (!is_dir($theme_dir)) {
+                throw new Exception("Theme directory not found: $theme_dir");
+            }
 
-            $content = file_get_contents($file);
+            $files = new RecursiveIteratorIterator(
+                new RecursiveDirectoryIterator($theme_dir, FilesystemIterator::SKIP_DOTS)
+            );
             
-            // Match: __(), _e(), esc_attr__(), esc_html__(), etc. 
-            // Regex: /[\s=\(\.]__(?:'|")(.+?)(?:'|")\s*,\s*(?:'|")chroma-excellence(?:'|")\s*\)/
-            // Simplified regex for single/double quotes and text domain
-            
-            preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__)\(\s*['\"](.+?)['\"]\s*,\s*['\"]" . preg_quote($this->text_domain) . "['\"]/", $content, $matches);
-            
-            if (!empty($matches[1])) {
-                foreach ($matches[1] as $match) {
-                    $strings[] = $match;
+            $strings = [];
+
+            foreach ($files as $file) {
+                if ($file->isDir()) continue;
+                if (pathinfo($file, PATHINFO_EXTENSION) !== 'php') continue;
+
+                $content = file_get_contents($file);
+                
+                // Match: __(), _e(), esc_attr__(), esc_html__(), etc. 
+                // Regex: /[\s=\(\.]__(?:'|")(.+?)(?:'|")\s*,\s*(?:'|")chroma-excellence(?:'|")\s*\)/
+                // Simplified regex for single/double quotes and text domain
+                
+                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__)\(\s*['\"](.+?)['\"]\s*,\s*['\"]" . preg_quote($this->text_domain) . "['\"]/", $content, $matches);
+                
+                if (!empty($matches[1])) {
+                    foreach ($matches[1] as $match) {
+                        $strings[] = $match;
+                    }
                 }
             }
-        }
 
-        wp_send_json_success(array_unique(array_values($strings)));
+            wp_send_json_success(array_unique(array_values($strings)));
+
+        } catch (Throwable $e) {
+            wp_send_json_error(['message' => 'Scan Error: ' . $e->getMessage()]);
+        }
     }
     
     /**
