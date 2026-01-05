@@ -101,10 +101,11 @@ class Chroma_Content_Inspector
                     <span id="bulk-status" style="margin-left: 10px;"></span>
                 </div>
                 <script>
-                jQuery(document).ready(function($) {
+                $(document).ready(function($) {
                     var untranslated = <?php echo json_encode($untranslated_ids); ?>;
                     var current = 0;
                     
+                    // BULK ALL
                     $('#chroma-bulk-translate-all').click(function() {
                         if (!confirm('This will use AI tokens to translate ' + untranslated.length + ' pages. Continue?')) return;
                         
@@ -121,19 +122,43 @@ class Chroma_Content_Inspector
                         var postId = untranslated[current];
                         $('#bulk-status').text('Translating ' + (current + 1) + ' of ' + untranslated.length + '...');
                         
+                        translateSinglePost(postId, function() {
+                            current++;
+                            translateNext();
+                        });
+                    }
+
+                    // SINGLE ROW TRANSLATE
+                    $('.chroma-translate-single').click(function() {
+                        var btn = $(this);
+                        var postId = btn.data('post-id');
+                        
+                        // Indicate loading
+                        btn.prop('disabled', true).html('<span class="spinner is-active" style="float:none; margin:0;"></span>');
+                        
+                        translateSinglePost(postId, function(success) {
+                            btn.prop('disabled', false).html('<span class="dashicons dashicons-translation" style="line-height:28px;"></span> AI Translate');
+                            if (success) {
+                                // Update status icon
+                                $('.status-cell[data-post-id="' + postId + '"]').html('<span class="dashicons dashicons-yes" style="color:green"></span>');
+                                // Maybe flash row green
+                                btn.closest('tr').css('background-color', '#e6fffa');
+                            } else {
+                                alert('Translation failed. Check console.');
+                            }
+                        });
+                    });
+
+                    function translateSinglePost(postId, callback) {
                         $.post(ajaxurl, {
                             action: 'chroma_auto_translate_post',
                             post_id: postId,
+                            force: 'true', // Always force fresh translation from here
                             nonce: '<?php echo wp_create_nonce('chroma_seo_nonce'); ?>'
                         }, function(response) {
-                            if (response.success) {
-                                // Data is saved by the endpoint now
-                            }
-                            current++;
-                            translateNext();
+                            if (callback) callback(response.success);
                         }).fail(function() {
-                            current++;
-                            translateNext();
+                            if (callback) callback(false);
                         });
                     }
                 });
@@ -150,6 +175,7 @@ class Chroma_Content_Inspector
                             <th style="width: 25%;">English URL</th>
                             <th style="width: 25%;">Spanish URL (Calculated)</th>
                             <th style="width: 10%;">ES Content?</th>
+                            <th style="width: 15%;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -196,7 +222,12 @@ class Chroma_Content_Inspector
                                     <span style="color:red;">Error</span>
                                 <?php endif; ?>
                             </td>
-                            <td style="text-align:center;"><?php echo $status_icon; ?></td>
+                            <td style="text-align:center;" class="status-cell" data-post-id="<?php echo $post->ID; ?>"><?php echo $status_icon; ?></td>
+                            <td style="text-align:center;">
+                                <button type="button" class="button chroma-translate-single" data-post-id="<?php echo $post->ID; ?>" title="<?php esc_attr_e('Force AI Translation', 'chroma-excellence'); ?>">
+                                    <span class="dashicons dashicons-translation" style="line-height: 28px;"></span> AI Translate
+                                </button>
+                            </td>
                         </tr>
                         <?php endforeach; ?>
                     </tbody>
