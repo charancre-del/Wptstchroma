@@ -494,8 +494,9 @@ add_action('wp_head', 'chroma_city_faq_schema_output');
  * Added via Audit Migration
  */
 
-if (!function_exists('chroma_organization_schema')) {
-    function chroma_organization_schema() {
+// Rename to avoid collision with legacy theme (Global Namespace)
+if (!function_exists('chroma_organization_schema_pro')) {
+    function chroma_organization_schema_pro() {
         if (!is_front_page()) return;
         $homepage_id = get_option('page_on_front');
         
@@ -550,10 +551,11 @@ if (!function_exists('chroma_organization_schema')) {
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
 }
-add_action('wp_head', 'chroma_organization_schema', 5);
+}
+add_action('wp_head', 'chroma_organization_schema_pro', 5);
 
-if (!function_exists('chroma_website_schema')) {
-    function chroma_website_schema() {
+if (!function_exists('chroma_website_schema_pro')) {
+    function chroma_website_schema_pro() {
         if (!is_front_page()) return;
         $homepage_id = get_option('page_on_front');
         $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
@@ -578,10 +580,11 @@ if (!function_exists('chroma_website_schema')) {
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
 }
-add_action('wp_head', 'chroma_website_schema', 6);
+}
+add_action('wp_head', 'chroma_website_schema_pro', 6);
 
-if (!function_exists('chroma_faq_schema')) {
-    function chroma_faq_schema() {
+if (!function_exists('chroma_faq_schema_pro')) {
+    function chroma_faq_schema_pro() {
         if (!is_front_page()) return;
         $homepage_id = get_option('page_on_front');
         $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
@@ -616,4 +619,15 @@ if (!function_exists('chroma_faq_schema')) {
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
 }
-add_action('wp_head', 'chroma_faq_schema', 10);
+}
+add_action('wp_head', 'chroma_faq_schema_pro', 10);
+
+/**
+ * Suppress Legacy Theme Schema
+ * Running on 'after_setup_theme' ensures theme functions are loaded/hooked, then we remove them.
+ */
+add_action('after_setup_theme', function() {
+    remove_action('wp_head', 'chroma_organization_schema');
+    remove_action('wp_head', 'chroma_website_schema');
+    remove_action('wp_head', 'chroma_faq_schema');
+}, 20);
