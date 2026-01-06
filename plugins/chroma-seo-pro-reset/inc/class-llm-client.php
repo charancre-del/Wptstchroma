@@ -1158,8 +1158,9 @@ class Chroma_LLM_Client
         $prompt .= "   - Create ONLY ONE `FAQPage` node (merge questions).\n";
         $prompt .= "   - Create ONLY ONE `WebPage` node.\n";
         $prompt .= "4. **CONSOLIDATE**: If multiple similar entities exist, merge them into the richest possible version. Discard the redundant ones.\n";
-        $prompt .= "5. **FIX ERRORS**: Fix the validation errors listed above.\n";
-        $prompt .= "6. **CLEAN UP**: Remove empty properties or duplicate values in arrays.\n";
+        $prompt .= "5. **PRESERVE DATA**: Do NOT remove valid existing properties unless they are clearly erroneous. Attempt to keep all valid data from the original schemas.\n";
+        $prompt .= "6. **FIX ERRORS**: Fix the validation errors listed above.\n";
+        $prompt .= "7. **CLEAN UP**: Remove empty properties or duplicate values in arrays.\n";
         $prompt .= "7. **FINAL FORMAT**: Return ONLY valid JSON. If multiple items exist, they MUST be inside a root `@graph` array.\n";
         $prompt .= "8. **CRITICAL**: Do NOT output multiple separate JSON objects (e.g. `}{`). Output exactly one JSON object.\n\n";
         

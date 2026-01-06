@@ -96,7 +96,7 @@ class Chroma_Translation_Engine
             
             // Template specific
             $template = get_page_template_slug($post_id);
-            $template_keys = $this->get_keys_for_template($template);
+            $template_keys = self::get_keys_for_template($template);
             
             foreach ($template_keys as $tkey) {
                 $fields['_chroma_es_' . $tkey] = get_post_meta($post_id, $tkey, true);
@@ -133,12 +133,11 @@ class Chroma_Translation_Engine
     }
 
     /**
-     * Get translatable meta keys for a specific page template.
-     *
-     * @param string $template
-     * @return array
+     * Helper: Get meta keys based on template
      */
-    private function get_keys_for_template($template) {
+    private static function get_keys_for_template($template)
+    {
+        $keys = [];
         switch ($template) {
             case 'page-about.php':
                 return [

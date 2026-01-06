@@ -522,6 +522,14 @@ class Chroma_Combo_Page_Generator
                         $nearby_ids = get_post_meta($city_page->ID, 'city_nearby_locations', true);
                     }
                     
+                    // If no manually selected locations, but we found a STRICT match location for this city, show it!
+                    if (empty($nearby_ids) && $location) {
+                        $real_city = get_post_meta($location->ID, 'location_city', true);
+                        if (strcasecmp(trim($real_city), trim($city_slug)) === 0 || strcasecmp(trim($real_city), trim($city_name)) === 0) {
+                            $nearby_ids = [$location->ID];
+                        }
+                    }
+
                     // Fallback to searching if no explicit links (optional, but requested to use checked ones)
                     // If we have locations, show grid. Else show form.
                     if (!empty($nearby_ids) && is_array($nearby_ids)): 
@@ -580,6 +588,27 @@ class Chroma_Combo_Page_Generator
                 </div>
             </section>
             
+            <!-- Interlinking Section: Other Programs in City -->
+            <section class="py-20 bg-brand-cream border-t border-brand-ink/5">
+                <div class="max-w-7xl mx-auto px-4 lg:px-6">
+                    <h2 class="font-serif text-2xl md:text-3xl font-bold text-center text-brand-ink mb-10">
+                        More Childcare Options in <?php echo esc_html($city_name); ?>
+                    </h2>
+                    
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <?php 
+                        $other_programs = get_posts(['post_type' => 'program', 'posts_per_page' => -1, 'exclude' => [$program->ID], 'orderby' => 'title', 'order' => 'ASC']);
+                        foreach ($other_programs as $op): 
+                            $link = home_url('/' . $op->post_name . '-in-' . $city_slug . '-' . strtolower($state) . '/');
+                        ?>
+                        <a href="<?php echo esc_url($link); ?>" class="px-6 py-3 bg-white rounded-full text-sm font-bold text-brand-ink hover:bg-chroma-blue hover:text-white transition-all shadow-sm border border-brand-ink/5">
+                            <?php echo esc_html($op->post_title); ?> in <?php echo esc_html($city_name); ?>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+            </section>
+
             <!-- FAQ Section -->
             <section class="py-24 bg-white border-t border-brand-ink/5">
                 <div class="max-w-4xl mx-auto px-4">

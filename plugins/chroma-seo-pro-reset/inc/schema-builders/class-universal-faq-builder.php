@@ -23,6 +23,11 @@ class Chroma_Universal_FAQ_Builder
             return;
         }
 
+        // Check if disabled globally (User Preference for Otto)
+        if (get_option('chroma_faq_schema_disabled', 'no') === 'yes') {
+            return;
+        }
+
         // Check for manual override (AI Fixed Schema)
         $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
         if ($override) {
