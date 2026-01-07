@@ -198,6 +198,218 @@ class Chroma_Schema_Injector
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>' . "\n";
     }
+
+    /**
+     * Output LocalBusiness/ChildCare Schema for Location Pages
+     * Consolidated from Theme's seo-engine.php with all advanced features
+     */
+    public static function output_location_schema()
+    {
+        if (!is_singular('location')) {
+            return;
+        }
+
+        $location_id = get_the_ID();
+
+        // Check for manual override (AI Fixed Schema)
+        $override = get_post_meta($location_id, '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
+        // Build multi-type array
+        $types = ['ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness'];
+        
+        // Feature: Event Venue toggle
+        if (get_post_meta($location_id, '_chroma_is_event_venue', true)) {
+            $types[] = 'EventVenue';
+        }
+
+        // Get location meta
+        $name = get_the_title();
+        $description = get_the_excerpt() ?: wp_trim_words(get_the_content(), 55);
+        $phone = get_post_meta($location_id, 'location_phone', true);
+        $email = get_post_meta($location_id, 'location_email', true);
+        $address = get_post_meta($location_id, 'location_address', true);
+        $city = get_post_meta($location_id, 'location_city', true);
+        $state = get_post_meta($location_id, 'location_state', true);
+        $zip = get_post_meta($location_id, 'location_zip', true);
+        $lat = get_post_meta($location_id, 'location_latitude', true) ?: get_post_meta($location_id, 'geo_lat', true);
+        $lng = get_post_meta($location_id, 'location_longitude', true) ?: get_post_meta($location_id, 'geo_lng', true);
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => $types,
+            '@id' => get_permalink() . '#organization',
+            'name' => $name,
+            'description' => $description,
+            'url' => get_permalink(),
+            'image' => get_the_post_thumbnail_url($location_id, 'full'),
+            'logo' => get_theme_mod('custom_logo') ? wp_get_attachment_image_url(get_theme_mod('custom_logo'), 'full') : '',
+            'telephone' => $phone,
+            'email' => $email,
+            'priceRange' => '$$',
+            'address' => [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $address,
+                'addressLocality' => $city,
+                'addressRegion' => $state,
+                'postalCode' => $zip,
+                'addressCountry' => 'US'
+            ]
+        ];
+
+        // Geo Coordinates
+        if ($lat && $lng) {
+            $schema['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => floatval($lat),
+                'longitude' => floatval($lng)
+            ];
+        }
+
+        // Feature: Google Maps CID
+        $cid = get_post_meta($location_id, '_chroma_google_maps_cid', true);
+        if ($cid) {
+            $schema['hasMap'] = "https://www.google.com/maps?cid=$cid";
+        } elseif ($address && $city && $state) {
+            $addr_string = urlencode("$address, $city, $state $zip");
+            $schema['hasMap'] = "https://www.google.com/maps/search/?api=1&query=$addr_string";
+        }
+
+        // Feature: License/Credentials
+        $license = get_post_meta($location_id, '_chroma_license_number', true);
+        if ($license) {
+            $schema['hasCredential'] = [
+                '@type' => 'EducationalOccupationalCredential',
+                'credentialCategory' => 'license',
+                'name' => 'Georgia DECAL License',
+                'identifier' => [
+                    '@type' => 'PropertyValue',
+                    'propertyID' => 'License Number',
+                    'value' => $license
+                ],
+                'recognizedBy' => [
+                    '@type' => 'GovernmentOrganization',
+                    'name' => 'Georgia Department of Early Care and Learning',
+                    'url' => 'https://www.decal.ga.gov/'
+                ]
+            ];
+        }
+
+        // Feature: Amenities
+        $amenities = get_post_meta($location_id, '_chroma_amenities', true);
+        if (is_array($amenities) && !empty($amenities)) {
+            $schema['amenityFeature'] = [];
+            foreach ($amenities as $amenity) {
+                $schema['amenityFeature'][] = [
+                    '@type' => 'LocationFeatureSpecification',
+                    'name' => $amenity,
+                    'value' => true
+                ];
+            }
+        }
+
+        // Quality Rated
+        $quality_rated = get_post_meta($location_id, 'location_quality_rated', true);
+        if ($quality_rated) {
+            if (!isset($schema['amenityFeature'])) {
+                $schema['amenityFeature'] = [];
+            }
+            $schema['amenityFeature'][] = [
+                '@type' => 'LocationFeatureSpecification',
+                'name' => 'Quality Rated',
+                'value' => true
+            ];
+        }
+
+        // Aggregate Rating
+        $rating = get_post_meta($location_id, 'location_google_rating', true);
+        $review_count = get_post_meta($location_id, 'seo_llm_rating_count', true);
+        if ($rating) {
+            $schema['aggregateRating'] = [
+                '@type' => 'AggregateRating',
+                'ratingValue' => $rating,
+                'reviewCount' => $review_count ?: '1',
+                'bestRating' => '5',
+                'worstRating' => '1'
+            ];
+        }
+
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+
+        // Feature: Open House Event Schema (separate output)
+        $open_house_date = get_post_meta($location_id, '_chroma_open_house_date', true);
+        if ($open_house_date) {
+            $event_schema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'Event',
+                'name' => 'Open House - ' . $name,
+                'startDate' => date('c', strtotime($open_house_date)),
+                'endDate' => date('c', strtotime($open_house_date) + 7200),
+                'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+                'eventStatus' => 'https://schema.org/EventScheduled',
+                'location' => [
+                    '@type' => 'Place',
+                    'name' => $name,
+                    'address' => [
+                        '@type' => 'PostalAddress',
+                        'streetAddress' => $address,
+                        'addressLocality' => $city,
+                        'addressRegion' => $state,
+                        'postalCode' => $zip,
+                        'addressCountry' => 'US'
+                    ]
+                ],
+                'description' => "Join us for an Open House at $name. Meet the teachers, tour the classrooms, and learn about our curriculum.",
+                'organizer' => [
+                    '@type' => 'Organization',
+                    'name' => $name,
+                    'url' => get_permalink()
+                ]
+            ];
+            echo '<script type="application/ld+json">' . wp_json_encode($event_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        }
+    }
+
+    /**
+     * Output Author/Person Schema for Blog Posts (E-E-A-T)
+     */
+    public static function output_author_schema()
+    {
+        if (!is_singular('post')) {
+            return;
+        }
+
+        $post_id = get_the_ID();
+        $author_id = get_post_field('post_author', $post_id);
+
+        if (!$author_id) {
+            return;
+        }
+
+        $author_name = get_the_author_meta('display_name', $author_id);
+        $author_url = get_author_posts_url($author_id);
+        $author_avatar = get_avatar_url($author_id, ['size' => 160]);
+        $author_bio = get_the_author_meta('description', $author_id);
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'Person',
+            'name' => $author_name,
+            'url' => $author_url
+        ];
+
+        if ($author_avatar) {
+            $schema['image'] = $author_avatar;
+        }
+
+        if ($author_bio) {
+            $schema['description'] = $author_bio;
+        }
+
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+    }
     /**
      * Get default schema data for a given post type
      * Used by Schema Builder to pre-fill with intelligent defaults

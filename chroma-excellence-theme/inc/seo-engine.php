@@ -4,6 +4,10 @@
  *
  * @package Chroma_Excellence
  * @since 1.0.0
+ * 
+ * @deprecated 2.0.0 This file's schema output is SUPERSEDED by Chroma SEO Pro plugin.
+ *             The plugin's class-theme-schema-compat.php removes these hooks when active.
+ *             DO NOT add new schema functions here. Use the plugin instead.
  */
 
 // Exit if accessed directly
