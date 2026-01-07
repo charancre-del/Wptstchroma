@@ -22,6 +22,21 @@ class Chroma_Near_Me_Pages
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_near_me_page']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
+        
+        // Register Native Sitemap Provider
+        if (did_action('init')) {
+            $this->register_sitemap_provider();
+        } else {
+            add_action('init', [$this, 'register_sitemap_provider']);
+        }
+    }
+
+    /**
+     * Register WP Native Sitemap Provider
+     */
+    public function register_sitemap_provider() {
+        $provider = new Chroma_Near_Me_Sitemap_Provider();
+        wp_register_sitemap_provider('near-me', $provider);
     }
     
     /**
@@ -349,3 +364,40 @@ class Chroma_Near_Me_Pages
 }
 
 new Chroma_Near_Me_Pages();
+
+/**
+ * Custom Sitemap Provider for Near Me Pages
+ */
+class Chroma_Near_Me_Sitemap_Provider extends WP_Sitemaps_Provider {
+    
+    public function __construct() {
+        $this->name = 'near-me'; 
+        $this->object_type = 'custom'; 
+    }
+
+    public function get_url_list($page_num, $object_subtype = '') {
+        $urls = [];
+        $links = Chroma_Near_Me_Pages::get_sitemap_urls();
+        
+        $per_page = 2000;
+        $offset = ($page_num - 1) * $per_page;
+        $page_links = array_slice($links, $offset, $per_page);
+        
+        foreach ($page_links as $link) {
+            $urls[] = [
+                'loc' => $link,
+                'lastmod' => date('c'),
+                'changefreq' => 'weekly',
+                'priority' => 0.8,
+            ];
+        }
+
+        return $urls;
+    }
+
+    public function get_max_num_pages($object_subtype = '') {
+        $links = Chroma_Near_Me_Pages::get_sitemap_urls();
+        return ceil(count($links) / 2000);
+    }
+}
+

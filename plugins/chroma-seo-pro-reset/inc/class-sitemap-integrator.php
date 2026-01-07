@@ -15,7 +15,12 @@ class Chroma_Sitemap_Integrator
 {
     public function init()
     {
-        add_action('init', [$this, 'register_spanish_provider']);
+        // If we are already in the 'init' hook (called from bootstrap), run immediately.
+        if (did_action('init')) {
+            $this->register_spanish_provider();
+        } else {
+            add_action('init', [$this, 'register_spanish_provider']);
+        }
     }
 
     public function register_spanish_provider()

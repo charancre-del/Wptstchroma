@@ -21,9 +21,15 @@ class Chroma_Combo_Page_Generator
         add_action('template_redirect', [$this, 'handle_combo_page']);
         add_action('template_redirect', [$this, 'handle_sitemap']); // Manual Sitemap Handler
         add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']);
-        add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']);
+        
+        // Register Native Sitemap Provider
+        if (did_action('init')) {
+            $this->register_sitemap_provider();
+        } else {
+            add_action('init', [$this, 'register_sitemap_provider']);
+        }
+
         // Canonical now handled in handle_combo_page via closure
-        add_action('admin_menu', [$this, 'add_admin_page'], 20);
         add_action('admin_menu', [$this, 'add_admin_page'], 20);
         
         // Auto-flush rules if needed (Temporary for update)
