@@ -32,7 +32,7 @@ add_action('init', 'chroma_register_menus');
  */
 function chroma_primary_nav()
 {
-	$location = (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) ? 'primary_es' : 'primary';
+	$location = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) ? 'primary_es' : 'primary';
 	
 	wp_nav_menu(array(
 		'theme_location' => $location,
@@ -50,7 +50,7 @@ function chroma_primary_nav()
  */
 function chroma_primary_nav_fallback()
 {
-	$is_es = (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish());
+	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
 	
 	$pages = $is_es ? array(
 		'programs' => 'Programas',
@@ -75,7 +75,7 @@ function chroma_primary_nav_fallback()
  */
 function chroma_footer_nav()
 {
-	$location = (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) ? 'footer_es' : 'footer';
+	$location = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) ? 'footer_es' : 'footer';
 
 	wp_nav_menu(array(
 		'theme_location' => $location,
@@ -93,7 +93,7 @@ function chroma_footer_nav()
  */
 function chroma_footer_nav_fallback()
 {
-	$is_es = (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish());
+	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
 
 	$pages = $is_es ? array(
 		'home' => 'Inicio',
@@ -118,7 +118,7 @@ function chroma_footer_nav_fallback()
  */
 function chroma_footer_contact_nav()
 {
-	$location = (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) ? 'footer_contact_es' : 'footer_contact';
+	$location = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) ? 'footer_contact_es' : 'footer_contact';
 
 	if (has_nav_menu($location)) {
 		wp_nav_menu(array(
@@ -131,7 +131,7 @@ function chroma_footer_contact_nav()
 			'walker' => new Chroma_Footer_Nav_Walker(),
 		));
 	} else {
-		$is_es = (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish());
+		$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
 		$program_slug = chroma_get_program_base_slug();
 		
 		$pages = $is_es ? array(
@@ -236,7 +236,7 @@ class Chroma_Footer_Nav_Walker extends Walker_Nav_Menu
  */
 function chroma_mobile_nav()
 {
-	$location = (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) ? 'primary_es' : 'primary';
+	$location = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) ? 'primary_es' : 'primary';
 
 	wp_nav_menu(array(
 		'theme_location' => $location,
@@ -254,7 +254,7 @@ function chroma_mobile_nav()
  */
 function chroma_mobile_nav_fallback()
 {
-	$is_es = (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish());
+	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
 	$program_slug = chroma_get_program_base_slug();
 	
 	$pages = $is_es ? array(

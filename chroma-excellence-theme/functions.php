@@ -36,7 +36,7 @@ require_once CHROMA_THEME_DIR . '/inc/critical-css.php';
 require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
 require_once CHROMA_THEME_DIR . '/inc/program-settings.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
-// require_once CHROMA_THEME_DIR . '/inc/admin/class-menu-sync.php'; // DISABLED - Causing Critical Error
+require_once CHROMA_THEME_DIR . '/inc/admin/class-menu-sync.php';
 
 // Custom Post Types
 require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
