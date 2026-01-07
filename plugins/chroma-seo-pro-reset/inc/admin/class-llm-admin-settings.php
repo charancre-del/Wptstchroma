@@ -79,6 +79,10 @@ class Chroma_LLM_Admin_Settings
         // Organization Settings (migrated from Theme Mods)
         register_setting('chroma_llm_settings', 'chroma_seo_phone');
         register_setting('chroma_llm_settings', 'chroma_seo_email');
+
+        // Schema Conflict Settings
+        register_setting('chroma_llm_settings', 'chroma_faq_schema_disabled');
+        register_setting('chroma_llm_settings', 'chroma_breadcrumbs_schema_disabled');
     }
     
     /**
@@ -197,6 +201,30 @@ class Chroma_LLM_Admin_Settings
                                     <option value="<?php echo $val; ?>" <?php selected($current, $val); ?>><?php echo $label; ?></option>
                                 <?php endforeach; ?>
                             </select>
+                        </td>
+                    </tr>
+                </table>
+                
+                <h2>Schema Conflicts & Compatibility</h2>
+                <table class="form-table">
+                    <tr>
+                        <th>Disable Chroma FAQ Schema</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_faq_schema_disabled" value="yes" 
+                                    <?php checked(get_option('chroma_faq_schema_disabled', 'yes'), 'yes'); ?>>
+                                Disable built-in FAQ Schema (Recommended if using Otto or other FAQ plugins)
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Disable Chroma Breadcrumbs</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_breadcrumbs_schema_disabled" value="yes" 
+                                    <?php checked(get_option('chroma_breadcrumbs_schema_disabled', 'yes'), 'yes'); ?>>
+                                Disable built-in Breadcrumb Schema (Recommended if using Yoast/RankMath)
+                            </label>
                         </td>
                     </tr>
                 </table>
