@@ -42,8 +42,8 @@ while (have_posts()):
 		}
 	}
 	$google_rating = chroma_get_translated_meta($location_id, 'location_google_rating') ?: '4.9';
-	$hours = chroma_get_translated_meta($location_id, 'location_hours') ?: '7am - 6pm';
-	$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: '6w - 12y';
+	$hours = chroma_get_translated_meta($location_id, 'location_hours') ?: __('7am - 6pm', 'chroma-excellence');
+	$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('6w - 12y', 'chroma-excellence');
 
 	// Director info
 	$director_name = chroma_get_translated_meta($location_id, 'location_director_name');

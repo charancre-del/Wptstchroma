@@ -143,7 +143,7 @@ $locations_query = new WP_Query(array(
 							// Explode comma-separated string
 							$special_programs = array_map('trim', explode(',', $special_programs_raw));
 						} else {
-							$special_programs = array('GA Pre-K'); // Default fallback
+							$special_programs = array( __('GA Pre-K', 'chroma-excellence') ); // Default fallback
 						}
 						?>
 
@@ -382,11 +382,11 @@ $locations_query = new WP_Query(array(
 		<!-- Header -->
 		<div
 			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
-			<h3 class="font-serif text-xl font-bold text-brand-ink">Schedule Your Visit</h3>
+			<h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
 			<div class="flex items-center gap-4">
 				<a href="#" id="chroma-tour-external" target="_blank"
 					class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:block">
-					Open in new tab <i class="fa-solid fa-external-link-alt ml-1"></i>
+					<?php _e('Open in new tab', 'chroma-excellence'); ?> <i class="fa-solid fa-external-link-alt ml-1"></i>
 				</a>
 				<button id="chroma-tour-close"
 					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">

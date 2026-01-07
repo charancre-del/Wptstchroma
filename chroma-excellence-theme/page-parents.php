@@ -516,13 +516,13 @@ get_footer();
 			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
 			<h3 class="font-serif text-xl font-bold text-brand-ink" id="resource-popup-title">
 				<i class="fa-solid fa-link text-chroma-blue mr-2"></i>
-				<span id="resource-popup-title-text">Resource</span>
+				<span id="resource-popup-title-text"><?php _e('Resource', 'chroma-excellence'); ?></span>
 			</h3>
 			<div class="flex items-center gap-4">
 				<a href="#" target="_blank" id="resource-popup-external"
 					class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:flex items-center gap-1">
 					<i class="fa-solid fa-arrow-up-right-from-square"></i>
-					Open in new tab
+					<?php _e('Open in new tab', 'chroma-excellence'); ?>
 				</a>
 				<button id="resource-popup-close"
 					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
@@ -538,7 +538,7 @@ get_footer();
 					<div
 						class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin mx-auto mb-4">
 					</div>
-					<p class="text-brand-ink/60 text-sm">Loading content...</p>
+					<p class="text-brand-ink/60 text-sm"><?php _e('Loading content...', 'chroma-excellence'); ?></p>
 				</div>
 			</div>
 			<iframe id="resource-popup-frame" src="" class="w-full h-full border-0"></iframe>

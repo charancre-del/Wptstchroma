@@ -120,7 +120,7 @@ class Chroma_Near_Me_Pages
             $city_name = ucwords(str_replace('-', ' ', $city_slug));
             $page_title = $keyword_label . ' Near ' . $city_name . ', ' . $state;
         } else {
-            $page_title = $keyword_label . ' Near Me';
+            $page_title = $keyword_label . ' ' . __( 'Near Me', 'chroma-excellence' );
         }
         
         get_header();
@@ -128,10 +128,10 @@ class Chroma_Near_Me_Pages
         <main class="near-me-page">
             <header class="near-me-header">
                 <h1><?php echo esc_html($page_title); ?></h1>
-                <p>Find quality <?php echo esc_html(strtolower($keyword_label)); ?> locations near you.</p>
+                <p><?php printf( esc_html__( 'Find quality %s locations near you.', 'chroma-excellence' ), esc_html( strtolower( $keyword_label ) ) ); ?></p>
                 
                 <div id="nearest-highlight" style="display:none;">
-                    <span class="nearest-badge">📍 Nearest to you:</span>
+                    <span class="nearest-badge">📍 <?php esc_html_e( 'Nearest to you:', 'chroma-excellence' ); ?></span>
                     <strong id="nearest-name"></strong>
                     <span id="nearest-distance"></span>
                 </div>
@@ -154,9 +154,9 @@ class Chroma_Near_Me_Pages
                         <?php endif; ?>
                         <p class="distance-display" style="display:none;"></p>
                         <div class="card-actions">
-                            <a href="<?php echo esc_url($loc['url']); ?>" class="btn-view">View Location</a>
+                            <a href="<?php echo esc_url($loc['url']); ?>" class="btn-view"><?php esc_html_e( 'View Location', 'chroma-excellence' ); ?></a>
                             <?php if ($loc['phone']): ?>
-                                <a href="tel:<?php echo esc_attr($loc['phone']); ?>" class="btn-call">Call Now</a>
+                                <a href="tel:<?php echo esc_attr($loc['phone']); ?>" class="btn-call"><?php esc_html_e( 'Call Now', 'chroma-excellence' ); ?></a>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -215,6 +215,9 @@ class Chroma_Near_Me_Pages
      * Get personalization JS
      */
     private function get_personalization_script() {
+        $miles_away_text = __( 'miles away', 'chroma-excellence' );
+        $mi_text = __( 'mi', 'chroma-excellence' );
+        
         return "
         document.addEventListener('DOMContentLoaded', function() {
             var locationsData = JSON.parse(document.getElementById('locations-data').textContent);
@@ -245,7 +248,7 @@ class Chroma_Near_Me_Pages
                     // Show distance
                     var distEl = card.querySelector('.distance-display');
                     if (distEl) {
-                        distEl.textContent = dist.toFixed(1) + ' miles away';
+                        distEl.textContent = dist.toFixed(1) + ' ' + '$miles_away_text';
                         distEl.style.display = 'block';
                     }
                 });
@@ -264,7 +267,7 @@ class Chroma_Near_Me_Pages
                     distances[0].card.classList.add('nearest');
                     document.getElementById('nearest-highlight').style.display = 'inline-block';
                     document.getElementById('nearest-name').textContent = distances[0].card.querySelector('h2').textContent;
-                    document.getElementById('nearest-distance').textContent = ' (' + distances[0].distance.toFixed(1) + ' mi)';
+                    document.getElementById('nearest-distance').textContent = ' (' + distances[0].distance.toFixed(1) + ' $mi_text)';
                 }
             }
             

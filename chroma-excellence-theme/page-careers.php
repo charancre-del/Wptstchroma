@@ -134,13 +134,13 @@ $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
 								</div>
 								<a href="<?php echo esc_url($job['url']); ?>" 
 									class="job-modal-trigger relative z-20 px-6 py-3 border border-brand-ink/20 rounded-full text-xs font-bold uppercase tracking-wider hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-colors whitespace-nowrap">
-									Apply Now
+									<?php _e('Apply Now', 'chroma-excellence'); ?>
 								</a>
 							</div>
 						<?php endforeach; ?>
 					<?php else: ?>
 						<div class="text-center py-12 border border-dashed border-brand-ink/20 rounded-2xl">
-							<p class="text-brand-ink/90">No current openings. Please check back later.</p>
+							<p class="text-brand-ink/90"><?php _e('No current openings. Please check back later.', 'chroma-excellence'); ?></p>
 						</div>
 					<?php endif; ?>
 				</div>
@@ -178,13 +178,13 @@ $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
 	<div
 		class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
 		<!-- Header -->
-		<div
-			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
-			<h3 class="font-serif text-xl font-bold text-brand-ink">Apply for Position</h3>
+			<div
+				class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
+			<h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('Apply for Position', 'chroma-excellence'); ?></h3>
 			<div class="flex items-center gap-4">
 				<a href="#" id="chroma-job-external" target="_blank"
 					class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:block">
-					Open in new tab <i class="fa-solid fa-external-link-alt ml-1"></i>
+					<?php _e('Open in new tab', 'chroma-excellence'); ?> <i class="fa-solid fa-external-link-alt ml-1"></i>
 				</a>
 				<button id="chroma-job-close"
 					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">

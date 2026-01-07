@@ -56,6 +56,8 @@ chroma_safe_require(__DIR__ . '/class-translation-engine.php');
 chroma_safe_require(__DIR__ . '/class-schema-quality.php');
 chroma_safe_require(__DIR__ . '/class-advanced-features.php');
 chroma_safe_require(__DIR__ . '/class-multilingual-manager.php');
+chroma_safe_require(__DIR__ . '/class-validation-cache.php');
+chroma_safe_require(__DIR__ . '/class-validation-logger.php');
 
 // Load Admin UI
 chroma_safe_require(__DIR__ . '/admin/class-llm-admin-settings.php');
@@ -164,6 +166,8 @@ function chroma_advanced_seo_init()
 		(new Chroma_Hreflang_Auditor())->init();
 	if (class_exists('Chroma_Translation_API'))
 		(new Chroma_Translation_API())->init();
+    if (class_exists('Chroma_Validation_Logger'))
+        (new Chroma_Validation_Logger())->init();
 
 	// Meta Boxes
 	$meta_classes = [

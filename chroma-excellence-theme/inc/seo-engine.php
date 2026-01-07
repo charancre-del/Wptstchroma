@@ -907,18 +907,35 @@ function chroma_shared_meta_description()
                 $phone = get_post_meta($post_id, 'location_phone', true);
 
                 $parts = array();
-                $parts[] = 'Visit our ' . get_the_title() . ' campus';
-                if ($city && $state) {
-                        $parts[] = "in $city, $state";
-                }
-                if ($tagline) {
-                        $parts[] = ". $tagline";
-                }
-                if ($service_areas) {
-                        $parts[] = ". Serving families in " . $service_areas;
-                }
-                if ($phone) {
-                        $parts[] = ". Call us at $phone";
+                
+                if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+                     $parts[] = 'Visite nuestro campus ' . get_the_title();
+                    if ($city && $state) {
+                            $parts[] = "en $city, $state";
+                    }
+                    if ($tagline) {
+                            $parts[] = ". $tagline";
+                    }
+                    if ($service_areas) {
+                            $parts[] = ". Sirviendo a familias en " . $service_areas;
+                    }
+                    if ($phone) {
+                            $parts[] = ". Llámenos al $phone";
+                    }
+                } else {
+                    $parts[] = 'Visit our ' . get_the_title() . ' campus';
+                    if ($city && $state) {
+                            $parts[] = "in $city, $state";
+                    }
+                    if ($tagline) {
+                            $parts[] = ". $tagline";
+                    }
+                    if ($service_areas) {
+                            $parts[] = ". Serving families in " . $service_areas;
+                    }
+                    if ($phone) {
+                            $parts[] = ". Call us at $phone";
+                    }
                 }
 
                 $description = implode('', $parts) . '.';
@@ -926,12 +943,28 @@ function chroma_shared_meta_description()
         } elseif (is_singular('city')) {
                 // City Template: "Best Daycare & Preschool in [City], GA. [Excerpt]"
                 $excerpt = has_excerpt() ? get_the_excerpt() : chroma_trimmed_excerpt(30, $post_id);
-                $description = "Best Daycare & Preschool in " . get_the_title() . ", GA. " . $excerpt;
+                
+                // Try to get Spanish excerpt if available
+                if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+                    $es_excerpt = get_post_meta($post_id, '_chroma_es_excerpt', true);
+                    if ($es_excerpt) $excerpt = $es_excerpt;
+                    $description = "La mejor guardería y preescolar en " . get_the_title() . ", GA. " . $excerpt;
+                } else {
+                    $description = "Best Daycare & Preschool in " . get_the_title() . ", GA. " . $excerpt;
+                }
 
         } elseif (is_singular('program')) {
                 // Program Template: "[Program Name] at Chroma Early Learning Academy. [Excerpt]."
                 $excerpt = has_excerpt() ? get_the_excerpt() : chroma_trimmed_excerpt(20, $post_id);
-                $description = get_the_title() . ' at Chroma Early Learning Academy. ' . $excerpt;
+                
+                if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+                    $es_excerpt = get_post_meta($post_id, '_chroma_es_excerpt', true);
+                    $es_title = get_post_meta($post_id, '_chroma_es_title', true) ?: get_the_title();
+                    if ($es_excerpt) $excerpt = $es_excerpt;
+                    $description = $es_title . ' en Chroma Early Learning Academy. ' . $excerpt;
+                } else {
+                    $description = get_the_title() . ' at Chroma Early Learning Academy. ' . $excerpt;
+                }
 
         } elseif (is_singular('post')) {
                 // Blog Post Template: "[Title] - [Excerpt]"
@@ -946,6 +979,10 @@ function chroma_shared_meta_description()
                 }
                 if (empty($description)) {
                         $description = get_bloginfo('name') . ' offers premier child care, daycare, and early childhood education in the Metro Atlanta area.';
+                        
+                        if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+                            $description = 'Chroma Early Learning Academy ofrece servicios de cuidado infantil, guardería y educación temprana de primer nivel en el área metropolitana de Atlanta.';
+                        }
                 }
         }
 

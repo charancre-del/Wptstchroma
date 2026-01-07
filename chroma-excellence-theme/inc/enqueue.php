@@ -199,6 +199,7 @@ function chroma_enqueue_assets()
                         'nonce' => wp_create_nonce('chroma_nonce'),
                         'themeUrl' => CHROMA_THEME_URI,
                         'homeUrl' => home_url(),
+                        'viewCampus' => __('View campus', 'chroma-excellence'),
                 )
         );
 }

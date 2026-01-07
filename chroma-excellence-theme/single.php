@@ -13,7 +13,7 @@ $primary_category = !empty($categories) ? $categories[0]->name : 'Stories';
 $post_date = get_the_date('M j, Y');
 $author_id = get_the_author_meta('ID');
 $author_name = get_the_author();
-$author_title = get_the_author_meta('description') ?: 'Contributor';
+$author_title = get_the_author_meta('description') ?: __('Contributor', 'chroma-excellence');
 $author_avatar = get_avatar_url($author_id, array('size' => 150));
 $featured_image = get_the_post_thumbnail_url($post_id, 'full');
 
@@ -128,12 +128,11 @@ $related_query = new WP_Query($related_args);
       <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-brand-ink/80">
         <?php $stories_url = chroma_smart_link('stories'); ?>
         <a href="<?php echo esc_url($stories_url); ?>" class="hover:text-chroma-blue flex items-center gap-2"><i
-            class="fa-solid fa-arrow-left"></i> Back to Stories</a>
+            class="fa-solid fa-arrow-left"></i> <?php _e('Back to Stories', 'chroma-excellence'); ?></a>
       </nav>
       <?php $locations_url = chroma_smart_link('locations'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
-        class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft">Book
-        Tour</a>
+        class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft"><?php _e('Book Tour', 'chroma-excellence'); ?></a>
     </div>
   </header>
 
@@ -179,7 +178,7 @@ $related_query = new WP_Query($related_args);
     <?php if ($related_query->have_posts()): ?>
       <section class="bg-white py-20 border-t border-brand-ink/5">
         <div class="max-w-6xl mx-auto px-4 lg:px-6">
-          <h3 class="font-serif text-3xl font-bold mb-8 text-center">More from Chroma</h3>
+          <h3 class="font-serif text-3xl font-bold mb-8 text-center"><?php _e('More from Chroma', 'chroma-excellence'); ?></h3>
           <div class="grid md:grid-cols-3 gap-8">
             <?php while ($related_query->have_posts()):
               $related_query->the_post(); ?>

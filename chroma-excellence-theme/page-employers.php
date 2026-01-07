@@ -177,15 +177,15 @@ $contact_title = chroma_get_translated_meta($page_id, 'employers_contact_title')
 					<?php echo esc_html($contact_title); ?>
 				</h2>
 				<form class="max-w-md mx-auto space-y-4 text-brand-ink">
-					<input type="text" name="company_name" placeholder="Company Name" aria-label="Company Name"
+					<input type="text" name="company_name" placeholder="<?php esc_attr_e('Company Name', 'chroma-excellence'); ?>" aria-label="<?php esc_attr_e('Company Name', 'chroma-excellence'); ?>"
 						class="w-full p-4 rounded-xl" required>
-					<input type="text" name="contact_name" placeholder="HR Contact Name" aria-label="HR Contact Name"
+					<input type="text" name="contact_name" placeholder="<?php esc_attr_e('HR Contact Name', 'chroma-excellence'); ?>" aria-label="<?php esc_attr_e('HR Contact Name', 'chroma-excellence'); ?>"
 						class="w-full p-4 rounded-xl" required>
-					<input type="email" name="work_email" placeholder="Work Email" aria-label="Work Email"
+					<input type="email" name="work_email" placeholder="<?php esc_attr_e('Work Email', 'chroma-excellence'); ?>" aria-label="<?php esc_attr_e('Work Email', 'chroma-excellence'); ?>"
 						class="w-full p-4 rounded-xl" required>
 					<button type="submit"
 						class="w-full py-4 bg-chroma-yellow text-brand-ink font-bold rounded-full uppercase tracking-widest hover:bg-white transition-colors">
-						Request Info Kit
+						<?php _e('Request Info Kit', 'chroma-excellence'); ?>
 					</button>
 				</form>
 			</div>

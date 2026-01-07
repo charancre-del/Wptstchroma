@@ -14,7 +14,7 @@ while (have_posts()):
 	$page_id = get_the_ID();
 
 	// Hero Section
-	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: 'Established 2015';
+	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: __('Established 2015', 'chroma-excellence');
 	$hero_title = chroma_get_translated_meta($page_id, 'about_hero_title') ?: __('More than a school. <span class="text-chroma-yellow italic">A second home.</span>', 'chroma-excellence');
 	$hero_description = chroma_get_translated_meta($page_id, 'about_hero_description') ?: __('We founded Chroma on a simple belief: Early education should be a perfect blend of rigorous cognitive development and the comforting warmth of family.', 'chroma-excellence');
 	$hero_image = chroma_get_translated_meta($page_id, 'about_hero_image') ?: 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1000&auto=format&fit=crop';
@@ -90,7 +90,7 @@ while (have_posts()):
 
 	// Philanthropy Section
 	$philanthropy_title = chroma_get_translated_meta($page_id, 'about_philanthropy_title') ?: __('Giving back to our future.', 'chroma-excellence');
-	$philanthropy_subtitle = chroma_get_translated_meta($page_id, 'about_philanthropy_subtitle') ?: 'Foundations For Learning Inc.';
+	$philanthropy_subtitle = chroma_get_translated_meta($page_id, 'about_philanthropy_subtitle') ?: __('Foundations For Learning Inc.', 'chroma-excellence');
 	$philanthropy_description = chroma_get_translated_meta($page_id, 'about_philanthropy_description') ?: __('At Chroma, our commitment extends beyond our classroom walls. Through our partnership with <strong>Foundations For Learning Inc.</strong>, we work to ensure that quality early education is accessible to every child in our community.', 'chroma-excellence');
 	$philanthropy_image = chroma_get_translated_meta($page_id, 'about_philanthropy_image') ?: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop';
 

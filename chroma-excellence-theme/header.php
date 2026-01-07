@@ -90,17 +90,17 @@
 
 				<!-- Header Text -->
 				<?php
-				$header_text = get_theme_mod('chroma_header_text', "Early Learning\nAcademy");
+				$header_text = chroma_get_theme_mod('chroma_header_text', "Early Learning\nAcademy");
 				$lines = explode("\n", $header_text);
 				$first_line = array_shift($lines);
 				?>
 				<div class="block leading-tight">
 					<span class="block font-sans text-xl lg:text-2xl font-bold text-brand-ink">
-						<?php echo esc_html($first_line); ?>
+						<?php echo esc_html( __($first_line, 'chroma-excellence') ); ?>
 					</span>
 					<?php foreach ($lines as $line): ?>
 						<span class="block text-[10px] lg:text-xs font-bold tracking-[0.15em] text-chroma-blue uppercase">
-							<?php echo esc_html($line); ?>
+							<?php echo esc_html( __($line, 'chroma-excellence') ); ?>
 						</span>
 					<?php endforeach; ?>
 				</div>
@@ -117,9 +117,9 @@
 
 				<!-- CTA Button -->
 				<?php
-				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact-us/#tour'));
+				$cta_url = chroma_get_theme_mod('chroma_book_tour_url', home_url('/contact-us/#tour'));
 				// Ensure CTA URL is localized if needed (though home_url filters should handle it if applied globally)
-				$cta_text = get_theme_mod('chroma_header_cta_text', 'Book a Tour');
+				$cta_text = chroma_get_theme_mod('chroma_header_cta_text', 'Book a Tour');
 				?>
 				<a href="<?php echo esc_url($cta_url); ?>"
 					class="inline-flex items-center justify-center px-6 py-3 rounded-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-widest hover:bg-chroma-red/90 transition shadow-soft">

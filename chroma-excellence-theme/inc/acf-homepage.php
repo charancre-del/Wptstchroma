@@ -91,7 +91,7 @@ function chroma_home_default_prismpath()
 
 function chroma_home_get_theme_mod_json($key, $default = array())
 {
-        $raw = get_theme_mod($key, '');
+        $raw = chroma_get_theme_mod($key, '');
 
         if (empty($raw)) {
                 return $default;
@@ -114,12 +114,12 @@ function chroma_home_hero()
         $defaults = chroma_home_default_hero();
 
         return array(
-                'heading' => wp_kses_post(get_theme_mod('chroma_home_hero_heading', $defaults['heading'])),
-                'subheading' => sanitize_text_field(get_theme_mod('chroma_home_hero_subheading', $defaults['subheading'])),
-                'cta_label' => sanitize_text_field(get_theme_mod('chroma_home_hero_cta_label', $defaults['cta_label'])),
-                'cta_url' => user_trailingslashit(esc_url_raw(get_theme_mod('chroma_home_hero_cta_url', $defaults['cta_url']))),
-                'secondary_label' => sanitize_text_field(get_theme_mod('chroma_home_hero_secondary_label', $defaults['secondary_label'])),
-                'secondary_url' => user_trailingslashit(esc_url_raw(get_theme_mod('chroma_home_hero_secondary_url', $defaults['secondary_url']))),
+                'heading' => wp_kses_post(chroma_get_theme_mod('chroma_home_hero_heading', $defaults['heading'])),
+                'subheading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_hero_subheading', $defaults['subheading'])),
+                'cta_label' => sanitize_text_field(chroma_get_theme_mod('chroma_home_hero_cta_label', $defaults['cta_label'])),
+                'cta_url' => user_trailingslashit(esc_url_raw(chroma_get_theme_mod('chroma_home_hero_cta_url', $defaults['cta_url']))),
+                'secondary_label' => sanitize_text_field(chroma_get_theme_mod('chroma_home_hero_secondary_label', $defaults['secondary_label'])),
+                'secondary_url' => user_trailingslashit(esc_url_raw(chroma_get_theme_mod('chroma_home_hero_secondary_url', $defaults['secondary_url']))),
         );
 }
 
@@ -156,11 +156,11 @@ function chroma_home_prismpath_panels()
 
         $feature = $defaults['feature'];
         $feature = array(
-                'eyebrow' => sanitize_text_field(get_theme_mod('chroma_home_prismpath_eyebrow', $feature['eyebrow'])),
-                'heading' => sanitize_text_field(get_theme_mod('chroma_home_prismpath_heading', $feature['heading'])),
-                'subheading' => sanitize_text_field(get_theme_mod('chroma_home_prismpath_subheading', $feature['subheading'])),
-                'cta_label' => sanitize_text_field(get_theme_mod('chroma_home_prismpath_cta_label', $feature['cta_label'])),
-                'cta_url' => user_trailingslashit(esc_url_raw(get_theme_mod('chroma_home_prismpath_cta_url', $feature['cta_url']))),
+                'eyebrow' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_eyebrow', $feature['eyebrow'])),
+                'heading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_heading', $feature['heading'])),
+                'subheading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_subheading', $feature['subheading'])),
+                'cta_label' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_cta_label', $feature['cta_label'])),
+                'cta_url' => user_trailingslashit(esc_url_raw(chroma_get_theme_mod('chroma_home_prismpath_cta_url', $feature['cta_url']))),
         );
 
         $cards = chroma_home_get_theme_mod_json('chroma_home_prismpath_cards_json', $defaults['cards']);
@@ -190,8 +190,8 @@ function chroma_home_prismpath_panels()
 
         $readiness = $defaults['readiness'];
         $readiness = array(
-                'heading' => sanitize_text_field(get_theme_mod('chroma_home_prismpath_readiness_heading', $readiness['heading'])),
-                'description' => sanitize_textarea_field(get_theme_mod('chroma_home_prismpath_readiness_desc', $readiness['description'])),
+                'heading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_readiness_heading', $readiness['heading'])),
+                'description' => sanitize_textarea_field(chroma_get_theme_mod('chroma_home_prismpath_readiness_desc', $readiness['description'])),
         );
 
         return array(
@@ -480,8 +480,8 @@ function chroma_home_program_wizard_options()
                 $post_id = get_the_ID();
 
                 // Get program meta
-                $icon = get_post_meta($post_id, 'program_icon', true) ?: '📚';
-                $age_range = get_post_meta($post_id, 'program_age_range', true) ?: '';
+                $icon = chroma_get_translated_meta($post_id, 'program_icon', true) ?: '📚';
+                $age_range = chroma_get_translated_meta($post_id, 'program_age_range', true) ?: '';
                 $excerpt = get_the_excerpt() ?: '';
                 // Use post_name (slug) as the unique key to prevent collisions from cloned meta values
                 $anchor_slug = get_post_field('post_name', $post_id);
@@ -618,8 +618,8 @@ function chroma_home_schedule_tracks()
                 }
                 $used_keys[$key] = true;
 
-                $schedule_title = get_post_meta($post_id, 'program_schedule_title', true);
-                $schedule_items = get_post_meta($post_id, 'program_schedule_items', true);
+                $schedule_title = chroma_get_translated_meta($post_id, 'program_schedule_title', true);
+                $schedule_items = chroma_get_translated_meta($post_id, 'program_schedule_items', true);
                 $color_scheme = get_post_meta($post_id, 'program_color_scheme', true) ?: 'blue';
 
                 // Get program title and excerpt for label and description
@@ -706,8 +706,8 @@ function chroma_home_faq()
         $defaults = chroma_home_default_faq();
 
         return array(
-                'heading' => sanitize_text_field(get_theme_mod('chroma_home_faq_heading', $defaults['heading'])),
-                'subheading' => sanitize_text_field(get_theme_mod('chroma_home_faq_subheading', $defaults['subheading'])),
+                'heading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_faq_heading', $defaults['heading'])),
+                'subheading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_faq_subheading', $defaults['subheading'])),
                 'items' => chroma_home_faq_items(),
                 'cta_text' => '',
                 'cta_label' => '',
@@ -723,10 +723,10 @@ function chroma_home_locations_preview()
                 return $cached;
         }
 
-        $heading = sanitize_text_field(get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
-        $subheading = sanitize_text_field(get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.'));
-        $cta_label = sanitize_text_field(get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
-        $cta_link = esc_url_raw(get_theme_mod('chroma_home_locations_cta_link', '/locations/'));
+        $heading = sanitize_text_field(chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
+        $subheading = sanitize_text_field(chroma_get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.'));
+        $cta_label = sanitize_text_field(chroma_get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
+        $cta_link = esc_url_raw(chroma_get_theme_mod('chroma_home_locations_cta_link', '/locations/'));
         $taxonomy = 'location_region';
         $fallback = (object) array(
                 'name' => __('Other Areas', 'chroma-excellence'),

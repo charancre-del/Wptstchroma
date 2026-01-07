@@ -88,6 +88,10 @@ function chroma_curriculum_hero_meta_box_render( $post ) {
 				<input type="text" id="curriculum_hero_badge" name="curriculum_hero_badge"
 					   value="<?php echo esc_attr( $hero_badge ); ?>"
 					   class="large-text" placeholder="e.g., The Chroma Difference" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_hero_badge" name="_chroma_es_curriculum_hero_badge"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_hero_badge', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Badge Text" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -96,6 +100,10 @@ function chroma_curriculum_hero_meta_box_render( $post ) {
 				<input type="text" id="curriculum_hero_title" name="curriculum_hero_title"
 					   value="<?php echo esc_attr( $hero_title ); ?>"
 					   class="large-text" placeholder="e.g., Scientific rigor. Joyful delivery." />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_hero_title" name="_chroma_es_curriculum_hero_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_hero_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 				<p class="description">Use &lt;br&gt; for line breaks and &lt;span class='italic text-chroma-green'&gt;text&lt;/span&gt; for green italic text</p>
 			</td>
 		</tr>
@@ -104,6 +112,9 @@ function chroma_curriculum_hero_meta_box_render( $post ) {
 			<td>
 				<textarea id="curriculum_hero_description" name="curriculum_hero_description"
 						  rows="4" class="large-text"><?php echo esc_textarea( $hero_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_hero_description" name="_chroma_es_curriculum_hero_description"
+						  rows="4" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_hero_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 	</table>
@@ -134,6 +145,10 @@ function chroma_curriculum_framework_meta_box_render( $post ) {
 				<input type="text" id="curriculum_framework_title" name="curriculum_framework_title"
 					   value="<?php echo esc_attr( $framework_title ); ?>"
 					   class="large-text" placeholder="e.g., The Prismpath™ Framework" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_framework_title" name="_chroma_es_curriculum_framework_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_framework_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Section Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -141,6 +156,9 @@ function chroma_curriculum_framework_meta_box_render( $post ) {
 			<td>
 				<textarea id="curriculum_framework_description" name="curriculum_framework_description"
 						  rows="3" class="large-text"><?php echo esc_textarea( $framework_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_framework_description" name="_chroma_es_curriculum_framework_description"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_framework_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<?php foreach ( $pillars as $pillar ) :
@@ -167,6 +185,11 @@ function chroma_curriculum_framework_meta_box_render( $post ) {
 					   name="curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_title"
 					   value="<?php echo esc_attr( $title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_title"
+					   name="_chroma_es_curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, "_chroma_es_curriculum_pillar_{$pillar['name']}_title", true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -175,6 +198,10 @@ function chroma_curriculum_framework_meta_box_render( $post ) {
 				<textarea id="curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_desc"
 						  name="curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_desc"
 						  rows="2" class="large-text"><?php echo esc_textarea( $desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_desc"
+						  name="_chroma_es_curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_desc"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, "_chroma_es_curriculum_pillar_{$pillar['name']}_desc", true ) ); ?></textarea>
 			</td>
 		</tr>
 		<?php endforeach; ?>
@@ -206,6 +233,10 @@ function chroma_curriculum_timeline_meta_box_render( $post ) {
 				<input type="text" id="curriculum_timeline_badge" name="curriculum_timeline_badge"
 					   value="<?php echo esc_attr( $timeline_badge ); ?>"
 					   placeholder="e.g., Learning Journey" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_timeline_badge" name="_chroma_es_curriculum_timeline_badge"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_timeline_badge', true ) ); ?>"
+					   placeholder="[ES] Badge" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -214,6 +245,10 @@ function chroma_curriculum_timeline_meta_box_render( $post ) {
 				<input type="text" id="curriculum_timeline_title" name="curriculum_timeline_title"
 					   value="<?php echo esc_attr( $timeline_title ); ?>"
 					   class="large-text" placeholder="e.g., How learning evolves." />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_timeline_title" name="_chroma_es_curriculum_timeline_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_timeline_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -221,6 +256,9 @@ function chroma_curriculum_timeline_meta_box_render( $post ) {
 			<td>
 				<textarea id="curriculum_timeline_description" name="curriculum_timeline_description"
 						  rows="3" class="large-text"><?php echo esc_textarea( $timeline_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_timeline_description" name="_chroma_es_curriculum_timeline_description"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_timeline_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -247,6 +285,11 @@ function chroma_curriculum_timeline_meta_box_render( $post ) {
 					   name="curriculum_stage_<?php echo esc_attr( $stage['name'] ); ?>_title"
 					   value="<?php echo esc_attr( $title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_stage_<?php echo esc_attr( $stage['name'] ); ?>_title"
+					   name="_chroma_es_curriculum_stage_<?php echo esc_attr( $stage['name'] ); ?>_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, "_chroma_es_curriculum_stage_{$stage['name']}_title", true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -255,6 +298,10 @@ function chroma_curriculum_timeline_meta_box_render( $post ) {
 				<textarea id="curriculum_stage_<?php echo esc_attr( $stage['name'] ); ?>_desc"
 						  name="curriculum_stage_<?php echo esc_attr( $stage['name'] ); ?>_desc"
 						  rows="2" class="large-text"><?php echo esc_textarea( $desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_stage_<?php echo esc_attr( $stage['name'] ); ?>_desc"
+						  name="_chroma_es_curriculum_stage_<?php echo esc_attr( $stage['name'] ); ?>_desc"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, "_chroma_es_curriculum_stage_{$stage['name']}_desc", true ) ); ?></textarea>
 			</td>
 		</tr>
 		<?php endforeach; ?>
@@ -285,6 +332,10 @@ function chroma_curriculum_environment_meta_box_render( $post ) {
 				<input type="text" id="curriculum_env_badge" name="curriculum_env_badge"
 					   value="<?php echo esc_attr( $env_badge ); ?>"
 					   placeholder="e.g., Environment" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_env_badge" name="_chroma_es_curriculum_env_badge"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_env_badge', true ) ); ?>"
+					   placeholder="[ES] Badge" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -293,6 +344,10 @@ function chroma_curriculum_environment_meta_box_render( $post ) {
 				<input type="text" id="curriculum_env_title" name="curriculum_env_title"
 					   value="<?php echo esc_attr( $env_title ); ?>"
 					   class="large-text" placeholder="e.g., The classroom is the 'Third Teacher.'" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_env_title" name="_chroma_es_curriculum_env_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_env_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -300,6 +355,9 @@ function chroma_curriculum_environment_meta_box_render( $post ) {
 			<td>
 				<textarea id="curriculum_env_description" name="curriculum_env_description"
 						  rows="4" class="large-text"><?php echo esc_textarea( $env_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_env_description" name="_chroma_es_curriculum_env_description"
+						  rows="4" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_env_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<?php foreach ( $zones as $zone ) :
@@ -326,6 +384,11 @@ function chroma_curriculum_environment_meta_box_render( $post ) {
 					   name="curriculum_zone_<?php echo esc_attr( $zone['name'] ); ?>_title"
 					   value="<?php echo esc_attr( $title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_zone_<?php echo esc_attr( $zone['name'] ); ?>_title"
+					   name="_chroma_es_curriculum_zone_<?php echo esc_attr( $zone['name'] ); ?>_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, "_chroma_es_curriculum_zone_{$zone['name']}_title", true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -334,6 +397,10 @@ function chroma_curriculum_environment_meta_box_render( $post ) {
 				<textarea id="curriculum_zone_<?php echo esc_attr( $zone['name'] ); ?>_desc"
 						  name="curriculum_zone_<?php echo esc_attr( $zone['name'] ); ?>_desc"
 						  rows="2" class="large-text"><?php echo esc_textarea( $desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_zone_<?php echo esc_attr( $zone['name'] ); ?>_desc"
+						  name="_chroma_es_curriculum_zone_<?php echo esc_attr( $zone['name'] ); ?>_desc"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, "_chroma_es_curriculum_zone_{$zone['name']}_desc", true ) ); ?></textarea>
 			</td>
 		</tr>
 		<?php endforeach; ?>
@@ -363,6 +430,10 @@ function chroma_curriculum_milestones_meta_box_render( $post ) {
 				<input type="text" id="curriculum_milestones_title" name="curriculum_milestones_title"
 					   value="<?php echo esc_attr( $milestones_title ); ?>"
 					   class="large-text" placeholder="e.g., Measuring Milestones" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_milestones_title" name="_chroma_es_curriculum_milestones_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_milestones_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -371,6 +442,10 @@ function chroma_curriculum_milestones_meta_box_render( $post ) {
 				<input type="text" id="curriculum_milestones_subtitle" name="curriculum_milestones_subtitle"
 					   value="<?php echo esc_attr( $milestones_subtitle ); ?>"
 					   class="large-text" placeholder="e.g., We don't just watch them grow..." />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_milestones_subtitle" name="_chroma_es_curriculum_milestones_subtitle"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_milestones_subtitle', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Subtitle" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<?php foreach ( $cards as $card ) :
@@ -399,6 +474,11 @@ function chroma_curriculum_milestones_meta_box_render( $post ) {
 					   name="curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_title"
 					   value="<?php echo esc_attr( $title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_title"
+					   name="_chroma_es_curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, "_chroma_es_curriculum_milestone_{$card['name']}_title", true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -407,6 +487,10 @@ function chroma_curriculum_milestones_meta_box_render( $post ) {
 				<textarea id="curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_desc"
 						  name="curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_desc"
 						  rows="3" class="large-text"><?php echo esc_textarea( $desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_desc"
+						  name="_chroma_es_curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_desc"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, "_chroma_es_curriculum_milestone_{$card['name']}_desc", true ) ); ?></textarea>
 				<p class="description">Use &lt;strong&gt;text&lt;/strong&gt; for bold text</p>
 			</td>
 		</tr>
@@ -417,6 +501,11 @@ function chroma_curriculum_milestones_meta_box_render( $post ) {
 					   name="curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_bullet1"
 					   value="<?php echo esc_attr( $bullet1 ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_bullet1"
+					   name="_chroma_es_curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_bullet1"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, "_chroma_es_curriculum_milestone_{$card['name']}_bullet1", true ) ); ?>"
+					   class="large-text" placeholder="[ES] Bullet 1" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -426,6 +515,11 @@ function chroma_curriculum_milestones_meta_box_render( $post ) {
 					   name="curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_bullet2"
 					   value="<?php echo esc_attr( $bullet2 ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_bullet2"
+					   name="_chroma_es_curriculum_milestone_<?php echo esc_attr( $card['name'] ); ?>_bullet2"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, "_chroma_es_curriculum_milestone_{$card['name']}_bullet2", true ) ); ?>"
+					   class="large-text" placeholder="[ES] Bullet 2" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<?php endforeach; ?>
@@ -449,6 +543,10 @@ function chroma_curriculum_cta_meta_box_render( $post ) {
 				<input type="text" id="curriculum_cta_title" name="curriculum_cta_title"
 					   value="<?php echo esc_attr( $cta_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_cta_title" name="_chroma_es_curriculum_cta_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_cta_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -456,6 +554,9 @@ function chroma_curriculum_cta_meta_box_render( $post ) {
 			<td>
 				<textarea id="curriculum_cta_description" name="curriculum_cta_description"
 						  rows="2" class="large-text"><?php echo esc_textarea( $cta_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_cta_description" name="_chroma_es_curriculum_cta_description"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_cta_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 	</table>
@@ -474,76 +575,125 @@ function chroma_save_curriculum_page_meta( $post_id ) {
 	$meta_boxes = array(
 		'chroma_curriculum_hero_nonce' => array(
 			'curriculum_hero_badge'       => 'sanitize_text_field',
+			'_chroma_es_curriculum_hero_badge'       => 'sanitize_text_field',
 			'curriculum_hero_title'       => 'sanitize_text_field',
+			'_chroma_es_curriculum_hero_title'       => 'sanitize_text_field',
 			'curriculum_hero_description' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_hero_description' => 'sanitize_textarea_field',
 		),
 		'chroma_curriculum_framework_nonce' => array(
 			'curriculum_framework_title'       => 'sanitize_text_field',
+			'_chroma_es_curriculum_framework_title'       => 'sanitize_text_field',
 			'curriculum_framework_description' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_framework_description' => 'sanitize_textarea_field',
 			'curriculum_pillar_physical_icon'  => 'sanitize_text_field',
 			'curriculum_pillar_physical_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_pillar_physical_title' => 'sanitize_text_field',
 			'curriculum_pillar_physical_desc'  => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_pillar_physical_desc'  => 'sanitize_textarea_field',
 			'curriculum_pillar_emotional_icon' => 'sanitize_text_field',
 			'curriculum_pillar_emotional_title'=> 'sanitize_text_field',
+			'_chroma_es_curriculum_pillar_emotional_title'=> 'sanitize_text_field',
 			'curriculum_pillar_emotional_desc' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_pillar_emotional_desc' => 'sanitize_textarea_field',
 			'curriculum_pillar_social_icon'    => 'sanitize_text_field',
 			'curriculum_pillar_social_title'   => 'sanitize_text_field',
+			'_chroma_es_curriculum_pillar_social_title'   => 'sanitize_text_field',
 			'curriculum_pillar_social_desc'    => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_pillar_social_desc'    => 'sanitize_textarea_field',
 			'curriculum_pillar_academic_icon'  => 'sanitize_text_field',
 			'curriculum_pillar_academic_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_pillar_academic_title' => 'sanitize_text_field',
 			'curriculum_pillar_academic_desc'  => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_pillar_academic_desc'  => 'sanitize_textarea_field',
 			'curriculum_pillar_creative_icon'  => 'sanitize_text_field',
 			'curriculum_pillar_creative_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_pillar_creative_title' => 'sanitize_text_field',
 			'curriculum_pillar_creative_desc'  => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_pillar_creative_desc'  => 'sanitize_textarea_field',
 		),
 		'chroma_curriculum_timeline_nonce' => array(
 			'curriculum_timeline_badge'       => 'sanitize_text_field',
+			'_chroma_es_curriculum_timeline_badge'       => 'sanitize_text_field',
 			'curriculum_timeline_title'       => 'sanitize_text_field',
+			'_chroma_es_curriculum_timeline_title'       => 'sanitize_text_field',
 			'curriculum_timeline_description' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_timeline_description' => 'sanitize_textarea_field',
 			'curriculum_timeline_image'       => 'esc_url_raw',
 			'curriculum_stage_foundation_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_stage_foundation_title' => 'sanitize_text_field',
 			'curriculum_stage_foundation_desc'  => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_stage_foundation_desc'  => 'sanitize_textarea_field',
 			'curriculum_stage_discovery_title'  => 'sanitize_text_field',
+			'_chroma_es_curriculum_stage_discovery_title'  => 'sanitize_text_field',
 			'curriculum_stage_discovery_desc'   => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_stage_discovery_desc'   => 'sanitize_textarea_field',
 			'curriculum_stage_readiness_title'  => 'sanitize_text_field',
+			'_chroma_es_curriculum_stage_readiness_title'  => 'sanitize_text_field',
 			'curriculum_stage_readiness_desc'   => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_stage_readiness_desc'   => 'sanitize_textarea_field',
 		),
 		'chroma_curriculum_environment_nonce' => array(
 			'curriculum_env_badge'             => 'sanitize_text_field',
+			'_chroma_es_curriculum_env_badge'             => 'sanitize_text_field',
 			'curriculum_env_title'             => 'sanitize_text_field',
+			'_chroma_es_curriculum_env_title'             => 'sanitize_text_field',
 			'curriculum_env_description'       => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_env_description'       => 'sanitize_textarea_field',
 			'curriculum_zone_construction_emoji' => 'sanitize_text_field',
 			'curriculum_zone_construction_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_zone_construction_title' => 'sanitize_text_field',
 			'curriculum_zone_construction_desc'  => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_zone_construction_desc'  => 'sanitize_textarea_field',
 			'curriculum_zone_atelier_emoji'      => 'sanitize_text_field',
 			'curriculum_zone_atelier_title'      => 'sanitize_text_field',
+			'_chroma_es_curriculum_zone_atelier_title'      => 'sanitize_text_field',
 			'curriculum_zone_atelier_desc'       => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_zone_atelier_desc'       => 'sanitize_textarea_field',
 			'curriculum_zone_literacy_emoji'     => 'sanitize_text_field',
 			'curriculum_zone_literacy_title'     => 'sanitize_text_field',
+			'_chroma_es_curriculum_zone_literacy_title'     => 'sanitize_text_field',
 			'curriculum_zone_literacy_desc'      => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_zone_literacy_desc'      => 'sanitize_textarea_field',
 		),
 		'chroma_curriculum_milestones_nonce' => array(
 			'curriculum_milestones_title'           => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestones_title'           => 'sanitize_text_field',
 			'curriculum_milestones_subtitle'        => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestones_subtitle'        => 'sanitize_text_field',
 			'curriculum_milestone_tracking_icon'    => 'sanitize_text_field',
 			'curriculum_milestone_tracking_title'   => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_tracking_title'   => 'sanitize_text_field',
 			'curriculum_milestone_tracking_desc'    => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_milestone_tracking_desc'    => 'sanitize_textarea_field',
 			'curriculum_milestone_tracking_bullet1' => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_tracking_bullet1' => 'sanitize_text_field',
 			'curriculum_milestone_tracking_bullet2' => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_tracking_bullet2' => 'sanitize_text_field',
 			'curriculum_milestone_screenings_icon'    => 'sanitize_text_field',
 			'curriculum_milestone_screenings_title'   => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_screenings_title'   => 'sanitize_text_field',
 			'curriculum_milestone_screenings_desc'    => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_milestone_screenings_desc'    => 'sanitize_textarea_field',
 			'curriculum_milestone_screenings_bullet1' => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_screenings_bullet1' => 'sanitize_text_field',
 			'curriculum_milestone_screenings_bullet2' => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_screenings_bullet2' => 'sanitize_text_field',
 			'curriculum_milestone_assessments_icon'    => 'sanitize_text_field',
 			'curriculum_milestone_assessments_title'   => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_assessments_title'   => 'sanitize_text_field',
 			'curriculum_milestone_assessments_desc'    => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_milestone_assessments_desc'    => 'sanitize_textarea_field',
 			'curriculum_milestone_assessments_bullet1' => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_assessments_bullet1' => 'sanitize_text_field',
 			'curriculum_milestone_assessments_bullet2' => 'sanitize_text_field',
+			'_chroma_es_curriculum_milestone_assessments_bullet2' => 'sanitize_text_field',
 		),
 		'chroma_curriculum_cta_nonce' => array(
 			'curriculum_cta_title'       => 'sanitize_text_field',
+			'_chroma_es_curriculum_cta_title'       => 'sanitize_text_field',
 			'curriculum_cta_description' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_cta_description' => 'sanitize_textarea_field',
 		),
 	);
 

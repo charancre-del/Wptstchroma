@@ -83,22 +83,21 @@ while (have_posts()):
 
 					<div class="flex gap-4 flex-wrap" style="margin-top: 3rem;">
 						<a href="#prism"
-							class="px-8 py-4 bg-<?php echo esc_attr($colors['main']); ?> text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:opacity-90 transition-colors shadow-lg">View
-							Curriculum</a>
+							class="px-8 py-4 bg-<?php echo esc_attr($colors['main']); ?> text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:opacity-90 transition-colors shadow-lg"><?php _e('View Curriculum', 'chroma-excellence'); ?></a>
 						<?php if ($lesson_plan_url): ?>
 							<button type="button" id="lesson-plan-trigger"
 								data-lesson-url="<?php echo esc_url($lesson_plan_url); ?>"
 								class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors cursor-pointer">
-								View Lesson Plan
+								<?php _e('View Lesson Plan', 'chroma-excellence'); ?>
 							</button>
 						<?php endif; ?>
 						<a href="<?php echo esc_url(get_post_type_archive_link('location')); ?>"
 							class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
-							View Locations
+							<?php _e('View Locations', 'chroma-excellence'); ?>
 						</a>
 						<a href="<?php echo esc_url(home_url('/programs/')); ?>"
 							class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
-							All Programs
+							<?php _e('All Programs', 'chroma-excellence'); ?>
 						</a>
 					</div>
 				</div>

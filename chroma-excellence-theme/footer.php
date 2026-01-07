@@ -39,9 +39,9 @@
 				<div class="space-y-2 text-xs text-white/90">
 					<?php
 					// Get contact info from customizer (with fallback to global settings)
-					$footer_phone = get_theme_mod('chroma_footer_phone', '') ?: chroma_global_phone();
-					$footer_email = get_theme_mod('chroma_footer_email', '') ?: chroma_global_email();
-					$footer_address = get_theme_mod('chroma_footer_address', '') ?: chroma_global_full_address();
+					$footer_phone = chroma_get_theme_mod('chroma_footer_phone', '') ?: chroma_global_phone();
+					$footer_email = chroma_get_theme_mod('chroma_footer_email', '') ?: chroma_global_email();
+					$footer_address = chroma_get_theme_mod('chroma_footer_address', '') ?: chroma_global_full_address();
 					?>
 					<?php if ($footer_phone): ?>
 						<p><a href="tel:<?php echo esc_attr($footer_phone); ?>"
@@ -117,7 +117,7 @@
 
 		<!-- Footer SEO Text (Tier 12 - SS) -->
 		<?php
-		$seo_text = get_theme_mod('chroma_footer_seo_text');
+		$seo_text = chroma_get_theme_mod('chroma_footer_seo_text');
 		if ($seo_text): ?>
 			<div class="border-t border-white/10 pt-6 mb-6 text-[11px] text-white/60 leading-relaxed text-center max-w-5xl mx-auto">
 				<?php echo wp_kses_post($seo_text); ?>

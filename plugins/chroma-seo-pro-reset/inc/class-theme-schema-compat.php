@@ -110,7 +110,16 @@ function chroma_location_schema_pro()
         $price_max = get_post_meta($location_id, 'seo_llm_price_max', true);
         $currency = get_post_meta($location_id, 'seo_llm_price_currency', true) ?: 'USD';
         $frequency = get_post_meta($location_id, 'seo_llm_price_frequency', true) ?: 'week';
-        $price_range = "$currency $price_range" . ($price_max ? "-$price_max" : "") . " per $frequency";
+        
+        // Localize frequency label
+        $freq_label = $frequency;
+        if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+            $freq_map = ['week' => 'semana', 'month' => 'mes', 'year' => 'año'];
+            $freq_label = $freq_map[$frequency] ?? $frequency;
+            $price_range = "$currency $price_range" . ($price_max ? "-$price_max" : "") . " por $freq_label";
+        } else {
+            $price_range = "$currency $price_range" . ($price_max ? "-$price_max" : "") . " per $freq_label";
+        }
     } else {
         $price_range = get_post_meta($location_id, 'schema_loc_price_range', true) ?: '$$';
     }
@@ -224,10 +233,10 @@ function chroma_location_schema_pro()
         $schema['hasCredential'] = array(
             '@type' => 'EducationalOccupationalCredential',
             'credentialCategory' => 'license',
-            'name' => 'Georgia DECAL License',
+            'name' => (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) ? 'Licencia Georgia DECAL' : 'Georgia DECAL License',
             'identifier' => array(
                 '@type' => 'PropertyValue',
-                'propertyID' => 'License Number',
+                'propertyID' => (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) ? 'Número de Licencia' : 'License Number',
                 'value' => $license_num
             ),
         );
@@ -247,7 +256,7 @@ function chroma_location_schema_pro()
     if ($quality_rated) {
         $schema['amenityFeature'][] = array(
             '@type' => 'LocationFeatureSpecification',
-            'name' => 'Quality Rated',
+            'name' => (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) ? 'Calificación de Calidad' : 'Quality Rated',
             'value' => true
         );
     }
@@ -265,7 +274,7 @@ function chroma_location_schema_pro()
         $schema['employee'] = array(
             '@type' => 'Person',
             'name' => $director_name,
-            'jobTitle' => 'Center Director',
+            'jobTitle' => (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) ? 'Director del Centro' : 'Center Director',
             'description' => $director_bio ? wp_strip_all_tags($director_bio) : ''
         );
         if ($director_photo) {
@@ -324,12 +333,22 @@ function chroma_city_schema_pro()
     $en_desc = get_the_excerpt() ?: "Premier child care and early education services in $en_name, GA.";
     $desc = chroma_get_schema_val($post_id, '_chroma_es_excerpt', $en_desc);
     
+    // Localize English Fallback if needed
+    if ((class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) && !$desc) {
+        $desc = "Servicios de cuidado infantil y educación temprana de primer nivel en $city_name, GA.";
+    }
+
+    $service_name = "Daycare & Preschool in $city_name";
+    if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+        $service_name = "Guardería y Preescolar en $city_name";
+    }
+    
     $location_ids = get_post_meta($post_id, 'city_nearby_locations', true);
 
     $schema = array(
         '@context' => 'https://schema.org',
         '@type' => 'Service',
-        'name' => "Daycare & Preschool in $city_name",
+        'name' => $service_name,
         'serviceType' => 'Child Care',
         'provider' => array(
             '@type' => 'Organization',
@@ -357,9 +376,14 @@ function chroma_city_schema_pro()
                 )
             );
         }
+        $catalog_name = "Schools serving $city_name";
+        if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+            $catalog_name = "Escuelas que sirven a $city_name";
+        }
+
         $schema['hasOfferCatalog'] = array(
             '@type' => 'OfferCatalog',
-            'name' => "Schools serving $city_name",
+            'name' => $catalog_name,
             'itemListElement' => $offers
         );
     }
@@ -398,8 +422,16 @@ function chroma_program_schema_pro()
     $description = chroma_get_schema_val($program_id, '_chroma_es_excerpt', $en_desc);
 
     $service_type = get_post_meta($program_id, 'schema_prog_service_type', true) ?: 'Early Childhood Education';
+    if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish() && $service_type === 'Early Childhood Education') {
+        $service_type = 'Educación de la Primera Infancia';
+    }
+
     $provider_name = get_post_meta($program_id, 'schema_prog_provider_name', true) ?: get_bloginfo('name');
+    
     $area_served = get_post_meta($program_id, 'schema_prog_area_served', true) ?: 'Metro Atlanta';
+    if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish() && $area_served === 'Metro Atlanta') {
+        $area_served = 'Área Metropolitana de Atlanta';
+    }
     $category = get_post_meta($program_id, 'schema_prog_category', true);
 
     $schema = array(
@@ -464,6 +496,28 @@ function chroma_city_faq_schema_output()
             'answer' => "The best way to start is by scheduling a tour at your preferred location. You can book online or call us directly. We'll walk you through the enrollment process and answer all your questions."
         ),
     );
+
+    // Switch to Spanish if active
+    if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+        $faq_items = array(
+            array(
+                'question' => "¿Ofrecen GA Lottery Pre-K en $city?",
+                'answer' => "¡Sí! Nuestras ubicaciones que sirven a $city participan en el programa Georgia Lottery Pre-K. Es gratuito para todos los niños de 4 años que viven en Georgia."
+            ),
+            array(
+                'question' => "¿Proporcionan transporte desde las escuelas de $city?",
+                'answer' => "Proporcionamos transporte seguro en autobús desde la mayoría de las principales escuelas primarias en el Distrito Escolar de $county. Consulte la página del campus específico para obtener una lista completa."
+            ),
+            array(
+                'question' => "¿Qué edades aceptan en sus centros de $city?",
+                'answer' => "Servimos a niños desde 6 semanas de edad (Cuidado de Bebés) hasta 12 años (Después de la Escuela). También ofrecemos una opción de Preparación para Pre-K en ubicaciones seleccionadas."
+            ),
+            array(
+                'question' => "¿Cómo inscribo a mi hijo en $city?",
+                'answer' => "La mejor manera de comenzar es programando un recorrido en su ubicación preferida. Puede reservar en línea o llamarnos directamente. Lo guiaremos a través del proceso de inscripción y responderemos todas sus preguntas."
+            ),
+        );
+    }
 
     $entities = array();
     foreach ($faq_items as $item) {

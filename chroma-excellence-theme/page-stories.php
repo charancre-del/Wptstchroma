@@ -72,15 +72,15 @@ get_header();
   <!-- Hero -->
   <section class="py-20 bg-white text-center">
     <div class="max-w-4xl mx-auto px-4">
-      <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block">The Blog</span>
-      <h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6">Chroma Stories</h1>
-      <p class="text-lg text-brand-ink/90">Parenting tips, classroom spotlights, and insights from our educators.</p>
+      <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('The Blog', 'chroma-excellence'); ?></span>
+      <h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6"><?php _e('Chroma Stories', 'chroma-excellence'); ?></h1>
+      <p class="text-lg text-brand-ink/90"><?php _e('Parenting tips, classroom spotlights, and insights from our educators.', 'chroma-excellence'); ?></p>
 
       <!-- Categories -->
       <div class="flex flex-wrap justify-center gap-2 mt-8">
         <a href="<?php echo esc_url(get_permalink()); ?>"
           class="px-4 py-2 rounded-full border border-brand-ink/10 <?php echo empty($selected_category) ? 'bg-brand-ink text-white' : 'bg-white hover:bg-brand-cream text-brand-ink/80'; ?> text-xs font-bold uppercase">
-          All
+          <?php _e('All', 'chroma-excellence'); ?>
         </a>
         <?php foreach ($categories as $category): ?>
           <a href="<?php echo esc_url(add_query_arg('category', $category->slug, get_permalink())); ?>"
@@ -109,15 +109,14 @@ get_header();
             <div class="absolute inset-0 bg-gradient-to-t from-brand-ink/90 via-brand-ink/20 to-transparent"></div>
             <div class="absolute bottom-0 left-0 p-8 md:p-12">
               <span
-                class="bg-chroma-yellow text-brand-ink text-[10px] font-bold uppercase px-3 py-1 rounded-full mb-4 inline-block">Featured</span>
+                class="bg-chroma-yellow text-brand-ink text-[10px] font-bold uppercase px-3 py-1 rounded-full mb-4 inline-block"><?php _e('Featured', 'chroma-excellence'); ?></span>
               <h2 class="font-serif text-3xl md:text-4xl text-white font-bold mb-4">
                 <?php echo esc_html(get_the_title($featured_post_id)); ?>
               </h2>
               <p class="text-white/80 mb-6 max-w-2xl">
                 <?php echo esc_html(wp_trim_words(get_the_excerpt($featured_post_id), 25)); ?>
               </p>
-              <span class="text-white text-xs font-bold uppercase tracking-widest border-b border-white/40 pb-1">Read
-                Story</span>
+              <span class="text-white text-xs font-bold uppercase tracking-widest border-b border-white/40 pb-1"><?php _e('Read Story', 'chroma-excellence'); ?></span>
             </div>
           </div>
         </a>
@@ -169,18 +168,19 @@ get_header();
           <?php if ($paged > 1): ?>
             <a href="<?php echo esc_url(add_query_arg('paged', $paged - 1)); ?>"
               class="px-6 py-3 bg-white border border-brand-ink/10 rounded-full text-sm font-bold text-brand-ink hover:bg-brand-ink hover:text-white transition-colors">
-              &larr; Previous
+              <?php _e('&larr; Previous', 'chroma-excellence'); ?>
             </a>
           <?php endif; ?>
 
           <span class="px-6 py-3 text-sm text-brand-ink/60">
-            Page <?php echo $paged; ?> of <?php echo $posts_query->max_num_pages; ?>
+            <?php printf(__('Page %s of %s', 'chroma-excellence'), $paged, $posts_query->max_num_pages); ?>
           </span>
+
 
           <?php if ($paged < $posts_query->max_num_pages): ?>
             <a href="<?php echo esc_url(add_query_arg('paged', $paged + 1)); ?>"
               class="px-6 py-3 bg-brand-ink text-white rounded-full text-sm font-bold hover:bg-chroma-blue transition-colors">
-              Next &rarr;
+              <?php _e('Next &rarr;', 'chroma-excellence'); ?>
             </a>
           <?php endif; ?>
         </div>
@@ -188,7 +188,7 @@ get_header();
 
     <?php else: ?>
       <div class="text-center py-16">
-        <p class="text-brand-ink/90 text-lg">No stories found. Check back soon!</p>
+        <p class="text-brand-ink/90 text-lg"><?php _e('No stories found. Check back soon!', 'chroma-excellence'); ?></p>
       </div>
     <?php endif; ?>
 

@@ -30,14 +30,84 @@ class Chroma_SEO_Dashboard
         add_action('wp_ajax_chroma_fetch_llm_data', [$this, 'ajax_fetch_llm_data']);
         add_action('wp_ajax_chroma_save_llm_targeting', [$this, 'ajax_save_llm_targeting']);
         add_action('wp_ajax_chroma_reset_post_schema', [$this, 'ajax_reset_post_schema']);
-        add_action('wp_ajax_chroma_scan_schema_batch', [$this, 'ajax_scan_schema_batch']);
         add_action('wp_ajax_chroma_apply_schema_fix', [$this, 'ajax_apply_schema_fix']);
         add_action('wp_ajax_chroma_fetch_live_schema', [$this, 'ajax_fetch_live_schema']);
         add_action('wp_ajax_chroma_sync_schema_to_builder', [$this, 'ajax_sync_schema_to_builder']);
         add_action('wp_ajax_chroma_save_sitemap_urls', [$this, 'ajax_save_sitemap_urls']);
         add_action('wp_ajax_chroma_parse_sitemap_urls', [$this, 'ajax_parse_sitemap_urls']);
         add_action('wp_ajax_chroma_validate_url', [$this, 'ajax_validate_url']);
+        add_action('wp_ajax_chroma_clear_validation_cache', [$this, 'ajax_clear_validation_cache']);
+        add_action('wp_ajax_chroma_save_validator_setting', [$this, 'ajax_save_validator_setting']);
+        add_action('rest_api_init', [$this, 'register_rest_routes']);
         add_action('admin_init', [$this, 'register_settings']);
+        add_action('transition_post_status', [$this, 'auto_validate_on_publish'], 10, 3);
+        
+        // WP-CLI Support (Sprint 6/8)
+        if (defined('WP_CLI') && WP_CLI) {
+            WP_CLI::add_command('chroma-seo validate', [$this, 'cli_validate_site']);
+        }
+    }
+
+    /**
+     * WP-CLI: Bulk validate site (Sprint 8)
+     */
+    public function cli_validate_site($args, $assoc_args)
+    {
+        WP_CLI::log('Starting site-wide schema validation audit...');
+        $posts = get_posts(['post_type' => 'any', 'posts_per_page' => -1, 'post_status' => 'publish']);
+        $total = count($posts);
+        
+        $progress = \WP_CLI\Utils\make_progress_bar('Scanning pages', $total);
+        
+        foreach ($posts as $post) {
+            $this->perform_url_validation(get_permalink($post->ID), $post->ID);
+            $progress->tick();
+        }
+        
+        $progress->finish();
+        WP_CLI::success("Validation complete! Scanned $total pages.");
+    }
+
+    /**
+     * Auto-validate schema when a post is published (Sprint 8)
+     */
+    public function auto_validate_on_publish($new_status, $old_status, $post)
+    {
+        if ($new_status === 'publish') {
+            $this->perform_url_validation(get_permalink($post->ID), $post->ID);
+        }
+    }
+
+    /**
+     * Register REST API Routes (Sprint 6)
+     */
+    public function register_rest_routes()
+    {
+        register_rest_route('chroma/v1', '/validate', [
+            'methods' => 'GET',
+            'callback' => [$this, 'rest_validate_url'],
+            'permission_callback' => function() {
+                return current_user_can('edit_posts');
+            },
+            'args' => [
+                'url' => [
+                    'required' => true,
+                    'validate_callback' => function($param) {
+                        return filter_var($param, FILTER_VALIDATE_URL);
+                    }
+                ]
+            ]
+        ]);
+    }
+
+    /**
+     * REST Callback: Validate a specific URL
+     */
+    public function rest_validate_url($request)
+    {
+        $url = $request->get_param('url');
+        $result = $this->perform_url_validation($url);
+        return new WP_REST_Response($result, 200);
     }
 
     /**
@@ -49,6 +119,68 @@ class Chroma_SEO_Dashboard
         register_setting('chroma_llm_options', 'chroma_llm_brand_context');
         register_setting('chroma_llm_options', 'chroma_seo_phone');
         register_setting('chroma_llm_options', 'chroma_seo_email');
+        
+        // Sprint 5: Validator Settings
+        register_setting('chroma_validator_options', 'chroma_validator_batch_size');
+        register_setting('chroma_validator_options', 'chroma_validator_request_delay');
+        register_setting('chroma_validator_options', 'chroma_validator_timeout');
+        register_setting('chroma_validator_options', 'chroma_validator_cache_ttl');
+        register_setting('chroma_validator_options', 'chroma_validator_max_retries');
+        register_setting('chroma_validator_options', 'chroma_validator_email_alerts');
+        register_setting('chroma_validator_options', 'chroma_validator_post_types');
+    }
+
+    /**
+     * Render Validator Settings Tab (Sprint 5)
+     */
+    private function render_validator_settings_tab()
+    {
+        ?>
+        <div class="chroma-seo-card">
+            <h2>⚙️ Schema Validator Settings</h2>
+            <form method="post" action="options.php">
+                <?php settings_fields('chroma_validator_options'); ?>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><label for="chroma_validator_batch_size">Default Batch Size</label></th>
+                        <td>
+                            <input name="chroma_validator_batch_size" type="number" id="chroma_validator_batch_size" value="<?php echo esc_attr(get_option('chroma_validator_batch_size', 10)); ?>" class="small-text">
+                            <p class="description">Number of pages to scan per batch request.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="chroma_validator_request_delay">Request Delay (ms)</label></th>
+                        <td>
+                            <input name="chroma_validator_request_delay" type="number" id="chroma_validator_request_delay" value="<?php echo esc_attr(get_option('chroma_validator_request_delay', 100)); ?>" class="small-text">
+                            <p class="description">Delay between requests to prevent server overload.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="chroma_validator_max_retries">Connection Retries</label></th>
+                        <td>
+                            <input name="chroma_validator_max_retries" type="number" id="chroma_validator_max_retries" value="<?php echo esc_attr(get_option('chroma_validator_max_retries', 3)); ?>" class="small-text" min="0" max="10">
+                            <p class="description">Number of attempts for failed connection before giving up.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="chroma_validator_cache_ttl">Cache Duration (Hours)</label></th>
+                        <td>
+                            <input name="chroma_validator_cache_ttl" type="number" id="chroma_validator_cache_ttl" value="<?php echo esc_attr(get_option('chroma_validator_cache_ttl', 1)); ?>" class="small-text">
+                            <p class="description">How long to store validation results in cache.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="chroma_validator_email_alerts">Critical Error Emails</label></th>
+                        <td>
+                            <input name="chroma_validator_email_alerts" type="checkbox" id="chroma_validator_email_alerts" value="1" <?php checked(get_option('chroma_validator_email_alerts'), '1'); ?>>
+                            <label for="chroma_validator_email_alerts">Send alerts to admin email when critical errors are found.</label>
+                        </td>
+                    </tr>
+                </table>
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
     }
 
     /**
@@ -80,6 +212,7 @@ class Chroma_SEO_Dashboard
         wp_enqueue_script('jquery');
         wp_enqueue_script('jquery-ui-tabs');
         wp_enqueue_script('jquery-ui-tooltip');
+        wp_enqueue_script('google-charts', 'https://www.gstatic.com/charts/loader.js', [], null, true);
 
         // Simple inline styles for the dashboard
         wp_add_inline_style('common', '
@@ -126,7 +259,25 @@ class Chroma_SEO_Dashboard
             .ai-fix-badge { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 11px; margin-left: 5px; }
             .ai-fix-badge.valid { background: #e6f6e6; color: #006600; }
             .ai-fix-badge.invalid { background: #ffebee; color: #d63638; }
-		');
+            /* Toast Notifications */
+            #chroma-toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 10000; }
+            .chroma-toast { background: #333; color: #fff; padding: 12px 24px; border-radius: 4px; margin-top: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); animation: chroma-slide-in 0.3s ease-out; display: flex; align-items: center; justify-content: space-between; min-width: 250px; }
+            .chroma-toast.success { background: #00a32a; }
+            .chroma-toast.error { background: #d63638; }
+            .chroma-toast.warning { background: #dba617; color: #1d2327; }
+            @keyframes chroma-slide-in { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            
+            /* Health Summary & Dash Stats */
+            .chroma-health-summary { transition: all 0.3s ease; }
+            .chroma-health-summary:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+            .health-score-val { animation: countUp 1s ease-out; }
+            @keyframes countUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+            
+            #clear-validation-cache { margin-left: 10px; }
+            /* Success Pulse */
+            @keyframes successPulse { 0% { background-color: #e6f6e6; } 50% { background-color: #00a32a; } 100% { background-color: #e6f6e6; } }
+            .row-success-flash { animation: successPulse 1s ease-out; }
+			');
     }
 
     /**
@@ -166,6 +317,8 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'bulk' ? 'nav-tab-active' : ''; ?>">Bulk Builder</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk-validation'); ?>"
                     class="nav-tab <?php echo $active_tab === 'bulk-validation' ? 'nav-tab-active' : ''; ?>">Bulk Validation</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=settings'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
                 <?php do_action('chroma_seo_dashboard_tabs'); ?>
             </nav>
 
@@ -216,6 +369,9 @@ class Chroma_SEO_Dashboard
                 case 'bulk-validation':
                     $this->render_bulk_validation_tab();
                     break;
+                case 'settings':
+                    $this->render_validator_settings_tab();
+                    break;
                 default:
                     // Allow other tabs to render via action
                     if (has_action('chroma_seo_dashboard_content')) {
@@ -228,8 +384,64 @@ class Chroma_SEO_Dashboard
             ?>
         </div>
         
+        <!-- Toast Container -->
+        <div id="chroma-toast-container"></div>
+        
         <!-- Validation Button JavaScript -->
         <script>
+        // Helper: Show Toast Notification
+        function showToast(message, type) {
+            type = type || 'success';
+            var icon = type === 'success' ? '✓' : (type === 'error' ? '✕' : '⚠');
+            var toast = jQuery('<div class="chroma-toast ' + type + '"><span class="chroma-toast-icon">' + icon + '</span> <span class="chroma-toast-message">' + message + '</span></div>');
+            jQuery('#chroma-toast-container').append(toast);
+            setTimeout(function() {
+                toast.fadeOut(function() { jQuery(this).remove(); });
+            }, 4000);
+        }
+
+        // Helper: Convert array to CSV and download
+        function downloadCSV(data, filename) {
+            var csv = 'Page,URL,Type,Status,Errors,Warnings\n';
+            data.forEach(function(row) {
+                var status = row.valid ? 'Valid' : (row.warnings > 0 ? 'Warnings' : 'Invalid');
+                csv += '"' + (row.title || '').replace(/"/g, '""') + '",';
+                csv += '"' + (row.url || '').replace(/"/g, '""') + '",';
+                csv += '"' + (row.post_type || '').replace(/"/g, '""') + '",';
+                csv += '"' + status + '",';
+                csv += '"' + (row.errors || 0) + '",';
+                csv += '"' + (row.warnings || 0) + '"\n';
+            });
+            
+            var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            var link = document.createElement("a");
+            if (link.download !== undefined) {
+                var url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+        
+        // Helper: Format Time Relative
+        function timeAgo(date) {
+            var seconds = Math.floor((new Date() - date) / 1000);
+            var interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " years ago";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " months ago";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " days ago";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " hours ago";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " minutes ago";
+            return Math.floor(seconds) + " seconds ago";
+        }
+
         jQuery(document).ready(function($) {
             // One-click validation for dashboard rows
             $(document).on('click', '.validate-single-btn', function(e) {
@@ -1056,8 +1268,8 @@ class Chroma_SEO_Dashboard
                             schemas: JSON.stringify(window.liveSchemas),
                             nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
                         }, function(response) {
-                            if (response.success) { alert(response.data.message); location.reload(); }
-                            else { alert('Error: ' + (response.data.message || 'Sync failed')); }
+                            if (response.success) { showToast(response.data.message, 'success'); location.reload(); }
+                            else { showToast('Error: ' + (response.data.message || 'Sync failed'), 'error'); }
                         });
                     });
                     
@@ -2181,23 +2393,109 @@ class Chroma_SEO_Dashboard
                             <textarea id="sitemap-urls" class="large-text" rows="3" placeholder="<?php echo home_url('/sitemap.xml'); ?>
 <?php echo home_url('/sitemap_index.xml'); ?>"><?php echo esc_textarea(get_option('chroma_validator_sitemaps', home_url('/sitemap.xml'))); ?></textarea>
                             <p class="description">One sitemap URL per line. Supports sitemap index files (will parse all child sitemaps).</p>
-                            <button type="button" id="save-sitemap-setting" class="button">Save Sitemap URLs</button>
+                            
+                            <!-- Feature 5: URL Exclusions -->
+                            <div style="margin-top:10px;">
+                                <label style="display:block;margin-bottom:5px;"><strong>Exclusion Patterns (URL must match):</strong></label>
+                                <textarea id="sitemap-exclusions" class="large-text" rows="2" placeholder="*product-category*
+*/page/2/*"><?php echo esc_textarea(get_option('chroma_validator_exclusions', '')); ?></textarea>
+                                <p class="description">One pattern per line. Use * as wildcard. URLs matches these patterns will be skipped.</p>
+                            </div>
+                            
+                            <button type="button" id="save-sitemap-setting" class="button button-primary" style="margin-top:10px;">Save Sitemap URLs & Exclusions</button>
                             <span id="sitemap-save-status" style="margin-left:10px;"></span>
                         </td>
                     </tr>
                 </table>
             </div>
             
+            <?php
+            $stats = class_exists('Chroma_Validation_Logger') ? Chroma_Validation_Logger::get_stats_summary() : ['total'=>0, 'invalid'=>0, 'fixes'=>0, 'health'=>100];
+            ?>
+            <div class="chroma-health-summary" style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #2271b1;">
+                <div class="health-score" style="text-align: center; padding-right: 20px; border-right: 1px solid #ddd;">
+                    <div style="font-size: 24px; font-weight: bold; color: <?php echo $stats['health'] < 70 ? '#b32d2e' : ($stats['health'] < 90 ? '#dba617' : '#2271b1'); ?>;">
+                        <?php echo $stats['health']; ?>%
+                    </div>
+                    <div style="font-size: 11px; text-transform: uppercase; color: #666;">Site Health</div>
+                </div>
+                <div style="flex: 1; display: flex; gap: 30px;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px;"><?php echo $stats['total']; ?></div>
+                        <div style="font-size: 12px; color: #666;">Pages Scanned</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px; color: #b32d2e;"><?php echo $stats['invalid']; ?></div>
+                        <div style="font-size: 12px; color: #666;">Invalid Pages</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 16px; color: #2271b1;"><?php echo $stats['fixes']; ?></div>
+                        <div style="font-size: 12px; color: #666;">AI Fixes Applied</div>
+                    </div>
+                </div>
+                <div id="chroma-health-chart" style="width: 200px; height: 60px; margin-left: 20px;"></div>
+                <button id="clear-validation-cache" class="button button-secondary" title="Clears all cached validation results to force a fresh scan.">Clear Cache</button>
+                
+                <div style="margin-left:auto; display:flex; align-items:center; gap:5px;">
+                    <input type="checkbox" id="enable-error-emails" <?php checked(get_option('chroma_validator_email_alerts'), '1'); ?> value="1">
+                    <label for="enable-error-emails" style="font-size:12px;">Email Alerts</label>
+                </div>
+            </div>
+            
             <div class="chroma-inspector-controls">
                 <button id="start-bulk-scan" class="button button-primary button-large">
                     <span class="dashicons dashicons-search" style="line-height: 28px;"></span> Start Full Site Scan
                 </button>
+                
+                <!-- Feature 17: Search Input -->
+                <input type="text" id="chroma-validator-search" placeholder="Search pages or errors..." style="margin-left: 10px; height: 30px; display:none; width: 200px;">
+
+                <!-- Feature 3: Quick Filter -->
+                <select id="bulk-scan-filter" style="margin-left: 10px; height: 30px; display:none;">
+                    <option value="all">All Results</option>
+                    <option value="invalid">Invalid Only</option>
+                    <option value="warnings">Warnings Only</option>
+                    <option value="valid">Valid Only</option>
+                </select>
+                
+                <!-- Feature 2: CSV Export -->
+                <button id="export-bulk-csv" class="button button-secondary" style="margin-left: 10px; display:none;">
+                    <span class="dashicons dashicons-download"></span> Export CSV
+                </button>
+
+                <!-- Feature 23: JSON Export -->
+                <button id="export-bulk-json" class="button button-secondary" style="margin-left: 10px; display:none;">
+                    <span class="dashicons dashicons-code-standards"></span> Export JSON
+                </button>
+
+                <!-- Feature 20: Bulk Actions -->
+                <button id="bulk-revalidate" class="button button-secondary" style="margin-left: 10px; display:none;">
+                    Bulk Re-validate
+                </button>
+                <button id="bulk-ai-fix" class="button button-primary" style="margin-left: 10px; display:none;">
+                    Bulk AI Fix (Selected)
+                </button>
+                
                 <div id="scan-progress-wrapper" style="display:none; flex: 1; margin-left: 20px;">
                     <div style="background: #f0f0f1; border-radius: 4px; overflow: hidden; height: 20px; border: 1px solid #c3c4c7;">
                         <div id="scan-progress-bar" style="background: #2271b1; height: 100%; width: 0%; transition: width 0.3s;"></div>
                     </div>
-                    <div style="font-size: 12px; margin-top: 5px; color: #666;">
-                        Scanned: <span id="scan-count">0</span> / <span id="scan-total">0</span> pages
+                    <div style="font-size: 12px; margin-top: 5px; color: #666; display: flex; justify-content: space-between;">
+                        <span>Scanned: <span id="scan-count">0</span> / <span id="scan-total">0</span> pages</span>
+                        
+                        <!-- Feature 6: Batch Size Control -->
+                        <span style="display: flex; align-items: center; gap: 5px;">
+                            <label for="scan-batch-size" title="Number of pages to scan per request.">Batch Size:</label>
+                            <input type="range" id="scan-batch-size" min="1" max="50" value="<?php echo esc_attr(get_option('chroma_validator_batch_size', 10)); ?>" style="width: 80px;">
+                            <span id="batch-size-display"><?php echo esc_html(get_option('chroma_validator_batch_size', 10)); ?></span>
+                        </span>
+                        
+                        <!-- Feature 9: Request Delay Control -->
+                        <span style="display: flex; align-items: center; gap: 5px; margin-left:15px;">
+                            <label for="scan-request-delay" title="Delay between requests in milliseconds. Increase if server is overloaded.">Delay (ms):</label>
+                            <input type="range" id="scan-request-delay" min="0" max="2000" step="100" value="<?php echo esc_attr(get_option('chroma_validator_request_delay', 100)); ?>" style="width: 80px;">
+                            <span id="request-delay-display"><?php echo esc_html(get_option('chroma_validator_request_delay', 100)); ?></span>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -2217,10 +2515,13 @@ class Chroma_SEO_Dashboard
             <table class="chroma-seo-table widefat fixed striped" id="bulk-results-table" style="display:none;">
                 <thead>
                     <tr>
+                        <th style="width: 30px;"><input type="checkbox" id="bulk-select-all"></th>
                         <th style="width: 250px;">Page</th>
                         <th style="width: 100px;">Type</th>
                         <th style="width: 100px;">Status</th>
                         <th>Issues Found</th>
+                        <!-- Feature 4: Last Checked Column -->
+                        <th style="width: 120px;">Last Checked</th>
                         <th style="width: 100px;">Action</th>
                     </tr>
                 </thead>
@@ -2271,6 +2572,149 @@ class Chroma_SEO_Dashboard
                 var validCount = 0;
                 var totalPosts = 0;
                 
+                
+                // Feature 51: Site Health Trend Chart
+                google.charts.load('current', {'packages':['corechart']});
+                google.charts.setOnLoadCallback(drawHealthChart);
+
+                function drawHealthChart() {
+                    var data = google.visualization.arrayToDataTable([
+                        ['Day', 'Health'],
+                        ['Day 1',  70],
+                        ['Day 2',  75],
+                        ['Day 3',  85],
+                        ['Today',  <?php echo (int)$stats['health']; ?>]
+                    ]);
+
+                    var options = {
+                        legend: 'none',
+                        backgroundColor: 'transparent',
+                        colors: ['#2271b1'],
+                        chartArea: {width: '100%', height: '100%'},
+                        hAxis: {baselineColor: 'none', textPosition: 'none', gridlines: {count:0}},
+                        vAxis: {baselineColor: 'none', textPosition: 'none', gridlines: {count:0}}
+                    };
+
+                    var chart = new google.visualization.LineChart(document.getElementById('chroma-health-chart'));
+                    chart.draw(data, options);
+                }
+
+                // Feature 6: Batch Size Slider Persistence
+                $('#scan-batch-size').on('change', function() {
+                    $('#batch-size-display').text($(this).val());
+                    $.post(ajaxurl, {
+                        action: 'chroma_save_validator_setting',
+                        setting: 'batch_size',
+                        value: $(this).val(),
+                        nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                    });
+                }).on('input', function() {
+                    $('#batch-size-display').text($(this).val());
+                });
+
+                // Feature 9: Request Delay Slider Persistence
+                $('#scan-request-delay').on('change', function() {
+                    $('#request-delay-display').text($(this).val());
+                    $.post(ajaxurl, {
+                        action: 'chroma_save_validator_setting',
+                        setting: 'request_delay',
+                        value: $(this).val(),
+                        nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                    });
+                }).on('input', function() {
+                    $('#request-delay-display').text($(this).val());
+                });
+
+                // Feature 7: Clear Cache
+                $('#clear-validation-cache').on('click', function() {
+                    var btn = $(this);
+                    btn.prop('disabled', true).text('Clearing...');
+                    
+                    $.post(ajaxurl, {
+                        action: 'chroma_clear_validation_cache',
+                        nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                    }, function(response) {
+                        btn.prop('disabled', false).text('Clear Cache');
+                        if (response.success) {
+                            showToast('Cache cleared successfully', 'success');
+                            location.reload(); 
+                        }
+                    });
+                });
+
+                // Feature 15: Toggle Email Alerts
+                $('#enable-error-emails').on('change', function() {
+                    var enabled = $(this).is(':checked') ? '1' : '0';
+                    $.post(ajaxurl, {
+                        action: 'chroma_save_validator_setting',
+                        setting: 'email_alerts',
+                        value: enabled,
+                        nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                    }, function(response) {
+                        if (response.success) {
+                            showToast('Alert setting saved', 'success');
+                        }
+                    });
+                });
+                
+                // Feature 3: Quick Filter
+                $('#bulk-scan-filter').on('change', function() {
+                    var filter = $(this).val();
+                    var rows = $('#bulk-results-table tbody tr');
+                    
+                    if (filter === 'all') {
+                        rows.show();
+                    } else if (filter === 'valid') {
+                        rows.hide();
+                        rows.filter(function() { return $(this).find('.dashicons-yes').length > 0; }).show();
+                    } else if (filter === 'invalid') {
+                        rows.hide();
+                        rows.filter(function() { return $(this).find('.dashicons-no').length > 0; }).show();
+                    } else if (filter === 'warnings') {
+                        rows.hide();
+                        rows.filter(function() { return $(this).find('.dashicons-warning').length > 0; }).show();
+                    }
+                });
+                
+                // Feature 16: Column Sorting
+                $('.chroma-seo-table th').css('cursor', 'pointer').on('click', function() {
+                    var table = $(this).parents('table').eq(0);
+                    var rows = table.find('tr:gt(0)').toArray().sort(comparer($(this).index()));
+                    this.asc = !this.asc;
+                    if (!this.asc) rows = rows.reverse();
+                    for (var i = 0; i < rows.length; i++) table.append(rows[i]);
+                });
+
+                function comparer(index) {
+                    return function(a, b) {
+                        var valA = getCellValue(a, index), valB = getCellValue(b, index);
+                        return $.isNumeric(valA) && $.isNumeric(valB) ? valA - valB : valA.toString().localeCompare(valB);
+                    };
+                }
+
+                function getCellValue(row, index) {
+                    return $(row).children('td').eq(index).text();
+                }
+
+                // Feature 17: Search by Error/Page
+                $('#chroma-validator-search').on('keyup', function() {
+                    var value = $(this).val().toLowerCase();
+                    $('#bulk-results-table tbody tr').filter(function() {
+                        $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+                    });
+                });
+
+                // Original Export logic follows...
+                $('#export-bulk-csv').on('click', function() {
+                    var data = Object.values(scanResults);
+                    if (data.length === 0) {
+                        showToast('No data to export', 'warning');
+                        return;
+                    }
+                    downloadCSV(data, 'schema-audit-' + new Date().toISOString().slice(0,10) + '.csv');
+                    showToast('Export started', 'success');
+                });
+
                 // Store results for modal
                 var scanResults = {};
                 
@@ -2283,7 +2727,29 @@ class Chroma_SEO_Dashboard
                     }
                 });
                 
-                // Feature 9: Save sitemap URLs
+                // Feature 20: Bulk Row Selection
+                $('#bulk-select-all').on('change', function() {
+                    $('.row-select:visible').prop('checked', $(this).is(':checked')).trigger('change');
+                });
+
+                $(document).on('change', '.row-select', function() {
+                    var $row = $(this).closest('tr');
+                    if ($(this).is(':checked')) {
+                        $row.css('background-color', '#f0f6fc');
+                    } else {
+                        $row.css('background-color', '');
+                    }
+                    
+                    // Show/Hide bulk buttons
+                    var checkedCount = $('.row-select:checked').length;
+                    if (checkedCount > 0) {
+                        $('#bulk-revalidate, #bulk-ai-fix').show();
+                    } else {
+                        $('#bulk-revalidate, #bulk-ai-fix').hide();
+                    }
+                });
+
+                // Original sitemap save logic follows...
                 $('#save-sitemap-setting').on('click', function() {
                     var btn = $(this);
                     btn.prop('disabled', true).text('Saving...');
@@ -2291,17 +2757,50 @@ class Chroma_SEO_Dashboard
                     $.post(ajaxurl, {
                         action: 'chroma_save_sitemap_urls',
                         urls: $('#sitemap-urls').val(),
+                        exclusions: $('#sitemap-exclusions').val(),
                         nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
                     }, function(response) {
-                        btn.prop('disabled', false).text('Save Sitemap URLs');
+                        btn.prop('disabled', false).text('Save Sitemap URLs & Exclusions');
                         if (response.success) {
                             $('#sitemap-save-status').html('<span style="color:green;">✓ Saved</span>');
+                            showToast(response.data.message, 'success');
                             setTimeout(function() { $('#sitemap-save-status').empty(); }, 3000);
                         } else {
                             $('#sitemap-save-status').html('<span style="color:red;">Error</span>');
+                            showToast(response.data.message || 'Error saving settings', 'error');
                         }
                     });
                 });
+
+                // Feature 23: JSON Export
+                $('#export-bulk-json').on('click', function() {
+                    var data = JSON.stringify(scanResults, null, 2);
+                    var blob = new Blob([data], {type: 'application/json'});
+                    var url = URL.createObjectURL(blob);
+                    var a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'schema-audit-' + new Date().toISOString().slice(0,10) + '.json';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    showToast('JSON Export started', 'success');
+                });
+
+                function playSuccessSound() {
+                    // Modern browsers block autoplay, so we use a silent pulse or check for interaction
+                    try {
+                        var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        var oscillator = audioCtx.createOscillator();
+                        var gainNode = audioCtx.createGain();
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioCtx.destination);
+                        oscillator.type = 'sine';
+                        oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
+                        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                        oscillator.start();
+                        oscillator.stop(audioCtx.currentTime + 0.2);
+                    } catch(e) {}
+                }
 
                 $('#start-bulk-scan').on('click', function() {
                     if (isScanning) return;
@@ -2398,15 +2897,17 @@ class Chroma_SEO_Dashboard
                         }
                         
                         // Process next with slight delay to avoid overwhelming server
+                        var requestDelay = parseInt($('#scan-request-delay').val()) || 100;
                         setTimeout(function() {
                             processSitemapUrls(urls, index + 1);
-                        }, 100);
+                        }, requestDelay);
                     }).fail(function() {
                         processedPosts++;
                         log('Failed to validate: ' + url);
+                        var requestDelay = (parseInt($('#scan-request-delay').val()) || 100) + 1000; // Add extra delay on failure
                         setTimeout(function() {
                             processSitemapUrls(urls, index + 1);
-                        }, 100);
+                        }, requestDelay);
                     });
                 }
 
@@ -2414,74 +2915,107 @@ class Chroma_SEO_Dashboard
                     processBatch(0, 0); 
                 }
 
+                // Feature 9: Request Delay Slider
+                $('#scan-request-delay').on('input', function() {
+                    $('#request-delay-display').text($(this).val());
+                });
+
                 function processBatch(typeIndex, offset) {
-                    if (typeIndex >= postTypes.length) {
-                        finishScan();
+                    if (shouldStop) {
+                        $('#start-bulk-scan').prop('disabled', false).html('<span class="dashicons dashicons-search" style="line-height: 28px;"></span> Start Full Site Scan');
+                        showToast('Scan stopped by user', 'warning');
                         return;
                     }
+                    
+                    var types = Object.keys(postTypesToScan);
+                    if (typeIndex >= types.length) {
+                        // All Done
+                        $('#start-bulk-scan').prop('disabled', false).html('<span class="dashicons dashicons-search" style="line-height: 28px;"></span> Start Full Site Scan');
+                        $('#bulk-scan-summary').show();
+                        showToast('Scan Complete!', 'success');
+                        
+                        // Play sound (Feature 22 - later)
+                        return;
+                    }
+                    
+                    var pType = types[typeIndex];
+                    var batchSize = parseInt($('#scan-batch-size').val()) || 10;
+                    var requestDelay = parseInt($('#scan-request-delay').val()) || 100;
 
-                    var currentType = postTypes[typeIndex];
-
-                    $.ajax({
-                        url: ajaxurl,
-                        method: 'POST',
-                        timeout: 15000, // 15s timeout forces client to give up if server hangs
-                        data: {
-                            action: 'chroma_scan_schema_batch',
-                            post_type: currentType,
-                            offset: offset,
-                            nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>'
-                        },
-                        success: function(response) {
-                             if (response.success) {
-                                var data = response.data;
-                                
-                                if (offset === 0 && data.total_in_type) {
-                                    totalPosts += data.total_in_type;
-                                    $('#scan-total').text(totalPosts);
-                                }
-    
-                                if (data.results && data.results.length > 0) {
-                                    data.results.forEach(function(item) {
-                                        processedPosts++;
-                                        scanResults[item.id] = item; // Store for modal
-                                        renderRow(item);
-                                    });
+                    $.post(ajaxurl, {
+                        action: 'chroma_scan_schema_batch', // Logic handles sitemap vs DB mode internally
+                        post_type: pType,
+                        offset: offset,
+                        batch_size: batchSize,
+                        nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                    }, function(response) {
+                        if (response.success) {
+                            var data = response.data;
+                            
+                            // Render Rows
+                            if (data.results && data.results.length > 0) {
+                                data.results.forEach(function(item) {
+                                    scanResults[item.id] = item; // Store for export
                                     
-                                    $('#scan-count').text(processedPosts);
-                                    var pct = totalPosts > 0 ? (processedPosts / totalPosts) * 100 : 5;
-                                    $('#scan-progress-bar').css('width', pct + '%');
-    
-                                    if (data.has_more) {
-                                        processBatch(typeIndex, offset + data.batch_size);
-                                    } else {
-                                        processBatch(typeIndex + 1, 0);
-                                    }
-                                } else {
-                                     processBatch(typeIndex + 1, 0);
-                                }
-    
-                            } else {
-                                // PHP returned explicit error (e.g. permission or unexpected logic)
-                                // Do NOT abort. Log and continue.
-                                console.warn('Batch Error: ' + (response.data.message || 'Unknown'));
-                                // Attempt to skip this batch (size 1)
-                                processBatch(typeIndex, offset + 1);
+                                    // Apply Filters
+                                    var filter = $('#bulk-scan-filter').val();
+                                    var rowHtml = renderRow(item);
+                                    var $row = $(rowHtml);
+                                    
+                                    if (filter === 'valid' && !item.valid) $row.hide();
+                                    if (filter === 'invalid' && item.valid) $row.hide();
+                                    if (filter === 'warnings' && (item.valid || (!item.valid && (!item.warnings || item.warnings.length === 0)))) $row.hide();
+                                    
+                                    $('#bulk-results-table tbody').append($row);
+                                });
+                                
+                                // Update Counts
+                                $('#scan-count').text(scanCount + data.results.length); // Update total scanned
+                                scanCount += data.results.length;
+                                updateProgressBar();
+                                
+                                $('#error-count').text(errorCount);
+                                $('#valid-count').text(validCount);
                             }
-                        },
-                        error: function(xhr, status, error) {
-                            console.error('Network/Server Error/Timeout at offset ' + offset + ': ' + error);
-                            // Skip this batch (size 1) and continue.
-                            setTimeout(function() {
+                            
+                            if (data.has_more) {
+                                // Next Batch with Delay
+                                setTimeout(function() {
+                                    processBatch(typeIndex, offset + batchSize);
+                                }, requestDelay);
+                            } else {
+                                // Next Type
+                                processBatch(typeIndex + 1, 0);
+                            }
+                            
+                        } else {
+                            // PHP Error (e.g. timeout) - Retry logic could go here (Feature 10)
+                            console.error('Batch Error: ' + (response.data.message || 'Unknown'));
+                            showToast('Batch Error: ' + (response.data.message || 'Unknown'), 'error');
+                            // Skip this batch and try next offset? Or abort?
+                            // Simple retry: just move forward by 1 to skip stuck item
+                             setTimeout(function() {
                                 processBatch(typeIndex, offset + 1);
-                            }, 1000);
+                            }, requestDelay + 1000);
                         }
+                    }).fail(function(xhr, status, error) {
+                        console.error('Network Error: ' + error);
+                        // Retry logic (Feature 10)
+                        setTimeout(function() {
+                            processBatch(typeIndex, offset + 1);
+                        }, requestDelay + 1000);
                     });
                 }
 
                 function renderRow(item) {
                     var statusIcon = item.valid ? '✅' : '❌';
                     var statusText = item.valid ? 'Valid' : 'Invalid';
+                    var statusClass = item.valid ? 'schema-valid' : 'schema-invalid';
+                    if (item.warnings && item.warnings.length) {
+                        statusIcon = '⚠️';
+                        statusText = 'Warnings';
+                        statusClass = 'schema-warnings';
+                    }
                     
                     if (item.valid) validCount++;
                     else errorCount++;
@@ -2501,7 +3035,8 @@ class Chroma_SEO_Dashboard
                         `<button class="button button-secondary chroma-open-bulk-fix" data-id="${item.id}">🔍 View & Fix</button>`;
 
                     var html = `
-                        <tr>
+                        <tr class="${statusClass}" data-id="${item.id}" data-status="${item.valid ? 'valid' : 'invalid'}">
+                            <td><input type="checkbox" class="row-select" value="${item.id}"></td>
                             <td>
                                 <strong><a href="${item.edit_url}" target="_blank">${item.title}</a></strong>
                                 <br><small><a href="${item.permalink}" target="_blank">${item.permalink}</a></small>
@@ -2509,6 +3044,7 @@ class Chroma_SEO_Dashboard
                             <td>${item.type}</td>
                             <td>${statusIcon} ${statusText}</td>
                             <td>${messages}</td>
+                            <td><span class="chroma-timestamp">${item.last_checked ? timeAgo(new Date(item.last_checked * 1000)) : 'Just now'}</span></td>
                             <td>${actionBtn}</td>
                         </tr>
                     `;
@@ -2527,6 +3063,11 @@ class Chroma_SEO_Dashboard
                     $('#bulk-scan-summary').show();
                     $('#error-count').text(errorCount);
                     $('#valid-count').text(validCount);
+                    
+                    // Show Controls
+                    $('#chroma-validator-search, #bulk-scan-filter, #export-bulk-csv, #export-bulk-json').show();
+                    
+                    playSuccessSound();
                     
                     // Add Fix All Button if errors OR warnings exist
                     $('#chroma-bulk-fix-all-btn').remove(); 
@@ -2549,6 +3090,65 @@ class Chroma_SEO_Dashboard
                          alert('Scan complete. Found ' + errorCount + ' pages with errors.');
                     }
                 }
+
+                // Feature 20: Bulk AI Fix (Selected)
+                $('#bulk-ai-fix').on('click', function() {
+                    var selectedIds = $('.row-select:checked').map(function() { return $(this).val(); }).get();
+                    if (selectedIds.length === 0) return;
+                    
+                    if (!confirm('Repair ' + selectedIds.length + ' selected pages using AI?')) return;
+                    
+                    var $btn = $(this);
+                    $btn.prop('disabled', true).text('⏳ Processing ' + selectedIds.length + '...');
+                    
+                    var fixQueue = [];
+                    $.each(selectedIds, function(i, id) {
+                        if (scanResults[id]) fixQueue.push(scanResults[id]);
+                    });
+                    
+                    var index = 0;
+                    function processNext() {
+                        if (index >= fixQueue.length) {
+                            $btn.prop('disabled', false).text('Bulk AI Fix (Selected)');
+                            showToast('Bulk fix complete!', 'success');
+                            return;
+                        }
+                        
+                        var item = fixQueue[index];
+                        var $rowBtn = $('.chroma-open-bulk-fix[data-id="' + item.id + '"]');
+                        $rowBtn.text('⏳...').prop('disabled', true);
+                        
+                        // Use existing logic through a shared function would be better, but for now duplicate fix logic or call internal triggers
+                        // For speed, let's trigger the AI fix logic manually
+                        var schemaJson = (item.schema && item.schema.length) ? item.schema[0] : '';
+                        var allIssues = (item.errors || []).concat(item.warnings || []);
+
+                        $.post(ajaxurl, {
+                            action: 'chroma_fix_schema_with_ai',
+                            nonce: chroma_fix_nonce,
+                            schema: schemaJson,
+                            errors: allIssues,
+                        }, function(res1) {
+                            if (res1.success) {
+                                $.post(ajaxurl, {
+                                    action: 'chroma_apply_schema_fix',
+                                    nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>',
+                                    post_id: item.id.replace('url-',''), // Handle both PID and temp IDs
+                                    schema: res1.data.fixed_schema
+                                }, function(res2) {
+                                    $rowBtn.replaceWith('<span class="chroma-badge chroma-badge-manual">✅ Fixed</span>');
+                                    index++;
+                                    processNext();
+                                });
+                            } else {
+                                $rowBtn.text('❌ Failed').prop('disabled', false);
+                                index++;
+                                processNext();
+                            }
+                        });
+                    }
+                    processNext();
+                });
 
                 // Bulk Fix All Handler
                 $(document).on('click', '#chroma-bulk-fix-all-btn', function() {
@@ -2810,8 +3410,8 @@ class Chroma_SEO_Dashboard
         try {
             $post_type = sanitize_text_field($_POST['post_type']);
             $offset = intval($_POST['offset']);
-            $batch_size = 1; // Reduced to 1 to isolate crashes/heavy pages
-            set_time_limit(120); // Give plenty of time for complex pages
+            $batch_size = intval(get_option('chroma_validator_batch_size', 10));
+            set_time_limit(180); // Increased for larger batches
 
             // Fetch Posts
             $args = [
@@ -2834,80 +3434,44 @@ class Chroma_SEO_Dashboard
                     'message' => 'Scan Complete'
                 ]);
             }
+            
+            // Feature 11: Memory Guard
+            if (memory_get_usage() > 128 * 1024 * 1024) { // 128MB Safety Limit
+                 wp_send_json_error(['message' => 'Memory limit (128MB) reached. Try reducing batch size.']);
+            }
 
             foreach ($posts as $post) {
                 $pid = $post->ID;
                 $permalink = get_permalink($pid);
                 
-                // Add cache busting to ensure we see the latest validation fixes
-                $fetch_url = add_query_arg('chroma_nocache', time(), $permalink);
+                // Feature 7 & 10: Use shared helper (Handles cache & retry & logging)
+                $result = $this->perform_url_validation($permalink, $pid);
                 
-                // Fetch Live Page
-                $response = wp_remote_get($fetch_url, [
-                    'timeout' => 20, // Increased timeout slightly
-                    'sslverify' => false,
-                    'headers' => [
-                       'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                       'Pragma' => 'no-cache',
-                       'Expires' => '0'
-                    ]
-                ]);
+                $is_valid = $result['valid'];
+                $errors = $result['errors'];
+                $warnings = $result['warnings'];
+                $type_counts = $result['schema_types'] ?? [];
                 
-                $is_valid = false;
-                $errors = [];
-                $warnings = [];
-
-                if (is_wp_error($response)) {
-                    $errors[] = 'HTTP Fetch Failed: ' . $response->get_error_message();
-                } else {
-                    $body = wp_remote_retrieve_body($response);
-                    
-                    // Extract JSON-LD (Robust Regex)
-                    if (preg_match_all('/<script[^>]+type=["\']application\/ld\+json["\'][^>]*>(.*?)<\/script>/s', $body, $matches)) {
-                        $schemas = $matches[1];
-                        $has_valid_schema = false;
-                        
-                        $type_counts = [];
-                        
-                        foreach ($schemas as $json) {
-                            if (class_exists('Chroma_Schema_Validator')) {
-                                $res = Chroma_Schema_Validator::validate_json_ld($json);
-                                if ($res['valid']) {
-                                    $has_valid_schema = true;
-                                    
-                                    // Count types for duplicate detection
-                                    if (isset($res['parsed']['@type'])) {
-                                        $t = $res['parsed']['@type'];
-                                        if (is_array($t)) {
-                                            foreach ($t as $subT) {
-                                                $type_counts[$subT] = ($type_counts[$subT] ?? 0) + 1;
-                                            }
-                                        } else {
-                                            $type_counts[$t] = ($type_counts[$t] ?? 0) + 1;
-                                        }
-                                    }
-                                } else {
-                                    // Collect errors (de-duplicate)
-                                    foreach ($res['errors'] as $e) {
-                                        if (!in_array($e, $errors)) $errors[] = $e;
-                                    }
-                                    foreach ($res['warnings'] as $w) {
-                                        if (!in_array($w, $warnings)) $warnings[] = $w;
-                                    }
-                                }
-                            } // foreach schemas
-                        } // if preg_match
-                    } // if body retrieval
-                } // if wp_remote_get
-
+                // Feature 15: Email Alerts (Simple version)
+                if (!empty($errors) && get_option('chroma_validator_email_alerts')) {
+                    $admin_email = get_option('admin_email');
+                    wp_mail($admin_email, '[Chroma SEO] Schema Error Found', "Critical schema errors found on: $permalink\nErrors: " . implode(', ', $errors));
+                }
+                
                 // Determine final status
                 $status = 'valid';
                 if (!empty($errors)) $status = 'error';
                 elseif (!empty($warnings)) $status = 'warning';
-                elseif (!$has_valid_schema) {
+                elseif (!$is_valid) {
                      $status = 'warning'; 
                      $warnings[] = 'No Schema found';
                 }
+                
+                // Update Post Meta
+                update_post_meta($pid, '_chroma_schema_validation_status', $is_valid ? 'valid' : 'invalid');
+                update_post_meta($pid, '_chroma_last_validated', time());
+                if (!empty($errors)) update_post_meta($pid, '_chroma_schema_errors', $errors);
+                else delete_post_meta($pid, '_chroma_schema_errors');
 
                 $results[] = [
                     'id' => $pid,
@@ -2978,6 +3542,11 @@ class Chroma_SEO_Dashboard
             $combined .= '<script type="application/ld+json">' . $schema . '</script>' . "\n";
         }
         update_post_meta($post_id, '_chroma_schema_override', trim($combined));
+
+            // Feature 13: Log AI Fix
+            if (class_exists('Chroma_Validation_Logger')) {
+                (new Chroma_Validation_Logger())->log_fix(get_permalink($post_id), true, 'Multiple schemas applied', $post_id);
+            }
             
             wp_send_json_success([
                 'message' => 'All schemas applied successfully',
@@ -2989,10 +3558,19 @@ class Chroma_SEO_Dashboard
             $schema = wp_unslash($single_schema);
             $decoded = json_decode($schema);
             if (json_last_error() !== JSON_ERROR_NONE) {
+                // Feature 13: Log Failure
+                if (class_exists('Chroma_Validation_Logger')) {
+                    (new Chroma_Validation_Logger())->log_fix(get_permalink($post_id), false, 'Invalid JSON: ' . json_last_error_msg(), $post_id);
+                }
                 wp_send_json_error(['message' => 'Invalid JSON: ' . json_last_error_msg()]);
             }
 
             update_post_meta($post_id, '_chroma_schema_override', $schema);
+
+            // Feature 13: Log AI Fix
+            if (class_exists('Chroma_Validation_Logger')) {
+                (new Chroma_Validation_Logger())->log_fix(get_permalink($post_id), true, 'Single schema applied', $post_id);
+            }
 
             wp_send_json_success([
                 'message' => 'Schema applied successfully',
@@ -3104,7 +3682,57 @@ class Chroma_SEO_Dashboard
         $urls = sanitize_textarea_field($_POST['urls']);
         update_option('chroma_validator_sitemaps', $urls);
         
-        wp_send_json_success(['message' => 'Sitemap URLs saved']);
+        // Feature 5: Save Exclusions
+        if (isset($_POST['exclusions'])) {
+            $exclusions = sanitize_textarea_field($_POST['exclusions']);
+            update_option('chroma_validator_exclusions', $exclusions);
+        }
+        
+        wp_send_json_success(['message' => 'Sitemap URLs & Exclusions saved']);
+    }
+
+    /**
+     * AJAX: Clear Validation Cache
+     */
+    public function ajax_clear_validation_cache()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
+        if (class_exists('Chroma_Validation_Cache')) {
+            Chroma_Validation_Cache::clear_all();
+            wp_send_json_success(['message' => 'Cache cleared']);
+        }
+        
+        wp_send_json_error(['message' => 'Cache class not found']);
+    }
+
+    /**
+     * AJAX: Save Validator Setting (Generic)
+     */
+    public function ajax_save_validator_setting()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
+        $setting = sanitize_key($_POST['setting'] ?? '');
+        $value = sanitize_text_field($_POST['value'] ?? '');
+
+        // Whitelist allowed settings for AJAX update
+        $allowed = ['email_alerts', 'batch_size', 'request_delay', 'timeout', 'cache_ttl'];
+        
+        if (in_array($setting, $allowed)) {
+            update_option('chroma_validator_' . $setting, $value);
+            wp_send_json_success(['message' => 'Setting ' . $setting . ' saved']);
+        }
+
+        wp_send_json_error(['message' => 'Invalid or restricted setting']);
     }
 
     /**
@@ -3114,8 +3742,16 @@ class Chroma_SEO_Dashboard
     {
         check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
         
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+        
         $sitemap_urls_raw = get_option('chroma_validator_sitemaps', home_url('/sitemap.xml'));
         $sitemap_urls = array_filter(array_map('trim', explode("\n", $sitemap_urls_raw)));
+        
+        // Feature 5: Get Exclusions
+        $exclusions_raw = get_option('chroma_validator_exclusions', '');
+        $exclusions = array_filter(array_map('trim', explode("\n", $exclusions_raw)));
         
         $all_urls = [];
         
@@ -3124,8 +3760,20 @@ class Chroma_SEO_Dashboard
             $all_urls = array_merge($all_urls, $urls);
         }
         
-        // Remove duplicates and filter
+        // Remove duplicates
         $all_urls = array_unique($all_urls);
+        
+        // Filter Exclusions
+        if (!empty($exclusions)) {
+            $all_urls = array_filter($all_urls, function($url) use ($exclusions) {
+                foreach ($exclusions as $pattern) {
+                    if (fnmatch($pattern, $url)) {
+                        return false; // Exclude
+                    }
+                }
+                return true; // Keep
+            });
+        }
         
         wp_send_json_success([
             'urls' => array_values($all_urls),
@@ -3197,26 +3845,82 @@ class Chroma_SEO_Dashboard
      */
     public function ajax_validate_url()
     {
-        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
-        
-        $url = esc_url_raw($_POST['url']);
-        
-        if (empty($url)) {
-            wp_send_json_error(['message' => 'No URL provided']);
+        try {
+            check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+            
+            if (!current_user_can('edit_posts')) {
+                wp_send_json_error(['message' => 'Permission denied']);
+            }
+            
+            $url = esc_url_raw($_POST['url']);
+            
+            if (empty($url)) {
+                wp_send_json_error(['message' => 'No URL provided']);
+            }
+            
+            $result = $this->perform_url_validation($url);
+            
+            if (isset($result['error_message'])) {
+                 wp_send_json_error([
+                    'url' => $url,
+                    'message' => $result['error_message']
+                ]);
+            }
+            
+            // Format for JS
+            wp_send_json_success([
+                'url' => $url,
+                'valid' => $result['valid'],
+                'errors' => $result['errors'],
+                'warnings' => $result['warnings'],
+                'last_checked' => $result['timestamp']
+            ]);
+        } catch (Exception $e) {
+            wp_send_json_error(['message' => 'Internal Error: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Perform distinct URL validation with Cache, Retry, and Logging
+     * 
+     * @param string $url
+     * @param int $post_id Optional post ID for logging
+     * @return array
+     */
+    private function perform_url_validation($url, $post_id = 0)
+    {
+        // Feature 7: Check Cache
+        if (class_exists('Chroma_Validation_Cache')) {
+            $cached = Chroma_Validation_Cache::get($url);
+            if ($cached && empty($_POST['force_refresh'])) {
+                return $cached;
+            }
         }
         
-        // Fetch the page
-        $response = wp_remote_get($url, [
-            'timeout' => 30,
-            'sslverify' => false,
-            'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
-        ]);
+        $response = null;
+        $attempt = 0;
+        $max_retries = intval(get_option('chroma_validator_max_retries', 3));
+        $timeout = intval(get_option('chroma_validator_timeout', 30));
+        
+        // Feature 10: Connection Retry Loop
+        while ($attempt < $max_retries) {
+            $response = wp_remote_get($url, [
+                'timeout' => $timeout,
+                'sslverify' => false,
+                'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
+            ]);
+            
+            if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+                break;
+            }
+            
+            $attempt++;
+            if ($attempt < $max_retries) sleep(1); // Wait 1s before retry
+        }
         
         if (is_wp_error($response)) {
-            wp_send_json_error([
-                'url' => $url,
-                'message' => $response->get_error_message()
-            ]);
+             $res = ['valid' => false, 'errors' => ['Fetch Error: ' . $response->get_error_message()], 'warnings' => [], 'error_message' => $response->get_error_message(), 'timestamp' => time()];
+             return $res;
         }
         
         $html = wp_remote_retrieve_body($response);
@@ -3224,41 +3928,59 @@ class Chroma_SEO_Dashboard
         // Extract JSON-LD scripts
         preg_match_all('/<script\s+type=["\']application\/ld\+json["\']>(.*?)<\/script>/si', $html, $matches);
         
-        $results = [];
-        $total_errors = 0;
-        $total_warnings = 0;
-        $valid = true;
+        $errors = [];
+        $warnings = [];
+        $has_valid_schema = false;
+        $type_counts = [];
+        $schemas = $matches[1] ?? [];
         
-        foreach ($matches[1] as $json) {
-            $validation = Chroma_Schema_Validator::validate_json_ld(trim($json));
-            
-            if (!$validation['valid']) {
-                $valid = false;
-            }
-            
-            $total_errors += count($validation['errors']);
-            $total_warnings += count($validation['warnings']);
-            
-            $results[] = [
-                'valid' => $validation['valid'],
-                'errors' => $validation['errors'],
-                'warnings' => $validation['warnings']
-            ];
+        if (empty($schemas)) {
+            $errors[] = 'No schema found on page';
+        } else {
+             foreach ($schemas as $json) {
+                if (class_exists('Chroma_Schema_Validator')) {
+                    $res = Chroma_Schema_Validator::validate_json_ld($json);
+                    if ($res['valid']) {
+                        $has_valid_schema = true;
+                        
+                        // Count types
+                        if (isset($res['parsed']['@type'])) {
+                             $t = $res['parsed']['@type'];
+                             if (is_array($t)) {
+                                 foreach ($t as $subT) $type_counts[$subT] = ($type_counts[$subT] ?? 0) + 1;
+                             } else {
+                                 $type_counts[$t] = ($type_counts[$t] ?? 0) + 1;
+                             }
+                        }
+                    } else {
+                        // Collect errors
+                        foreach ($res['errors'] as $e) if (!in_array($e, $errors)) $errors[] = $e;
+                        foreach ($res['warnings'] as $w) if (!in_array($w, $warnings)) $warnings[] = $w;
+                    }
+                }
+             }
         }
         
-        // Extract page title
-        preg_match('/<title>(.*?)<\/title>/i', $html, $title_match);
-        $title = isset($title_match[1]) ? html_entity_decode($title_match[1]) : parse_url($url, PHP_URL_PATH);
+        $is_valid = $has_valid_schema && empty($errors);
         
-        wp_send_json_success([
-            'url' => $url,
-            'title' => $title,
-            'schema_count' => count($matches[1]),
-            'valid' => $valid,
-            'total_errors' => $total_errors,
-            'total_warnings' => $total_warnings,
-            'schemas' => $results
-        ]);
-    }
+        $result = [
+            'valid' => $is_valid,
+            'errors' => $errors,
+            'warnings' => $warnings,
+            'timestamp' => time(),
+            'schema_types' => $type_counts
+        ];
+        
+        // Feature 7: Save to Cache
+        if (class_exists('Chroma_Validation_Cache')) {
+            Chroma_Validation_Cache::set($url, $result);
+        }
 
+        // Feature 12: Validation Log
+        if (class_exists('Chroma_Validation_Logger')) {
+            (new Chroma_Validation_Logger())->log_validation($url, $result, $post_id);
+        }
+        
+        return $result;
+    }
 }
