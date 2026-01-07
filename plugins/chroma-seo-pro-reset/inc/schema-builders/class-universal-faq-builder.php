@@ -24,7 +24,8 @@ class Chroma_Universal_FAQ_Builder
         }
 
         // Check if disabled globally (User Preference for Otto)
-        if (get_option('chroma_faq_schema_disabled', 'no') === 'yes') {
+        // Default to 'yes' to ensure it is disabled by default as requested
+        if (get_option('chroma_faq_schema_disabled', 'yes') === 'yes') {
             return;
         }
 

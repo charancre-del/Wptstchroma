@@ -74,7 +74,8 @@ class Chroma_Breadcrumbs
         }
 
         // Check if disabled globally (User Preference for Theme/Yoast conflict)
-        if (get_option('chroma_breadcrumbs_schema_disabled', 'no') === 'yes') {
+        // Default to 'yes' to ensure it is disabled by default as requested
+        if (get_option('chroma_breadcrumbs_schema_disabled', 'yes') === 'yes') {
             return;
         }
 
