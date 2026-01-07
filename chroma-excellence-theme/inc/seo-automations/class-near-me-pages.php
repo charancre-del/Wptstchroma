@@ -361,6 +361,41 @@ class Chroma_Near_Me_Pages
         
         return $urls;
     }
+    public static function get_all_pages() {
+        $pages = [];
+        $keywords = ['daycare', 'preschool', 'childcare', 'pre-k'];
+        
+        // Generic Pages
+        foreach ($keywords as $kw) {
+            $kw_label = ucwords(str_replace('-', ' ', $kw));
+            $pages[] = [
+                'type' => 'Generic',
+                'title' => "$kw_label Near Me",
+                'url' => home_url('/' . $kw . '-near-me/'),
+                'city' => '—',
+                'state' => '—'
+            ];
+        }
+        
+        // City-specific Pages
+        if (class_exists('Chroma_Combo_Page_Generator')) {
+            $cities = Chroma_Combo_Page_Generator::get_all_cities();
+            foreach ($keywords as $kw) {
+                $kw_label = ucwords(str_replace('-', ' ', $kw));
+                foreach ($cities as $city) {
+                    $pages[] = [
+                        'type' => 'City-Specific',
+                        'title' => "$kw_label Near " . $city['city'],
+                        'url' => home_url('/' . $kw . '-near-' . sanitize_title($city['city']) . '-' . strtolower($city['state']) . '/'),
+                        'city' => $city['city'],
+                        'state' => $city['state']
+                    ];
+                }
+            }
+        }
+        
+        return $pages;
+    }
 }
 
 new Chroma_Near_Me_Pages();

@@ -1081,6 +1081,40 @@ class Chroma_Combo_Page_Generator
             
             <hr style="margin: 30px 0;">
             
+            <h2>📍 Near Me Pages</h2>
+            <?php if (class_exists('Chroma_Near_Me_Pages') && method_exists('Chroma_Near_Me_Pages', 'get_all_pages')): ?>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e5e5e5; background: #fff;">
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th style="width: 150px;">Type</th>
+                                <th style="width: 150px;">Location Context</th>
+                                <th style="width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $near_pages = Chroma_Near_Me_Pages::get_all_pages();
+                            foreach ($near_pages as $np):
+                            ?>
+                            <tr>
+                                <td><strong><?php echo esc_html($np['title']); ?></strong></td>
+                                <td><span class="badge" style="background: <?php echo $np['type'] === 'Generic' ? '#e5e5e5' : '#e7f3ff; color: #0073aa'; ?>; padding: 2px 6px; border-radius: 3px; font-size: 11px;"><?php echo esc_html($np['type']); ?></span></td>
+                                <td><?php echo esc_html($np['city'] !== '—' ? $np['city'] . ', ' . $np['state'] : 'Global'); ?></td>
+                                <td>
+                                    <a href="<?php echo esc_url($np['url']); ?>" target="_blank" class="button button-small">Preview</a>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="description" style="margin-top: 5px;">These pages are virtual and generated instantly for users. They are automatically included in the sitemap.</p>
+            <?php endif; ?>
+
+            <hr style="margin: 30px 0;">
+            
             <h2>Settings</h2>
             <form method="post" action="options.php">
                 <?php settings_fields('chroma_auto_pages'); ?>
