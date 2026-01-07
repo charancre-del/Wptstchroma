@@ -57,6 +57,12 @@ class Chroma_Content_Inspector
                 } elseif ($post->post_type === 'city') {
                     $is_translated = get_post_meta($post->ID, '_chroma_es_city_state', true);
                 }
+                
+                // Fallback: If specific key is missing, check for Title (universal)
+                // This handles cases where optional fields are empty but page was processed.
+                if (!$is_translated) {
+                    $is_translated = get_post_meta($post->ID, '_chroma_es_title', true);
+                }
             }
 
             if ($is_translated) {
@@ -139,6 +145,11 @@ class Chroma_Content_Inspector
                                     $has_content = get_post_meta($post->ID, '_chroma_es_program_age_range', true);
                                 } elseif ($post->post_type === 'city') {
                                     $has_content = get_post_meta($post->ID, '_chroma_es_city_state', true);
+                                }
+                                
+                                // Fallback
+                                if (!$has_content) {
+                                    $has_content = get_post_meta($post->ID, '_chroma_es_title', true);
                                 }
                             }
 

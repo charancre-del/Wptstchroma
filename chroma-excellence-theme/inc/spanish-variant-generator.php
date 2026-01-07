@@ -146,3 +146,65 @@ function chroma_render_language_switcher() {
 	</div>
 	<?php
 }
+
+/**
+ * Filter Links for Spanish Context
+ * Ensures that when viewing the site in Spanish, all internal links (menus, content)
+ * point to the /es/ version of the URL.
+ */
+function chroma_filter_spanish_links($url) {
+    // Only apply if we are currently in Spanish mode
+    if (chroma_detect_current_language() !== 'es') {
+        return $url;
+    }
+
+    // Don't modify if already has /es/
+    if (strpos($url, '/es/') !== false) {
+        return $url;
+    }
+
+    // Clean handling of site URL
+    $home = home_url();
+    // Use parse_url to safely insert /es/ path
+    $parsed = parse_url($url);
+    $path = isset($parsed['path']) ? $parsed['path'] : '/';
+    
+    // Ensure we are linking to our own site
+    if (isset($parsed['host']) && $parsed['host'] !== parse_url($home, PHP_URL_HOST)) {
+        return $url;
+    }
+
+    // Insert /es/
+    // If path starts with /, prepend /es
+    // e.g. /programs/ -> /es/programs/
+    if (strpos($path, '/es/') !== 0) {
+        $new_path = '/es' . $path;
+        $url = str_replace($path, $new_path, $url);
+    }
+    
+    return $url;
+}
+
+// Apply to Post Links
+add_filter('post_link', 'chroma_filter_spanish_links', 10, 1);
+add_filter('page_link', 'chroma_filter_spanish_links', 10, 1);
+add_filter('post_type_link', 'chroma_filter_spanish_links', 10, 1);
+add_filter('term_link', 'chroma_filter_spanish_links', 10, 1);
+
+// Apply to Home URL (carefully)
+add_filter('home_url', function($url, $path, $scheme) {
+    if (chroma_detect_current_language() === 'es') {
+        // Avoid assets or admin
+        if (strpos($url, '/wp-admin') !== false || strpos($url, '/wp-content') !== false || strpos($url, '/wp-includes') !== false) {
+            return $url;
+        }
+        
+        if (strpos($url, '/es/') === false) {
+            $url = str_replace(home_url(), home_url('/es'), $url);
+             // Verify we didn't double slash at the join or create /es//path
+            $url = str_replace('/es//', '/es/', $url);
+        }
+    }
+    return $url;
+}, 10, 3);
+

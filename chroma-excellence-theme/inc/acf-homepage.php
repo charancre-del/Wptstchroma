@@ -112,13 +112,20 @@ function chroma_home_get_theme_mod_json($key, $default = array())
 function chroma_home_hero()
 {
         $defaults = chroma_home_default_hero();
+        $post_id = chroma_get_home_page_id();
+
+        // Check for specific meta overrides (supports translation)
+        $heading = chroma_get_translated_meta($post_id, 'home_hero_heading', true);
+        $subheading = chroma_get_translated_meta($post_id, 'home_hero_subheading', true);
+        $cta_label = chroma_get_translated_meta($post_id, 'home_hero_cta_label', true);
+        $secondary_label = chroma_get_translated_meta($post_id, 'home_hero_secondary_label', true);
 
         return array(
-                'heading' => wp_kses_post(chroma_get_theme_mod('chroma_home_hero_heading', $defaults['heading'])),
-                'subheading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_hero_subheading', $defaults['subheading'])),
-                'cta_label' => sanitize_text_field(chroma_get_theme_mod('chroma_home_hero_cta_label', $defaults['cta_label'])),
+                'heading' => wp_kses_post($heading ?: chroma_get_theme_mod('chroma_home_hero_heading', $defaults['heading'])),
+                'subheading' => sanitize_text_field($subheading ?: chroma_get_theme_mod('chroma_home_hero_subheading', $defaults['subheading'])),
+                'cta_label' => sanitize_text_field($cta_label ?: chroma_get_theme_mod('chroma_home_hero_cta_label', $defaults['cta_label'])),
                 'cta_url' => user_trailingslashit(esc_url_raw(chroma_get_theme_mod('chroma_home_hero_cta_url', $defaults['cta_url']))),
-                'secondary_label' => sanitize_text_field(chroma_get_theme_mod('chroma_home_hero_secondary_label', $defaults['secondary_label'])),
+                'secondary_label' => sanitize_text_field($secondary_label ?: chroma_get_theme_mod('chroma_home_hero_secondary_label', $defaults['secondary_label'])),
                 'secondary_url' => user_trailingslashit(esc_url_raw(chroma_get_theme_mod('chroma_home_hero_secondary_url', $defaults['secondary_url']))),
         );
 }
@@ -128,7 +135,21 @@ function chroma_home_hero()
  */
 function chroma_home_stats()
 {
-        $stats = chroma_home_get_theme_mod_json('chroma_home_stats_json', chroma_home_default_stats());
+        $post_id = chroma_get_home_page_id();
+        $stats_json = chroma_get_translated_meta($post_id, 'home_stats_json', true);
+        
+        $stats = array();
+        if ($stats_json) {
+                $decoded = json_decode($stats_json, true);
+                if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
+                        $stats = $decoded;
+                }
+        }
+        
+        if (empty($stats)) {
+                $stats = chroma_home_get_theme_mod_json('chroma_home_stats_json', chroma_home_default_stats());
+        }
+
         $cleaned = array();
 
         // Define color cycle for stats (red, yellow, blue, green)
@@ -153,31 +174,47 @@ function chroma_home_stats()
 function chroma_home_prismpath_panels()
 {
         $defaults = chroma_home_default_prismpath();
+        $post_id = chroma_get_home_page_id();
 
+        // Feature Text
         $feature = $defaults['feature'];
+        $eyebrow = chroma_get_translated_meta($post_id, 'home_prismpath_eyebrow', true);
+        $heading = chroma_get_translated_meta($post_id, 'home_prismpath_heading', true);
+        $subheading = chroma_get_translated_meta($post_id, 'home_prismpath_subheading', true);
+        $cta_label = chroma_get_translated_meta($post_id, 'home_prismpath_cta_label', true);
+
         $feature = array(
-                'eyebrow' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_eyebrow', $feature['eyebrow'])),
-                'heading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_heading', $feature['heading'])),
-                'subheading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_subheading', $feature['subheading'])),
-                'cta_label' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_cta_label', $feature['cta_label'])),
+                'eyebrow' => sanitize_text_field($eyebrow ?: chroma_get_theme_mod('chroma_home_prismpath_eyebrow', $feature['eyebrow'])),
+                'heading' => sanitize_text_field($heading ?: chroma_get_theme_mod('chroma_home_prismpath_heading', $feature['heading'])),
+                'subheading' => sanitize_text_field($subheading ?: chroma_get_theme_mod('chroma_home_prismpath_subheading', $feature['subheading'])),
+                'cta_label' => sanitize_text_field($cta_label ?: chroma_get_theme_mod('chroma_home_prismpath_cta_label', $feature['cta_label'])),
                 'cta_url' => user_trailingslashit(esc_url_raw(chroma_get_theme_mod('chroma_home_prismpath_cta_url', $feature['cta_url']))),
         );
 
-        $cards = chroma_home_get_theme_mod_json('chroma_home_prismpath_cards_json', $defaults['cards']);
+        // Cards (Check JSON Override)
+        $cards_json = chroma_get_translated_meta($post_id, 'home_prismpath_cards_json', true);
+        $cards = array();
+        if ($cards_json) {
+                $decoded = json_decode($cards_json, true);
+                if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
+                        $cards = $decoded;
+                }
+        }
+        
+        if (empty($cards)) {
+                $cards = chroma_home_get_theme_mod_json('chroma_home_prismpath_cards_json', $defaults['cards']);
+        }
+
+        // Sanitize Cards
         $cards = array_map(
                 function ($card, $index) use ($defaults) {
-                        // Get default card for this index
                         $default_card = $defaults['cards'][$index] ?? array();
-
-                        // Explicitly set each field, preferring saved data but falling back to defaults
-                        // Use ?: operator for icons to handle empty strings, not just null
                         return array(
                                 'badge' => sanitize_text_field($card['badge'] ?? $default_card['badge'] ?? ''),
                                 'heading' => sanitize_text_field($card['heading'] ?? $default_card['heading'] ?? ''),
                                 'text' => sanitize_textarea_field($card['text'] ?? $default_card['text'] ?? ''),
                                 'button' => sanitize_text_field($card['button'] ?? $default_card['button'] ?? ''),
                                 'url' => user_trailingslashit(esc_url_raw($card['url'] ?? $default_card['url'] ?? '')),
-                                // Use ?: to check for empty strings, not just null - falls back to defaults
                                 'icon' => sanitize_text_field(($card['icon'] ?? '') ?: ($default_card['icon'] ?? '')),
                                 'icon_bg' => sanitize_text_field(($card['icon_bg'] ?? '') ?: ($default_card['icon_bg'] ?? '')),
                                 'icon_badge' => sanitize_text_field(($card['icon_badge'] ?? '') ?: ($default_card['icon_badge'] ?? '')),
@@ -188,10 +225,14 @@ function chroma_home_prismpath_panels()
                 array_keys($cards)
         );
 
+        // Readiness
         $readiness = $defaults['readiness'];
+        $readiness_heading = chroma_get_translated_meta($post_id, 'home_prismpath_readiness_heading', true);
+        $readiness_desc = chroma_get_translated_meta($post_id, 'home_prismpath_readiness_desc', true);
+
         $readiness = array(
-                'heading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_prismpath_readiness_heading', $readiness['heading'])),
-                'description' => sanitize_textarea_field(chroma_get_theme_mod('chroma_home_prismpath_readiness_desc', $readiness['description'])),
+                'heading' => sanitize_text_field($readiness_heading ?: chroma_get_theme_mod('chroma_home_prismpath_readiness_heading', $readiness['heading'])),
+                'description' => sanitize_textarea_field($readiness_desc ?: chroma_get_theme_mod('chroma_home_prismpath_readiness_desc', $readiness['description'])),
         );
 
         return array(
@@ -686,9 +727,25 @@ function chroma_home_schedule_tracks()
 /**
  * Home FAQ block
  */
+/**
+ * Home FAQ block
+ */
 function chroma_home_faq_items()
 {
-        $items = chroma_home_get_theme_mod_json('chroma_home_faq_items_json', chroma_home_default_faq_items());
+        $post_id = chroma_get_home_page_id();
+        $items_json = chroma_get_translated_meta($post_id, 'home_faq_items_json', true);
+        
+        $items = array();
+        if ($items_json) {
+                $decoded = json_decode($items_json, true);
+                if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
+                        $items = $decoded;
+                }
+        }
+
+        if (empty($items)) {
+                $items = chroma_home_get_theme_mod_json('chroma_home_faq_items_json', chroma_home_default_faq_items());
+        }
 
         return array_map(
                 function ($item) {
@@ -704,10 +761,13 @@ function chroma_home_faq_items()
 function chroma_home_faq()
 {
         $defaults = chroma_home_default_faq();
+        $post_id = chroma_get_home_page_id();
+        $heading = chroma_get_translated_meta($post_id, 'home_faq_heading', true);
+        $subheading = chroma_get_translated_meta($post_id, 'home_faq_subheading', true);
 
         return array(
-                'heading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_faq_heading', $defaults['heading'])),
-                'subheading' => sanitize_text_field(chroma_get_theme_mod('chroma_home_faq_subheading', $defaults['subheading'])),
+                'heading' => sanitize_text_field($heading ?: chroma_get_theme_mod('chroma_home_faq_heading', $defaults['heading'])),
+                'subheading' => sanitize_text_field($subheading ?: chroma_get_theme_mod('chroma_home_faq_subheading', $defaults['subheading'])),
                 'items' => chroma_home_faq_items(),
                 'cta_text' => '',
                 'cta_label' => '',
@@ -723,9 +783,14 @@ function chroma_home_locations_preview()
                 return $cached;
         }
 
-        $heading = sanitize_text_field(chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
-        $subheading = sanitize_text_field(chroma_get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.'));
-        $cta_label = sanitize_text_field(chroma_get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
+        $post_id = chroma_get_home_page_id();
+        $meta_heading = chroma_get_translated_meta($post_id, 'home_locations_heading', true);
+        $meta_subheading = chroma_get_translated_meta($post_id, 'home_locations_subheading', true);
+        $meta_cta_label = chroma_get_translated_meta($post_id, 'home_locations_cta_label', true);
+
+        $heading = sanitize_text_field($meta_heading ?: chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
+        $subheading = sanitize_text_field($meta_subheading ?: chroma_get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.'));
+        $cta_label = sanitize_text_field($meta_cta_label ?: chroma_get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
         $cta_link = esc_url_raw(chroma_get_theme_mod('chroma_home_locations_cta_link', '/locations/'));
         $taxonomy = 'location_region';
         $fallback = (object) array(

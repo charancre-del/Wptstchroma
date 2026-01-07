@@ -101,12 +101,27 @@ class Chroma_Translation_Engine
             foreach ($template_keys as $tkey) {
                 $fields['_chroma_es_' . $tkey] = get_post_meta($post_id, $tkey, true);
             }
-            
-            // For now, assume simple text/HTML fields for translation engine.
 
+            // Special handling for FAQs (Repeater Field)
+            $faqs = get_post_meta($post_id, 'chroma_faq_items', true);
+            $faq_flat_map = []; // Map flat keys to array index
+            if (is_array($faqs) && !empty($faqs)) {
+                foreach ($faqs as $i => $faq) {
+                    $q_key = "_chroma_es_faq_{$i}_question";
+                    $a_key = "_chroma_es_faq_{$i}_answer";
+                    
+                    // Add to translation payload
+                    $fields[$q_key] = $faq['question'];
+                    $fields[$a_key] = $faq['answer'];
+                    
+                    $faq_flat_map[$i] = ['q' => $q_key, 'a' => $a_key];
+                }
+            }
+            
             // Translate
             $force = isset($_POST['force']) && $_POST['force'] === 'true';
             $translated = self::translate_bulk($fields, 'es', 'Translate for a childcare website. Use Spanish (Latin American).', $force);
+
 
             if (isset($translated['_error'])) {
                 $err_msg = !empty($translated['_error']) ? $translated['_error'] : 'LLM Client returned an empty error.';
@@ -114,12 +129,36 @@ class Chroma_Translation_Engine
             }
 
             // SAVE TO DATABASE
+            $es_faqs = [];
+
             foreach ($translated as $key => $value) {
+                // Reconstruct FAQs
+                if (strpos($key, '_chroma_es_faq_') === 0 && preg_match('/_chroma_es_faq_(\d+)_(question|answer)/', $key, $matches)) {
+                    $index = $matches[1];
+                    $type = $matches[2];
+                    $es_faqs[$index][$type] = sanitize_textarea_field($value);
+                    continue; 
+                }
+
                 // Sanitize based on key type (content allows HTML, titles plain text)
                 if (strpos($key, 'content') !== false) {
                     update_post_meta($post_id, $key, wp_kses_post($value));
                 } else {
                     update_post_meta($post_id, $key, sanitize_text_field($value));
+                }
+            }
+
+            // Save reconstructed FAQ array if exists
+            if (!empty($es_faqs)) {
+                // Ensure array keys are sequential and complete
+                $clean_faqs = [];
+                foreach ($es_faqs as $item) {
+                     if (isset($item['question']) && isset($item['answer'])) {
+                         $clean_faqs[] = $item;
+                     }
+                }
+                if (!empty($clean_faqs)) {
+                    update_post_meta($post_id, '_chroma_es_chroma_faq_items', $clean_faqs);
                 }
             }
 
@@ -254,33 +293,7 @@ class Chroma_Translation_Engine
                 return [];
         }
 
-        try {
-            // Translate
-            $force = isset($_POST['force']) && $_POST['force'] === 'true';
-            $translated = self::translate_bulk($fields, 'es', 'Translate for a childcare website. Use Spanish (Latin American).', $force);
 
-            if (isset($translated['_error'])) {
-                $err_msg = !empty($translated['_error']) ? $translated['_error'] : 'LLM Client returned an empty error.';
-                wp_send_json_error(['message' => $err_msg]);
-            }
-
-            // SAVE TO DATABASE
-            foreach ($translated as $key => $value) {
-                // Sanitize based on key type (content allows HTML, titles plain text)
-                if (strpos($key, 'content') !== false) {
-                    update_post_meta($post_id, $key, wp_kses_post($value));
-                } else {
-                    update_post_meta($post_id, $key, sanitize_text_field($value));
-                }
-            }
-
-            wp_send_json_success($translated);
-
-        } catch (Exception $e) {
-            wp_send_json_error(['message' => 'Exception: ' . $e->getMessage()]);
-        } catch (Error $e) {
-            wp_send_json_error(['message' => 'Fatal Error: ' . $e->getMessage()]);
-        }
     }
 
     /**

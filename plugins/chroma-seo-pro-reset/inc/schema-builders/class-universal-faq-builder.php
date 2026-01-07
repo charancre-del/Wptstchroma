@@ -36,7 +36,22 @@ class Chroma_Universal_FAQ_Builder
         }
 
         $post_id = get_the_ID();
-        $faqs = get_post_meta($post_id, 'chroma_faq_items', true);
+        
+        // Spanish Localization Support
+        $is_spanish = false;
+        if (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish')) {
+             $is_spanish = Chroma_Multilingual_Manager::is_spanish();
+        }
+
+        $faqs = [];
+        if ($is_spanish) {
+            $faqs = get_post_meta($post_id, '_chroma_es_chroma_faq_items', true);
+        }
+        
+        // Fallback to English if Spanish definition is missing or empty
+        if (empty($faqs)) {
+            $faqs = get_post_meta($post_id, 'chroma_faq_items', true);
+        }
 
         if (empty($faqs) || !is_array($faqs)) {
             return;

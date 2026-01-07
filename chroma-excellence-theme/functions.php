@@ -60,6 +60,7 @@ require_once CHROMA_THEME_DIR . '/inc/employers-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/privacy-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/schema-meta-boxes.php';
 require_once CHROMA_THEME_DIR . '/inc/general-seo-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/home-page-meta.php';
 
 
 // Utility Functions

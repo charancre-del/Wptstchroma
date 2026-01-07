@@ -257,7 +257,6 @@ class Chroma_Theme_Translator
         if (!current_user_can('manage_options')) wp_send_json_error(['message' => 'Denied']);
 
         try {
-            // Increase time limit for large themes
             set_time_limit(120);
 
             $theme_dir = get_template_directory();
@@ -271,26 +270,35 @@ class Chroma_Theme_Translator
             );
             
             $strings = [];
+            $files_scanned = 0;
 
             foreach ($files as $file) {
                 if ($file->isDir()) continue;
-                if (pathinfo($file, PATHINFO_EXTENSION) !== 'php') continue;
+                if ($file->getExtension() !== 'php') continue;
 
-                $content = file_get_contents($file);
+                $files_scanned++;
+                $content = file_get_contents($file->getPathname());
                 
-                // Match: __(), _e(), _x(), esc_html__(), etc.
-                // Supports single/double quotes and multiline strings (s modifier)
-                
-                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__|_x|esc_html_x|esc_attr_x)\(\s*(['\"])(.+?)\1\s*,\s*(['\"])" . preg_quote($this->text_domain) . "\3(?:\s*,\s*[^)]+)?\s*\)/s", $content, $matches);
+                // Relaxed Regex: Matches function call and first argument (string).
+                // Ignores text domain presence to catch all potential strings.
+                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__|_x|esc_html_x|esc_attr_x)\s*\(\s*(['\"])(.+?)\1/s", $content, $matches);
                 
                 if (!empty($matches[2])) {
                     foreach ($matches[2] as $match) {
+                        // Skip if it looks like a variable (starts with $) - though usually regex won't match $
                         $strings[] = $match;
                     }
                 }
             }
+            
+            $unique_strings = array_unique($strings);
+            sort($unique_strings);
 
-            wp_send_json_success(array_unique(array_values($strings)));
+            if (empty($unique_strings)) {
+                wp_send_json_error(['message' => "Scanned $files_scanned files but found no strings. Check text domain usage or file permissions."]);
+            } else {
+                wp_send_json_success($unique_strings);
+            }
 
         } catch (Throwable $e) {
             wp_send_json_error(['message' => 'Scan Error: ' . $e->getMessage()]);
