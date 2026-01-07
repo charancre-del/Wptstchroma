@@ -1136,9 +1136,10 @@ class Chroma_LLM_Client
      * 
      * @param string $raw_schema JSON string
      * @param array $errors List of validation errors
-     * @return string|WP_Error Fixed JSON string or error
+     * @param int $retry_count Internal retry counter
+     * @return array|WP_Error Fixed schema result array or error
      */
-    public function fix_schema_with_ai($raw_schema, $errors)
+    public function fix_schema_with_ai($raw_schema, $errors, $retry_count = 0)
     {
         $prompt = "You are an expert JSON-LD Schema validator and fixer.\n";
         $prompt .= "Your task is to FIX the following JSON-LD schema which has failed validation.\n\n";
@@ -1161,8 +1162,22 @@ class Chroma_LLM_Client
         $prompt .= "5. **PRESERVE DATA**: Do NOT remove valid existing properties unless they are clearly erroneous. Attempt to keep all valid data from the original schemas.\n";
         $prompt .= "6. **FIX ERRORS**: Fix the validation errors listed above.\n";
         $prompt .= "7. **CLEAN UP**: Remove empty properties or duplicate values in arrays.\n";
-        $prompt .= "7. **FINAL FORMAT**: Return ONLY valid JSON. If multiple items exist, they MUST be inside a root `@graph` array.\n";
-        $prompt .= "8. **CRITICAL**: Do NOT output multiple separate JSON objects (e.g. `}{`). Output exactly one JSON object.\n\n";
+        $prompt .= "8. **FINAL FORMAT**: Return ONLY valid JSON. If multiple items exist, they MUST be inside a root `@graph` array.\n";
+        $prompt .= "9. **CRITICAL**: Do NOT output multiple separate JSON objects (e.g. `}{`). Output exactly one JSON object.\n\n";
+        
+        // NEW: Tightened validation rules (Feature 13)
+        $prompt .= "=== VALIDATION RULES (CRITICAL) ===\n";
+        $prompt .= "10. **REQUIRED FIELDS BY TYPE**:\n";
+        $prompt .= "    - Person: must have 'name'\n";
+        $prompt .= "    - Organization/LocalBusiness: must have 'name', should have 'address'\n";
+        $prompt .= "    - Event: must have 'name', 'startDate', 'location'\n";
+        $prompt .= "    - BreadcrumbList: must have 'itemListElement' array with 'position' + ('name' OR 'item' URL)\n";
+        $prompt .= "    - FAQPage: must have 'mainEntity' array of Questions with 'acceptedAnswer'\n";
+        $prompt .= "11. **NO EMPTY STRINGS**: Never output empty strings for URLs (item, url, image). Either provide valid URL or OMIT the field entirely.\n";
+        $prompt .= "12. **NO HTML IN TEXT**: Strip all HTML tags from name, description, text fields. Plain text only.\n";
+        $prompt .= "13. **VALID URLs ONLY**: All URL fields must be complete (https://...). No relative paths, no empty strings.\n";
+        $prompt .= "14. **ISO 8601 DATES**: Use format YYYY-MM-DDTHH:MM:SS or YYYY-MM-DD for dates.\n";
+        $prompt .= "15. **POSITION SEQUENCE**: BreadcrumbList positions must be sequential integers starting from 1.\n\n";
         
         $prompt .= "=== BROKEN SCHEMA ===\n";
         $prompt .= $raw_schema;
@@ -1178,7 +1193,7 @@ class Chroma_LLM_Client
 
         $request_args = [
             'messages' => [
-                ['role' => 'system', 'content' => 'You are a JSON repair expert. Output valid JSON only.'],
+                ['role' => 'system', 'content' => 'You are a JSON repair expert. Output valid JSON only. Follow ALL validation rules exactly.'],
                 ['role' => 'user', 'content' => $prompt]
             ],
             'max_tokens' => $max_tokens
@@ -1229,13 +1244,43 @@ class Chroma_LLM_Client
              }
         }
         
-        // Validate final
+        // Validate final JSON syntax
         $decoded = json_decode($content, true);
         if (json_last_error() !== JSON_ERROR_NONE) {
             return new WP_Error('json_error', 'AI returned invalid JSON: ' . json_last_error_msg() . '. Response preview: ' . substr($content, 0, 200));
         }
 
-        return $content;
+        // NEW: Run through schema validator (Feature 12)
+        $validation = Chroma_Schema_Validator::validate_json_ld($content);
+
+        if (!$validation['valid']) {
+            error_log('[Chroma SEO] AI Fix generated invalid schema (attempt ' . ($retry_count + 1) . '): ' . print_r($validation['errors'], true));
+            
+            // Retry up to 2 times with validation errors in prompt
+            if ($retry_count < 2) {
+                $combined_errors = array_merge($errors, $validation['errors']);
+                return $this->fix_schema_with_ai($content, $combined_errors, $retry_count + 1);
+            }
+            
+            // Max retries reached, return with warning
+            return [
+                'schema' => $content,
+                'valid' => false,
+                'errors' => $validation['errors'],
+                'warnings' => $validation['warnings'],
+                'ai_generated' => true,
+                'retry_count' => $retry_count
+            ];
+        }
+
+        // Success!
+        return [
+            'schema' => $content,
+            'valid' => true,
+            'warnings' => $validation['warnings'],
+            'ai_generated' => true,
+            'retry_count' => $retry_count
+        ];
     }
 
 

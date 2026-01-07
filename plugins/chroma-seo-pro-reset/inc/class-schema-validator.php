@@ -403,6 +403,18 @@ class Chroma_Schema_Validator
             case 'WebPage':
                 self::validate_webpage($schema, $context);
                 break;
+            case 'Service':
+                self::validate_service($schema, $context);
+                break;
+            case 'CollectionPage':
+            case 'AboutPage':
+            case 'ContactPage':
+            case 'SearchResultsPage':
+                self::validate_collection_page($schema, $context);
+                break;
+            case 'ItemList':
+                self::validate_item_list($schema, $context);
+                break;
         }
     }
 
@@ -710,6 +722,8 @@ class Chroma_Schema_Validator
             return;
         }
 
+        $positions = [];
+
         foreach ($schema['itemListElement'] as $index => $item) {
             $iContext = "$context > Item #" . ($index + 1);
             
@@ -719,12 +733,40 @@ class Chroma_Schema_Validator
                 continue;
             }
 
+            // Check position
             if (!isset($item['position'])) {
                 self::$errors[] = "$iContext: ListItem missing 'position'";
+            } else {
+                $positions[] = (int) $item['position'];
             }
 
+            // Check name or item required
             if (empty($item['name']) && empty($item['item'])) {
                 self::$errors[] = "$iContext: ListItem must have 'name' or 'item'";
+            }
+            
+            // NEW: Check for HTML in name field
+            if (isset($item['name']) && preg_match('/<[^>]+>/', $item['name'])) {
+                self::$errors[] = "$iContext: 'name' contains HTML tags - must be plain text";
+            }
+            
+            // NEW: Check for empty string item (common bug)
+            if (isset($item['item']) && $item['item'] === '') {
+                self::$errors[] = "$iContext: 'item' is empty string - provide valid URL or omit field";
+            }
+            
+            // NEW: Validate item URL format if provided
+            if (isset($item['item']) && !empty($item['item']) && !filter_var($item['item'], FILTER_VALIDATE_URL)) {
+                self::$warnings[] = "$iContext: 'item' may not be a valid URL: {$item['item']}";
+            }
+        }
+        
+        // NEW: Check position sequence
+        if (!empty($positions)) {
+            sort($positions);
+            $expected = range(1, count($positions));
+            if ($positions !== $expected) {
+                self::$warnings[] = "$context: Position values should be sequential starting from 1";
             }
         }
     }
@@ -832,6 +874,99 @@ class Chroma_Schema_Validator
              }
         }
     }    
+
+    /**
+     * Validate Service schema
+     */
+    private static function validate_service($schema, $context)
+    {
+        // Recommended fields (not strictly required per Google)
+        if (empty($schema['name'])) {
+            self::$warnings[] = "$context: Service should have 'name'";
+        }
+        if (empty($schema['provider'])) {
+            self::$warnings[] = "$context: Service should have 'provider'";
+        }
+        if (empty($schema['serviceType'])) {
+            self::$warnings[] = "$context: Service should have 'serviceType'";
+        }
+        
+        // Validate provider if present
+        if (isset($schema['provider']) && is_array($schema['provider'])) {
+            $provType = self::get_schema_type($schema['provider']);
+            $validProviderTypes = ['Organization', 'Person', 'LocalBusiness', 'ChildCare', 'Preschool', 'EducationalOrganization'];
+            if (!in_array($provType, $validProviderTypes)) {
+                self::$warnings[] = "$context > provider: Should be Organization or Person, got: $provType";
+            }
+        }
+        
+        // Validate areaServed if present
+        if (isset($schema['areaServed']) && is_array($schema['areaServed'])) {
+            $areaType = self::get_schema_type($schema['areaServed']);
+            $validAreaTypes = ['City', 'State', 'Country', 'Place', 'GeoShape', 'AdministrativeArea'];
+            if (!in_array($areaType, $validAreaTypes)) {
+                self::$warnings[] = "$context > areaServed: Should be City, State, or Place type, got: $areaType";
+            }
+        }
+    }
+
+    /**
+     * Validate CollectionPage / AboutPage / ContactPage
+     */
+    private static function validate_collection_page($schema, $context)
+    {
+        // These page types are valid with minimal fields
+        if (empty($schema['name']) && empty($schema['headline'])) {
+            self::$warnings[] = "$context: Page should have 'name' or 'headline'";
+        }
+        
+        // Validate mainEntity if present (often an ItemList)
+        if (isset($schema['mainEntity'])) {
+            $type = self::get_schema_type($schema['mainEntity']);
+            if ($type === 'ItemList') {
+                self::validate_item_list($schema['mainEntity'], "$context > mainEntity");
+            }
+        }
+    }
+
+    /**
+     * Validate ItemList schema
+     */
+    private static function validate_item_list($schema, $context)
+    {
+        if (empty($schema['itemListElement'])) {
+            self::$errors[] = "$context: ItemList missing 'itemListElement'";
+            return;
+        }
+        
+        if (!is_array($schema['itemListElement'])) {
+            self::$errors[] = "$context: itemListElement must be an array";
+            return;
+        }
+        
+        foreach ($schema['itemListElement'] as $i => $item) {
+            $iContext = "$context > Item #" . ($i + 1);
+            
+            if (!is_array($item)) {
+                self::$errors[] = "$iContext: Must be an object";
+                continue;
+            }
+            
+            $type = self::get_schema_type($item);
+            if ($type !== 'ListItem' && !empty($type)) {
+                self::$warnings[] = "$iContext: Expected ListItem type, got: $type";
+            }
+            
+            if (!isset($item['position'])) {
+                self::$warnings[] = "$iContext: Missing 'position'";
+            }
+            
+            // ListItem should have name, url, or item
+            if (empty($item['name']) && empty($item['url']) && empty($item['item'])) {
+                self::$warnings[] = "$iContext: Should have 'name', 'url', or 'item'";
+            }
+        }
+    }
 
     /**
      * Check if date string is valid ISO 8601

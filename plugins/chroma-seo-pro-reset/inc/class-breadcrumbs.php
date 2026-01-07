@@ -262,6 +262,22 @@ class Chroma_Breadcrumbs
             ];
         }
 
+        // Feature 11: Apply customization settings to all items
+        $strip_html = get_option('chroma_breadcrumbs_strip_html', true);
+        $max_length = (int) get_option('chroma_breadcrumbs_max_length', 50);
+        $truncate_suffix = get_option('chroma_breadcrumbs_truncate_suffix', '...');
+        
+        foreach ($items as &$item) {
+            // Strip HTML tags from labels
+            if ($strip_html && isset($item['label'])) {
+                $item['label'] = wp_strip_all_tags($item['label']);
+            }
+            // Truncate long labels
+            if ($max_length > 0 && isset($item['label']) && mb_strlen($item['label']) > $max_length) {
+                $item['label'] = mb_substr($item['label'], 0, $max_length) . $truncate_suffix;
+            }
+        }
+
         return $items;
     }
 
@@ -292,6 +308,31 @@ class Chroma_Breadcrumbs
                     <td>
                         <input type="text" id="chroma_breadcrumbs_home_text" value="<?php echo esc_attr($home_text); ?>" class="regular-text">
                         <p class="description">The text for the first link in the breadcrumb trail.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Max Label Length</th>
+                    <td>
+                        <input type="number" id="chroma_breadcrumbs_max_length" value="<?php echo esc_attr(get_option('chroma_breadcrumbs_max_length', 50)); ?>" class="small-text" min="0" max="200">
+                        <span>characters</span>
+                        <p class="description">Maximum length for breadcrumb labels. Set to 0 to disable truncation.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Truncate Suffix</th>
+                    <td>
+                        <input type="text" id="chroma_breadcrumbs_truncate_suffix" value="<?php echo esc_attr(get_option('chroma_breadcrumbs_truncate_suffix', '...')); ?>" class="small-text">
+                        <p class="description">Text to append when labels are truncated (e.g., "...").</p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Strip HTML</th>
+                    <td>
+                        <label>
+                            <input type="checkbox" id="chroma_breadcrumbs_strip_html" value="1" <?php checked(get_option('chroma_breadcrumbs_strip_html', true)); ?>>
+                            Remove HTML tags from breadcrumb labels
+                        </label>
+                        <p class="description">Prevents HTML tags (e.g., &lt;span&gt;) from appearing in breadcrumb text.</p>
                     </td>
                 </tr>
             </table>
@@ -343,7 +384,10 @@ class Chroma_Breadcrumbs
                 $.post(ajaxurl, {
                     action: 'chroma_save_breadcrumb_settings',
                     enabled: $('#chroma_breadcrumbs_enabled').is(':checked') ? 'yes' : 'no',
-                    home_text: $('#chroma_breadcrumbs_home_text').val()
+                    home_text: $('#chroma_breadcrumbs_home_text').val(),
+                    max_length: $('#chroma_breadcrumbs_max_length').val(),
+                    truncate_suffix: $('#chroma_breadcrumbs_truncate_suffix').val(),
+                    strip_html: $('#chroma_breadcrumbs_strip_html').is(':checked') ? '1' : ''
                 }, function(response) {
                     btn.prop('disabled', false).text('Save Settings');
                     if(response.success) {
@@ -440,6 +484,15 @@ class Chroma_Breadcrumbs
 
         update_option('chroma_breadcrumbs_enabled', sanitize_text_field($_POST['enabled']));
         update_option('chroma_breadcrumbs_home_text', sanitize_text_field($_POST['home_text']));
+        
+        // Feature 11: Save new customization options
+        if (isset($_POST['max_length'])) {
+            update_option('chroma_breadcrumbs_max_length', intval($_POST['max_length']));
+        }
+        if (isset($_POST['truncate_suffix'])) {
+            update_option('chroma_breadcrumbs_truncate_suffix', sanitize_text_field($_POST['truncate_suffix']));
+        }
+        update_option('chroma_breadcrumbs_strip_html', isset($_POST['strip_html']) ? true : false);
 
         wp_send_json_success();
     }

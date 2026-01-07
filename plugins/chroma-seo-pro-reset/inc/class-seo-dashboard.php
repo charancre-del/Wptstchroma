@@ -32,6 +32,11 @@ class Chroma_SEO_Dashboard
         add_action('wp_ajax_chroma_reset_post_schema', [$this, 'ajax_reset_post_schema']);
         add_action('wp_ajax_chroma_scan_schema_batch', [$this, 'ajax_scan_schema_batch']);
         add_action('wp_ajax_chroma_apply_schema_fix', [$this, 'ajax_apply_schema_fix']);
+        add_action('wp_ajax_chroma_fetch_live_schema', [$this, 'ajax_fetch_live_schema']);
+        add_action('wp_ajax_chroma_sync_schema_to_builder', [$this, 'ajax_sync_schema_to_builder']);
+        add_action('wp_ajax_chroma_save_sitemap_urls', [$this, 'ajax_save_sitemap_urls']);
+        add_action('wp_ajax_chroma_parse_sitemap_urls', [$this, 'ajax_parse_sitemap_urls']);
+        add_action('wp_ajax_chroma_validate_url', [$this, 'ajax_validate_url']);
         add_action('admin_init', [$this, 'register_settings']);
     }
 
@@ -101,6 +106,26 @@ class Chroma_SEO_Dashboard
             .chroma-health-good { background-color: #00a32a; }
             .chroma-health-ok { background-color: #dba617; }
             .chroma-health-poor { background-color: #d63638; opacity: 0.3; }
+            
+            /* Validation Column Styles */
+            .validation-col { text-align: center; }
+            .validation-status { display: inline-block; margin-left: 5px; font-size: 12px; }
+            .validation-status.valid { color: #00a32a; }
+            .validation-status.invalid { color: #d63638; }
+            .validation-status.warnings { color: #dba617; }
+            .validate-single-btn .dashicons { vertical-align: middle; }
+            
+            /* Row highlighting for validation states */
+            tr.schema-invalid { background-color: #ffebee !important; border-left: 4px solid #d63638 !important; }
+            tr.schema-valid { border-left: 4px solid #00a32a !important; }
+            tr.schema-warnings { background-color: #fff8e5 !important; border-left: 4px solid #dba617 !important; }
+            
+            /* Schema Builder card states */
+            .schema-card.has-errors { border: 2px solid #d63638 !important; background-color: #fff5f5 !important; }
+            .schema-card.has-warnings { border: 2px solid #dba617 !important; }
+            .ai-fix-badge { display: inline-block; padding: 3px 8px; border-radius: 3px; font-size: 11px; margin-left: 5px; }
+            .ai-fix-badge.valid { background: #e6f6e6; color: #006600; }
+            .ai-fix-badge.invalid { background: #ffebee; color: #d63638; }
 		');
     }
 
@@ -202,6 +227,55 @@ class Chroma_SEO_Dashboard
             }
             ?>
         </div>
+        
+        <!-- Validation Button JavaScript -->
+        <script>
+        jQuery(document).ready(function($) {
+            // One-click validation for dashboard rows
+            $(document).on('click', '.validate-single-btn', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                var postId = btn.data('post-id');
+                var statusEl = btn.siblings('.validation-status');
+                var row = btn.closest('tr');
+                
+                btn.prop('disabled', true);
+                statusEl.html('<span class="spinner is-active" style="float:none;margin:0;"></span>');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_validate_post_schema',
+                    post_id: postId,
+                    nonce: '<?php echo wp_create_nonce("chroma_validate_post_schema"); ?>'
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    
+                    if (response.success) {
+                        var data = response.data;
+                        row.removeClass('schema-invalid schema-warnings schema-valid');
+                        
+                        if (data.valid) {
+                            if (data.warnings && data.warnings.length > 0) {
+                                row.addClass('schema-warnings');
+                                statusEl.html('<span class="dashicons dashicons-warning" style="color:#dba617;"></span>').addClass('warnings');
+                            } else {
+                                row.addClass('schema-valid');
+                                statusEl.html('<span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span>').addClass('valid');
+                            }
+                        } else {
+                            row.addClass('schema-invalid');
+                            var errCount = data.schemas ? data.schemas.reduce(function(sum, s) { return sum + (s.errors || []).length; }, 0) : 0;
+                            statusEl.html('<span class="dashicons dashicons-no" style="color:#d63638;"></span> ' + errCount).addClass('invalid');
+                        }
+                    } else {
+                        statusEl.html('<span class="dashicons dashicons-warning" style="color:#666;"></span>');
+                    }
+                }).fail(function() {
+                    btn.prop('disabled', false);
+                    statusEl.html('<span class="dashicons dashicons-no" style="color:#d63638;"></span>');
+                });
+            });
+        });
+        </script>
         <?php
     }
 
@@ -459,6 +533,7 @@ class Chroma_SEO_Dashboard
                     <th style="width: 250px;">Title</th>
                     <th>LLM Context</th>
                     <th>Schema</th>
+                    <th style="width: 100px;">Validation</th>
                     <th style="width: 100px;">Actions</th>
                 </tr>
             </thead>
@@ -521,10 +596,11 @@ class Chroma_SEO_Dashboard
                                 <span style="color: #ccc;">-</span> Default
                             <?php endif; ?>
                         </td>
-                        <td>
-                            <span class="chroma-status-dot" style="background: <?php echo esc_attr($status_color); ?>;"></span>
-                            <span
-                                style="font-size: 12px; color: #666; margin-left: 5px;"><?php echo esc_html($status_reason); ?></span>
+                        <td class="validation-col" data-post-id="<?php echo $id; ?>">
+                            <button type="button" class="button button-small validate-single-btn" data-post-id="<?php echo $id; ?>" title="Validate Schema">
+                                <span class="dashicons dashicons-yes-alt" style="vertical-align: middle;"></span>
+                            </button>
+                            <span class="validation-status"></span>
                         </td>
                         <td>
                             <a href="?page=chroma-seo-dashboard&tab=schema-builder&post_id=<?php echo $id; ?>"
@@ -618,6 +694,22 @@ class Chroma_SEO_Dashboard
             <button type="button" class="button button-link-delete" id="chroma-reset-schema-btn"
                 style="margin-left: 10px; display: none;">Reset all Schemas for this Page</button>
             <span class="spinner" id="chroma-inspector-spinner"></span>
+        </div>
+
+        <!-- Schema Sync Toolbar (Feature 14) -->
+        <div class="schema-sync-toolbar" id="schema-sync-toolbar" style="display:none; margin: 15px 0; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
+            <strong>Live Schema Sync:</strong>
+            <button type="button" class="button" id="fetch-live-schema" style="margin-left: 10px;">
+                <span class="dashicons dashicons-update" style="vertical-align: middle;"></span> Fetch Live Schema
+            </button>
+            <button type="button" class="button" id="compare-schemas" disabled style="margin-left: 5px;">
+                <span class="dashicons dashicons-editor-table" style="vertical-align: middle;"></span> Compare
+            </button>
+            <button type="button" class="button button-primary" id="sync-to-builder" disabled style="margin-left: 5px;">
+                <span class="dashicons dashicons-download" style="vertical-align: middle;"></span> Sync to Builder
+            </button>
+            <span id="sync-status" style="margin-left: 10px;"></span>
+            <div id="schema-compare-results" style="display:none; margin-top: 15px; padding: 10px; background: #fff; border: 1px solid #eee;"></div>
         </div>
 
         <div id="chroma-inspector-content">
@@ -890,6 +982,89 @@ class Chroma_SEO_Dashboard
                             });
                         });
                     });
+                </script>
+                
+                <!-- Feature 14: Schema Sync Toolbar JavaScript -->
+                <script>
+                jQuery(document).ready(function($) {
+                    var currentPostUrl = '';
+                    window.liveSchemas = null;
+                    
+                    // Show toolbar when page is selected
+                    $('#chroma-inspector-select').on('change', function() {
+                        var id = $(this).val();
+                        if (id) {
+                            $('#schema-sync-toolbar').show();
+                            currentPostUrl = '<?php echo home_url(); ?>/?p=' + id;
+                        } else {
+                            $('#schema-sync-toolbar').hide();
+                        }
+                    });
+                    
+                    // Fetch Live Schema
+                    $('#fetch-live-schema').on('click', function() {
+                        var btn = $(this);
+                        var postId = $('#chroma-inspector-select').val();
+                        
+                        if (!postId) { alert('Please select a page first'); return; }
+                        
+                        btn.prop('disabled', true).html('<span class="spinner is-active" style="float:none;margin:0;"></span> Fetching...');
+                        
+                        $.post(ajaxurl, {
+                            action: 'chroma_fetch_live_schema',
+                            url: currentPostUrl,
+                            nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                        }, function(response) {
+                            btn.prop('disabled', false).html('<span class="dashicons dashicons-update" style="vertical-align:middle;"></span> Fetch Live Schema');
+                            
+                            if (response.success) {
+                                window.liveSchemas = response.data.schemas;
+                                $('#compare-schemas, #sync-to-builder').prop('disabled', false);
+                                $('#sync-status').html('<span style="color:#00a32a;">Found ' + response.data.count + ' schemas</span>');
+                            } else {
+                                $('#sync-status').html('<span style="color:#d63638;">Error: ' + (response.data.message || 'Failed') + '</span>');
+                            }
+                        });
+                    });
+                    
+                    // Compare
+                    $('#compare-schemas').on('click', function() {
+                        var liveCount = window.liveSchemas ? window.liveSchemas.length : 0;
+                        var dbCount = $('.schema-block').length;
+                        var liveTypes = window.liveSchemas ? window.liveSchemas.map(function(s) { return s['@type'] || 'Unknown'; }).join(', ') : '';
+                        
+                        var html = '<table class="widefat"><thead><tr><th>Source</th><th>Count</th><th>Types</th></tr></thead><tbody>';
+                        html += '<tr><td>Database (Builder)</td><td>' + dbCount + '</td><td>' + getDbTypes() + '</td></tr>';
+                        html += '<tr><td>Live Page</td><td>' + liveCount + '</td><td>' + liveTypes + '</td></tr>';
+                        html += '</tbody></table>';
+                        
+                        $('#schema-compare-results').html(html).show();
+                    });
+                    
+                    // Sync to Builder
+                    $('#sync-to-builder').on('click', function() {
+                        if (!window.liveSchemas || window.liveSchemas.length === 0) { alert('No schemas to sync'); return; }
+                        
+                        if (!confirm('This will replace existing schemas with ' + window.liveSchemas.length + ' from the live page. Continue?')) return;
+                        
+                        var postId = $('#chroma-inspector-select').val();
+                        var btn = $(this);
+                        
+                        $.post(ajaxurl, {
+                            action: 'chroma_sync_schema_to_builder',
+                            post_id: postId,
+                            schemas: JSON.stringify(window.liveSchemas),
+                            nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                        }, function(response) {
+                            if (response.success) { alert(response.data.message); location.reload(); }
+                            else { alert('Error: ' + (response.data.message || 'Sync failed')); }
+                        });
+                    });
+                    
+                    function getDbTypes() {
+                        return $('.schema-block').map(function() { return $(this).data('type') || 'Unknown'; }).get().join(', ') || 'None';
+                    }
+                });
                 </script>
                 <?php
     }
@@ -1981,6 +2156,38 @@ class Chroma_SEO_Dashboard
             <h2>🔍 Bulk Schema Validator</h2>
             <p>Scan your entire site for Schema.org validation errors. This process fetches the live frontend of each page to ensure accurate results.</p>
             
+            <!-- Feature 9: Sitemap Configuration -->
+            <div style="background: #f9f9f9; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                <h3 style="margin-top:0;">📍 URL Discovery Source</h3>
+                <p class="description">Choose how to discover pages for validation. Using a sitemap ensures ALL pages are scanned, including archives and dynamic pages.</p>
+                
+                <table class="form-table" style="margin:0;">
+                    <tr>
+                        <th style="width:150px;padding:10px 0;">Discovery Mode</th>
+                        <td style="padding:10px 0;">
+                            <label style="display:block;margin-bottom:8px;">
+                                <input type="radio" name="discovery_mode" value="database" checked> 
+                                <strong>Database Query</strong> - Scan posts from database (may miss archive/taxonomy pages)
+                            </label>
+                            <label style="display:block;">
+                                <input type="radio" name="discovery_mode" value="sitemap"> 
+                                <strong>Sitemap</strong> - Parse sitemap URLs (recommended for complete coverage)
+                            </label>
+                        </td>
+                    </tr>
+                    <tr id="sitemap-url-row" style="display:none;">
+                        <th style="padding:10px 0;">Sitemap URL(s)</th>
+                        <td style="padding:10px 0;">
+                            <textarea id="sitemap-urls" class="large-text" rows="3" placeholder="<?php echo home_url('/sitemap.xml'); ?>
+<?php echo home_url('/sitemap_index.xml'); ?>"><?php echo esc_textarea(get_option('chroma_validator_sitemaps', home_url('/sitemap.xml'))); ?></textarea>
+                            <p class="description">One sitemap URL per line. Supports sitemap index files (will parse all child sitemaps).</p>
+                            <button type="button" id="save-sitemap-setting" class="button">Save Sitemap URLs</button>
+                            <span id="sitemap-save-status" style="margin-left:10px;"></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            
             <div class="chroma-inspector-controls">
                 <button id="start-bulk-scan" class="button button-primary button-large">
                     <span class="dashicons dashicons-search" style="line-height: 28px;"></span> Start Full Site Scan
@@ -2066,6 +2273,35 @@ class Chroma_SEO_Dashboard
                 
                 // Store results for modal
                 var scanResults = {};
+                
+                // Feature 9: Discovery mode toggle
+                $('input[name="discovery_mode"]').on('change', function() {
+                    if ($(this).val() === 'sitemap') {
+                        $('#sitemap-url-row').show();
+                    } else {
+                        $('#sitemap-url-row').hide();
+                    }
+                });
+                
+                // Feature 9: Save sitemap URLs
+                $('#save-sitemap-setting').on('click', function() {
+                    var btn = $(this);
+                    btn.prop('disabled', true).text('Saving...');
+                    
+                    $.post(ajaxurl, {
+                        action: 'chroma_save_sitemap_urls',
+                        urls: $('#sitemap-urls').val(),
+                        nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                    }, function(response) {
+                        btn.prop('disabled', false).text('Save Sitemap URLs');
+                        if (response.success) {
+                            $('#sitemap-save-status').html('<span style="color:green;">✓ Saved</span>');
+                            setTimeout(function() { $('#sitemap-save-status').empty(); }, 3000);
+                        } else {
+                            $('#sitemap-save-status').html('<span style="color:red;">Error</span>');
+                        }
+                    });
+                });
 
                 $('#start-bulk-scan').on('click', function() {
                     if (isScanning) return;
@@ -2084,8 +2320,95 @@ class Chroma_SEO_Dashboard
                     $('#scan-progress-bar').css('width', '0%');
 
                     log('Initializing scan...');
-                    startBatchProcess();
+                    
+                    // Feature 9: Check discovery mode
+                    var discoveryMode = $('input[name="discovery_mode"]:checked').val();
+                    
+                    if (discoveryMode === 'sitemap') {
+                        // Sitemap-based discovery
+                        log('Using sitemap-based discovery...');
+                        startSitemapScan();
+                    } else {
+                        // Database-based discovery (existing behavior)
+                        startBatchProcess();
+                    }
                 });
+                
+                // Feature 9: Sitemap-based scan
+                function startSitemapScan() {
+                    $.post(ajaxurl, {
+                        action: 'chroma_parse_sitemap_urls',
+                        nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                    }, function(response) {
+                        if (response.success && response.data.urls.length > 0) {
+                            var urls = response.data.urls;
+                            totalPosts = urls.length;
+                            $('#scan-total').text(totalPosts);
+                            log('Found ' + urls.length + ' URLs in sitemap');
+                            processSitemapUrls(urls, 0);
+                        } else {
+                            log('ERROR: No URLs found in sitemap or failed to parse');
+                            finishScan();
+                        }
+                    });
+                }
+                
+                function processSitemapUrls(urls, index) {
+                    if (index >= urls.length) {
+                        finishScan();
+                        return;
+                    }
+                    
+                    var url = urls[index];
+                    
+                    $.post(ajaxurl, {
+                        action: 'chroma_validate_url',
+                        url: url,
+                        nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                    }, function(response) {
+                        processedPosts++;
+                        $('#scan-count').text(processedPosts);
+                        var pct = (processedPosts / totalPosts) * 100;
+                        $('#scan-progress-bar').css('width', pct + '%');
+                        
+                        if (response.success) {
+                            var data = response.data;
+                            var result = {
+                                id: 'url-' + index,
+                                url: data.url,
+                                title: data.title || data.url,
+                                post_type: 'URL',
+                                valid: data.valid,
+                                errors: data.total_errors,
+                                warnings: data.total_warnings,
+                                schemas: data.schemas,
+                                raw_schema: null
+                            };
+                            
+                            if (data.valid) {
+                                validCount++;
+                            } else {
+                                errorCount++;
+                            }
+                            
+                            scanResults[result.id] = result;
+                            renderRow(result);
+                        } else {
+                            log('Error validating: ' + url);
+                        }
+                        
+                        // Process next with slight delay to avoid overwhelming server
+                        setTimeout(function() {
+                            processSitemapUrls(urls, index + 1);
+                        }, 100);
+                    }).fail(function() {
+                        processedPosts++;
+                        log('Failed to validate: ' + url);
+                        setTimeout(function() {
+                            processSitemapUrls(urls, index + 1);
+                        }, 100);
+                    });
+                }
 
                 function startBatchProcess() {
                     processBatch(0, 0); 
@@ -2676,6 +2999,266 @@ class Chroma_SEO_Dashboard
                 'post_id' => $post_id
             ]);
         }
+    }
+
+    /**
+     * AJAX: Fetch Live Schema from URL
+     */
+    public function ajax_fetch_live_schema()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        
+        $url = esc_url_raw($_POST['url']);
+        if (empty($url)) {
+            wp_send_json_error(['message' => 'No URL provided']);
+        }
+        
+        $response = wp_remote_get($url, [
+            'timeout' => 30,
+            'sslverify' => false,
+            'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
+        ]);
+        
+        if (is_wp_error($response)) {
+            wp_send_json_error(['message' => $response->get_error_message()]);
+        }
+        
+        $html = wp_remote_retrieve_body($response);
+        
+        // Extract JSON-LD scripts
+        preg_match_all('/<script\s+type=["\']application\/ld\+json["\']>(.*?)<\/script>/si', $html, $matches);
+        
+        $schemas = [];
+        foreach ($matches[1] as $json) {
+            $parsed = json_decode(trim($json), true);
+            if ($parsed) {
+                // Handle @graph
+                if (isset($parsed['@graph'])) {
+                    foreach ($parsed['@graph'] as $node) {
+                        $schemas[] = $node;
+                    }
+                } else {
+                    $schemas[] = $parsed;
+                }
+            }
+        }
+        
+        wp_send_json_success([
+            'schemas' => $schemas,
+            'count' => count($schemas),
+            'raw' => $matches[1]
+        ]);
+    }
+
+    /**
+     * AJAX: Sync Live Schema to Builder
+     */
+    public function ajax_sync_schema_to_builder()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        
+        $post_id = intval($_POST['post_id']);
+        $live_schemas = json_decode(stripslashes($_POST['schemas']), true);
+        
+        if (!$post_id || empty($live_schemas)) {
+            wp_send_json_error(['message' => 'Invalid data']);
+        }
+        
+        // Convert to Builder format
+        $builder_schemas = [];
+        foreach ($live_schemas as $schema) {
+            $type = $schema['@type'] ?? 'Unknown';
+            if (is_array($type)) {
+                $type = $type[0];
+            }
+            
+            // Remove @context and @type from data (Builder adds these)
+            unset($schema['@context']);
+            unset($schema['@type']);
+            
+            $builder_schemas[] = [
+                'type' => $type,
+                'data' => $schema
+            ];
+        }
+        
+        update_post_meta($post_id, '_chroma_post_schemas', $builder_schemas);
+        
+        wp_send_json_success([
+            'synced' => count($builder_schemas),
+            'message' => 'Synced ' . count($builder_schemas) . ' schemas to Builder'
+        ]);
+    }
+
+    /**
+     * AJAX: Save Sitemap URLs setting
+     */
+    public function ajax_save_sitemap_urls()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+        
+        $urls = sanitize_textarea_field($_POST['urls']);
+        update_option('chroma_validator_sitemaps', $urls);
+        
+        wp_send_json_success(['message' => 'Sitemap URLs saved']);
+    }
+
+    /**
+     * AJAX: Parse sitemap and return all URLs
+     */
+    public function ajax_parse_sitemap_urls()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        
+        $sitemap_urls_raw = get_option('chroma_validator_sitemaps', home_url('/sitemap.xml'));
+        $sitemap_urls = array_filter(array_map('trim', explode("\n", $sitemap_urls_raw)));
+        
+        $all_urls = [];
+        
+        foreach ($sitemap_urls as $sitemap_url) {
+            $urls = $this->parse_sitemap($sitemap_url);
+            $all_urls = array_merge($all_urls, $urls);
+        }
+        
+        // Remove duplicates and filter
+        $all_urls = array_unique($all_urls);
+        
+        wp_send_json_success([
+            'urls' => array_values($all_urls),
+            'count' => count($all_urls)
+        ]);
+    }
+
+    /**
+     * Parse a sitemap URL and return all page URLs
+     * Supports sitemap index files
+     *
+     * @param string $sitemap_url
+     * @return array
+     */
+    private function parse_sitemap($sitemap_url)
+    {
+        $response = wp_remote_get($sitemap_url, [
+            'timeout' => 30,
+            'sslverify' => false,
+            'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
+        ]);
+        
+        if (is_wp_error($response)) {
+            error_log('[Chroma SEO] Sitemap fetch error for ' . $sitemap_url . ': ' . $response->get_error_message());
+            return [];
+        }
+        
+        $body = wp_remote_retrieve_body($response);
+        
+        // Suppress XML errors
+        libxml_use_internal_errors(true);
+        $xml = simplexml_load_string($body);
+        libxml_clear_errors();
+        
+        if (!$xml) {
+            error_log('[Chroma SEO] Failed to parse sitemap XML: ' . $sitemap_url);
+            return [];
+        }
+        
+        $urls = [];
+        
+        // Check if this is a sitemap index (contains <sitemap> elements)
+        if (isset($xml->sitemap)) {
+            foreach ($xml->sitemap as $sitemap) {
+                $child_url = (string) $sitemap->loc;
+                if ($child_url) {
+                    // Recursively parse child sitemaps
+                    $child_urls = $this->parse_sitemap($child_url);
+                    $urls = array_merge($urls, $child_urls);
+                }
+            }
+        }
+        
+        // Parse URL entries
+        if (isset($xml->url)) {
+            foreach ($xml->url as $url) {
+                $loc = (string) $url->loc;
+                if ($loc) {
+                    $urls[] = $loc;
+                }
+            }
+        }
+        
+        return $urls;
+    }
+
+    /**
+     * AJAX: Validate a URL directly (for sitemap-based validation)
+     */
+    public function ajax_validate_url()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+        
+        $url = esc_url_raw($_POST['url']);
+        
+        if (empty($url)) {
+            wp_send_json_error(['message' => 'No URL provided']);
+        }
+        
+        // Fetch the page
+        $response = wp_remote_get($url, [
+            'timeout' => 30,
+            'sslverify' => false,
+            'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
+        ]);
+        
+        if (is_wp_error($response)) {
+            wp_send_json_error([
+                'url' => $url,
+                'message' => $response->get_error_message()
+            ]);
+        }
+        
+        $html = wp_remote_retrieve_body($response);
+        
+        // Extract JSON-LD scripts
+        preg_match_all('/<script\s+type=["\']application\/ld\+json["\']>(.*?)<\/script>/si', $html, $matches);
+        
+        $results = [];
+        $total_errors = 0;
+        $total_warnings = 0;
+        $valid = true;
+        
+        foreach ($matches[1] as $json) {
+            $validation = Chroma_Schema_Validator::validate_json_ld(trim($json));
+            
+            if (!$validation['valid']) {
+                $valid = false;
+            }
+            
+            $total_errors += count($validation['errors']);
+            $total_warnings += count($validation['warnings']);
+            
+            $results[] = [
+                'valid' => $validation['valid'],
+                'errors' => $validation['errors'],
+                'warnings' => $validation['warnings']
+            ];
+        }
+        
+        // Extract page title
+        preg_match('/<title>(.*?)<\/title>/i', $html, $title_match);
+        $title = isset($title_match[1]) ? html_entity_decode($title_match[1]) : parse_url($url, PHP_URL_PATH);
+        
+        wp_send_json_success([
+            'url' => $url,
+            'title' => $title,
+            'schema_count' => count($matches[1]),
+            'valid' => $valid,
+            'total_errors' => $total_errors,
+            'total_warnings' => $total_warnings,
+            'schemas' => $results
+        ]);
     }
 
 }
