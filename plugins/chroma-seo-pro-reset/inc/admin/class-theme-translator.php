@@ -281,7 +281,9 @@ class Chroma_Theme_Translator
                 
                 // Relaxed Regex: Matches function call and first argument (string).
                 // Ignores text domain presence to catch all potential strings.
-                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__|_x|esc_html_x|esc_attr_x)\s*\(\s*(['\"])(.+?)\1/s", $content, $matches);
+                // Improved Regex: Catches string content even if followed by arguments
+                // Matches: _e('String', 'domain') OR _e('String')
+                preg_match_all("/(?:_e|__|esc_attr_e|esc_html_e|esc_attr__|esc_html__|_x|esc_html_x|esc_attr_x)\s*\(\s*(['\"])(.*?)\1/s", $content, $matches);
                 
                 if (!empty($matches[2])) {
                     foreach ($matches[2] as $match) {

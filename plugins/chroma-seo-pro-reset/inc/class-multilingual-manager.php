@@ -142,36 +142,25 @@ class Chroma_Multilingual_Manager
      */
     public static function is_spanish()
     {
-        // Check query var
-        if (get_query_var('chroma_lang') === 'es') {
+        // PURE PHP IMPLEMENTATION (No WP Functions to avoid Recursion/Crash)
+        
+        // 1. Check Query Var (Safe if $_GET is accessible)
+        if (isset($_GET['chroma_lang']) && $_GET['chroma_lang'] === 'es') {
             return true;
         }
 
-        // Fallback: Check global or constant if set earlier
+        // 2. Check Global Constant
         if (defined('CHROMA_CURRENT_LANG') && CHROMA_CURRENT_LANG === 'es') {
             return true;
         }
         
-        // Fallback: Check URL structure directly (Robust for subdirectories)
+        // 3. Robust URL Check (Pure PHP)
         if (isset($_SERVER['REQUEST_URI'])) {
-            $req_uri = $_SERVER['REQUEST_URI'];
+            $uri = $_SERVER['REQUEST_URI'];
             
-            // Safety check: home_url() might not be available if called via gettext early
-            // Use get_option('home') to avoid infinite recursion loop with our own home_url filter
-            if (function_exists('get_option')) {
-                $raw_home = get_option('home');
-                $wp_home_path = parse_url($raw_home, PHP_URL_PATH); // e.g. / or /subdir/
-                
-                // Remove installation path from request URI
-                if ($wp_home_path && $wp_home_path !== '/') {
-                     if (strpos($req_uri, $wp_home_path) === 0) {
-                         $req_uri = substr($req_uri, strlen($wp_home_path));
-                     }
-                }
-            }
-            
-            // Should now accept /es/ or /es at start
-            if (preg_match('#^/?es(/|$)#', $req_uri)) {
+            // Check for /es/ segment or trailing /es
+            // Matches: /es/, /es, /subdir/es/, /subdir/es
+            if (strpos($uri, '/es/') !== false || substr($uri, -3) === '/es') {
                 return true;
             }
         }

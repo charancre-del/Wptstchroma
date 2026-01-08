@@ -31,6 +31,22 @@ define('CHROMA_THEME_DIR', get_template_directory());
 define('CHROMA_THEME_URI', get_template_directory_uri());
 
 /**
+ * Plugin Polyfills
+ * Prevent theme crash if Chroma SEO Pro plugin is disabled
+ */
+if (!function_exists('chroma_url')) {
+    function chroma_url($path = '') {
+        return home_url($path);
+    }
+}
+
+if (!function_exists('chroma_get_theme_mod')) {
+    function chroma_get_theme_mod($name, $default = false) {
+        return get_theme_mod($name, $default);
+    }
+}
+
+/**
  * Load core theme functionality
  * Order matters - load dependencies first
  */
