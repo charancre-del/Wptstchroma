@@ -214,6 +214,10 @@ class Chroma_Content_Inspector
                 <h2 style="display: flex; align-items: center; gap: 10px;">
                     <span class="dashicons dashicons-admin-links"></span>
                     Dynamic Combo Pages (<?php echo count($combos); ?>)
+                    <button type="button" id="chroma-bulk-translate-combos" class="button button-secondary button-small" style="margin-left: 10px;">
+                        <span class="dashicons dashicons-translation" style="line-height: 26px;"></span> Translate All Combos
+                    </button>
+                    <span id="bulk-combo-status" style="margin-left: 10px; font-weight: normal; font-size: 13px;"></span>
                 </h2>
                 <p class="description">These pages are generated dynamically based on City + Program combinations. Translations are inherited from their respective City and Program templates.</p>
                 <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
@@ -223,7 +227,8 @@ class Chroma_Content_Inspector
                                 <th style="width: 40%;">Combo Title</th>
                                 <th>English URL</th>
                                 <th>Spanish URL</th>
-                                <th style="text-align: center;">Audit Status</th>
+                                <th>Spanish URL</th>
+                                <th style="text-align: center;">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -236,8 +241,14 @@ class Chroma_Content_Inspector
                                     <td><a href="<?php echo esc_url($en_url); ?>" target="_blank">View EN</a></td>
                                     <td><a href="<?php echo esc_url($es_url); ?>" target="_blank">View ES</a></td>
                                     <td style="text-align: center;">
-                                        <span class="dashicons dashicons-yes" style="color:green" title="Inferred from Program/City"></span>
-                                        <span style="font-size: 11px; color: #666;">Inherited</span>
+                                        <button type="button" class="button chroma-combo-translate" 
+                                            data-program="<?php echo esc_attr($combo['program']->post_name); ?>"
+                                            data-city="<?php echo esc_attr($combo['city']); ?>"
+                                            data-state="<?php echo esc_attr($combo['state']); ?>"
+                                            title="AI Translate Only (Inherited Content)"
+                                        >
+                                            <span class="dashicons dashicons-translation" style="line-height: 28px;"></span> AI Translate
+                                        </button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -321,6 +332,96 @@ class Chroma_Content_Inspector
                     if (callback) callback(false, 'Net Err: ' + status + ' ' + error);
                 });
             }
+        });
+
+        // Combo Page Translate Handler
+        $(document).on('click', '.chroma-combo-translate', function() {
+            var btn = $(this);
+            var program = btn.data('program');
+            var city = btn.data('city');
+            var state = btn.data('state');
+
+            if (!confirm('Translate this Combo Page content (Intro, Neighborhoods) to Spanish using AI?')) return;
+
+            btn.prop('disabled', true).html('<span class="spinner is-active" style="float:none; margin:0;"></span>');
+
+            $.post(ajaxurl, {
+                action: 'chroma_combo_ai_translate', // Utilizes the Theme's handler
+                nonce: '<?php echo wp_create_nonce('chroma_combo_ai'); ?>', // Must match the theme's expected nonce
+                program_slug: program,
+                city_slug: city,
+                state: state
+            }, function(response) {
+                if (response.success) {
+                    btn.prop('disabled', false).html('<span class="dashicons dashicons-yes" style="color:green"></span> done');
+                    btn.closest('tr').css('background-color', '#e6fffa');
+                } else {
+                    btn.prop('disabled', false).html('<span class="dashicons dashicons-warning" style="color:red"></span> retry');
+                    alert('Error: ' + (response.data || 'Unknown error'));
+                }
+            }).fail(function() {
+                btn.prop('disabled', false).text('Error');
+                alert('Network Error');
+            });
+        });
+        // Bulk Combo Translate
+        $('#chroma-bulk-translate-combos').click(function() {
+            var $allBtns = $('.chroma-combo-translate:not(:disabled)');
+            if ($allBtns.length === 0) {
+                alert('No untranslated combo pages found (or all are disabled).');
+                return;
+            }
+            
+            if (!confirm('This will sequentially translate ' + $allBtns.length + ' combo pages. Continue?')) return;
+            
+            var $mainBtn = $(this);
+            $mainBtn.prop('disabled', true);
+            
+            var total = $allBtns.length;
+            var current = 0;
+            
+            function processNextCombo() {
+                if (current >= total) {
+                    $('#bulk-combo-status').text('All Done!').css('color', 'green');
+                    $mainBtn.prop('disabled', false);
+                    alert('Batch translation complete.');
+                    return;
+                }
+                
+                $('#bulk-combo-status').text('Processing ' + (current + 1) + '/' + total + '...');
+                
+                var $btn = $allBtns.eq(current);
+                var program = $btn.data('program');
+                var city = $btn.data('city');
+                var state = $btn.data('state');
+                
+                $btn.prop('disabled', true).html('⏳');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_combo_ai_translate',
+                    nonce: '<?php echo wp_create_nonce('chroma_combo_ai'); ?>',
+                    program_slug: program,
+                    city_slug: city,
+                    state: state
+                }, function(response) {
+                    if (response.success) {
+                        $btn.html('<span class="dashicons dashicons-yes" style="color:green"></span>');
+                        $btn.closest('tr').css('background-color', '#e6fffa');
+                    } else {
+                        $btn.html('<span class="dashicons dashicons-warning" style="color:red"></span>');
+                        console.error('Translation failed for ' + program + '/' + city, response);
+                    }
+                    // Next
+                    current++;
+                    processNextCombo();
+                }).fail(function() {
+                    $btn.text('Err');
+                    current++;
+                    processNextCombo();
+                });
+            }
+            
+            processNextCombo();
         });
         </script>
         <?php
