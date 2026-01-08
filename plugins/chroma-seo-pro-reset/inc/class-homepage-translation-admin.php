@@ -102,7 +102,7 @@ class Chroma_Homepage_Translation_Admin {
                 'title' => __('FAQ Section', 'chroma-excellence'),
                 'fields' => [
                     'chroma_home_faq_heading' => ['label' => 'Heading', 'type' => 'text'],
-                    'chroma_home_faq_subheading' => ['label' => 'Subheading', 'type' => 'textarea', 'rows' => 2'],
+                    'chroma_home_faq_subheading' => ['label' => 'Subheading', 'type' => 'textarea', 'rows' => 2],
                 ]
             ]
         ];
