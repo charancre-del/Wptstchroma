@@ -374,6 +374,41 @@ class Chroma_Combo_Page_Generator
         // Better to move the hook to handle_combo_page to separate logic.
         
         ob_start();
+
+        // Safe Translation Preparation
+        // Cast to string to prevent object errors
+        $t_prog_title = (string) $program->post_title;
+        $t_city_name = (string) $city_name;
+        $t_age_range = (string) $age_range;
+        
+        // Define translated strings - strictly using variables
+        $str_now_enrolling = sprintf(__('Now Enrolling: %s', 'chroma-excellence'), $t_age_range);
+        $str_premier_title = sprintf(__('Premier %s in', 'chroma-excellence'), $t_prog_title);
+        $str_schedule_visit = __('Schedule Visit', 'chroma-excellence');
+        $str_serving_families = sprintf(__('Serving %s Families', 'chroma-excellence'), $t_city_name);
+        $str_why_choose = sprintf(__('Why %s Parents Choose Our %s', 'chroma-excellence'), $t_city_name, $t_prog_title);
+        $str_understanding = sprintf(__('We understand that choosing care in %s is a big decision. Here is what sets our %s apart.', 'chroma-excellence'), $t_city_name, $t_prog_title);
+        $str_low_ratios = __('Low Ratios', 'chroma-excellence');
+        $str_ratios_desc = sprintf(__('Our %s campus maintains strict teacher-to-student ratios, ensuring your child gets the individual attention they need.', 'chroma-excellence'), $t_city_name);
+        $str_curriculum_title = __('Prismpath™ Curriculum', 'chroma-excellence');
+        
+        // Handle ternary for age label safely
+        $t_early_learners = __('early learners', 'chroma-excellence');
+        $str_curriculum_desc = sprintf(__('Specifically designed for %s, our curriculum balances play-based learning with school readiness.', 'chroma-excellence'), $t_age_range ?: $t_early_learners);
+        
+        $str_updates_title = __('Real-Time Updates', 'chroma-excellence');
+        $str_updates_desc = sprintf(__('Parents in %s love our app. Get photos and updates throughout the workday straight to your phone.', 'chroma-excellence'), $t_city_name);
+        
+        // Neighborhood logic
+        $t_neigh_0 = $neighborhoods[0] ?? $t_city_name;
+        $str_serving_header = sprintf(__('Serving Families in %s', 'chroma-excellence'), $t_neigh_0);
+        
+        $str_locations_serving = sprintf(__('Chroma Locations Serving %s', 'chroma-excellence'), $t_city_name);
+        $str_select_campus = __('Select the campus closest to your home or work.', 'chroma-excellence');
+        $str_view_campus = __('View Campus', 'chroma-excellence');
+        $str_visit_classroom = sprintf(__('Visit Our %s Classroom', 'chroma-excellence'), $t_city_name);
+        $str_see_environment = sprintf(__('See the %s environment in person. Meet our Director and teachers.', 'chroma-excellence'), $t_prog_title);
+        $str_more_options = sprintf(__('More Childcare Options in %s', 'chroma-excellence'), $t_city_name);
         ?>
         <main class="combo-page bg-brand-cream">
             
@@ -384,12 +419,12 @@ class Chroma_Combo_Page_Generator
                     <div>
                         <?php if ($age_range): ?>
                         <div class="inline-flex items-center gap-2 bg-chroma-blue/10 text-chroma-blue px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest mb-6">
-                            <?php echo esc_html(sprintf(__('Now Enrolling: %s', 'chroma-excellence'), $age_range)); ?>
+                            <?php echo esc_html($str_now_enrolling); ?>
                         </div>
                         <?php endif; ?>
                         
                         <h1 class="font-serif text-4xl md:text-5xl lg:text-6xl text-brand-ink mb-6 leading-tight">
-                            <?php echo esc_html(sprintf(__('Premier %s in', 'chroma-excellence'), $program->post_title)); ?> 
+                            <?php echo esc_html($str_premier_title); ?> 
                             <span class="italic text-chroma-blue"><?php echo esc_html($city_name); ?>, <?php echo esc_html($state); ?>.</span>
                         </h1>
                         
@@ -399,7 +434,7 @@ class Chroma_Combo_Page_Generator
                         
                         <div class="flex flex-wrap gap-4">
                             <a href="#tour" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-blue text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-brand-ink transition-all">
-                                <?php _e('Schedule Visit', 'chroma-excellence'); ?>
+                                <?php echo esc_html($str_schedule_visit); ?>
                             </a>
                             <?php 
                             // Only show address if the location is actually IN this city
@@ -420,7 +455,7 @@ class Chroma_Combo_Page_Generator
                             <?php else: ?>
                             <span class="flex items-center gap-2 text-sm font-bold text-brand-ink/60 px-4 py-4">
                                 <svg class="w-4 h-4 text-chroma-blue" fill="currentColor" viewBox="0 0 20 20"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
-                                <?php echo esc_html(sprintf(__('Serving %s Families', 'chroma-excellence'), $city_name)); ?>
+                                <?php echo esc_html($str_serving_families); ?>
                             </span>
                             <?php endif; ?>
                         </div>
@@ -446,10 +481,10 @@ class Chroma_Combo_Page_Generator
                 <div class="max-w-7xl mx-auto px-4 lg:px-6">
                     <div class="text-center mb-16 max-w-3xl mx-auto">
                         <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
-                            <?php echo esc_html(sprintf(__('Why %s Parents Choose Our %s', 'chroma-excellence'), $city_name, $program->post_title)); ?>
+                            <?php echo esc_html($str_why_choose); ?>
                         </h2>
                         <p class="text-brand-ink/60">
-                            <?php echo esc_html(sprintf(__('We understand that choosing care in %s is a big decision. Here is what sets our %s apart.', 'chroma-excellence'), $city_name, $program->post_title)); ?>
+                            <?php echo esc_html($str_understanding); ?>
                         </p>
                     </div>
                     
@@ -459,8 +494,8 @@ class Chroma_Combo_Page_Generator
                             <div class="w-12 h-12 bg-chroma-red/10 text-chroma-red rounded-xl flex items-center justify-center text-xl mb-4">
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"/></svg>
                             </div>
-                            <h3 class="font-bold text-xl mb-2"><?php _e('Low Ratios', 'chroma-excellence'); ?></h3>
-                            <p class="text-sm text-brand-ink/70"><?php echo esc_html(sprintf(__('Our %s campus maintains strict teacher-to-student ratios, ensuring your child gets the individual attention they need.', 'chroma-excellence'), $city_name)); ?></p>
+                            <h3 class="font-bold text-xl mb-2"><?php echo esc_html($str_low_ratios); ?></h3>
+                            <p class="text-sm text-brand-ink/70"><?php echo esc_html($str_ratios_desc); ?></p>
                         </div>
                         
                         <!-- Benefit 2: Prismpath -->
@@ -468,8 +503,8 @@ class Chroma_Combo_Page_Generator
                             <div class="w-12 h-12 bg-chroma-yellow/10 text-chroma-yellow rounded-xl flex items-center justify-center text-xl mb-4">
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
                             </div>
-                            <h3 class="font-bold text-xl mb-2"><?php _e('Prismpath™ Curriculum', 'chroma-excellence'); ?></h3>
-                            <p class="text-sm text-brand-ink/70"><?php echo esc_html(sprintf(__('Specifically designed for %s, our curriculum balances play-based learning with school readiness.', 'chroma-excellence'), $age_range ?: __('early learners', 'chroma-excellence'))); ?></p>
+                            <h3 class="font-bold text-xl mb-2"><?php echo esc_html($str_curriculum_title); ?></h3>
+                            <p class="text-sm text-brand-ink/70"><?php echo esc_html($str_curriculum_desc); ?></p>
                         </div>
                         
                         <!-- Benefit 3: Real-Time Updates -->
@@ -477,8 +512,8 @@ class Chroma_Combo_Page_Generator
                             <div class="w-12 h-12 bg-chroma-green/10 text-chroma-green rounded-xl flex items-center justify-center text-xl mb-4">
                                 <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/></svg>
                             </div>
-                            <h3 class="font-bold text-xl mb-2"><?php _e('Real-Time Updates', 'chroma-excellence'); ?></h3>
-                            <p class="text-sm text-brand-ink/70"><?php echo esc_html(sprintf(__('Parents in %s love our app. Get photos and updates throughout the workday straight to your phone.', 'chroma-excellence'), $city_name)); ?></p>
+                            <h3 class="font-bold text-xl mb-2"><?php echo esc_html($str_updates_title); ?></h3>
+                            <p class="text-sm text-brand-ink/70"><?php echo esc_html($str_updates_desc); ?></p>
                         </div>
                     </div>
                 </div>
@@ -488,7 +523,7 @@ class Chroma_Combo_Page_Generator
             <section class="py-20 bg-white border-y border-brand-ink/5">
                 <div class="max-w-4xl mx-auto px-4 text-center">
                     <h2 class="font-serif text-3xl font-bold mb-6">
-                        <?php echo esc_html(sprintf(__('Serving Families in %s', 'chroma-excellence'), $neighborhoods[0] ?? $city_name)); ?> 
+                        <?php echo esc_html($str_serving_header); ?> 
                         <?php if (count($neighborhoods) > 1): ?> & <?php echo esc_html($neighborhoods[1]); ?><?php endif; ?>
                     </h2>
                     <p class="text-lg text-brand-ink/70 leading-relaxed">
@@ -537,8 +572,8 @@ class Chroma_Combo_Page_Generator
                             'posts_per_page' => -1
                         ]);
                     ?>
-                        <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6"><?php echo esc_html(sprintf(__('Chroma Locations Serving %s', 'chroma-excellence'), $city_name)); ?></h2>
-                        <p class="text-white/60 mb-12"><?php _e('Select the campus closest to your home or work.', 'chroma-excellence'); ?></p>
+                        <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6"><?php echo esc_html($str_locations_serving); ?></h2>
+                        <p class="text-white/60 mb-12"><?php echo esc_html($str_select_campus); ?></p>
                         
                         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
                             <?php 
@@ -561,10 +596,10 @@ class Chroma_Combo_Page_Generator
                                 <?php if ($grid_address): ?>
                                 <p class="text-sm opacity-60 mb-1"><?php echo esc_html($grid_address); ?></p>
                                 <?php endif; ?>
-                                <p class="text-xs font-bold uppercase tracking-widest mb-6 opacity-80"><?php echo esc_html(sprintf(__('Serving %s Families', 'chroma-excellence'), $city_name)); ?></p>
+                                    <p class="text-xs font-bold uppercase tracking-widest mb-6 opacity-80"><?php echo esc_html($str_serving_families); ?></p>
                                 <div class="mt-auto">
                                     <a href="<?php the_permalink(); ?>" class="block w-full py-3 bg-chroma-blue text-white text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-brand-ink transition-colors">
-                                        <?php _e('View Campus', 'chroma-excellence'); ?>
+                                        <?php echo esc_html($str_view_campus); ?>
                                     </a>
                                 </div>
                             </div>
@@ -574,8 +609,8 @@ class Chroma_Combo_Page_Generator
                     <?php else: ?>
                         <!-- Default Form Logic (Fallback) -->
                         <div class="max-w-3xl mx-auto">
-                            <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6"><?php echo esc_html(sprintf(__('Visit Our %s Classroom', 'chroma-excellence'), $city_name)); ?></h2>
-                            <p class="text-white/60 mb-10"><?php echo esc_html(sprintf(__('See the %s environment in person. Meet our Director and teachers.', 'chroma-excellence'), $program->post_title)); ?></p>
+                            <h2 class="font-serif text-3xl md:text-4xl font-bold mb-6"><?php echo esc_html($str_visit_classroom); ?></h2>
+                            <p class="text-white/60 mb-10"><?php echo esc_html($str_see_environment); ?></p>
                             
                             <div class="bg-white p-8 rounded-[2rem] text-left shadow-2xl">
                                 <?php echo do_shortcode('[chroma_tour_form]'); ?>
@@ -589,7 +624,7 @@ class Chroma_Combo_Page_Generator
             <section class="py-20 bg-brand-cream border-t border-brand-ink/5">
                 <div class="max-w-7xl mx-auto px-4 lg:px-6">
                     <h2 class="font-serif text-2xl md:text-3xl font-bold text-center text-brand-ink mb-10">
-                        <?php echo esc_html(sprintf(__('More Childcare Options in %s', 'chroma-excellence'), $city_name)); ?>
+                        <?php echo esc_html($str_more_options); ?>
                     </h2>
                     
                     <div class="flex flex-wrap justify-center gap-4">
