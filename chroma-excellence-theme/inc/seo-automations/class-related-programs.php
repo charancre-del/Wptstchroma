@@ -21,7 +21,7 @@ class Chroma_Related_Programs
      * Append related programs or locations after content
      */
     public function append_related_content($content) {
-        if (!get_option('chroma_seo_link_programs_locations', true)) {
+        if (!get_option('chroma_seo_link_programs_locations', true) || doing_filter('get_the_excerpt')) {
             return $content;
         }
         

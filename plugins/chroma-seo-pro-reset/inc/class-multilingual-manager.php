@@ -214,12 +214,11 @@ class Chroma_Multilingual_Manager
     public function filter_permalink($url, $post)
     {
         if (self::is_spanish() && !is_admin()) {
+            $base = rtrim(get_option('home'), '/');
             // Only modify if internal link
-            if (strpos($url, home_url()) !== false) {
-                // Insert /es/ after home_url
-                $base = home_url();
+            if (strpos($url, $base) !== false) {
                 $path = substr($url, strlen($base));
-                return home_url('/es' . $path);
+                return $base . '/es' . $path;
             }
         }
         return $url;
@@ -383,7 +382,7 @@ class Chroma_Multilingual_Manager
         $site_url = preg_quote(home_url(), '/');
         
         // Match href="https://site.com/path" but not href="https://site.com/es/path"
-        $pattern = '/href=["\'](' . $site_url . ')(?!\/es\/)([^"\']*)["\'/i';
+        $pattern = '/href=["\'](' . $site_url . ')(?!\/es\/)([^"\']*)["\']/i';
         $replacement = 'href="$1/es$2"';
         
         return preg_replace($pattern, $replacement, $content);

@@ -62,7 +62,7 @@ class Chroma_Author_Tags
      * Append author box after content
      */
     public function append_author_box($content) {
-        if (!get_option('chroma_seo_show_author_box', true)) {
+        if (!get_option('chroma_seo_show_author_box', true) || doing_filter('get_the_excerpt')) {
             return $content;
         }
         
