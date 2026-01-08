@@ -15,7 +15,7 @@ class Chroma_Sitemap_Integrator
 {
     public function init()
     {
-        add_action('init', [$this, 'register_providers']);
+        $this->register_providers();
     }
 
     public function register_providers()
