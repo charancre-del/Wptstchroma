@@ -18,7 +18,7 @@ require_once __DIR__ . '/class-related-locations.php';
 // require_once __DIR__ . '/class-footer-city-links.php';
 
 // Phase 2: Auto-Generated Pages
-// require_once __DIR__ . '/class-combo-page-generator.php';
+require_once __DIR__ . '/class-combo-page-generator.php';
 // require_once __DIR__ . '/class-combo-page-data.php';
 // require_once __DIR__ . '/class-combo-ai-generator.php';
 // require_once __DIR__ . '/class-combo-internal-links.php';
