@@ -184,25 +184,18 @@ class Chroma_Multilingual_Manager
     {
         if (self::is_spanish() && !is_admin()) {
             // Prevent infinite loop by using site_url/get_option instead of home_url()
-            // And avoid double-stacking if the input $url already has /es/ (which might happen if passed from other filters)
             
-            // If the RESULTING url ($url passed in) already has /es/, return strict
-            if (strpos($url, '/es/') !== false || substr($url, -3) === '/es') {
+            // Clean paths
+            $path = ltrim($path, '/');
+            
+            // Check if URL or Path already contains /es/
+            if (strpos($url, '/es/') !== false || strpos($path, 'es/') === 0 || $path === 'es') {
                 return $url;
             }
 
             // Construct safe base
-            $home = get_option('home');
+            $home = rtrim(get_option('home'), '/');
             
-            // Clean paths
-            $path = ltrim($path, '/');
-            $home = rtrim($home, '/');
-            
-            // Check if path already starts with es/
-            if (strpos($path, 'es/') === 0 || $path === 'es') {
-                return $home . '/' . $path;
-            }
-
             return $home . '/es/' . $path;
         }
         return $url;
@@ -214,6 +207,11 @@ class Chroma_Multilingual_Manager
     public function filter_permalink($url, $post)
     {
         if (self::is_spanish() && !is_admin()) {
+            // Avoid double stacking
+            if (strpos($url, '/es/') !== false) {
+                return $url;
+            }
+
             $base = rtrim(get_option('home'), '/');
             // Only modify if internal link
             if (strpos($url, $base) !== false) {
@@ -230,10 +228,10 @@ class Chroma_Multilingual_Manager
     public function filter_term_link($url, $term, $taxonomy)
     {
         if (self::is_spanish() && !is_admin()) {
-            if (strpos($url, home_url()) !== false) {
-                $base = home_url();
+            $base = rtrim(get_option('home'), '/');
+            if (strpos($url, $base) !== false) {
                 $path = substr($url, strlen($base));
-                return home_url('/es' . $path);
+                return $base . '/es' . $path;
             }
         }
         return $url;
@@ -261,60 +259,64 @@ class Chroma_Multilingual_Manager
     }
 
     /**
-     * Get alternate URLs (EN/ES) for a post
+     * Get alternate URLs (EN/ES) for a post or current page
      * 
      * @param int|null $post_id
      * @return array ['en' => url, 'es' => url]
      */
     public static function get_alternates($post_id = null)
     {
-        if (!$post_id) $post_id = get_the_ID();
-        if (!$post_id) return []; // Fallback if outside loop
+        global $wp;
 
-        // Get instance to access filters
-        $instance = self::get_instance();
-
-        // TEMPORARILY REMOVE FILTERS to get raw English URL
-        remove_filter('page_link', [$instance, 'filter_permalink'], 10);
-        remove_filter('post_link', [$instance, 'filter_permalink'], 10);
-        remove_filter('post_type_link', [$instance, 'filter_permalink'], 10);
-        remove_filter('home_url', [$instance, 'filter_home_url'], 10);
-
-        $en_url = get_permalink($post_id);
-
-        // RESTORE FILTERS
-        add_filter('page_link', [$instance, 'filter_permalink'], 10, 2);
-        add_filter('post_link', [$instance, 'filter_permalink'], 10, 2);
-        add_filter('post_type_link', [$instance, 'filter_permalink'], 10, 2);
-        add_filter('home_url', [$instance, 'filter_home_url'], 10, 2);
-
-        // Check for manual English override
-        $manual_en = get_post_meta($post_id, 'alternate_url_en', true);
-        if ($manual_en) {
-            $en_url = $manual_en;
-        }
-
-        // Check for manual Spanish override
-        $manual_es = get_post_meta($post_id, 'alternate_url_es', true);
-
-        if ($manual_es) {
-            $es_url = $manual_es;
+        // 1. Determine the base English URL based on the current context
+        if ($post_id) {
+            $en_url = get_permalink($post_id);
+        } elseif (is_singular()) {
+            $en_url = get_permalink();
+        } elseif (is_front_page() || is_home()) {
+            $en_url = rtrim(get_option('home'), '/');
+        } elseif (is_post_type_archive()) {
+            $en_url = get_post_type_archive_link(get_query_var('post_type'));
+        } elseif (is_category() || is_tag() || is_tax()) {
+            $en_url = get_term_link(get_queried_object());
+        } elseif (is_404()) {
+            $en_url = rtrim(get_option('home'), '/'); // 404s fallback to home
         } else {
-            // Unhook home_url filter to ensure we get the raw base URL
-            remove_filter('home_url', [$instance, 'filter_home_url'], 10);
-            
-            $raw_home = home_url();
-            $path = str_replace($raw_home, '', $en_url);
-            
-            // Re-hook home_url filter
-            add_filter('home_url', [$instance, 'filter_home_url'], 10, 2);
-            
-            // Construct ES URL
-            // If path is empty (homepage), we just want /es/
-            // If path is /locations/foo, we want /es/locations/foo
-            $es_url = rtrim($raw_home, '/') . '/es' . $path;
+            // Check for COMBO pages or other custom requests using query vars or request uri
+            $en_url = home_url($wp->request);
         }
+
+        // Safety: If get_permalink or others failed
+        if (is_wp_error($en_url) || !$en_url) {
+            $en_url = rtrim(get_option('home'), '/');
+        }
+
+        // 2. Clear out any /es/ segments to get "Pure English" base
+        // This is critical to avoid /es/es/ or looping
+        $base_home = rtrim(get_option('home'), '/');
+        $en_url = str_replace($base_home . '/es/', $base_home . '/', $en_url);
+        if (substr($en_url, -3) === '/es') {
+             $en_url = substr($en_url, 0, -3);
+        }
+
+        // 3. Handle Manual Overrides for singular posts
+        if ($post_id || is_singular()) {
+            $id = $post_id ?: get_the_ID();
+            $manual_en = get_post_meta($id, 'alternate_url_en', true);
+            if ($manual_en) $en_url = $manual_en;
+            
+            $manual_es = get_post_meta($id, 'alternate_url_es', true);
+            if ($manual_es) {
+                return ['en' => $en_url, 'es' => $manual_es];
+            }
+        }
+
+        // 4. Construct Spanish URL
+        $path = str_replace($base_home, '', $en_url);
+        $path = ltrim($path, '/');
         
+        $es_url = $base_home . '/es/' . $path;
+
         return [
             'en' => $en_url, 
             'es' => $es_url
@@ -379,7 +381,7 @@ class Chroma_Multilingual_Manager
     {
         if (!self::is_spanish() || is_admin()) return $content;
         
-        $site_url = preg_quote(home_url(), '/');
+        $site_url = preg_quote(rtrim(get_option('home'), '/'), '/');
         
         // Match href="https://site.com/path" but not href="https://site.com/es/path"
         $pattern = '/href=["\'](' . $site_url . ')(?!\/es\/)([^"\']*)["\']/i';
@@ -397,7 +399,7 @@ class Chroma_Multilingual_Manager
         
         if (!empty($atts['href'])) {
             $href = $atts['href'];
-            $site_url = home_url();
+            $site_url = rtrim(get_option('home'), '/');
             
             // Only modify internal links that don't already have /es/
             if (strpos($href, $site_url) === 0 && strpos($href, $site_url . '/es/') !== 0) {
@@ -417,7 +419,7 @@ class Chroma_Multilingual_Manager
         if (!self::is_spanish()) return $canonical_url;
         
         // Ensure canonical points to /es/ version
-        $site_url = home_url();
+        $site_url = rtrim(get_option('home'), '/');
         if (strpos($canonical_url, $site_url . '/es/') !== 0) {
             $path = substr($canonical_url, strlen($site_url));
             return $site_url . '/es' . $path;

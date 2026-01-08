@@ -16,60 +16,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Delegates to plugin if available, otherwise uses basic URL check.
  */
 function chroma_detect_current_language() {
-    // Plugin integration
     if (class_exists('Chroma_Multilingual_Manager')) {
-        return Chroma_Multilingual_Manager::is_spanish() ? 'es' : 'en';
+        return Chroma_Multilingual_Manager::get_current_language();
     }
-
-	$current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-	if ( strpos( $current_url, '/es/' ) !== false || strpos( $current_url, '-es' ) !== false ) {
-		return 'es';
-	}
-	return 'en';
+    return (strpos($_SERVER['REQUEST_URI'], '/es/') !== false) ? 'es' : 'en';
 }
 
 /**
  * Get Alternate URL
  * Delegates to plugin logic.
  */
-function chroma_get_alternate_url( $target_lang = 'es' ) {
-    // 1. Plugin integration
+function chroma_get_alternate_url($target_lang = 'es') {
     if (function_exists('chroma_get_alternates')) {
         $alternates = chroma_get_alternates();
-        // If plugin returns a value, verify it's not just the current post permalink (loopback)
-        if (!empty($alternates[$target_lang])) {
-             return $alternates[$target_lang];
-        }
+        return $alternates[$target_lang] ?? home_url('/');
     }
-
-    // 2. Manual Meta Field Logic (Robust)
-    $obj_id = get_queried_object_id();
-    
-    // If we can't find an object ID (e.g. 404), fallback to home
-    if (!$obj_id) {
-         return ($target_lang === 'es') ? home_url('/es/') : home_url('/');
-    }
-
-    // Check manual meta override
-    $meta_key = ($target_lang === 'es') ? 'alternate_url_es' : 'alternate_url_en';
-    $manual_url = get_post_meta( $obj_id, $meta_key, true );
-    
-    if ($manual_url) {
-        return $manual_url;
-    }
-
-    // 3. Automated Fallback Logic
-    
-    // Homepage Fallback
-    if (is_front_page()) {
-        return ($target_lang === 'es') ? home_url('/es/') : home_url('/');
-    }
-
-    // General Fallback (Try to construct URL structure if predictable, or just link to home counterpart)
-    // For now, if no manual link exists for inner pages, we don't want to link to a random blog post.
-    // Ensure we don't return garbage.
-    
-    // IF nothing found, default to Home (Spanish) or Home (English) so the button ALWAYS appears and is useful.
     return ($target_lang === 'es') ? home_url('/es/') : home_url('/');
 }
 
@@ -79,12 +40,7 @@ function chroma_get_alternate_url( $target_lang = 'es' ) {
 function chroma_render_language_switcher() {
 	$current_lang = chroma_detect_current_language();
     $target_lang = ($current_lang === 'en') ? 'es' : 'en';
-	$alternate_url = chroma_get_alternate_url( $target_lang );
-
-	if ( ! $alternate_url ) {
-		// Even if empty, force a fallback to Home so the switcher is always present
-        $alternate_url = ($target_lang === 'es') ? home_url('/es/') : home_url('/');
-	}
+	$alternate_url = chroma_get_alternate_url($target_lang);
 
 	$label = $current_lang === 'en' ? 'Español' : 'English';
     $flag = $current_lang === 'en' ? '🇪🇸' : '🇺🇸';
@@ -122,89 +78,13 @@ function chroma_render_language_switcher() {
     .chroma-language-switcher .lang-label {
         letter-spacing: 0.025em;
     }
-    /* RTL Support */
-    [dir="rtl"] .chroma-language-switcher a {
-        flex-direction: row-reverse;
-    }
-    /* Dark mode variant */
-    .lang-es .chroma-language-switcher a,
-    body.dark-mode .chroma-language-switcher a {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        color: #fff;
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-    body.dark-mode .chroma-language-switcher a:hover {
-        background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
-        border-color: rgba(255, 255, 255, 0.2);
-    }
     </style>
 	<div class="chroma-language-switcher">
-		<a href="<?php echo esc_url( $alternate_url ); ?>">
+		<a href="<?php echo esc_url($alternate_url); ?>">
             <span class="lang-flag"><?php echo $flag; ?></span>
-			<span class="lang-label"><?php echo esc_html( $label ); ?></span>
+			<span class="lang-label"><?php echo esc_html($label); ?></span>
 		</a>
 	</div>
 	<?php
 }
-
-/**
- * Filter Links for Spanish Context
- * Ensures that when viewing the site in Spanish, all internal links (menus, content)
- * point to the /es/ version of the URL.
- */
-function chroma_filter_spanish_links($url) {
-    // Only apply if we are currently in Spanish mode
-    if (chroma_detect_current_language() !== 'es') {
-        return $url;
-    }
-
-    // Don't modify if already has /es/
-    if (strpos($url, '/es/') !== false) {
-        return $url;
-    }
-
-    // Clean handling of site URL
-    $home = home_url();
-    // Use parse_url to safely insert /es/ path
-    $parsed = parse_url($url);
-    $path = isset($parsed['path']) ? $parsed['path'] : '/';
-    
-    // Ensure we are linking to our own site
-    if (isset($parsed['host']) && $parsed['host'] !== parse_url($home, PHP_URL_HOST)) {
-        return $url;
-    }
-
-    // Insert /es/
-    // If path starts with /, prepend /es
-    // e.g. /programs/ -> /es/programs/
-    if (strpos($path, '/es/') !== 0) {
-        $new_path = '/es' . $path;
-        $url = str_replace($path, $new_path, $url);
-    }
-    
-    return $url;
-}
-
-// Apply to Post Links
-add_filter('post_link', 'chroma_filter_spanish_links', 10, 1);
-add_filter('page_link', 'chroma_filter_spanish_links', 10, 1);
-add_filter('post_type_link', 'chroma_filter_spanish_links', 10, 1);
-add_filter('term_link', 'chroma_filter_spanish_links', 10, 1);
-
-// Apply to Home URL (carefully)
-add_filter('home_url', function($url, $path, $scheme) {
-    if (chroma_detect_current_language() === 'es') {
-        // Avoid assets or admin
-        if (strpos($url, '/wp-admin') !== false || strpos($url, '/wp-content') !== false || strpos($url, '/wp-includes') !== false) {
-            return $url;
-        }
-        
-        if (strpos($url, '/es/') === false) {
-            $url = str_replace(home_url(), home_url('/es'), $url);
-             // Verify we didn't double slash at the join or create /es//path
-            $url = str_replace('/es//', '/es/', $url);
-        }
-    }
-    return $url;
-}, 10, 3);
 
