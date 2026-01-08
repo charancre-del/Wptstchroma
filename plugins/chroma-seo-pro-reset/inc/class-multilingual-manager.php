@@ -157,8 +157,10 @@ class Chroma_Multilingual_Manager
             $req_uri = $_SERVER['REQUEST_URI'];
             
             // Safety check: home_url() might not be available if called via gettext early
-            if (function_exists('home_url')) {
-                $wp_home_path = parse_url(home_url(), PHP_URL_PATH); // e.g. / or /subdir/
+            // Use get_option('home') to avoid infinite recursion loop with our own home_url filter
+            if (function_exists('get_option')) {
+                $raw_home = get_option('home');
+                $wp_home_path = parse_url($raw_home, PHP_URL_PATH); // e.g. / or /subdir/
                 
                 // Remove installation path from request URI
                 if ($wp_home_path && $wp_home_path !== '/') {
