@@ -62,6 +62,15 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
             $this->render_program_fields($post);
         }
         
+        // Template-Specific Fields
+        $template = get_page_template_slug($post->ID);
+        if (empty($template) && (int)$post->ID === (int)get_option('page_on_front')) {
+            $template = 'front-page.php';
+        }
+        if ($template) {
+            $this->render_template_fields($post, $template);
+        }
+        
         // AI Auto-Fill Button
         echo '<div style="margin-top: 20px; padding-top: 15px; border-top: 2px solid #ddd;">';
         echo '<button type="button" id="chroma-auto-translate-btn" class="button button-primary button-large">';
@@ -156,13 +165,37 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
                         if(data._chroma_es_location_city) $('#_chroma_es_location_city').val(data._chroma_es_location_city);
                         if(data._chroma_es_location_address) $('#_chroma_es_location_address').val(data._chroma_es_location_address);
                         if(data._chroma_es_location_hero_subtitle) $('#_chroma_es_location_hero_subtitle').val(data._chroma_es_location_hero_subtitle);
+                        if(data._chroma_es_location_tagline) $('#_chroma_es_location_tagline').val(data._chroma_es_location_tagline);
+                        if(data._chroma_es_location_description) $('#_chroma_es_location_description').val(data._chroma_es_location_description);
                         if(data._chroma_es_location_ages_served) $('#_chroma_es_location_ages_served').val(data._chroma_es_location_ages_served);
                         if(data._chroma_es_location_open_text) $('#_chroma_es_location_open_text').val(data._chroma_es_location_open_text);
+                        if(data._chroma_es_location_director_bio) $('#_chroma_es_location_director_bio').val(data._chroma_es_location_director_bio);
+                        if(data._chroma_es_location_hero_review_text) $('#_chroma_es_location_hero_review_text').val(data._chroma_es_location_hero_review_text);
+                        if(data._chroma_es_location_hero_review_author) $('#_chroma_es_location_hero_review_author').val(data._chroma_es_location_hero_review_author);
+                        if(data._chroma_es_location_seo_content_title) $('#_chroma_es_location_seo_content_title').val(data._chroma_es_location_seo_content_title);
+                        if(data._chroma_es_location_seo_content_text) $('#_chroma_es_location_seo_content_text').val(data._chroma_es_location_seo_content_text);
+                        if(data._chroma_es_location_school_pickups) $('#_chroma_es_location_school_pickups').val(data._chroma_es_location_school_pickups);
                         
                         // Program
                         if(data._chroma_es_program_age_range) $('#_chroma_es_program_age_range').val(data._chroma_es_program_age_range);
                         if(data._chroma_es_program_cta_text) $('#_chroma_es_program_cta_text').val(data._chroma_es_program_cta_text);
                         if(data._chroma_es_program_features) $('#_chroma_es_program_features').val(data._chroma_es_program_features);
+                        if(data._chroma_es_program_hero_title) $('#_chroma_es_program_hero_title').val(data._chroma_es_program_hero_title);
+                        if(data._chroma_es_program_hero_description) $('#_chroma_es_program_hero_description').val(data._chroma_es_program_hero_description);
+                        if(data._chroma_es_program_prism_description) $('#_chroma_es_program_prism_description').val(data._chroma_es_program_prism_description);
+                        if(data._chroma_es_program_prism_focus_items) $('#_chroma_es_program_prism_focus_items').val(data._chroma_es_program_prism_focus_items);
+                        if(data._chroma_es_program_schedule_title) $('#_chroma_es_program_schedule_title').val(data._chroma_es_program_schedule_title);
+                        if(data._chroma_es_program_schedule_items) $('#_chroma_es_program_schedule_items').val(data._chroma_es_program_schedule_items);
+
+                        // Generic Template Fields and others
+                        Object.keys(data).forEach(function(key) {
+                            if (key.startsWith('_chroma_es_')) {
+                                var $field = $('#' + key);
+                                if ($field.length) {
+                                    $field.val(data[key]);
+                                }
+                            }
+                        });
                         
                     } else {
                         status.text(' Error: ' + (response.data.message || 'Unknown')).css('color', 'red');
@@ -340,6 +373,68 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
             'value' => $ages_es,
             'placeholder' => get_post_meta($post->ID, 'location_ages_served', true),
         ]);
+
+        $this->render_text_field([
+            'id' => '_chroma_es_location_tagline',
+            'label' => __('Tagline (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_location_tagline', true),
+            'placeholder' => get_post_meta($post->ID, 'location_tagline', true),
+        ]);
+
+        $this->render_textarea_field([
+            'id' => '_chroma_es_location_description',
+            'label' => __('Main Description (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_location_description', true),
+            'rows' => 4,
+            'placeholder' => get_post_meta($post->ID, 'location_description', true),
+        ]);
+
+        $this->render_textarea_field([
+            'id' => '_chroma_es_location_director_bio',
+            'label' => __('Director Bio (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_location_director_bio', true),
+            'rows' => 4,
+            'placeholder' => get_post_meta($post->ID, 'location_director_bio', true),
+        ]);
+
+        $this->render_text_field([
+            'id' => '_chroma_es_location_hero_review_text',
+            'label' => __('Hero Review Text (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_location_hero_review_text', true),
+            'placeholder' => get_post_meta($post->ID, 'location_hero_review_text', true),
+        ]);
+
+        $this->render_text_field([
+            'id' => '_chroma_es_location_hero_review_author',
+            'label' => __('Hero Review Author (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_location_hero_review_author', true),
+            'placeholder' => get_post_meta($post->ID, 'location_hero_review_author', true),
+        ]);
+
+        echo '<div class="chroma-section-header" style="margin-top: 20px; border-top: 1px dotted #ccc;"><h4>' . __('SEO Content Section', 'chroma-excellence') . '</h4></div>';
+
+        $this->render_text_field([
+            'id' => '_chroma_es_location_seo_content_title',
+            'label' => __('SEO Content Title (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_location_seo_content_title', true),
+            'placeholder' => get_post_meta($post->ID, 'location_seo_content_title', true),
+        ]);
+
+        $this->render_textarea_field([
+            'id' => '_chroma_es_location_seo_content_text',
+            'label' => __('SEO Content Text (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_location_seo_content_text', true),
+            'rows' => 4,
+            'placeholder' => get_post_meta($post->ID, 'location_seo_content_text', true),
+        ]);
+
+        $this->render_textarea_field([
+            'id' => '_chroma_es_location_school_pickups',
+            'label' => __('School Pickups (One per line)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_location_school_pickups', true),
+            'rows' => 4,
+            'placeholder' => get_post_meta($post->ID, 'location_school_pickups', true),
+        ]);
         
         $this->render_text_field([
             'id' => '_chroma_es_location_open_text',
@@ -369,6 +464,59 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
         ]);
 
         $this->render_text_field([
+            'id' => '_chroma_es_program_hero_title',
+            'label' => __('Hero Title (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_program_hero_title', true),
+            'placeholder' => get_post_meta($post->ID, 'program_hero_title', true),
+        ]);
+
+        $this->render_textarea_field([
+            'id' => '_chroma_es_program_hero_description',
+            'label' => __('Hero Description (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_program_hero_description', true),
+            'rows' => 4,
+            'placeholder' => get_post_meta($post->ID, 'program_hero_description', true),
+        ]);
+
+        $this->render_text_field([
+            'id' => '_chroma_es_program_prism_title',
+            'label' => __('Prismpath Title (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_program_prism_title', true),
+            'placeholder' => get_post_meta($post->ID, 'program_prism_title', true),
+        ]);
+
+        $this->render_textarea_field([
+            'id' => '_chroma_es_program_prism_description',
+            'label' => __('Prismpath Description (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_program_prism_description', true),
+            'rows' => 4,
+            'placeholder' => get_post_meta($post->ID, 'program_prism_description', true),
+        ]);
+
+        $this->render_textarea_field([
+            'id' => '_chroma_es_program_prism_focus_items',
+            'label' => __('Prism Focus Items (One per line)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_program_prism_focus_items', true),
+            'rows' => 4,
+            'placeholder' => get_post_meta($post->ID, 'program_prism_focus_items', true),
+        ]);
+
+        $this->render_text_field([
+            'id' => '_chroma_es_program_schedule_title',
+            'label' => __('Schedule Title (Spanish)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_program_schedule_title', true),
+            'placeholder' => get_post_meta($post->ID, 'program_schedule_title', true),
+        ]);
+
+        $this->render_textarea_field([
+            'id' => '_chroma_es_program_schedule_items',
+            'label' => __('Schedule Items (Time|Title|Copy, one per line)', 'chroma-excellence'),
+            'value' => get_post_meta($post->ID, '_chroma_es_program_schedule_items', true),
+            'rows' => 6,
+            'placeholder' => get_post_meta($post->ID, 'program_schedule_items', true),
+        ]);
+
+        $this->render_text_field([
             'id' => '_chroma_es_program_cta_text',
             'label' => __('CTA Button Text', 'chroma-excellence'),
             'value' => $cta_text_es,
@@ -382,6 +530,44 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
             'rows' => 6,
             'placeholder' => get_post_meta($post->ID, 'program_features', true),
         ]);
+    }
+
+    /**
+     * Render fields for specific page templates
+     */
+    private function render_template_fields($post, $template)
+    {
+        $keys = Chroma_Translation_Engine::get_keys_for_template($template);
+        if (empty($keys)) return;
+
+        $template_name = str_replace(['page-', '.php'], '', $template);
+        $template_name = ucwords(str_replace('-', ' ', $template_name));
+
+        echo '<div class="chroma-section-header" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;"><h3>' . sprintf(__('%s Template Content', 'chroma-excellence'), $template_name) . '</h3></div>';
+
+        foreach ($keys as $key) {
+            $es_key = '_chroma_es_' . $key;
+            $value = get_post_meta($post->ID, $es_key, true);
+            $placeholder = get_post_meta($post->ID, $key, true);
+            $label = ucwords(str_replace(['_', 'careers', 'curriculum', 'about', 'contact', 'home'], [' ', '', '', '', '', ''], $key));
+
+            if (strpos($key, 'desc') !== false || strpos($key, 'text') !== false || strpos($key, 'content') !== false || strpos($key, 'bullet') !== false) {
+                $this->render_textarea_field([
+                    'id' => $es_key,
+                    'label' => $label,
+                    'value' => $value,
+                    'placeholder' => $placeholder,
+                    'rows' => 3
+                ]);
+            } else {
+                $this->render_text_field([
+                    'id' => $es_key,
+                    'label' => $label,
+                    'value' => $value,
+                    'placeholder' => $placeholder,
+                ]);
+            }
+        }
     }
 
     /**
@@ -400,18 +586,43 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
             '_chroma_es_location_city',
             '_chroma_es_location_address',
             '_chroma_es_location_hero_subtitle',
+            '_chroma_es_location_tagline',
+            '_chroma_es_location_description',
             '_chroma_es_location_ages_served',
             '_chroma_es_location_open_text',
+            '_chroma_es_location_director_bio',
+            '_chroma_es_location_hero_review_text',
+            '_chroma_es_location_hero_review_author',
+            '_chroma_es_location_seo_content_title',
+            '_chroma_es_location_seo_content_text',
+            '_chroma_es_location_school_pickups',
             // Program
             '_chroma_es_program_age_range',
             '_chroma_es_program_cta_text',
             '_chroma_es_program_features',
+            '_chroma_es_program_hero_title',
+            '_chroma_es_program_hero_description',
+            '_chroma_es_program_prism_title',
+            '_chroma_es_program_prism_description',
+            '_chroma_es_program_prism_focus_items',
+            '_chroma_es_program_schedule_title',
+            '_chroma_es_program_schedule_items',
             // SEO Fields
             '_chroma_es_seo_title',
             '_chroma_es_meta_description',
         ];
 
-        foreach ($fields as $field) {
+        // Template-Specific Keys
+        $template = get_page_template_slug($post_id);
+        if (empty($template) && (int)$post_id === (int)get_option('page_on_front')) {
+            $template = 'front-page.php';
+        }
+        $template_keys = Chroma_Translation_Engine::get_keys_for_template($template);
+        foreach ($template_keys as $tkey) {
+            $fields[] = '_chroma_es_' . $tkey;
+        }
+
+    foreach ($fields as $field) {
             if (isset($_POST[$field])) {
                 // For content fields, we might want wp_kses_post
                 if ($field === '_chroma_es_content') {

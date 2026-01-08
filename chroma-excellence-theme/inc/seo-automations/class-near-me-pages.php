@@ -23,21 +23,22 @@ class Chroma_Near_Me_Pages
         add_action('template_redirect', [$this, 'handle_near_me_page']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         
-        // Register Native Sitemap Provider
+        // Register Native Sitemap Providers (EN and ES)
         if (did_action('init')) {
-            $this->register_sitemap_provider();
+            $this->register_sitemap_providers();
         } else {
-            add_action('init', [$this, 'register_sitemap_provider']);
+            add_action('init', [$this, 'register_sitemap_providers']);
         }
     }
 
     /**
-     * Register WP Native Sitemap Provider
+     * Register WP Native Sitemap Providers
      */
-    public function register_sitemap_provider() {
-        $provider = new Chroma_Near_Me_Sitemap_Provider();
-        wp_register_sitemap_provider('near-me', $provider);
+    public function register_sitemap_providers() {
+        wp_register_sitemap_provider('near-me', new Chroma_Near_Me_Sitemap_Provider('en'));
+        wp_register_sitemap_provider('near-me-es', new Chroma_Near_Me_Sitemap_Provider('es'));
     }
+
     
     /**
      * Add rewrite rules
@@ -404,9 +405,11 @@ new Chroma_Near_Me_Pages();
  * Custom Sitemap Provider for Near Me Pages
  */
 class Chroma_Near_Me_Sitemap_Provider extends WP_Sitemaps_Provider {
-    
-    public function __construct() {
-        $this->name = 'near-me'; 
+    private $lang;
+
+    public function __construct($lang = 'en') {
+        $this->lang = $lang;
+        $this->name = $lang === 'es' ? 'near-me-es' : 'near-me'; 
         $this->object_type = 'custom'; 
     }
 
@@ -414,20 +417,23 @@ class Chroma_Near_Me_Sitemap_Provider extends WP_Sitemaps_Provider {
         $urls = [];
         $links = Chroma_Near_Me_Pages::get_sitemap_urls();
         
-        $per_page = 2000;
-        $offset = ($page_num - 1) * $per_page;
-        $page_links = array_slice($links, $offset, $per_page);
-        
-        foreach ($page_links as $link) {
-            $urls[] = [
-                'loc' => $link,
+        $localized_links = [];
+        foreach ($links as $link) {
+            $url = $link;
+            if ($this->lang === 'es') {
+                $url = str_replace(home_url('/'), home_url('/es/'), $link);
+            }
+            $localized_links[] = [
+                'loc' => $url,
                 'lastmod' => date('c'),
                 'changefreq' => 'weekly',
                 'priority' => 0.8,
             ];
         }
-
-        return $urls;
+        
+        $per_page = 2000;
+        $offset = ($page_num - 1) * $per_page;
+        return array_slice($localized_links, $offset, $per_page);
     }
 
     public function get_max_num_pages($object_subtype = '') {
@@ -435,4 +441,5 @@ class Chroma_Near_Me_Sitemap_Provider extends WP_Sitemaps_Provider {
         return ceil(count($links) / 2000);
     }
 }
+
 

@@ -15,23 +15,19 @@ class Chroma_Sitemap_Integrator
 {
     public function init()
     {
-        // If we are already in the 'init' hook (called from bootstrap), run immediately.
-        if (did_action('init')) {
-            $this->register_spanish_provider();
-        } else {
-            add_action('init', [$this, 'register_spanish_provider']);
-        }
+        add_action('init', [$this, 'register_providers']);
     }
 
-    public function register_spanish_provider()
+    public function register_providers()
     {
-        $provider = new Chroma_Spanish_Sitemap_Provider();
-        wp_register_sitemap_provider('spanish', $provider);
+        // One sitemap for all Spanish pages/posts (Singulars)
+        wp_register_sitemap_provider('spanish', new Chroma_Spanish_Sitemap_Provider());
     }
 }
 
 /**
  * Custom Sitemap Provider for Spanish Content
+ * Includes all translated post types (Singulars Only)
  */
 class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
     
@@ -40,24 +36,18 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
         $this->object_type = 'custom'; 
     }
 
-    private $per_page = 200;
-    private $post_types = ['page', 'location', 'program', 'post'];
+    private $per_page = 2000;
+    private $post_types = ['page', 'location', 'program', 'city', 'post', 'team_member'];
 
-    /**
-     * Get URL list for a sitemap page
-     */
     public function get_url_list($page_num, $object_subtype = '') {
         $urls = [];
-        $offset = ($page_num - 1) * $this->per_page;
         
+        // Static Post Types
         $posts = get_posts([
             'post_type' => $this->post_types,
-            'posts_per_page' => $this->per_page,
-            'offset' => $offset,
+            'posts_per_page' => -1,
             'post_status' => 'publish',
             'fields' => 'ids',
-            'orderby' => 'ID',
-            'order' => 'ASC'
         ]);
 
         foreach ($posts as $post_id) {
@@ -72,18 +62,16 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
             }
         }
 
-        return $urls;
+        // Pagination
+        $offset = ($page_num - 1) * $this->per_page;
+        return array_slice($urls, $offset, $this->per_page);
     }
 
-    /**
-     * Get max number of pages
-     */
     public function get_max_num_pages($object_subtype = '') {
-        $total = 0;
+        $count = 0;
         foreach ($this->post_types as $type) {
-            $count = wp_count_posts($type);
-            $total += isset($count->publish) ? $count->publish : 0;
+            $count += (int)wp_count_posts($type)->publish;
         }
-        return max(1, ceil($total / $this->per_page));
+        return max(1, ceil($count / $this->per_page));
     }
 }

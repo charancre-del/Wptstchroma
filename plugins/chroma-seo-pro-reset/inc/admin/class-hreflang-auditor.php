@@ -32,7 +32,7 @@ class Chroma_Hreflang_Auditor
 
     public function render_page()
     {
-        $post_types = ['page', 'location', 'program'];
+        $post_types = ['page', 'location', 'program', 'city', 'post', 'team_member'];
         $issues = [];
         $passed = [];
 

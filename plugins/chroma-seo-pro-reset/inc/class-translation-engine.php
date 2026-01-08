@@ -68,10 +68,18 @@ class Chroma_Translation_Engine
                 $fields['_chroma_es_location_city'] = get_post_meta($post_id, 'location_city', true);
                 $fields['_chroma_es_location_address'] = get_post_meta($post_id, 'location_address', true);
                 $fields['_chroma_es_location_hero_subtitle'] = get_post_meta($post_id, 'location_hero_subtitle', true);
+                $fields['_chroma_es_location_tagline'] = get_post_meta($post_id, 'location_tagline', true);
+                $fields['_chroma_es_location_description'] = get_post_meta($post_id, 'location_description', true);
                 $fields['_chroma_es_location_ages_served'] = get_post_meta($post_id, 'location_ages_served', true);
                 $fields['_chroma_es_location_open_text'] = 'Now Open'; 
-                $fields['_chroma_es_location_intro_text'] = get_post_meta($post_id, 'location_intro_text', true);
                 $fields['_chroma_es_location_hours'] = get_post_meta($post_id, 'location_hours', true);
+                $fields['_chroma_es_location_director_name'] = get_post_meta($post_id, 'location_director_name', true);
+                $fields['_chroma_es_location_director_bio'] = get_post_meta($post_id, 'location_director_bio', true);
+                $fields['_chroma_es_location_hero_review_text'] = get_post_meta($post_id, 'location_hero_review_text', true);
+                $fields['_chroma_es_location_hero_review_author'] = get_post_meta($post_id, 'location_hero_review_author', true);
+                $fields['_chroma_es_location_seo_content_title'] = get_post_meta($post_id, 'location_seo_content_title', true);
+                $fields['_chroma_es_location_seo_content_text'] = get_post_meta($post_id, 'location_seo_content_text', true);
+                $fields['_chroma_es_location_school_pickups'] = get_post_meta($post_id, 'location_school_pickups', true);
                 $fields['_chroma_es_location_special_programs'] = get_post_meta($post_id, 'location_special_programs', true);
                 $fields['_chroma_es_location_tour_booking_link'] = get_post_meta($post_id, 'location_tour_booking_link', true);
             } elseif ($post->post_type === 'program') {
@@ -82,20 +90,23 @@ class Chroma_Translation_Engine
                 $fields['_chroma_es_program_hero_description'] = get_post_meta($post_id, 'program_hero_description', true);
                 $fields['_chroma_es_program_prism_title'] = get_post_meta($post_id, 'program_prism_title', true);
                 $fields['_chroma_es_program_prism_description'] = get_post_meta($post_id, 'program_prism_description', true);
-                $fields['_chroma_es_program_prism_physical'] = get_post_meta($post_id, 'program_prism_physical', true);
-                $fields['_chroma_es_program_prism_emotional'] = get_post_meta($post_id, 'program_prism_emotional', true);
-                $fields['_chroma_es_program_prism_social'] = get_post_meta($post_id, 'program_prism_social', true);
-                $fields['_chroma_es_program_prism_academic'] = get_post_meta($post_id, 'program_prism_academic', true);
-                $fields['_chroma_es_program_prism_creative'] = get_post_meta($post_id, 'program_prism_creative', true);
+                $fields['_chroma_es_program_prism_focus_items'] = get_post_meta($post_id, 'program_prism_focus_items', true);
                 $fields['_chroma_es_program_schedule_title'] = get_post_meta($post_id, 'program_schedule_title', true);
+                $fields['_chroma_es_program_schedule_items'] = get_post_meta($post_id, 'program_schedule_items', true);
             } elseif ($post->post_type === 'city') {
                 $fields['_chroma_es_city_intro_text'] = get_post_meta($post_id, 'city_intro_text', true);
                 $fields['_chroma_es_city_state'] = get_post_meta($post_id, 'city_state', true);
                 $fields['_chroma_es_city_county'] = get_post_meta($post_id, 'city_county', true);
+                $fields['_chroma_es_city_neighborhoods'] = get_post_meta($post_id, 'city_neighborhoods', true);
+            } elseif ($post->post_type === 'team_member') {
+                $fields['_chroma_es_team_member_title'] = get_post_meta($post_id, 'team_member_title', true);
             }
             
             // Template specific
             $template = get_page_template_slug($post_id);
+            if (empty($template) && (int)$post_id === (int)get_option('page_on_front')) {
+                $template = 'front-page.php';
+            }
             $template_keys = self::get_keys_for_template($template);
             
             foreach ($template_keys as $tkey) {
@@ -196,14 +207,11 @@ class Chroma_Translation_Engine
             case 'page-careers.php':
                 return [
                     'careers_hero_badge', 'careers_hero_title', 'careers_hero_description',
-                    'careers_intro_title', 'careers_intro_description',
-                    'careers_benefit1_title', 'careers_benefit1_description',
-                    'careers_benefit2_title', 'careers_benefit2_description',
-                    'careers_benefit3_title', 'careers_benefit3_description',
-                    'careers_benefit4_title', 'careers_benefit4_description',
-                    'careers_culture_title', 'careers_culture_description',
-                    'careers_positions_title', 'careers_positions_description',
-                    'careers_cta_title', 'careers_cta_description', 'careers_cta_button_text',
+                    'careers_hero_button_text', 'careers_culture_title', 'careers_culture_description',
+                    'careers_benefit1_title', 'careers_benefit1_desc',
+                    'careers_benefit2_title', 'careers_benefit2_desc',
+                    'careers_benefit3_title', 'careers_benefit3_desc',
+                    'careers_cta_title', 'careers_cta_description',
                 ];
             case 'page-contact.php':
                 return [
@@ -216,24 +224,28 @@ class Chroma_Translation_Engine
             case 'page-curriculum.php':
                 return [
                     'curriculum_hero_badge', 'curriculum_hero_title', 'curriculum_hero_description',
-                    'curriculum_intro_title', 'curriculum_intro_description',
+                    'curriculum_framework_title', 'curriculum_framework_description',
                     'curriculum_pillar_physical_title', 'curriculum_pillar_physical_desc',
-                    'curriculum_pillar_cognitive_title', 'curriculum_pillar_cognitive_desc',
-                    'curriculum_pillar_social_title', 'curriculum_pillar_social_desc',
                     'curriculum_pillar_emotional_title', 'curriculum_pillar_emotional_desc',
-                    'curriculum_stages_title', 'curriculum_stages_desc',
-                    'curriculum_stage_foundation_title', 'curriculum_stage_foundation_age', 'curriculum_stage_foundation_desc', 'curriculum_stage_foundation_features',
-                    'curriculum_stage_discovery_title', 'curriculum_stage_discovery_age', 'curriculum_stage_discovery_desc', 'curriculum_stage_discovery_features',
-                    'curriculum_stage_exploration_title', 'curriculum_stage_exploration_age', 'curriculum_stage_exploration_desc', 'curriculum_stage_exploration_features',
-                    'curriculum_stage_ready_title', 'curriculum_stage_ready_age', 'curriculum_stage_ready_desc', 'curriculum_stage_ready_features',
-                    'curriculum_zones_title', 'curriculum_zones_desc',
+                    'curriculum_pillar_social_title', 'curriculum_pillar_social_desc',
+                    'curriculum_pillar_academic_title', 'curriculum_pillar_academic_desc',
+                    'curriculum_pillar_creative_title', 'curriculum_pillar_creative_desc',
+                    'curriculum_timeline_badge', 'curriculum_timeline_title', 'curriculum_timeline_description',
+                    'curriculum_stage_foundation_title', 'curriculum_stage_foundation_desc',
+                    'curriculum_stage_discovery_title', 'curriculum_stage_discovery_desc',
+                    'curriculum_stage_readiness_title', 'curriculum_stage_readiness_desc',
+                    'curriculum_env_badge', 'curriculum_env_title', 'curriculum_env_description',
                     'curriculum_zone_construction_title', 'curriculum_zone_construction_desc',
-                    'curriculum_zone_art_title', 'curriculum_zone_art_desc',
-                    'curriculum_zone_reading_title', 'curriculum_zone_reading_desc',
-                    'curriculum_zone_sensory_title', 'curriculum_zone_sensory_desc',
-                    'curriculum_zone_dramatic_title', 'curriculum_zone_dramatic_desc',
-                    'curriculum_zone_science_title', 'curriculum_zone_science_desc',
-                    'curriculum_cta_title', 'curriculum_cta_desc', 'curriculum_cta_button_text'
+                    'curriculum_zone_atelier_title', 'curriculum_zone_atelier_desc',
+                    'curriculum_zone_literacy_title', 'curriculum_zone_literacy_desc',
+                    'curriculum_milestones_title', 'curriculum_milestones_subtitle',
+                    'curriculum_milestone_tracking_title', 'curriculum_milestone_tracking_desc',
+                    'curriculum_milestone_tracking_bullet1', 'curriculum_milestone_tracking_bullet2',
+                    'curriculum_milestone_screenings_title', 'curriculum_milestone_screenings_desc',
+                    'curriculum_milestone_screenings_bullet1', 'curriculum_milestone_screenings_bullet2',
+                    'curriculum_milestone_assessments_title', 'curriculum_milestone_assessments_desc',
+                    'curriculum_milestone_assessments_bullet1', 'curriculum_milestone_assessments_bullet2',
+                    'curriculum_cta_title', 'curriculum_cta_description'
                 ];
             case 'page-employers.php':
                 return [
@@ -251,6 +263,14 @@ class Chroma_Translation_Engine
                     'employers_state_title', 'employers_state_desc',
                     'employers_tax_disclaimer',
                     'employers_cta_title', 'employers_cta_desc', 'employers_cta_button_text'
+                ];
+            case 'front-page.php':
+                return [
+                    'home_hero_heading', 'home_hero_subheading', 'home_hero_cta_label', 'home_hero_secondary_label',
+                    'home_prismpath_eyebrow', 'home_prismpath_heading', 'home_prismpath_subheading', 'home_prismpath_cta_label',
+                    'home_prismpath_readiness_heading', 'home_prismpath_readiness_desc',
+                    'home_locations_heading', 'home_locations_subheading', 'home_locations_cta_label',
+                    'home_faq_heading', 'home_faq_subheading'
                 ];
             case 'page-parents.php':
                 return [
@@ -351,11 +371,21 @@ class Chroma_Translation_Engine
             return ['_error' => $response->get_error_message()];
         }
 
-        $content = $response['choices'][0]['message']['content'] ?? '{}';
+        $content = $response['choices'][0]['message']['content'] ?? '';
+        
+        // Clean markdown code blocks (Commonly returned by Gemini/Claude)
+        $content = preg_replace('/^```(?:json)?\s*|```$/m', '', trim($content));
+        
+        // Attempt to find JSON if there's surrounding text
+        if (preg_match('/\{.*\}/s', $content, $matches)) {
+            $content = $matches[0];
+        }
+
         $translated = json_decode($content, true);
 
         if (!$translated) {
-            return ['_error' => 'Failed to parse translation JSON'];
+            error_log('Chroma Translate: JSON Parse Failure. Raw Content: ' . substr($content, 0, 500));
+            return ['_error' => 'Failed to parse translation JSON. The AI returned an invalid format.'];
         }
 
         // Store in translation memory cache (30 days)

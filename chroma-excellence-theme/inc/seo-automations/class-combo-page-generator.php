@@ -19,18 +19,18 @@ class Chroma_Combo_Page_Generator
         add_action('init', [$this, 'add_rewrite_rules']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_combo_page']);
-        add_action('template_redirect', [$this, 'handle_sitemap']); // Manual Sitemap Handler
-        add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']);
-        
-        // Register Native Sitemap Provider
-        if (did_action('init')) {
-            $this->register_sitemap_provider();
-        } else {
-            add_action('init', [$this, 'register_sitemap_provider']);
-        }
 
-        // Canonical now handled in handle_combo_page via closure
         add_action('admin_menu', [$this, 'add_admin_page'], 20);
+        
+        add_action('template_redirect', [$this, 'handle_sitemap']); // Manual Sitemap Handler
+        add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']); // Yoast index integration
+        
+        // Register Native Sitemap Providers (EN and ES)
+        if (did_action('init')) {
+            $this->register_sitemap_providers();
+        } else {
+            add_action('init', [$this, 'register_sitemap_providers']);
+        }
         
         // Auto-flush rules if needed (Temporary for update)
         if (!get_option('chroma_combo_sitemap_flush_Check')) {
@@ -41,17 +41,7 @@ class Chroma_Combo_Page_Generator
         }
     }
 
-    /**
-     * Register WP Native Sitemap Provider
-     */
-    public function register_sitemap_provider() {
-        $provider = new Chroma_Combo_Sitemap_Provider();
-        wp_register_sitemap_provider('combos', $provider);
-    }
     
-    /**
-     * Add rewrite rules
-     */
     public function add_rewrite_rules() {
         // Pattern: /program-in-city-state/
         add_rewrite_rule(
@@ -60,25 +50,26 @@ class Chroma_Combo_Page_Generator
             'top'
         );
 
-        // Custom Sitemap Rule: /sitemap-combos.xml
-        add_rewrite_rule(
-            '^sitemap-combos\.xml$',
-            'index.php?chroma_combo_sitemap=1',
-            'top'
-        );
+        // Custom Sitemap Rules
+        add_rewrite_rule('^sitemap-combos\.xml$', 'index.php?chroma_combo_sitemap=en', 'top');
+        add_rewrite_rule('^sitemap-combos-es\.xml$', 'index.php?chroma_combo_sitemap=es', 'top');
     }
     
-    /**
-     * Add query vars
-     */
     public function add_query_vars($vars) {
         $vars[] = self::REWRITE_TAG;
         $vars[] = 'combo_program';
-        $vars[] = 'combo_program';
         $vars[] = 'combo_city';
         $vars[] = 'combo_state';
-        $vars[] = 'chroma_combo_sitemap'; // Query var for sitemap
+        $vars[] = 'chroma_combo_sitemap'; 
         return $vars;
+    }
+    
+    /**
+     * Register WP Native Sitemap Providers
+     */
+    public function register_sitemap_providers() {
+        wp_register_sitemap_provider('combos', new Chroma_Combo_Sitemap_Provider('en'));
+        wp_register_sitemap_provider('combos-es', new Chroma_Combo_Sitemap_Provider('es'));
     }
     
     /**
@@ -844,49 +835,47 @@ class Chroma_Combo_Page_Generator
      * Handle Manual Sitemap Request
      */
     public function handle_sitemap() {
-        if (get_query_var('chroma_combo_sitemap') == 1) {
-            header('Content-Type: application/xml; charset=utf-8');
-            echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
-            echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        $lang = get_query_var('chroma_combo_sitemap');
+        if (!$lang) return;
+
+        header('Content-Type: application/xml; charset=utf-8');
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        
+        $combos = self::get_all_combos();
+        foreach ($combos as $combo) {
+            $saved_data = Chroma_Combo_Page_Data::get($combo['program']->post_name, sanitize_title($combo['city']), $combo['state']);
+            $status = $saved_data['status'] ?? 'auto';
             
-            $combos = self::get_all_combos();
-            foreach ($combos as $combo) {
-                // Check published
-                $program_slug = $combo['program']->post_name;
-                $city_slug = sanitize_title($combo['city']);
-                $state = $combo['state'];
-                
-                $saved_data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
-                $status = $saved_data['status'] ?? 'auto';
-                
-                if ($status === 'published' || $status === 'publish') {
-                    echo '<url>' . "\n";
-                    echo '  <loc>' . esc_url($combo['url']) . '</loc>' . "\n";
-                    echo '  <lastmod>' . date('c') . '</lastmod>' . "\n";
-                    echo '  <changefreq>weekly</changefreq>' . "\n";
-                    echo '  <priority>0.8</priority>' . "\n";
-                    echo '</url>' . "\n";
+            if ($status === 'published' || $status === 'publish') {
+                $url = $combo['url'];
+                if ($lang === 'es') {
+                    $url = str_replace(home_url('/'), home_url('/es/'), $url);
                 }
+                
+                echo '<url>' . "\n";
+                echo '  <loc>' . esc_url($url) . '</loc>' . "\n";
+                echo '  <lastmod>' . date('c') . '</lastmod>' . "\n";
+                echo '  <changefreq>weekly</changefreq>' . "\n";
+                echo '  <priority>0.8</priority>' . "\n";
+                echo '</url>' . "\n";
             }
-            
-            echo '</urlset>';
-            exit;
         }
+        
+        echo '</urlset>';
+        exit;
     }
 
     /**
-     * Add to Yoast Sitemap
+     * Add to Yoast Sitemap Index
      */
     public function add_to_sitemap($sitemap_index) {
-        // Link to our custom manual sitemap (rewrite rule based)
-        $sitemap_url = home_url('/sitemap-combos.xml');
         $last_mod = date('c');
-        $sitemap_index .= '<sitemap>
-            <loc>' . esc_url($sitemap_url) . '</loc>
-            <lastmod>' . esc_html($last_mod) . '</lastmod>
-        </sitemap>';
+        $sitemap_index .= '<sitemap><loc>' . home_url('/sitemap-combos.xml') . '</loc><lastmod>' . $last_mod . '</lastmod></sitemap>';
+        $sitemap_index .= '<sitemap><loc>' . home_url('/sitemap-combos-es.xml') . '</loc><lastmod>' . $last_mod . '</lastmod></sitemap>';
         return $sitemap_index;
     }
+
     
     /**
      * Add admin page
@@ -1396,85 +1385,52 @@ new Chroma_Combo_Page_Generator();
 
 /**
  * Custom Sitemap Provider for Combo Pages
- * Integration with Native WordPress Sitemaps
  */
 class Chroma_Combo_Sitemap_Provider extends WP_Sitemaps_Provider {
+    private $lang;
 
-    public function __construct() {
-        $this->name = 'combos'; // sitemap-combos.xml
+    public function __construct($lang = 'en') {
+        $this->lang = $lang;
+        $this->name = $lang === 'es' ? 'combos-es' : 'combos';
         $this->object_type = 'custom'; 
     }
 
-    /**
-     * Get a list of URLs for a sitemap.
-     *
-     * @param int    $page_num       The page number.
-     * @param string $object_subtype The object subtype.
-     * @return array[] Array of URL information.
-     */
     public function get_url_list($page_num, $object_subtype = '') {
         $urls = [];
         $combos = Chroma_Combo_Page_Generator::get_all_combos();
         
-        // Filter for published status
-        // Since we don't have a direct index, we iterate.
-        // For performance on large sets, we might need an index option later.
-        
-        $published_combos = [];
+        $published = [];
         foreach ($combos as $combo) {
-            $program_slug = $combo['program']->post_name;
-            $city_slug = sanitize_title($combo['city']);
-            $state = $combo['state'];
-            
-            // Check saved status
-            $saved_data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
-            $status = $saved_data['status'] ?? 'auto'; // Default is auto (draft-like)
-            
+            $saved_data = Chroma_Combo_Page_Data::get($combo['program']->post_name, sanitize_title($combo['city']), $combo['state']);
+            $status = $saved_data['status'] ?? 'auto';
             if ($status === 'published' || $status === 'publish') {
-                $published_combos[] = $combo;
+                $url = $combo['url'];
+                if ($this->lang === 'es') {
+                    $url = str_replace(home_url('/'), home_url('/es/'), $url);
+                }
+                $published[] = [
+                    'loc' => $url,
+                    'lastmod' => date('c'),
+                    'changefreq' => 'weekly',
+                    'priority' => 0.8,
+                ];
             }
         }
         
-        // Pagination logic
-        // WP Sitemaps default limit is 2000 per page.
         $per_page = 2000;
         $offset = ($page_num - 1) * $per_page;
-        $page_combos = array_slice($published_combos, $offset, $per_page);
-        
-        foreach ($page_combos as $combo) {
-            $urls[] = [
-                'loc' => $combo['url'],
-                'lastmod' => date('c'), // Dynamic pages, assume fresh
-                'changefreq' => 'weekly',
-                'priority' => 0.8,
-            ];
-        }
-
-        return $urls;
+        return array_slice($published, $offset, $per_page);
     }
 
-    /**
-     * Get the max number of pages available for the object subtype.
-     *
-     * @param string $object_subtype The object subtype.
-     * @return int Total number of pages.
-     */
     public function get_max_num_pages($object_subtype = '') {
-        // We have to calculate total published combos to know pages.
-        // This is inefficient but necessary without a centralized index.
         $combos = Chroma_Combo_Page_Generator::get_all_combos();
         $count = 0;
         foreach ($combos as $combo) {
-            $program_slug = $combo['program']->post_name;
-            $city_slug = sanitize_title($combo['city']);
-            $state = $combo['state'];
-            $saved_data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
+            $saved_data = Chroma_Combo_Page_Data::get($combo['program']->post_name, sanitize_title($combo['city']), $combo['state']);
             $status = $saved_data['status'] ?? 'auto';
-            if ($status === 'published' || $status === 'publish') {
-                $count++;
-            }
+            if ($status === 'published' || $status === 'publish') $count++;
         }
-        
         return ceil($count / 2000);
     }
 }
+

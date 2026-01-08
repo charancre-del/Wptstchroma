@@ -33,7 +33,7 @@ class Chroma_Content_Inspector
 
     public function render_page()
     {
-        $post_types = ['page', 'location', 'program', 'city'];
+        $post_types = ['page', 'location', 'program', 'city', 'post', 'team_member'];
         $posts = get_posts([
             'post_type' => $post_types,
             'posts_per_page' => -1,
@@ -49,6 +49,7 @@ class Chroma_Content_Inspector
             // Check for content OR specific meta keys depending on type
             $is_translated = get_post_meta($post->ID, '_chroma_es_content', true);
             
+            
             if (!$is_translated) {
                 if ($post->post_type === 'location') {
                     $is_translated = get_post_meta($post->ID, '_chroma_es_location_address', true);
@@ -56,10 +57,16 @@ class Chroma_Content_Inspector
                     $is_translated = get_post_meta($post->ID, '_chroma_es_program_age_range', true);
                 } elseif ($post->post_type === 'city') {
                     $is_translated = get_post_meta($post->ID, '_chroma_es_city_state', true);
+                } elseif ($post->post_type === 'team_member') {
+                    $is_translated = get_post_meta($post->ID, '_chroma_es_team_member_title', true);
                 }
                 
+                // Front Page Special Check
+                if (!$is_translated && (int)$post->ID === (int)get_option('page_on_front')) {
+                    $is_translated = get_post_meta($post->ID, '_chroma_es_home_hero_heading', true);
+                }
+
                 // Fallback: If specific key is missing, check for Title (universal)
-                // This handles cases where optional fields are empty but page was processed.
                 if (!$is_translated) {
                     $is_translated = get_post_meta($post->ID, '_chroma_es_title', true);
                 }
@@ -145,8 +152,15 @@ class Chroma_Content_Inspector
                                     $has_content = get_post_meta($post->ID, '_chroma_es_program_age_range', true);
                                 } elseif ($post->post_type === 'city') {
                                     $has_content = get_post_meta($post->ID, '_chroma_es_city_state', true);
+                                } elseif ($post->post_type === 'team_member') {
+                                    $has_content = get_post_meta($post->ID, '_chroma_es_team_member_title', true);
                                 }
                                 
+                                // Front Page Special Check
+                                if (!$has_content && (int)$post->ID === (int)get_option('page_on_front')) {
+                                    $has_content = get_post_meta($post->ID, '_chroma_es_home_hero_heading', true);
+                                }
+
                                 // Fallback
                                 if (!$has_content) {
                                     $has_content = get_post_meta($post->ID, '_chroma_es_title', true);
@@ -162,7 +176,12 @@ class Chroma_Content_Inspector
                             <td><?php echo esc_html(ucfirst($post->post_type)); ?></td>
                             <td>
                                 <a href="<?php echo get_edit_post_link($post->ID); ?>">
-                                    <?php echo esc_html($post->post_title); ?>
+                                <?php 
+                                    echo esc_html($post->post_title); 
+                                    if ((int)$post->ID === (int)get_option('page_on_front')) {
+                                        echo ' <span class="badge badge-primary" style="background:#007cba; color:#fff; padding:2px 6px; border-radius:4px; font-size:10px; vertical-align:middle; margin-left:5px;">HOME PAGE</span>';
+                                    }
+                                ?>
                                 </a>
                             </td>
                             <td><a href="<?php echo esc_url($en_url); ?>" target="_blank">View EN</a></td>
@@ -184,7 +203,53 @@ class Chroma_Content_Inspector
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+    
+        <?php
+        // Dynamic Combo Pages Section
+        if (class_exists('Chroma_Combo_Page_Generator')) {
+            $combos = Chroma_Combo_Page_Generator::get_all_combos();
+            if (!empty($combos)) :
+        ?>
+            <div style="margin-top: 40px; border-top: 2px solid #ddd; padding-top: 20px;">
+                <h2 style="display: flex; align-items: center; gap: 10px;">
+                    <span class="dashicons dashicons-admin-links"></span>
+                    Dynamic Combo Pages (<?php echo count($combos); ?>)
+                </h2>
+                <p class="description">These pages are generated dynamically based on City + Program combinations. Translations are inherited from their respective City and Program templates.</p>
+                <div style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th style="width: 40%;">Combo Title</th>
+                                <th>English URL</th>
+                                <th>Spanish URL</th>
+                                <th style="text-align: center;">Audit Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($combos as $combo): 
+                                $en_url = $combo['url'];
+                                $es_url = str_replace(home_url('/'), home_url('/es/'), $en_url);
+                            ?>
+                                <tr>
+                                    <td><strong><?php echo esc_html($combo['program']->post_title . ' in ' . $combo['city']); ?></strong></td>
+                                    <td><a href="<?php echo esc_url($en_url); ?>" target="_blank">View EN</a></td>
+                                    <td><a href="<?php echo esc_url($es_url); ?>" target="_blank">View ES</a></td>
+                                    <td style="text-align: center;">
+                                        <span class="dashicons dashicons-yes" style="color:green" title="Inferred from Program/City"></span>
+                                        <span style="font-size: 11px; color: #666;">Inherited</span>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
+        <?php 
+            endif;
+        } 
+        ?>
+        </div>
         </div>
         <script>
         jQuery(document).ready(function($) {

@@ -12,18 +12,18 @@ while (have_posts()):
 	$program_id = get_the_ID();
 
 	// Get program meta
-	$age_range = get_post_meta($program_id, 'program_age_range', true);
+	$age_range = chroma_get_translated_meta($program_id, 'program_age_range', true);
 	$color_scheme = get_post_meta($program_id, 'program_color_scheme', true) ?: 'red';
 	$lesson_plan_url = get_post_meta($program_id, 'program_lesson_plan_file', true);
 
 	// Hero section
-	$hero_title = get_post_meta($program_id, 'program_hero_title', true) ?: get_the_title();
-	$hero_description = get_post_meta($program_id, 'program_hero_description', true) ?: get_the_excerpt();
+	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: get_the_title();
+	$hero_description = chroma_get_translated_meta($program_id, 'program_hero_description', true) ?: get_the_excerpt();
 
 	// Prismpath section
-	$prism_title = get_post_meta($program_id, 'program_prism_title', true) ?: __('Our Prismpath™ Focus', 'chroma-excellence');
-	$prism_description = get_post_meta($program_id, 'program_prism_description', true);
-	$prism_focus_items = get_post_meta($program_id, 'program_prism_focus_items', true);
+	$prism_title = chroma_get_translated_meta($program_id, 'program_prism_title', true) ?: __('Our Prismpath™ Focus', 'chroma-excellence');
+	$prism_description = chroma_get_translated_meta($program_id, 'program_prism_description', true);
+	$prism_focus_items = chroma_get_translated_meta($program_id, 'program_prism_focus_items', true);
 
 	// Chart data
 	$prism_physical = get_post_meta($program_id, 'program_prism_physical', true) ?: '50';
@@ -33,8 +33,8 @@ while (have_posts()):
 	$prism_creative = get_post_meta($program_id, 'program_prism_creative', true) ?: '50';
 
 	// Schedule
-	$schedule_title = get_post_meta($program_id, 'program_schedule_title', true) ?: __('A Rhythm, Not a Routine', 'chroma-excellence');
-	$schedule_items = get_post_meta($program_id, 'program_schedule_items', true);
+	$schedule_title = chroma_get_translated_meta($program_id, 'program_schedule_title', true) ?: __('A Rhythm, Not a Routine', 'chroma-excellence');
+	$schedule_items = chroma_get_translated_meta($program_id, 'program_schedule_items', true);
 
 	// Color mapping
 	$color_map = array(
@@ -305,7 +305,7 @@ while (have_posts()):
 								new Chart(ctx, {
 									type: 'radar',
 									data: {
-										labels: ['Physical', 'Emotional', 'Social', 'Academic', 'Creative'],
+										labels: ['<?php _e('Physical', 'chroma-excellence'); ?>', '<?php _e('Emotional', 'chroma-excellence'); ?>', '<?php _e('Social', 'chroma-excellence'); ?>', '<?php _e('Academic', 'chroma-excellence'); ?>', '<?php _e('Creative', 'chroma-excellence'); ?>'],
 										datasets: [{
 											label: '<?php echo esc_js(get_the_title()); ?> Focus',
 											data: [
