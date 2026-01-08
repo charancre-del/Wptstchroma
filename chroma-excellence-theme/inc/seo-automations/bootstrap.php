@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Phase 1: Internal Linking
-// require_once __DIR__ . '/class-related-locations.php';
+require_once __DIR__ . '/class-related-locations.php';
 // require_once __DIR__ . '/class-related-programs.php';
 // require_once __DIR__ . '/class-keyword-linker.php';
 // require_once __DIR__ . '/class-footer-city-links.php';
@@ -22,7 +22,7 @@ if (!defined('ABSPATH')) {
 // require_once __DIR__ . '/class-combo-page-data.php';
 // require_once __DIR__ . '/class-combo-ai-generator.php';
 // require_once __DIR__ . '/class-combo-internal-links.php';
-// require_once __DIR__ . '/class-near-me-pages.php';
+require_once __DIR__ . '/class-near-me-pages.php';
 
 // Phase 3: Technical SEO
 // require_once __DIR__ . '/class-dynamic-titles.php';
