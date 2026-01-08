@@ -2,10 +2,10 @@
 /**
  * Cache Warmer Script (Node.js)
  * 
- * Parses a sitemap and requests each URL to warm up the cache.
+ * Parses one or more sitemaps and requests each URL to warm up the cache.
  * 
  * Usage:
- *   node cache-warmer.mjs <sitemap_url> [options]
+ *   node cache-warmer.mjs <sitemap_url> [sitemap_url_2...] [options]
  *   node cache-warmer.mjs https://example.com/sitemap.xml
  *   node cache-warmer.mjs https://example.com/sitemap.xml --passes=2
  */
@@ -17,7 +17,7 @@ import http from 'http';
 const config = {
     delay: 100,           // Delay between requests in ms
     timeout: 30000,       // Request timeout in ms
-    userAgent: 'CacheWarmer/1.0 (+https://chromaela.com)',
+    userAgent: 'CacheWarmer/1.1 (+https://chromaela.com)',
     mobileUserAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
     verbose: false,
     dryRun: false,
@@ -67,7 +67,83 @@ if (sitemapUrls.length === 0) {
     process.exit(1);
 }
 
-// ... fetchUrl ... (unchanged)
+/**
+ * Fetch URL content
+ */
+function fetchUrl(url, warmCache = false, userAgent = config.userAgent) {
+    return new Promise((resolve) => {
+        const protocol = url.startsWith('https') ? https : http;
+        const headers = {
+            'User-Agent': userAgent,
+        };
+
+        if (warmCache) {
+            headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8';
+            headers['Cache-Control'] = 'no-cache';
+            headers['Pragma'] = 'no-cache';
+        }
+
+        const startTime = Date.now();
+
+        const req = protocol.get(url, { headers, timeout: config.timeout }, (res) => {
+            let data = '';
+            res.on('data', chunk => data += chunk);
+            res.on('end', () => {
+                resolve({
+                    content: data,
+                    httpCode: res.statusCode,
+                    totalTime: (Date.now() - startTime) / 1000,
+                    size: Buffer.byteLength(data, 'utf8'),
+                    error: null,
+                });
+            });
+        });
+
+        req.on('error', (err) => {
+            resolve({
+                content: null,
+                httpCode: 0,
+                totalTime: (Date.now() - startTime) / 1000,
+                size: 0,
+                error: err.message,
+            });
+        });
+
+        req.on('timeout', () => {
+            req.destroy();
+            resolve({
+                content: null,
+                httpCode: 0,
+                totalTime: config.timeout / 1000,
+                size: 0,
+                error: 'Request timeout',
+            });
+        });
+    });
+}
+
+/**
+ * Parse sitemap XML and extract URLs
+ */
+function parseSitemap(xmlContent) {
+    const urls = [];
+    const sitemaps = [];
+
+    // Simple and reliable: extract all <loc> tags directly
+    const locRegex = /<loc>([^<]+)<\/loc>/gi;
+    let match;
+    while ((match = locRegex.exec(xmlContent)) !== null) {
+        const loc = match[1].trim();
+        // Check if this looks like a sitemap URL
+        if (loc.includes('sitemap') && loc.endsWith('.xml')) {
+            sitemaps.push(loc);
+        } else {
+            urls.push({ loc });
+        }
+    }
+
+    return { urls, sitemaps, error: null };
+}
 
 /**
  * Fetch and parse a sitemap (including recursion for index)
@@ -108,11 +184,166 @@ async function processSitemap(url) {
             await sleep(config.delay);
         }
     }
-    
+
     return urls;
 }
 
-// ... (helpers) ...
+/**
+ * Format bytes to human readable
+ */
+function formatBytes(bytes) {
+    if (bytes >= 1048576) {
+        return (bytes / 1048576).toFixed(2) + ' MB';
+    } else if (bytes >= 1024) {
+        return (bytes / 1024).toFixed(2) + ' KB';
+    }
+    return bytes + ' B';
+}
+
+/**
+ * Format time duration
+ */
+function formatDuration(seconds) {
+    if (seconds >= 3600) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    } else if (seconds >= 60) {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${String(s).padStart(2, '0')}`;
+    }
+    return seconds.toFixed(2) + 's';
+}
+
+/**
+ * Sleep for a given number of milliseconds
+ */
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Run a single pass of cache warming
+ */
+async function runWarmUpPass(allUrls, passNumber) {
+    console.log(`\n🔥 Pass ${passNumber}/${config.passes}: Starting cache warm-up...`);
+    console.log('─'.repeat(70));
+
+    const stats = {
+        success: 0,
+        failed: 0,
+        retries: 0,
+        totalTime: 0,
+        totalSize: 0,
+        startTime: Date.now(),
+    };
+
+    const totalUrls = allUrls.length;
+    const maxRetries = 3;
+
+    for (let i = 0; i < totalUrls; i++) {
+        const url = allUrls[i];
+        const current = i + 1;
+        const progress = `[${current}/${totalUrls}]`.padEnd(12);
+        const shortUrl = url.loc.length > 50 ? '...' + url.loc.slice(-47) : url.loc;
+
+        // Desktop Request
+        process.stdout.write(`${progress} ${shortUrl} `);
+
+        let result;
+        let retryCount = 0;
+        let delay = config.delay;
+
+        // Retry loop with exponential backoff for 429 errors
+        do {
+            if (retryCount > 0) {
+                process.stdout.write(`⏳ `);
+                await sleep(delay);
+                delay = Math.min(delay * 2, 5000); // Double delay, max 5 seconds
+                stats.retries++;
+            }
+            result = await fetchUrl(url.loc, true, config.userAgent);
+            retryCount++;
+        } while (result.httpCode === 429 && retryCount < maxRetries);
+
+        if (result.httpCode >= 200 && result.httpCode < 400) {
+            stats.success++;
+            stats.totalTime += result.totalTime;
+            stats.totalSize += result.size;
+
+            const timeStr = Math.round(result.totalTime * 1000) + 'ms';
+            const sizeStr = formatBytes(result.size);
+
+            console.log(`✅ ${result.httpCode} (${timeStr}, ${sizeStr})`);
+        } else {
+            stats.failed++;
+            let errorMsg = `❌ ${result.httpCode}`;
+            if (result.error) {
+                errorMsg += ` - ${result.error}`;
+            }
+            if (retryCount > 1) {
+                errorMsg += ` (after ${retryCount} tries)`;
+            }
+            console.log(errorMsg);
+
+            // Extra sleep on failure to ease rate limits
+            if (result.httpCode === 429) {
+                await sleep(2000);
+            }
+        }
+
+        // Mobile Request (Optional)
+        if (config.mobile) {
+            // Basic wait between desktop and mobile request
+            if (config.delay > 0) await sleep(config.delay);
+
+            process.stdout.write(`${' '.repeat(13)} 📱 Mobile: `);
+
+            let mResult;
+            let mRetryCount = 0;
+            let mDelay = config.delay;
+
+            do {
+                if (mRetryCount > 0) {
+                    process.stdout.write(`⏳ `);
+                    await sleep(mDelay);
+                    mDelay = Math.min(mDelay * 2, 5000);
+                    stats.retries++;
+                }
+                mResult = await fetchUrl(url.loc, true, config.mobileUserAgent);
+                mRetryCount++;
+            } while (mResult.httpCode === 429 && mRetryCount < maxRetries);
+
+            if (mResult.httpCode >= 200 && mResult.httpCode < 400) {
+                stats.success++;
+                stats.totalTime += mResult.totalTime;
+                stats.totalSize += mResult.size;
+
+                const mTimeStr = Math.round(mResult.totalTime * 1000) + 'ms';
+                const mSizeStr = formatBytes(mResult.size);
+
+                console.log(`✅ ${mResult.httpCode} (${mTimeStr}, ${mSizeStr})`);
+            } else {
+                stats.failed++;
+                let mErrorMsg = `❌ ${mResult.httpCode}`;
+                if (mResult.error) {
+                    mErrorMsg += ` - ${mResult.error}`;
+                }
+                console.log(mErrorMsg);
+            }
+        }
+
+        // Delay between URL items
+        if (i < totalUrls - 1) {
+            await sleep(config.delay);
+        }
+    }
+
+    stats.elapsed = (Date.now() - stats.startTime) / 1000;
+    return stats;
+}
 
 // Main execution
 async function main() {
@@ -131,7 +362,7 @@ async function main() {
 
     // Collect all URLs
     let allUrls = [];
-    
+
     for (const url of sitemapUrls) {
         const found = await processSitemap(url);
         allUrls = allUrls.concat(found);
