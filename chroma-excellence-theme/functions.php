@@ -137,7 +137,7 @@ require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 // require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
 
 // SEO Automations (Internal Linking, Geo SEO, etc.)
-// require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
+require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
 
 
 
