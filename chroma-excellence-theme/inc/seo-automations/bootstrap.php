@@ -13,7 +13,7 @@ if (!defined('ABSPATH')) {
 
 // Phase 1: Internal Linking
 require_once __DIR__ . '/class-related-locations.php';
-// require_once __DIR__ . '/class-related-programs.php';
+require_once __DIR__ . '/class-related-programs.php';
 // require_once __DIR__ . '/class-keyword-linker.php';
 // require_once __DIR__ . '/class-footer-city-links.php';
 
