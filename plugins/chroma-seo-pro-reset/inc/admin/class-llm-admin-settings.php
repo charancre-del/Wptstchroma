@@ -114,12 +114,12 @@ class Chroma_LLM_Admin_Settings
                 <h2>API Configuration</h2>
                 <table class="form-table">
                     <tr>
-                        <th>OpenAI API Key</th>
+                        <th>Gemini API Key</th>
                         <td>
                             <input type="password" name="chroma_openai_api_key" 
                                 value="<?php echo esc_attr(get_option('chroma_openai_api_key')); ?>" 
-                                class="regular-text" placeholder="sk-...">
-                            <p class="description">Required for AI schema generation</p>
+                                class="regular-text" placeholder="AIza...">
+                            <p class="description">Required for AI schema generation (uses Gemini API)</p>
                         </td>
                     </tr>
                     <tr>
@@ -134,25 +134,84 @@ class Chroma_LLM_Admin_Settings
                     <tr>
                         <th>Model</th>
                         <td>
-                            <select name="chroma_llm_model">
+                            <select name="chroma_llm_model" id="chroma_llm_model">
                                 <?php 
-                                $current = get_option('chroma_llm_model', 'gpt-4o-mini');
-                                $models = ['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'];
-                                foreach ($models as $m): ?>
-                                    <option value="<?php echo esc_attr($m); ?>" <?php selected($current, $m); ?>><?php echo esc_html($m); ?></option>
+                                $current = get_option('chroma_llm_model', 'gemini-2.0-flash-exp');
+                                $cached_models = get_option('chroma_llm_available_models', []);
+                                
+                                // Default models if none fetched yet
+                                if (empty($cached_models)) {
+                                    $cached_models = [
+                                        'gemini-2.0-flash-exp' => 'Gemini 2.0 Flash (Experimental)',
+                                        'gemini-1.5-flash' => 'Gemini 1.5 Flash (Fast)',
+                                        'gemini-1.5-pro' => 'Gemini 1.5 Pro (Best Quality)',
+                                        'gemini-1.5-flash-8b' => 'Gemini 1.5 Flash 8B (Cheapest)',
+                                    ];
+                                }
+                                foreach ($cached_models as $m => $label): ?>
+                                    <option value="<?php echo esc_attr($m); ?>" <?php selected($current, $m); ?>><?php echo esc_html($label); ?></option>
                                 <?php endforeach; ?>
                             </select>
+                            <button type="button" id="chroma-fetch-models" class="button button-secondary">
+                                <span class="dashicons dashicons-update" style="line-height: 28px;"></span>
+                                Fetch Available Models
+                            </button>
+                            <span id="chroma-fetch-models-status" style="margin-left: 10px;"></span>
+                            <p class="description">Click "Fetch" to load models from your Gemini API (requires valid API key)</p>
                         </td>
                     </tr>
+
                     <tr>
                         <th>Base URL</th>
                         <td>
                             <input type="text" name="chroma_llm_base_url" 
-                                value="<?php echo esc_attr(get_option('chroma_llm_base_url', 'https://api.openai.com/v1')); ?>" 
+                                value="<?php echo esc_attr(get_option('chroma_llm_base_url', 'https://generativelanguage.googleapis.com/v1beta')); ?>" 
                                 class="regular-text">
-                            <p class="description">Change for OpenRouter or local models</p>
+                            <p class="description">Default: https://generativelanguage.googleapis.com/v1beta</p>
                         </td>
                     </tr>
+                </table>
+                
+                <script>
+                jQuery(document).ready(function($) {
+                    $('#chroma-fetch-models').on('click', function() {
+                        var $btn = $(this);
+                        var $status = $('#chroma-fetch-models-status');
+                        var $select = $('#chroma_llm_model');
+                        
+                        $btn.prop('disabled', true);
+                        $status.text('Fetching...').css('color', '');
+                        
+                        $.post(ajaxurl, {
+                            action: 'chroma_fetch_available_models',
+                            nonce: '<?php echo wp_create_nonce('chroma_fetch_models'); ?>'
+                        }, function(response) {
+                            $btn.prop('disabled', false);
+                            
+                            if (response.success && response.data.models) {
+                                var currentVal = $select.val();
+                                $select.empty();
+                                
+                                $.each(response.data.models, function(key, label) {
+                                    $select.append($('<option>', {
+                                        value: key,
+                                        text: label,
+                                        selected: (key === currentVal)
+                                    }));
+                                });
+                                
+                                $status.text('✓ Found ' + Object.keys(response.data.models).length + ' models').css('color', 'green');
+                            } else {
+                                $status.text('✗ ' + (response.data.message || 'Failed to fetch')).css('color', 'red');
+                            }
+                        }).fail(function() {
+                            $btn.prop('disabled', false);
+                            $status.text('✗ Request failed').css('color', 'red');
+                        });
+                    });
+                });
+                </script>
+
                 </table>
 
                 <h2>Organization Information</h2>

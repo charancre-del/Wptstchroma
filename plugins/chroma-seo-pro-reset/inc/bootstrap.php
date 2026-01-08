@@ -68,6 +68,7 @@ chroma_safe_require(__DIR__ . '/admin/class-hreflang-auditor.php');
 chroma_safe_require(__DIR__ . '/class-sitemap-integrator.php');
 chroma_safe_require(__DIR__ . '/class-cli-commands.php');
 chroma_safe_require(__DIR__ . '/class-translation-api.php');
+chroma_safe_require(__DIR__ . '/class-homepage-translation-admin.php');
 
 // Load Theme Schema Compatibility (migrated from seo-engine.php)
 chroma_safe_require(__DIR__ . '/class-theme-schema-compat.php');

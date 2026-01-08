@@ -30,7 +30,73 @@ class Chroma_LLM_Client
         add_action('wp_ajax_chroma_generate_llm_targeting', [$this, 'ajax_generate_llm_targeting']);
         add_action('wp_ajax_chroma_generate_general_seo_meta', [$this, 'ajax_generate_general_seo_meta']);
         add_action('wp_ajax_chroma_translate_text', [$this, 'ajax_translate_text']);
+        add_action('wp_ajax_chroma_fetch_available_models', [$this, 'ajax_fetch_available_models']);
     }
+
+    /**
+     * AJAX: Fetch available models from Gemini API
+     */
+    public function ajax_fetch_available_models() {
+        check_ajax_referer('chroma_fetch_models', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
+        $api_key = get_option('chroma_openai_api_key', '');
+        if (empty($api_key)) {
+            wp_send_json_error(['message' => 'API key not configured']);
+        }
+
+        $base_url = get_option('chroma_llm_base_url', 'https://generativelanguage.googleapis.com/v1beta');
+        $url = rtrim($base_url, '/') . '/models?key=' . $api_key;
+
+        $response = wp_remote_get($url, [
+            'timeout' => 15,
+            'headers' => [
+                'Content-Type' => 'application/json'
+            ]
+        ]);
+
+        if (is_wp_error($response)) {
+            wp_send_json_error(['message' => $response->get_error_message()]);
+        }
+
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+
+        if (empty($body['models'])) {
+            wp_send_json_error(['message' => 'No models returned from API. Check your API key.']);
+        }
+
+        // Parse models - filter to only generation models
+        $models = [];
+        foreach ($body['models'] as $model) {
+            $name = $model['name'] ?? '';
+            $display_name = $model['displayName'] ?? $name;
+            
+            // Extract the model ID (e.g., "models/gemini-2.0-flash-exp" -> "gemini-2.0-flash-exp")
+            $model_id = str_replace('models/', '', $name);
+            
+            // Only include generative models (skip embedding, etc.)
+            $supported = $model['supportedGenerationMethods'] ?? [];
+            if (in_array('generateContent', $supported)) {
+                $models[$model_id] = $display_name;
+            }
+        }
+
+        if (empty($models)) {
+            wp_send_json_error(['message' => 'No generative models found']);
+        }
+
+        // Sort models alphabetically
+        asort($models);
+        
+        // Cache the models
+        update_option('chroma_llm_available_models', $models);
+
+        wp_send_json_success(['models' => $models]);
+    }
+
 
     /**
      * Render Settings Section
