@@ -354,6 +354,24 @@ class Chroma_Combo_Page_Generator
                 $county = $combo_custom_data['county'];
             }
         }
+        
+        // Spanish Override
+        $lang = function_exists('chroma_detect_current_language') ? chroma_detect_current_language() : 'en';
+        
+        if ($lang === 'es' && !empty($combo_custom_data)) {
+            if (!empty($combo_custom_data['neighborhoods_es'])) {
+                $neighborhoods = $combo_custom_data['neighborhoods_es'];
+            }
+            if (!empty($combo_custom_data['major_road_es'])) {
+                $major_road = $combo_custom_data['major_road_es'];
+            }
+            if (!empty($combo_custom_data['local_employers_es'])) {
+                $local_employers = $combo_custom_data['local_employers_es'];
+            }
+            if (!empty($combo_custom_data['custom_intro_es'])) {
+                $combo_custom_data['custom_intro'] = $combo_custom_data['custom_intro_es'];
+            }
+        }
 
         // Fallback neighborhoods if none defined
         if (empty($neighborhoods)) {
@@ -1013,6 +1031,7 @@ class Chroma_Combo_Page_Generator
                     <select id="bulk-action-selector">
                         <option value="">Bulk Actions</option>
                         <option value="ai_generate">🤖 AI Generate Content</option>
+                        <option value="ai_translate">🌐 Translate to Spanish</option>
                         <option value="set_published">📤 Set as Published</option>
                         <option value="set_draft">📝 Set as Draft</option>
                     </select>
@@ -1089,6 +1108,7 @@ class Chroma_Combo_Page_Generator
                             <a href="<?php echo esc_url($combo['url']); ?>" target="_blank" class="button button-small">Preview</a>
                             <button type="button" class="button button-small edit-combo-btn" title="Edit">✏️ Edit</button>
                             <button type="button" class="button button-small ai-generate-btn" title="AI Generate">🤖</button>
+                            <button type="button" class="button button-small ai-translate-btn" title="Translate to Spanish">🌐</button>
                         </td>
                     </tr>
                     <?php endforeach; ?>
@@ -1286,6 +1306,34 @@ class Chroma_Combo_Page_Generator
                 });
             });
             
+            // AI Translate
+            $('.ai-translate-btn').on('click', function() {
+                var $row = $(this).closest('tr');
+                var program = $row.data('program');
+                var city = $row.data('city');
+                var state = $row.data('state');
+                var $btn = $(this);
+                
+                if (!confirm('Translate this page\'s content to Spanish using AI?')) return;
+                
+                $btn.prop('disabled', true).text('⏳');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_combo_ai_translate',
+                    nonce: nonce,
+                    program_slug: program,
+                    city_slug: city,
+                    state: state
+                }, function(response) {
+                    $btn.prop('disabled', false).text('🌐');
+                    if (response.success) {
+                        alert('Translation complete!');
+                    } else {
+                        alert('Error: ' + (response.data || 'Unknown error'));
+                    }
+                });
+            });
+            
             // Close modal (only when clicking the background or cancel button)
             $('#close-modal-btn').on('click', function() {
                 $('#combo-edit-modal').fadeOut(200);
@@ -1376,9 +1424,11 @@ class Chroma_Combo_Page_Generator
                 var $btn = $(this).prop('disabled', true).text('Processing...');
                 $('#bulk-status').text('Processing ' + combos.length + ' items...');
                 
-                if (action === 'ai_generate') {
+                if (action === 'ai_generate' || action === 'ai_translate') {
+                    var ajax_action = action === 'ai_translate' ? 'chroma_combo_ai_bulk_translate' : 'chroma_combo_ai_bulk_generate';
+                    
                     $.post(ajaxurl, {
-                        action: 'chroma_combo_ai_bulk_generate',
+                        action: ajax_action,
                         nonce: nonce,
                         combos: combos
                     }, function(response) {

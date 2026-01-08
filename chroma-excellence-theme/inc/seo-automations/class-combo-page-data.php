@@ -60,6 +60,13 @@ class Chroma_Combo_Page_Data
             'custom_intro' => '',
             'custom_benefits' => [],
             'faqs' => [],
+            
+            // Spanish Translation Fields
+            'neighborhoods_es' => [],
+            'major_road_es' => '',
+            'local_employers_es' => '',
+            'custom_intro_es' => '',
+            
             'status' => 'auto', // auto, draft, published
             'last_ai_update' => null,
             'last_updated' => null,

@@ -19,6 +19,8 @@ class Chroma_Combo_AI_Generator
         add_action('wp_ajax_chroma_combo_bulk_status', [$this, 'ajax_bulk_status_update']);
         add_action('wp_ajax_chroma_combo_save_data', [$this, 'ajax_save_data']);
         add_action('wp_ajax_chroma_combo_get_data', [$this, 'ajax_get_data']);
+        add_action('wp_ajax_chroma_combo_ai_translate', [$this, 'ajax_translate_single']);
+        add_action('wp_ajax_chroma_combo_ai_bulk_translate', [$this, 'ajax_bulk_translate']);
     }
     
     /**
@@ -260,6 +262,193 @@ class Chroma_Combo_AI_Generator
             'county' => $data['county'] ?? '',
             'custom_intro' => $data['custom_intro'] ?? ''
         ];
+    }
+    
+    /**
+     * Translate content to Spanish using LLM
+     */
+    public function ajax_translate_single() {
+        check_ajax_referer('chroma_combo_ai', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        $program_slug = sanitize_title($_POST['program_slug'] ?? '');
+        $city_slug = sanitize_title($_POST['city_slug'] ?? '');
+        $state = strtoupper(sanitize_text_field($_POST['state'] ?? 'GA'));
+        
+        // Get existing data
+        $data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
+        
+        // If data is empty or defaults, nothing to translate
+        if (!Chroma_Combo_Page_Data::has_data($program_slug, $city_slug, $state)) {
+             wp_send_json_error('No content to translate. Please generate English content first.');
+        }
+        
+        $city_name = ucwords(str_replace('-', ' ', $city_slug));
+        $program = get_page_by_path($program_slug, OBJECT, 'program');
+        $program_name = $program ? $program->post_title : ucwords(str_replace('-', ' ', $program_slug));
+        
+        // Perform Translation
+        $translation = $this->translate_combo_content($data, $program_name, $city_name);
+        
+        if (is_wp_error($translation)) {
+            wp_send_json_error($translation->get_error_message());
+        }
+        
+        // Allow partial updates - only update Spanish fields
+        $data['neighborhoods_es'] = $translation['neighborhoods_es'];
+        $data['major_road_es'] = $translation['major_road_es'];
+        $data['local_employers_es'] = $translation['local_employers_es'];
+        $data['custom_intro_es'] = $translation['custom_intro_es'];
+        
+        Chroma_Combo_Page_Data::save($program_slug, $city_slug, $state, $data);
+        
+        wp_send_json_success([
+            'message' => 'Spanish translation generated successfully'
+        ]);
+    }
+
+    /**
+     * Generate translation using LLM
+     */
+    private function translate_combo_content($data, $program_name, $city_name) {
+        /** @var Chroma_LLM_Client $chroma_llm_client */
+        global $chroma_llm_client;
+        
+        if (!$chroma_llm_client) {
+            return new WP_Error('no_llm', 'LLM client not available');
+        }
+        
+        $source_json = json_encode([
+            'neighborhoods' => $data['neighborhoods'],
+            'major_road' => $data['major_road'],
+            'local_employers' => $data['local_employers'],
+            'custom_intro' => $data['custom_intro']
+        ]);
+        
+        $prompt = <<<PROMPT
+Translate the following local SEO data from English to Spanish for a childcare page ($program_name in $city_name).
+Keep proper names (cities, roads, companies) in English if that is standard usage, but translate descriptions.
+Return JSON only:
+
+Source:
+$source_json
+
+Output Format:
+{
+    "neighborhoods_es": ["Barrio 1", ...],
+    "major_road_es": "...",
+    "local_employers_es": "...",
+    "custom_intro_es": "..."
+}
+PROMPT;
+
+        $response = $chroma_llm_client->make_request([
+            'model' => get_option('chroma_llm_model', 'gpt-4o-mini'),
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'You are a professional English-Spanish translator for a US-based audience. Return valid JSON only.'
+                ],
+                [
+                    'role' => 'user',
+                    'content' => $prompt
+                ]
+            ],
+            'response_format' => ['type' => 'json_object'],
+            'temperature' => 0.5
+        ]);
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        $content = $response['choices'][0]['message']['content'] ?? '';
+        $result = json_decode($content, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            return new WP_Error('json_error', 'Failed to parse translation response');
+        }
+        
+        return $result;
+    }
+
+    /**
+     * Bulk translate content
+     */
+    public function ajax_bulk_translate() {
+        check_ajax_referer('chroma_combo_ai', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        
+        $combos = $_POST['combos'] ?? [];
+        if (empty($combos)) {
+            wp_send_json_error('No combos selected');
+        }
+        
+        $results = [];
+        $success_count = 0;
+        $error_count = 0;
+        
+        foreach ($combos as $combo) {
+            $program_slug = sanitize_title($combo['program_slug'] ?? '');
+            $city_slug = sanitize_title($combo['city_slug'] ?? '');
+            $state = strtoupper(sanitize_text_field($combo['state'] ?? 'GA'));
+            
+            // Get existing data
+            $data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
+            
+            if (!Chroma_Combo_Page_Data::has_data($program_slug, $city_slug, $state)) {
+                $error_count++;
+                $results[] = [
+                    'combo' => "$program_slug in $city_slug",
+                    'status' => 'error',
+                    'message' => 'No English content found'
+                ];
+                continue;
+            }
+            
+            $city_name = ucwords(str_replace('-', ' ', $city_slug));
+            $program = get_page_by_path($program_slug, OBJECT, 'program');
+            $program_name = $program ? $program->post_title : ucwords(str_replace('-', ' ', $program_slug));
+            
+            $translation = $this->translate_combo_content($data, $program_name, $city_name);
+            
+            if (is_wp_error($translation)) {
+                $results[] = [
+                    'combo' => "$program_name in $city_name",
+                    'status' => 'error',
+                    'message' => $translation->get_error_message()
+                ];
+                $error_count++;
+            } else {
+                $data['neighborhoods_es'] = $translation['neighborhoods_es'];
+                $data['major_road_es'] = $translation['major_road_es'];
+                $data['local_employers_es'] = $translation['local_employers_es'];
+                $data['custom_intro_es'] = $translation['custom_intro_es'];
+                
+                Chroma_Combo_Page_Data::save($program_slug, $city_slug, $state, $data);
+                
+                $results[] = [
+                    'combo' => "$program_name in $city_name",
+                    'status' => 'success'
+                ];
+                $success_count++;
+            }
+            
+            // Add a small delay
+            usleep(500000); // 0.5 seconds
+        }
+        
+        wp_send_json_success([
+            'results' => $results,
+            'success_count' => $success_count,
+            'error_count' => $error_count
+        ]);
     }
     
     /**
