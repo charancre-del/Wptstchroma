@@ -110,9 +110,6 @@ class Chroma_Related_Programs
         <?php
         return ob_get_clean();
     }
-        <?php
-        return ob_get_clean();
-    }
     
     /**
      * Get locations offering a program
