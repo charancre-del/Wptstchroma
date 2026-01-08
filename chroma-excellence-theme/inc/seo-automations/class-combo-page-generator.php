@@ -414,6 +414,29 @@ class Chroma_Combo_Page_Generator
         $str_visit_classroom = sprintf(__('Visit Our %s Classroom', 'chroma-excellence'), $t_city_name);
         $str_see_environment = sprintf(__('See the %s environment in person. Meet our Director and teachers.', 'chroma-excellence'), $t_prog_title);
         $str_more_options = sprintf(__('More Childcare Options in %s', 'chroma-excellence'), $t_city_name);
+        
+        // Location Text Logic
+        $t_major_road = $major_road;
+        $t_county = $county;
+        
+        if ($t_major_road) {
+            $str_location_intro = sprintf(__('Located conveniently off %s, our', 'chroma-excellence'), '<strong>' . esc_html($t_major_road) . '</strong>');
+        } else {
+            $str_location_intro = __('Our', 'chroma-excellence');
+        }
+
+        $t_neighborhoods_html = '<strong>' . implode('</strong>, <strong>', array_map('esc_html', array_slice($neighborhoods, 0, 3))) . '</strong>';
+        $str_location_main = sprintf(__('%s campus is the preferred choice for families living in %s.', 'chroma-excellence'), esc_html($t_city_name), $t_neighborhoods_html);
+
+        if ($local_employers) {
+            $str_commute = sprintf(__('Whether you work at %s or commute via %s, our drop-off and pick-up hours (6:30 AM – 6:30 PM) are designed for working parents in %s County.', 'chroma-excellence'), 
+                '<strong>' . esc_html($local_employers) . '</strong>', 
+                esc_html($t_major_road ?: 'GA-400'), 
+                esc_html($t_county)
+            );
+        } else {
+            $str_commute = sprintf(__('Our convenient hours (6:30 AM – 6:30 PM) are designed for working parents in %s County.', 'chroma-excellence'), esc_html($t_county));
+        }
         ?>
         <main class="combo-page bg-brand-cream">
             
@@ -532,19 +555,10 @@ class Chroma_Combo_Page_Generator
                         <?php if (count($neighborhoods) > 1): ?> & <?php echo esc_html($neighborhoods[1]); ?><?php endif; ?>
                     </h2>
                     <p class="text-lg text-brand-ink/70 leading-relaxed">
-                        <?php if ($major_road): ?>
-                        Located conveniently off <strong><?php echo esc_html($major_road); ?></strong>, our 
-                        <?php else: ?>
-                        Our 
-                        <?php endif; ?>
-                        <?php echo esc_html($city_name); ?> campus is the preferred choice for families living in 
-                        <strong><?php echo implode('</strong>, <strong>', array_map('esc_html', array_slice($neighborhoods, 0, 3))); ?></strong>.
+                        <?php echo $str_location_intro; ?> 
+                        <?php echo $str_location_main; ?>
                         <br><br>
-                        <?php if ($local_employers): ?>
-                        Whether you work at <strong><?php echo esc_html($local_employers); ?></strong> or commute via <?php echo esc_html($major_road ?: 'GA-400'); ?>, our drop-off and pick-up hours (6:30 AM – 6:30 PM) are designed for working parents in <?php echo esc_html($county); ?> County.
-                        <?php else: ?>
-                        Our convenient hours (6:30 AM – 6:30 PM) are designed for working parents in <?php echo esc_html($county); ?> County.
-                        <?php endif; ?>
+                        <?php echo $str_commute; ?>
                     </p>
                 </div>
             </section>
