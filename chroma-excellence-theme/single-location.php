@@ -28,7 +28,7 @@ while (have_posts()):
 	$hero_gallery_raw = chroma_get_translated_meta($location_id, 'location_hero_gallery');
 	$virtual_tour_embed = chroma_get_translated_meta($location_id, 'location_virtual_tour_embed');
 	$tagline = chroma_get_translated_meta($location_id, 'location_tagline') ?: sprintf(__("%s's home for brilliant beginnings.", 'chroma-excellence'), $city);
-	$description = chroma_get_translated_meta($location_id, 'location_description') ?: get_the_excerpt();
+	$description = chroma_get_translated_meta($location_id, 'location_description') ?: get_the_content();
 
 	// Parse hero gallery URLs (one per line)
 	$hero_gallery = array();
@@ -116,9 +116,9 @@ while (have_posts()):
 						<?php echo esc_html($tagline); ?>
 					</p>
 
-					<p class="text-lg text-brand-ink/90 mb-8 max-w-xl leading-relaxed">
-						<?php echo esc_html($description); ?>
-					</p>
+					<div class="text-lg text-brand-ink/90 mb-8 max-w-xl leading-relaxed">
+						<?php echo wp_kses_post(wpautop($description)); ?>
+					</div>
 
 					<div class="flex flex-wrap gap-4 mb-10">
 						<a href="#tour"
@@ -705,6 +705,13 @@ while (have_posts()):
 				</div>
 			</section>
 		<?php endif; ?>
+
+		<!-- Filtered Content (Badges, Related Locations, etc.) -->
+		<section class="pb-24 bg-brand-cream">
+			<div class="max-w-7xl mx-auto px-4 lg:px-6">
+				<?php the_content(); ?>
+			</div>
+		</section>
 
 	</main>
 

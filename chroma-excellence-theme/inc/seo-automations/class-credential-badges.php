@@ -155,7 +155,7 @@ class Chroma_Credential_Badges
      * Auto-append badges to location pages
      */
     public function auto_append_badges($content) {
-        if (!is_singular('location')) {
+        if (!is_singular('location') || doing_filter('get_the_excerpt')) {
             return $content;
         }
         

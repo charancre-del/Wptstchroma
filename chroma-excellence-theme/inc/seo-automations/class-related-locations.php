@@ -22,7 +22,7 @@ class Chroma_Related_Locations
      * Append related locations after content
      */
     public function append_related_locations($content) {
-        if (!is_singular('location')) {
+        if (!is_singular('location') || doing_filter('get_the_excerpt')) {
             return $content;
         }
         
