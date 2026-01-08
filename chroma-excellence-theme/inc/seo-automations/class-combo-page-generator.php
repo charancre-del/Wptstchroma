@@ -284,6 +284,11 @@ class Chroma_Combo_Page_Generator
      * Get combo page HTML content
      */
     public function get_combo_page_html($program, $city_slug, $state, $location) {
+        // Defensive check
+        if (!$program || !is_a($program, 'WP_Post')) {
+            return '<div class="py-20 text-center">System validation error: Invalid Program Object.</div>';
+        }
+
         $city_name = ucwords(str_replace('-', ' ', $city_slug));
         
         // Get program details
