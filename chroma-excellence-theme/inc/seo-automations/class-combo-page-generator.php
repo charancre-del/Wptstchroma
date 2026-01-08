@@ -367,7 +367,7 @@ class Chroma_Combo_Page_Generator
         } else {
             // Default fallback logic
             $intro_text = sprintf(
-                'Searching for the best %s near %s? At Chroma %s, we combine the safety you need with the enriching curriculum your child deserves.',
+                __('Searching for the best %s near %s? At Chroma %s, we combine the safety you need with the enriching curriculum your child deserves.', 'chroma-excellence'),
                 strtolower($program->post_title),
                 esc_html($neighborhoods[0] ?? $city_name),
                 esc_html($city_name)
