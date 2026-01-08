@@ -162,14 +162,17 @@ class Chroma_Related_Locations
                             <?php endif; ?>
 
                             <div class="flex flex-wrap gap-2 mb-4">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-blueLight/50 text-chroma-blueDark text-[10px] font-bold uppercase rounded-full border border-chroma-blueDark/10">
-                                    <i class="fa-solid fa-building-columns"></i> <?php _e('GA DECAL Licensed', 'chroma-excellence'); ?>
-                                </span>
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-yellowLight/50 text-chroma-yellowDark text-[10px] font-bold uppercase rounded-full border border-chroma-yellowDark/10">
-                                    <i class="fa-solid fa-check"></i> <?php _e('Quality Rated', 'chroma-excellence'); ?>
-                                </span>
+                                <?php if ($is_decal): ?>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-blueLight/50 text-chroma-blueDark text-[10px] font-bold uppercase rounded-full border border-chroma-blueDark/10">
+                                        <i class="fa-solid fa-building-columns"></i> GA DECAL Licensed
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($quality_rated): ?>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-yellowLight/50 text-chroma-yellowDark text-[10px] font-bold uppercase rounded-full border border-chroma-yellowDark/10">
+                                        <i class="fa-solid fa-check"></i> Quality Rated
+                                    </span>
+                                <?php endif; ?>
                             </div>
-
 
                             <div class="mt-auto flex items-center justify-between">
                                 <?php if ($distance !== null): ?>

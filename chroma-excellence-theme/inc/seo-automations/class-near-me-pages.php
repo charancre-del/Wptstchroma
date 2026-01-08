@@ -209,14 +209,17 @@ class Chroma_Near_Me_Pages
                                 </p>
 
                                 <div class="flex flex-wrap gap-2 mb-8">
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-blueLight/50 text-chroma-blueDark text-[9px] font-bold uppercase rounded-full">
-                                        <i class="fa-solid fa-building-columns"></i> <?php _e('GA DECAL Licensed', 'chroma-excellence'); ?>
-                                    </span>
-                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-yellowLight/50 text-chroma-yellowDark text-[9px] font-bold uppercase rounded-full">
-                                        <i class="fa-solid fa-star"></i> <?php _e('Quality Rated', 'chroma-excellence'); ?>
-                                    </span>
+                                    <?php if ($is_decal): ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-blueLight/50 text-chroma-blueDark text-[9px] font-bold uppercase rounded-full">
+                                            <i class="fa-solid fa-graduation-cap"></i> DECAL
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if ($quality_rated): ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-yellowLight/50 text-chroma-yellowDark text-[9px] font-bold uppercase rounded-full">
+                                            <i class="fa-solid fa-star"></i> Quality Rated
+                                        </span>
+                                    <?php endif; ?>
                                 </div>
-
 
                                 <div class="grid grid-cols-2 gap-3 mt-auto">
                                     <a href="<?php echo esc_url($loc['url']); ?>" class="flex items-center justify-center py-4 rounded-2xl bg-brand-ink text-white text-[10px] font-bold uppercase tracking-widest hover:bg-chroma-blueDark transition-colors">
