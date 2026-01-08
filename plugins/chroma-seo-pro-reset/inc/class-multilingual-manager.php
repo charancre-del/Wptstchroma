@@ -74,7 +74,7 @@ class Chroma_Multilingual_Manager
         add_action('wp_head', [$this, 'output_fallback_css']);
         
         // Browser Language Detection (Auto-redirect to /es/)
-        add_action('template_redirect', [$this, 'detect_browser_language']);
+        // add_action('template_redirect', [$this, 'detect_browser_language']);
 
         // Dynamic Translation of common UI strings
         add_filter('gettext', [$this, 'dynamic_translation_filter'], 20, 3);
@@ -152,9 +152,22 @@ class Chroma_Multilingual_Manager
             return true;
         }
         
-        // Fallback: Check URL structure directly (useful during setup/debug or early hooks)
-        if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/es/') === 0) {
-            return true;
+        // Fallback: Check URL structure directly (Robust for subdirectories)
+        if (isset($_SERVER['REQUEST_URI'])) {
+            $req_uri = $_SERVER['REQUEST_URI'];
+            $wp_home_path = parse_url(home_url(), PHP_URL_PATH); // e.g. / or /subdir/
+            
+            // Remove installation path from request URI
+            if ($wp_home_path && $wp_home_path !== '/') {
+                 if (strpos($req_uri, $wp_home_path) === 0) {
+                     $req_uri = substr($req_uri, strlen($wp_home_path));
+                 }
+            }
+            
+            // Should now accept /es/ or /es at start
+            if (preg_match('#^/?es(/|$)#', $req_uri)) {
+                return true;
+            }
         }
 
         return false;

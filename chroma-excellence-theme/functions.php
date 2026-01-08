@@ -13,6 +13,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// TEMP: Flush Rewrite Rules for Spanish Pages
+add_action('admin_init', function() {
+    if (!get_option('chroma_rewrites_flushed_v2')) {
+        flush_rewrite_rules();
+        update_option('chroma_rewrites_flushed_v2', true);
+    }
+});
+
 /**
  * Increase Memory Limit for SEO Engine
  */
