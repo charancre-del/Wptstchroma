@@ -127,6 +127,9 @@ require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 // SEO Automations (Internal Linking, Geo SEO, etc.)
 require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
 
+// Spanish Variant Generator
+require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
+
 
 
 require_once CHROMA_THEME_DIR . '/inc/security.php';
