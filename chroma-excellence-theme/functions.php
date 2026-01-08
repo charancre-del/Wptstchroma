@@ -8,13 +8,25 @@
  * @since 1.0.0
  */
 
-// Exit if accessed directly
-if (!defined('ABSPATH')) {
-    exit;
-}
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 // Exit if accessed directly
 if (!defined('ABSPATH')) {
+
+    exit;
+}
+
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Exit if accessed directly
+if (!defined('ABSPATH')) {
+
     exit;
 }
 
@@ -115,7 +127,7 @@ require_once CHROMA_THEME_DIR . '/inc/cleanup.php';
 // SEO and Internationalization
 require_once CHROMA_THEME_DIR . '/inc/seo-engine.php';
 require_once CHROMA_THEME_DIR . '/inc/city-slug-logic.php';
-require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
+// require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
 require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 
 // LLM SEO / Citation Module (Legacy - Disabled to prevent conflict with Advanced SEO/LLM)
@@ -125,7 +137,7 @@ require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 // require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
 
 // SEO Automations (Internal Linking, Geo SEO, etc.)
-require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
+// require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
 
 
 
