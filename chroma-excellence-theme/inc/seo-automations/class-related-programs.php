@@ -47,14 +47,11 @@ class Chroma_Related_Programs
      * Get programs offered at a location
      */
     private function get_programs_at_location($location_id) {
-        // Try ACF relationship field
         $programs = [];
-        
         if (function_exists('get_field')) {
             $programs = get_field('location_programs', $location_id);
         }
         
-        // Fallback: get all programs
         if (empty($programs)) {
             $programs = get_posts([
                 'post_type' => 'program',
@@ -67,56 +64,52 @@ class Chroma_Related_Programs
             return '';
         }
         
+        $color_map = array(
+            'infant' => array('bg' => 'chroma-redLight', 'text' => 'chroma-red', 'border' => 'chroma-red/30'),
+            'toddler' => array('bg' => 'chroma-blueLight', 'text' => 'chroma-blue', 'border' => 'chroma-blue/30'),
+            'preschool' => array('bg' => 'chroma-yellowLight', 'text' => 'chroma-yellow', 'border' => 'chroma-yellow/30'),
+            'prek' => array('bg' => 'chroma-greenLight', 'text' => 'chroma-green', 'border' => 'chroma-green/30'),
+            'afterschool' => array('bg' => 'chroma-blueLight', 'text' => 'chroma-blue', 'border' => 'chroma-blue/30'),
+        );
+
         ob_start();
         ?>
-        <section class="chroma-related-programs">
-            <h2>Programs at This Location</h2>
-            <div class="programs-grid">
+        <section class="chroma-related-programs py-12 border-t border-brand-ink/5 mt-16">
+            <h2 class="font-serif text-3xl font-bold text-brand-ink mb-8"><?php _e('Programs at This Location', 'chroma-excellence'); ?></h2>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <?php foreach ($programs as $prog): 
                     $prog_id = is_object($prog) ? $prog->ID : $prog;
                     $prog_obj = is_object($prog) ? $prog : get_post($prog);
                     if (!$prog_obj) continue;
                     
                     $age_range = get_post_meta($prog_id, 'program_age_range', true);
+                    $slug = $prog_obj->post_name;
+                    $colors = $color_map[$slug] ?? $color_map['toddler'];
                 ?>
-                <a href="<?php echo get_permalink($prog_id); ?>" class="program-card">
+                <div class="program-card bg-white rounded-3xl shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition group overflow-hidden flex items-center p-4 relative">
+                    <a href="<?php echo get_permalink($prog_id); ?>" class="absolute inset-0 z-10" aria-label="<?php echo esc_attr($prog_obj->post_title); ?>"></a>
+                    
                     <?php if (has_post_thumbnail($prog_id)): ?>
-                        <?php echo get_the_post_thumbnail($prog_id, 'thumbnail'); ?>
+                        <div class="w-16 h-16 rounded-xl overflow-hidden shrink-0 mr-4">
+                            <?php echo get_the_post_thumbnail($prog_id, 'thumbnail', ['class' => 'w-full h-full object-cover group-hover:scale-110 transition-transform']); ?>
+                        </div>
                     <?php endif; ?>
+
                     <div class="program-info">
-                        <h3><?php echo esc_html($prog_obj->post_title); ?></h3>
+                        <h3 class="font-serif text-lg font-bold text-brand-ink mb-1"><?php echo esc_html($prog_obj->post_title); ?></h3>
                         <?php if ($age_range): ?>
-                            <span class="age-range">Ages: <?php echo esc_html($age_range); ?></span>
+                            <span class="bg-<?php echo esc_attr($colors['bg']); ?> text-<?php echo esc_attr($colors['text']); ?> px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide">
+                                Ages: <?php echo esc_html($age_range); ?>
+                            </span>
                         <?php endif; ?>
                     </div>
-                </a>
+                </div>
                 <?php endforeach; ?>
             </div>
         </section>
-        <style>
-            .chroma-related-programs { margin: 40px 0; }
-            .chroma-related-programs h2 { margin-bottom: 20px; }
-            .programs-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 15px;
-            }
-            .program-card {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                padding: 12px;
-                background: #f5f5f5;
-                border-radius: 8px;
-                text-decoration: none;
-                color: inherit;
-                transition: background 0.2s;
-            }
-            .program-card:hover { background: #e8e8e8; }
-            .program-card img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; }
-            .program-card h3 { margin: 0; font-size: 15px; }
-            .program-card .age-range { font-size: 12px; color: #666; }
-        </style>
+        <?php
+        return ob_get_clean();
+    }
         <?php
         return ob_get_clean();
     }
@@ -125,7 +118,6 @@ class Chroma_Related_Programs
      * Get locations offering a program
      */
     private function get_locations_with_program($program_id) {
-        // Query locations that have this program in their relationship
         $locations = get_posts([
             'post_type' => 'location',
             'posts_per_page' => -1,
@@ -133,13 +125,12 @@ class Chroma_Related_Programs
             'meta_query' => [
                 [
                     'key' => 'location_programs',
-                    'value' => $program_id,
-                    'compare' => 'LIKE'
+                    'value' => '(^|;)i:' . intval($program_id) . ';',
+                    'compare' => 'REGEXP'
                 ]
             ]
         ]);
         
-        // Fallback: all locations
         if (empty($locations)) {
             $locations = get_posts([
                 'post_type' => 'location',
@@ -154,45 +145,58 @@ class Chroma_Related_Programs
         
         ob_start();
         ?>
-        <section class="chroma-locations-with-program">
-            <h2>Locations Offering This Program</h2>
-            <div class="locations-list">
-                <?php foreach ($locations as $loc): 
-                    $city = get_post_meta($loc->ID, 'location_city', true);
-                    $phone = get_post_meta($loc->ID, 'location_phone', true);
-                ?>
-                <a href="<?php echo get_permalink($loc); ?>" class="location-item">
-                    <h3><?php echo esc_html($loc->post_title); ?></h3>
-                    <?php if ($city): ?>
-                        <span class="city"><?php echo esc_html($city); ?></span>
-                    <?php endif; ?>
-                    <?php if ($phone): ?>
-                        <span class="phone"><?php echo esc_html($phone); ?></span>
-                    <?php endif; ?>
-                </a>
-                <?php endforeach; ?>
+        <section class="chroma-locations-with-program py-16 border-t border-brand-ink/5 bg-brand-cream/30 mt-16">
+            <div class="max-w-7xl mx-auto px-4 lg:px-6">
+                <h2 class="font-serif text-3xl font-bold text-brand-ink mb-10"><?php _e('Locations Offering This Program', 'chroma-excellence'); ?></h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <?php foreach ($locations as $loc): 
+                        $location_id = $loc->ID;
+                        $city = get_post_meta($location_id, 'location_city', true);
+                        $phone = get_post_meta($location_id, 'location_phone', true);
+                        
+                        // Get region colors
+                        $regions = wp_get_post_terms($location_id, 'location_region');
+                        $region_term = !empty($regions) && !is_wp_error($regions) ? $regions[0] : null;
+                        $colors = $region_term ? chroma_get_region_color_from_term($region_term->term_id) : array(
+                            'bg' => 'chroma-blueLight', 'text' => 'chroma-blue', 'border' => 'chroma-blue'
+                        );
+                    ?>
+                    <div class="location-card group">
+                        <div class="bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?>/30 transition-all hover:-translate-y-1 h-full flex flex-col relative overflow-hidden">
+                            
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="bg-<?php echo esc_attr($colors['bg']); ?> text-<?php echo esc_attr($colors['text']); ?> px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                                    <?php echo $region_term ? esc_html($region_term->name) : 'Metro Atlanta'; ?>
+                                </span>
+                            </div>
+
+                            <h3 class="font-serif text-2xl font-bold text-brand-ink mb-2 group-hover:text-<?php echo esc_attr($colors['text']); ?> transition-colors">
+                                <a href="<?php echo get_permalink($loc); ?>"><?php echo esc_html($loc->post_title); ?></a>
+                            </h3>
+                            
+                            <?php if ($city): ?>
+                                <p class="text-sm text-brand-ink/80 mb-6">Serving families in <?php echo esc_html($city); ?></p>
+                            <?php endif; ?>
+
+                            <div class="mt-auto grid grid-cols-2 gap-3">
+                                <a href="<?php echo get_permalink($loc); ?>" class="flex items-center justify-center py-4 rounded-2xl bg-brand-ink text-white text-[10px] font-bold uppercase tracking-widest hover:bg-chroma-blueDark transition-colors">
+                                    <?php _e('View Campus', 'chroma-excellence'); ?>
+                                </a>
+                                <?php if ($phone): ?>
+                                    <a href="tel:<?php echo esc_attr(preg_replace('/[^0-9]/', '', $phone)); ?>" class="flex items-center justify-center py-4 rounded-2xl border border-brand-ink/10 text-brand-ink text-[10px] font-bold uppercase tracking-widest hover:bg-brand-cream/50 transition-colors">
+                                        <i class="fa-solid fa-phone mr-1.5"></i> <?php _e('Call', 'chroma-excellence'); ?>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </section>
-        <style>
-            .chroma-locations-with-program { margin: 40px 0; }
-            .chroma-locations-with-program h2 { margin-bottom: 20px; }
-            .locations-list {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                gap: 15px;
-            }
-            .location-item {
-                padding: 15px;
-                background: #f5f5f5;
-                border-radius: 8px;
-                text-decoration: none;
-                color: inherit;
-            }
-            .location-item:hover { background: #e8e8e8; }
-            .location-item h3 { margin: 0 0 5px; font-size: 16px; }
-            .location-item .city { display: block; color: #666; font-size: 14px; }
-            .location-item .phone { display: block; color: #0073aa; font-size: 14px; margin-top: 5px; }
-        </style>
+        <?php
+        return ob_get_clean();
+    }
         <?php
         return ob_get_clean();
     }

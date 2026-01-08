@@ -41,10 +41,41 @@ if (!function_exists('chroma_url')) {
 }
 
 if (!function_exists('chroma_get_theme_mod')) {
+    /**
+     * Get theme mod with Spanish translation support.
+     * When viewing /es/, checks for _chroma_es_{key} post meta on the front page first.
+     *
+     * @param string $name Theme mod name
+     * @param mixed $default Default value
+     * @return mixed
+     */
     function chroma_get_theme_mod($name, $default = false) {
+        // Check for Spanish override on homepage
+        $is_spanish = false;
+        
+        if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/es/') !== false) {
+            $is_spanish = true;
+        }
+        
+        if (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish')) {
+            $is_spanish = Chroma_Multilingual_Manager::is_spanish();
+        }
+
+        if ($is_spanish) {
+            $home_id = get_option('page_on_front');
+            if ($home_id) {
+                $es_key = '_chroma_es_' . $name;
+                $es_val = get_post_meta($home_id, $es_key, true);
+                if (!empty($es_val)) {
+                    return $es_val;
+                }
+            }
+        }
+        
         return get_theme_mod($name, $default);
     }
 }
+
 
 /**
  * Load core theme functionality

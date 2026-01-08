@@ -41,24 +41,28 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
 
     public function get_url_list($page_num, $object_subtype = '') {
         $urls = [];
+        $base = rtrim(get_option('home'), '/');
         
         // Static Post Types
         $posts = get_posts([
             'post_type' => $this->post_types,
             'posts_per_page' => -1,
             'post_status' => 'publish',
-            'fields' => 'ids',
         ]);
 
-        foreach ($posts as $post_id) {
-            if(class_exists('Chroma_Multilingual_Manager')) {
-                $alternates = Chroma_Multilingual_Manager::get_alternates($post_id);
-                if (!empty($alternates['es'])) {
-                    $urls[] = [
-                        'loc' => $alternates['es'],
-                        'lastmod' => get_the_modified_date('c', $post_id),
-                    ];
-                }
+        foreach ($posts as $post) {
+            // Direct URL construction (avoids context issues with get_alternates)
+            $en_permalink = get_permalink($post->ID);
+            if ($en_permalink) {
+                // Remove base and prepend /es/
+                $path = str_replace($base, '', $en_permalink);
+                $path = ltrim($path, '/');
+                $es_url = $base . '/es/' . $path;
+                
+                $urls[] = [
+                    'loc' => $es_url,
+                    'lastmod' => get_the_modified_date('c', $post->ID),
+                ];
             }
         }
 
@@ -66,6 +70,7 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
         $offset = ($page_num - 1) * $this->per_page;
         return array_slice($urls, $offset, $this->per_page);
     }
+
 
     public function get_max_num_pages($object_subtype = '') {
         $count = 0;

@@ -1023,7 +1023,31 @@ class Chroma_Multilingual_Manager
                 'The Chroma Standard' => 'El Estándar Chroma',
                 'Designed for discovery.' => 'Diseñado para el descubrimiento.',
                 'GA Lottery Pre-K' => 'Pre-K de la Lotería de GA',
+                
+                // Combo Pages (Dynamic City+Program pages)
+                'Premier %s in %s, %s.' => '%s de Primera Categoría en %s, %s.',
+                'Now Enrolling: %s' => 'Inscripciones Abiertas: %s',
+                'Why %s Parents Choose Our %s' => 'Por Qué los Padres de %s Eligen Nuestro %s',
+                'We understand that choosing care in %s is a big decision. Here is what sets our %s apart.' => 'Entendemos que elegir cuidado en %s es una gran decisión. Esto es lo que distingue nuestro %s.',
+                'Low Ratios' => 'Bajas Proporciones',
+                'Our %s campus maintains strict teacher-to-student ratios, ensuring your child gets the individual attention they need.' => 'Nuestro campus de %s mantiene estrictas proporciones de maestro a estudiante, asegurando que su hijo reciba la atención individual que necesita.',
+                'Prismpath™ Curriculum' => 'Currículo Prismpath™',
+                'Specifically designed for %s, our curriculum balances play-based learning with school readiness.' => 'Diseñado específicamente para %s, nuestro currículo equilibra el aprendizaje basado en el juego con la preparación escolar.',
+                'Real-Time Updates' => 'Actualizaciones en Tiempo Real',
+                'Parents in %s love our app. Get photos and updates throughout the workday straight to your phone.' => 'Los padres en %s aman nuestra aplicación. Reciba fotos y actualizaciones durante la jornada laboral directamente en su teléfono.',
+                'Serving Families in %s' => 'Sirviendo a Familias en %s',
+                'Located conveniently off %s, our' => 'Ubicado convenientemente cerca de %s, nuestro',
+                'Our %s campus is the preferred choice for families living in' => 'Nuestro campus de %s es la opción preferida para familias que viven en',
+                'Whether you work at %s or commute via %s, our drop-off and pick-up hours (6:30 AM – 6:30 PM) are designed for working parents in %s County.' => 'Ya sea que trabaje en %s o viaje por %s, nuestros horarios de entrada y salida (6:30 AM – 6:30 PM) están diseñados para padres trabajadores en el Condado de %s.',
+                'Our convenient hours (6:30 AM – 6:30 PM) are designed for working parents in %s County.' => 'Nuestros horarios convenientes (6:30 AM – 6:30 PM) están diseñados para padres trabajadores en el Condado de %s.',
+                'Chroma Locations Serving %s' => 'Ubicaciones de Chroma que Sirven a %s',
+                'Select the campus closest to your home or work.' => 'Seleccione el campus más cercano a su hogar o trabajo.',
+                'Visit Our %s Classroom' => 'Visite Nuestra Aula de %s',
+                'See the %s environment in person. Meet our Director and teachers.' => 'Vea el ambiente de %s en persona. Conozca a nuestra Directora y maestros.',
+                'More Childcare Options in %s' => 'Más Opciones de Cuidado Infantil en %s',
+                'Other locations in %s' => 'Otras ubicaciones en %s',
             ];
+
         }
 
         return $mapping[$text] ?? $translated;

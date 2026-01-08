@@ -141,67 +141,108 @@ class Chroma_Near_Me_Pages
         
         get_header();
         ?>
-        <main class="near-me-page">
-            <header class="near-me-header">
-                <h1><?php echo esc_html($page_title); ?></h1>
-                <p><?php printf( esc_html__( 'Find quality %s locations near you.', 'chroma-excellence' ), esc_html( strtolower( $keyword_label ) ) ); ?></p>
-                
-                <div id="nearest-highlight" style="display:none;">
-                    <span class="nearest-badge">📍 <?php esc_html_e( 'Nearest to you:', 'chroma-excellence' ); ?></span>
-                    <strong id="nearest-name"></strong>
-                    <span id="nearest-distance"></span>
-                </div>
-            </header>
-            
-            <section class="locations-grid" id="locations-grid">
-                <?php foreach ($locations as $loc): ?>
-                <article class="location-card" 
-                    data-lat="<?php echo esc_attr($loc['lat']); ?>" 
-                    data-lng="<?php echo esc_attr($loc['lng']); ?>"
-                    data-id="<?php echo esc_attr($loc['id']); ?>">
-                    <?php if ($loc['image']): ?>
-                        <img src="<?php echo esc_url($loc['image']); ?>" alt="<?php echo esc_attr($loc['title']); ?>">
-                    <?php endif; ?>
-                    <div class="card-content">
-                        <h2><a href="<?php echo esc_url($loc['url']); ?>"><?php echo esc_html($loc['title']); ?></a></h2>
-                        <p class="location-city"><?php echo esc_html($loc['city'] . ', ' . $loc['state']); ?></p>
-                        <?php if ($loc['address']): ?>
-                            <p class="address"><?php echo esc_html($loc['address']); ?></p>
-                        <?php endif; ?>
-                        <p class="distance-display" style="display:none;"></p>
-                        <div class="card-actions">
-                            <a href="<?php echo esc_url($loc['url']); ?>" class="btn-view"><?php esc_html_e( 'View Location', 'chroma-excellence' ); ?></a>
-                            <?php if ($loc['phone']): ?>
-                                <a href="tel:<?php echo esc_attr($loc['phone']); ?>" class="btn-call"><?php esc_html_e( 'Call Now', 'chroma-excellence' ); ?></a>
-                            <?php endif; ?>
-                        </div>
+        <main class="near-me-page bg-brand-cream min-h-screen">
+            <!-- Hero Section -->
+            <section class="relative pt-16 pb-12 lg:pt-24 lg:pb-20 bg-white overflow-hidden">
+                <div class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-chroma-greenLight/40 via-transparent to-transparent"></div>
+                <div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
+                    <div class="inline-flex items-center gap-2 bg-white border border-chroma-green/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-green shadow-sm mb-6">
+                        <i class="fa-solid fa-map-pin"></i> <?php echo count($locations); ?>+ <?php _e('Locations Found', 'chroma-excellence'); ?>
                     </div>
-                </article>
-                <?php endforeach; ?>
+
+                    <h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6">
+                        <?php echo esc_html($page_title); ?>
+                    </h1>
+
+                    <p class="text-lg text-brand-ink/80 max-w-2xl mx-auto mb-10">
+                        <?php printf( esc_html__( 'Find high-quality %s programs near you. Serving Atlanta families with premium curriculum and care.', 'chroma-excellence' ), esc_html( strtolower( $keyword_label ) ) ); ?>
+                    </p>
+                    
+                    <div id="nearest-highlight" class="inline-flex items-center gap-4 bg-chroma-blueLight/30 border border-chroma-blue/10 px-6 py-3 rounded-full shadow-sm" style="display:none;">
+                        <span class="flex items-center gap-2 text-xs font-bold text-chroma-blueDark uppercase tracking-wider">
+                            <span class="w-2 h-2 rounded-full bg-chroma-blue animate-pulse"></span>
+                            📍 <?php esc_html_e( 'Nearest:', 'chroma-excellence' ); ?>
+                        </span>
+                        <strong id="nearest-name" class="font-serif text-brand-ink"></strong>
+                        <span id="nearest-distance" class="text-xs font-bold text-chroma-blue"></span>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Locations Grid -->
+            <section class="py-20">
+                <div class="max-w-7xl mx-auto px-4 lg:px-6">
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="locations-grid">
+                        <?php foreach ($locations as $loc): 
+                            $regions = wp_get_post_terms($loc['id'], 'location_region');
+                            $region_term = !empty($regions) && !is_wp_error($regions) ? $regions[0] : null;
+                            $colors = $region_term ? chroma_get_region_color_from_term($region_term->term_id) : array(
+                                'bg' => 'chroma-blueLight', 'text' => 'chroma-blue', 'border' => 'chroma-blue'
+                            );
+                            
+                            $is_decal = get_post_meta($loc['id'], 'location_decal_licensed', true);
+                            $quality_rated = get_post_meta($loc['id'], 'location_quality_rated', true);
+                        ?>
+                        <article class="location-card group" 
+                            data-lat="<?php echo esc_attr($loc['lat']); ?>" 
+                            data-lng="<?php echo esc_attr($loc['lng']); ?>"
+                            data-id="<?php echo esc_attr($loc['id']); ?>">
+                            
+                            <div class="bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?>/30 transition-all hover:-translate-y-1 h-full flex flex-col relative overflow-hidden">
+                                
+                                <div class="relative rounded-2xl overflow-hidden mb-6 aspect-video">
+                                    <?php if ($loc['image']): ?>
+                                        <img src="<?php echo esc_url($loc['image']); ?>" alt="<?php echo esc_attr($loc['title']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <?php endif; ?>
+                                    <div class="distance-display absolute bottom-3 right-3 bg-white/95 backdrop-blur-sm px-3 py-1 rounded-full text-[10px] font-bold text-chroma-blue uppercase tracking-wider shadow-sm" style="display:none;"></div>
+                                </div>
+
+                                <h2 class="font-serif text-2xl font-bold text-brand-ink mb-2 group-hover:text-<?php echo esc_attr($colors['text']); ?> transition-colors">
+                                    <a href="<?php echo esc_url($loc['url']); ?>"><?php echo esc_html($loc['title']); ?></a>
+                                </h2>
+                                
+                                <p class="text-sm text-brand-ink/70 mb-6">
+                                    <?php echo esc_html($loc['city'] . ', ' . $loc['state']); ?>
+                                    <?php if ($loc['address']): ?>
+                                        <br><span class="opacity-60"><?php echo esc_html($loc['address']); ?></span>
+                                    <?php endif; ?>
+                                </p>
+
+                                <div class="flex flex-wrap gap-2 mb-8">
+                                    <?php if ($is_decal): ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-blueLight/50 text-chroma-blueDark text-[9px] font-bold uppercase rounded-full">
+                                            <i class="fa-solid fa-graduation-cap"></i> DECAL
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if ($quality_rated): ?>
+                                        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-yellowLight/50 text-chroma-yellowDark text-[9px] font-bold uppercase rounded-full">
+                                            <i class="fa-solid fa-star"></i> Quality Rated
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3 mt-auto">
+                                    <a href="<?php echo esc_url($loc['url']); ?>" class="flex items-center justify-center py-4 rounded-2xl bg-brand-ink text-white text-[10px] font-bold uppercase tracking-widest hover:bg-chroma-blueDark transition-colors">
+                                        <?php _e('View Campus', 'chroma-excellence'); ?>
+                                    </a>
+                                    <?php if ($loc['phone']): ?>
+                                        <a href="tel:<?php echo esc_attr($loc['phone']); ?>" class="flex items-center justify-center py-4 rounded-2xl border border-brand-ink/10 text-brand-ink text-[10px] font-bold uppercase tracking-widest hover:bg-brand-cream/50 transition-colors">
+                                            <i class="fa-solid fa-phone mr-1.5"></i> <?php _e('Call', 'chroma-excellence'); ?>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </article>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </section>
         </main>
-        
+
         <style>
-            .near-me-page { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-            .near-me-header { text-align: center; margin-bottom: 40px; }
-            .near-me-header h1 { font-size: 36px; margin-bottom: 10px; }
-            #nearest-highlight { margin-top: 20px; padding: 15px 25px; background: #e8f5e9; border-radius: 8px; display: inline-block; }
-            .nearest-badge { background: #4caf50; color: #fff; padding: 3px 10px; border-radius: 4px; margin-right: 10px; }
-            .locations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
-            .location-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); transition: transform 0.2s; }
-            .location-card:hover { transform: translateY(-4px); }
-            .location-card.nearest { border: 3px solid #4caf50; }
-            .location-card img { width: 100%; height: 180px; object-fit: cover; }
-            .card-content { padding: 20px; }
-            .card-content h2 { font-size: 20px; margin: 0 0 8px; }
-            .card-content h2 a { text-decoration: none; color: inherit; }
-            .location-city { color: #666; margin: 0; }
-            .address { color: #888; font-size: 14px; margin: 10px 0; }
-            .distance-display { color: #0066cc; font-weight: 600; margin: 10px 0; }
-            .card-actions { display: flex; gap: 10px; margin-top: 15px; }
-            .btn-view, .btn-call { padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 14px; }
-            .btn-view { background: #0066cc; color: #fff; }
-            .btn-call { background: #f0f0f0; color: #333; }
+            .shadow-card { box-shadow: 0 10px 30px -5px rgba(0,0,0,0.05), 0 5px 15px -3px rgba(0,0,0,0.02); }
+            .font-serif { font-family: "Playfair Display", Georgia, serif; }
+            .location-card.nearest .bg-white { border: 2px solid var(--chroma-blue, #0066cc); box-shadow: 0 20px 40px -10px rgba(0,102,204,0.15); }
         </style>
         
         <!-- Location data for JS -->

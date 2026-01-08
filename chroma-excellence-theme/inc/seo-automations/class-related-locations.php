@@ -124,94 +124,78 @@ class Chroma_Related_Locations
      */
     private function render_related_locations($locations) {
         ?>
-        <section class="chroma-related-locations">
-            <h2>Other Locations Near You</h2>
-            <div class="related-locations-grid">
-                <?php foreach ($locations as $loc): 
-                    $city = get_post_meta($loc->ID, 'location_city', true);
-                    $distance = isset($loc->distance) ? round($loc->distance, 1) : null;
-                ?>
-                <a href="<?php echo get_permalink($loc); ?>" class="related-location-card">
-                    <?php if (has_post_thumbnail($loc)): ?>
-                        <div class="card-image">
-                            <?php echo get_the_post_thumbnail($loc, 'medium'); ?>
+        <section class="chroma-related-locations py-16 border-t border-brand-ink/5 bg-brand-cream/30 mt-16">
+            <div class="max-w-7xl mx-auto px-4 lg:px-6">
+                <h2 class="font-serif text-3xl font-bold text-brand-ink mb-10"><?php _e('Other Locations Near You', 'chroma-excellence'); ?></h2>
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <?php foreach ($locations as $loc): 
+                        $location_id = $loc->ID;
+                        $city = get_post_meta($location_id, 'location_city', true);
+                        $distance = isset($loc->distance) ? round($loc->distance, 1) : null;
+                        
+                        // Get region colors
+                        $regions = wp_get_post_terms($location_id, 'location_region');
+                        $region_term = !empty($regions) && !is_wp_error($regions) ? $regions[0] : null;
+                        $colors = $region_term ? chroma_get_region_color_from_term($region_term->term_id) : array(
+                            'bg' => 'chroma-blueLight', 'text' => 'chroma-blue', 'border' => 'chroma-blue'
+                        );
+
+                        // Badges
+                        $is_decal = get_post_meta($location_id, 'location_decal_licensed', true);
+                        $quality_rated = get_post_meta($location_id, 'location_quality_rated', true);
+                    ?>
+                    <div class="location-card group">
+                        <div class="bg-white rounded-[2rem] p-6 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?>/30 transition-all hover:-translate-y-1 h-full flex flex-col relative overflow-hidden">
+                            
+                            <?php if (has_post_thumbnail($loc)): ?>
+                                <div class="rounded-2xl overflow-hidden mb-4 aspect-[4/3] relative">
+                                    <?php echo get_the_post_thumbnail($loc, 'medium', ['class' => 'w-full h-full object-cover']); ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <h3 class="font-serif text-xl font-bold text-brand-ink mb-2 group-hover:text-<?php echo esc_attr($colors['text']); ?> transition-colors">
+                                <a href="<?php echo get_permalink($loc); ?>"><?php echo esc_html($loc->post_title); ?></a>
+                            </h3>
+                            
+                            <?php if ($city): ?>
+                                <p class="text-sm text-brand-ink/80 mb-4">Daycare in <?php echo esc_html($city); ?></p>
+                            <?php endif; ?>
+
+                            <div class="flex flex-wrap gap-2 mb-4">
+                                <?php if ($is_decal): ?>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-blueLight/50 text-chroma-blueDark text-[10px] font-bold uppercase rounded-full border border-chroma-blueDark/10">
+                                        <i class="fa-solid fa-building-columns"></i> GA DECAL Licensed
+                                    </span>
+                                <?php endif; ?>
+                                <?php if ($quality_rated): ?>
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-yellowLight/50 text-chroma-yellowDark text-[10px] font-bold uppercase rounded-full border border-chroma-yellowDark/10">
+                                        <i class="fa-solid fa-check"></i> Quality Rated
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+
+                            <div class="mt-auto flex items-center justify-between">
+                                <?php if ($distance !== null): ?>
+                                    <span class="text-[11px] font-bold text-chroma-blue uppercase tracking-wider"><?php echo $distance; ?> miles away</span>
+                                <?php endif; ?>
+                                <a href="<?php echo get_permalink($loc); ?>" class="text-[10px] font-bold text-brand-ink/40 uppercase tracking-widest group-hover:text-<?php echo esc_attr($colors['text']); ?> transition-colors">
+                                    Details <i class="fa-solid fa-arrow-right ml-1"></i>
+                                </a>
+                            </div>
                         </div>
-                    <?php endif; ?>
-                    <div class="card-content">
-                        <h3><?php echo esc_html($loc->post_title); ?></h3>
-                        <?php if ($city): ?>
-                            <p class="location-city">Daycare in <?php echo esc_html($city); ?></p>
-                        <?php endif; ?>
-                        <?php if ($distance !== null): ?>
-                            <p class="location-distance"><?php echo $distance; ?> miles away</p>
-                        <?php endif; ?>
                     </div>
-                </a>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
             </div>
         </section>
         <?php
     }
     
     /**
-     * Enqueue styles
+     * Enqueue styles - Replaced with theme logic
      */
     public function enqueue_styles() {
-        if (!is_singular('location')) return;
-        
-        wp_add_inline_style('chroma-main', '
-            .chroma-related-locations {
-                margin: 40px 0;
-                padding: 30px;
-                background: #f9f9f9;
-                border-radius: 12px;
-            }
-            .chroma-related-locations h2 {
-                margin: 0 0 20px;
-                font-size: 24px;
-            }
-            .related-locations-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                gap: 20px;
-            }
-            .related-location-card {
-                background: #fff;
-                border-radius: 8px;
-                overflow: hidden;
-                text-decoration: none;
-                color: inherit;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-                transition: transform 0.2s, box-shadow 0.2s;
-            }
-            .related-location-card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-            }
-            .related-location-card .card-image img {
-                width: 100%;
-                height: 150px;
-                object-fit: cover;
-            }
-            .related-location-card .card-content {
-                padding: 15px;
-            }
-            .related-location-card h3 {
-                margin: 0 0 5px;
-                font-size: 16px;
-            }
-            .related-location-card .location-city {
-                margin: 0;
-                color: #666;
-                font-size: 14px;
-            }
-            .related-location-card .location-distance {
-                margin: 5px 0 0;
-                color: #0073aa;
-                font-size: 13px;
-                font-weight: 600;
-            }
-        ');
+        // No longer needed but kept for hook compatibility
     }
     
     /**

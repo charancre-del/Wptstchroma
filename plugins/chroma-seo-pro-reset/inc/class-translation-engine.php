@@ -266,12 +266,21 @@ class Chroma_Translation_Engine
                 ];
             case 'front-page.php':
                 return [
+                    // Post meta keys
                     'home_hero_heading', 'home_hero_subheading', 'home_hero_cta_label', 'home_hero_secondary_label',
                     'home_prismpath_eyebrow', 'home_prismpath_heading', 'home_prismpath_subheading', 'home_prismpath_cta_label',
                     'home_prismpath_readiness_heading', 'home_prismpath_readiness_desc',
                     'home_locations_heading', 'home_locations_subheading', 'home_locations_cta_label',
-                    'home_faq_heading', 'home_faq_subheading'
+                    'home_faq_heading', 'home_faq_subheading',
+                    // Theme mod keys (for chroma_get_theme_mod fallback)
+                    'chroma_home_hero_heading', 'chroma_home_hero_subheading', 
+                    'chroma_home_hero_cta_label', 'chroma_home_hero_secondary_label',
+                    'chroma_home_prismpath_eyebrow', 'chroma_home_prismpath_heading', 
+                    'chroma_home_prismpath_subheading', 'chroma_home_prismpath_cta_label',
+                    'chroma_home_locations_heading', 'chroma_home_locations_subheading',
+                    'chroma_home_faq_heading', 'chroma_home_faq_subheading'
                 ];
+
             case 'page-parents.php':
                 return [
                     'parents_hero_badge', 'parents_hero_title', 'parents_hero_desc',
