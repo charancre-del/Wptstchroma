@@ -120,6 +120,7 @@ class Chroma_SEO_Dashboard
         register_setting('chroma_llm_options', 'chroma_llm_brand_context');
         register_setting('chroma_llm_options', 'chroma_seo_phone');
         register_setting('chroma_llm_options', 'chroma_seo_email');
+        register_setting('chroma_llm_options', 'chroma_seo_phonetic_name');
         
         // Sprint 5: Validator Settings
         register_setting('chroma_validator_options', 'chroma_validator_batch_size');
@@ -183,6 +184,19 @@ class Chroma_SEO_Dashboard
                         <td>
                             <input name="chroma_validator_max_retries" type="number" id="chroma_validator_max_retries" value="<?php echo esc_attr(get_option('chroma_validator_max_retries', 3)); ?>" class="small-text" min="0" max="10">
                             <p class="description">Number of attempts for failed connection before giving up.</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="chroma_seo_email">Global Email</label></th>
+                        <td>
+                            <input name="chroma_seo_email" type="email" id="chroma_seo_email" value="<?php echo esc_attr(get_option('chroma_seo_email')); ?>" class="regular-text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="chroma_seo_phonetic_name">Phonetic Name (Voice Search)</label></th>
+                        <td>
+                            <input name="chroma_seo_phonetic_name" type="text" id="chroma_seo_phonetic_name" value="<?php echo esc_attr(get_option('chroma_seo_phonetic_name')); ?>" class="regular-text">
+                            <p class="description">How your brand name sounds (e.g., "Kro-Ma Early Learning"). Used for Siri/Alexa optimization.</p>
                         </td>
                     </tr>
                     <tr>

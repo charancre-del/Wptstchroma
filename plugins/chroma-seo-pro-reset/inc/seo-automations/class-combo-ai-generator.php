@@ -459,7 +459,7 @@ PROMPT;
 Generate local SEO content for a childcare landing page: "$program_name in $city_name, $state"
 
 Research and provide:
-1. neighborhoods: Array of 3-5 real neighborhood names in or near $city_name, $state
+1. neighborhoods: Array of 3-5 real neighborhood names in or near $city_name, $state. IMPORTANT: If you do not know real specific neighborhood names with high certainty, use generic but accurate descriptors (e.g., "Downtown District", "Historic Center", "Residential Areas") to avoid hallucinating fake names.
 2. major_road: The main highway or road near $city_name (e.g., "GA-400", "I-85")
 3. local_employers: 2-3 major employers or hospitals in $city_name, comma-separated
 4. county: The county that $city_name is in

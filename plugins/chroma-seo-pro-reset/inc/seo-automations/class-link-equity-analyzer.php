@@ -510,7 +510,7 @@ SOURCE PAGE CONTENT (first 1500 chars):
 LINK TO INSERT:
 <a href=\"{$target_url}\">{$target_title}</a>
 
-Find a natural place in the content where this link fits contextually. Return the modified paragraph with the link inserted. Return ONLY the HTML paragraph, no explanation.";
+Find a natural context to introduce this link. Write a short 1-2 sentence \"Related Reading\" paragraph that could be appended to the end of the article. Return ONLY the HTML paragraph (e.g. <p>Related Reading: ...</p>), no explanation.";
 
     $response = $chroma_llm_client->make_request([
         'model' => get_option('chroma_llm_model', 'gpt-4o-mini'),

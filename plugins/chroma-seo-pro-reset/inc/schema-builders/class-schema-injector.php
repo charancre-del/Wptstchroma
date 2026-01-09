@@ -126,6 +126,13 @@ class Chroma_Schema_Injector
                 'contactType' => 'customer service'
             ]
         ];
+
+        $phonetic = get_option('chroma_seo_phonetic_name');
+        if ($phonetic) {
+            $data['alternateName'] = $phonetic;
+        }
+
+        return $data;
     }
 
     /**
