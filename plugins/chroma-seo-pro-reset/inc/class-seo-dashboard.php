@@ -128,6 +128,7 @@ class Chroma_SEO_Dashboard
         register_setting('chroma_validator_options', 'chroma_validator_max_retries');
         register_setting('chroma_validator_options', 'chroma_validator_email_alerts');
         register_setting('chroma_validator_options', 'chroma_validator_post_types');
+        register_setting('chroma_careers_options', 'chroma_careers_feed_url');
     }
 
     /**
@@ -319,6 +320,8 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'bulk-validation' ? 'nav-tab-active' : ''; ?>">Bulk Validation</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=settings'); ?>"
                     class="nav-tab <?php echo $active_tab === 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=careers'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'careers' ? 'nav-tab-active' : ''; ?>">Careers & Sync</a>
                 <?php do_action('chroma_seo_dashboard_tabs'); ?>
             </nav>
 
@@ -371,6 +374,9 @@ class Chroma_SEO_Dashboard
                     break;
                 case 'settings':
                     $this->render_validator_settings_tab();
+                    break;
+                case 'careers':
+                    $this->render_careers_tab();
                     break;
                 default:
                     // Allow other tabs to render via action
@@ -3982,5 +3988,88 @@ class Chroma_SEO_Dashboard
         }
         
         return $result;
+    }
+
+    /**
+     * Render Careers & Sync Tab
+     */
+    private function render_careers_tab()
+    {
+        $last_sync = get_option('chroma_last_career_sync', 'Never');
+        $last_count = get_option('chroma_last_career_sync_count', 0);
+        $feed_url = get_option('chroma_careers_feed_url', 'https://app.acquire4hire.com/careers/list.json?id=4668');
+        ?>
+        <div class="chroma-seo-card">
+            <h2>💼 Career Feed Synchronization</h2>
+            <p class="description">Automatically imports job listings from Acquire4Hire and generates <code>JobPosting</code> schema for Google Rich Results.</p>
+            
+            <div style="background: #f0f6fc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2271b1;">
+                <h3 style="margin-top: 0;">📊 Current Status</h3>
+                <p><strong>Last Sync:</strong> <span id="last-sync-time"><?php echo esc_html($last_sync); ?></span></p>
+                <p><strong>Jobs in Last Sync:</strong> <span id="last-sync-count"><?php echo esc_html($last_count); ?></span></p>
+                
+                <div style="margin-top: 20px;">
+                    <button type="button" id="chroma-sync-careers-btn" class="button button-primary">
+                        <span class="dashicons dashicons-update" style="vertical-align: middle;"></span> Sync Careers Now
+                    </button>
+                    <span id="sync-status" style="margin-left: 10px;"></span>
+                </div>
+            </div>
+
+            <form method="post" action="options.php">
+                <?php settings_fields('chroma_careers_options'); ?>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><label for="chroma_careers_feed_url">External Feed URL (JSON/HTML)</label></th>
+                        <td>
+                            <input name="chroma_careers_feed_url" type="url" id="chroma_careers_feed_url" value="<?php echo esc_url($feed_url); ?>" class="regular-text">
+                            <p class="description">The URL of the Acquire4Hire career list. Usually ends in <code>list.json?id=XXXX</code>.</p>
+                        </td>
+                    </tr>
+                </table>
+                <?php submit_button('Save Feed Settings'); ?>
+            </form>
+
+            <div style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
+                <h3>🛡️ About Automated Careers</h3>
+                <ul style="list-style: disc; margin-left: 20px;">
+                    <li><strong>Hourly Sync:</strong> The system automatically checks for new jobs every hour via WP-Cron.</li>
+                    <li><strong>Auto-Pruning:</strong> Jobs removed from the external feed will be moved to the Trash in WordPress.</li>
+                    <li><strong>Rich Snippets:</strong> Every synced job listing automatically includes validated <code>JobPosting</code> JSON-LD schema for Google.</li>
+                </ul>
+            </div>
+        </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            $('#chroma-sync-careers-btn').click(function() {
+                var btn = $(this);
+                var status = $('#sync-status');
+                
+                btn.prop('disabled', true);
+                status.html('<span class="spinner is-active" style="float:none; margin:0;"></span> Synchronizing...');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_sync_careers',
+                    nonce: '<?php echo wp_create_nonce("chroma_seo_nonce"); ?>'
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    if (response.success) {
+                        var data = response.data;
+                        status.html('<span class="dashicons dashicons-yes" style="color:green;"></span> Sync Successful!').css('color', 'green');
+                        $('#last-sync-time').text(data.timestamp);
+                        $('#last-sync-count').text(data.total);
+                        showToast('Career sync complete: ' + data.created + ' new, ' + data.updated + ' updated, ' + data.trashed + ' trashed.');
+                    } else {
+                        status.html('<span class="dashicons dashicons-warning" style="color:red;"></span> Error: ' + response.data).css('color', 'red');
+                    }
+                }).fail(function() {
+                    btn.prop('disabled', false);
+                    status.html('<span class="dashicons dashicons-no" style="color:red;"></span> Network error during sync.').css('color', 'red');
+                });
+            });
+        });
+        </script>
+        <?php
     }
 }

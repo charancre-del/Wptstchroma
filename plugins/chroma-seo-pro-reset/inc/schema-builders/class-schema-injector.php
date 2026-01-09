@@ -85,41 +85,26 @@ class Chroma_Schema_Injector
     }
 
     /**
+     * Output JobPosting Schema for Career Pages
+     */
+    public static function output_job_posting_schema()
+    {
+        if (class_exists('Chroma_Job_Posting_Builder')) {
+            Chroma_Job_Posting_Builder::output();
+        }
+    }
+
+    /**
+     * Output CourseInstance Schema for Pre-K Programs
+     */
+    /**
      * Output CourseInstance Schema for Pre-K Programs
      */
     public static function output_course_schema()
     {
-        if (!is_singular('program')) {
-            return;
+        if (class_exists('Chroma_Course_Builder')) {
+            Chroma_Course_Builder::output();
         }
-
-        $post_id = get_the_ID();
-        $title = get_the_title($post_id);
-
-        if (stripos($title, 'Pre-K') === false && stripos($title, 'Preschool') === false && stripos($title, 'Kindergarten') === false) {
-            return;
-        }
-
-        // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta($post_id, '_chroma_schema_override', true);
-        if ($override) {
-            return;
-        }
-
-        $schema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'CourseInstance',
-            'name' => $title,
-            'description' => get_the_excerpt($post_id),
-            'courseMode' => 'onsite',
-            'provider' => [
-                '@type' => 'Organization',
-                'name' => get_bloginfo('name'),
-                'url' => home_url()
-            ]
-        ];
-
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
     }
 
     /**

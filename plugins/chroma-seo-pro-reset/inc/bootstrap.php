@@ -69,6 +69,8 @@ chroma_safe_require(__DIR__ . '/class-sitemap-integrator.php');
 chroma_safe_require(__DIR__ . '/class-cli-commands.php');
 chroma_safe_require(__DIR__ . '/class-translation-api.php');
 chroma_safe_require(__DIR__ . '/class-homepage-translation-admin.php');
+chroma_safe_require(__DIR__ . '/class-careers-api.php');
+chroma_safe_require(__DIR__ . '/class-career-sync.php');
 
 // Load Theme Schema Compatibility (migrated from seo-engine.php)
 chroma_safe_require(__DIR__ . '/class-theme-schema-compat.php');
@@ -129,7 +131,9 @@ $schema_builders = [
 	'class-service-area-builder.php',
 	'class-universal-faq-builder.php',
 	'class-page-type-builder.php',
-	'class-archive-itemlist-builder.php'
+	'class-archive-itemlist-builder.php',
+	'class-job-posting-builder.php',
+	'class-course-builder.php'
 ];
 
 foreach ($schema_builders as $file) {
@@ -169,6 +173,8 @@ function chroma_advanced_seo_init()
 		(new Chroma_Translation_API())->init();
     if (class_exists('Chroma_Validation_Logger'))
         (new Chroma_Validation_Logger())->init();
+    if (class_exists('Chroma_Career_Sync'))
+        Chroma_Career_Sync::init();
 
 	// Meta Boxes
 	$meta_classes = [
@@ -211,6 +217,10 @@ function chroma_advanced_seo_init()
 		add_action('wp_head', ['Chroma_HowTo_Schema_Builder', 'output']);
 	if (class_exists('Chroma_Schema_Injector'))
 		add_action('wp_head', ['Chroma_Schema_Injector', 'output_person_schema']);
+	if (class_exists('Chroma_Schema_Injector'))
+		add_action('wp_head', ['Chroma_Schema_Injector', 'output_job_posting_schema']);
+	if (class_exists('Chroma_Schema_Injector'))
+		add_action('wp_head', ['Chroma_Schema_Injector', 'output_course_schema']);
 	if (class_exists('Chroma_Universal_FAQ_Builder'))
 		add_action('wp_head', ['Chroma_Universal_FAQ_Builder', 'output']);
 	if (class_exists('Chroma_Page_Type_Builder'))
