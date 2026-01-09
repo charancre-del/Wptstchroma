@@ -91,11 +91,11 @@ while (have_posts()):
 								<?php _e('View Lesson Plan', 'chroma-excellence'); ?>
 							</button>
 						<?php endif; ?>
-						<a href="<?php echo esc_url(get_post_type_archive_link('location')); ?>"
+						<a href="<?php echo chroma_get_localized_url(get_post_type_archive_link('location')); ?>"
 							class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
 							<?php _e('View Locations', 'chroma-excellence'); ?>
 						</a>
-						<a href="<?php echo esc_url(home_url('/programs/')); ?>"
+						<a href="<?php echo chroma_get_localized_url(home_url('/programs/')); ?>"
 							class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
 							<?php _e('All Programs', 'chroma-excellence'); ?>
 						</a>

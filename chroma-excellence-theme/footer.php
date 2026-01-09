@@ -13,7 +13,7 @@
 		<div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
 			<!-- Logo and Description -->
 			<div class="md:col-span-1">
-				<a href="<?php echo esc_url(home_url('/')); ?>" class="block mb-4">
+				<a href="<?php echo chroma_get_localized_url(home_url('/')); ?>" class="block mb-4">
 					<img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?>"
 						srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?> 1x,
 								 <?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp'); ?> 2x"
@@ -136,8 +136,8 @@
 				}
 				?>
 				<div class="flex gap-4 border-l border-white/10 pl-6">
-					<a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="hover:text-white"><?php _e('Privacy Policy', 'chroma-excellence'); ?></a>
-					<a href="<?php echo esc_url(home_url('/terms-of-service/')); ?>" class="hover:text-white"><?php _e('Terms of Service', 'chroma-excellence'); ?></a>
+					<a href="<?php echo chroma_get_localized_url(home_url('/privacy-policy/')); ?>" class="hover:text-white"><?php _e('Privacy Policy', 'chroma-excellence'); ?></a>
+					<a href="<?php echo chroma_get_localized_url(home_url('/terms-of-service/')); ?>" class="hover:text-white"><?php _e('Terms of Service', 'chroma-excellence'); ?></a>
 				</div>
 			</div>
 		</div>
@@ -150,7 +150,7 @@
 $show_sticky_cta = true;
 $sticky_text = __('Ready to experience the Chroma difference?', 'chroma-excellence');
 $sticky_btn_text = __('Schedule a Tour', 'chroma-excellence');
-$sticky_url = home_url('/schedule-a-tour/');
+$sticky_url = chroma_get_localized_url(home_url('/schedule-a-tour/'));
 
 if (is_page('schedule-a-tour')) {
 	$show_sticky_cta = false;

@@ -84,8 +84,8 @@ $programs_query = new WP_Query(array(
 						<!-- Program Card -->
 						<div
 							class="relative group bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition-all hover:-translate-y-1 flex flex-col h-full fade-in-up <?php echo esc_attr($delay_class); ?>">
-							<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0" aria-label="View details for <?php the_title_attribute(); ?>"></a>
-							<a href="<?php the_permalink(); ?>" class="h-48 rounded-[2rem] overflow-hidden mb-6 relative block group-hover:opacity-90 transition-opacity">
+							<a href="<?php echo chroma_get_localized_url(get_permalink()); ?>" class="absolute inset-0 z-0" aria-label="View details for <?php the_title_attribute(); ?>"></a>
+							<a href="<?php echo chroma_get_localized_url(get_permalink()); ?>" class="h-48 rounded-[2rem] overflow-hidden mb-6 relative block group-hover:opacity-90 transition-opacity">
 								<div
 									class="absolute inset-0 bg-<?php echo esc_attr($colors['light']); ?> group-hover:bg-transparent transition-colors duration-500 z-10">
 								</div>
@@ -108,7 +108,7 @@ $programs_query = new WP_Query(array(
 							</a>
 
 							<h2 class="font-serif text-2xl font-bold text-brand-ink mb-2">
-								<a href="<?php the_permalink(); ?>" class="hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
+								<a href="<?php echo chroma_get_localized_url(get_permalink()); ?>" class="hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
 									<?php the_title(); ?>
 								</a>
 							</h2>
@@ -128,7 +128,7 @@ $programs_query = new WP_Query(array(
 								</ul>
 							<?php endif; ?>
 
-							<a href="<?php echo esc_url($cta_link); ?>"
+							<a href="<?php echo chroma_get_localized_url($cta_link); ?>"
 								aria-label="<?php echo esc_attr($cta_text . ' for ' . get_the_title()); ?>"
 								class="relative z-10 w-full py-3 rounded-xl border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-wider text-center hover:bg-<?php echo esc_attr($colors['main']); ?> hover:text-white hover:border-<?php echo esc_attr($colors['main']); ?> transition-colors">
 								<?php echo esc_html($cta_text); ?>

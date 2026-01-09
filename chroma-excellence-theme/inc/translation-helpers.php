@@ -46,3 +46,70 @@ if (!function_exists('chroma_get_translated_meta')) {
         return get_post_meta($post_id, $key, $single);
     }
 }
+
+if (!function_exists('chroma_get_localized_url')) {
+    /**
+     * Prepend /es/ to internal URLs if the current language is Spanish.
+     *
+     * @param string $url The internal URL.
+     * @return string The localized URL.
+     */
+    function chroma_get_localized_url($url) {
+        if (empty($url)) {
+            return $url;
+        }
+
+        // 1. Handle anchor-only URLs immediately (e.g. #tour)
+        if (strpos($url, '#') === 0) {
+            return $url;
+        }
+
+        // Only localize relative or internal absolute URLs
+        $home_url = home_url();
+        $is_internal = (strpos($url, $home_url) === 0 || strpos($url, '/') === 0) && strpos($url, '://') === false;
+        
+        // Handle URLs that already have the protocol but are internal (e.g. http://site.com/about)
+        if (!$is_internal && strpos($url, $home_url) === 0) {
+            $is_internal = true;
+        }
+
+        if (!$is_internal) {
+            return $url;
+        }
+
+        // Split anchor/query if present to protect from trailing slashes
+        $parts = explode('#', $url);
+        $path_query = $parts[0];
+        $anchor = isset($parts[1]) ? '#' . $parts[1] : '';
+
+        // Detect current language
+        $is_spanish = false;
+        if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/es/') !== false) {
+            $is_spanish = true;
+        }
+        if (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish')) {
+            if (Chroma_Multilingual_Manager::is_spanish()) {
+                $is_spanish = true;
+            }
+        }
+
+        // Process path (add /es/ if Spanish)
+        $processed_url = $path_query;
+        if ($is_spanish && strpos($processed_url, '/es/') === false) {
+            if (strpos($processed_url, $home_url) === 0) {
+                $processed_url = str_replace($home_url, $home_url . '/es', $processed_url);
+            } else {
+                $processed_url = '/es' . (strpos($processed_url, '/') === 0 ? '' : '/') . $processed_url;
+            }
+        }
+
+        // Apply trailing slash to the path component (don't apply to anchors)
+        // Only apply if it's not a direct file link (e.g. .png, .pdf)
+        $path_only = explode('?', $processed_url)[0];
+        if (!preg_match('/\.(jpg|jpeg|png|gif|pdf|doc|docx|zip|webp)$/i', $path_only)) {
+             $processed_url = user_trailingslashit($processed_url);
+        }
+
+        return $processed_url . $anchor;
+    }
+}

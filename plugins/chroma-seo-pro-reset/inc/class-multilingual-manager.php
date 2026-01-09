@@ -1046,6 +1046,121 @@ class Chroma_Multilingual_Manager
                 'See the %s environment in person. Meet our Director and teachers.' => 'Vea el ambiente de %s en persona. Conozca a nuestra Directora y maestros.',
                 'More Childcare Options in %s' => 'Más Opciones de Cuidado Infantil en %s',
                 'Other locations in %s' => 'Otras ubicaciones en %s',
+                
+                // Homepage Hero
+                'The art of <span class="italic text-chroma-red">growing up.</span>' => 'El arte de <span class="italic text-chroma-red">crecer.</span>',
+                'Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.' => 'Donde la excelencia acreditada se encuentra con la calidez del hogar. Un santuario moderno impulsado por nuestro modelo de aprendizaje patentado Prismpath™ para niños de 6 semanas a 12 años.',
+                'View Programs' => 'Ver Programas',
+                '19+ Metro Atlanta Locations' => 'Más de 19 Ubicaciones en Metro Atlanta',
+                
+                // Stats Strip
+                'Metro campuses' => 'Campuses metro',
+                'Children enrolled' => 'Niños inscritos',
+                'Avg parent rating' => 'Calificación promedio de padres',
+                'Age range' => 'Rango de edad',
+                
+                // Prismpath Panels
+                'Grounded in Expertise. Wrapped in Love.' => 'Basado en la Experiencia. Envuelto en Amor.',
+                'Meet the Team' => 'Conozca al Equipo',
+                'Expert Care, Extended Family.' => 'Cuidado Experto, Familia Extendida.',
+                'Our educators are state-certified professionals who understand that the most important credential is kindness.' => 'Nuestros educadores son profesionales certificados por el estado que entienden que la credencial más importante es la amabilidad.',
+                'Wholesome Fuel' => 'Combustible Saludable',
+                'Organic, balanced meals served family-style to fuel growing minds.' => 'Comidas orgánicas y equilibradas servidas al estilo familiar para alimentar mentes en crecimiento.',
+                'Uncompromised Safety' => 'Seguridad sin Concesiones',
+                'Secure, monitored facilities with open-door transparency for parents.' => 'Instalaciones seguras y monitoreadas con transparencia de puertas abiertas para los padres.',
+                'Kindergarten Readiness' => 'Preparación para el Jardín de Infantes',
+                'Our graduates enter school confident, socially capable, and academically prepared.' => 'Nuestros graduados ingresan a la escuela confiados, socialmente capaces y académicamente preparados.',
+                
+                // Program Wizard Defaults
+                "Infant\n(6 weeks–12m)" => "Bebés\n(6 semanas–12m)",
+                "Toddler\n(1 year)" => "Niños Pequeños\n(1 año)",
+                "Preschool\n(2 years)" => "Preescolar\n(2 años)",
+                "Pre-K Prep\n(3 years)" => "Preparación Pre-K\n(3 años)",
+                "GA Pre-K\n(4 years)" => "GA Pre-K\n(4 años)",
+                "After School\n(5–12 years)" => "Después de la Escuela\n(5–12 años)",
+                
+                // FAQ
+                'Common questions from parents' => 'Preguntas comunes de los padres',
+                'We’ve answered a few of the questions parents ask most when choosing childcare and early learning.' => 'Hemos respondido algunas de las preguntas que los padres hacen con más frecuencia al elegir guardería y aprendizaje temprano.',
+                
+                // Reviews Defaults
+                'Marietta Campus' => 'Campus de Marietta',
+                'Johns Creek Campus' => 'Campus de Johns Creek',
+                'Austell Campus' => 'Campus de Austell',
+                'Our daughter has flourished at Chroma. The teachers genuinely care, and the Prismpath curriculum has her excited to learn every day. We couldn\'t ask for a better early learning experience.' => 'Nuestra hija ha florecido en Chroma. Los maestros realmente se preocupan, y el currículo Prismpath la tiene emocionada por aprender todos los días. No podríamos pedir una mejor experiencia de aprendizaje temprano.',
+                'After touring several centers, Chroma stood out immediately. The transparency, the warmth, and the expert care made our decision easy. Our son has been there for two years and we\'ve never looked back.' => 'Después de recorrer varios centros, Chroma se destacó de inmediato. La transparencia, la calidez y el cuidado experto facilitaron nuestra decisión. Nuestro hijo ha estado allí durante dos años y nunca hemos mirado atrás.',
+                'The family-style meals, the daily communication, the beautiful facilities — everything exceeds expectations. Chroma feels like an extension of our family, and our twins are thriving.' => 'Las comidas al estilo familiar, la comunicación diaria, las hermosas instalaciones; todo supera las expectativas. Chroma se siente como una extensión de nuestra familia, y nuestros gemelos están prosperando.',
+                
+                // Featured Stories
+                'Inside the Prismpath™ Classroom' => 'Dentro del Aula Prismpath™',
+                'Take a peek at how our educators weave play and academics together each day.' => 'Eche un vistazo a cómo nuestros educadores entrelazan el juego y lo académico cada día.',
+                'Family-Style Dining at Chroma' => 'Cenas al Estilo Familiar en Chroma',
+                'Why shared meals matter for social-emotional growth and independence.' => 'Por qué las comidas compartidas son importantes para el crecimiento socioemocional y la independencia.',
+                'Partnering with Parents' => 'Asociación con los Padres',
+                'See how we communicate daily to keep families connected to the classroom.' => 'Vea cómo nos comunicamos diariamente para mantener a las familias conectadas con el aula.',
+                
+                // Regions
+                'North Atlanta' => 'Norte de Atlanta',
+                'South Atlanta' => 'Sur de Atlanta',
+                'East Atlanta' => 'Este de Atlanta',
+                'West Atlanta' => 'Oeste de Atlanta',
+                
+                // Curriculum Labels (Radar Chart)
+                'Physical' => 'Físico',
+                'Emotional' => 'Emocional',
+                'Social' => 'Social',
+                'Academic' => 'Académico',
+                'Creative' => 'Creativo',
+                'Prismpath™ Focus' => 'Enfoque Prismpath™',
+                
+                // Footer & Sticky CTA
+                'Premium childcare & early education across Metro Atlanta.' => 'Cuidado infantil de primera y educación temprana en todo Metro Atlanta.',
+                'Quick Links' => 'Enlaces Rápidos',
+                'Connect With Us' => 'Conéctate con Nosotros',
+                'Latest Blogs' => 'Últimos Blogs',
+                'Chroma Early Learning Academy. All rights reserved.' => 'Chroma Early Learning Academy. Todos los derechos reservados.',
+                'Privacy Policy' => 'Política de Privacidad',
+                'Terms of Service' => 'Términos de Servicio',
+                'Ready to experience the Chroma difference?' => '¿Listo para experimentar la diferencia de Chroma?',
+                'Ready to enroll in <strong>%s</strong>?' => '¿Listo para inscribirse en <strong>%s</strong>?',
+                'Ready to visit our <strong>%s</strong> campus?' => '¿Listo para visitar nuestro campus de <strong>%s</strong>?',
+                
+                // Program Wizard & Enhancements
+                'Find the right program in 10 seconds' => 'Encuentre el programa adecuado en 10 segundos',
+                'Choose your child\'s age and we\'ll suggest the Chroma program designed for their development stage and your family\'s needs.' => 'Elija la edad de su hijo y le sugeriremos el programa Chroma diseñado para su etapa de desarrollo y las necesidades de su familia.',
+                'Speak to an enrollment specialist' => 'Hable con un especialista en inscripciones',
+                'Start Over' => 'Empezar de nuevo',
+                'Program Preview' => 'Vista previa del programa',
+                'View Lesson Plan' => 'Ver plan de lecciones',
+                '%s Lesson Plan' => 'Plan de lecciones de %s',
+                'Loading lesson plan...' => 'Cargando plan de lecciones...',
+                'Open in new tab' => 'Abrir en pestaña nueva',
+                'Download' => 'Descargar',
+                'View Curriculum' => 'Ver currículo',
+                
+                // Common Program Enhancements
+                'Age Calculator' => 'Calculadora de edad',
+                'Frequently Asked Questions' => 'Preguntas frecuentes',
+                'Photo Gallery' => 'Galería de fotos',
+                'Parent Testimonials' => 'Testimonios de padres',
+                
+                // Curriculum Page
+                'See the curriculum in action.' => 'Vea el currículo en acción.',
+                'Schedule a tour to see our "Third Teacher" classrooms and meet the educators bringing Prismpath™ to life.' => 'Programe un recorrido para ver nuestras aulas del "Tercer Maestro" y conocer a los educadores que dan vida a Prismpath™.',
+                'Find a Location' => 'Encuentra una ubicación',
+                'The Chroma Difference' => 'La Diferencia Chroma',
+                'Scientific rigor. <br><span class="italic text-chroma-green">Joyful delivery.</span>' => 'Rigor científico. <br><span class="italic text-chroma-green">Entrega alegre.</span>',
+                'Our proprietary Prismpath™ curriculum isn\'t just about ABCs. It\'s a comprehensive framework designed to build the critical thinking, emotional intelligence, and social skills needed for the 21st century.' => 'Nuestro currículo patentado Prismpath™ no se trata solo del ABC. Es un marco integral diseñado para desarrollar el pensamiento crítico, la inteligencia emocional y las habilidades sociales necesarias para el siglo XXI.',
+                'The Prismpath™ Framework' => 'El Marco Prismpath™',
+                'How learning evolves.' => 'Cómo evoluciona el aprendizaje.',
+                'Environment' => 'Ambiente',
+                'The classroom is the "Third Teacher."' => 'El aula es el "Tercer Maestro."',
+                'Measuring Milestones' => 'Midiendo Hitos',
+                
+                // Curriculum Section
+                'The Prismpath™ Curriculum' => 'El Currículo Prismpath™',
+                'A curriculum that shifts as your child grows' => 'Un currículo que cambia a medida que su hijo crece',
+                'Our Prismpath™ framework balances five pillars – physical, emotional, social, academic, and creative development. The mix changes at each age so your child gets exactly what they need, when they need it.' => 'Nuestro marco Prismpath™ equilibra cinco pilares: desarrollo físico, emocional, social, académico y creativo. La mezcla cambia en cada edad para que su hijo reciba exactamente lo que necesita, cuando lo necesita.',
             ];
 
         }

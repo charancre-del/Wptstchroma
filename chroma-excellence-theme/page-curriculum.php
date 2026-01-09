@@ -374,15 +374,15 @@ $cta_description = chroma_get_translated_meta($page_id, 'curriculum_cta_descript
 					<?php echo esc_html($cta_description); ?>
 				</p>
 				<div class="flex flex-wrap gap-4 justify-center">
-					<a href="/schedule-tour/"
+					<a href="<?php echo chroma_get_localized_url(home_url('/schedule-a-tour/')); ?>"
 						class="inline-flex items-center gap-2 px-8 py-4 bg-chroma-red text-white rounded-full font-bold hover:bg-chroma-red/90 transition-all shadow-md hover:shadow-lg">
 						<i class="fa-solid fa-calendar"></i>
-						Schedule a Tour
+						<?php _e('Schedule a Tour', 'chroma-excellence'); ?>
 					</a>
-					<a href="/locations/"
+					<a href="<?php echo chroma_get_localized_url(get_post_type_archive_link('location')); ?>"
 						class="inline-flex items-center gap-2 px-8 py-4 bg-white text-brand-ink rounded-full font-bold hover:bg-brand-ink/5 transition-all shadow-md">
 						<i class="fa-solid fa-map-marker-alt"></i>
-						Find a Location
+						<?php _e('Find a Location', 'chroma-excellence'); ?>
 					</a>
 				</div>
 			</div>
