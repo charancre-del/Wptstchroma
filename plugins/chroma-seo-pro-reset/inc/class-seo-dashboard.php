@@ -4394,6 +4394,8 @@ class Chroma_SEO_Dashboard
         });
         </script>
         <?php
+    }
+
     /**
      * Render Combo Pages Management Tab
      */
@@ -4492,7 +4494,7 @@ class Chroma_SEO_Dashboard
                 </tbody>
             </table>
         </div>
-        ?>
+
         <?php
     }
 
