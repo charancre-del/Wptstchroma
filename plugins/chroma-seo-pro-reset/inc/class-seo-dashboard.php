@@ -4324,6 +4324,8 @@ class Chroma_SEO_Dashboard
             </form>
         </div>
         <?php
+    }
+
     /**
      * Render Internal Link Analysis Tab
      */
