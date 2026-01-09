@@ -4362,6 +4362,61 @@ class Chroma_SEO_Dashboard
                             <div style="font-size: 24px; font-weight: bold; color: #00a32a;"><?php echo count($report['suggestions'] ?? []); ?></div>
                         </div>
                     </div>
+                    </div>
+
+                    <div class="analysis-details">
+                        <?php if (!empty($report['orphans'])): ?>
+                            <h3>Orphan Pages (No incoming links)</h3>
+                            <table class="chroma-seo-table widefat fixed striped">
+                                <thead>
+                                    <tr>
+                                        <th>Page Title</th>
+                                        <th>Type</th>
+                                        <th>Internal Outgoing</th>
+                                        <th style="width: 100px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach (array_slice($report['orphans'], 0, 50) as $orphan): ?>
+                                        <tr>
+                                            <td><strong><?php echo esc_html($orphan['title'] ?? 'Unknown'); ?></strong></td>
+                                            <td><?php echo esc_html($orphan['type'] ?? ''); ?></td>
+                                            <td><?php echo esc_html($orphan['outgoing'] ?? 0); ?> links</td>
+                                            <td><a href="<?php echo get_edit_post_link($orphan['id']); ?>" class="button button-small">Edit Page</a></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
+
+                        <?php if (!empty($report['suggestions'])): ?>
+                            <h3 style="margin-top: 30px;">AI Link Suggestions</h3>
+                            <table class="chroma-seo-table widefat fixed striped">
+                                <thead>
+                                    <tr>
+                                        <th>Target</th>
+                                        <th>Issue</th>
+                                        <th>Recommendation</th>
+                                        <th style="width: 100px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach (array_slice($report['suggestions'], 0, 50) as $sug): ?>
+                                        <tr>
+                                            <td><strong><?php echo esc_html($sug['title'] ?? ''); ?></strong></td>
+                                            <td><span class="chroma-badge" style="background:#fff8e5; color:#856404;"><?php echo esc_html($sug['type'] ?? ''); ?></span></td>
+                                            <td><?php echo esc_html($sug['message'] ?? ''); ?></td>
+                                            <td><a href="<?php echo admin_url('admin.php?page=chroma-link-equity'); ?>" class="button button-small">AI Tool</a></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php endif; ?>
+                        
+                        <div style="margin-top: 20px; text-align: right;">
+                            <a href="<?php echo admin_url('admin.php?page=chroma-link-equity'); ?>" class="button button-secondary">Open Advanced Link Equity Manager &rarr;</a>
+                        </div>
+                    </div>
                 <?php endif; ?>
             </div>
         </div>
@@ -4479,10 +4534,10 @@ class Chroma_SEO_Dashboard
                             foreach ($patterns as $pattern => $data) {
                                 ?>
                                 <tr>
-                                    <td><strong>/<?php echo esc_html($pattern); ?>/</strong></td>
-                                    <td><span class="chroma-badge chroma-badge-manual">Public</span></td>
+                                    <td><strong><?php echo esc_html(str_replace(home_url(), '', $data['url'])); ?></strong></td>
+                                    <td><span class="chroma-badge <?php echo $data['type'] === 'Generic' ? 'chroma-badge-manual' : 'chroma-badge-auto'; ?>"><?php echo esc_html($data['type']); ?></span></td>
                                     <td><span class="chroma-check">✓</span> Indexed</td>
-                                    <td><a href="<?php echo home_url('/' . $pattern . '/'); ?>" target="_blank" class="button button-small">View Live</a></td>
+                                    <td><a href="<?php echo esc_url($data['url']); ?>" target="_blank" class="button button-small">View Live</a></td>
                                 </tr>
                                 <?php
                             }
@@ -4526,6 +4581,10 @@ class Chroma_SEO_Dashboard
         // Fetch results from analyzer
         if (method_exists($analyzer, 'get_orphans')) {
             $report['orphans'] = $analyzer->get_orphans();
+        }
+
+        if (method_exists($analyzer, 'get_recommendations')) {
+            $report['suggestions'] = $analyzer->get_recommendations();
         }
         
         // Let's assume analyzer->analyze() stores data somewhere or we can get scanned count

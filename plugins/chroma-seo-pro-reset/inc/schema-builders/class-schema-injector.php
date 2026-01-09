@@ -586,11 +586,11 @@ class Chroma_Schema_Injector
 
             // Check Global Disable Flags
             // 1. FAQ Schema
-            if ($schema_type === 'FAQPage' && get_option('chroma_faq_schema_disabled', 'yes') === 'yes') {
+            if ($schema_type === 'FAQPage' && get_option('chroma_faq_schema_disabled', 'no') === 'yes') {
                 continue;
             }
             // 2. Breadcrumbs (if present in modular list)
-            if ($schema_type === 'BreadcrumbList' && get_option('chroma_breadcrumbs_schema_disabled', 'yes') === 'yes') {
+            if ($schema_type === 'BreadcrumbList' && get_option('chroma_breadcrumbs_schema_disabled', 'no') === 'yes') {
                 continue;
             }
 

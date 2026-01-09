@@ -81,8 +81,20 @@ class Chroma_LLM_Admin_Settings
         register_setting('chroma_llm_settings', 'chroma_seo_email');
 
         // Schema Conflict Settings
-        register_setting('chroma_llm_settings', 'chroma_faq_schema_disabled');
-        register_setting('chroma_llm_settings', 'chroma_breadcrumbs_schema_disabled');
+        register_setting('chroma_llm_settings', 'chroma_faq_schema_disabled', [
+            'type' => 'string',
+            'sanitize_callback' => function($input) {
+                return ($input === 'yes') ? 'yes' : 'no';
+            },
+            'default' => 'no'
+        ]);
+        register_setting('chroma_llm_settings', 'chroma_breadcrumbs_schema_disabled', [
+            'type' => 'string',
+            'sanitize_callback' => function($input) {
+                return ($input === 'yes') ? 'yes' : 'no';
+            },
+            'default' => 'no'
+        ]);
     }
     
     /**
@@ -270,8 +282,9 @@ class Chroma_LLM_Admin_Settings
                         <th>Disable Chroma FAQ Schema</th>
                         <td>
                             <label>
+                                <input type="hidden" name="chroma_faq_schema_disabled" value="no">
                                 <input type="checkbox" name="chroma_faq_schema_disabled" value="yes" 
-                                    <?php checked(get_option('chroma_faq_schema_disabled', 'yes'), 'yes'); ?>>
+                                    <?php checked(get_option('chroma_faq_schema_disabled', 'no'), 'yes'); ?>>
                                 Disable built-in FAQ Schema (Recommended if using Otto or other FAQ plugins)
                             </label>
                         </td>
@@ -280,8 +293,9 @@ class Chroma_LLM_Admin_Settings
                         <th>Disable Chroma Breadcrumbs</th>
                         <td>
                             <label>
+                                <input type="hidden" name="chroma_breadcrumbs_schema_disabled" value="no">
                                 <input type="checkbox" name="chroma_breadcrumbs_schema_disabled" value="yes" 
-                                    <?php checked(get_option('chroma_breadcrumbs_schema_disabled', 'yes'), 'yes'); ?>>
+                                    <?php checked(get_option('chroma_breadcrumbs_schema_disabled', 'no'), 'yes'); ?>>
                                 Disable built-in Breadcrumb Schema (Recommended if using Yoast/RankMath)
                             </label>
                         </td>
