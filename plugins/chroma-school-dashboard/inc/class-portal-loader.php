@@ -26,8 +26,14 @@ class Chroma_School_Portal_Loader
     public function load_portal_template($template)
     {
         if (get_query_var('chroma_view') === 'portal') {
+            $plugin_template = CHROMA_SCHOOL_DB_PATH . 'templates/portal-dashboard.php';
 
-            // Try to find the native native template in the theme
+            if (file_exists($plugin_template)) {
+                include($plugin_template);
+                exit;
+            }
+
+            // Fallback to theme if plugin template missing (unlikely now)
             $theme_template = locate_template(['page-portal.php', 'page-director-portal.php']);
 
             if ($theme_template) {
@@ -35,8 +41,7 @@ class Chroma_School_Portal_Loader
                 exit;
             }
 
-            // Fallback to legacy asset loading if template missing (or show error)
-            echo "Portal template not found. Please ensure page-portal.php exists in your theme.";
+            echo "Portal template not found.";
             exit;
         }
         return $template;

@@ -69,7 +69,7 @@ class Chroma_School_API_Routes
             'menu',
             'slideshow',
             'youtube',
-            'welcome_override',
+            'slideshow_title',
             'chroma_cares',
             'celebrations'
         ];
@@ -116,6 +116,13 @@ class Chroma_School_API_Routes
         }
 
         $google_data = json_decode(wp_remote_retrieve_body($response), true);
+        
+        // 1.1 Verify Audience (Client ID)
+        $client_id = get_option('chroma_google_client_id');
+        if (empty($client_id) || empty($google_data['aud']) || $google_data['aud'] !== $client_id) {
+            return new WP_Error('invalid_client', 'Google Token Audience mismatch.', ['status' => 401]);
+        }
+
         if (empty($google_data['email']) || empty($google_data['email_verified']) || $google_data['email_verified'] !== 'true') {
             return new WP_Error('email_unverified', 'Email not verified', ['status' => 401]);
         }
@@ -182,6 +189,7 @@ class Chroma_School_API_Routes
             'slideshow',
             'youtube',
             'welcome_override',
+            'slideshow_title',
             'chroma_cares',
             'celebrations'
         ];
@@ -220,26 +228,41 @@ class Chroma_School_API_Routes
             'menu',
             'slideshow',
             'youtube',
+            'slideshow_title',
             'welcome_override',
-            'chroma_cares', // Added
-            'celebrations'  // Added
+            'chroma_cares',
+            'celebrations'
         ];
 
         foreach ($params as $key => $value) {
             if (in_array($key, $allowed_keys)) {
-                if ($key === 'announcements' || $key === 'today' || $key === 'qr' || $key === 'slideshow' || $key === 'celebrations') {
-                    // Array types
+                // Determine if field is complex (array/object)
+                $is_complex = in_array($key, [
+                    'newsletter',
+                    'eom',
+                    'announcements',
+                    'today',
+                    'qr',
+                    'slideshow',
+                    'chroma_cares',
+                    'celebrations'
+                ]);
+
+                if ($is_complex) {
                     $value = is_array($value) ? $value : [];
-                } elseif ($key === 'chroma_cares') {
-                    // Object/Array type
-                    $value = is_array($value) ? $value : [];
+                    // Optionally sanitize inner strings if needed, but keep structure
                 } else {
-                    $value = wp_kses_post($value); // Allow safe HTML in bodies
+                    $value = wp_kses_post($value); // Allow safe HTML in single strings
                 }
 
                 $updated = update_post_meta($school_id, '_chroma_school_' . $key, $value);
+                
                 // Log update result
-                $log_update = sprintf(" - Key: %s | Values: %s | Updated: %s\n", $key, is_array($value) ? 'ARRAY' : substr((string) $value, 0, 20), $updated ? 'YES' : 'NO/SAME');
+                $log_update = sprintf(" - Key: %s | Type: %s | Updated: %s\n", 
+                    $key, 
+                    $is_complex ? 'COMPLEX' : 'STRING',
+                    $updated ? 'YES' : 'NO/SAME'
+                );
                 file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', $log_update, FILE_APPEND);
             }
         }

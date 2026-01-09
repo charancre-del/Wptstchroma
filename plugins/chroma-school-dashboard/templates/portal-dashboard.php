@@ -1,10 +1,12 @@
 <?php
 /**
- * Template Name: Portal
- * Description: Standalone Single Page App for School Directors to manage TV content.
+ * Director Portal Template
+ * Standalone Single Page App for School Directors to manage TV content.
  */
 
-// If user somehow gets here and they are logged in as WP Admin, that's fine, but this system uses Google Auth independently.
+// Fetch Google Client ID from plugin settings
+$google_client_id = get_option('chroma_google_client_id', '');
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -39,10 +41,9 @@
 
 <body class="bg-brand-cream text-brand-ink min-h-screen">
 
-    <!-- ================= CAUTION: CONFIG ================= -->
-    <!-- TODO: PASTE YOUR GOOGLE CLIENT ID HERE -->
-    <div id="g_config" data-client-id="REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID_FROM_ENV_LOCAL"></div>
-    <!-- =================================================== -->
+    <!-- ================= CONFIG ================= -->
+    <div id="g_config" data-client-id="<?php echo esc_attr($google_client_id); ?>"></div>
+    <!-- ========================================== -->
 
     <!-- LOGIN VIEW -->
     <div id="login-view" class="min-h-screen flex flex-col items-center justify-center p-6 hidden">
@@ -152,6 +153,16 @@
                             <input name="eom[photo_url]" placeholder="https://..."
                                 class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
                         </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase mb-1">Role / Position</label>
+                            <input name="eom[role]" placeholder="e.g. Lead Teacher"
+                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase mb-1">Classroom</label>
+                            <input name="eom[classroom]" placeholder="e.g. Infants"
+                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
+                        </div>
                         <div class="md:col-span-2">
                             <label class="block text-xs font-bold uppercase mb-1">Blurb / Quote</label>
                             <textarea name="eom[blurb]" rows="2"
@@ -198,36 +209,47 @@
                     </div>
                     <div class="grid md:grid-cols-2 gap-8">
                         <!-- Today -->
-                        <div>
+                        <!-- Celebrations -->
+                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
                             <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold">Schedule</h3>
-                                <button type="button" onclick="addTodayItem()"
-                                    class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full font-bold flex items-center gap-1">
+                                <h3 class="font-bold text-sm uppercase text-brand-ink/50">Celebrations</h3>
+                                <button type="button" onclick="addCelebration()"
+                                    class="text-xs bg-white hover:bg-gray-100 px-3 py-1 rounded-full font-bold flex items-center gap-1 border">
                                     <i class="fa-solid fa-plus"></i> Add
                                 </button>
                             </div>
-                            <div id="today-list" class="space-y-2">
-                                <!-- Dynamic Today Items -->
-                            </div>
-                        </div>
-                        <!-- Celebrations -->
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <h3 class="font-bold mb-3 text-sm uppercase text-brand-ink/50">Celebrations</h3>
-                            <div class="space-y-2">
-                                <input name="celebrations[]" placeholder="e.g. Happy Birthday Sarah! 🎂"
-                                    class="w-full p-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-chroma-blue">
-                                <input name="celebrations[]" placeholder="e.g. Pre-K Graduation 🎓"
-                                    class="w-full p-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-chroma-blue">
-                                <input name="celebrations[]" placeholder="e.g. Welcome Ms. Johnson!"
-                                    class="w-full p-2 rounded-lg border border-gray-200 text-sm focus:outline-none focus:border-chroma-blue">
+                            <div id="celebrations-list" class="space-y-2">
+                                <!-- Dynamic Celebrations -->
                             </div>
                         </div>
                     </div>
                 </section>
 
+                <!-- QR Links -->
+                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-serif text-2xl font-bold text-chroma-blue">QR Links</h2>
+                        <button type="button" onclick="addQRLink()"
+                            class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Add Link
+                        </button>
+                    </div>
+                    <p class="text-xs text-brand-ink/40 mb-4">Add up to 4 custom links that will generate QR codes for parents to scan.</p>
+                    <div id="qr-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Dynamic QR Links -->
+                    </div>
+                </section>
+
+
                 <!-- Visuals -->
                 <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <h2 class="font-serif text-2xl font-bold mb-6">Visuals</h2>
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="font-serif text-2xl font-bold">Visuals</h2>
+                        <button type="button" onclick="addSlide()"
+                            class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full font-bold flex items-center gap-1">
+                            <i class="fa-solid fa-plus"></i> Add Image
+                        </button>
+                    </div>
                     <div class="grid gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase mb-1">YouTube URL (Overrides
@@ -236,14 +258,14 @@
                                 class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
                         </div>
                         <div>
+                            <label class="block text-xs font-bold uppercase mb-1">Slideshow Title</label>
+                            <input name="slideshow_title" placeholder="e.g. Fall Festival Highlights"
+                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
+                        </div>
+                        <div>
                             <label class="block text-xs font-bold uppercase mb-1">Slideshow Images (URLs)</label>
-                            <div class="space-y-2">
-                                <input name="slideshow[]" placeholder="Image URL 1"
-                                    class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                                <input name="slideshow[]" placeholder="Image URL 2"
-                                    class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                                <input name="slideshow[]" placeholder="Image URL 3"
-                                    class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
+                            <div id="slides-list" class="space-y-2">
+                                <!-- Dynamic Slides -->
                             </div>
                         </div>
                     </div>
@@ -264,15 +286,15 @@
             const clientId = document.getElementById('g_config').getAttribute('data-client-id');
             const gIdContainer = document.getElementById('g_id_onload');
             
-            if (clientId === 'REPLACE_WITH_YOUR_GOOGLE_CLIENT_ID_FROM_ENV_LOCAL') {
+            if (clientId === '') {
                  // SHOW CONFIG ERROR
                  document.getElementById('login-view').classList.remove('hidden');
                  document.getElementById('login-view').innerHTML = `
                     <div class="bg-red-50 border-2 border-red-500 rounded-2xl p-8 max-w-md text-center">
                         <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
                         <h1 class="text-2xl font-bold text-red-600 mb-2">Setup Required</h1>
-                        <p class="text-brand-ink/70 mb-4">You must open <code>page-portal.php</code> and paste your <strong>Google Client ID</strong>.</p>
-                        <p class="text-xs bg-white p-2 border rounded font-mono">Use the ID from your old director-portal/.env.local file.</p>
+                        <p class="text-brand-ink/70 mb-4">You must go to <strong>Schools > Global Settings</strong> in the WordPress dashboard and paste your <strong>Google Client ID</strong>.</p>
+                        <p class="text-xs bg-white p-2 border rounded font-mono">This is required for the Director Portal login to function.</p>
                     </div>
                  `;
                  return;
@@ -354,6 +376,7 @@
             setVal('welcome_override', c.welcome_override);
             setVal('menu', c.menu);
             setVal('youtube', c.youtube);
+            setVal('slideshow_title', c.slideshow_title);
 
             // Nested objects
             setVal('newsletter[title]', c.newsletter?.title);
@@ -362,17 +385,12 @@
 
             setVal('eom[name]', c.eom?.name);
             setVal('eom[photo_url]', c.eom?.photo_url);
+            setVal('eom[role]', c.eom?.role);
+            setVal('eom[classroom]', c.eom?.classroom);
             setVal('eom[blurb]', c.eom?.blurb);
 
             setVal('chroma_cares[title]', c.chroma_cares?.title);
             setVal('chroma_cares[body]', c.chroma_cares?.body);
-
-            // Arrays (Fixed inputs)
-            const slideInputs = document.querySelectorAll('input[name="slideshow[]"]');
-            (c.slideshow || []).forEach((url, i) => { if (slideInputs[i]) slideInputs[i].value = url; });
-
-            const celebInputs = document.querySelectorAll('input[name="celebrations[]"]');
-            (c.celebrations || []).forEach((str, i) => { if (celebInputs[i]) celebInputs[i].value = str; });
 
             // Dynamic Lists
             const noticesList = document.getElementById('notices-list');
@@ -382,6 +400,18 @@
             const todayList = document.getElementById('today-list');
             todayList.innerHTML = '';
             (c.today || []).forEach(t => addTodayItem(t));
+
+            const celebrationsList = document.getElementById('celebrations-list');
+            celebrationsList.innerHTML = '';
+            (c.celebrations || []).forEach(str => addCelebration(str));
+
+            const qrList = document.getElementById('qr-list');
+            qrList.innerHTML = '';
+            (c.qr || []).forEach(item => addQRLink(item));
+
+            const slidesList = document.getElementById('slides-list');
+            slidesList.innerHTML = '';
+            (c.slideshow || []).forEach(url => addSlide(url));
         }
 
         function setVal(name, val) {
@@ -421,6 +451,42 @@
             document.getElementById('today-list').insertAdjacentHTML('beforeend', html);
         }
 
+        function addCelebration(str = '') {
+            const html = `
+                <div class="flex gap-2 items-center celebration-item">
+                    <input name="celebrations[]" value="${esc(str)}" placeholder="Happy Birthday..." class="flex-1 p-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:border-chroma-blue">
+                    <button type="button" onclick="this.closest('.celebration-item').remove()" class="text-red-300 hover:text-red-500">
+                        <i class="fa-solid fa-times-circle"></i>
+                    </button>
+                </div>`;
+            document.getElementById('celebrations-list').insertAdjacentHTML('beforeend', html);
+        }
+
+        function addSlide(url = '') {
+            const html = `
+                <div class="flex gap-2 items-center slide-item">
+                    <input name="slideshow[]" value="${esc(url)}" placeholder="https://..." class="flex-1 p-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-chroma-blue">
+                    <button type="button" onclick="this.closest('.slide-item').remove()" class="text-red-400 hover:text-red-600">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>`;
+            document.getElementById('slides-list').insertAdjacentHTML('beforeend', html);
+        }
+
+        function addQRLink(data = { label: '', url: '' }) {
+            const html = `
+                <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 qr-item relative group">
+                    <div class="grid gap-2">
+                        <input name="qr_label[]" value="${esc(data.label)}" placeholder="Label (e.g. Enrollment)" class="text-sm font-bold bg-transparent border-b border-gray-200 focus:outline-none focus:border-chroma-blue">
+                        <input name="qr_url[]" value="${esc(data.url)}" placeholder="URL (https://...)" class="text-xs bg-transparent border-b border-gray-100 focus:outline-none focus:border-chroma-blue">
+                    </div>
+                    <button type="button" onclick="this.closest('.qr-item').remove()" class="absolute top-2 right-2 text-red-300 hover:text-red-500">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>`;
+            document.getElementById('qr-list').insertAdjacentHTML('beforeend', html);
+        }
+
         function esc(str) { return (str || '').replace(/"/g, '&quot;'); }
         function dirEsc(str) { return (str || ''); } // Textarea raw content
 
@@ -450,19 +516,34 @@
                 eom: {
                     name: fd.get('eom[name]'),
                     photo_url: fd.get('eom[photo_url]'),
+                    role: fd.get('eom[role]'),
+                    classroom: fd.get('eom[classroom]'),
                     blurb: fd.get('eom[blurb]'),
                 },
                 chroma_cares: {
                     title: fd.get('chroma_cares[title]'),
                     body: fd.get('chroma_cares[body]'),
                 },
-                slideshow: Array.from(document.querySelectorAll('input[name="slideshow[]"]')).map(i => i.value).filter(Boolean),
-                celebrations: Array.from(document.querySelectorAll('input[name="celebrations[]"]')).map(i => i.value).filter(Boolean),
-
+                slideshow_title: fd.get('slideshow_title'),
                 // Dynamic Arrays
                 announcements: [],
-                today: []
+                today: [],
+                celebrations: Array.from(document.querySelectorAll('input[name="celebrations[]"]')).map(i => i.value).filter(Boolean),
+                qr: [],
+                slideshow: Array.from(document.querySelectorAll('input[name="slideshow[]"]')).map(i => i.value).filter(Boolean),
             };
+
+            // Parse QR
+            const qrLabels = document.getElementsByName('qr_label[]');
+            const qrUrls = document.getElementsByName('qr_url[]');
+            for (let i = 0; i < qrLabels.length; i++) {
+                if (qrLabels[i].value) {
+                    payload.qr.push({
+                        label: qrLabels[i].value,
+                        url: qrUrls[i].value
+                    });
+                }
+            }
 
             // Parse Notices
             const nTitles = document.getElementsByName('notice_title[]');

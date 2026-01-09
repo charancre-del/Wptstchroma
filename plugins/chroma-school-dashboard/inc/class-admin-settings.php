@@ -24,6 +24,7 @@ class Chroma_School_Admin_Settings
     {
         register_setting('chroma_school_global', 'chroma_global_cares');
         register_setting('chroma_school_global', 'chroma_global_alert');
+        register_setting('chroma_school_global', 'chroma_google_client_id');
     }
 
     public function settings_page_html()
@@ -38,7 +39,20 @@ class Chroma_School_Admin_Settings
 
                 $cares = get_option('chroma_global_cares', []);
                 $alert = get_option('chroma_global_alert', []);
+                $google_client_id = get_option('chroma_google_client_id', '');
                 ?>
+
+                <h2>API Configuration</h2>
+                <table class="form-table">
+                    <tr>
+                        <th>Google Client ID</th>
+                        <td>
+                            <input type="password" name="chroma_google_client_id"
+                                value="<?php echo esc_attr($google_client_id); ?>" class="large-text">
+                            <p class="description">Required for Director Portal login.</p>
+                        </td>
+                    </tr>
+                </table>
 
                 <h2>Chroma Cares</h2>
                 <table class="form-table">

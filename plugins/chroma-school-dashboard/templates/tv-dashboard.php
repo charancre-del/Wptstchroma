@@ -14,6 +14,7 @@ $menu = get_post_meta($school_id, '_chroma_school_menu', true) ?: '';
 $qr_links = get_post_meta($school_id, '_chroma_school_qr', true) ?: [];
 $slideshow = get_post_meta($school_id, '_chroma_school_slideshow', true) ?: [];
 $youtube = get_post_meta($school_id, '_chroma_school_youtube', true) ?: '';
+$slideshow_title = get_post_meta($school_id, '_chroma_school_slideshow_title', true) ?: 'Highlights';
 $welcome_override = get_post_meta($school_id, '_chroma_school_welcome_override', true);
 
 $global_cares = get_option('chroma_global_cares', []);
@@ -330,7 +331,7 @@ $school_name = get_the_title();
                         <span
                             class="inline-block px-3 py-1 rounded-full bg-chroma-red text-white text-xs font-bold uppercase tracking-wider mb-2 shadow-lg">Happening
                             Now</span>
-                        <h2 class="font-serif text-5xl font-bold text-white drop-shadow-md">Fall Festival Highlights</h2>
+                        <h2 class="font-serif text-5xl font-bold text-white drop-shadow-md"><?php echo esc_html($slideshow_title); ?></h2>
                     </div>
 
                     <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10"></div>
@@ -370,7 +371,7 @@ $school_name = get_the_title();
                                     <?php echo esc_html($eom['name']); ?>
                                 </h2>
                                 <p class="text-chroma-blue font-bold uppercase tracking-widest text-xs mb-3">
-                                    Leacher Teacher • Infants
+                                    <?php echo esc_html($eom['role'] ?? 'Educator'); ?> • <?php echo esc_html($eom['classroom'] ?? 'Classroom'); ?>
                                 </p>
                                 <p class="text-brand-ink/60 text-lg leading-snug line-clamp-2 italic">
                                     "<?php echo esc_html($eom['blurb'] ?? 'Dedicated to nurturing every child\'s potential.'); ?>"
@@ -474,6 +475,22 @@ $school_name = get_the_title();
                     </div>
                 </div>
             <?php endif; ?>
+
+            <!-- Generic QR Links -->
+            <?php if (!empty($qr_links)): ?>
+                <div class="grid grid-cols-2 gap-4">
+                    <?php foreach (array_slice($qr_links, 0, 4) as $qr): ?>
+                        <div class="bg-white rounded-3xl p-4 shadow-card flex flex-col items-center text-center gap-2 border border-gray-50">
+                            <div class="w-16 h-16 bg-gray-50 rounded-xl p-1 shrink-0">
+                                <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=<?php echo urlencode($qr['url']); ?>"
+                                    class="w-full h-full object-contain" alt="QR">
+                            </div>
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-brand-ink/40 leading-tight"><?php echo esc_html($qr['label']); ?></p>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+
 
         </aside>
 
