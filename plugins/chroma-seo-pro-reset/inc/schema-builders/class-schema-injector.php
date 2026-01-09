@@ -241,8 +241,22 @@ class Chroma_Schema_Injector
                 'addressRegion' => $state,
                 'postalCode' => $zip,
                 'addressCountry' => 'US'
-            ]
+            ],
+            'sameAs' => array_filter([
+                get_theme_mod('chroma_facebook_url'),
+                get_theme_mod('chroma_instagram_url'),
+                get_theme_mod('chroma_linkedin_url'),
+                get_post_meta($location_id, 'location_facebook', true)
+            ])
         ];
+
+        // Opening Hours (Tier 1)
+        $hours_raw = get_post_meta($location_id, 'location_hours', true);
+        if ($hours_raw) {
+            // Simple check: if it looks like "7:00 am - 6:00 pm", we can try to parse. 
+            // For now, output as standard string unless we have the repeater data.
+            $schema['openingHours'] = $hours_raw;
+        }
 
         // Geo Coordinates
         if ($lat && $lng) {
@@ -319,6 +333,43 @@ class Chroma_Schema_Injector
                 'bestRating' => '5',
                 'worstRating' => '1'
             ];
+        }
+
+        // Feature: Director (Person)
+        $director_name = get_post_meta($location_id, 'location_director_name', true);
+        if ($director_name) {
+            $schema['employee'] = [
+                '@type' => 'Person',
+                'name' => $director_name,
+                'jobTitle' => 'Center Director',
+                'image' => get_post_meta($location_id, 'location_director_photo', true)
+            ];
+        }
+
+        // Feature: Related Programs (makesOffer)
+        $programs = get_posts([
+            'post_type' => 'program',
+            'posts_per_page' => -1,
+            'meta_query' => [
+                [
+                    'key' => 'program_locations',
+                    'value' => '"' . $location_id . '"',
+                    'compare' => 'LIKE'
+                ]
+            ]
+        ]);
+        if (!empty($programs)) {
+            $schema['makesOffer'] = [];
+            foreach ($programs as $prog) {
+                $schema['makesOffer'][] = [
+                    '@type' => 'Offer',
+                    'itemOffered' => [
+                        '@type' => 'Service',
+                        'name' => $prog->post_title,
+                        'url' => get_permalink($prog->ID)
+                    ]
+                ];
+            }
         }
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";

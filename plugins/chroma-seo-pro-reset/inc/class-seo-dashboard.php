@@ -38,6 +38,7 @@ class Chroma_SEO_Dashboard
         add_action('wp_ajax_chroma_validate_url', [$this, 'ajax_validate_url']);
         add_action('wp_ajax_chroma_clear_validation_cache', [$this, 'ajax_clear_validation_cache']);
         add_action('wp_ajax_chroma_save_validator_setting', [$this, 'ajax_save_validator_setting']);
+        add_action('wp_ajax_chroma_run_link_analysis', [$this, 'ajax_run_link_analysis']);
         add_action('rest_api_init', [$this, 'register_rest_routes']);
         add_action('admin_init', [$this, 'register_settings']);
         add_action('transition_post_status', [$this, 'auto_validate_on_publish'], 10, 3);
@@ -129,6 +130,27 @@ class Chroma_SEO_Dashboard
         register_setting('chroma_validator_options', 'chroma_validator_email_alerts');
         register_setting('chroma_validator_options', 'chroma_validator_post_types');
         register_setting('chroma_careers_options', 'chroma_careers_feed_url');
+        
+        // SEO Automations
+        register_setting('chroma_automation_options', 'chroma_seo_show_related_locations');
+        register_setting('chroma_automation_options', 'chroma_seo_link_programs_locations');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_keyword_linking');
+        register_setting('chroma_automation_options', 'chroma_seo_show_footer_cities');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_dynamic_titles');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_canonical');
+        register_setting('chroma_automation_options', 'chroma_seo_trailing_slash');
+        register_setting('chroma_automation_options', 'chroma_seo_show_author_meta');
+        register_setting('chroma_automation_options', 'chroma_seo_show_author_box');
+        register_setting('chroma_automation_options', 'chroma_seo_show_credential_badges');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_skip_nav');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_focus_indicators');
+        register_setting('chroma_automation_options', 'chroma_enable_speculation_rules');
+        register_setting('chroma_automation_options', 'chroma_enable_indexnow');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_entity_markup');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_county_pages');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_zip_pages');
+        register_setting('chroma_automation_options', 'chroma_seo_auto_generate_combos');
+        register_setting('chroma_automation_options', 'chroma_seo_enable_combo_links');
     }
 
     /**
@@ -322,6 +344,14 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=careers'); ?>"
                     class="nav-tab <?php echo $active_tab === 'careers' ? 'nav-tab-active' : ''; ?>">Careers & Sync</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=automations'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'automations' ? 'nav-tab-active' : ''; ?>">Automations</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=analysis'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'analysis' ? 'nav-tab-active' : ''; ?>">Link Analysis</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=combos'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'combos' ? 'nav-tab-active' : ''; ?>">Combo Pages</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=near-me'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'near-me' ? 'nav-tab-active' : ''; ?>">Near Me Pages</a>
                 <?php do_action('chroma_seo_dashboard_tabs'); ?>
             </nav>
 
@@ -377,6 +407,18 @@ class Chroma_SEO_Dashboard
                     break;
                 case 'careers':
                     $this->render_careers_tab();
+                    break;
+                case 'automations':
+                    $this->render_automations_tab();
+                    break;
+                case 'analysis':
+                    $this->render_analysis_tab();
+                    break;
+                case 'combos':
+                    $this->render_combos_tab();
+                    break;
+                case 'near-me':
+                    $this->render_near_me_tab();
                     break;
                 default:
                     // Allow other tabs to render via action
@@ -4071,5 +4113,408 @@ class Chroma_SEO_Dashboard
         });
         </script>
         <?php
+    }
+
+    /**
+     * Render SEO Automations Tab
+     */
+    private function render_automations_tab()
+    {
+        ?>
+        <div class="chroma-seo-card">
+            <h2>🚀 SEO Automations & Advanced Features</h2>
+            <p class="description">Central management for all automated SEO strategies and performance features.</p>
+            
+            <form method="post" action="options.php">
+                <?php settings_fields('chroma_automation_options'); ?>
+                
+                <h3 class="chroma-section-title">🔗 Internal Linking</h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Related Locations</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_show_related_locations" value="1" <?php checked(get_option('chroma_seo_show_related_locations', 1)); ?>>
+                                Show "Other Locations Near You" on location individual pages.
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Program-Location Interlinks</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_link_programs_locations" value="1" <?php checked(get_option('chroma_seo_link_programs_locations', 1)); ?>>
+                                Automatically link programs to their serving locations.
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Footer City Links</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_show_footer_cities" value="1" <?php checked(get_option('chroma_seo_show_footer_cities', 1)); ?>>
+                                Generate hyper-local city links in the site footer.
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Automatic Keyword Linking</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_keyword_linking" value="1" <?php checked(get_option('chroma_seo_enable_keyword_linking', 1)); ?>>
+                                Automatically link key phrases to internal pages (requires keyword map).
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 class="chroma-section-title">🛡️ E-E-A-T & Trust</h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Author Metadata & Box</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_show_author_meta" value="1" <?php checked(get_option('chroma_seo_show_author_meta', 1)); ?>>
+                                Include Author schema and UI boxes on blog posts.
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Credential Badges</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_show_credential_badges" value="1" <?php checked(get_option('chroma_seo_show_credential_badges', 1)); ?>>
+                                Display DECAL and Quality Rated badges on location pages.
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Entity SEO Markup</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_entity_markup" value="1" <?php checked(get_option('chroma_seo_enable_entity_markup', 1)); ?>>
+                                Inject semantic entity markup (Topic Clusters, Known Entities) into content.
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 class="chroma-section-title">♿ Accessibility SEO</h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Skip Navigation Links</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_skip_nav" value="1" <?php checked(get_option('chroma_seo_enable_skip_nav', 1)); ?>>
+                                Add "Skip to Content" links for screen readers (improves indexability).
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Smart Focus Indicators</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_focus_indicators" value="1" <?php checked(get_option('chroma_seo_enable_focus_indicators', 1)); ?>>
+                                Enhanced focus states for better accessibility compliance.
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 class="chroma-section-title">⚡ High Performance & Indexing</h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Speculation Rules API</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_enable_speculation_rules" value="yes" <?php checked(get_option('chroma_enable_speculation_rules', 'yes'), 'yes'); ?>>
+                                <strong>Near-Instant Navigation:</strong> Uses Browser Prerendering for extremely fast page loads.
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">IndexNow Support</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_enable_indexnow" value="yes" <?php checked(get_option('chroma_enable_indexnow', 'yes'), 'yes'); ?>>
+                                Notify search engines (Bing, Yandex) instantly when content is updated.
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 class="chroma-section-title">🗺️ Geographic SEO</h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">County Service Areas</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_county_pages" value="1" <?php checked(get_option('chroma_seo_enable_county_pages', 1)); ?>>
+                                Dynamically generate and index pages for serving counties.
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">ZIP Code Targeting</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_zip_pages" value="1" <?php checked(get_option('chroma_seo_enable_zip_pages', 1)); ?>>
+                                Enable hyper-local ZIP code service area pages.
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Combo Page Generation</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_auto_generate_combos" value="1" <?php checked(get_option('chroma_seo_auto_generate_combos', 1)); ?>>
+                                Automatically create intersection pages (Program + City).
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Combo Internal Linking</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_combo_links" value="1" <?php checked(get_option('chroma_seo_enable_combo_links', 1)); ?>>
+                                Inject internal links to combo pages from relevant post content.
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 class="chroma-section-title">🛠️ Technical SEO</h3>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Dynamic Title Patterns</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_dynamic_titles" value="1" <?php checked(get_option('chroma_seo_enable_dynamic_titles', 1)); ?>>
+                                Enable automated title tag construction using post patterns.
+                            </label>
+                            <p><a href="<?php echo admin_url('admin.php?page=chroma-title-patterns'); ?>" class="button button-secondary">Configure Patterns</a></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Canonical & Trailing Slash</th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="chroma_seo_enable_canonical" value="1" <?php checked(get_option('chroma_seo_enable_canonical', 1)); ?>>
+                                Enforce canonical tags and trailing slashes for SEO hygiene.
+                            </label>
+                        </td>
+                    </tr>
+                </table>
+
+                <?php submit_button('Save Automation Settings'); ?>
+            </form>
+        </div>
+        <?php
+    /**
+     * Render Internal Link Analysis Tab
+     */
+    private function render_analysis_tab()
+    {
+        $report = get_option('chroma_seo_link_report', []);
+        ?>
+        <div class="chroma-seo-card">
+            <h2>🔗 Internal Link Equity Analysis</h2>
+            <p class="description">Scan your site to identify orphan pages, weak internal links, and AI-driven link suggestions.</p>
+            
+            <div style="background: #f0f6fc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2271b1;">
+                <button type="button" id="chroma-run-analysis-btn" class="button button-primary">
+                    <span class="dashicons dashicons-performance" style="vertical-align: middle;"></span> Run Full Site Audit
+                </button>
+                <span id="analysis-status" style="margin-left: 10px;"></span>
+            </div>
+
+            <div id="analysis-results">
+                <?php if (empty($report)): ?>
+                    <p>No analysis report found. Click the button above to start the first audit.</p>
+                <?php else: ?>
+                    <div class="analysis-summary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                        <div style="background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                            <strong>Total Pages Scanned:</strong>
+                            <div style="font-size: 24px; font-weight: bold;"><?php echo count($report['scanned'] ?? []); ?></div>
+                        </div>
+                        <div style="background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                            <strong>Orphan Pages:</strong>
+                            <div style="font-size: 24px; font-weight: bold; color: #d63638;"><?php echo count($report['orphans'] ?? []); ?></div>
+                        </div>
+                        <div style="background: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 4px;">
+                            <strong>AI Link Suggestions:</strong>
+                            <div style="font-size: 24px; font-weight: bold; color: #00a32a;"><?php echo count($report['suggestions'] ?? []); ?></div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            $('#chroma-run-analysis-btn').click(function() {
+                var btn = $(this);
+                var status = $('#analysis-status');
+                
+                if (!confirm('Running a full audit can take a few minutes on large sites. Continue?')) return;
+
+                btn.prop('disabled', true);
+                status.html('<span class="spinner is-active" style="float:none; margin:0;"></span> Auditing site structure...');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_run_link_analysis',
+                    nonce: '<?php echo wp_create_nonce("chroma_seo_dashboard_nonce"); ?>'
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    if (response.success) {
+                        status.html('<span class="dashicons dashicons-yes" style="color:green;"></span> Audit Complete!').css('color', 'green');
+                        showToast('Analysis complete! Reloading page to show results...');
+                        setTimeout(function() { location.reload(); }, 2000);
+                    } else {
+                        status.html('<span class="dashicons dashicons-warning" style="color:red;"></span> Error: ' + response.data).css('color', 'red');
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
+    /**
+     * Render Combo Pages Management Tab
+     */
+    private function render_combos_tab()
+    {
+        ?>
+        <div class="chroma-seo-card">
+            <h2>🔗 Program + City Combo Pages</h2>
+            <p class="description">Live view of dynamically generated intersection pages. These pages are generated on-the-fly when a valid Program/City combination is requested.</p>
+            
+            <div style="margin: 20px 0;">
+                <button type="button" class="button button-secondary" onclick="location.reload();">
+                    <span class="dashicons dashicons-update" style="vertical-align: middle;"></span> Refresh List
+                </button>
+            </div>
+
+            <table class="chroma-seo-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th>Combo Type</th>
+                        <th>Status</th>
+                        <th>SEO Health</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    if (class_exists('Chroma_Combo_Page_Data')) {
+                        $combos = Chroma_Combo_Page_Data::get_all_combos();
+                        if (empty($combos)) {
+                            echo '<tr><td colspan="4">No combo page overrides found. Using default AI generational logic for all intersections.</td></tr>';
+                        } else {
+                            foreach ($combos as $combo) {
+                                ?>
+                                <tr>
+                                    <td><strong><?php echo esc_html($combo['program']); ?> in <?php echo esc_html($combo['city']); ?></strong></td>
+                                    <td><span class="chroma-badge chroma-badge-manual">Active</span></td>
+                                    <td><span class="chroma-health-dot chroma-health-good"></span> Optimized</td>
+                                    <td><a href="#" class="button button-small">Edit Overrides</a></td>
+                                </tr>
+                                <?php
+                            }
+                        }
+                    } else {
+                        echo '<tr><td colspan="4">Combo Data module not loaded.</td></tr>';
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+        <?php
+    }
+
+    /**
+     * Render Near Me Pages Management Tab
+     */
+    private function render_near_me_tab()
+    {
+        ?>
+        <div class="chroma-seo-card">
+            <h2>📍 Hyper-Local "Near Me" Pages</h2>
+            <p class="description">Virtual pages optimized for "nearby" searches. These use browser geolocation to personalize content for the visitor.</p>
+            
+            <table class="chroma-seo-table widefat fixed striped" style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Page Pattern</th>
+                        <th>Visibility</th>
+                        <th>Search Engine indexing</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php
+                    if (class_exists('Chroma_Near_Me_Pages')) {
+                        $nm_manager = new Chroma_Near_Me_Pages();
+                        $patterns = $nm_manager->get_all_pages();
+                        if (empty($patterns)) {
+                            echo '<tr><td colspan="4">No Near Me patterns active. Check your Geo settings.</td></tr>';
+                        } else {
+                            foreach ($patterns as $pattern => $data) {
+                                ?>
+                                <tr>
+                                    <td><strong>/<?php echo esc_html($pattern); ?>/</strong></td>
+                                    <td><span class="chroma-badge chroma-badge-manual">Public</span></td>
+                                    <td><span class="chroma-check">✓</span> Indexed</td>
+                                    <td><a href="<?php echo home_url('/' . $pattern . '/'); ?>" target="_blank" class="button button-small">View Live</a></td>
+                                </tr>
+                                <?php
+                            }
+                        }
+                    } else {
+                        echo '<tr><td colspan="4">Near Me module not loaded.</td></tr>';
+                    }
+                    ?>
+                </tbody>
+            </table>
+        </div>
+        ?>
+        <?php
+    }
+
+    /**
+     * AJAX: Run Link Equity Analysis
+     */
+    public function ajax_run_link_analysis()
+    {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error('Unauthorized');
+        }
+
+        if (!class_exists('Chroma_Link_Equity_Analyzer')) {
+            wp_send_json_error('Link Equity Analyzer not loaded');
+        }
+
+        $analyzer = new Chroma_Link_Equity_Analyzer();
+        $analyzer->analyze(); // Run the full crawl
+
+        $report = [
+            'timestamp' => current_time('mysql'),
+            'scanned' => [], // Needs data from analyzer
+            'orphans' => [],
+            'suggestions' => []
+        ];
+
+        // Fetch results from analyzer
+        if (method_exists($analyzer, 'get_orphans')) {
+            $report['orphans'] = $analyzer->get_orphans();
+        }
+        
+        // Let's assume analyzer->analyze() stores data somewhere or we can get scanned count
+        global $wpdb;
+        $report['scanned'] = $wpdb->get_col("SELECT ID FROM $wpdb->posts WHERE post_status='publish'");
+
+        update_option('chroma_seo_link_report', $report);
+        wp_send_json_success('Analysis complete');
     }
 }

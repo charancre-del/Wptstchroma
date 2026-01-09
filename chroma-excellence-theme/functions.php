@@ -125,8 +125,8 @@ require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 // Advanced SEO/LLM Module - MOVED TO PLUGIN
 // require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
 
-// SEO Automations (Internal Linking, Geo SEO, etc.)
-require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
+// SEO Automations (Internal Linking, Geo SEO, etc.) - MOVED TO PLUGIN
+// require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
 
 // Spanish Variant Generator
 require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
