@@ -308,6 +308,29 @@ function chroma_async_styles($html, $handle, $href, $media)
 add_filter('style_loader_tag', 'chroma_async_styles', 10, 4);
 
 /**
+ * Move jQuery to Footer for Performance (LCP)
+ * 
+ * Deregisters core jQuery and re-registers it in the footer.
+ * Considers admin bar and login status.
+ */
+function chroma_move_jquery_to_footer() {
+    // Do not move if admin bar is showing (prevents breakage)
+    if (is_admin() || is_user_logged_in()) {
+        return;
+    }
+
+    wp_deregister_script('jquery');
+    wp_deregister_script('jquery-core');
+    wp_deregister_script('jquery-migrate');
+
+    // Re-register jQuery in footer
+    // Uses includes_url() to maintain compatibility with WP versioning
+    wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), false, null, true);
+    wp_enqueue_script('jquery');
+}
+add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
+
+/**
  * Dequeue Dashicons for non-logged in users to improve performance
  */
 function chroma_dequeue_dashicons()
