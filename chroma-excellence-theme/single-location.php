@@ -22,6 +22,7 @@ while (have_posts()):
 	$zip = $location_fields['zip'];
 	$lat = $location_fields['latitude'];
 	$lng = $location_fields['longitude'];
+	$license_number = $location_fields['license_number'];
 
 	// Additional meta fields (with defaults)
 	$hero_subtitle = chroma_get_translated_meta($location_id, 'location_hero_subtitle') ?: __('Now Enrolling: Pre-K & Toddlers', 'chroma-excellence');
@@ -119,6 +120,13 @@ while (have_posts()):
 					<div class="text-lg text-brand-ink/90 mb-8 max-w-xl leading-relaxed">
 						<?php echo wp_kses_post(wpautop($description)); ?>
 					</div>
+
+					<?php if ($license_number): ?>
+						<div class="mb-8 flex items-center gap-2 text-sm font-semibold text-brand-ink/60">
+							<i class="fa-solid fa-certificate text-<?php echo esc_attr($region_colors['text']); ?>"></i>
+							<span><?php _e('DECAL License #:', 'chroma-excellence'); ?> <?php echo esc_html($license_number); ?></span>
+						</div>
+					<?php endif; ?>
 
 					<div class="flex flex-wrap gap-4 mb-10">
 						<a href="#tour"
@@ -499,26 +507,26 @@ while (have_posts()):
 		<section class="py-20 bg-brand-cream border-t border-brand-ink/5">
 			<div class="max-w-3xl mx-auto px-4 lg:px-6">
 				<div class="text-center mb-12">
-					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4"><?php _e('Frequently Asked Questions', 'chroma-excellence'); ?>
-					</h2>
-				</div>
+						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4"><?php _e('Frequently Asked Questions', 'chroma-excellence'); ?>
+						</h2>
+					</div>
 
-				<div class="space-y-6">
-					<div class="bg-white rounded-2xl p-6 shadow-sm">
-						<h3 class="font-bold text-brand-ink mb-2"><?php _e('Do you offer tours?', 'chroma-excellence'); ?></h3>
-						<p class="text-brand-ink/80 text-sm"><?php _e('Yes! We encourage all families to book a tour to see our classrooms, meet our directors, and experience the Chroma difference firsthand.', 'chroma-excellence'); ?></p>
+					<div class="space-y-6">
+						<?php
+						$location_faqs = chroma_get_location_faq_items($location_id);
+						foreach ($location_faqs as $item):
+							?>
+							<div class="bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
+								<h3 class="font-bold text-brand-ink mb-2"><?php echo esc_html($item['question']); ?></h3>
+								<div class="text-brand-ink/80 text-sm leading-relaxed">
+									<?php echo wp_kses_post($item['answer']); ?>
+								</div>
+							</div>
+						<?php endforeach; ?>
 					</div>
-					<div class="bg-white rounded-2xl p-6 shadow-sm">
-						<h3 class="font-bold text-brand-ink mb-2"><?php _e('What ages do you serve?', 'chroma-excellence'); ?></h3>
-						<p class="text-brand-ink/80 text-sm"><?php _e('We typically serve children from 6 weeks (Infants) up to 12 years old (After School), though specific programs may vary by campus.', 'chroma-excellence'); ?></p>
-					</div>
-					<div class="bg-white rounded-2xl p-6 shadow-sm">
-						<h3 class="font-bold text-brand-ink mb-2"><?php _e('Is food included?', 'chroma-excellence'); ?></h3>
-						<p class="text-brand-ink/80 text-sm"><?php _e('Yes, we provide nutritious, child-friendly meals and snacks prepared fresh daily.', 'chroma-excellence'); ?></p>
-					</div>
+					<?php chroma_render_program_faq_schema($location_faqs); ?>
 				</div>
-			</div>
-		</section>
+			</section>
 
 		<!-- Tour / Contact Section -->
 		<section id="contact" class="py-24 bg-white relative">

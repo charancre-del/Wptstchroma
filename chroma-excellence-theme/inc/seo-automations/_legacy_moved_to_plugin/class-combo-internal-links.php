@@ -20,6 +20,9 @@ class Chroma_Combo_Internal_Links
         // Add combo links to city pages
         add_action('chroma_after_city_content', [$this, 'render_city_program_links']);
         
+        // Add neighboring city links
+        add_action('chroma_after_city_content', [$this, 'render_nearby_city_links'], 30);
+        
         // Fallback: append to content if hooks not available
         add_filter('the_content', [$this, 'append_links_to_content'], 20);
     }
@@ -42,8 +45,8 @@ class Chroma_Combo_Internal_Links
                 <h2 class="text-2xl font-serif font-bold text-brand-ink mb-6">
                     Find <?php echo esc_html($program->post_title); ?> Near You
                 </h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <?php foreach (array_slice($cities, 0, 12) as $city): 
+                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    <?php foreach (array_slice($cities, 0, 24) as $city): 
                         $url = home_url('/' . $program->post_name . '-in-' . sanitize_title($city['city']) . '-' . strtolower($city['state']) . '/');
                     ?>
                     <a href="<?php echo esc_url($url); ?>" 
@@ -105,7 +108,50 @@ class Chroma_Combo_Internal_Links
         </section>
         <?php
     }
-    
+
+    /**
+     * Render "Nearby Communities" section on city pages for geographic equity
+     */
+    public function render_nearby_city_links() {
+        if (!is_singular('city')) return;
+
+        global $post;
+        $county = get_post_meta($post->ID, 'city_county', true);
+        if (empty($county)) return;
+
+        $nearby = get_posts([
+            'post_type' => 'city',
+            'posts_per_page' => 12,
+            'exclude' => [$post->ID],
+            'meta_query' => [
+                [
+                    'key' => 'city_county',
+                    'value' => $county,
+                    'compare' => '='
+                ]
+            ]
+        ]);
+
+        if (empty($nearby)) return;
+        ?>
+        <section class="nearby-city-links py-12 bg-brand-cream border-t border-brand-ink/5">
+            <div class="max-w-6xl mx-auto px-4">
+                <h2 class="text-xl font-serif font-bold text-brand-ink mb-6">
+                    Other Communities in <?php echo esc_html($county); ?> County
+                </h2>
+                <div class="flex flex-wrap gap-3">
+                    <?php foreach ($nearby as $city): ?>
+                    <a href="<?php echo get_permalink($city); ?>" 
+                       class="px-4 py-2 bg-white rounded-full text-xs font-bold text-brand-ink/60 hover:text-chroma-blue hover:shadow-sm transition border border-brand-ink/5">
+                        <?php echo esc_html($city->post_title); ?>
+                    </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+        <?php
+    }
+
     /**
      * Fallback: Append links to content if custom hooks not used
      */

@@ -475,6 +475,13 @@ function chroma_render_location_custom_fields_meta_box($post)
 		</label>
 		<small><?php _e('Check if this location has achieved Georgia\'s Quality Rated status', 'chroma-excellence'); ?></small>
 	</div>
+
+	<div class="chroma-meta-field">
+		<label for="_chroma_license_number"><?php _e('DECAL License Number', 'chroma-excellence'); ?></label>
+		<input type="text" id="_chroma_license_number" name="_chroma_license_number"
+			value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_license_number', true)); ?>" placeholder="e.g., CCLC-12345" />
+		<small><?php _e('Enter the official Georgia DECAL license number for this facility', 'chroma-excellence'); ?></small>
+	</div>
 		<div class="chroma-meta-field">
 			<label for="location_google_rating"><?php _e('Google Rating', 'chroma-excellence'); ?></label>
 			<input type="text" id="location_google_rating" name="location_google_rating"
@@ -735,6 +742,7 @@ function chroma_save_location_custom_fields($post_id)
 		'location_special_programs',
 		'location_faq_items',
 		'location_gmb_url',
+		'_chroma_license_number',
 	);
 
 	foreach ($fields as $field) {

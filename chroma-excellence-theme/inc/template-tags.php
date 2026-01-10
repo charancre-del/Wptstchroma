@@ -63,6 +63,7 @@ function chroma_get_location_fields($post_id = null)
         'email' => chroma_get_meta_value($post_id, 'location_email', ''),
         'latitude' => chroma_get_meta_value($post_id, 'location_latitude', ''),
         'longitude' => chroma_get_meta_value($post_id, 'location_longitude', ''),
+        'license_number' => chroma_get_meta_value($post_id, '_chroma_license_number', ''),
     );
 }
 
@@ -162,6 +163,9 @@ function chroma_get_program_meta_tags($post_id = null)
     );
 }
 
+    return $faq;
+}
+
 /**
  * Program FAQ items as structured array
  */
@@ -189,6 +193,72 @@ function chroma_get_program_faq_items($post_id = null)
             'question' => wp_strip_all_tags($parts[0]),
             'answer' => wp_kses_post($parts[1]),
         );
+    }
+
+    return $faq;
+}
+
+/**
+ * Location FAQ items as structured array with global defaults
+ */
+function chroma_get_location_faq_items($post_id = null)
+{
+    $post_id = $post_id ?: get_the_ID();
+    $faq = array();
+
+    // 1. Global Defaults
+    $defaults = array(
+        array(
+            'question' => __('Do you offer tours?', 'chroma-excellence'),
+            'answer' => __('Yes! We encourage all families to book a tour to see our classrooms, meet our directors, and experience the Chroma difference firsthand.', 'chroma-excellence'),
+        ),
+        array(
+            'question' => __('What ages do you serve?', 'chroma-excellence'),
+            'answer' => __('We typically serve children from 6 weeks (Infants) up to 12 years old (After School), though specific programs may vary by campus.', 'chroma-excellence'),
+        ),
+        array(
+            'question' => __('Is food included?', 'chroma-excellence'),
+            'answer' => __('Yes, we provide nutritious, child-friendly meals and snacks prepared fresh daily.', 'chroma-excellence'),
+        ),
+        array(
+            'question' => __('Do you offer part-time daycare or Parents Day Out?', 'chroma-excellence'),
+            'answer' => __('Yes. Chroma Early Learning Academy locations offer part-time care and Parents Day Out programs. Availability and schedules vary by location, and programs are designed to support families who need flexible care options.', 'chroma-excellence'),
+        ),
+        array(
+            'question' => __('What safety and security measures are in place?', 'chroma-excellence'),
+            'answer' => __('All Chroma Locations have Keypad Controlled Access, 24/7 monitored Cameras, Carbon monoxide and Smoke Alarm Systems, Defibrillators, and Emergency Plans that are performed regularly.', 'chroma-excellence'),
+        ),
+        array(
+            'question' => __('Do you accept CAPS?', 'chroma-excellence'),
+            'answer' => __('Yes, all Chroma Early Learning Academy Locations accept CAPS (Childcare and Parent Services).', 'chroma-excellence'),
+        ),
+    );
+
+    foreach ($defaults as $default) {
+        $faq[] = array(
+            'question' => wp_strip_all_tags($default['question']),
+            'answer' => wp_kses_post($default['answer']),
+        );
+    }
+
+    // 2. Location-Specific Meta FAQs
+    $raw = chroma_get_meta_value($post_id, 'location_faq_items', '');
+    if ($raw) {
+        $rows = preg_split('/\r\n|\r|\n/', $raw);
+        $rows = array_filter(array_map('trim', (array) $rows));
+
+        foreach ($rows as $row) {
+            $parts = array_map('trim', explode('|', $row, 2));
+
+            if (count($parts) < 2 || !$parts[0] || !$parts[1]) {
+                continue;
+            }
+
+            $faq[] = array(
+                'question' => wp_strip_all_tags($parts[0]),
+                'answer' => wp_kses_post($parts[1]),
+            );
+        }
     }
 
     return $faq;

@@ -73,6 +73,22 @@ class Chroma_Keyword_Linker
                 ];
             }
         }
+
+        // Cities
+        $cities = get_posts(['post_type' => 'city', 'posts_per_page' => -1]);
+        foreach ($cities as $city_post) {
+            $keywords[] = [
+                'keyword' => strtolower($city_post->post_title),
+                'url' => get_permalink($city_post),
+                'max' => 1
+            ];
+            // Geographic variants
+            $keywords[] = [
+                'keyword' => strtolower('childcare in ' . $city_post->post_title),
+                'url' => get_permalink($city_post),
+                'max' => 1
+            ];
+        }
         
         return $keywords;
     }
