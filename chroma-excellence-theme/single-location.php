@@ -48,6 +48,7 @@ while (have_posts()):
 
 	// Director info
 	$director_name = chroma_get_translated_meta($location_id, 'location_director_name');
+	$director_heading = chroma_get_translated_meta($location_id, 'location_director_heading');
 	$director_bio = chroma_get_translated_meta($location_id, 'location_director_bio');
 	$director_photo = chroma_get_translated_meta($location_id, 'location_director_photo');
 	$director_signature = chroma_get_translated_meta($location_id, 'location_director_signature');
@@ -357,7 +358,10 @@ while (have_posts()):
 					<div>
 						<span
 							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Meet the Director', 'chroma-excellence'); ?></span>
-						<h2 class="text-3xl md:text-4xl font-serif font-bold mb-6"><?php printf(__('Welcome to Chroma %s.', 'chroma-excellence'), esc_html($city)); ?>
+						<h2 class="text-3xl md:text-4xl font-serif font-bold mb-6">
+							<?php 
+							echo $director_heading ?: sprintf(__('Welcome to Chroma %s.', 'chroma-excellence'), esc_html($city)); 
+							?>
 						</h2>
 						<div class="space-y-4 text-white/80 text-lg leading-relaxed mb-8">
 							<?php echo wpautop(wp_kses_post($director_bio)); ?>

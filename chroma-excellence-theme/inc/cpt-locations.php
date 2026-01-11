@@ -284,6 +284,7 @@ function chroma_render_location_custom_fields_meta_box($post)
 	$hours = get_post_meta($post->ID, 'location_hours', true);
 	$ages_served = get_post_meta($post->ID, 'location_ages_served', true);
 	$director_name = get_post_meta($post->ID, 'location_director_name', true);
+	$director_heading = get_post_meta($post->ID, 'location_director_heading', true);
 	$director_bio = get_post_meta($post->ID, 'location_director_bio', true);
 	$director_photo = get_post_meta($post->ID, 'location_director_photo', true);
 	$director_signature = get_post_meta($post->ID, 'location_director_signature', true);
@@ -508,6 +509,13 @@ function chroma_render_location_custom_fields_meta_box($post)
 		</div>
 
 		<div class="chroma-meta-field">
+			<label for="location_director_heading"><?php _e('Director Section Heading', 'chroma-excellence'); ?></label>
+			<input type="text" id="location_director_heading" name="location_director_heading"
+				value="<?php echo esc_attr($director_heading); ?>" placeholder="e.g., Welcome to Chroma Marietta." />
+			<small><?php _e('Headline for the director section (fallback: Welcome to Chroma [City].)', 'chroma-excellence'); ?></small>
+		</div>
+
+		<div class="chroma-meta-field">
 			<label for="location_director_bio"><?php _e('Director Bio', 'chroma-excellence'); ?></label>
 			<textarea id="location_director_bio" name="location_director_bio" rows="4"
 				placeholder="Brief bio of the director..."><?php echo esc_textarea($director_bio); ?></textarea>
@@ -722,6 +730,7 @@ function chroma_save_location_custom_fields($post_id)
 		'location_hours',
 		'location_ages_served',
 		'location_director_name',
+		'location_director_heading',
 		'location_director_bio',
 		'location_director_photo',
 		'location_director_signature',
