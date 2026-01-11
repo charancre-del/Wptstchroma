@@ -90,9 +90,13 @@ class Chroma_Breadcrumbs
         $schema_items = [];
 
         foreach ($items as $index => $item) {
+            if (empty($item['url'])) {
+                continue;
+            }
+
             $schema_items[] = [
                 '@type' => 'ListItem',
-                'position' => $index + 1,
+                'position' => count($schema_items) + 1,
                 'name' => $item['label'],
                 'item' => $item['url']
             ];
@@ -160,18 +164,20 @@ class Chroma_Breadcrumbs
             } else {
                 // Fallback if city page doesn't exist (e.g. manual city)
                 $city_name = ucwords(str_replace('-', ' ', $city_slug));
+                // Even if no page exists, we should try to point to a meaningful archive or ignore for schema
                 $items[] = [
                     'label' => $city_name,
-                    'url' => '' // No link if no page
+                    'url' => home_url('/communities/') // Better than empty
                 ];
             }
 
             // Current Program Item
             $program = get_page_by_path($program_slug, OBJECT, 'program');
             if ($program) {
+                global $wp;
                 $items[] = [
                     'label' => get_the_title($program),
-                    'url' => '' // Current page
+                    'url' => home_url($wp->request) // Current combo page URL
                 ];
             }
             
@@ -547,9 +553,13 @@ class Chroma_Breadcrumbs
         // Generate JSON
         $schema_items = [];
         foreach ($items as $index => $item) {
+            if (empty($item['url'])) {
+                continue;
+            }
+
             $schema_items[] = [
                 '@type' => 'ListItem',
-                'position' => $index + 1,
+                'position' => count($schema_items) + 1,
                 'name' => $item['label'],
                 'item' => $item['url']
             ];
