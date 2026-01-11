@@ -19,19 +19,25 @@ class Chroma_Universal_FAQ_Builder
      */
     public static function output()
     {
-        if (!is_singular()) {
+        if (!is_singular() || is_front_page()) {
             return;
         }
 
         // Check if disabled globally (User Preference for Otto)
         // Default to 'yes' to ensure it is disabled by default as requested
-        if (get_option('chroma_faq_schema_disabled', 'yes') === 'yes') {
+        if (get_option('chroma_faq_schema_disabled', 'no') === 'yes') {
             return;
         }
 
         // Check for manual override (AI Fixed Schema)
         $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
         if ($override) {
+            return;
+        }
+
+        // Internal Duplicate Suppression
+        global $chroma_faq_output_done;
+        if (!empty($chroma_faq_output_done)) {
             return;
         }
 
@@ -89,5 +95,7 @@ class Chroma_Universal_FAQ_Builder
         ];
 
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
+        
+        $chroma_faq_output_done = true;
     }
 }

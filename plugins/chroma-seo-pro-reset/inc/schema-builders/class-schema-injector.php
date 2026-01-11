@@ -579,14 +579,23 @@ class Chroma_Schema_Injector
 
             $schema_type = sanitize_text_field($schema_data['type']);
 
-            // Skip invalid/irrelevant schema types
-            if (in_array($schema_type, CHROMA_INVALID_SCHEMA_TYPES, true)) {
+            // Global Suppression Check (e.g. for external AI schema)
+            $override = get_post_meta($post_id, '_chroma_schema_override', true);
+            if ($override && ($schema_type === 'FAQPage' || $schema_type === 'BreadcrumbList')) {
                 continue;
             }
 
+            // Internal Duplicate Suppression
+            global $chroma_faq_output_done;
+            if ($schema_type === 'FAQPage' && !empty($chroma_faq_output_done)) {
+                continue;
+            }
+
+            // Skip invalid/irrelevant schema types
+
             // Check Global Disable Flags
             // 1. FAQ Schema
-            if ($schema_type === 'FAQPage' && get_option('chroma_faq_schema_disabled', 'no') === 'yes') {
+            if ($schema_type === 'FAQPage' && (get_option('chroma_faq_schema_disabled', 'no') === 'yes' || is_front_page())) {
                 continue;
             }
             // 2. Breadcrumbs (if present in modular list)
@@ -635,6 +644,8 @@ class Chroma_Schema_Injector
                                 ]
                             ];
                         }
+                        global $chroma_faq_output_done;
+                        $chroma_faq_output_done = true;
                     } elseif ($schema_type === 'HowTo' && $key === 'steps') {
                         $schema_output['step'] = [];
                         foreach ($value as $s) {

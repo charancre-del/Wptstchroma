@@ -474,6 +474,12 @@ function chroma_city_faq_schema_output()
         return;
     }
 
+    // Internal Duplicate Suppression
+    global $chroma_faq_output_done;
+    if (!empty($chroma_faq_output_done)) {
+        return;
+    }
+
     $city = get_the_title();
     $county = get_post_meta(get_the_ID(), 'city_county', true) ?: 'Local';
 
@@ -538,9 +544,11 @@ function chroma_city_faq_schema_output()
     );
 
     echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    global $chroma_faq_output_done;
+    $chroma_faq_output_done = true;
 }
 }
-add_action('wp_head', 'chroma_city_faq_schema_output'); // This one seems to be a different function (chroma_city_faq_schema_output) which is guarding itself?
+add_action('wp_head', 'chroma_city_faq_schema_output');
 add_action('wp_head', 'chroma_program_schema_pro');
 
 
@@ -643,6 +651,12 @@ if (!function_exists('chroma_faq_schema_pro')) {
         $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
         if ($override) return;
 
+        // Internal Duplicate Suppression
+        global $chroma_faq_output_done;
+        if (!empty($chroma_faq_output_done)) {
+            return;
+        }
+
         if (!function_exists('chroma_home_has_faq') || !chroma_home_has_faq()) return;
         if (!function_exists('chroma_home_faq')) return;
 
@@ -670,6 +684,7 @@ if (!function_exists('chroma_faq_schema_pro')) {
             'mainEntity' => $main_entity,
         ];
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        $chroma_faq_output_done = true;
     }
 }
 // add_action('wp_head', 'chroma_faq_schema_pro', 10);
