@@ -646,45 +646,7 @@ add_action('wp_head', 'chroma_website_schema_pro', 6);
 
 if (!function_exists('chroma_faq_schema_pro')) {
     function chroma_faq_schema_pro() {
-        if (!is_front_page()) return;
-        $homepage_id = get_option('page_on_front');
-        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
-        if ($override) return;
-
-        // Internal Duplicate Suppression
-        global $chroma_faq_output_done;
-        if (!empty($chroma_faq_output_done)) {
-            return;
-        }
-
-        if (!function_exists('chroma_home_has_faq') || !chroma_home_has_faq()) return;
-        if (!function_exists('chroma_home_faq')) return;
-
-        $faq_data = chroma_home_faq();
-        if (empty($faq_data['items'])) return;
-
-        $main_entity = [];
-        foreach ($faq_data['items'] as $item) {
-            if (empty($item['question']) || empty($item['answer'])) continue;
-            $main_entity[] = [
-                '@type' => 'Question',
-                'name' => $item['question'],
-                'acceptedAnswer' => [
-                    '@type' => 'Answer',
-                    'text' => wp_strip_all_tags($item['answer']),
-                ],
-            ];
-        }
-
-        if (empty($main_entity)) return;
-
-        $schema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'FAQPage',
-            'mainEntity' => $main_entity,
-        ];
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
-        $chroma_faq_output_done = true;
+        return;
     }
 }
 // add_action('wp_head', 'chroma_faq_schema_pro', 10);

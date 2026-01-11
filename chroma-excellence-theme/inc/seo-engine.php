@@ -668,64 +668,7 @@ add_action('wp_head', 'chroma_program_schema');
 if (!function_exists('chroma_faq_schema')) {
 function chroma_faq_schema()
 {
-        if (!is_front_page()) {
-                return;
-        }
-
-        // Check for manual override or disabled setting
-        if (get_theme_mod('chroma_home_faq_disable_schema', false)) {
-            return;
-        }
-
-        // Check for manual override on homepage
-        $homepage_id = get_option('page_on_front');
-        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
-        if ($override) {
-            return;
-        }
-
-        // Check if FAQ data exists
-        if (!function_exists('chroma_home_has_faq') || !chroma_home_has_faq()) {
-                return;
-        }
-
-        if (!function_exists('chroma_home_faq')) {
-                return;
-        }
-
-        $faq_data = chroma_home_faq();
-        if (empty($faq_data['items'])) {
-                return;
-        }
-
-        // Build FAQ schema
-        $main_entity = array();
-        foreach ($faq_data['items'] as $item) {
-                if (empty($item['question']) || empty($item['answer'])) {
-                        continue;
-                }
-
-                $main_entity[] = array(
-                        '@type' => 'Question',
-                        'name' => $item['question'],
-                        'acceptedAnswer' => array(
-                                '@type' => 'Answer',
-                                'text' => wp_strip_all_tags($item['answer']),
-                        ),
-                );
-        }
-
-        if (empty($main_entity)) {
-                return;
-        }
-
-        $schema = array(
-                '@context' => 'https://schema.org',
-                '@type' => 'FAQPage',
-                'mainEntity' => $main_entity,
-        );
-
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    return;
 }
 }
 // add_action('wp_head', 'chroma_faq_schema');
