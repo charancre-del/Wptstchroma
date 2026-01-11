@@ -528,7 +528,6 @@ while (have_posts()):
 							</div>
 						<?php endforeach; ?>
 					</div>
-					<?php chroma_render_program_faq_schema($location_faqs); ?>
 				</div>
 			</section>
 
