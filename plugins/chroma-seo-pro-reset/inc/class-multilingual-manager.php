@@ -352,12 +352,8 @@ class Chroma_Multilingual_Manager
         $es_content = get_post_meta($post_id, '_chroma_es_content', true);
         
         if (empty($es_content)) {
-            // Option A: Show fallback banner + English content
-            $banner = '<div class="chroma-lang-fallback-notice">' .
-                      '<span class="dashicons dashicons-info"></span> ' .
-                      esc_html__('This page is not yet available in Spanish. Showing English version.', 'chroma-excellence') .
-                      '</div>';
-            return $banner . $content;
+            // Option A: Just show English content (Silent Fallback)
+            return $content;
         }
         
         return $es_content;

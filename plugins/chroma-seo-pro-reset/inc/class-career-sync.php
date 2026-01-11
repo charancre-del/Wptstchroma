@@ -51,82 +51,8 @@ class Chroma_Career_Sync
      */
     public static function run_sync()
     {
-        if (!class_exists('Chroma_Careers_API')) {
-            return ['error' => 'Careers API class not found'];
-        }
-
-        // Get jobs from feed
-        $jobs = Chroma_Careers_API::get_careers(true); // Force refresh
-
-        if (empty($jobs)) {
-            update_option('chroma_last_career_sync', current_time('mysql'));
-            update_option('chroma_last_career_sync_count', 0);
-            return ['count' => 0, 'message' => 'No jobs found in feed'];
-        }
-
-        $active_job_urls = [];
-        $created_count = 0;
-        $updated_count = 0;
-
-        foreach ($jobs as $job) {
-            $title = sanitize_text_field($job['title']);
-            $url = esc_url_raw($job['url']);
-            $location = sanitize_text_field($job['location']);
-            $type = isset($job['type']) ? sanitize_text_field($job['type']) : 'Full Time';
-
-            $active_job_urls[] = $url;
-
-            // Check if post exists by unique URL meta
-            $existing_post = self::get_post_by_job_url($url);
-
-            if ($existing_post) {
-                // Update existing
-                $post_id = $existing_post->ID;
-                $current_title = get_the_title($post_id);
-                
-                if ($current_title !== $title) {
-                    wp_update_post([
-                        'ID' => $post_id,
-                        'post_title' => $title,
-                    ]);
-                    $updated_count++;
-                }
-            } else {
-                // Create new
-                $post_id = wp_insert_post([
-                    'post_type' => 'career',
-                    'post_title' => $title,
-                    'post_status' => 'publish',
-                    'post_content' => '',
-                ]);
-                $created_count++;
-            }
-
-            if ($post_id && !is_wp_error($post_id)) {
-                // Update Meta
-                update_post_meta($post_id, '_career_external_url', $url);
-                update_post_meta($post_id, '_career_location', $location);
-                update_post_meta($post_id, '_career_type', $type);
-                
-                if (!get_post_meta($post_id, '_career_date_posted', true)) {
-                    update_post_meta($post_id, '_career_date_posted', current_time('Y-m-d'));
-                }
-            }
-        }
-
-        // Pruning
-        $trashed_count = self::prune_old_jobs($active_job_urls);
-
-        update_option('chroma_last_career_sync', current_time('mysql'));
-        update_option('chroma_last_career_sync_count', count($jobs));
-
-        return [
-            'total' => count($jobs),
-            'created' => $created_count,
-            'updated' => $updated_count,
-            'trashed' => $trashed_count,
-            'timestamp' => current_time('mysql')
-        ];
+        // Sync Disabled by User Request
+        return ['count' => 0, 'message' => 'Sync disabled'];
     }
 
     /**
