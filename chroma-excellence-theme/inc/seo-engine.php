@@ -728,7 +728,7 @@ function chroma_faq_schema()
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
 }
-add_action('wp_head', 'chroma_faq_schema');
+// add_action('wp_head', 'chroma_faq_schema');
 
 /**
  * Breadcrumb Schema is now handled by inc/advanced-seo-llm/class-breadcrumbs.php
