@@ -28,6 +28,14 @@ function chroma_home_sanitize_json_setting($value)
 }
 
 /**
+ * Sanitize checkbox values.
+ */
+function chroma_sanitize_checkbox($checked)
+{
+    return (isset($checked) && true === $checked) ? true : false;
+}
+
+/**
  * Register homepage customization controls.
  */
 function chroma_home_customize_register(WP_Customize_Manager $wp_customize)

@@ -672,7 +672,7 @@ if (!function_exists('chroma_faq_schema_pro')) {
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
 }
-add_action('wp_head', 'chroma_faq_schema_pro', 10);
+// add_action('wp_head', 'chroma_faq_schema_pro', 10);
 
 /**
  * Suppress Legacy Theme Schema
