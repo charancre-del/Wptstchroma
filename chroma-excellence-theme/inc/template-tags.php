@@ -163,9 +163,6 @@ function chroma_get_program_meta_tags($post_id = null)
     );
 }
 
-    return $faq;
-}
-
 /**
  * Program FAQ items as structured array
  */
