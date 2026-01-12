@@ -67,6 +67,7 @@ chroma_safe_require(__DIR__ . '/admin/class-content-inspector.php');
 chroma_safe_require(__DIR__ . '/admin/class-hreflang-auditor.php');
 chroma_safe_require(__DIR__ . '/class-sitemap-integrator.php');
 chroma_safe_require(__DIR__ . '/class-cli-commands.php');
+chroma_safe_require(__DIR__ . '/class-llms-txt.php');
 chroma_safe_require(__DIR__ . '/class-translation-api.php');
 chroma_safe_require(__DIR__ . '/class-homepage-translation-admin.php');
 chroma_safe_require(__DIR__ . '/class-careers-api.php');
@@ -177,6 +178,8 @@ function chroma_advanced_seo_init()
 		(new Chroma_Hreflang_Auditor())->init();
 	if (class_exists('Chroma_Translation_API'))
 		(new Chroma_Translation_API())->init();
+    if (class_exists('Chroma_LLMs_Txt_Generator'))
+        (new Chroma_LLMs_Txt_Generator())->init();
     if (class_exists('Chroma_Validation_Logger'))
         (new Chroma_Validation_Logger())->init();
     if (class_exists('Chroma_Career_Sync'))
@@ -245,9 +248,9 @@ function chroma_advanced_seo_init()
 		add_action('wp_head', ['Chroma_Learning_Resource_Builder', 'output']);
 
 	// Flush Rewrite Rules if KML rule is missing (One-time check)
-	if (get_option('chroma_seo_flush_rewrite_v4') !== 'done') {
+	if (get_option('chroma_seo_flush_rewrite_v5') !== 'done') {
 		flush_rewrite_rules();
-		update_option('chroma_seo_flush_rewrite_v4', 'done');
+		update_option('chroma_seo_flush_rewrite_v5', 'done');
 	}
 }
 add_action('init', 'chroma_advanced_seo_init');

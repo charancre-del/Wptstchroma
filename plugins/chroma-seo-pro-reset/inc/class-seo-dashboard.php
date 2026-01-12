@@ -604,6 +604,13 @@ class Chroma_SEO_Dashboard
 
         $selected_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
         ?>
+        <div class="chroma-seo-card" style="margin-bottom: 20px;">
+            <h2>🤖 LLM Optimization Files</h2>
+            <p>Your <strong>llms.txt</strong> file is automatically generated and optimized for AI crawlers (ChatGPT, Perplexity, Claude).</p>
+            <code><a href="<?php echo home_url('/llms.txt'); ?>" target="_blank"><?php echo home_url('/llms.txt'); ?></a></code>
+            <p class="description">This file aggregates the targeting data below into a format AI can easily read.</p>
+        </div>
+
         <div class="chroma-llm-controls">
             <label><strong>Select Page to Edit LLM Targeting:</strong></label>
             <select id="chroma-llm-select" style="min-width: 300px;">

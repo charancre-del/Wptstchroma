@@ -1,0 +1,176 @@
+<?php
+/**
+ * LLMs.txt Generator
+ * Generates a /llms.txt file for AI crawlers to better understand the site structure.
+ * Standard: https://llmstxt.org/
+ * 
+ * @package Chroma_Excellence
+ * @since 1.0.0
+ */
+
+if (!defined('ABSPATH')) {
+    exit;
+}
+
+class Chroma_LLMs_Txt_Generator
+{
+    /**
+     * Init hooks
+     */
+    public function init()
+    {
+        add_action('init', [$this, 'add_rewrite_rule']);
+        add_filter('query_vars', [$this, 'add_query_var']);
+        add_action('template_redirect', [$this, 'render_file']);
+    }
+
+    /**
+     * Add Rewrite Rule
+     */
+    public function add_rewrite_rule()
+    {
+        add_rewrite_rule('^llms\.txt$', 'index.php?chroma_llms_txt=1', 'top');
+    }
+
+    /**
+     * Add Query Var
+     */
+    public function add_query_var($vars)
+    {
+        $vars[] = 'chroma_llms_txt';
+        return $vars;
+    }
+
+    /**
+     * Render the file
+     */
+    public function render_file()
+    {
+        if (get_query_var('chroma_llms_txt')) {
+            header('Content-Type: text/plain; charset=utf-8');
+            
+            // Allow caching but revalidate
+            header('Cache-Control: public, max-age=3600'); // 1 hour
+
+            echo $this->generate_content();
+            exit;
+        }
+    }
+
+    /**
+     * Helper to get LLM Context
+     */
+    private function get_llm_context($post_id)
+    {
+        $parts = [];
+        
+        $intent = get_post_meta($post_id, 'seo_llm_primary_intent', true);
+        $queries = get_post_meta($post_id, 'seo_llm_target_queries', true) ?: [];
+        $diffs = get_post_meta($post_id, 'seo_llm_key_differentiators', true) ?: [];
+
+        if ($intent) {
+            $parts[] = "Primary Intent: {$intent}.";
+        }
+
+        if (!empty($diffs)) {
+            $parts[] = "Key Features: " . implode('; ', array_slice($diffs, 0, 3)) . ".";
+        }
+
+        if (!empty($queries)) {
+            $parts[] = "Relevant for: " . implode(', ', array_slice($queries, 0, 5)) . ".";
+        }
+
+        if (empty($parts)) {
+            return "";
+        }
+
+        // Output as a single clean blockquote line for better parsing compliance
+        return "  > " . implode(' ', $parts) . "\n";
+    }
+
+    /**
+     * Generate Content
+     */
+    private function generate_content()
+    {
+        $site_name = get_bloginfo('name');
+        $site_desc = get_bloginfo('description');
+        $url = home_url();
+
+        $output = "# {$site_name}\n";
+        $output .= "> {$site_desc}\n\n"; // Blockquote for description as per spec conventions
+        
+        $output .= "## Main Sections\n\n";
+        $output .= "- [Home]({$url})\n";
+        $output .= "- [Locations]({$url}/locations)\n";
+        $output .= "- [Programs]({$url}/programs)\n";
+        $output .= "- [Blog]({$url}/stories)\n";
+        $output .= "- [Careers]({$url}/careers)\n\n";
+
+        // Programs
+        $output .= "## Programs (Curriculum)\n\n";
+        $programs = get_posts([
+            'post_type' => 'program',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'orderby' => 'title',
+            'order' => 'ASC'
+        ]);
+
+        if ($programs) {
+            foreach ($programs as $program) {
+                $output .= "- [{$program->post_title}](" . get_permalink($program->ID) . ")\n";
+                // Add brief summary if available
+                if (!empty($program->post_excerpt)) {
+                    $excerpt = strip_tags($program->post_excerpt);
+                    $excerpt = str_replace(["\r", "\n"], " ", $excerpt);
+                    $output .= "  > {$excerpt}\n";
+                }
+                // Add LLM Context
+                $output .= $this->get_llm_context($program->ID);
+            }
+            $output .= "\n";
+        }
+
+        // Locations
+        $output .= "## Locations (Campuses)\n\n";
+        $locations = get_posts([
+            'post_type' => 'location',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'orderby' => 'title',
+            'order' => 'ASC'
+        ]);
+
+        if ($locations) {
+            foreach ($locations as $location) {
+                // Get City for context
+                $city = get_post_meta($location->ID, 'chroma_location_city', true);
+                if (!$city) {
+                     // Try to get from address
+                     $address = get_post_meta($location->ID, 'chroma_location_address', true);
+                     if ($address && preg_match('/, ([^,]+), [A-Z]{2}/', $address, $matches)) {
+                         $city = trim($matches[1]);
+                     }
+                }
+
+                $title = $location->post_title;
+                if ($city) {
+                    $title .= " ({$city})";
+                }
+
+                $output .= "- [{$title}](" . get_permalink($location->ID) . ")\n";
+                
+                // Add LLM Context
+                $output .= $this->get_llm_context($location->ID);
+            }
+            $output .= "\n";
+        }
+
+        $output .= "## About Us\n\n";
+        $output .= "Chroma Early Learning Academy is a network of premium childcare and early education centers across Metro Atlanta.\n";
+        $output .= "We use the Prismpath™ curriculum, focusing on physical, emotional, social, academic, and creative development.\n";
+
+        return $output;
+    }
+}
