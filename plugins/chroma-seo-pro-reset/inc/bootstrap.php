@@ -248,9 +248,9 @@ function chroma_advanced_seo_init()
 		add_action('wp_head', ['Chroma_Learning_Resource_Builder', 'output']);
 
 	// Flush Rewrite Rules if KML rule is missing (One-time check)
-	if (get_option('chroma_seo_flush_rewrite_v5') !== 'done') {
+	if (get_option('chroma_seo_flush_rewrite_v6') !== 'done') {
 		flush_rewrite_rules();
-		update_option('chroma_seo_flush_rewrite_v5', 'done');
+		update_option('chroma_seo_flush_rewrite_v6', 'done');
 	}
 }
 add_action('init', 'chroma_advanced_seo_init');
