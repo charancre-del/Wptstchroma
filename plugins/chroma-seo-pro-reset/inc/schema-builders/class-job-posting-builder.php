@@ -86,14 +86,44 @@ class Chroma_Job_Posting_Builder
         }
 
         // Add Location if present
+        // Add Location if present
         if ($location) {
+            $address_parts = [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $location, // Fallback
+                'addressCountry' => 'US'
+            ];
+
+            // Attempt to parse string: "123 Street, City, ST 12345"
+            // 1. Extract Zip
+            if (preg_match('/\b(\d{5}(?:-\d{4})?)\b/', $location, $matches)) {
+                $address_parts['postalCode'] = $matches[1];
+            }
+
+            // 2. Extract State (2 letter code)
+            if (preg_match('/\b([A-Z]{2})\b/', $location, $matches)) {
+                $address_parts['addressRegion'] = $matches[1];
+            }
+
+            // 3. Extract City (Assuming it comes before State or is comma separated)
+            // Simple split strategy if commas exist
+            $segments = array_map('trim', explode(',', $location));
+            $count = count($segments);
+            
+            if ($count >= 3) {
+                // Assoc: street, city, state zip
+                $address_parts['streetAddress'] = $segments[0];
+                $address_parts['addressLocality'] = $segments[1];
+                // Region/Zip handled by regex above or 3rd segment
+            } elseif ($count === 2) {
+                // City, State
+                $address_parts['addressLocality'] = $segments[0];
+                $address_parts['streetAddress'] = ''; // No street known?
+            }
+
             $schema['jobLocation'] = [
                 '@type' => 'Place',
-                'address' => [
-                    '@type' => 'PostalAddress',
-                    'streetAddress' => $location,
-                    'addressCountry' => 'US'
-                ]
+                'address' => $address_parts
             ];
         } else {
             // Default to main business location if not specified? 

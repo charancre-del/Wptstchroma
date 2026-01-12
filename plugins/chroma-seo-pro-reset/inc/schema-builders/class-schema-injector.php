@@ -592,6 +592,9 @@ class Chroma_Schema_Injector
             }
 
             // Skip invalid/irrelevant schema types
+            if (defined('CHROMA_INVALID_SCHEMA_TYPES') && in_array($schema_type, CHROMA_INVALID_SCHEMA_TYPES)) {
+                continue;
+            }
 
             // Check Global Disable Flags
             // 1. FAQ Schema
