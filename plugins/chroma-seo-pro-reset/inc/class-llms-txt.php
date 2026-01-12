@@ -209,6 +209,62 @@ class Chroma_LLMs_Txt_Generator
             $output .= "\n";
         }
 
+        // Blog Posts (Only those with specific LLM intent set)
+        $posts = get_posts([
+            'post_type' => 'post',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'orderby' => 'date',
+            'order' => 'DESC',
+            'meta_query' => [
+                [
+                    'key' => 'seo_llm_primary_intent',
+                    'value' => '',
+                    'compare' => '!='
+                ]
+            ]
+        ]);
+
+        if ($posts) {
+            $output .= "## Blog & Updates\n\n";
+            foreach ($posts as $p) {
+                $output .= "- [{$p->post_title}](" . get_permalink($p->ID) . ")\n";
+                $output .= $this->get_llm_context($p->ID);
+            }
+            $output .= "\n";
+        }
+
+        // Catch-All: Any other public post type with LLM data (e.g. Events, Careers if CPT)
+        $exclude_types = ['location', 'program', 'page', 'city', 'post', 'attachment', 'revision', 'nav_menu_item'];
+        $public_types = get_post_types(['public' => true, '_builtin' => false]);
+        $check_types = array_diff($public_types, $exclude_types);
+
+        if (!empty($check_types)) {
+            $others = get_posts([
+                'post_type' => array_values($check_types),
+                'posts_per_page' => -1,
+                'post_status' => 'publish',
+                'orderby' => 'title',
+                'order' => 'ASC',
+                'meta_query' => [
+                    [
+                        'key' => 'seo_llm_primary_intent',
+                        'value' => '',
+                        'compare' => '!='
+                    ]
+                ]
+            ]);
+
+            if ($others) {
+                $output .= "## Other Resources\n\n";
+                foreach ($others as $other) {
+                    $output .= "- [{$other->post_title}](" . get_permalink($other->ID) . ")\n";
+                    $output .= $this->get_llm_context($other->ID);
+                }
+                $output .= "\n";
+            }
+        }
+
         $output .= "## About Us\n\n";
         $output .= "Chroma Early Learning Academy is a network of premium childcare and early education centers across Metro Atlanta.\n";
         $output .= "We use the Prismpath™ curriculum, focusing on physical, emotional, social, academic, and creative development.\n";
