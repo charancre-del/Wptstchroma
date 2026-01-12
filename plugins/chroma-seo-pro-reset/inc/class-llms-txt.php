@@ -19,43 +19,42 @@ class Chroma_LLMs_Txt_Generator
      */
     public function init()
     {
-        add_action('init', [$this, 'add_rewrite_rule']);
-        add_filter('query_vars', [$this, 'add_query_var']);
-        add_action('template_redirect', [$this, 'render_file']);
+        // Remove virtual rewrite rules
+        // add_action('init', [$this, 'add_rewrite_rule']);
+        // add_filter('query_vars', [$this, 'add_query_var']);
+        // add_action('template_redirect', [$this, 'render_file']);
+
+        // Physical File Generation Hooks
+        add_action('admin_init', [$this, 'write_physical_file']); // Force check on admin load
+        add_action('save_post', [$this, 'write_physical_file']);
+        add_action('wp_ajax_chroma_save_llm_targeting', [$this, 'write_physical_file'], 20);
     }
 
     /**
-     * Add Rewrite Rule
+     * Write Physical File
      */
-    public function add_rewrite_rule()
+    public function write_physical_file()
     {
-        add_rewrite_rule('^llms\.txt$', 'index.php?chroma_llms_txt=1', 'top');
-    }
+        // Only run if we are in admin or it's an AJAX save
+        if (!is_admin() && !wp_doing_ajax()) {
+            return;
+        }
 
-    /**
-     * Add Query Var
-     */
-    public function add_query_var($vars)
-    {
-        $vars[] = 'chroma_llms_txt';
-        return $vars;
-    }
+        $file_path = ABSPATH . 'llms.txt';
+        $content = $this->generate_content();
 
-    /**
-     * Render the file
-     */
-    public function render_file()
-    {
-        if (get_query_var('chroma_llms_txt')) {
-            header('Content-Type: text/plain; charset=utf-8');
-            
-            // Allow caching but revalidate
-            header('Cache-Control: public, max-age=3600'); // 1 hour
-
-            echo $this->generate_content();
-            exit;
+        // Write file
+        $handle = @fopen($file_path, 'w');
+        if ($handle) {
+            fwrite($handle, $content);
+            fclose($handle);
         }
     }
+
+    // Deprecated Rewrite Functions (kept commented out or removed for clarity)
+    // public function add_rewrite_rule() ... 
+    // public function add_query_var($vars) ...
+    // public function render_file() ...
 
     /**
      * Helper to get LLM Context
