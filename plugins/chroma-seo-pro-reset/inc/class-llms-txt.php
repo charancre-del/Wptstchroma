@@ -166,6 +166,49 @@ class Chroma_LLMs_Txt_Generator
             $output .= "\n";
         }
 
+        // Cities / Service Areas
+        $cities = get_posts([
+            'post_type' => 'city',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'orderby' => 'title',
+            'order' => 'ASC'
+        ]);
+
+        if ($cities) {
+            $output .= "## Service Areas (Cities)\n\n";
+            foreach ($cities as $city) {
+                $output .= "- [{$city->post_title}](" . get_permalink($city->ID) . ")\n";
+                $output .= $this->get_llm_context($city->ID);
+            }
+            $output .= "\n";
+        }
+
+        // Core Pages (Only those with specific LLM intent set)
+        $pages = get_posts([
+            'post_type' => 'page',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'orderby' => 'menu_order',
+            'order' => 'ASC',
+            'meta_query' => [
+                [
+                    'key' => 'seo_llm_primary_intent',
+                    'value' => '',
+                    'compare' => '!='
+                ]
+            ]
+        ]);
+
+        if ($pages) {
+            $output .= "## Core Information\n\n";
+            foreach ($pages as $page) {
+                $output .= "- [{$page->post_title}](" . get_permalink($page->ID) . ")\n";
+                $output .= $this->get_llm_context($page->ID);
+            }
+            $output .= "\n";
+        }
+
         $output .= "## About Us\n\n";
         $output .= "Chroma Early Learning Academy is a network of premium childcare and early education centers across Metro Atlanta.\n";
         $output .= "We use the Prismpath™ curriculum, focusing on physical, emotional, social, academic, and creative development.\n";
