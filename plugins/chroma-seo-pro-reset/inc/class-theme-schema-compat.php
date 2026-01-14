@@ -653,10 +653,10 @@ if (!function_exists('chroma_faq_schema_pro')) {
 
 /**
  * Suppress Legacy Theme Schema
- * Running on 'after_setup_theme' ensures theme functions are loaded/hooked, then we remove them.
- * IMPORTANT: Must match priorities used in theme's seo-engine.php exactly.
+ * Since this file is loaded on 'init', we can remove the theme hooks immediately 
+ * (as they would have been added during theme load).
  */
-add_action('after_setup_theme', function() {
+function chroma_remove_legacy_theme_schema() {
     // Legacy theme used default priority 10 for these (mostly)
     remove_action('wp_head', 'chroma_organization_schema', 10); 
     remove_action('wp_head', 'chroma_website_schema', 10);
@@ -666,4 +666,6 @@ add_action('after_setup_theme', function() {
     remove_action('wp_head', 'chroma_location_schema', 10);
     remove_action('wp_head', 'chroma_city_schema', 10);
     remove_action('wp_head', 'chroma_program_schema', 10);
-}, 20);
+}
+// Execute immediately if we are past theme setup, or hook to late init
+add_action('wp_head', 'chroma_remove_legacy_theme_schema', 1);

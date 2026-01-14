@@ -442,14 +442,14 @@ function chroma_seed_employers_page_defaults( $post_id ) {
 		'employers_federal_icon'       => 'fa-solid fa-landmark',
 		'employers_federal_title'      => 'Federal 45F Credit',
 		'employers_federal_subtitle'   => 'Employer-Provided Child Care Credit',
-		'employers_federal_desc'       => 'The IRS allows businesses to claim a tax credit of up to <strong>$150,000 annually</strong>. This covers 25% of qualified childcare facility expenditures (such as contracting with Chroma for reserved spots) and 10% of resource and referral expenditures.',
+		'employers_federal_desc'       => 'Under the "One Big Beautiful Bill Act" (effective 2026), businesses can claim a tax credit of up to <strong>$500,000 annually</strong>. This covers <strong>40%</strong> of qualified childcare expenditures (rising to <strong>50%</strong> and <strong>$600,000</strong> for small businesses).',
 		'employers_federal_link_text'  => 'View IRS Form 8882',
 		'employers_federal_link_url'   => 'https://www.irs.gov/forms-pubs/about-form-8882',
 
 		'employers_georgia_icon'       => 'fa-solid fa-map-location-dot',
 		'employers_georgia_title'      => 'Georgia Employer\'s Credit',
 		'employers_georgia_subtitle'   => 'Georgia Child Care Tax Credit',
-		'employers_georgia_desc'       => 'Georgia offers one of the most generous incentives in the nation. Employers who purchase or sponsor childcare for employees can receive a tax credit equal to <strong>75% of the employer\'s cost</strong>. This credit can be applied against 50% of your state income tax liability.',
+		'employers_georgia_desc'       => 'Georgia maintains its generous <strong>75% credit</strong> for employer-sponsored care costs. New for 2026: Employers can also claim a supplemental credit of <strong>$1,000 per child</strong> for eligible childcare payments provided to employees.',
 		'employers_georgia_link_text'  => 'View Georgia DOR Details',
 		'employers_georgia_link_url'   => 'https://dor.georgia.gov/tax-credits-business',
 

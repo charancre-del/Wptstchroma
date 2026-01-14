@@ -45,15 +45,23 @@ class Chroma_General_LLM_Context extends Chroma_Advanced_SEO_Meta_Box_Base
         echo '</div>';
 
         // Primary intent
-        $this->render_text_field([
-            'id' => 'seo_llm_primary_intent',
-            'label' => __('Primary Intent', 'chroma-excellence'),
-            'value' => $primary_intent,
-            'placeholder' => 'e.g., childcare_discovery, program_information',
-            'description' => 'What is the primary user intent this page serves?',
-            'fallback_notice' => empty($primary_intent) ? 'informational' : '',
-            'class' => 'regular-text',
-        ]);
+        // Primary intent (Dropdown)
+        $intent_options = [
+            '' => 'Select Intent...',
+            'informational' => 'Informational (Learn about program)',
+            'transactional' => 'Transactional (Enroll / Tour)',
+            'navigational' => 'Navigational (Find Campus / Contact)'
+        ];
+
+        echo '<div class="chroma-meta-field-row" style="margin-bottom: 15px;">';
+        echo '<label for="seo_llm_primary_intent" style="display: block; font-weight: bold; margin-bottom: 5px;">' . __('Primary Intent', 'chroma-excellence') . '</label>';
+        echo '<select id="seo_llm_primary_intent" name="seo_llm_primary_intent" class="widefat" style="max-width: 400px;">';
+        foreach ($intent_options as $val => $label) {
+            echo '<option value="' . esc_attr($val) . '" ' . selected($primary_intent, $val, false) . '>' . esc_html($label) . '</option>';
+        }
+        echo '</select>';
+        echo '<p class="description">What is the primary user intent this page serves?</p>';
+        echo '</div>';
 
         // Target queries
         echo '<h4 style="margin-top: 20px;">' . __('Target Queries', 'chroma-excellence') . '</h4>';

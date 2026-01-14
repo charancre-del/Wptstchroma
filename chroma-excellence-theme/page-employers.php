@@ -40,7 +40,7 @@ $tax_description = chroma_get_translated_meta($page_id, 'employers_tax_descripti
 $federal_icon = chroma_get_translated_meta($page_id, 'employers_federal_icon') ?: 'fa-solid fa-landmark';
 $federal_title = chroma_get_translated_meta($page_id, 'employers_federal_title') ?: __('Federal 45F Credit', 'chroma-excellence');
 $federal_subtitle = chroma_get_translated_meta($page_id, 'employers_federal_subtitle') ?: __('Employer-Provided Child Care Credit', 'chroma-excellence');
-$federal_desc = chroma_get_translated_meta($page_id, 'employers_federal_desc') ?: __('The IRS allows businesses to claim a tax credit of up to <strong>$150,000 annually</strong>. This covers 25% of qualified childcare facility expenditures (such as contracting with Chroma for reserved spots) and 10% of resource and referral expenditures.', 'chroma-excellence');
+$federal_desc = chroma_get_translated_meta($page_id, 'employers_federal_desc') ?: __('Under the "One Big Beautiful Bill Act" (effective 2026), businesses can claim a tax credit of up to <strong>$500,000 annually</strong>. This covers <strong>40%</strong> of qualified childcare expenditures (rising to <strong>50%</strong> and <strong>$600,000</strong> for small businesses).', 'chroma-excellence');
 $federal_link_text = chroma_get_translated_meta($page_id, 'employers_federal_link_text') ?: __('View IRS Form 8882', 'chroma-excellence');
 $federal_link_url = chroma_get_translated_meta($page_id, 'employers_federal_link_url') ?: 'https://www.irs.gov/forms-pubs/about-form-8882';
 
@@ -48,7 +48,7 @@ $federal_link_url = chroma_get_translated_meta($page_id, 'employers_federal_link
 $georgia_icon = chroma_get_translated_meta($page_id, 'employers_georgia_icon') ?: 'fa-solid fa-map-location-dot';
 $georgia_title = chroma_get_translated_meta($page_id, 'employers_georgia_title') ?: __('Georgia Employer\'s Credit', 'chroma-excellence');
 $georgia_subtitle = chroma_get_translated_meta($page_id, 'employers_georgia_subtitle') ?: __('Georgia Child Care Tax Credit', 'chroma-excellence');
-$georgia_desc = chroma_get_translated_meta($page_id, 'employers_georgia_desc') ?: __('Georgia offers one of the most generous incentives in the nation. Employers who purchase or sponsor childcare for employees can receive a tax credit equal to <strong>75% of the employer\'s cost</strong>. This credit can be applied against 50% of your state income tax liability.', 'chroma-excellence');
+$georgia_desc = chroma_get_translated_meta($page_id, 'employers_georgia_desc') ?: __('Georgia maintains its generous <strong>75% credit</strong> for employer-sponsored care costs. New for 2026: Employers can also claim a supplemental credit of <strong>$1,000 per child</strong> for eligible childcare payments provided to employees.', 'chroma-excellence');
 $georgia_link_text = chroma_get_translated_meta($page_id, 'employers_georgia_link_text') ?: __('View Georgia DOR Details', 'chroma-excellence');
 $georgia_link_url = chroma_get_translated_meta($page_id, 'employers_georgia_link_url') ?: 'https://dor.georgia.gov/tax-credits-business';
 

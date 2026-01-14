@@ -26,7 +26,7 @@ class Chroma_Location_Advanced_Schema
     {
         add_meta_box(
             'chroma_location_advanced_schema',
-            '🔍 Advanced SEO Schema',
+            '🔍 Location Facts & Advanced Schema',
             [$this, 'render_meta_box'],
             'location',
             'side',
@@ -43,8 +43,12 @@ class Chroma_Location_Advanced_Schema
 
         $license = get_post_meta($post->ID, '_chroma_license_number', true);
         $cid = get_post_meta($post->ID, '_chroma_google_maps_cid', true);
+        $quality = get_post_meta($post->ID, 'location_quality_rated', true);
         $open_house = get_post_meta($post->ID, '_chroma_open_house_date', true);
         $is_venue = get_post_meta($post->ID, '_chroma_is_event_venue', true);
+        $caps = get_post_meta($post->ID, '_chroma_caps_accepted', true);
+        $prek = get_post_meta($post->ID, '_chroma_ga_pre_k_accepted', true);
+        $cameras = get_post_meta($post->ID, '_chroma_security_cameras', true);
         $amenities = get_post_meta($post->ID, '_chroma_amenities', true);
         ?>
         <div style="margin-bottom: 15px;">
@@ -54,7 +58,17 @@ class Chroma_Location_Advanced_Schema
             <input type="text" id="chroma_license_number" name="chroma_license_number" 
                    value="<?php echo esc_attr($license); ?>" class="widefat"
                    placeholder="e.g., DECAL-123456">
-            <p class="description">Georgia DECAL license number for schema.org hasCredential</p>
+            <p class="description">Georgia DECAL license number.</p>
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label for="location_quality_rated" style="display: block; margin-bottom: 5px; font-weight: bold;">
+                ⭐ Quality Rated Level
+            </label>
+            <input type="text" id="location_quality_rated" name="location_quality_rated" 
+                   value="<?php echo esc_attr($quality); ?>" class="widefat"
+                   placeholder="e.g., 2-Star, 3-Star">
+            <p class="description">Official Quality Rated status.</p>
         </div>
 
         <div style="margin-bottom: 15px;">
@@ -64,24 +78,47 @@ class Chroma_Location_Advanced_Schema
             <input type="text" id="chroma_google_maps_cid" name="chroma_google_maps_cid" 
                    value="<?php echo esc_attr($cid); ?>" class="widefat"
                    placeholder="e.g., 12345678901234567890">
-            <p class="description">Find in Google Maps URL: maps.google.com/?cid=<strong>THIS</strong></p>
+            <p class="description">Find in Google Maps URL.</p>
         </div>
 
-        <div style="margin-bottom: 15px;">
+        <div style="margin-bottom: 15px; border-top: 1px solid #eee; padding-top: 10px;">
+            <strong>Verification Flags</strong>
+            
+            <p style="margin-bottom: 5px;">
+                <label style="cursor: pointer;">
+                    <input type="checkbox" name="chroma_caps_accepted" value="1" <?php checked($caps, '1'); ?>>
+                    <span>Accepts CAPS (Subsidies)</span>
+                </label>
+            </p>
+
+            <p style="margin-bottom: 5px;">
+                <label style="cursor: pointer;">
+                    <input type="checkbox" name="chroma_ga_pre_k_accepted" value="1" <?php checked($prek, '1'); ?>>
+                    <span>Offers GA Lottery Pre-K</span>
+                </label>
+            </p>
+
+            <p style="margin-bottom: 5px;">
+                <label style="cursor: pointer;">
+                    <input type="checkbox" name="chroma_security_cameras" value="1" <?php checked($cameras, '1'); ?>>
+                    <span>Security Cameras</span>
+                </label>
+            </p>
+            
+            <p style="margin-bottom: 5px;">
+                <label style="cursor: pointer;">
+                    <input type="checkbox" name="chroma_is_event_venue" value="1" <?php checked($is_venue, '1'); ?>>
+                    <span>Is Event Venue (Rentals)</span>
+                </label>
+            </p>
+        </div>
+
+        <div style="margin-bottom: 15px; border-top: 1px solid #eee; padding-top: 10px;">
             <label for="chroma_open_house_date" style="display: block; margin-bottom: 5px; font-weight: bold;">
                 🎉 Next Open House Date
             </label>
             <input type="datetime-local" id="chroma_open_house_date" name="chroma_open_house_date" 
                    value="<?php echo esc_attr($open_house); ?>" class="widefat">
-            <p class="description">Generates Event schema for this date</p>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                <input type="checkbox" name="chroma_is_event_venue" value="1" <?php checked($is_venue, '1'); ?>>
-                <span><strong>🏛️ Is Event Venue</strong></span>
-            </label>
-            <p class="description">Adds EventVenue schema type (for party rentals, etc.)</p>
         </div>
 
         <?php if (!empty($amenities) && is_array($amenities)): ?>
@@ -115,23 +152,31 @@ class Chroma_Location_Advanced_Schema
             return;
         }
 
-        // License Number
-        if (isset($_POST['chroma_license_number'])) {
-            update_post_meta($post_id, '_chroma_license_number', sanitize_text_field($_POST['chroma_license_number']));
+        // Text Fields
+        $text_fields = [
+            '_chroma_license_number' => 'chroma_license_number',
+            '_chroma_google_maps_cid' => 'chroma_google_maps_cid',
+            'location_quality_rated' => 'location_quality_rated',
+            '_chroma_open_house_date' => 'chroma_open_house_date'
+        ];
+
+        foreach ($text_fields as $meta_key => $post_key) {
+            if (isset($_POST[$post_key])) {
+                update_post_meta($post_id, $meta_key, sanitize_text_field($_POST[$post_key]));
+            }
         }
 
-        // Google Maps CID
-        if (isset($_POST['chroma_google_maps_cid'])) {
-            update_post_meta($post_id, '_chroma_google_maps_cid', sanitize_text_field($_POST['chroma_google_maps_cid']));
-        }
+        // Checkbox Fields
+        $checkboxes = [
+            '_chroma_is_event_venue' => 'chroma_is_event_venue',
+            '_chroma_caps_accepted' => 'chroma_caps_accepted',
+            '_chroma_ga_pre_k_accepted' => 'chroma_ga_pre_k_accepted',
+            '_chroma_security_cameras' => 'chroma_security_cameras'
+        ];
 
-        // Open House Date
-        if (isset($_POST['chroma_open_house_date'])) {
-            update_post_meta($post_id, '_chroma_open_house_date', sanitize_text_field($_POST['chroma_open_house_date']));
+        foreach ($checkboxes as $meta_key => $post_key) {
+            $val = isset($_POST[$post_key]) ? '1' : '';
+            update_post_meta($post_id, $meta_key, $val);
         }
-
-        // Is Event Venue
-        $is_venue = isset($_POST['chroma_is_event_venue']) ? '1' : '';
-        update_post_meta($post_id, '_chroma_is_event_venue', $is_venue);
     }
 }
