@@ -668,4 +668,4 @@ function chroma_remove_legacy_theme_schema() {
     remove_action('wp_head', 'chroma_program_schema', 10);
 }
 // Execute immediately if we are past theme setup, or hook to late init
-add_action('wp_head', 'chroma_remove_legacy_theme_schema', 1);
+add_action('wp_head', 'chroma_remove_legacy_theme_schema', 0);
