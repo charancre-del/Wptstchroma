@@ -373,22 +373,114 @@ class Chroma_LLM_Client
         $prompt .= "- Location Type: Physical Business Locations in Georgia\n";
         $prompt .= "- Brand: Chroma Early Learning\n\n";
         
-        $prompt .= "=== SCHEMA BEST PRACTICES ===\n";
-        $prompt .= "- Include geo coordinates (latitude/longitude) for local pack ranking\n";
-        $prompt .= "- Add openingHoursSpecification for 'Open Now' badge\n";
-        $prompt .= "- Include aggregateRating if reviews exist (critical for CTR)\n";
-        $prompt .= "- Add hasCredential for trust signals (licenses, accreditations)\n";
-        $prompt .= "- Use priceRange ($, $$, $$$) for filtering in maps\n";
-        $prompt .= "- Include sameAs with all social profiles and GMB URL\n";
-        $prompt .= "- Add amenityFeature for facility highlights\n\n";
+        $prompt .= "=== SCHEMA TYPE SPECIFIC INSTRUCTIONS ===\n";
         
+        switch ($schema_type) {
+            case 'JobPosting':
+                $prompt .= "- Focus on: title, datePosted, validThrough, employmentType\n";
+                $prompt .= "- EXTRACT SALARY: Look for baseSalary (value + currency). If range (e.g. $15-$20), use minValue/maxValue.\n";
+                $prompt .= "- JOB LOCATION: Ensure jobLocation include addressLocality and addressRegion\n";
+                $prompt .= "- HIRING ORG: hiringOrganization should be 'Chroma Early Learning'\n";
+                $prompt .= "- DESCRIPTION: Include full job description HTML\n";
+                break;
+
+            case 'Event':
+                $prompt .= "- Focus on: name, startDate, endDate, location, organizer\n";
+                $prompt .= "- LOCATION: Must be a Place or VirtualLocation\n";
+                $prompt .= "- OFFER: Include price, priceCurrency, availability\n";
+                $prompt .= "- IMAGE: Must provide an image URL if available\n";
+                break;
+
+            case 'Article':
+            case 'NewsArticle':
+            case 'BlogPosting':
+                $prompt .= "- Focus on: headline, image, datePublished, dateModified, author\n";
+                $prompt .= "- HEADLINE: Limit to 110 characters max\n";
+                $prompt .= "- AUTHOR: Must be a Person or Organization object\n";
+                $prompt .= "- PUBLISHER: default to organization 'Chroma Early Learning'\n";
+                break;
+
+            case 'FAQPage':
+                $prompt .= "- STRUCTURE: Return 'mainEntity' array of Question objects\n";
+                $prompt .= "- QUESTION: 'name' property\n";
+                $prompt .= "- ANSWER: 'acceptedAnswer.text' property\n";
+                $prompt .= "- Do not hallucinate Q&A not in the text\n";
+                break;
+            
+            case 'HowTo':
+                $prompt .= "- Focus on: step-by-step instructions, totalTime, supply, tool\n";
+                $prompt .= "- STEP: Must include 'name' and 'text' (or 'itemListElement' for structured steps)\n";
+                $prompt .= "- IMAGES: Suggest images for each step if context implies them\n";
+                break;
+
+            case 'VideoObject':
+                $prompt .= "- Focus on: name, description, uploadDate, duration, thumbnailUrl\n";
+                $prompt .= "- THUMBNAIL: Required field\n";
+                $prompt .= "- DURATION: ISO 8601 format (e.g. PT1M30S)\n";
+                break;
+
+            case 'Course':
+                $prompt .= "- Focus on: name, description, provider, educationalLevel, coursePrerequisites, hasCourseInstance\n";
+                $prompt .= "- PROVIDER: Organization 'Chroma Early Learning'\n";
+                $prompt .= "- REQUIREMENTS: Extract age or grade requirements into 'coursePrerequisites'\n";
+                $prompt .= "- INSTANCE: Include 'hasCourseInstance' with courseMode (Onsite) + courseWorkload (e.g. Full time, Part time)\n";
+                $prompt .= "- TUITION: Map pricing to 'offers' array\n";
+                break;
+
+            case 'Product':
+                $prompt .= "- Focus on: name, image, brand, offers, review, aggregateRating\n";
+                $prompt .= "- OFFERS: price, priceCurrency, availability\n";
+                $prompt .= "- BRAND: Brand object or text\n";
+                break;
+
+            case 'Service':
+                $prompt .= "- Focus on: name, serviceType, provider, areaServed, hasOfferCatalog\n";
+                $prompt .= "- PROVIDER: Organization 'Chroma Early Learning'\n";
+                break;
+
+            case 'Review':
+                $prompt .= "- Focus on: itemReviewed, reviewRating, author, reviewBody\n";
+                $prompt .= "- RATING: 1-5 scale\n";
+                $prompt .= "- AUTHOR: Person object with name\n";
+                break;
+
+            case 'SpecialAnnouncement':
+                $prompt .= "- Focus on: name, text, datePosted, expires, category\n";
+                $prompt .= "- CATEGORY: e.g., 'https://schema.org/CovidTestingFacility' if applicable, or generic public health info\n";
+                break;
+
+            case 'Menu':
+                $prompt .= "- Focus on: hasMenuSection, hasMenuItem\n";
+                $prompt .= "- STRUCTURE: Hierarchical (Menu -> Section -> Item)\n";
+                $prompt .= "- PRICES: price + priceCurrency\n";
+                break;
+                
+            case 'ItemList':
+            case 'CollectionPage':
+                $prompt .= "- Focus on: itemListElement\n";
+                $prompt .= "- ITEMS: ListItem with position and url\n";
+                break;
+
+                $prompt .= "- Focus on: geo coordinates (latitude/longitude) for local pack ranking\n";
+                $prompt .= "- Add openingHoursSpecification for 'Open Now' badge\n";
+                $prompt .= "- Include aggregateRating if reviews exist (critical for CTR)\n";
+                $prompt .= "- Add hasCredential for trust signals (licenses, accreditations)\n";
+                $prompt .= "- Use priceRange ($, $$, $$$) for filtering in maps\n";
+                $prompt .= "- Include sameAs with all social profiles and GMB URL\n";
+                $prompt .= "- Add amenityFeature for facility highlights\n";
+                break;
+        }
+        $prompt .= "\n";
+
         $prompt .= "=== VALIDATION RULES ===\n";
         $prompt .= "- URLs must start with https://\n";
         $prompt .= "- Dates must be ISO 8601 format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)\n";
         $prompt .= "- Telephone should include area code (e.g., 770-555-0123)\n";
-        $prompt .= "- priceRange should be $, $$, or $$$\n";
-        $prompt .= "- ratingValue must be between 1 and 5\n";
-        $prompt .= "- geo coordinates must be valid lat/lng decimals\n\n";
+        if ($schema_type === 'LocalBusiness' || $schema_type === 'ChildCare') {
+             $prompt .= "- priceRange should be $, $$, or $$$\n";
+             $prompt .= "- geo coordinates must be valid lat/lng decimals\n";
+        }
+        $prompt .= "- ratingValue must be between 1 and 5\n\n";
         
         $prompt .= "=== FOR MISSING FIELDS ===\n";
         $prompt .= "If you cannot find a field in the provided data:\n";
