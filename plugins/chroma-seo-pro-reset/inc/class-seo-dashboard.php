@@ -1685,15 +1685,15 @@ class Chroma_SEO_Dashboard
                                     if (is_array($row)) {
                                         $clean_row = [];
                                         foreach ($row as $rk => $rv) {
-                                            $clean_row[sanitize_key($rk)] = sanitize_textarea_field($rv);
+                                            $clean_row[sanitize_text_field($rk)] = sanitize_textarea_field($rv);
                                         }
                                         $clean_repeater[] = $clean_row;
                                     }
                                 }
-                                $clean_data[sanitize_key($k)] = $clean_repeater;
+                                $clean_data[sanitize_text_field($k)] = $clean_repeater;
                             } else {
                                 // Handle Simple Field
-                                $clean_data[sanitize_key($k)] = sanitize_textarea_field($v);
+                                $clean_data[sanitize_text_field($k)] = sanitize_textarea_field($v);
                             }
                         }
                     }
