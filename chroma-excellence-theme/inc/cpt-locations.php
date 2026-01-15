@@ -284,6 +284,7 @@ function chroma_render_location_custom_fields_meta_box($post)
 	$hours = get_post_meta($post->ID, 'location_hours', true);
 	$ages_served = get_post_meta($post->ID, 'location_ages_served', true);
 	$director_name = get_post_meta($post->ID, 'location_director_name', true);
+	$director_heading = get_post_meta($post->ID, 'location_director_heading', true);
 	$director_bio = get_post_meta($post->ID, 'location_director_bio', true);
 	$director_photo = get_post_meta($post->ID, 'location_director_photo', true);
 	$director_signature = get_post_meta($post->ID, 'location_director_signature', true);
@@ -475,6 +476,13 @@ function chroma_render_location_custom_fields_meta_box($post)
 		</label>
 		<small><?php _e('Check if this location has achieved Georgia\'s Quality Rated status', 'chroma-excellence'); ?></small>
 	</div>
+
+	<div class="chroma-meta-field">
+		<label for="_chroma_license_number"><?php _e('DECAL License Number', 'chroma-excellence'); ?></label>
+		<input type="text" id="_chroma_license_number" name="_chroma_license_number"
+			value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_license_number', true)); ?>" placeholder="e.g., CCLC-12345" />
+		<small><?php _e('Enter the official Georgia DECAL license number for this facility', 'chroma-excellence'); ?></small>
+	</div>
 		<div class="chroma-meta-field">
 			<label for="location_google_rating"><?php _e('Google Rating', 'chroma-excellence'); ?></label>
 			<input type="text" id="location_google_rating" name="location_google_rating"
@@ -498,6 +506,13 @@ function chroma_render_location_custom_fields_meta_box($post)
 			<input type="text" id="location_director_name" name="location_director_name"
 				value="<?php echo esc_attr($director_name); ?>" placeholder="e.g., Sarah Williams" />
 			<small><?php _e('Name of the campus director (leave empty to hide director section)', 'chroma-excellence'); ?></small>
+		</div>
+
+		<div class="chroma-meta-field">
+			<label for="location_director_heading"><?php _e('Director Section Heading', 'chroma-excellence'); ?></label>
+			<input type="text" id="location_director_heading" name="location_director_heading"
+				value="<?php echo esc_attr($director_heading); ?>" placeholder="e.g., Welcome to Chroma Marietta." />
+			<small><?php _e('Headline for the director section (fallback: Welcome to Chroma [City].)', 'chroma-excellence'); ?></small>
 		</div>
 
 		<div class="chroma-meta-field">
@@ -715,6 +730,7 @@ function chroma_save_location_custom_fields($post_id)
 		'location_hours',
 		'location_ages_served',
 		'location_director_name',
+		'location_director_heading',
 		'location_director_bio',
 		'location_director_photo',
 		'location_director_signature',
@@ -735,6 +751,7 @@ function chroma_save_location_custom_fields($post_id)
 		'location_special_programs',
 		'location_faq_items',
 		'location_gmb_url',
+		'_chroma_license_number',
 	);
 
 	foreach ($fields as $field) {

@@ -59,7 +59,24 @@ jQuery(function ($) {
                 $('.gap-checkbox').prop('checked', $(this).is(':checked'));
             });
 
+            // Inject Reset Buttons
+            if ($('#chroma-generate-selected').length && !$('#chroma-reset-schema').length) {
+                $('<button id="chroma-reset-schema" class="button button-secodary" style="margin-left: 10px; color: #d63638; border-color: #d63638;">Reset Schema</button>').insertAfter('#chroma-generate-selected');
+                $('<button id="chroma-reset-faq" class="button button-secondary" style="margin-left: 10px; color: #d63638; border-color: #d63638;">Reset FAQs</button>').insertAfter('#chroma-reset-schema');
+
+                // Master Resets (Floating or separate? We stick to bulk selection for now based on context, but add Master as option if no selection?)
+                // User asked for "Master Reset". We can add a confirm-all logic.
+            }
+
             $('#chroma-generate-selected').on('click', this.startBulk.bind(this));
+            $('#chroma-reset-schema').on('click', function (e) {
+                e.preventDefault();
+                BulkOps.resetBulk('schema');
+            });
+            $('#chroma-reset-faq').on('click', function (e) {
+                e.preventDefault();
+                BulkOps.resetBulk('faq');
+            });
             $('#chroma-cancel-bulk').on('click', this.cancelBulk.bind(this));
 
             // Poll status if in progress
@@ -98,6 +115,42 @@ jQuery(function ($) {
                 nonce: chromaLLM.nonce
             }, function () {
                 location.reload();
+            });
+        },
+
+        resetBulk: function (type) {
+            var selected = $('.gap-checkbox:checked').map(function () {
+                return $(this).val();
+            }).get();
+
+            var resetAll = false;
+
+            if (!selected.length) {
+                if (confirm('No posts selected. Do you want to perform a MASTER RESET of ALL ' + type + ' data across the entire site? This cannot be undone.')) {
+                    resetAll = true;
+                } else {
+                    return;
+                }
+            } else {
+                if (!confirm('Are you sure you want to reset ' + type + ' for the ' + selected.length + ' selected items?')) {
+                    return;
+                }
+            }
+
+            var actionName = type === 'faq' ? 'chroma_bulk_reset_faq' : 'chroma_bulk_reset_schema';
+
+            $.post(chromaLLM.ajaxUrl, {
+                action: actionName,
+                nonce: chromaLLM.nonce, // Using same nonce
+                post_ids: selected,
+                reset_all: resetAll
+            }, function (response) {
+                if (response.success) {
+                    alert(response.data.message);
+                    location.reload();
+                } else {
+                    alert('Error: ' + (response.data.message || 'Unknown error'));
+                }
             });
         },
 

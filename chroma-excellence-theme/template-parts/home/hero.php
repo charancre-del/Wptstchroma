@@ -28,7 +28,7 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             <div
                 class="inline-flex items-center gap-2 bg-white border border-chroma-blue/15 px-3 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-semibold text-brand-ink shadow-soft">
                 <span class="w-2 h-2 rounded-full bg-chroma-blue animate-pulse"></span>
-                19+ Metro Atlanta Locations
+                <?php _e('19+ Metro Atlanta Locations', 'chroma-excellence'); ?>
             </div>
 
             <h1 class="font-serif text-brand-ink text-4xl sm:text-[3.4rem] leading-tight tracking-tight">

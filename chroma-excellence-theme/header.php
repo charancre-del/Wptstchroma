@@ -90,17 +90,17 @@
 
 				<!-- Header Text -->
 				<?php
-				$header_text = get_theme_mod('chroma_header_text', "Early Learning\nAcademy");
+				$header_text = chroma_get_theme_mod('chroma_header_text', "Early Learning\nAcademy");
 				$lines = explode("\n", $header_text);
 				$first_line = array_shift($lines);
 				?>
 				<div class="block leading-tight">
 					<span class="block font-sans text-xl lg:text-2xl font-bold text-brand-ink">
-						<?php echo esc_html($first_line); ?>
+						<?php echo esc_html( __($first_line, 'chroma-excellence') ); ?>
 					</span>
 					<?php foreach ($lines as $line): ?>
 						<span class="block text-[10px] lg:text-xs font-bold tracking-[0.15em] text-chroma-blue uppercase">
-							<?php echo esc_html($line); ?>
+							<?php echo esc_html( __($line, 'chroma-excellence') ); ?>
 						</span>
 					<?php endforeach; ?>
 				</div>
@@ -110,16 +110,16 @@
 			<nav class="hidden lg:flex items-center gap-8">
 				<?php chroma_primary_nav(); ?>
 
-				<!-- Language Switcher -->
-				<?php if (function_exists('chroma_render_language_switcher')): ?>
+				<!-- Language Switcher (Hidden from public until launch) -->
+				<?php if (current_user_can('manage_options') && function_exists('chroma_render_language_switcher')): ?>
 					<?php chroma_render_language_switcher(); ?>
 				<?php endif; ?>
 
 				<!-- CTA Button -->
 				<?php
-				$cta_url = get_theme_mod('chroma_book_tour_url', home_url('/contact-us/#tour'));
+				$cta_url = chroma_get_theme_mod('chroma_book_tour_url', home_url('/contact-us/#tour'));
 				// Ensure CTA URL is localized if needed (though home_url filters should handle it if applied globally)
-				$cta_text = get_theme_mod('chroma_header_cta_text', 'Book a Tour');
+				$cta_text = chroma_get_theme_mod('chroma_header_cta_text', 'Book a Tour');
 				?>
 				<a href="<?php echo esc_url($cta_url); ?>"
 					class="inline-flex items-center justify-center px-6 py-3 rounded-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-widest hover:bg-chroma-red/90 transition shadow-soft">
@@ -153,9 +153,9 @@
 		<nav class="flex-1 px-6 py-6 overflow-y-auto">
 			<?php chroma_mobile_nav(); ?>
 
-			<!-- Mobile Language Switcher -->
+			<!-- Mobile Language Switcher (Hidden from public until launch) -->
 			<div class="mt-6 mb-4">
-				<?php if (function_exists('chroma_render_language_switcher')): ?>
+				<?php if (current_user_can('manage_options') && function_exists('chroma_render_language_switcher')): ?>
 					<?php chroma_render_language_switcher(); ?>
 				<?php endif; ?>
 			</div>
@@ -168,4 +168,7 @@
 	</div>
 
 	<main id="main-content" class="pt-20 lg:pt-24">
-		<?php do_action('chroma_breadcrumbs'); ?>
+		<?php 
+		// Disabled to prevent duplication with external plugins
+		// do_action('chroma_breadcrumbs'); 
+		?>

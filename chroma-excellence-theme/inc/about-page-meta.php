@@ -116,6 +116,10 @@ function chroma_about_hero_meta_box_render( $post ) {
 				<input type="text" id="about_hero_badge_text" name="about_hero_badge_text"
 					   value="<?php echo esc_attr( $hero_badge_text ); ?>"
 					   class="large-text" placeholder="e.g., Established 2015" />
+				<br>
+				<input type="text" id="_chroma_es_about_hero_badge_text" name="_chroma_es_about_hero_badge_text"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_hero_badge_text', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Badge Text" style="margin-top: 5px;" />
 				<p class="description">Text for the badge at the top (e.g., "Established 2015")</p>
 			</td>
 		</tr>
@@ -125,6 +129,10 @@ function chroma_about_hero_meta_box_render( $post ) {
 				<input type="text" id="about_hero_title" name="about_hero_title"
 					   value="<?php echo esc_attr( $hero_title ); ?>"
 					   class="large-text" placeholder="e.g., More than a school. A second home." />
+				<br>
+				<input type="text" id="_chroma_es_about_hero_title" name="_chroma_es_about_hero_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_hero_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Hero Title" style="margin-top: 5px;" />
 				<p class="description">Use &lt;span class='text-chroma-yellow italic'&gt;text&lt;/span&gt; for yellow italic text</p>
 			</td>
 		</tr>
@@ -133,6 +141,9 @@ function chroma_about_hero_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_hero_description" name="about_hero_description"
 						  rows="4" class="large-text"><?php echo esc_textarea( $hero_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_hero_description" name="_chroma_es_about_hero_description"
+						  rows="4" class="large-text" placeholder="[ES] Hero Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_hero_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -163,6 +174,9 @@ function chroma_about_mission_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_mission_quote" name="about_mission_quote"
 						  rows="5" class="large-text"><?php echo esc_textarea( $mission_quote ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_mission_quote" name="_chroma_es_about_mission_quote"
+						  rows="5" class="large-text" placeholder="[ES] Mission Quote" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_mission_quote', true ) ); ?></textarea>
 				<p class="description">This will be displayed as a quote on a blue background</p>
 			</td>
 		</tr>
@@ -197,6 +211,10 @@ function chroma_about_story_meta_box_render( $post ) {
 				<input type="text" id="about_story_title" name="about_story_title"
 					   value="<?php echo esc_attr( $story_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_story_title" name="_chroma_es_about_story_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_story_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Story Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -204,6 +222,9 @@ function chroma_about_story_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_story_paragraph1" name="about_story_paragraph1"
 						  rows="4" class="large-text"><?php echo esc_textarea( $story_paragraph1 ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_story_paragraph1" name="_chroma_es_about_story_paragraph1"
+						  rows="4" class="large-text" placeholder="[ES] Paragraph 1" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_story_paragraph1', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -211,6 +232,9 @@ function chroma_about_story_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_story_paragraph2" name="about_story_paragraph2"
 						  rows="4" class="large-text"><?php echo esc_textarea( $story_paragraph2 ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_story_paragraph2" name="_chroma_es_about_story_paragraph2"
+						  rows="4" class="large-text" placeholder="[ES] Paragraph 2" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_story_paragraph2', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -302,6 +326,10 @@ function chroma_about_educators_meta_box_render( $post ) {
 				<input type="text" id="about_educators_title" name="about_educators_title"
 					   value="<?php echo esc_attr( $educators_title ); ?>"
 					   class="large-text" placeholder="e.g., The Heart of Chroma." />
+				<br>
+				<input type="text" id="_chroma_es_about_educators_title" name="_chroma_es_about_educators_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_educators_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Section Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -309,6 +337,9 @@ function chroma_about_educators_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_educators_description" name="about_educators_description"
 						  rows="3" class="large-text"><?php echo esc_textarea( $educators_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_educators_description" name="_chroma_es_about_educators_description"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_educators_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -328,6 +359,10 @@ function chroma_about_educators_meta_box_render( $post ) {
 				<input type="text" id="about_educator1_title" name="about_educator1_title"
 					   value="<?php echo esc_attr( $educator1_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_educator1_title" name="_chroma_es_about_educator1_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_educator1_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -335,6 +370,9 @@ function chroma_about_educators_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_educator1_desc" name="about_educator1_desc"
 						  rows="3" class="large-text"><?php echo esc_textarea( $educator1_desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_educator1_desc" name="_chroma_es_about_educator1_desc"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_educator1_desc', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -354,6 +392,10 @@ function chroma_about_educators_meta_box_render( $post ) {
 				<input type="text" id="about_educator2_title" name="about_educator2_title"
 					   value="<?php echo esc_attr( $educator2_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_educator2_title" name="_chroma_es_about_educator2_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_educator2_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -361,6 +403,9 @@ function chroma_about_educators_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_educator2_desc" name="about_educator2_desc"
 						  rows="3" class="large-text"><?php echo esc_textarea( $educator2_desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_educator2_desc" name="_chroma_es_about_educator2_desc"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_educator2_desc', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -380,6 +425,10 @@ function chroma_about_educators_meta_box_render( $post ) {
 				<input type="text" id="about_educator3_title" name="about_educator3_title"
 					   value="<?php echo esc_attr( $educator3_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_educator3_title" name="_chroma_es_about_educator3_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_educator3_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -387,6 +436,9 @@ function chroma_about_educators_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_educator3_desc" name="about_educator3_desc"
 						  rows="3" class="large-text"><?php echo esc_textarea( $educator3_desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_educator3_desc" name="_chroma_es_about_educator3_desc"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_educator3_desc', true ) ); ?></textarea>
 			</td>
 		</tr>
 	</table>
@@ -425,6 +477,10 @@ function chroma_about_values_meta_box_render( $post ) {
 				<input type="text" id="about_values_title" name="about_values_title"
 					   value="<?php echo esc_attr( $values_title ); ?>"
 					   class="large-text" placeholder="e.g., The Chroma Standard" />
+				<br>
+				<input type="text" id="_chroma_es_about_values_title" name="_chroma_es_about_values_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_values_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Section Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -432,6 +488,9 @@ function chroma_about_values_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_values_description" name="about_values_description"
 						  rows="3" class="large-text"><?php echo esc_textarea( $values_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_values_description" name="_chroma_es_about_values_description"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_values_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -451,6 +510,10 @@ function chroma_about_values_meta_box_render( $post ) {
 				<input type="text" id="about_value1_title" name="about_value1_title"
 					   value="<?php echo esc_attr( $value1_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_value1_title" name="_chroma_es_about_value1_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_value1_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -458,6 +521,9 @@ function chroma_about_values_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_value1_desc" name="about_value1_desc"
 						  rows="2" class="large-text"><?php echo esc_textarea( $value1_desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_value1_desc" name="_chroma_es_about_value1_desc"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_value1_desc', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -477,6 +543,10 @@ function chroma_about_values_meta_box_render( $post ) {
 				<input type="text" id="about_value2_title" name="about_value2_title"
 					   value="<?php echo esc_attr( $value2_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_value2_title" name="_chroma_es_about_value2_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_value2_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -484,6 +554,9 @@ function chroma_about_values_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_value2_desc" name="about_value2_desc"
 						  rows="2" class="large-text"><?php echo esc_textarea( $value2_desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_value2_desc" name="_chroma_es_about_value2_desc"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_value2_desc', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -503,6 +576,10 @@ function chroma_about_values_meta_box_render( $post ) {
 				<input type="text" id="about_value3_title" name="about_value3_title"
 					   value="<?php echo esc_attr( $value3_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_value3_title" name="_chroma_es_about_value3_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_value3_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -510,6 +587,9 @@ function chroma_about_values_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_value3_desc" name="about_value3_desc"
 						  rows="2" class="large-text"><?php echo esc_textarea( $value3_desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_value3_desc" name="_chroma_es_about_value3_desc"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_value3_desc', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -529,6 +609,10 @@ function chroma_about_values_meta_box_render( $post ) {
 				<input type="text" id="about_value4_title" name="about_value4_title"
 					   value="<?php echo esc_attr( $value4_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_value4_title" name="_chroma_es_about_value4_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_value4_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -536,6 +620,9 @@ function chroma_about_values_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_value4_desc" name="about_value4_desc"
 						  rows="2" class="large-text"><?php echo esc_textarea( $value4_desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_value4_desc" name="_chroma_es_about_value4_desc"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_value4_desc', true ) ); ?></textarea>
 			</td>
 		</tr>
 	</table>
@@ -557,6 +644,10 @@ function chroma_about_leadership_meta_box_render( $post ) {
 				<input type="text" id="about_leadership_title" name="about_leadership_title"
 					   value="<?php echo esc_attr( $leadership_title ); ?>"
 					   class="large-text" placeholder="e.g., Led by educators, not investors." />
+				<br>
+				<input type="text" id="_chroma_es_about_leadership_title" name="_chroma_es_about_leadership_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_leadership_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 				<p class="description">Team members are managed in the "Team Members" section and will display automatically with circular photos.</p>
 			</td>
 		</tr>
@@ -588,6 +679,10 @@ function chroma_about_nutrition_meta_box_render( $post ) {
 				<input type="text" id="about_nutrition_title" name="about_nutrition_title"
 					   value="<?php echo esc_attr( $nutrition_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_nutrition_title" name="_chroma_es_about_nutrition_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_nutrition_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -595,6 +690,9 @@ function chroma_about_nutrition_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_nutrition_description" name="about_nutrition_description"
 						  rows="4" class="large-text"><?php echo esc_textarea( $nutrition_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_nutrition_description" name="_chroma_es_about_nutrition_description"
+						  rows="4" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_nutrition_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -609,6 +707,10 @@ function chroma_about_nutrition_meta_box_render( $post ) {
 				<input type="text" id="about_nutrition_bullet1_text" name="about_nutrition_bullet1_text"
 					   value="<?php echo esc_attr( $nutrition_bullet1_text ); ?>"
 					   placeholder="Text" class="large-text" style="margin-left: 10px;" />
+				<br>
+				<input type="text" id="_chroma_es_about_nutrition_bullet1_text" name="_chroma_es_about_nutrition_bullet1_text"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_nutrition_bullet1_text', true ) ); ?>"
+					   placeholder="[ES] Text" class="large-text" style="margin-left: 10px; margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -620,6 +722,10 @@ function chroma_about_nutrition_meta_box_render( $post ) {
 				<input type="text" id="about_nutrition_bullet2_text" name="about_nutrition_bullet2_text"
 					   value="<?php echo esc_attr( $nutrition_bullet2_text ); ?>"
 					   placeholder="Text" class="large-text" style="margin-left: 10px;" />
+				<br>
+				<input type="text" id="_chroma_es_about_nutrition_bullet2_text" name="_chroma_es_about_nutrition_bullet2_text"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_nutrition_bullet2_text', true ) ); ?>"
+					   placeholder="[ES] Text" class="large-text" style="margin-left: 10px; margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -631,6 +737,10 @@ function chroma_about_nutrition_meta_box_render( $post ) {
 				<input type="text" id="about_nutrition_bullet3_text" name="about_nutrition_bullet3_text"
 					   value="<?php echo esc_attr( $nutrition_bullet3_text ); ?>"
 					   placeholder="Text" class="large-text" style="margin-left: 10px;" />
+				<br>
+				<input type="text" id="_chroma_es_about_nutrition_bullet3_text" name="_chroma_es_about_nutrition_bullet3_text"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_nutrition_bullet3_text', true ) ); ?>"
+					   placeholder="[ES] Text" class="large-text" style="margin-left: 10px; margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -672,6 +782,10 @@ function chroma_about_philanthropy_meta_box_render( $post ) {
 				<input type="text" id="about_philanthropy_title" name="about_philanthropy_title"
 					   value="<?php echo esc_attr( $philanthropy_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_philanthropy_title" name="_chroma_es_about_philanthropy_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_philanthropy_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -680,6 +794,10 @@ function chroma_about_philanthropy_meta_box_render( $post ) {
 				<input type="text" id="about_philanthropy_subtitle" name="about_philanthropy_subtitle"
 					   value="<?php echo esc_attr( $philanthropy_subtitle ); ?>"
 					   class="large-text" placeholder="e.g., Foundations For Learning Inc." />
+				<br>
+				<input type="text" id="_chroma_es_about_philanthropy_subtitle" name="_chroma_es_about_philanthropy_subtitle"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_philanthropy_subtitle', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Subtitle" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -687,6 +805,9 @@ function chroma_about_philanthropy_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_philanthropy_description" name="about_philanthropy_description"
 						  rows="4" class="large-text"><?php echo esc_textarea( $philanthropy_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_philanthropy_description" name="_chroma_es_about_philanthropy_description"
+						  rows="4" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_philanthropy_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
@@ -701,6 +822,10 @@ function chroma_about_philanthropy_meta_box_render( $post ) {
 				<input type="text" id="about_philanthropy_bullet1_text" name="about_philanthropy_bullet1_text"
 					   value="<?php echo esc_attr( $philanthropy_bullet1_text ); ?>"
 					   placeholder="Text" class="large-text" style="margin-left: 10px;" />
+				<br>
+				<input type="text" id="_chroma_es_about_philanthropy_bullet1_text" name="_chroma_es_about_philanthropy_bullet1_text"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_philanthropy_bullet1_text', true ) ); ?>"
+					   placeholder="[ES] Text" class="large-text" style="margin-left: 10px; margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -712,6 +837,10 @@ function chroma_about_philanthropy_meta_box_render( $post ) {
 				<input type="text" id="about_philanthropy_bullet2_text" name="about_philanthropy_bullet2_text"
 					   value="<?php echo esc_attr( $philanthropy_bullet2_text ); ?>"
 					   placeholder="Text" class="large-text" style="margin-left: 10px;" />
+				<br>
+				<input type="text" id="_chroma_es_about_philanthropy_bullet2_text" name="_chroma_es_about_philanthropy_bullet2_text"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_philanthropy_bullet2_text', true ) ); ?>"
+					   placeholder="[ES] Text" class="large-text" style="margin-left: 10px; margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -723,6 +852,10 @@ function chroma_about_philanthropy_meta_box_render( $post ) {
 				<input type="text" id="about_philanthropy_bullet3_text" name="about_philanthropy_bullet3_text"
 					   value="<?php echo esc_attr( $philanthropy_bullet3_text ); ?>"
 					   placeholder="Text" class="large-text" style="margin-left: 10px;" />
+				<br>
+				<input type="text" id="_chroma_es_about_philanthropy_bullet3_text" name="_chroma_es_about_philanthropy_bullet3_text"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_philanthropy_bullet3_text', true ) ); ?>"
+					   placeholder="[ES] Text" class="large-text" style="margin-left: 10px; margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -755,6 +888,10 @@ function chroma_about_cta_meta_box_render( $post ) {
 				<input type="text" id="about_cta_title" name="about_cta_title"
 					   value="<?php echo esc_attr( $cta_title ); ?>"
 					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_about_cta_title" name="_chroma_es_about_cta_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_cta_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<tr>
@@ -762,6 +899,9 @@ function chroma_about_cta_meta_box_render( $post ) {
 			<td>
 				<textarea id="about_cta_description" name="about_cta_description"
 						  rows="2" class="large-text"><?php echo esc_textarea( $cta_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_about_cta_description" name="_chroma_es_about_cta_description"
+						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_about_cta_description', true ) ); ?></textarea>
 			</td>
 		</tr>
 	</table>
@@ -781,87 +921,131 @@ function chroma_save_about_page_meta( $post_id ) {
 	$meta_boxes = array(
 		'chroma_about_hero_nonce' => array(
 			'about_hero_badge_text'  => 'sanitize_text_field',
+			'_chroma_es_about_hero_badge_text'  => 'sanitize_text_field',
 			'about_hero_title'       => 'sanitize_text_field',
+			'_chroma_es_about_hero_title'       => 'sanitize_text_field',
 			'about_hero_description' => 'sanitize_textarea_field',
+			'_chroma_es_about_hero_description' => 'sanitize_textarea_field',
 			'about_hero_image'       => 'esc_url_raw',
 		),
 		'chroma_about_mission_nonce' => array(
 			'about_mission_quote' => 'sanitize_textarea_field',
+			'_chroma_es_about_mission_quote' => 'sanitize_textarea_field',
 		),
 		'chroma_about_story_nonce' => array(
 			'about_story_title'      => 'sanitize_text_field',
+			'_chroma_es_about_story_title' => 'sanitize_text_field',
 			'about_story_paragraph1' => 'sanitize_textarea_field',
+			'_chroma_es_about_story_paragraph1' => 'sanitize_textarea_field',
 			'about_story_paragraph2' => 'sanitize_textarea_field',
+			'_chroma_es_about_story_paragraph2' => 'sanitize_textarea_field',
 			'about_story_image'      => 'esc_url_raw',
 			'about_stat1_value'      => 'sanitize_text_field',
 			'about_stat1_label'      => 'sanitize_text_field',
+			'_chroma_es_about_stat1_label' => 'sanitize_text_field',
 			'about_stat2_value'      => 'sanitize_text_field',
 			'about_stat2_label'      => 'sanitize_text_field',
+			'_chroma_es_about_stat2_label' => 'sanitize_text_field',
 			'about_stat3_value'      => 'sanitize_text_field',
 			'about_stat3_label'      => 'sanitize_text_field',
+			'_chroma_es_about_stat3_label' => 'sanitize_text_field',
 			'about_stat4_value'      => 'sanitize_text_field',
 			'about_stat4_label'      => 'sanitize_text_field',
+			'_chroma_es_about_stat4_label' => 'sanitize_text_field',
 		),
 		'chroma_about_educators_nonce' => array(
 			'about_educators_title'       => 'sanitize_text_field',
+			'_chroma_es_about_educators_title' => 'sanitize_text_field',
 			'about_educators_description' => 'sanitize_textarea_field',
-			'about_educator1_icon'        => 'sanitize_text_field',
-			'about_educator1_title'       => 'sanitize_text_field',
-			'about_educator1_desc'        => 'sanitize_textarea_field',
-			'about_educator2_icon'        => 'sanitize_text_field',
-			'about_educator2_title'       => 'sanitize_text_field',
-			'about_educator2_desc'        => 'sanitize_textarea_field',
-			'about_educator3_icon'        => 'sanitize_text_field',
-			'about_educator3_title'       => 'sanitize_text_field',
-			'about_educator3_desc'        => 'sanitize_textarea_field',
+			'_chroma_es_about_educators_description' => 'sanitize_textarea_field',
+			'about_educator1_icon' => 'sanitize_text_field',
+			'about_educator1_title' => 'sanitize_text_field',
+			'_chroma_es_about_educator1_title' => 'sanitize_text_field',
+			'about_educator1_desc' => 'sanitize_textarea_field',
+			'_chroma_es_about_educator1_desc' => 'sanitize_textarea_field',
+			'about_educator2_icon' => 'sanitize_text_field',
+			'about_educator2_title' => 'sanitize_text_field',
+			'_chroma_es_about_educator2_title' => 'sanitize_text_field',
+			'about_educator2_desc' => 'sanitize_textarea_field',
+			'_chroma_es_about_educator2_desc' => 'sanitize_textarea_field',
+			'about_educator3_icon' => 'sanitize_text_field',
+			'about_educator3_title' => 'sanitize_text_field',
+			'_chroma_es_about_educator3_title' => 'sanitize_text_field',
+			'about_educator3_desc' => 'sanitize_textarea_field',
+			'_chroma_es_about_educator3_desc' => 'sanitize_textarea_field',
 		),
 		'chroma_about_values_nonce' => array(
-			'about_values_title'       => 'sanitize_text_field',
+			'about_values_title' => 'sanitize_text_field',
+			'_chroma_es_about_values_title' => 'sanitize_text_field',
 			'about_values_description' => 'sanitize_textarea_field',
-			'about_value1_icon'        => 'sanitize_text_field',
-			'about_value1_title'       => 'sanitize_text_field',
-			'about_value1_desc'        => 'sanitize_textarea_field',
-			'about_value2_icon'        => 'sanitize_text_field',
-			'about_value2_title'       => 'sanitize_text_field',
-			'about_value2_desc'        => 'sanitize_textarea_field',
-			'about_value3_icon'        => 'sanitize_text_field',
-			'about_value3_title'       => 'sanitize_text_field',
-			'about_value3_desc'        => 'sanitize_textarea_field',
-			'about_value4_icon'        => 'sanitize_text_field',
-			'about_value4_title'       => 'sanitize_text_field',
-			'about_value4_desc'        => 'sanitize_textarea_field',
+			'_chroma_es_about_values_description' => 'sanitize_textarea_field',
+			'about_value1_icon' => 'sanitize_text_field',
+			'about_value1_title' => 'sanitize_text_field',
+			'_chroma_es_about_value1_title' => 'sanitize_text_field',
+			'about_value1_desc' => 'sanitize_textarea_field',
+			'_chroma_es_about_value1_desc' => 'sanitize_textarea_field',
+			'about_value2_icon' => 'sanitize_text_field',
+			'about_value2_title' => 'sanitize_text_field',
+			'_chroma_es_about_value2_title' => 'sanitize_text_field',
+			'about_value2_desc' => 'sanitize_textarea_field',
+			'_chroma_es_about_value2_desc' => 'sanitize_textarea_field',
+			'about_value3_icon' => 'sanitize_text_field',
+			'about_value3_title' => 'sanitize_text_field',
+			'_chroma_es_about_value3_title' => 'sanitize_text_field',
+			'about_value3_desc' => 'sanitize_textarea_field',
+			'_chroma_es_about_value3_desc' => 'sanitize_textarea_field',
+			'about_value4_icon' => 'sanitize_text_field',
+			'about_value4_title' => 'sanitize_text_field',
+			'_chroma_es_about_value4_title' => 'sanitize_text_field',
+			'about_value4_desc' => 'sanitize_textarea_field',
+			'_chroma_es_about_value4_desc' => 'sanitize_textarea_field',
 		),
 		'chroma_about_leadership_nonce' => array(
 			'about_leadership_title' => 'sanitize_text_field',
+			'_chroma_es_about_leadership_title' => 'sanitize_text_field',
 		),
 		'chroma_about_nutrition_nonce' => array(
-			'about_nutrition_title'        => 'sanitize_text_field',
-			'about_nutrition_description'  => 'sanitize_textarea_field',
+			'about_nutrition_title' => 'sanitize_text_field',
+			'_chroma_es_about_nutrition_title' => 'sanitize_text_field',
+			'about_nutrition_description' => 'sanitize_textarea_field',
+			'_chroma_es_about_nutrition_description' => 'sanitize_textarea_field',
+			'about_nutrition_image' => 'esc_url_raw',
 			'about_nutrition_bullet1_icon' => 'sanitize_text_field',
 			'about_nutrition_bullet1_text' => 'sanitize_text_field',
+			'_chroma_es_about_nutrition_bullet1_text' => 'sanitize_text_field',
 			'about_nutrition_bullet2_icon' => 'sanitize_text_field',
 			'about_nutrition_bullet2_text' => 'sanitize_text_field',
+			'_chroma_es_about_nutrition_bullet2_text' => 'sanitize_text_field',
 			'about_nutrition_bullet3_icon' => 'sanitize_text_field',
 			'about_nutrition_bullet3_text' => 'sanitize_text_field',
-			'about_nutrition_image'        => 'esc_url_raw',
+			'_chroma_es_about_nutrition_bullet3_text' => 'sanitize_text_field',
 		),
 		'chroma_about_philanthropy_nonce' => array(
-			'about_philanthropy_title'        => 'sanitize_text_field',
-			'about_philanthropy_subtitle'     => 'sanitize_text_field',
-			'about_philanthropy_description'  => 'sanitize_textarea_field',
+			'about_philanthropy_title' => 'sanitize_text_field',
+			'_chroma_es_about_philanthropy_title' => 'sanitize_text_field',
+			'about_philanthropy_subtitle' => 'sanitize_text_field',
+			'_chroma_es_about_philanthropy_subtitle' => 'sanitize_text_field',
+			'about_philanthropy_description' => 'sanitize_textarea_field',
+			'_chroma_es_about_philanthropy_description' => 'sanitize_textarea_field',
+			'about_philanthropy_image' => 'esc_url_raw',
 			'about_philanthropy_bullet1_icon' => 'sanitize_text_field',
 			'about_philanthropy_bullet1_text' => 'sanitize_text_field',
+			'_chroma_es_about_philanthropy_bullet1_text' => 'sanitize_text_field',
 			'about_philanthropy_bullet2_icon' => 'sanitize_text_field',
 			'about_philanthropy_bullet2_text' => 'sanitize_text_field',
+			'_chroma_es_about_philanthropy_bullet2_text' => 'sanitize_text_field',
 			'about_philanthropy_bullet3_icon' => 'sanitize_text_field',
 			'about_philanthropy_bullet3_text' => 'sanitize_text_field',
-			'about_philanthropy_image'        => 'esc_url_raw',
+			'_chroma_es_about_philanthropy_bullet3_text' => 'sanitize_text_field',
 		),
 		'chroma_about_cta_nonce' => array(
-			'about_cta_title'       => 'sanitize_text_field',
+			'about_cta_title' => 'sanitize_text_field',
+			'_chroma_es_about_cta_title' => 'sanitize_text_field',
 			'about_cta_description' => 'sanitize_textarea_field',
+			'_chroma_es_about_cta_description' => 'sanitize_textarea_field',
 		),
 	);
+
 
 	// Process each meta box
 	foreach ( $meta_boxes as $nonce_field => $fields ) {

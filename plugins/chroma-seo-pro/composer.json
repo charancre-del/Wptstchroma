@@ -1,0 +1,14 @@
+{
+    "name": "chroma/seo-pro",
+    "description": "Chroma SEO Pro Plugin",
+    "type": "wordpress-plugin",
+    "require": {},
+    "require-dev": {
+        "php-stubs/wordpress-stubs": "^6.0"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}

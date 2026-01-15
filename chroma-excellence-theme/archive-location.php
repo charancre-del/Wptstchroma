@@ -122,11 +122,11 @@ $locations_query = new WP_Query(array(
 						$is_enrolling = get_post_meta($location_id, 'location_enrolling', true);
 
 						// Dynamic Open Status
-						$hours_string = get_post_meta($location_id, 'location_hours', true);
+						$hours_string = chroma_get_translated_meta($location_id, 'location_hours');
 						$is_open = chroma_is_location_open($hours_string);
 
 						// Badge Text Logic
-						$hero_subtitle = get_post_meta($location_id, 'location_hero_subtitle', true);
+						$hero_subtitle = chroma_get_translated_meta($location_id, 'location_hero_subtitle');
 						if (!empty($hero_subtitle)) {
 							$badge_text = $hero_subtitle;
 						} elseif ($is_new) {
@@ -136,14 +136,14 @@ $locations_query = new WP_Query(array(
 						}
 
 						// Get age ranges/programs
-						$ages_served = get_post_meta($location_id, 'location_ages_served', true) ?: __('Infant - 12y', 'chroma-excellence');
-						$special_programs_raw = get_post_meta($location_id, 'location_special_programs', true);
+						$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('Infant - 12y', 'chroma-excellence');
+						$special_programs_raw = chroma_get_translated_meta($location_id, 'location_special_programs');
 
 						if ($special_programs_raw) {
 							// Explode comma-separated string
 							$special_programs = array_map('trim', explode(',', $special_programs_raw));
 						} else {
-							$special_programs = array('GA Pre-K'); // Default fallback
+							$special_programs = array( __('GA Pre-K', 'chroma-excellence') ); // Default fallback
 						}
 						?>
 
@@ -195,7 +195,7 @@ $locations_query = new WP_Query(array(
 								</div>
 
 								<?php
-							$booking_link = get_post_meta($location_id, 'location_tour_booking_link', true);
+							$booking_link = chroma_get_translated_meta($location_id, 'location_tour_booking_link');
 							?>
 							<div class="grid grid-cols-2 gap-3 mt-auto relative z-20">
 								<a href="<?php the_permalink(); ?>"
@@ -382,11 +382,11 @@ $locations_query = new WP_Query(array(
 		<!-- Header -->
 		<div
 			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
-			<h3 class="font-serif text-xl font-bold text-brand-ink">Schedule Your Visit</h3>
+			<h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
 			<div class="flex items-center gap-4">
 				<a href="#" id="chroma-tour-external" target="_blank"
 					class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:block">
-					Open in new tab <i class="fa-solid fa-external-link-alt ml-1"></i>
+					<?php _e('Open in new tab', 'chroma-excellence'); ?> <i class="fa-solid fa-external-link-alt ml-1"></i>
 				</a>
 				<button id="chroma-tour-close"
 					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">

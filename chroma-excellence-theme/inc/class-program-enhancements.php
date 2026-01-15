@@ -16,8 +16,7 @@ class Chroma_Program_Enhancements
     public function __construct() {
         add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
         add_action('save_post_program', [$this, 'save_meta']);
-        // DISABLED - Moved to Chroma SEO Pro Plugin (Universal FAQ Builder)
-        // add_action('wp_head', [$this, 'output_faq_schema']);
+        add_action('wp_head', [$this, 'output_faq_schema']);
 
     }
     
@@ -238,6 +237,18 @@ class Chroma_Program_Enhancements
      */
     public function output_faq_schema() {
         if (!is_singular('program')) return;
+
+        // Check for manual override
+        $override = get_post_meta(get_the_ID(), '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
+        // Internal Duplicate Suppression
+        global $chroma_faq_output_done;
+        if (!empty($chroma_faq_output_done)) {
+            return;
+        }
         
         $faqs = get_post_meta(get_the_ID(), 'program_faqs', true);
         if (empty($faqs)) return;
@@ -260,6 +271,7 @@ class Chroma_Program_Enhancements
         }
         
         echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+        $chroma_faq_output_done = true;
     }
     
     /**

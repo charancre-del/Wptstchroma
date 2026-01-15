@@ -11,16 +11,16 @@ get_header();
 // Get city data
 $city = get_the_title();
 $city_slug = get_post_field('post_name');
-$state = get_post_meta(get_the_ID(), 'city_state', true) ?: 'ga';
+$state = chroma_get_translated_meta(get_the_ID(), 'city_state') ?: 'ga';
 $state_upper = strtoupper($state);
-$county = get_post_meta(get_the_ID(), 'city_county', true) ?: 'Local';
-$neighborhoods = get_post_meta(get_the_ID(), 'city_neighborhoods', true);
-$location_ids = get_post_meta(get_the_ID(), 'city_nearby_locations', true);
-$intro_text = get_post_meta(get_the_ID(), 'city_intro_text', true);
+$county = chroma_get_translated_meta(get_the_ID(), 'city_county') ?: 'Local';
+$neighborhoods = chroma_get_translated_meta(get_the_ID(), 'city_neighborhoods');
+$location_ids = chroma_get_translated_meta(get_the_ID(), 'city_nearby_locations');
+$intro_text = chroma_get_translated_meta(get_the_ID(), 'city_intro_text');
 
 // Fallback for related locations (try alternative meta key)
 if (empty($location_ids)) {
-    $location_ids = get_post_meta(get_the_ID(), 'related_location_ids', true);
+    $location_ids = chroma_get_translated_meta(get_the_ID(), 'related_location_ids');
 }
 
 $location_count = is_array($location_ids) ? count($location_ids) : 0;
@@ -38,21 +38,20 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
     <div class="max-w-4xl mx-auto px-4 text-center relative z-10">
         <span
             class="inline-block py-1 px-4 rounded-full bg-chroma-blue/10 text-chroma-blue text-xs font-bold uppercase tracking-widest mb-6">
-            Serving <?php echo esc_html($city); ?> & <?php echo esc_html($county); ?> County
+            <?php printf(__('Serving %s & %s County', 'chroma-excellence'), esc_html($city), esc_html($county)); ?>
         </span>
 
         <h1 class="font-serif text-4xl md:text-6xl text-brand-ink mb-6 leading-tight">
-            The Best Daycare in <span class="italic text-chroma-blue"><?php echo esc_html($city); ?>, <?php echo esc_html($state_upper); ?>.</span>
+            <?php printf(__('The Best Daycare in <span class="italic text-chroma-blue">%s, %s.</span>', 'chroma-excellence'), esc_html($city), esc_html($state_upper)); ?>
         </h1>
 
         <p class="text-lg md:text-xl text-brand-ink/80 max-w-2xl mx-auto mb-10">
-            Are you looking for "daycare near me"? Discover the highest-rated early learning centers in the
-            <?php echo esc_html($city); ?> area, featuring the Prismpath™ curriculum and GA Pre-K.
+            <?php printf(__('Are you looking for "daycare near me"? Discover the highest-rated early learning centers in the %s area, featuring the Prismpath™ curriculum and GA Pre-K.', 'chroma-excellence'), esc_html($city)); ?>
         </p>
 
         <a href="#locations"
             class="inline-flex items-center gap-2 text-chroma-red font-bold border-b-2 border-chroma-red pb-1 hover:text-brand-ink hover:border-brand-ink transition-all">
-            See Locations in <?php echo esc_html($city); ?>
+            <?php printf(__('See Locations in %s', 'chroma-excellence'), esc_html($city)); ?>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3">
                 </path>
@@ -65,8 +64,7 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
 <section class="py-20 bg-brand-cream border-y border-brand-ink/5">
     <div class="max-w-4xl mx-auto px-4 text-center">
         <h2 class="font-serif text-3xl md:text-5xl text-brand-ink mb-8 leading-tight">
-            Early Education and <br>
-            Care in <span class="text-chroma-blue"><?php echo esc_html($city); ?>, GA</span>
+            <?php printf(__('Early Education and <br> Care in <span class="text-chroma-blue">%s, GA</span>', 'chroma-excellence'), esc_html($city)); ?>
         </h2>
 
         <?php if ($intro_text): ?>
@@ -75,12 +73,9 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
             </div>
         <?php else: ?>
             <p class="text-lg md:text-xl text-brand-ink/80 leading-relaxed max-w-3xl mx-auto">
-                Our school is more than a daycare. Through purposeful play and nurturing guidance, we help lay the
-                foundation for a lifelong love of learning.
+                <?php _e('Our school is more than a daycare. Through purposeful play and nurturing guidance, we help lay the foundation for a lifelong love of learning.', 'chroma-excellence'); ?>
                 <br><br>
-                Conveniently located near major highways and down the road from local landmarks and top-rated
-                elementary schools, we are the convenient choice for <?php echo esc_html($city); ?> working parents.
-                Come by and see Prismpath™ in action at one of our nearby campuses.
+                <?php printf(__('Conveniently located near major highways and down the road from local landmarks and top-rated elementary schools, we are the convenient choice for %s working parents. Come by and see Prismpath™ in action at one of our nearby campuses.', 'chroma-excellence'), esc_html($city)); ?>
             </p>
         <?php endif; ?>
     </div>
@@ -91,9 +86,9 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
     <div class="max-w-7xl mx-auto px-4 lg:px-6">
         <div class="text-center mb-12">
             <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-ink">
-                Chroma Locations Serving <?php echo esc_html($city); ?>
+                <?php printf(__('Chroma Locations Serving %s', 'chroma-excellence'), esc_html($city)); ?>
             </h2>
-            <p class="text-brand-ink/60 mt-3">Select the campus closest to your home or work.</p>
+            <p class="text-brand-ink/60 mt-3"><?php _e('Select the campus closest to your home or work.', 'chroma-excellence'); ?></p>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -160,13 +155,13 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                             <?php endif; ?>
 
                             <p class="text-xs text-brand-ink font-bold uppercase tracking-widest mb-6">
-                                Serving <?php echo esc_html($city); ?> Families
+                                <?php printf(__('Serving %s Families', 'chroma-excellence'), esc_html($city)); ?>
                             </p>
 
                             <div class="mt-auto">
                                 <a href="<?php the_permalink(); ?>" aria-label="View Campus: <?php the_title_attribute(); ?>"
                                     class="block w-full py-3 bg-chroma-blue text-white text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blue/90 transition-colors">
-                                    View Campus
+                                    <?php _e('View Campus', 'chroma-excellence'); ?>
                                 </a>
                             </div>
                         </div>
@@ -177,10 +172,10 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
             else:
                 ?>
                 <div class="col-span-full text-center py-12">
-                    <p class="text-brand-ink/60">No locations are currently linked to this city. Please check back soon!</p>
+                    <p class="text-brand-ink/60"><?php _e('No locations are currently linked to this city. Please check back soon!', 'chroma-excellence'); ?></p>
                     <a href="<?php echo esc_url(home_url('/locations/')); ?>"
                         class="inline-block mt-4 text-chroma-blue font-semibold hover:underline">
-                        View All Locations →
+                        <?php _e('View All Locations →', 'chroma-excellence'); ?>
                     </a>
                 </div>
                 <?php
@@ -191,7 +186,7 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
         <?php if (!empty($neighborhoods) && is_array($neighborhoods)): ?>
             <div class="mt-12 text-center">
                 <p class="text-brand-ink/60 text-sm">
-                    <strong>Also proudly serving families in:</strong><br>
+                    <strong><?php _e('Also proudly serving families in:', 'chroma-excellence'); ?></strong><br>
                     <?php echo esc_html(implode(', ', $neighborhoods)); ?>.
                 </p>
             </div>
@@ -204,9 +199,9 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
     <div class="max-w-7xl mx-auto px-4 lg:px-6">
         <div class="text-center mb-12">
             <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-ink">
-                Programs Available in <?php echo esc_html($city); ?>
+                <?php printf(__('Programs Available in %s', 'chroma-excellence'), esc_html($city)); ?>
             </h2>
-            <p class="text-brand-ink/60 mt-3">World-class curriculum served locally.</p>
+            <p class="text-brand-ink/60 mt-3"><?php _e('World-class curriculum served locally.', 'chroma-excellence'); ?></p>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -244,14 +239,14 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                         
                         <?php if ($age_range): ?>
                         <p class="text-xs text-brand-ink/60 font-bold uppercase tracking-widest mb-6">
-                            Ages <?php echo esc_html($age_range); ?>
+                            <?php printf(__('Ages %s', 'chroma-excellence'), esc_html($age_range)); ?>
                         </p>
                         <?php endif; ?>
 
                         <div class="mt-auto">
                             <a href="<?php echo esc_url($combo_url); ?>" 
                                class="block w-full py-3 bg-chroma-blue text-white text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blue/90 transition-colors">
-                                View Program
+                                <?php _e('View Program', 'chroma-excellence'); ?>
                             </a>
                         </div>
                     </div>
@@ -268,71 +263,59 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
 <section class="py-20 bg-brand-cream border-t border-brand-ink/5">
     <div class="max-w-4xl mx-auto px-4">
         <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-ink mb-10 text-center">
-            Questions about Childcare in <?php echo esc_html($city); ?>
+            <?php printf(__('Questions about Childcare in %s', 'chroma-excellence'), esc_html($city)); ?>
         </h2>
 
         <div class="space-y-4">
             <details class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
                 <summary class="flex items-center justify-between font-bold text-brand-ink list-none cursor-pointer">
-                    <span>Do you offer GA Lottery Pre-K in <?php echo esc_html($city); ?>?</span>
+                    <span><?php printf(__('Do you offer GA Lottery Pre-K in %s?', 'chroma-excellence'), esc_html($city)); ?></span>
                     <svg class="w-5 h-5 text-chroma-blue group-open:rotate-180 transition-transform" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </summary>
                 <p class="mt-4 text-sm text-brand-ink/80">
-                    Yes! Our locations serving <?php echo esc_html($city); ?> participate in the Georgia Lottery Pre-K
-                    program.
-                    It is tuition-free for all 4-year-olds living in Georgia.
+                    <?php printf(__('Yes! Our locations serving %s participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia.', 'chroma-excellence'), esc_html($city)); ?>
                 </p>
             </details>
 
             <details class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
                 <summary class="flex items-center justify-between font-bold text-brand-ink list-none cursor-pointer">
-                    <span>Do you provide transportation from <?php echo esc_html($city); ?> schools?</span>
+                    <span><?php printf(__('Do you provide transportation from %s schools?', 'chroma-excellence'), esc_html($city)); ?></span>
                     <svg class="w-5 h-5 text-chroma-blue group-open:rotate-180 transition-transform" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </summary>
                 <p class="mt-4 text-sm text-brand-ink/80">
-                    We provide safe bus transportation from most major elementary schools in the
-                    <?php echo esc_html($county); ?> School District.
-                    Check the specific campus page for a full list.
+                    <?php printf(__('We provide safe bus transportation from most major elementary schools in the %s School District. Check the specific campus page for a full list.', 'chroma-excellence'), esc_html($county)); ?>
                 </p>
             </details>
 
             <details class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
                 <summary class="flex items-center justify-between font-bold text-brand-ink list-none cursor-pointer">
-                    <span>What ages do you accept at your <?php echo esc_html($city); ?> centers?</span>
+                    <span><?php printf(__('What ages do you accept at your %s centers?', 'chroma-excellence'), esc_html($city)); ?></span>
                     <svg class="w-5 h-5 text-chroma-blue group-open:rotate-180 transition-transform" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </summary>
                 <p class="mt-4 text-sm text-brand-ink/80">
-                    We serve children from 6 weeks old (<a
-                        href="<?php echo esc_url(home_url('/programs/infant-care/')); ?>"
-                        class="text-chroma-blue hover:underline">Infant Care</a>) up to 12 years old (<a
-                        href="<?php echo esc_url(home_url('/programs/after-school/')); ?>"
-                        class="text-chroma-blue hover:underline">After School</a>).
-                    We also offer a <a href="<?php echo esc_url(chroma_get_page_link('pre-k-prep')); ?>"
-                        class="text-chroma-blue hover:underline">Pre-K Prep</a> program.
+                    <?php printf(__('We serve children from 6 weeks old (<a href="%s" class="text-chroma-blue hover:underline">Infant Care</a>) up to 12 years old (<a href="%s" class="text-chroma-blue hover:underline">After School</a>). We also offer a <a href="%s" class="text-chroma-blue hover:underline">Pre-K Prep</a> program.', 'chroma-excellence'), esc_url(home_url('/programs/infant-care/')), esc_url(home_url('/programs/after-school/')), esc_url(chroma_get_page_link('pre-k-prep'))); ?>
                 </p>
             </details>
 
             <details class="group bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
                 <summary class="flex items-center justify-between font-bold text-brand-ink list-none cursor-pointer">
-                    <span>How do I enroll my child in <?php echo esc_html($city); ?>?</span>
+                    <span><?php printf(__('How do I enroll my child in %s?', 'chroma-excellence'), esc_html($city)); ?></span>
                     <svg class="w-5 h-5 text-chroma-blue group-open:rotate-180 transition-transform" fill="none"
                         stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </summary>
                 <p class="mt-4 text-sm text-brand-ink/80">
-                    The best way to start is by scheduling a tour at your preferred location.
-                    You can book online or call us directly. We'll walk you through the enrollment process and answer
-                    all your questions.
+                    <?php _e("The best way to start is by scheduling a tour at your preferred location. You can book online or call us directly. We'll walk you through the enrollment process and answer all your questions.", 'chroma-excellence'); ?>
                 </p>
             </details>
         </div>
@@ -346,7 +329,7 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16l-4-4m0 0l4-4m-4 4h18"></path>
         </svg>
-        Back to All Communities
+        <?php _e('Back to All Communities', 'chroma-excellence'); ?>
     </a>
 </div>
 

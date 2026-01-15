@@ -22,13 +22,14 @@ while (have_posts()):
 	$zip = $location_fields['zip'];
 	$lat = $location_fields['latitude'];
 	$lng = $location_fields['longitude'];
+	$license_number = $location_fields['license_number'];
 
 	// Additional meta fields (with defaults)
-	$hero_subtitle = get_post_meta($location_id, 'location_hero_subtitle', true) ?: "Now Enrolling: Pre-K & Toddlers";
-	$hero_gallery_raw = get_post_meta($location_id, 'location_hero_gallery', true);
-	$virtual_tour_embed = get_post_meta($location_id, 'location_virtual_tour_embed', true);
-	$tagline = get_post_meta($location_id, 'location_tagline', true) ?: "{$city}'s home for brilliant beginnings.";
-	$description = get_post_meta($location_id, 'location_description', true) ?: get_the_excerpt();
+	$hero_subtitle = chroma_get_translated_meta($location_id, 'location_hero_subtitle') ?: __('Now Enrolling: Pre-K & Toddlers', 'chroma-excellence');
+	$hero_gallery_raw = chroma_get_translated_meta($location_id, 'location_hero_gallery');
+	$virtual_tour_embed = chroma_get_translated_meta($location_id, 'location_virtual_tour_embed');
+	$tagline = chroma_get_translated_meta($location_id, 'location_tagline') ?: sprintf(__("%s's home for brilliant beginnings.", 'chroma-excellence'), $city);
+	$description = chroma_get_translated_meta($location_id, 'location_description') ?: get_the_content();
 
 	// Parse hero gallery URLs (one per line)
 	$hero_gallery = array();
@@ -41,28 +42,29 @@ while (have_posts()):
 			}
 		}
 	}
-	$google_rating = get_post_meta($location_id, 'location_google_rating', true) ?: '4.9';
-	$hours = get_post_meta($location_id, 'location_hours', true) ?: '7am - 6pm';
-	$ages_served = get_post_meta($location_id, 'location_ages_served', true) ?: '6w - 12y';
+	$google_rating = chroma_get_translated_meta($location_id, 'location_google_rating') ?: '4.9';
+	$hours = chroma_get_translated_meta($location_id, 'location_hours') ?: __('7am - 6pm', 'chroma-excellence');
+	$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('6w - 12y', 'chroma-excellence');
 
 	// Director info
-	$director_name = get_post_meta($location_id, 'location_director_name', true);
-	$director_bio = get_post_meta($location_id, 'location_director_bio', true);
-	$director_photo = get_post_meta($location_id, 'location_director_photo', true);
-	$director_signature = get_post_meta($location_id, 'location_director_signature', true);
+	$director_name = chroma_get_translated_meta($location_id, 'location_director_name');
+	$director_heading = chroma_get_translated_meta($location_id, 'location_director_heading');
+	$director_bio = chroma_get_translated_meta($location_id, 'location_director_bio');
+	$director_photo = chroma_get_translated_meta($location_id, 'location_director_photo');
+	$director_signature = chroma_get_translated_meta($location_id, 'location_director_signature');
 
 	// Maps embed
-	$maps_embed = get_post_meta($location_id, 'location_maps_embed', true);
+	$maps_embed = chroma_get_translated_meta($location_id, 'location_maps_embed');
 
 	// Tour booking link
-	$tour_booking_link = get_post_meta($location_id, 'location_tour_booking_link', true);
+	$tour_booking_link = chroma_get_translated_meta($location_id, 'location_tour_booking_link');
 
 	// School pickups
-	$school_pickups = get_post_meta($location_id, 'location_school_pickups', true);
+	$school_pickups = chroma_get_translated_meta($location_id, 'location_school_pickups');
 
 	// SEO content
-	$seo_content_title = get_post_meta($location_id, 'location_seo_content_title', true);
-	$seo_content_text = get_post_meta($location_id, 'location_seo_content_text', true);
+	$seo_content_title = chroma_get_translated_meta($location_id, 'location_seo_content_title');
+	$seo_content_text = chroma_get_translated_meta($location_id, 'location_seo_content_text');
 
 	// Get programs at this location
 	$programs_query = new WP_Query(array(
@@ -116,14 +118,21 @@ while (have_posts()):
 						<?php echo esc_html($tagline); ?>
 					</p>
 
-					<p class="text-lg text-brand-ink/90 mb-8 max-w-xl leading-relaxed">
-						<?php echo esc_html($description); ?>
-					</p>
+					<div class="text-lg text-brand-ink/90 mb-8 max-w-xl leading-relaxed">
+						<?php echo wp_kses_post(wpautop($description)); ?>
+					</div>
+
+					<?php if ($license_number): ?>
+						<div class="mb-8 flex items-center gap-2 text-sm font-semibold text-brand-ink/60">
+							<i class="fa-solid fa-certificate text-<?php echo esc_attr($region_colors['text']); ?>"></i>
+							<span><?php _e('DECAL License #:', 'chroma-excellence'); ?> <?php echo esc_html($license_number); ?></span>
+						</div>
+					<?php endif; ?>
 
 					<div class="flex flex-wrap gap-4 mb-10">
 						<a href="#tour"
 							class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-<?php echo esc_attr($region_colors['text']); ?> text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-blueDark transition-all hover:-translate-y-1">
-							Schedule Visit
+							<?php _e('Schedule Visit', 'chroma-excellence'); ?>
 						</a>
 						<?php if ($phone): ?>
 							<a href="tel:<?php echo esc_attr(preg_replace('/[^0-9]/', '', $phone)); ?>"
@@ -139,21 +148,21 @@ while (have_posts()):
 							<div class="text-2xl font-serif font-bold text-chroma-red mb-1">
 								<?php echo esc_html($ages_served); ?>
 							</div>
-							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold">Ages Served
+							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold"><?php _e('Ages Served', 'chroma-excellence'); ?>
 							</div>
 						</div>
 						<div>
 							<div class="text-2xl font-serif font-bold text-chroma-yellow mb-1">
 								<?php echo esc_html($google_rating); ?>
 							</div>
-							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold">Google Rating
+							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold"><?php _e('Google Rating', 'chroma-excellence'); ?>
 							</div>
 						</div>
 						<div>
 							<div class="text-2xl font-serif font-bold text-chroma-green mb-1">
 								<?php echo esc_html($hours); ?>
 							</div>
-							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold">Mon - Fri
+							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold"><?php _e('Mon - Fri', 'chroma-excellence'); ?>
 							</div>
 						</div>
 					</div>
@@ -246,8 +255,8 @@ while (have_posts()):
 
 						<!-- Floating Review Badge -->
 						<?php
-						$hero_review_text = get_post_meta(get_the_ID(), 'location_hero_review_text', true);
-						$hero_review_author = get_post_meta(get_the_ID(), 'location_hero_review_author', true) ?: 'Parent Review';
+						$hero_review_text = chroma_get_translated_meta(get_the_ID(), 'location_hero_review_text');
+						$hero_review_author = chroma_get_translated_meta(get_the_ID(), 'location_hero_review_author') ?: __('Parent Review', 'chroma-excellence');
 
 						if ($hero_review_text):
 							?>
@@ -276,12 +285,9 @@ while (have_posts()):
 			<div class="max-w-7xl mx-auto px-4 lg:px-6">
 				<div class="text-center mb-16 max-w-3xl mx-auto">
 					<span
-						class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Campus
-						Features</span>
-					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">Designed for discovery.</h2>
-					<p class="text-brand-ink/90">Every corner of our <?php echo esc_html($city); ?> campus is
-						intentional—from the soft lighting in our infant suites to the collaborative stations in our Pre-K
-						classrooms.</p>
+						class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Campus Features', 'chroma-excellence'); ?></span>
+					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4"><?php _e('Designed for discovery.', 'chroma-excellence'); ?></h2>
+					<p class="text-brand-ink/90"><?php printf(__('Every corner of our %s campus is intentional—from the soft lighting in our infant suites to the collaborative stations in our Pre-K classrooms.', 'chroma-excellence'), esc_html($city)); ?></p>
 				</div>
 
 				<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -292,9 +298,8 @@ while (have_posts()):
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-blue text-xl mb-6 group-hover:scale-110 transition-transform">
 							<i class="fa-solid fa-shield-halved"></i>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">Secure Access</h3>
-						<p class="text-sm text-brand-ink/90 leading-relaxed">Keypad entry, 24/7 video monitoring, and a
-							staffed front desk ensure your child is always safe.</p>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3"><?php _e('Secure Access', 'chroma-excellence'); ?></h3>
+						<p class="text-sm text-brand-ink/90 leading-relaxed"><?php _e('Keypad entry, 24/7 video monitoring, and a staffed front desk ensure your child is always safe.', 'chroma-excellence'); ?></p>
 					</div>
 
 					<!-- Feature 2 -->
@@ -304,9 +309,8 @@ while (have_posts()):
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-red text-xl mb-6 group-hover:scale-110 transition-transform">
 							<i class="fa-solid fa-tree"></i>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">Nature Playground</h3>
-						<p class="text-sm text-brand-ink/80 leading-relaxed">Our oversized, shaded outdoor space features
-							gardening beds, trike paths, and natural sensory zones.</p>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3"><?php _e('Nature Playground', 'chroma-excellence'); ?></h3>
+						<p class="text-sm text-brand-ink/80 leading-relaxed"><?php _e('Our oversized, shaded outdoor space features gardening beds, trike paths, and natural sensory zones.', 'chroma-excellence'); ?></p>
 					</div>
 
 					<!-- Feature 3 -->
@@ -316,9 +320,8 @@ while (have_posts()):
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-yellow text-xl mb-6 group-hover:scale-110 transition-transform">
 							<i class="fa-solid fa-flask"></i>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">STEM Atelier</h3>
-						<p class="text-sm text-brand-ink/80 leading-relaxed">A dedicated studio for science experiments,
-							light table exploration, and early engineering projects.</p>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3"><?php _e('STEM Atelier', 'chroma-excellence'); ?></h3>
+						<p class="text-sm text-brand-ink/80 leading-relaxed"><?php _e('A dedicated studio for science experiments, light table exploration, and early engineering projects.', 'chroma-excellence'); ?></p>
 					</div>
 
 					<!-- Feature 4 -->
@@ -328,9 +331,8 @@ while (have_posts()):
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-green text-xl mb-6 group-hover:scale-110 transition-transform">
 							<i class="fa-solid fa-graduation-cap"></i>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">GA Lottery Pre-K</h3>
-						<p class="text-sm text-brand-ink/80 leading-relaxed">We are a proud partner of the Georgia Pre-K
-							Program, offering tuition-free education for 4-year-olds.</p>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3"><?php _e('GA Lottery Pre-K', 'chroma-excellence'); ?></h3>
+						<p class="text-sm text-brand-ink/80 leading-relaxed"><?php _e('We are a proud partner of the Georgia Pre-K Program, offering tuition-free education for 4-year-olds.', 'chroma-excellence'); ?></p>
 					</div>
 				</div>
 			</div>
@@ -355,11 +357,11 @@ while (have_posts()):
 
 					<div>
 						<span
-							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Meet
-							the
-							Director</span>
-						<h2 class="text-3xl md:text-4xl font-serif font-bold mb-6">Welcome to Chroma
-							<?php echo esc_html($city); ?>.
+							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Meet the Director', 'chroma-excellence'); ?></span>
+						<h2 class="text-3xl md:text-4xl font-serif font-bold mb-6">
+							<?php 
+							echo $director_heading ?: sprintf(__('Welcome to Chroma %s.', 'chroma-excellence'), esc_html($city)); 
+							?>
 						</h2>
 						<div class="space-y-4 text-white/80 text-lg leading-relaxed mb-8">
 							<?php echo wpautop(wp_kses_post($director_bio)); ?>
@@ -371,7 +373,7 @@ while (have_posts()):
 							<?php endif; ?>
 							<div class="text-xs uppercase tracking-wider opacity-60">
 								<p class="font-bold"><?php echo esc_html($director_name); ?></p>
-								<p>Campus Director</p>
+								<p><?php _e('Campus Director', 'chroma-excellence'); ?></p>
 							</div>
 						</div>
 					</div>
@@ -385,12 +387,9 @@ while (have_posts()):
 				<div class="max-w-6xl mx-auto px-4 lg:px-6">
 					<div class="text-center mb-12">
 						<span
-							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Explore
-							Our
-							Campus</span>
-						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">Take a Virtual Tour</h2>
-						<p class="text-brand-ink/80 max-w-2xl mx-auto">Walk through our <?php echo esc_html($city); ?> campus
-							from the comfort of your home. Explore our classrooms, outdoor play areas, and learning spaces.</p>
+							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Explore Our Campus', 'chroma-excellence'); ?></span>
+						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4"><?php _e('Take a Virtual Tour', 'chroma-excellence'); ?></h2>
+						<p class="text-brand-ink/80 max-w-2xl mx-auto"><?php printf(__('Walk through our %s campus from the comfort of your home. Explore our classrooms, outdoor play areas, and learning spaces.', 'chroma-excellence'), esc_html($city)); ?></p>
 					</div>
 
 					<div
@@ -430,14 +429,14 @@ while (have_posts()):
 				<div class="max-w-7xl mx-auto px-4 lg:px-6">
 					<div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
 						<div>
-							<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-3">Programs at this location
+							<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-3"><?php _e('Programs at this location', 'chroma-excellence'); ?>
 							</h2>
-							<p class="text-brand-ink/80">Curriculum tailored to the specific developmental window of your child.
+							<p class="text-brand-ink/80"><?php _e('Curriculum tailored to the specific developmental window of your child.', 'chroma-excellence'); ?>
 							</p>
 						</div>
 						<a href="<?php echo esc_url(chroma_get_program_archive_url()); ?>"
 							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold text-sm uppercase tracking-wider hover:text-chroma-blueDark flex items-center gap-2">
-							View Curriculum Details <i class="fa-solid fa-arrow-right"></i>
+							<?php _e('View Curriculum Details', 'chroma-excellence'); ?> <i class="fa-solid fa-arrow-right"></i>
 						</a>
 					</div>
 
@@ -482,7 +481,7 @@ while (have_posts()):
 									<p class="text-sm text-brand-ink/90 mb-6 flex-1"><?php echo esc_html($excerpt); ?></p>
 									<a href="<?php the_permalink(); ?>"
 										class="relative z-10 text-xs font-bold text-<?php echo esc_attr($colors['text']); ?> uppercase tracking-wider hover:underline mt-auto">
-										Learn More <i class="fa-solid fa-arrow-right text-[10px]"></i>
+										<?php _e('Learn More', 'chroma-excellence'); ?> <i class="fa-solid fa-arrow-right text-[10px]"></i>
 									</a>
 								</div>
 							</div>
@@ -497,14 +496,13 @@ while (have_posts()):
 		<section class="py-20 bg-white">
 			<div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">
 				<span
-					class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Family
-					Stories</span>
-				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-8">Why Families Love Us</h2>
+					class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Family Stories', 'chroma-excellence'); ?></span>
+				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-8"><?php _e('Why Families Love Us', 'chroma-excellence'); ?></h2>
 				<blockquote class="text-2xl md:text-3xl font-serif italic text-brand-ink/80 leading-relaxed mb-8">
-					"<?php echo esc_html($hero_review_text ?: "We absolutely love Chroma! The teachers are so caring and my child has learned so much."); ?>"
+					"<?php echo esc_html($hero_review_text ?: __("We absolutely love Chroma! The teachers are so caring and my child has learned so much.", 'chroma-excellence')); ?>"
 				</blockquote>
 				<cite class="not-italic font-bold text-brand-ink uppercase tracking-wider text-sm">
-					— <?php echo esc_html($hero_review_author ?: "Happy Parent"); ?>
+					— <?php echo esc_html($hero_review_author ?: __("Happy Parent", 'chroma-excellence')); ?>
 				</cite>
 			</div>
 		</section>
@@ -513,29 +511,25 @@ while (have_posts()):
 		<section class="py-20 bg-brand-cream border-t border-brand-ink/5">
 			<div class="max-w-3xl mx-auto px-4 lg:px-6">
 				<div class="text-center mb-12">
-					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">Frequently Asked Questions
-					</h2>
-				</div>
+						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4"><?php _e('Frequently Asked Questions', 'chroma-excellence'); ?>
+						</h2>
+					</div>
 
-				<div class="space-y-6">
-					<div class="bg-white rounded-2xl p-6 shadow-sm">
-						<h3 class="font-bold text-brand-ink mb-2">Do you offer tours?</h3>
-						<p class="text-brand-ink/80 text-sm">Yes! We encourage all families to book a tour to see our
-							classrooms, meet our directors, and experience the Chroma difference firsthand.</p>
-					</div>
-					<div class="bg-white rounded-2xl p-6 shadow-sm">
-						<h3 class="font-bold text-brand-ink mb-2">What ages do you serve?</h3>
-						<p class="text-brand-ink/80 text-sm">We typically serve children from 6 weeks (Infants) up to 12
-							years old (After School), though specific programs may vary by campus.</p>
-					</div>
-					<div class="bg-white rounded-2xl p-6 shadow-sm">
-						<h3 class="font-bold text-brand-ink mb-2">Is food included?</h3>
-						<p class="text-brand-ink/80 text-sm">Yes, we provide nutritious, child-friendly meals and snacks
-							prepared fresh daily.</p>
+					<div class="space-y-6">
+						<?php
+						$location_faqs = chroma_get_location_faq_items($location_id);
+						foreach ($location_faqs as $item):
+							?>
+							<div class="bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
+								<h3 class="font-bold text-brand-ink mb-2"><?php echo esc_html($item['question']); ?></h3>
+								<div class="text-brand-ink/80 text-sm leading-relaxed">
+									<?php echo wp_kses_post($item['answer']); ?>
+								</div>
+							</div>
+						<?php endforeach; ?>
 					</div>
 				</div>
-			</div>
-		</section>
+			</section>
 
 		<!-- Tour / Contact Section -->
 		<section id="contact" class="py-24 bg-white relative">
@@ -544,24 +538,23 @@ while (have_posts()):
 				<!-- Info Side -->
 				<div>
 					<span
-						class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Visit
-						Us</span>
-					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">Come see the magic in person.
+						class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Visit Us', 'chroma-excellence'); ?></span>
+					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6"><?php _e('Come see the magic in person.', 'chroma-excellence'); ?>
 					</h2>
 					<p class="text-brand-ink/90 mb-8">
-						Tours are the best way to feel the Chroma difference.
+						<?php _e('Tours are the best way to feel the Chroma difference.', 'chroma-excellence'); ?>
 						<?php
 						// Parse opening and closing times from hours field
-						$tour_text = ' We are available for tours Monday through Friday';
+						$tour_text = ' ' . __('We are available for tours Monday through Friday', 'chroma-excellence');
 						if ($hours) {
 							// Try to parse hours like "7am - 6pm" or "7:00am - 6:00pm"
 							if (preg_match('/([0-9]{1,2}(?::[0-9]{2})?\s*[ap]m)\s*[-–—]\s*([0-9]{1,2}(?::[0-9]{2})?\s*[ap]m)/i', $hours, $matches)) {
 								$opening_time = trim($matches[1]);
 								$closing_time = trim($matches[2]);
-								$tour_text .= ' between ' . esc_html($opening_time) . ' and ' . esc_html($closing_time);
+								$tour_text .= sprintf(__(' between %s and %s', 'chroma-excellence'), esc_html($opening_time), esc_html($closing_time));
 							}
 						}
-						$tour_text .= '. We welcome little ones to accompany on a tour!';
+						$tour_text .= '. ' . __('We welcome little ones to accompany on a tour!', 'chroma-excellence');
 						echo $tour_text;
 						?>
 					</p>
@@ -574,7 +567,7 @@ while (have_posts()):
 									<i class="fa-solid fa-location-dot"></i>
 								</div>
 								<div>
-									<h3 class="font-bold text-brand-ink">Address</h3>
+									<h3 class="font-bold text-brand-ink"><?php _e('Address', 'chroma-excellence'); ?></h3>
 									<p class="text-sm text-brand-ink/80">
 										<?php echo esc_html($address); ?><br>
 										<?php echo esc_html("$city, $state $zip"); ?>
@@ -583,7 +576,7 @@ while (have_posts()):
 										<a href="https://www.google.com/maps/search/?api=1&query=<?php echo esc_attr($lat); ?>,<?php echo esc_attr($lng); ?>"
 											target="_blank"
 											class="text-xs font-bold text-<?php echo esc_attr($region_colors['text']); ?> uppercase mt-1 inline-block">
-											Get Directions
+											<?php _e('Get Directions', 'chroma-excellence'); ?>
 										</a>
 									<?php endif; ?>
 								</div>
@@ -597,14 +590,14 @@ while (have_posts()):
 									<i class="fa-solid fa-phone"></i>
 								</div>
 								<div>
-									<h3 class="font-bold text-brand-ink">Contact</h3>
+									<h3 class="font-bold text-brand-ink"><?php _e('Contact', 'chroma-excellence'); ?></h3>
 									<p class="text-sm text-brand-ink/80">
 										<?php if ($phone): ?>
-											Phone: <a href="tel:<?php echo esc_attr(preg_replace('/[^0-9]/', '', $phone)); ?>"
+											<?php _e('Phone:', 'chroma-excellence'); ?> <a href="tel:<?php echo esc_attr(preg_replace('/[^0-9]/', '', $phone)); ?>"
 												class="hover:text-<?php echo esc_attr($region_colors['text']); ?>"><?php echo esc_html($phone); ?></a><br>
 										<?php endif; ?>
 										<?php if ($email): ?>
-											Email: <a href="mailto:<?php echo esc_attr($email); ?>"
+											<?php _e('Email:', 'chroma-excellence'); ?> <a href="mailto:<?php echo esc_attr($email); ?>"
 												class="hover:text-<?php echo esc_attr($region_colors['text']); ?>"><?php echo esc_html($email); ?></a>
 										<?php endif; ?>
 									</p>
@@ -618,10 +611,10 @@ while (have_posts()):
 								<i class="fa-solid fa-clock"></i>
 							</div>
 							<div>
-								<h3 class="font-bold text-brand-ink">Hours of Operation</h3>
+								<h3 class="font-bold text-brand-ink"><?php _e('Hours of Operation', 'chroma-excellence'); ?></h3>
 								<p class="text-sm text-brand-ink/80">
-									Monday - Friday: <?php echo esc_html($hours); ?><br>
-									Weekends: Closed
+									<?php _e('Monday - Friday:', 'chroma-excellence'); ?> <?php echo esc_html($hours); ?><br>
+									<?php _e('Weekends: Closed', 'chroma-excellence'); ?>
 								</p>
 							</div>
 						</div>
@@ -636,8 +629,8 @@ while (have_posts()):
 										<i class="fa-solid fa-bus"></i>
 									</div>
 									<div>
-										<h3 class="font-bold text-brand-ink">School Pickups</h3>
-										<p class="text-sm text-brand-ink/80">We provide pickup service to:</p>
+										<h3 class="font-bold text-brand-ink"><?php _e('School Pickups', 'chroma-excellence'); ?></h3>
+										<p class="text-sm text-brand-ink/80"><?php _e('We provide pickup service to:', 'chroma-excellence'); ?></p>
 										<ul class="text-sm text-brand-ink/80 mt-2 space-y-1">
 											<?php foreach ($schools as $school): ?>
 												<li class="flex items-start gap-2">
@@ -682,9 +675,8 @@ while (have_posts()):
 				<!-- Form Side -->
 				<div id="tour"
 					class="bg-brand-cream p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-<?php echo esc_attr($region_colors['border']); ?>/10 h-fit sticky top-28">
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-2">Request a Tour</h3>
-					<p class="text-sm text-brand-ink/90 mb-6">Fill out the form below and we'll contact you to confirm a
-						time.</p>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-2"><?php _e('Request a Tour', 'chroma-excellence'); ?></h3>
+					<p class="text-sm text-brand-ink/90 mb-6"><?php _e("Fill out the form below and we'll contact you to confirm a time.", 'chroma-excellence'); ?></p>
 
 					<?php echo do_shortcode('[chroma_tour_form location_id="' . $location_id . '"]'); ?>
 
@@ -692,12 +684,12 @@ while (have_posts()):
 						<div class="mt-6 text-center">
 							<div class="flex items-center gap-4 mb-4">
 								<div class="flex-1 h-px bg-brand-ink/10"></div>
-								<span class="text-sm text-brand-ink font-medium uppercase tracking-wider">or</span>
+								<span class="text-sm text-brand-ink font-medium uppercase tracking-wider"><?php _e('or', 'chroma-excellence'); ?></span>
 								<div class="flex-1 h-px bg-brand-ink/10"></div>
 							</div>
 							<a href="<?php echo esc_url($tour_booking_link); ?>" target="_blank"
 								class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-green text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-greenDark transition-all hover:-translate-y-1">
-								Book a Tour Now
+								<?php _e('Book a Tour Now', 'chroma-excellence'); ?>
 							</a>
 						</div>
 					<?php endif; ?>
@@ -724,6 +716,13 @@ while (have_posts()):
 				</div>
 			</section>
 		<?php endif; ?>
+
+		<!-- Filtered Content (Badges, Related Locations, etc.) -->
+		<section class="pb-24 bg-brand-cream">
+			<div class="max-w-7xl mx-auto px-4 lg:px-6">
+				<?php the_content(); ?>
+			</div>
+		</section>
 
 	</main>
 

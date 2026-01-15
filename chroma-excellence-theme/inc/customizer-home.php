@@ -28,6 +28,14 @@ function chroma_home_sanitize_json_setting($value)
 }
 
 /**
+ * Sanitize checkbox values.
+ */
+function chroma_sanitize_checkbox($checked)
+{
+    return (isset($checked) && true === $checked) ? true : false;
+}
+
+/**
  * Register homepage customization controls.
  */
 function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
@@ -249,6 +257,9 @@ function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
 
     $wp_customize->add_setting('chroma_home_faq_heading', array('default' => $faq_defaults['heading'], 'sanitize_callback' => 'sanitize_text_field'));
     $wp_customize->add_control('chroma_home_faq_heading', array('label' => __('FAQ heading', 'chroma-excellence'), 'section' => 'chroma_home_faq_section', 'type' => 'text'));
+
+    $wp_customize->add_setting('chroma_home_faq_disable_schema', array('default' => false, 'sanitize_callback' => 'chroma_sanitize_checkbox'));
+    $wp_customize->add_control('chroma_home_faq_disable_schema', array('label' => __('Disable FAQ Schema (JSON-LD)', 'chroma-excellence'), 'description' => __('Check this to remove strict FAQ schema but keep the visible FAQ section on the page.', 'chroma-excellence'), 'section' => 'chroma_home_faq_section', 'type' => 'checkbox'));
 
     $wp_customize->add_setting('chroma_home_faq_subheading', array('default' => $faq_defaults['subheading'], 'sanitize_callback' => 'sanitize_text_field'));
     $wp_customize->add_control('chroma_home_faq_subheading', array('label' => __('FAQ subheading', 'chroma-excellence'), 'section' => 'chroma_home_faq_section', 'type' => 'textarea'));

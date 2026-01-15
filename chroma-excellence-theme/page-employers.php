@@ -11,51 +11,51 @@ get_header();
 $page_id = get_the_ID();
 
 // Hero Section
-$hero_badge = get_post_meta($page_id, 'employers_hero_badge', true) ?: 'Workforce Solutions';
-$hero_title = get_post_meta($page_id, 'employers_hero_title', true) ?: 'Childcare is critical infrastructure.';
-$hero_description = get_post_meta($page_id, 'employers_hero_description', true) ?: 'Retain top talent and reduce absenteeism by offering premium childcare benefits. Chroma partners with Metro Atlanta\'s leading employers to support working parents.';
+$hero_badge = chroma_get_translated_meta($page_id, 'employers_hero_badge') ?: __('Workforce Solutions', 'chroma-excellence');
+$hero_title = chroma_get_translated_meta($page_id, 'employers_hero_title') ?: __('Childcare is critical infrastructure.', 'chroma-excellence');
+$hero_description = chroma_get_translated_meta($page_id, 'employers_hero_description') ?: __('Retain top talent and reduce absenteeism by offering premium childcare benefits. Chroma partners with Metro Atlanta\'s leading employers to support working parents.', 'chroma-excellence');
 
 // Solutions Section (3 cards)
 $solutions = array(
 	array(
-		'title' => get_post_meta($page_id, 'employers_solution1_title', true) ?: 'Priority Access',
-		'desc' => get_post_meta($page_id, 'employers_solution1_desc', true) ?: 'Skip the waitlist. Reserve dedicated spots at our 19+ locations exclusively for your employees\' children.',
+		'title' => chroma_get_translated_meta($page_id, 'employers_solution1_title') ?: __('Priority Access', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'employers_solution1_desc') ?: __('Skip the waitlist. Reserve dedicated spots at our 19+ locations exclusively for your employees\' children.', 'chroma-excellence'),
 	),
 	array(
-		'title' => get_post_meta($page_id, 'employers_solution2_title', true) ?: 'Tuition Subsidies',
-		'desc' => get_post_meta($page_id, 'employers_solution2_desc', true) ?: 'We manage employer-sponsored tuition matching programs, making quality care affordable for your team.',
+		'title' => chroma_get_translated_meta($page_id, 'employers_solution2_title') ?: __('Tuition Subsidies', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'employers_solution2_desc') ?: __('We manage employer-sponsored tuition matching programs, making quality care affordable for your team.', 'chroma-excellence'),
 	),
 	array(
-		'title' => get_post_meta($page_id, 'employers_solution3_title', true) ?: 'Back-Up Care',
-		'desc' => get_post_meta($page_id, 'employers_solution3_desc', true) ?: 'Flexible drop-in options for when schools close or regular caregivers fall through, keeping your team at work.',
+		'title' => chroma_get_translated_meta($page_id, 'employers_solution3_title') ?: __('Back-Up Care', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'employers_solution3_desc') ?: __('Flexible drop-in options for when schools close or regular caregivers fall through, keeping your team at work.', 'chroma-excellence'),
 	),
 );
 
 // Tax Incentives Section
-$tax_badge = get_post_meta($page_id, 'employers_tax_badge', true) ?: 'Financial Incentives';
-$tax_title = get_post_meta($page_id, 'employers_tax_title', true) ?: 'Maximize Your ROI with Tax Credits';
-$tax_description = get_post_meta($page_id, 'employers_tax_description', true) ?: 'Partnering with Chroma isn\'t just an investment in your company culture—it\'s a smart financial move. State and Federal programs significantly offset the cost of providing childcare benefits.';
+$tax_badge = chroma_get_translated_meta($page_id, 'employers_tax_badge') ?: __('Financial Incentives', 'chroma-excellence');
+$tax_title = chroma_get_translated_meta($page_id, 'employers_tax_title') ?: __('Maximize Your ROI with Tax Credits', 'chroma-excellence');
+$tax_description = chroma_get_translated_meta($page_id, 'employers_tax_description') ?: __('Partnering with Chroma isn\'t just an investment in your company culture—it\'s a smart financial move. State and Federal programs significantly offset the cost of providing childcare benefits.', 'chroma-excellence');
 
 // Federal Credit Card
-$federal_icon = get_post_meta($page_id, 'employers_federal_icon', true) ?: 'fa-solid fa-landmark';
-$federal_title = get_post_meta($page_id, 'employers_federal_title', true) ?: 'Federal 45F Credit';
-$federal_subtitle = get_post_meta($page_id, 'employers_federal_subtitle', true) ?: 'Employer-Provided Child Care Credit';
-$federal_desc = get_post_meta($page_id, 'employers_federal_desc', true) ?: 'The IRS allows businesses to claim a tax credit of up to <strong>$150,000 annually</strong>. This covers 25% of qualified childcare facility expenditures (such as contracting with Chroma for reserved spots) and 10% of resource and referral expenditures.';
-$federal_link_text = get_post_meta($page_id, 'employers_federal_link_text', true) ?: 'View IRS Form 8882';
-$federal_link_url = get_post_meta($page_id, 'employers_federal_link_url', true) ?: 'https://www.irs.gov/forms-pubs/about-form-8882';
+$federal_icon = chroma_get_translated_meta($page_id, 'employers_federal_icon') ?: 'fa-solid fa-landmark';
+$federal_title = chroma_get_translated_meta($page_id, 'employers_federal_title') ?: __('Federal 45F Credit', 'chroma-excellence');
+$federal_subtitle = chroma_get_translated_meta($page_id, 'employers_federal_subtitle') ?: __('Employer-Provided Child Care Credit', 'chroma-excellence');
+$federal_desc = chroma_get_translated_meta($page_id, 'employers_federal_desc') ?: __('Under the "One Big Beautiful Bill Act" (effective 2026), businesses can claim a tax credit of up to <strong>$500,000 annually</strong>. This covers <strong>40%</strong> of qualified childcare expenditures (rising to <strong>50%</strong> and <strong>$600,000</strong> for small businesses).', 'chroma-excellence');
+$federal_link_text = chroma_get_translated_meta($page_id, 'employers_federal_link_text') ?: __('View IRS Form 8882', 'chroma-excellence');
+$federal_link_url = chroma_get_translated_meta($page_id, 'employers_federal_link_url') ?: 'https://www.irs.gov/forms-pubs/about-form-8882';
 
 // Georgia Credit Card
-$georgia_icon = get_post_meta($page_id, 'employers_georgia_icon', true) ?: 'fa-solid fa-map-location-dot';
-$georgia_title = get_post_meta($page_id, 'employers_georgia_title', true) ?: 'Georgia Employer\'s Credit';
-$georgia_subtitle = get_post_meta($page_id, 'employers_georgia_subtitle', true) ?: 'Georgia Child Care Tax Credit';
-$georgia_desc = get_post_meta($page_id, 'employers_georgia_desc', true) ?: 'Georgia offers one of the most generous incentives in the nation. Employers who purchase or sponsor childcare for employees can receive a tax credit equal to <strong>75% of the employer\'s cost</strong>. This credit can be applied against 50% of your state income tax liability.';
-$georgia_link_text = get_post_meta($page_id, 'employers_georgia_link_text', true) ?: 'View Georgia DOR Details';
-$georgia_link_url = get_post_meta($page_id, 'employers_georgia_link_url', true) ?: 'https://dor.georgia.gov/tax-credits-business';
+$georgia_icon = chroma_get_translated_meta($page_id, 'employers_georgia_icon') ?: 'fa-solid fa-map-location-dot';
+$georgia_title = chroma_get_translated_meta($page_id, 'employers_georgia_title') ?: __('Georgia Employer\'s Credit', 'chroma-excellence');
+$georgia_subtitle = chroma_get_translated_meta($page_id, 'employers_georgia_subtitle') ?: __('Georgia Child Care Tax Credit', 'chroma-excellence');
+$georgia_desc = chroma_get_translated_meta($page_id, 'employers_georgia_desc') ?: __('Georgia maintains its generous <strong>75% credit</strong> for employer-sponsored care costs. New for 2026: Employers can also claim a supplemental credit of <strong>$1,000 per child</strong> for eligible childcare payments provided to employees.', 'chroma-excellence');
+$georgia_link_text = chroma_get_translated_meta($page_id, 'employers_georgia_link_text') ?: __('View Georgia DOR Details', 'chroma-excellence');
+$georgia_link_url = chroma_get_translated_meta($page_id, 'employers_georgia_link_url') ?: 'https://dor.georgia.gov/tax-credits-business';
 
-$tax_disclaimer = get_post_meta($page_id, 'employers_tax_disclaimer', true) ?: 'Note: Please consult with your corporate tax professional to verify eligibility and application details.';
+$tax_disclaimer = chroma_get_translated_meta($page_id, 'employers_tax_disclaimer') ?: __('Note: Please consult with your corporate tax professional to verify eligibility and application details.', 'chroma-excellence');
 
 // Contact Section
-$contact_title = get_post_meta($page_id, 'employers_contact_title', true) ?: 'Build a family-friendly culture.';
+$contact_title = chroma_get_translated_meta($page_id, 'employers_contact_title') ?: __('Build a family-friendly culture.', 'chroma-excellence');
 ?>
 
 <main id="primary" class="site-main" role="main">
@@ -68,8 +68,7 @@ $contact_title = get_post_meta($page_id, 'employers_contact_title', true) ?: 'Bu
 					<?php echo esc_html($hero_badge); ?>
 				</span>
 				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6">
-					Corporate Childcare Solutions: <span class="italic text-chroma-blue">Critical Infrastructure for
-						Your Team</span>
+					<?php _e('Corporate Childcare Solutions:', 'chroma-excellence'); ?> <span class="italic text-chroma-blue"><?php _e('Critical Infrastructure for Your Team', 'chroma-excellence'); ?></span>
 				</h1>
 				<p class="text-lg text-brand-ink/80 max-w-2xl mx-auto">
 					<?php echo esc_html($hero_description); ?>
@@ -80,7 +79,7 @@ $contact_title = get_post_meta($page_id, 'employers_contact_title', true) ?: 'Bu
 		<!-- Solutions -->
 		<section class="py-24 bg-white">
 			<div class="max-w-7xl mx-auto px-4 lg:px-6">
-				<h2 class="font-serif text-3xl font-bold text-center text-brand-ink mb-12">Our Partnership Models</h2>
+				<h2 class="font-serif text-3xl font-bold text-center text-brand-ink mb-12"><?php _e('Our Partnership Models', 'chroma-excellence'); ?></h2>
 				<div class="grid md:grid-cols-3 gap-12">
 					<?php foreach ($solutions as $solution): ?>
 						<div class="text-center">
@@ -178,15 +177,15 @@ $contact_title = get_post_meta($page_id, 'employers_contact_title', true) ?: 'Bu
 					<?php echo esc_html($contact_title); ?>
 				</h2>
 				<form class="max-w-md mx-auto space-y-4 text-brand-ink">
-					<input type="text" name="company_name" placeholder="Company Name" aria-label="Company Name"
+					<input type="text" name="company_name" placeholder="<?php esc_attr_e('Company Name', 'chroma-excellence'); ?>" aria-label="<?php esc_attr_e('Company Name', 'chroma-excellence'); ?>"
 						class="w-full p-4 rounded-xl" required>
-					<input type="text" name="contact_name" placeholder="HR Contact Name" aria-label="HR Contact Name"
+					<input type="text" name="contact_name" placeholder="<?php esc_attr_e('HR Contact Name', 'chroma-excellence'); ?>" aria-label="<?php esc_attr_e('HR Contact Name', 'chroma-excellence'); ?>"
 						class="w-full p-4 rounded-xl" required>
-					<input type="email" name="work_email" placeholder="Work Email" aria-label="Work Email"
+					<input type="email" name="work_email" placeholder="<?php esc_attr_e('Work Email', 'chroma-excellence'); ?>" aria-label="<?php esc_attr_e('Work Email', 'chroma-excellence'); ?>"
 						class="w-full p-4 rounded-xl" required>
 					<button type="submit"
 						class="w-full py-4 bg-chroma-yellow text-brand-ink font-bold rounded-full uppercase tracking-widest hover:bg-white transition-colors">
-						Request Info Kit
+						<?php _e('Request Info Kit', 'chroma-excellence'); ?>
 					</button>
 				</form>
 			</div>

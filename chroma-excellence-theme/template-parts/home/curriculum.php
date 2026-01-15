@@ -18,7 +18,7 @@ if (!$curriculum) {
         <!-- Section Header -->
         <div class="text-center mb-16">
             <h2 class="text-4xl md:text-5xl font-bold text-brand-ink mb-4">
-                <?php echo esc_html($curriculum['heading'] ?: 'The Prismpath Curriculum'); ?>
+                <?php echo esc_html($curriculum['heading'] ?: __('The Prismpath Curriculum', 'chroma-excellence')); ?>
             </h2>
             <?php if (!empty($curriculum['subheading'])): ?>
                 <p class="text-xl text-brand-ink max-w-3xl mx-auto">
@@ -94,7 +94,7 @@ if (!$curriculum) {
             <div class="text-center">
                 <a href="<?php echo esc_url($curriculum['cta_link']); ?>"
                     class="inline-block bg-chroma-red text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-chroma-red/90 transition-colors">
-                    <?php echo esc_html($curriculum['cta_label'] ?: 'Learn About Prismpath'); ?>
+                    <?php echo esc_html($curriculum['cta_label'] ?: __('Learn About Prismpath', 'chroma-excellence')); ?>
                 </a>
             </div>
         <?php endif; ?>

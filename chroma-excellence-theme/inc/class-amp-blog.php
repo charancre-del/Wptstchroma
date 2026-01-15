@@ -327,8 +327,38 @@ class Chroma_AMP_Blog
     /**
      * Convert content to AMP-compatible HTML
      */
+    /**
+     * Convert content to AMP-compatible HTML
+     */
     private function convert_to_amp($content) {
-        // Replace <img> with <amp-img>
+        // 1. Strict Sanitization: Remove all disallowed tags and attributes (especially inline styles)
+        $allowed_html = [
+            'div' => ['class' => [], 'id' => [], 'align' => []],
+            'span' => ['class' => [], 'id' => []],
+            'p' => ['class' => [], 'id' => [], 'align' => []],
+            'a' => ['href' => [], 'title' => [], 'target' => [], 'rel' => [], 'class' => [], 'id' => []],
+            'img' => ['src' => [], 'alt' => [], 'width' => [], 'height' => [], 'class' => [], 'id' => [], 'title' => []],
+            'h1' => ['class' => [], 'id' => []],
+            'h2' => ['class' => [], 'id' => []],
+            'h3' => ['class' => [], 'id' => []],
+            'h4' => ['class' => [], 'id' => []],
+            'h5' => ['class' => [], 'id' => []],
+            'h6' => ['class' => [], 'id' => []],
+            'ul' => ['class' => [], 'id' => []],
+            'ol' => ['class' => [], 'id' => [], 'start' => [], 'type' => []],
+            'li' => ['class' => [], 'id' => []],
+            'blockquote' => ['class' => [], 'id' => [], 'cite' => []],
+            'b' => [], 'strong' => [], 'i' => [], 'em' => [], 'u' => [], 's' => [], 'del' => [], 
+            'br' => [], 'hr' => ['class' => []],
+            'table' => ['class' => [], 'id' => [], 'border' => [], 'cellspacing' => [], 'cellpadding' => []],
+            'thead' => [], 'tbody' => [], 'tfoot' => [], 'tr' => [], 'th' => ['colspan' => [], 'rowspan' => []], 'td' => ['colspan' => [], 'rowspan' => []],
+        ];
+
+        // This effectively strips <style>, <script>, <link>, <form> and inline style attributes
+        $content = wp_kses($content, $allowed_html);
+
+        // 2. Convert <img> to <amp-img>
+        // Note: regex needs to be robust for attributes in any order
         $content = preg_replace_callback(
             '/<img([^>]+)>/i',
             function($matches) {
@@ -336,47 +366,31 @@ class Chroma_AMP_Blog
                 
                 // Extract src
                 preg_match('/src=["\']([^"\']+)["\']/i', $attrs, $src);
-                $src = $src[1] ?? '';
-                
+                $src_val = $src[1] ?? '';
+                if (!$src_val) return ''; // Skip images without src
+
                 // Extract width/height
                 preg_match('/width=["\']?(\d+)["\']?/i', $attrs, $width);
                 preg_match('/height=["\']?(\d+)["\']?/i', $attrs, $height);
-                $width = $width[1] ?? 800;
-                $height = $height[1] ?? 600;
+                $w_val = $width[1] ?? '800'; // Default width if missing
+                $h_val = $height[1] ?? '600'; // Default height if missing
                 
                 // Extract alt
                 preg_match('/alt=["\']([^"\']*)["\']?/i', $attrs, $alt);
-                $alt = $alt[1] ?? '';
+                $alt_val = $alt[1] ?? '';
                 
+                // Convert to amp-img
                 return sprintf(
                     '<amp-img src="%s" width="%s" height="%s" layout="responsive" alt="%s"></amp-img>',
-                    esc_url($src),
-                    esc_attr($width),
-                    esc_attr($height),
-                    esc_attr($alt)
+                    esc_url($src_val),
+                    esc_attr($w_val),
+                    esc_attr($h_val),
+                    esc_attr($alt_val)
                 );
             },
             $content
         );
-        
-        // Remove inline styles (not allowed in AMP)
-        $content = preg_replace('/\s+style=["\'][^"\']*["\']/i', '', $content);
-        
-        // Remove style blocks (not allowed in body)
-        $content = preg_replace('/<style[^>]*>.*?<\/style>/is', '', $content);
-        
-        // Remove onclick and other JS handlers
-        $content = preg_replace('/\s+on\w+=["\'][^"\']*["\']/i', '', $content);
-        
-        // Remove iframes (would need amp-iframe)
-        $content = preg_replace('/<iframe[^>]*>.*?<\/iframe>/is', '', $content);
-        
-        // Remove scripts
-        $content = preg_replace('/<script[^>]*>.*?<\/script>/is', '', $content);
-        
-        // Remove forms (would need amp-form)
-        $content = preg_replace('/<form[^>]*>.*?<\/form>/is', '', $content);
-        
+
         return $content;
     }
     

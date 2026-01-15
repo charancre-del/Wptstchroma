@@ -16,36 +16,22 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Delegates to plugin if available, otherwise uses basic URL check.
  */
 function chroma_detect_current_language() {
-    // Plugin integration
     if (class_exists('Chroma_Multilingual_Manager')) {
-        return Chroma_Multilingual_Manager::is_spanish() ? 'es' : 'en';
+        return Chroma_Multilingual_Manager::get_current_language();
     }
-
-	$current_url = ( is_ssl() ? 'https://' : 'http://' ) . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-	if ( strpos( $current_url, '/es/' ) !== false || strpos( $current_url, '-es' ) !== false ) {
-		return 'es';
-	}
-	return 'en';
+    return (strpos($_SERVER['REQUEST_URI'], '/es/') !== false) ? 'es' : 'en';
 }
 
 /**
  * Get Alternate URL
  * Delegates to plugin logic.
  */
-function chroma_get_alternate_url( $target_lang = 'es' ) {
-    // Plugin integration
+function chroma_get_alternate_url($target_lang = 'es') {
     if (function_exists('chroma_get_alternates')) {
         $alternates = chroma_get_alternates();
-        return $alternates[$target_lang] ?? '';
+        return $alternates[$target_lang] ?? home_url('/');
     }
-
-    // Fallback logic (Manual Only)
-	$current_lang = chroma_detect_current_language();
-	if ( $current_lang === $target_lang ) {
-		return '';
-	}
-    $meta_key = ($target_lang === 'es') ? 'alternate_url_es' : 'alternate_url_en';
-    return get_post_meta( get_the_ID(), $meta_key, true );
+    return ($target_lang === 'es') ? home_url('/es/') : home_url('/');
 }
 
 /**
@@ -54,11 +40,7 @@ function chroma_get_alternate_url( $target_lang = 'es' ) {
 function chroma_render_language_switcher() {
 	$current_lang = chroma_detect_current_language();
     $target_lang = ($current_lang === 'en') ? 'es' : 'en';
-	$alternate_url = chroma_get_alternate_url( $target_lang );
-
-	if ( ! $alternate_url ) {
-		return;
-	}
+	$alternate_url = chroma_get_alternate_url($target_lang);
 
 	$label = $current_lang === 'en' ? 'Español' : 'English';
     $flag = $current_lang === 'en' ? '🇪🇸' : '🇺🇸';
@@ -96,27 +78,13 @@ function chroma_render_language_switcher() {
     .chroma-language-switcher .lang-label {
         letter-spacing: 0.025em;
     }
-    /* RTL Support */
-    [dir="rtl"] .chroma-language-switcher a {
-        flex-direction: row-reverse;
-    }
-    /* Dark mode variant */
-    .lang-es .chroma-language-switcher a,
-    body.dark-mode .chroma-language-switcher a {
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-        color: #fff;
-        border-color: rgba(255, 255, 255, 0.1);
-    }
-    body.dark-mode .chroma-language-switcher a:hover {
-        background: linear-gradient(135deg, #16213e 0%, #0f3460 100%);
-        border-color: rgba(255, 255, 255, 0.2);
-    }
     </style>
 	<div class="chroma-language-switcher">
-		<a href="<?php echo esc_url( $alternate_url ); ?>">
+		<a href="<?php echo esc_url($alternate_url); ?>">
             <span class="lang-flag"><?php echo $flag; ?></span>
-			<span class="lang-label"><?php echo esc_html( $label ); ?></span>
+			<span class="lang-label"><?php echo esc_html($label); ?></span>
 		</a>
 	</div>
 	<?php
 }
+

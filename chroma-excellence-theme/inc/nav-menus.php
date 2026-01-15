@@ -18,8 +18,11 @@ function chroma_register_menus()
 {
 	register_nav_menus(array(
 		'primary' => __('Primary Menu', 'chroma-excellence'),
+		'primary_es' => __('Primary Menu (Spanish)', 'chroma-excellence'),
 		'footer' => __('Footer Menu', 'chroma-excellence'),
+		'footer_es' => __('Footer Menu (Spanish)', 'chroma-excellence'),
 		'footer_contact' => __('Footer Contact Menu', 'chroma-excellence'),
+		'footer_contact_es' => __('Footer Contact Menu (Spanish)', 'chroma-excellence'),
 	));
 }
 add_action('init', 'chroma_register_menus');
@@ -29,8 +32,10 @@ add_action('init', 'chroma_register_menus');
  */
 function chroma_primary_nav()
 {
+	$location = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) ? 'primary_es' : 'primary';
+	
 	wp_nav_menu(array(
-		'theme_location' => 'primary',
+		'theme_location' => $location,
 		'container' => false,
 		'menu_class' => '',
 		'fallback_cb' => 'chroma_primary_nav_fallback',
@@ -45,7 +50,14 @@ function chroma_primary_nav()
  */
 function chroma_primary_nav_fallback()
 {
-	$pages = array(
+	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
+	
+	$pages = $is_es ? array(
+		'programs' => 'Programas',
+		'locations' => 'Ubicaciones',
+		'about' => 'Nosotros',
+		'contact-us' => 'Contacto'
+	) : array(
 		'programs' => 'Programs',
 		'locations' => 'Locations',
 		'about' => 'About Us',
@@ -63,8 +75,10 @@ function chroma_primary_nav_fallback()
  */
 function chroma_footer_nav()
 {
+	$location = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) ? 'footer_es' : 'footer';
+
 	wp_nav_menu(array(
-		'theme_location' => 'footer',
+		'theme_location' => $location,
 		'container' => false,
 		'menu_class' => '',
 		'fallback_cb' => 'chroma_footer_nav_fallback',
@@ -79,7 +93,14 @@ function chroma_footer_nav()
  */
 function chroma_footer_nav_fallback()
 {
-	$pages = array(
+	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
+
+	$pages = $is_es ? array(
+		'home' => 'Inicio',
+		'prismpath' => 'PrismPath',
+		'programs' => 'Todos los Programas',
+		'parents' => 'Padres'
+	) : array(
 		'home' => 'Home',
 		'prismpath' => 'PrismPath',
 		'programs' => 'All Programs',
@@ -97,9 +118,11 @@ function chroma_footer_nav_fallback()
  */
 function chroma_footer_contact_nav()
 {
-	if (has_nav_menu('footer_contact')) {
+	$location = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) ? 'footer_contact_es' : 'footer_contact';
+
+	if (has_nav_menu($location)) {
 		wp_nav_menu(array(
-			'theme_location' => 'footer_contact',
+			'theme_location' => $location,
 			'container' => false,
 			'menu_class' => 'mt-4 space-y-2 pt-4 border-t border-white/10',
 			'fallback_cb' => false,
@@ -108,8 +131,15 @@ function chroma_footer_contact_nav()
 			'walker' => new Chroma_Footer_Nav_Walker(),
 		));
 	} else {
+		$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
 		$program_slug = chroma_get_program_base_slug();
-		$pages = array(
+		
+		$pages = $is_es ? array(
+			$program_slug => 'Programas',
+			'locations' => 'Ubicaciones',
+			'about' => 'Nosotros',
+			'contact-us' => 'Contacto',
+		) : array(
 			$program_slug => 'Programs',
 			'locations' => 'Locations',
 			'about' => 'About Us',
@@ -206,8 +236,10 @@ class Chroma_Footer_Nav_Walker extends Walker_Nav_Menu
  */
 function chroma_mobile_nav()
 {
+	$location = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) ? 'primary_es' : 'primary';
+
 	wp_nav_menu(array(
-		'theme_location' => 'primary',
+		'theme_location' => $location,
 		'container' => false,
 		'menu_class' => 'flex flex-col space-y-2',
 		'fallback_cb' => 'chroma_mobile_nav_fallback',
@@ -222,10 +254,34 @@ function chroma_mobile_nav()
  */
 function chroma_mobile_nav_fallback()
 {
+	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
 	$program_slug = chroma_get_program_base_slug();
-	$pages = array($program_slug, "prismpath", "curriculum", "schedule", "locations", "faq");
-	foreach ($pages as $slug) {
-		echo '<a href="#' . esc_attr($slug) . '" class="block py-3 border-b border-brand-ink/5 text-lg font-semibold text-brand-ink hover:text-chroma-blue transition">' . esc_html(ucwords(str_replace('-', ' ', $slug))) . '</a>';
+	
+	$pages = $is_es ? array(
+		$program_slug => 'Programas',
+		'prismpath' => 'Prismpath',
+		'curriculum' => 'Currículo',
+		'schedule' => 'Horario',
+		'locations' => 'Ubicaciones',
+		'faq' => 'Preguntas Frecuentes'
+	) : array(
+		$program_slug => 'Programs',
+		'prismpath' => 'Prismpath',
+		'curriculum' => 'Curriculum',
+		'schedule' => 'Schedule',
+		'locations' => 'Locations',
+		'faq' => 'FAQ'
+	);
+
+	foreach ($pages as $slug => $title) {
+		$url = ($slug === 'prismpath' || $slug === 'curriculum' || $slug === 'schedule' || $slug === 'faq') 
+			? '#' . $slug 
+			: chroma_get_page_link($slug);
+			
+		// Adjust anchor links for Spanish if needed, though usually anchors are ID based and language agnostic if the ID is static.
+		// However, for page links like 'locations', we use chroma_get_page_link.
+		
+		echo '<a href="' . esc_url($url) . '" class="block py-3 border-b border-brand-ink/5 text-lg font-semibold text-brand-ink hover:text-chroma-blue transition">' . esc_html($title) . '</a>';
 	}
 }
 

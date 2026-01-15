@@ -4,6 +4,10 @@
  *
  * @package Chroma_Excellence
  * @since 1.0.0
+ * 
+ * @deprecated 2.0.0 This file's schema output is SUPERSEDED by Chroma SEO Pro plugin.
+ *             The plugin's class-theme-schema-compat.php removes these hooks when active.
+ *             DO NOT add new schema functions here. Use the plugin instead.
  */
 
 // Exit if accessed directly
@@ -664,62 +668,10 @@ add_action('wp_head', 'chroma_program_schema');
 if (!function_exists('chroma_faq_schema')) {
 function chroma_faq_schema()
 {
-        if (!is_front_page()) {
-                return;
-        }
-
-        // Check for manual override on homepage
-        $homepage_id = get_option('page_on_front');
-        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
-        if ($override) {
-            return;
-        }
-
-        // Check if FAQ data exists
-        if (!function_exists('chroma_home_has_faq') || !chroma_home_has_faq()) {
-                return;
-        }
-
-        if (!function_exists('chroma_home_faq')) {
-                return;
-        }
-
-        $faq_data = chroma_home_faq();
-        if (empty($faq_data['items'])) {
-                return;
-        }
-
-        // Build FAQ schema
-        $main_entity = array();
-        foreach ($faq_data['items'] as $item) {
-                if (empty($item['question']) || empty($item['answer'])) {
-                        continue;
-                }
-
-                $main_entity[] = array(
-                        '@type' => 'Question',
-                        'name' => $item['question'],
-                        'acceptedAnswer' => array(
-                                '@type' => 'Answer',
-                                'text' => wp_strip_all_tags($item['answer']),
-                        ),
-                );
-        }
-
-        if (empty($main_entity)) {
-                return;
-        }
-
-        $schema = array(
-                '@context' => 'https://schema.org',
-                '@type' => 'FAQPage',
-                'mainEntity' => $main_entity,
-        );
-
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    return;
 }
 }
-add_action('wp_head', 'chroma_faq_schema');
+// add_action('wp_head', 'chroma_faq_schema');
 
 /**
  * Breadcrumb Schema is now handled by inc/advanced-seo-llm/class-breadcrumbs.php
@@ -903,18 +855,35 @@ function chroma_shared_meta_description()
                 $phone = get_post_meta($post_id, 'location_phone', true);
 
                 $parts = array();
-                $parts[] = 'Visit our ' . get_the_title() . ' campus';
-                if ($city && $state) {
-                        $parts[] = "in $city, $state";
-                }
-                if ($tagline) {
-                        $parts[] = ". $tagline";
-                }
-                if ($service_areas) {
-                        $parts[] = ". Serving families in " . $service_areas;
-                }
-                if ($phone) {
-                        $parts[] = ". Call us at $phone";
+                
+                if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+                     $parts[] = 'Visite nuestro campus ' . get_the_title();
+                    if ($city && $state) {
+                            $parts[] = "en $city, $state";
+                    }
+                    if ($tagline) {
+                            $parts[] = ". $tagline";
+                    }
+                    if ($service_areas) {
+                            $parts[] = ". Sirviendo a familias en " . $service_areas;
+                    }
+                    if ($phone) {
+                            $parts[] = ". Llámenos al $phone";
+                    }
+                } else {
+                    $parts[] = 'Visit our ' . get_the_title() . ' campus';
+                    if ($city && $state) {
+                            $parts[] = "in $city, $state";
+                    }
+                    if ($tagline) {
+                            $parts[] = ". $tagline";
+                    }
+                    if ($service_areas) {
+                            $parts[] = ". Serving families in " . $service_areas;
+                    }
+                    if ($phone) {
+                            $parts[] = ". Call us at $phone";
+                    }
                 }
 
                 $description = implode('', $parts) . '.';
@@ -922,12 +891,28 @@ function chroma_shared_meta_description()
         } elseif (is_singular('city')) {
                 // City Template: "Best Daycare & Preschool in [City], GA. [Excerpt]"
                 $excerpt = has_excerpt() ? get_the_excerpt() : chroma_trimmed_excerpt(30, $post_id);
-                $description = "Best Daycare & Preschool in " . get_the_title() . ", GA. " . $excerpt;
+                
+                // Try to get Spanish excerpt if available
+                if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+                    $es_excerpt = get_post_meta($post_id, '_chroma_es_excerpt', true);
+                    if ($es_excerpt) $excerpt = $es_excerpt;
+                    $description = "La mejor guardería y preescolar en " . get_the_title() . ", GA. " . $excerpt;
+                } else {
+                    $description = "Best Daycare & Preschool in " . get_the_title() . ", GA. " . $excerpt;
+                }
 
         } elseif (is_singular('program')) {
                 // Program Template: "[Program Name] at Chroma Early Learning Academy. [Excerpt]."
                 $excerpt = has_excerpt() ? get_the_excerpt() : chroma_trimmed_excerpt(20, $post_id);
-                $description = get_the_title() . ' at Chroma Early Learning Academy. ' . $excerpt;
+                
+                if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+                    $es_excerpt = get_post_meta($post_id, '_chroma_es_excerpt', true);
+                    $es_title = get_post_meta($post_id, '_chroma_es_title', true) ?: get_the_title();
+                    if ($es_excerpt) $excerpt = $es_excerpt;
+                    $description = $es_title . ' en Chroma Early Learning Academy. ' . $excerpt;
+                } else {
+                    $description = get_the_title() . ' at Chroma Early Learning Academy. ' . $excerpt;
+                }
 
         } elseif (is_singular('post')) {
                 // Blog Post Template: "[Title] - [Excerpt]"
@@ -942,6 +927,10 @@ function chroma_shared_meta_description()
                 }
                 if (empty($description)) {
                         $description = get_bloginfo('name') . ' offers premier child care, daycare, and early childhood education in the Metro Atlanta area.';
+                        
+                        if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
+                            $description = 'Chroma Early Learning Academy ofrece servicios de cuidado infantil, guardería y educación temprana de primer nivel en el área metropolitana de Atlanta.';
+                        }
                 }
         }
 

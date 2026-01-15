@@ -16,12 +16,9 @@ if (empty($reviews)) {
 <section id="reviews" class="py-20 bg-white border-y border-chroma-blue/10" data-section="reviews">
         <div class="max-w-6xl mx-auto px-4 lg:px-6">
                 <div class="text-center mb-12">
-                        <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-4 block">What
-                                Parents Say</span>
-                        <h2 class="text-3xl md:text-4xl font-serif text-brand-ink mb-3">Trusted by thousands of Atlanta
-                                families</h2>
-                        <p class="text-brand-ink max-w-2xl mx-auto">Don't just take our word for it. Here's what parents
-                                have to say about their experience with Chroma Early Learning.</p>
+                        <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-4 block"><?php _e('What Parents Say', 'chroma-excellence'); ?></span>
+                        <h2 class="text-3xl md:text-4xl font-serif text-brand-ink mb-3"><?php _e('Trusted by thousands of Atlanta families', 'chroma-excellence'); ?></h2>
+                        <p class="text-brand-ink max-w-2xl mx-auto"><?php _e('Don\'t just take our word for it. Here\'s what parents have to say about their experience with Chroma Early Learning.', 'chroma-excellence'); ?></p>
                 </div>
 
                 <div class="relative" data-reviews-carousel>

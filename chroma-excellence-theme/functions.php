@@ -13,6 +13,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Disable error reporting for production
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0);
+error_reporting(0);
+
 /**
  * Increase Memory Limit for SEO Engine
  */
@@ -26,6 +31,32 @@ define('CHROMA_THEME_DIR', get_template_directory());
 define('CHROMA_THEME_URI', get_template_directory_uri());
 
 /**
+ * Plugin Polyfills
+ * Prevent theme crash if Chroma SEO Pro plugin is disabled
+ */
+if (!function_exists('chroma_url')) {
+    function chroma_url($path = '') {
+        return home_url($path);
+    }
+}
+
+if (!function_exists('chroma_get_theme_mod')) {
+    /**
+     * Get theme mod with fallback
+     * Simple wrapper around get_theme_mod
+     *
+     * @param string $name Theme mod name
+     * @param mixed $default Default value
+     * @return mixed
+     */
+    function chroma_get_theme_mod($name, $default = false) {
+        return get_theme_mod($name, $default);
+    }
+}
+
+
+
+/**
  * Load core theme functionality
  * Order matters - load dependencies first
  */
@@ -36,17 +67,19 @@ require_once CHROMA_THEME_DIR . '/inc/critical-css.php';
 require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
 require_once CHROMA_THEME_DIR . '/inc/program-settings.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
+require_once CHROMA_THEME_DIR . '/inc/admin/class-menu-sync.php';
 
 // Custom Post Types
 require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-cities.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
+require_once CHROMA_THEME_DIR . '/inc/cpt-careers.php';
 require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
 require_once CHROMA_THEME_DIR . '/inc/class-amp-blog.php';
 
 // API Handlers
-require_once CHROMA_THEME_DIR . '/inc/careers-api.php';
+
 
 // Page Meta Boxes
 require_once CHROMA_THEME_DIR . '/inc/about-page-meta.php';
@@ -59,9 +92,11 @@ require_once CHROMA_THEME_DIR . '/inc/employers-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/privacy-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/schema-meta-boxes.php';
 require_once CHROMA_THEME_DIR . '/inc/general-seo-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/home-page-meta.php';
 
 
 // Utility Functions
+require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
 require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
@@ -81,7 +116,7 @@ require_once CHROMA_THEME_DIR . '/inc/cleanup.php';
 // SEO and Internationalization
 require_once CHROMA_THEME_DIR . '/inc/seo-engine.php';
 require_once CHROMA_THEME_DIR . '/inc/city-slug-logic.php';
-require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
+// require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
 require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 
 // LLM SEO / Citation Module (Legacy - Disabled to prevent conflict with Advanced SEO/LLM)
@@ -90,8 +125,11 @@ require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
 // Advanced SEO/LLM Module - MOVED TO PLUGIN
 // require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
 
-// SEO Automations (Internal Linking, Geo SEO, etc.)
-require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
+// SEO Automations (Internal Linking, Geo SEO, etc.) - MOVED TO PLUGIN
+// require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
+
+// Spanish Variant Generator
+require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
 
 
 

@@ -2,10 +2,10 @@
 /**
  * Cache Warmer Script (Node.js)
  * 
- * Parses a sitemap and requests each URL to warm up the cache.
+ * Parses one or more sitemaps and requests each URL to warm up the cache.
  * 
  * Usage:
- *   node cache-warmer.mjs <sitemap_url> [options]
+ *   node cache-warmer.mjs <sitemap_url> [sitemap_url_2...] [options]
  *   node cache-warmer.mjs https://example.com/sitemap.xml
  *   node cache-warmer.mjs https://example.com/sitemap.xml --passes=2
  */
@@ -17,7 +17,7 @@ import http from 'http';
 const config = {
     delay: 100,           // Delay between requests in ms
     timeout: 30000,       // Request timeout in ms
-    userAgent: 'CacheWarmer/1.0 (+https://chromaela.com)',
+    userAgent: 'CacheWarmer/1.1 (+https://chromaela.com)',
     mobileUserAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1',
     verbose: false,
     dryRun: false,
@@ -27,7 +27,7 @@ const config = {
 
 // Parse command line arguments
 const args = process.argv.slice(2);
-let sitemapUrl = null;
+const sitemapUrls = [];
 
 for (const arg of args) {
     if (arg.startsWith('--delay=')) {
@@ -45,13 +45,17 @@ for (const arg of args) {
     } else if (arg.startsWith('--passes=')) {
         config.passes = parseInt(arg.substring(9), 10);
     } else if (!arg.startsWith('--')) {
-        sitemapUrl = arg;
+        // Support comma-separated URLs
+        const urls = arg.split(',');
+        for (const url of urls) {
+            if (url.trim()) sitemapUrls.push(url.trim());
+        }
     }
 }
 
 // Validate sitemap URL
-if (!sitemapUrl) {
-    console.log('Usage: node cache-warmer.mjs <sitemap_url> [options]');
+if (sitemapUrls.length === 0) {
+    console.log('Usage: node cache-warmer.mjs <sitemap_url> [sitemap_url_2...] [options]');
     console.log('\nOptions:');
     console.log('  --delay=<ms>       Delay between requests in milliseconds (default: 100)');
     console.log('  --timeout=<sec>    Request timeout in seconds (default: 30)');
@@ -139,6 +143,49 @@ function parseSitemap(xmlContent) {
     }
 
     return { urls, sitemaps, error: null };
+}
+
+/**
+ * Fetch and parse a sitemap (including recursion for index)
+ */
+async function processSitemap(url) {
+    console.log(`📥 Processing sitemap: ${url}`);
+    const result = await fetchUrl(url);
+
+    if (result.httpCode !== 200) {
+        console.log(`❌ Failed to fetch sitemap (HTTP ${result.httpCode})`);
+        if (result.error) {
+            console.log(`   Error: ${result.error}`);
+        }
+        return [];
+    }
+
+    const parsed = parseSitemap(result.content);
+    let urls = parsed.urls;
+
+    if (parsed.sitemaps.length > 0) {
+        console.log(`📚 Found sitemap index with ${parsed.sitemaps.length} child sitemaps`);
+
+        for (let i = 0; i < parsed.sitemaps.length; i++) {
+            const childSitemap = parsed.sitemaps[i];
+            const basename = childSitemap.split('/').pop();
+            console.log(`  📄 Parsing child sitemap ${i + 1}/${parsed.sitemaps.length}: ${basename}`);
+
+            const childResult = await fetchUrl(childSitemap);
+
+            if (childResult.httpCode === 200) {
+                const childParsed = parseSitemap(childResult.content);
+                urls = urls.concat(childParsed.urls);
+                console.log(`     Found ${childParsed.urls.length} URLs`);
+            } else {
+                console.log(`     ⚠️  Failed to fetch (HTTP ${childResult.httpCode})`);
+            }
+
+            await sleep(config.delay);
+        }
+    }
+
+    return urls;
 }
 
 /**
@@ -302,62 +349,31 @@ async function runWarmUpPass(allUrls, passNumber) {
 async function main() {
     console.log('\n');
     console.log('╔══════════════════════════════════════════════════════════════════╗');
-    console.log('║                      CACHE WARMER v1.0                           ║');
+    console.log('║                      CACHE WARMER v1.1                           ║');
     console.log('╚══════════════════════════════════════════════════════════════════╝');
     console.log('');
 
-    console.log(`📍 Sitemap: ${sitemapUrl}`);
+    console.log(`📍 Sitemaps: ${sitemapUrls.length} URL(s)`);
     console.log(`⏱️  Delay: ${config.delay}ms | Timeout: ${config.timeout / 1000}s | Passes: ${config.passes}`);
     if (config.dryRun) {
         console.log('🔍 DRY RUN MODE - No requests will be made');
     }
     console.log('');
 
-    // Fetch and parse sitemap
-    console.log('📥 Fetching sitemap...');
-    const result = await fetchUrl(sitemapUrl);
+    // Collect all URLs
+    let allUrls = [];
 
-    if (result.httpCode !== 200) {
-        console.log(`❌ Failed to fetch sitemap (HTTP ${result.httpCode})`);
-        if (result.error) {
-            console.log(`   Error: ${result.error}`);
-        }
-        process.exit(1);
-    }
-
-    const parsed = parseSitemap(result.content);
-
-    // Collect all URLs (handle sitemap index)
-    let allUrls = parsed.urls;
-
-    if (parsed.sitemaps.length > 0) {
-        console.log(`📚 Found sitemap index with ${parsed.sitemaps.length} sitemaps\n`);
-
-        for (let i = 0; i < parsed.sitemaps.length; i++) {
-            const childSitemap = parsed.sitemaps[i];
-            const basename = childSitemap.split('/').pop();
-            console.log(`  📄 Parsing sitemap ${i + 1}/${parsed.sitemaps.length}: ${basename}`);
-
-            const childResult = await fetchUrl(childSitemap);
-
-            if (childResult.httpCode === 200) {
-                const childParsed = parseSitemap(childResult.content);
-                allUrls = allUrls.concat(childParsed.urls);
-                console.log(`     Found ${childParsed.urls.length} URLs`);
-            } else {
-                console.log(`     ⚠️  Failed to fetch (HTTP ${childResult.httpCode})`);
-            }
-
-            await sleep(config.delay);
-        }
+    for (const url of sitemapUrls) {
+        const found = await processSitemap(url);
+        allUrls = allUrls.concat(found);
         console.log('');
     }
 
     const totalUrls = allUrls.length;
-    console.log(`🔗 Total URLs found: ${totalUrls}`);
+    console.log(`🔗 Total unique URLs found: ${totalUrls}`);
 
     if (totalUrls === 0) {
-        console.log('❌ No URLs found in sitemap');
+        console.log('❌ No URLs found in any sitemap');
         process.exit(1);
     }
 

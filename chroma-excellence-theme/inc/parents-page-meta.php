@@ -106,6 +106,9 @@ function chroma_parents_hero_meta_box_render($post)
             <td>
                 <input type="text" id="parents_hero_badge" name="parents_hero_badge"
                     value="<?php echo esc_attr($hero_badge); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_hero_badge" name="_chroma_es_parents_hero_badge"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_hero_badge', true)); ?>" class="large-text" placeholder="[ES] Badge Text" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -113,6 +116,9 @@ function chroma_parents_hero_meta_box_render($post)
             <td>
                 <input type="text" id="parents_hero_title" name="parents_hero_title"
                     value="<?php echo esc_attr($hero_title); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_hero_title" name="_chroma_es_parents_hero_title"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_hero_title', true)); ?>" class="large-text" placeholder="[ES] Headline" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -120,6 +126,9 @@ function chroma_parents_hero_meta_box_render($post)
             <td>
                 <textarea id="parents_hero_description" name="parents_hero_description" rows="3"
                     class="large-text"><?php echo esc_textarea($hero_description); ?></textarea>
+                <br>
+                <textarea id="_chroma_es_parents_hero_description" name="_chroma_es_parents_hero_description" rows="3"
+                    class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, '_chroma_es_parents_hero_description', true)); ?></textarea>
             </td>
         </tr>
     </table>
@@ -150,6 +159,9 @@ function chroma_parents_resources_meta_box_render($post)
             <td>
                 <input type="text" id="parents_essentials_title" name="parents_essentials_title"
                     value="<?php echo esc_attr($essentials_title); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_essentials_title" name="_chroma_es_parents_essentials_title"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_essentials_title', true)); ?>" class="large-text" placeholder="[ES] Section Title" style="margin-top: 5px;" />
             </td>
         </tr>
     </table>
@@ -178,6 +190,10 @@ function chroma_parents_resources_meta_box_render($post)
                     <input type="text" id="parents_resource_<?php echo $key; ?>_title"
                         name="parents_resource_<?php echo $key; ?>_title" value="<?php echo esc_attr($title); ?>"
                         class="large-text" />
+                    <br>
+                    <input type="text" id="_chroma_es_parents_resource_<?php echo $key; ?>_title"
+                        name="_chroma_es_parents_resource_<?php echo $key; ?>_title" value="<?php echo esc_attr(get_post_meta($post->ID, "_chroma_es_parents_resource_{$key}_title", true)); ?>"
+                        class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
                 </td>
             </tr>
             <tr>
@@ -185,6 +201,9 @@ function chroma_parents_resources_meta_box_render($post)
                 <td>
                     <textarea id="parents_resource_<?php echo $key; ?>_desc" name="parents_resource_<?php echo $key; ?>_desc"
                         rows="2" class="large-text"><?php echo esc_textarea($desc); ?></textarea>
+                    <br>
+                    <textarea id="_chroma_es_parents_resource_<?php echo $key; ?>_desc" name="_chroma_es_parents_resource_<?php echo $key; ?>_desc"
+                        rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, "_chroma_es_parents_resource_{$key}_desc", true)); ?></textarea>
                 </td>
             </tr>
             <tr>
@@ -224,6 +243,9 @@ function chroma_parents_events_meta_box_render($post)
             <td>
                 <input type="text" id="parents_events_badge" name="parents_events_badge"
                     value="<?php echo esc_attr($events_badge); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_events_badge" name="_chroma_es_parents_events_badge"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_events_badge', true)); ?>" class="large-text" placeholder="[ES] Badge" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -231,6 +253,9 @@ function chroma_parents_events_meta_box_render($post)
             <td>
                 <input type="text" id="parents_events_title" name="parents_events_title"
                     value="<?php echo esc_attr($events_title); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_events_title" name="_chroma_es_parents_events_title"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_events_title', true)); ?>" class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -238,6 +263,9 @@ function chroma_parents_events_meta_box_render($post)
             <td>
                 <textarea id="parents_events_description" name="parents_events_description" rows="3"
                     class="large-text"><?php echo esc_textarea($events_description); ?></textarea>
+                <br>
+                <textarea id="_chroma_es_parents_events_description" name="_chroma_es_parents_events_description" rows="3"
+                    class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, '_chroma_es_parents_events_description', true)); ?></textarea>
             </td>
         </tr>
         <tr>
@@ -271,6 +299,9 @@ function chroma_parents_events_meta_box_render($post)
                 <td>
                     <input type="text" id="parents_event<?php echo $num; ?>_title" name="parents_event<?php echo $num; ?>_title"
                         value="<?php echo esc_attr($title); ?>" class="large-text" />
+                    <br>
+                    <input type="text" id="_chroma_es_parents_event<?php echo $num; ?>_title" name="_chroma_es_parents_event<?php echo $num; ?>_title"
+                        value="<?php echo esc_attr(get_post_meta($post->ID, "_chroma_es_parents_event{$num}_title", true)); ?>" class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
                 </td>
             </tr>
             <tr>
@@ -278,6 +309,9 @@ function chroma_parents_events_meta_box_render($post)
                 <td>
                     <textarea id="parents_event<?php echo $num; ?>_desc" name="parents_event<?php echo $num; ?>_desc" rows="2"
                         class="large-text"><?php echo esc_textarea($desc); ?></textarea>
+                    <br>
+                    <textarea id="_chroma_es_parents_event<?php echo $num; ?>_desc" name="_chroma_es_parents_event<?php echo $num; ?>_desc" rows="2"
+                        class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, "_chroma_es_parents_event{$num}_desc", true)); ?></textarea>
                 </td>
             </tr>
         </table>
@@ -309,6 +343,9 @@ function chroma_parents_nutrition_meta_box_render($post)
             <td>
                 <input type="text" id="parents_nutrition_badge" name="parents_nutrition_badge"
                     value="<?php echo esc_attr($nutrition_badge); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_nutrition_badge" name="_chroma_es_parents_nutrition_badge"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_nutrition_badge', true)); ?>" class="large-text" placeholder="[ES] Badge" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -316,6 +353,9 @@ function chroma_parents_nutrition_meta_box_render($post)
             <td>
                 <input type="text" id="parents_nutrition_title" name="parents_nutrition_title"
                     value="<?php echo esc_attr($nutrition_title); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_nutrition_title" name="_chroma_es_parents_nutrition_title"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_nutrition_title', true)); ?>" class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -323,6 +363,9 @@ function chroma_parents_nutrition_meta_box_render($post)
             <td>
                 <textarea id="parents_nutrition_description" name="parents_nutrition_description" rows="3"
                     class="large-text"><?php echo esc_textarea($nutrition_description); ?></textarea>
+                <br>
+                <textarea id="_chroma_es_parents_nutrition_description" name="_chroma_es_parents_nutrition_description" rows="3"
+                    class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, '_chroma_es_parents_nutrition_description', true)); ?></textarea>
             </td>
         </tr>
         <tr>
@@ -401,6 +444,9 @@ function chroma_parents_safety_meta_box_render($post)
             <td>
                 <input type="text" id="parents_safety_title" name="parents_safety_title"
                     value="<?php echo esc_attr($safety_title); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_safety_title" name="_chroma_es_parents_safety_title"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_safety_title', true)); ?>" class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -408,6 +454,9 @@ function chroma_parents_safety_meta_box_render($post)
             <td>
                 <textarea id="parents_safety_description" name="parents_safety_description" rows="3"
                     class="large-text"><?php echo esc_textarea($safety_description); ?></textarea>
+                <br>
+                <textarea id="_chroma_es_parents_safety_description" name="_chroma_es_parents_safety_description" rows="3"
+                    class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, '_chroma_es_parents_safety_description', true)); ?></textarea>
             </td>
         </tr>
     </table>
@@ -435,6 +484,10 @@ function chroma_parents_safety_meta_box_render($post)
                     <input type="text" id="parents_safety<?php echo $num; ?>_title"
                         name="parents_safety<?php echo $num; ?>_title" value="<?php echo esc_attr($title); ?>"
                         class="large-text" />
+                    <br>
+                    <input type="text" id="_chroma_es_parents_safety<?php echo $num; ?>_title"
+                        name="_chroma_es_parents_safety<?php echo $num; ?>_title" value="<?php echo esc_attr(get_post_meta($post->ID, "_chroma_es_parents_safety{$num}_title", true)); ?>"
+                        class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
                 </td>
             </tr>
             <tr>
@@ -471,6 +524,9 @@ function chroma_parents_faq_meta_box_render($post)
             <td>
                 <input type="text" id="parents_faq_title" name="parents_faq_title"
                     value="<?php echo esc_attr($faq_title); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_faq_title" name="_chroma_es_parents_faq_title"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_faq_title', true)); ?>" class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -478,6 +534,9 @@ function chroma_parents_faq_meta_box_render($post)
             <td>
                 <textarea id="parents_faq_description" name="parents_faq_description" rows="2"
                     class="large-text"><?php echo esc_textarea($faq_description); ?></textarea>
+                <br>
+                <textarea id="_chroma_es_parents_faq_description" name="_chroma_es_parents_faq_description" rows="2"
+                    class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, '_chroma_es_parents_faq_description', true)); ?></textarea>
             </td>
         </tr>
     </table>
@@ -496,6 +555,10 @@ function chroma_parents_faq_meta_box_render($post)
                     <input type="text" id="parents_faq<?php echo $num; ?>_question"
                         name="parents_faq<?php echo $num; ?>_question" value="<?php echo esc_attr($question); ?>"
                         class="large-text" />
+                    <br>
+                    <input type="text" id="_chroma_es_parents_faq<?php echo $num; ?>_question"
+                        name="_chroma_es_parents_faq<?php echo $num; ?>_question" value="<?php echo esc_attr(get_post_meta($post->ID, "_chroma_es_parents_faq{$num}_question", true)); ?>"
+                        class="large-text" placeholder="[ES] Question" style="margin-top: 5px;" />
                 </td>
             </tr>
             <tr>
@@ -503,6 +566,9 @@ function chroma_parents_faq_meta_box_render($post)
                 <td>
                     <textarea id="parents_faq<?php echo $num; ?>_answer" name="parents_faq<?php echo $num; ?>_answer" rows="3"
                         class="large-text"><?php echo esc_textarea($answer); ?></textarea>
+                    <br>
+                    <textarea id="_chroma_es_parents_faq<?php echo $num; ?>_answer" name="_chroma_es_parents_faq<?php echo $num; ?>_answer" rows="3"
+                        class="large-text" placeholder="[ES] Answer" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, "_chroma_es_parents_faq{$num}_answer", true)); ?></textarea>
                 </td>
             </tr>
         </table>
@@ -528,6 +594,9 @@ function chroma_parents_referral_meta_box_render($post)
             <td>
                 <input type="text" id="parents_referral_title" name="parents_referral_title"
                     value="<?php echo esc_attr($referral_title); ?>" class="large-text" />
+                <br>
+                <input type="text" id="_chroma_es_parents_referral_title" name="_chroma_es_parents_referral_title"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_referral_title', true)); ?>" class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -535,6 +604,9 @@ function chroma_parents_referral_meta_box_render($post)
             <td>
                 <textarea id="parents_referral_description" name="parents_referral_description" rows="2"
                     class="large-text"><?php echo esc_textarea($referral_description); ?></textarea>
+                <br>
+                <textarea id="_chroma_es_parents_referral_description" name="_chroma_es_parents_referral_description" rows="2"
+                    class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea(get_post_meta($post->ID, '_chroma_es_parents_referral_description', true)); ?></textarea>
                 <p class="description">You can use &lt;strong&gt; tags for bold text</p>
             </td>
         </tr>
@@ -543,6 +615,9 @@ function chroma_parents_referral_meta_box_render($post)
             <td>
                 <input type="text" id="parents_referral_button_text" name="parents_referral_button_text"
                     value="<?php echo esc_attr($referral_button_text); ?>" />
+                <br>
+                <input type="text" id="_chroma_es_parents_referral_button_text" name="_chroma_es_parents_referral_button_text"
+                    value="<?php echo esc_attr(get_post_meta($post->ID, '_chroma_es_parents_referral_button_text', true)); ?>" placeholder="[ES] Button Text" style="margin-top: 5px;" />
             </td>
         </tr>
         <tr>
@@ -595,105 +670,158 @@ function chroma_save_parents_page_meta($post_id)
     $meta_boxes = array(
         'chroma_parents_hero_nonce' => array(
             'parents_hero_badge' => 'sanitize_text_field',
+            '_chroma_es_parents_hero_badge' => 'sanitize_text_field',
             'parents_hero_title' => 'sanitize_text_field',
+            '_chroma_es_parents_hero_title' => 'sanitize_text_field',
             'parents_hero_description' => 'sanitize_textarea_field',
+            '_chroma_es_parents_hero_description' => 'sanitize_textarea_field',
         ),
         'chroma_parents_resources_nonce' => array(
             'parents_essentials_title' => 'sanitize_text_field',
+            '_chroma_es_parents_essentials_title' => 'sanitize_text_field',
             // Procare
             'parents_resource_procare_icon' => 'sanitize_text_field',
             'parents_resource_procare_title' => 'sanitize_text_field',
+            '_chroma_es_parents_resource_procare_title' => 'sanitize_text_field',
             'parents_resource_procare_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_resource_procare_desc' => 'sanitize_textarea_field',
             'parents_resource_procare_url' => 'esc_url_raw',
             // Tuition
             'parents_resource_tuition_icon' => 'sanitize_text_field',
             'parents_resource_tuition_title' => 'sanitize_text_field',
+            '_chroma_es_parents_resource_tuition_title' => 'sanitize_text_field',
             'parents_resource_tuition_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_resource_tuition_desc' => 'sanitize_textarea_field',
             'parents_resource_tuition_url' => 'esc_url_raw',
             // Handbook
             'parents_resource_handbook_icon' => 'sanitize_text_field',
             'parents_resource_handbook_title' => 'sanitize_text_field',
+            '_chroma_es_parents_resource_handbook_title' => 'sanitize_text_field',
             'parents_resource_handbook_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_resource_handbook_desc' => 'sanitize_textarea_field',
             'parents_resource_handbook_url' => 'esc_url_raw',
             // Enrollment
             'parents_resource_enrollment_icon' => 'sanitize_text_field',
             'parents_resource_enrollment_title' => 'sanitize_text_field',
+            '_chroma_es_parents_resource_enrollment_title' => 'sanitize_text_field',
             'parents_resource_enrollment_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_resource_enrollment_desc' => 'sanitize_textarea_field',
             'parents_resource_enrollment_url' => 'esc_url_raw',
             // Pre-K GA
             'parents_resource_prekga_icon' => 'sanitize_text_field',
             'parents_resource_prekga_title' => 'sanitize_text_field',
+            '_chroma_es_parents_resource_prekga_title' => 'sanitize_text_field',
             'parents_resource_prekga_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_resource_prekga_desc' => 'sanitize_textarea_field',
             'parents_resource_prekga_url' => 'esc_url_raw',
             // Waitlist
             'parents_resource_waitlist_icon' => 'sanitize_text_field',
             'parents_resource_waitlist_title' => 'sanitize_text_field',
+            '_chroma_es_parents_resource_waitlist_title' => 'sanitize_text_field',
             'parents_resource_waitlist_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_resource_waitlist_desc' => 'sanitize_textarea_field',
             'parents_resource_waitlist_url' => 'esc_url_raw',
         ),
         'chroma_parents_events_nonce' => array(
             'parents_events_badge' => 'sanitize_text_field',
+            '_chroma_es_parents_events_badge' => 'sanitize_text_field',
             'parents_events_title' => 'sanitize_text_field',
+            '_chroma_es_parents_events_title' => 'sanitize_text_field',
             'parents_events_description' => 'sanitize_textarea_field',
+            '_chroma_es_parents_events_description' => 'sanitize_textarea_field',
             'parents_events_image' => 'esc_url_raw',
             'parents_event1_icon' => 'sanitize_text_field',
             'parents_event1_title' => 'sanitize_text_field',
+            '_chroma_es_parents_event1_title' => 'sanitize_text_field',
             'parents_event1_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_event1_desc' => 'sanitize_textarea_field',
             'parents_event2_icon' => 'sanitize_text_field',
             'parents_event2_title' => 'sanitize_text_field',
+            '_chroma_es_parents_event2_title' => 'sanitize_text_field',
             'parents_event2_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_event2_desc' => 'sanitize_textarea_field',
             'parents_event3_icon' => 'sanitize_text_field',
             'parents_event3_title' => 'sanitize_text_field',
+            '_chroma_es_parents_event3_title' => 'sanitize_text_field',
             'parents_event3_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_event3_desc' => 'sanitize_textarea_field',
         ),
         'chroma_parents_gallery_nonce' => array(
             'parents_moments_gallery' => 'sanitize_textarea_field',
         ),
         'chroma_parents_nutrition_nonce' => array(
             'parents_nutrition_badge' => 'sanitize_text_field',
+            '_chroma_es_parents_nutrition_badge' => 'sanitize_text_field',
             'parents_nutrition_title' => 'sanitize_text_field',
+            '_chroma_es_parents_nutrition_title' => 'sanitize_text_field',
             'parents_nutrition_description' => 'sanitize_textarea_field',
+            '_chroma_es_parents_nutrition_description' => 'sanitize_textarea_field',
             'parents_nutrition_image' => 'esc_url_raw',
             'parents_menu1_icon' => 'sanitize_text_field',
             'parents_menu1_title' => 'sanitize_text_field',
+            '_chroma_es_parents_menu1_title' => 'sanitize_text_field',
             'parents_menu1_subtitle' => 'sanitize_text_field',
+            '_chroma_es_parents_menu1_subtitle' => 'sanitize_text_field',
             'parents_menu1_url' => 'esc_url_raw',
             'parents_menu2_icon' => 'sanitize_text_field',
             'parents_menu2_title' => 'sanitize_text_field',
+            '_chroma_es_parents_menu2_title' => 'sanitize_text_field',
             'parents_menu2_subtitle' => 'sanitize_text_field',
+            '_chroma_es_parents_menu2_subtitle' => 'sanitize_text_field',
             'parents_menu2_url' => 'esc_url_raw',
             'parents_menu3_icon' => 'sanitize_text_field',
             'parents_menu3_title' => 'sanitize_text_field',
+            '_chroma_es_parents_menu3_title' => 'sanitize_text_field',
             'parents_menu3_subtitle' => 'sanitize_text_field',
+            '_chroma_es_parents_menu3_subtitle' => 'sanitize_text_field',
             'parents_menu3_url' => 'esc_url_raw',
         ),
         'chroma_parents_safety_nonce' => array(
             'parents_safety_title' => 'sanitize_text_field',
+            '_chroma_es_parents_safety_title' => 'sanitize_text_field',
             'parents_safety_description' => 'sanitize_textarea_field',
+            '_chroma_es_parents_safety_description' => 'sanitize_textarea_field',
             'parents_safety1_icon' => 'sanitize_text_field',
             'parents_safety1_title' => 'sanitize_text_field',
+            '_chroma_es_parents_safety1_title' => 'sanitize_text_field',
             'parents_safety1_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_safety1_desc' => 'sanitize_textarea_field',
             'parents_safety2_icon' => 'sanitize_text_field',
             'parents_safety2_title' => 'sanitize_text_field',
+            '_chroma_es_parents_safety2_title' => 'sanitize_text_field',
             'parents_safety2_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_safety2_desc' => 'sanitize_textarea_field',
             'parents_safety3_icon' => 'sanitize_text_field',
             'parents_safety3_title' => 'sanitize_text_field',
+            '_chroma_es_parents_safety3_title' => 'sanitize_text_field',
             'parents_safety3_desc' => 'sanitize_textarea_field',
+            '_chroma_es_parents_safety3_desc' => 'sanitize_textarea_field',
         ),
         'chroma_parents_faq_nonce' => array(
             'parents_faq_title' => 'sanitize_text_field',
+            '_chroma_es_parents_faq_title' => 'sanitize_text_field',
             'parents_faq_description' => 'sanitize_textarea_field',
+            '_chroma_es_parents_faq_description' => 'sanitize_textarea_field',
             'parents_faq1_question' => 'sanitize_text_field',
+            '_chroma_es_parents_faq1_question' => 'sanitize_text_field',
             'parents_faq1_answer' => 'sanitize_textarea_field',
+            '_chroma_es_parents_faq1_answer' => 'sanitize_textarea_field',
             'parents_faq2_question' => 'sanitize_text_field',
+            '_chroma_es_parents_faq2_question' => 'sanitize_text_field',
             'parents_faq2_answer' => 'sanitize_textarea_field',
+            '_chroma_es_parents_faq2_answer' => 'sanitize_textarea_field',
             'parents_faq3_question' => 'sanitize_text_field',
+            '_chroma_es_parents_faq3_question' => 'sanitize_text_field',
             'parents_faq3_answer' => 'sanitize_textarea_field',
+            '_chroma_es_parents_faq3_answer' => 'sanitize_textarea_field',
         ),
         'chroma_parents_referral_nonce' => array(
             'parents_referral_title' => 'sanitize_text_field',
+            '_chroma_es_parents_referral_title' => 'sanitize_text_field',
             'parents_referral_description' => 'sanitize_textarea_field',
+            '_chroma_es_parents_referral_description' => 'sanitize_textarea_field',
             'parents_referral_button_text' => 'sanitize_text_field',
+            '_chroma_es_parents_referral_button_text' => 'sanitize_text_field',
             'parents_referral_button_url' => 'esc_url_raw',
         ),
     );

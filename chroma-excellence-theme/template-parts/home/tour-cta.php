@@ -18,7 +18,7 @@ if (!$tour_cta) {
         <!-- Header -->
         <div class="text-center mb-8">
             <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-3">
-                <?php echo esc_html($tour_cta['heading'] ?: 'Schedule a private tour'); ?>
+                <?php echo esc_html($tour_cta['heading'] ?: __('Schedule a private tour', 'chroma-excellence')); ?>
             </h2>
             <p class="text-brand-ink text-sm md:text-base max-w-2xl mx-auto">
                 <?php echo esc_html($tour_cta['subheading']); ?>
@@ -32,16 +32,16 @@ if (!$tour_cta) {
             <!-- Left: Benefits (Narrow, Fixed Width) -->
             <div
                 class="bg-gradient-to-br from-chroma-blue via-chroma-green to-chroma-yellow text-white p-6 lg:p-8 lg:w-80 flex-shrink-0">
-                <p class="text-[11px] font-semibold tracking-[0.2em] uppercase mb-4">Why families choose Chroma</p>
+                <p class="text-[11px] font-semibold tracking-[0.2em] uppercase mb-4"><?php _e('Why families choose Chroma', 'chroma-excellence'); ?></p>
                 <ul class="space-y-3 text-sm">
-                    <li class="flex gap-2"><span>✓</span><span>Warm, consistent teachers</span></li>
-                    <li class="flex gap-2"><span>✓</span><span>Daily parent communication</span></li>
-                    <li class="flex gap-2"><span>✓</span><span>Healthy meals included</span></li>
-                    <li class="flex gap-2"><span>✓</span><span>Age-appropriate security</span></li>
-                    <li class="flex gap-2"><span>✓</span><span>GA Lottery Pre-K available</span></li>
+                    <li class="flex gap-2"><span>✓</span><span><?php _e('Warm, consistent teachers', 'chroma-excellence'); ?></span></li>
+                    <li class="flex gap-2"><span>✓</span><span><?php _e('Daily parent communication', 'chroma-excellence'); ?></span></li>
+                    <li class="flex gap-2"><span>✓</span><span><?php _e('Healthy meals included', 'chroma-excellence'); ?></span></li>
+                    <li class="flex gap-2"><span>✓</span><span><?php _e('Age-appropriate security', 'chroma-excellence'); ?></span></li>
+                    <li class="flex gap-2"><span>✓</span><span><?php _e('GA Lottery Pre-K available', 'chroma-excellence'); ?></span></li>
                 </ul>
                 <div class="mt-6 pt-4 border-t border-white/20 text-xs">
-                    <p class="font-semibold">Tour: 20–30 min</p>
+                    <p class="font-semibold"><?php _e('Tour: 20–30 min', 'chroma-excellence'); ?></p>
                 </div>
             </div>
 
@@ -52,7 +52,7 @@ if (!$tour_cta) {
                     echo do_shortcode('[chroma_tour_form]');
                 } else {
                     ?>
-                    <div class="text-brand-ink text-sm">Please activate the "Chroma Tour Form" plugin.</div>
+                    <div class="text-brand-ink text-sm"><?php _e('Please activate the "Chroma Tour Form" plugin.', 'chroma-excellence'); ?></div>
                     <?php
                 }
                 ?>
