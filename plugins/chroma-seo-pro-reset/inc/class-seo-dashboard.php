@@ -874,7 +874,16 @@ class Chroma_SEO_Dashboard
                             </div>
                             <div>
                                 <strong>Description:</strong>
-                                <div style="font-size: 11px; line-height: 1.4;"><?php echo wp_trim_words($desc, 15); ?></div>
+                                <?php 
+                                $is_manual_desc = !empty(get_post_meta($id, 'seo_llm_description', true));
+                                $is_ai_desc = !$is_manual_desc && class_exists('Chroma_Fallback_Resolver') && Chroma_Fallback_Resolver::get_cached_ai_value($id, 'description');
+                                
+                                if ($is_manual_desc): ?>
+                                    <span class="chroma-badge chroma-badge-manual">✏️ Manual</span>
+                                <?php elseif ($is_ai_desc): ?>
+                                    <span class="chroma-badge" style="background: #f0f6fc; color: #005a9c; border: 1px solid #c2dbff;">🤖 AI</span>
+                                <?php endif; ?>
+                                <div style="font-size: 11px; line-height: 1.4; margin-top: 3px;"><?php echo wp_trim_words($desc, 15); ?></div>
                             </div>
                         </td>
                         <td>
@@ -1462,7 +1471,7 @@ class Chroma_SEO_Dashboard
                                         continue;
                                     }
                                     $valid_count++;
-                                    $this->render_schema_block($schema['type'], $schema['data'], $index);
+                                    $this->render_schema_block($schema['type'], $schema['data'], $index, $post_id);
                                 }
                                 if ($valid_count === 0 && !empty($existing_schemas)) {
                                     echo '<div class="notice notice-error" style="padding: 10px; margin: 10px 0;">';
@@ -1507,7 +1516,7 @@ class Chroma_SEO_Dashboard
     /**
      * Render a single schema block
      */
-    private function render_schema_block($type, $data = [], $index = 0)
+    private function render_schema_block($type, $data = [], $index = 0, $post_id = 0)
     {
         $definitions = Chroma_Schema_Types::get_definitions();
         if (!isset($definitions[$type]))
@@ -1533,6 +1542,20 @@ class Chroma_SEO_Dashboard
                     <table class="form-table" style="margin-top: 0;">
                         <?php foreach ($def['fields'] as $key => $field):
                             $val = isset($data[$key]) ? $data[$key] : '';
+                            $is_ai = false;
+                            $placeholder = '';
+
+                            // Only check for AI fallback if current value is empty and we have a post_id
+                            if (empty($val) && $post_id) {
+                                if (class_exists('Chroma_Fallback_Resolver')) {
+                                    $ai_val = Chroma_Fallback_Resolver::get_cached_ai_value($post_id, $key);
+                                    if ($ai_val) {
+                                        $val = $ai_val;
+                                        $is_ai = true;
+                                    }
+                                }
+                            }
+                            ?>
 
                             // Handle array values for non-repeater fields (like sameAs)
                             if (is_array($val) && $field['type'] !== 'repeater') {
@@ -1542,6 +1565,9 @@ class Chroma_SEO_Dashboard
                                 <tr>
                                     <th scope="row" style="padding: 10px 0; width: 200px;">
                                         <?php echo esc_html($field['label']); ?>
+                                        <?php if ($is_ai): ?>
+                                            <span class="chroma-ai-badge" title="AI Generated Fallback" style="background: #f0f6fc; color: #005a9c; border: 1px solid #c2dbff; border-radius: 3px; padding: 1px 4px; font-size: 10px; vertical-align: middle; margin-left: 5px;">🤖 AI</span>
+                                        <?php endif; ?>
                                         <?php if (!empty($field['description'])): ?>
                                                 <span class="dashicons dashicons-editor-help chroma-help-tip"
                                                     title="<?php echo esc_attr($field['description']); ?>"
@@ -1641,7 +1667,7 @@ class Chroma_SEO_Dashboard
         }
 
         ob_start();
-        $this->render_schema_block($type, $prefill_data, $index);
+        $this->render_schema_block($type, $prefill_data, $index, $post_id);
         $html = ob_get_clean();
 
         wp_send_json_success(['html' => $html]);
@@ -3715,32 +3741,57 @@ class Chroma_SEO_Dashboard
         $live_schemas = json_decode(stripslashes($_POST['schemas']), true);
         
         if (!$post_id || empty($live_schemas)) {
-            wp_send_json_error(['message' => 'Invalid data']);
+            wp_send_json_error(['message' => 'Invalid data or no schemas provided']);
         }
         
-        // Convert to Builder format
+        $available_defs = Chroma_Schema_Types::get_definitions();
         $builder_schemas = [];
+        
         foreach ($live_schemas as $schema) {
             $type = $schema['@type'] ?? 'Unknown';
             if (is_array($type)) {
                 $type = $type[0];
             }
             
-            // Remove @context and @type from data (Builder adds these)
-            unset($schema['@context']);
-            unset($schema['@type']);
+            // Map common aliases (e.g., ChildCare -> LocalBusiness if needed, but we have specific defs)
+            // If the exact type isn't in our builder, we skip it to avoid corruption
+            if (!isset($available_defs[$type])) {
+                // Try parent type mapping if possible, else skip
+                if ($type === 'ChildCare' && isset($available_defs['LocalBusiness'])) {
+                    // Keep as ChildCare but use LocalBusiness fields?
+                    // Actually, our definitions should cover ChildCare.
+                } else {
+                    continue; 
+                }
+            }
+
+            // Extract valid fields defined in our Builder for this type
+            $field_data = [];
+            $def_fields = $available_defs[$type]['fields'] ?? [];
             
-            $builder_schemas[] = [
-                'type' => $type,
-                'data' => $schema
-            ];
+            foreach ($def_fields as $key => $field_def) {
+                if (isset($schema[$key])) {
+                    $field_data[$key] = $schema[$key];
+                }
+            }
+
+            if (!empty($field_data)) {
+                $builder_schemas[] = [
+                    'type' => $type,
+                    'data' => $field_data
+                ];
+            }
         }
         
+        if (empty($builder_schemas)) {
+            wp_send_json_error(['message' => 'Zero recognized schemas found to sync. Only standard Schema.org types are supported by the Builder.']);
+        }
+
         update_post_meta($post_id, '_chroma_post_schemas', $builder_schemas);
         
         wp_send_json_success([
             'synced' => count($builder_schemas),
-            'message' => 'Synced ' . count($builder_schemas) . ' schemas to Builder'
+            'message' => 'Successfully synced ' . count($builder_schemas) . ' schemas to the Builder.'
         ]);
     }
 
@@ -4932,42 +4983,67 @@ class Chroma_SEO_Dashboard
             return;
         }
         
-        // Standard invalid schema scan
-        $invalid_types = defined('CHROMA_INVALID_SCHEMA_TYPES') ? CHROMA_INVALID_SCHEMA_TYPES : [];
-        
+        // Scan ALL schema related meta fields
         $posts_with_schemas = $wpdb->get_results("
-            SELECT p.ID, p.post_title, p.post_type, pm.meta_value
+            SELECT p.ID, p.post_title, p.post_type, pm.meta_key, pm.meta_value
             FROM {$wpdb->posts} p
             INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-            WHERE pm.meta_key = '_chroma_post_schemas'
+            WHERE pm.meta_key IN ('_chroma_post_schemas', '_chroma_schema_override', '_chroma_schema_type')
             AND p.post_status = 'publish'
         ");
         
-        $affected_posts = [];
+        $affected_posts_map = [];
         $total_invalid = 0;
         
         foreach ($posts_with_schemas as $post) {
-            $schemas = maybe_unserialize($post->meta_value);
-            if (!is_array($schemas)) continue;
-            
+            $post_id = $post->ID;
+            if (!isset($affected_posts_map[$post_id])) {
+                $affected_posts_map[$post_id] = [
+                    'id' => $post_id,
+                    'title' => $post->post_title,
+                    'post_type' => $post->post_type,
+                    'invalid_types' => [],
+                    'edit_url' => get_edit_post_link($post_id, 'raw')
+                ];
+            }
+
+            $val = maybe_unserialize($post->meta_value);
             $invalid_found = [];
-            foreach ($schemas as $schema) {
-                $type = isset($schema['type']) ? $schema['type'] : '';
-                if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($type)) {
-                    $invalid_found[] = $type;
+
+            if ($post->meta_key === '_chroma_post_schemas' && is_array($val)) {
+                foreach ($val as $schema) {
+                    $type = isset($schema['type']) ? $schema['type'] : '';
+                    if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($type)) {
+                        $invalid_found[] = $type;
+                    }
+                }
+            } elseif ($post->meta_key === '_chroma_schema_type' && is_string($val)) {
+                if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($val)) {
+                    $invalid_found[] = $val . ' (Legacy)';
+                }
+            } elseif ($post->meta_key === '_chroma_schema_override' && is_string($val)) {
+                $json = json_decode($val, true);
+                if ($json) {
+                    $type = $json['@type'] ?? '';
+                    if (is_array($type)) $type = $type[0] ?? '';
+                    if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($type)) {
+                        $invalid_found[] = $type . ' (Override)';
+                    }
                 }
             }
             
             if (!empty($invalid_found)) {
-                $affected_posts[] = [
-                    'id' => $post->ID,
-                    'title' => $post->post_title,
-                    'post_type' => $post->post_type,
-                    'invalid_types' => array_unique($invalid_found),
-                    'edit_url' => get_edit_post_link($post->ID, 'raw')
-                ];
-                $total_invalid += count($invalid_found);
+                $affected_posts_map[$post_id]['invalid_types'] = array_unique(array_merge($affected_posts_map[$post_id]['invalid_types'], $invalid_found));
             }
+        }
+        
+        // Filter out posts that don't actually have invalid types
+        $affected_posts = array_values(array_filter($affected_posts_map, function($p) {
+            return !empty($p['invalid_types']);
+        }));
+
+        foreach ($affected_posts as $p) {
+            $total_invalid += count($p['invalid_types']);
         }
         
         wp_send_json_success([
@@ -4998,19 +5074,46 @@ class Chroma_SEO_Dashboard
         $cleaned = 0;
         
         foreach ($post_ids as $post_id) {
+            $changed = false;
+
+            // 1. Clean Builder Schemas
             $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
-            if (!is_array($schemas)) continue;
-            
-            $clean_schemas = [];
-            foreach ($schemas as $schema) {
-                $type = isset($schema['type']) ? $schema['type'] : '';
-                if (!function_exists('chroma_is_invalid_schema_type') || !chroma_is_invalid_schema_type($type)) {
-                    $clean_schemas[] = $schema;
+            if (is_array($schemas)) {
+                $clean_schemas = [];
+                foreach ($schemas as $schema) {
+                    $type = isset($schema['type']) ? $schema['type'] : '';
+                    if (!function_exists('chroma_is_invalid_schema_type') || !chroma_is_invalid_schema_type($type)) {
+                        $clean_schemas[] = $schema;
+                    }
+                }
+                if (count($clean_schemas) !== count($schemas)) {
+                    update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
+                    $changed = true;
+                }
+            }
+
+            // 2. Clean Legacy Type
+            $legacy_type = get_post_meta($post_id, '_chroma_schema_type', true);
+            if ($legacy_type && function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($legacy_type)) {
+                delete_post_meta($post_id, '_chroma_schema_type');
+                $changed = true;
+            }
+
+            // 3. Clean Overrides
+            $override = get_post_meta($post_id, '_chroma_schema_override', true);
+            if ($override) {
+                $json = json_decode($override, true);
+                if ($json) {
+                    $type = $json['@type'] ?? '';
+                    if (is_array($type)) $type = $type[0] ?? '';
+                    if ($type && function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($type)) {
+                        delete_post_meta($post_id, '_chroma_schema_override');
+                        $changed = true;
+                    }
                 }
             }
             
-            if (count($clean_schemas) !== count($schemas)) {
-                update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
+            if ($changed) {
                 $cleaned++;
             }
         }

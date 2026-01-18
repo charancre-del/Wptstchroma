@@ -297,6 +297,23 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => $result->get_error_message()]);
         }
 
+        // Save relevant fields to AI Fallback Cache for reuse
+        if (class_exists('Chroma_Fallback_Resolver')) {
+            $mapped_fields = [
+                'description' => 'description',
+                'description_long' => 'description',
+                'target_queries' => 'target_queries',
+                'queries' => 'target_queries',
+                'key_differentiators' => 'key_differentiators',
+                'differentiators' => 'key_differentiators'
+            ];
+            foreach ($mapped_fields as $json_key => $cache_key) {
+                if (!empty($result[$json_key])) {
+                    Chroma_Fallback_Resolver::set_ai_field_cache($post_id, $cache_key, $result[$json_key]);
+                }
+            }
+        }
+
         if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
             $existing_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
             if (!is_array($existing_schemas)) {
