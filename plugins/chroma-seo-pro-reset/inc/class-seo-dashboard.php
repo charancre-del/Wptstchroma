@@ -352,8 +352,8 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'sitemap' ? 'nav-tab-active' : ''; ?>">Sitemap</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=social'); ?>"
                     class="nav-tab <?php echo $active_tab === 'social' ? 'nav-tab-active' : ''; ?>">Social Preview</a>
-                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk'); ?>"
-                    class="nav-tab <?php echo $active_tab === 'bulk' ? 'nav-tab-active' : ''; ?>">Bulk Builder</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=registry'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'registry' ? 'nav-tab-active' : ''; ?>">Registry & Maintenance</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk-validation'); ?>"
                     class="nav-tab <?php echo $active_tab === 'bulk-validation' ? 'nav-tab-active' : ''; ?>">Bulk Validation</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=settings'); ?>"
@@ -368,8 +368,6 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'combos' ? 'nav-tab-active' : ''; ?>">Combo Pages</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=near-me'); ?>"
                     class="nav-tab <?php echo $active_tab === 'near-me' ? 'nav-tab-active' : ''; ?>">Near Me Pages</a>
-                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=cleanup'); ?>"
-                    class="nav-tab <?php echo $active_tab === 'cleanup' ? 'nav-tab-active' : ''; ?>">🧹 Schema Cleanup</a>
                 <?php do_action('chroma_seo_dashboard_tabs'); ?>
             </nav>
 
@@ -414,8 +412,8 @@ class Chroma_SEO_Dashboard
                 case 'social':
                     $this->render_social_tab();
                     break;
-                case 'bulk':
-                    $this->render_bulk_ops_tab();
+                case 'registry':
+                    $this->render_registry_tab();
                     break;
                 case 'bulk-validation':
                     $this->render_bulk_validation_tab();
@@ -437,9 +435,6 @@ class Chroma_SEO_Dashboard
                     break;
                 case 'near-me':
                     $this->render_near_me_tab();
-                    break;
-                case 'cleanup':
-                    $this->render_cleanup_tab();
                     break;
                 default:
                     // Allow other tabs to render via action
@@ -2137,9 +2132,9 @@ class Chroma_SEO_Dashboard
     }
 
     /**
-     * Render Bulk Operations Tab
+     * Render Bulk Operations Tab Content (Partial)
      */
-    private function render_bulk_ops_tab()
+    private function render_bulk_ops_tab_content()
     {
         $ptype = isset($_GET['ptype']) ? sanitize_text_field($_GET['ptype']) : 'location';
         $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
@@ -4718,9 +4713,104 @@ class Chroma_SEO_Dashboard
     }
 
     /**
-     * Render Schema Cleanup Tab
+     * Render Registry & Maintenance Tab (Consolidated)
      */
-    private function render_cleanup_tab()
+    public function render_registry_tab()
+    {
+        // Get Registry Status
+        $registered = [];
+        $blocked = [];
+        if (class_exists('Chroma_Schema_Registry')) {
+            $registered = Chroma_Schema_Registry::get_all();
+            $blocked = Chroma_Schema_Registry::get_blocked();
+        }
+        ?>
+        <div class="chroma-seo-card">
+            <h2>📊 Schema Registry Status</h2>
+            <p>This table shows what the <strong>Chroma Schema Registry</strong> is currently outputting to the frontend for this page.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- Active Schemas -->
+                <div style="background: #f0f6fc; padding: 15px; border: 1px solid #c2dbff; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: #005a9c;">✅ Active Output (<?php echo count($registered); ?>)</h3>
+                    <table class="widefat striped">
+                        <thead><tr><th>Type</th><th>Source</th></tr></thead>
+                        <tbody>
+                            <?php if (empty($registered)): ?>
+                                <tr><td colspan="2">No schemas registered yet.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($registered as $item): ?>
+                                    <tr>
+                                        <td><strong><?php echo esc_html($item['type']); ?></strong></td>
+                                        <td><?php echo esc_html($item['source']); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Blocked Schemas -->
+                <div style="background: #fff5f5; padding: 15px; border: 1px solid #fcb3b3; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: #d63638;">🚫 Blocked / Invalid (<?php echo count($blocked); ?>)</h3>
+                    <table class="widefat striped">
+                        <thead><tr><th>Type</th><th>Reason</th></tr></thead>
+                        <tbody>
+                            <?php if (empty($blocked)): ?>
+                                <tr><td colspan="2">No schemas blocked.</td></tr>
+                            <?php else: ?>
+                                <?php foreach ($blocked as $item): ?>
+                                    <tr>
+                                        <td><strong><?php echo esc_html($item['type']); ?></strong></td>
+                                        <td><?php echo esc_html($item['reason']); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <hr style="margin: 30px 0;">
+
+        <!-- Consolidated Tools Section -->
+        <div class="chroma-seo-card">
+            <h2>🛠️ Maintenance Tools</h2>
+            
+            <!-- Tab Navigation for Tools -->
+            <h3 class="nav-tab-wrapper" style="margin-bottom: 15px;">
+                <a href="#tool-cleanup" class="nav-tab nav-tab-active" onclick="switchToolTab(event, 'tool-cleanup')">Schema Cleanup</a>
+                <a href="#tool-bulk" class="nav-tab" onclick="switchToolTab(event, 'tool-bulk')">Bulk Actions</a>
+            </h3>
+
+            <!-- Tool: Schema Cleanup -->
+            <div id="tool-cleanup" class="tool-content">
+                <?php $this->render_cleanup_tab_content(); ?>
+            </div>
+
+            <!-- Tool: Bulk Actions -->
+            <div id="tool-bulk" class="tool-content" style="display: none;">
+                <?php $this->render_bulk_ops_tab_content(); ?>
+            </div>
+        </div>
+
+        <script>
+        function switchToolTab(e, id) {
+            e.preventDefault();
+            jQuery('.tool-content').hide();
+            jQuery('#' + id).show();
+            jQuery('.nav-tab').removeClass('nav-tab-active');
+            jQuery(e.target).addClass('nav-tab-active');
+        }
+        </script>
+        <?php
+    }
+
+    /**
+     * Render Schema Cleanup Tab Content (Partial)
+     */
+    private function render_cleanup_tab_content()
     {
         // Get invalid types list
         $invalid_types = defined('CHROMA_INVALID_SCHEMA_TYPES') ? CHROMA_INVALID_SCHEMA_TYPES : [
