@@ -1549,13 +1549,13 @@ class Chroma_SEO_Dashboard
                             if (empty($val) && $post_id) {
                                 if (class_exists('Chroma_Fallback_Resolver')) {
                                     $ai_val = Chroma_Fallback_Resolver::get_cached_ai_value($post_id, $key);
+                                    $ai_val = Chroma_Fallback_Resolver::get_cached_ai_value($post_id, $key);
                                     if ($ai_val) {
                                         $val = $ai_val;
                                         $is_ai = true;
                                     }
                                 }
                             }
-                            ?>
 
                             // Handle array values for non-repeater fields (like sameAs)
                             if (is_array($val) && $field['type'] !== 'repeater') {
@@ -3747,22 +3747,43 @@ class Chroma_SEO_Dashboard
         $available_defs = Chroma_Schema_Types::get_definitions();
         $builder_schemas = [];
         
+        $aliases = [
+            'Preschool' => 'ChildCare',
+            'School' => 'ChildCare',
+            'EducationalOrganization' => 'ChildCare',
+            'DayCare' => 'ChildCare',
+            'EmergencyService' => 'LocalBusiness',
+            'Restaurant' => 'LocalBusiness',
+        ];
+
         foreach ($live_schemas as $schema) {
             $type = $schema['@type'] ?? 'Unknown';
             if (is_array($type)) {
                 $type = $type[0];
             }
             
-            // Map common aliases (e.g., ChildCare -> LocalBusiness if needed, but we have specific defs)
-            // If the exact type isn't in our builder, we skip it to avoid corruption
+            // Handle Aliases
+            if (isset($aliases[$type])) {
+                $type = $aliases[$type];
+            }
+            
+            // Skip unrecognized types
             if (!isset($available_defs[$type])) {
-                // Try parent type mapping if possible, else skip
-                if ($type === 'ChildCare' && isset($available_defs['LocalBusiness'])) {
-                    // Keep as ChildCare but use LocalBusiness fields?
-                    // Actually, our definitions should cover ChildCare.
-                } else {
-                    continue; 
-                }
+                continue;
+            }
+
+            // Flatten Nested Data (Address)
+            if (isset($schema['address']) && is_array($schema['address'])) {
+                $schema['streetAddress'] = $schema['address']['streetAddress'] ?? ($schema['streetAddress'] ?? '');
+                $schema['addressLocality'] = $schema['address']['addressLocality'] ?? ($schema['addressLocality'] ?? '');
+                $schema['addressRegion'] = $schema['address']['addressRegion'] ?? ($schema['addressRegion'] ?? '');
+                $schema['postalCode'] = $schema['address']['postalCode'] ?? ($schema['postalCode'] ?? '');
+            }
+
+            // Flatten Nested Data (Geo)
+            if (isset($schema['geo']) && is_array($schema['geo'])) {
+                $schema['geo_lat'] = $schema['geo']['latitude'] ?? ($schema['geo_lat'] ?? '');
+                $schema['geo_lng'] = $schema['geo']['longitude'] ?? ($schema['geo_lng'] ?? '');
             }
 
             // Extract valid fields defined in our Builder for this type
@@ -3771,7 +3792,30 @@ class Chroma_SEO_Dashboard
             
             foreach ($def_fields as $key => $field_def) {
                 if (isset($schema[$key])) {
-                    $field_data[$key] = $schema[$key];
+                    $val = $schema[$key];
+                    
+                    // Handle Arrays for non-repeater text fields
+                    if (is_array($val) && $field_def['type'] !== 'repeater') {
+                        // If it's a simple array of strings, implode it
+                        if (count(array_filter($val, 'is_string')) === count($val)) {
+                            $val = implode(', ', $val);
+                        } else {
+                            // Complex array (objects) in a text field? Try JSON or take first 'name'?
+                            // Fallback: If it has 'name' property, use that (e.g. areaServed as Place)
+                            $mapped = [];
+                            foreach ($val as $v) {
+                                if (is_array($v) && isset($v['name'])) $mapped[] = $v['name'];
+                                elseif (is_string($v)) $mapped[] = $v;
+                            }
+                            if (!empty($mapped)) {
+                                $val = implode(', ', $mapped);
+                            } else {
+                                $val = ''; // Too complex to map to text field
+                            }
+                        }
+                    }
+                    
+                    $field_data[$key] = $val;
                 }
             }
 
