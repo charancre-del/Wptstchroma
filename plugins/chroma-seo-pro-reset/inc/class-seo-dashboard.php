@@ -4620,15 +4620,48 @@ class Chroma_SEO_Dashboard
             'VideoGame', 'RealEstateListing', 'Hotel', 'Restaurant', 'LodgingBusiness',
             'Brand', 'Motel', 'Resort', 'Hostel', 'BedAndBreakfast', 'Campground'
         ];
+        
+        // Check if registry is active
+        $registry_active = class_exists('Chroma_Schema_Registry');
         ?>
         <div class="chroma-seo-card">
             <h2>🧹 Schema Cleanup Tools</h2>
             <p>Scan and remove invalid or unwanted schema types from your posts. These issues were identified during schema audits.</p>
         </div>
 
+        <!-- Schema Registry Status -->
+        <div class="chroma-seo-card" style="background: <?php echo $registry_active ? '#e8f5e9' : '#fff3e0'; ?>; border-left: 4px solid <?php echo $registry_active ? '#00a32a' : '#ff9800'; ?>;">
+            <h3>🔗 Schema Registry Status</h3>
+            <?php if ($registry_active): ?>
+                <p style="color: #00a32a;"><strong>✅ Registry is ACTIVE</strong></p>
+                <p>The Schema Registry is filtering duplicate and invalid schema types at output time.</p>
+                <ul style="margin-left: 20px;">
+                    <li><strong>Deduplication:</strong> Prevents duplicate @type and @id schemas</li>
+                    <li><strong>Invalid Type Blocking:</strong> Blocks VacationRental, MobileApplication, etc.</li>
+                    <li><strong>Debug Panel:</strong> Add <code>?schema_debug=1</code> to any page URL to see what's registered/blocked</li>
+                </ul>
+                <p><a href="<?php echo home_url('/?schema_debug=1'); ?>" target="_blank" class="button">View Registry Debug on Homepage</a></p>
+            <?php else: ?>
+                <p style="color: #ff9800;"><strong>⚠️ Registry is NOT ACTIVE</strong></p>
+                <p>The Schema Registry class is not loaded. Check that <code>class-schema-registry.php</code> exists.</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Bulk Cleanup Action -->
+        <div class="chroma-seo-card" style="background: #ffebee; border-left: 4px solid #d63638;">
+            <h3>⚡ Quick Bulk Cleanup</h3>
+            <p>Remove all invalid schema types from <strong>all posts</strong> in one click:</p>
+            <button id="bulk-cleanup-btn" class="button button-primary button-hero" style="background: #d63638; border-color: #b71c1c; font-size: 16px; margin: 10px 0;">
+                <span class="dashicons dashicons-trash" style="margin-right: 8px; line-height: 1.4;"></span> Run Bulk Cleanup Now
+            </button>
+            <span id="bulk-cleanup-spinner" class="spinner" style="float: none;"></span>
+            <div id="bulk-cleanup-result" style="margin-top: 10px;"></div>
+            <p class="description">This scans all posts and removes invalid schema types from <code>_chroma_post_schemas</code> meta.</p>
+        </div>
+
         <div class="chroma-seo-card">
-            <h3>📋 Invalid Schema Types to Remove</h3>
-            <p>The following schema types will be flagged and can be removed:</p>
+            <h3>📋 Invalid Schema Types Blocklist</h3>
+            <p>The following schema types are blocked by the Registry and will be removed by cleanup:</p>
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0;">
                 <?php foreach ($invalid_types as $type): ?>
                     <span style="background: #ffebee; color: #d63638; padding: 4px 12px; border-radius: 4px; font-family: monospace;"><?php echo esc_html($type); ?></span>
@@ -4674,6 +4707,63 @@ class Chroma_SEO_Dashboard
         jQuery(document).ready(function($) {
             var cleanupNonce = '<?php echo wp_create_nonce('chroma_schema_cleanup'); ?>';
             var scannedData = [];
+
+            // Bulk cleanup (scan + execute in one step)
+            $('#bulk-cleanup-btn').on('click', function(e) {
+                e.preventDefault();
+                
+                if (!confirm('⚠️ This will scan ALL posts and remove invalid schema types.\n\nAre you sure you want to proceed?')) {
+                    return;
+                }
+                
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#bulk-cleanup-spinner').addClass('is-active');
+                $('#bulk-cleanup-result').html('<p>Scanning posts...</p>');
+                
+                // Step 1: Scan
+                $.post(ajaxurl, {
+                    action: 'chroma_schema_cleanup_scan',
+                    nonce: cleanupNonce
+                }, function(response) {
+                    if (!response.success) {
+                        btn.prop('disabled', false);
+                        $('#bulk-cleanup-spinner').removeClass('is-active');
+                        $('#bulk-cleanup-result').html('<p style="color: #d63638;">❌ Scan failed: ' + (response.data || 'Unknown error') + '</p>');
+                        return;
+                    }
+                    
+                    var posts = response.data.posts;
+                    if (posts.length === 0) {
+                        btn.prop('disabled', false);
+                        $('#bulk-cleanup-spinner').removeClass('is-active');
+                        $('#bulk-cleanup-result').html('<p style="color: #00a32a;">✅ No invalid schemas found! Database is clean.</p>');
+                        return;
+                    }
+                    
+                    $('#bulk-cleanup-result').html('<p>Found ' + posts.length + ' posts with invalid schemas. Cleaning up...</p>');
+                    
+                    // Step 2: Execute cleanup
+                    $.post(ajaxurl, {
+                        action: 'chroma_schema_cleanup_execute',
+                        nonce: cleanupNonce,
+                        post_ids: posts.map(function(p) { return p.id; })
+                    }, function(execResponse) {
+                        btn.prop('disabled', false);
+                        $('#bulk-cleanup-spinner').removeClass('is-active');
+                        
+                        if (execResponse.success) {
+                            $('#bulk-cleanup-result').html(
+                                '<p style="color: #00a32a; font-size: 16px;"><strong>✅ Bulk Cleanup Complete!</strong></p>' +
+                                '<p>Removed invalid schemas from <strong>' + execResponse.data.cleaned + '</strong> posts.</p>' +
+                                '<p>Remember to <strong>clear your site cache</strong> to see the changes on the frontend.</p>'
+                            );
+                        } else {
+                            $('#bulk-cleanup-result').html('<p style="color: #d63638;">❌ Cleanup failed: ' + (execResponse.data || 'Unknown error') + '</p>');
+                        }
+                    });
+                });
+            });
 
             // Scan for invalid schemas
             $('#cleanup-scan-btn').on('click', function(e) {
