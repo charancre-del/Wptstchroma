@@ -5143,6 +5143,19 @@ class Chroma_SEO_Dashboard
                             '<strong style="color: #d63638;">' + invalidCount + '</strong> invalid schema entries.'
                         );
                         
+                        // Show breakdown of ALL types (Valid & Invalid)
+                        if (response.data.all_types_breakdown) {
+                            var breakdownHtml = '<div style="margin: 15px 0; padding: 10px; background: #eef; border: 1px solid #ccd; border-radius: 4px;">';
+                            breakdownHtml += '<strong>📊 Diagnostic: All Schema Types Found in DB:</strong><br>';
+                            breakdownHtml += '<small>If you see your "rogue" schema here but it is not flagged as invalid, it is likely a duplicate valid type.</small>';
+                            breakdownHtml += '<ul style="margin: 5px 0 0 20px; list-style: disc; columns: 2;">';
+                            $.each(response.data.all_types_breakdown, function(type, count) {
+                                breakdownHtml += '<li>' + type + ': <strong>' + count + '</strong></li>';
+                            });
+                            breakdownHtml += '</ul></div>';
+                            $('#cleanup-summary').append(breakdownHtml);
+                        }
+                        
                         var listHtml = '';
                         if (scannedData.length > 0) {
                             scannedData.forEach(function(post) {
@@ -5347,11 +5360,26 @@ class Chroma_SEO_Dashboard
             $total_invalid += count($p['invalid_types']);
         }
         
+        // Scan ALL types for reporting (Sprint 9 Update)
+        $all_types_found = [];
+        foreach ($posts_with_schemas as $p) {
+            $val = maybe_unserialize($p->meta_value);
+            if (is_array($val)) {
+                foreach ($val as $s) {
+                    if (isset($s['type'])) {
+                        $t = $s['type'];
+                        $all_types_found[$t] = ($all_types_found[$t] ?? 0) + 1;
+                    }
+                }
+            }
+        }
+
         wp_send_json_success([
-            'total_posts' => count($posts_with_schemas),
+            'total_posts' => count(array_unique(array_column($posts_with_schemas, 'ID'))),
             'affected_posts' => count($affected_posts),
             'invalid_count' => $total_invalid,
-            'posts' => $affected_posts
+            'posts' => $affected_posts,
+            'all_types_breakdown' => $all_types_found
         ]);
     }
 
