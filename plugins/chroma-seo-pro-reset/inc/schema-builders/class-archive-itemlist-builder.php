@@ -66,6 +66,6 @@ class Chroma_Archive_ItemList_Builder
             ]
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'archive-itemlist-builder']);
     }
 }

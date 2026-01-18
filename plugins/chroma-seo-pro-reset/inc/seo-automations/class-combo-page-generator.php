@@ -809,7 +809,7 @@ class Chroma_Combo_Page_Generator
             ];
         }
         
-        echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'combo-page-generator']);
     }
     
     /**

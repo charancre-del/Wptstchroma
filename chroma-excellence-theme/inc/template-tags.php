@@ -266,30 +266,8 @@ function chroma_get_location_faq_items($post_id = null)
  */
 function chroma_render_program_faq_schema($faq_items)
 {
-    if (empty($faq_items)) {
-        return;
-    }
-
-    $entities = array();
-
-    foreach ($faq_items as $item) {
-        $entities[] = array(
-            '@type' => 'Question',
-            'name' => $item['question'],
-            'acceptedAnswer' => array(
-                '@type' => 'Answer',
-                'text' => wp_strip_all_tags($item['answer']),
-            ),
-        );
-    }
-
-    $schema = array(
-        '@context' => 'https://schema.org',
-        '@type' => 'FAQPage',
-        'mainEntity' => $entities,
-    );
-
-    echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+    // DISABLED: Schema now handled by Chroma SEO Pro plugin
+    return;
 }
 
 /**

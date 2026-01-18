@@ -38,7 +38,8 @@ function chroma_general_content_schema() {
     }
 }
 }
-add_action('wp_head', 'chroma_general_content_schema', 1);
+// DISABLED: Schema now handled by Chroma SEO Pro plugin
+// add_action('wp_head', 'chroma_general_content_schema', 1);
 
 /**
  * Add Organization Schema to Homepage
@@ -107,7 +108,8 @@ function chroma_organization_schema()
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
 }
-add_action('wp_head', 'chroma_organization_schema');
+// DISABLED: Schema now handled by Chroma SEO Pro plugin
+// add_action('wp_head', 'chroma_organization_schema');
 
 /**
  * HTTP Header Signals (Tier 7 - Y)
@@ -165,7 +167,8 @@ function chroma_website_schema()
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
 }
-add_action('wp_head', 'chroma_website_schema');
+// DISABLED: Schema now handled by Chroma SEO Pro plugin
+// add_action('wp_head', 'chroma_website_schema');
 
 /**
  * Add LocalBusiness Schema to Location Pages
@@ -533,7 +536,8 @@ function chroma_location_schema()
         }
 }
 }
-add_action('wp_head', 'chroma_location_schema');
+// DISABLED: Schema now handled by Chroma SEO Pro plugin
+// add_action('wp_head', 'chroma_location_schema');
 
 /**
  * Add Service Schema to City Pages
@@ -605,7 +609,8 @@ function chroma_city_schema()
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
 }
-add_action('wp_head', 'chroma_city_schema');
+// DISABLED: Schema now handled by Chroma SEO Pro plugin
+// add_action('wp_head', 'chroma_city_schema');
 
 /**
  * Add Service Schema to Program Pages
@@ -660,7 +665,8 @@ function chroma_program_schema()
         echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
 }
 }
-add_action('wp_head', 'chroma_program_schema');
+// DISABLED: Schema now handled by Chroma SEO Pro plugin
+// add_action('wp_head', 'chroma_program_schema');
 
 /**
  * Add FAQPage Schema to Homepage (when FAQ section exists)

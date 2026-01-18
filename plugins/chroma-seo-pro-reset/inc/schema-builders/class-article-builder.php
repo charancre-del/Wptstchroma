@@ -49,6 +49,6 @@ class Chroma_Article_Builder
             'description' => get_the_excerpt($post_id)
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'article-builder']);
     }
 }

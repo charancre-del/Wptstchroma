@@ -33,6 +33,6 @@ class Chroma_Learning_Resource_Builder
             'educationalLevel' => get_post_meta($post_id, 'program_age_range', true) ?: 'Early Childhood',
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'learning-resource-builder']);
     }
 }

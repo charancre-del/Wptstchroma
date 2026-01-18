@@ -137,7 +137,7 @@ class Chroma_Job_Posting_Builder
             // Safer to just leave generic if unknown.
         }
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'job-posting-builder']);
     }
 
     private static function map_employment_type($type) {

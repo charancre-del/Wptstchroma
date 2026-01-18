@@ -86,7 +86,7 @@ class Chroma_Event_Schema_Builder
         $schemas = self::build(get_the_ID());
         if ($schemas) {
             foreach ($schemas as $schema) {
-                echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+                Chroma_Schema_Registry::register($schema, ['source' => 'event-builder']);
             }
         }
     }

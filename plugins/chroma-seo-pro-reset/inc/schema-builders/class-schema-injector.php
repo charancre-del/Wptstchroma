@@ -102,7 +102,7 @@ class Chroma_Schema_Injector
 
         $schema = self::get_person_schema_data(get_the_ID());
         if ($schema) {
-            echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+            Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-person']);
         }
     }
 
@@ -173,7 +173,7 @@ class Chroma_Schema_Injector
         }
 
         $schema = self::get_organization_schema_data();
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+        Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-organization']);
     }
 
     /**
@@ -210,7 +210,7 @@ class Chroma_Schema_Injector
             'publisher' => ['@id' => home_url('/') . '#organization']
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-website']);
     }
 
     /**
@@ -401,7 +401,7 @@ class Chroma_Schema_Injector
             }
         }
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-location']);
 
         // Feature: Open House Event Schema (separate output)
         $open_house_date = get_post_meta($location_id, '_chroma_open_house_date', true);
@@ -433,7 +433,7 @@ class Chroma_Schema_Injector
                     'url' => get_permalink()
                 ]
             ];
-            echo '<script type="application/ld+json">' . wp_json_encode($event_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+            Chroma_Schema_Registry::register($event_schema, ['source' => 'schema-injector-open-house']);
         }
     }
 
@@ -473,7 +473,7 @@ class Chroma_Schema_Injector
             $schema['description'] = $author_bio;
         }
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-author']);
     }
     /**
      * Get default schema data for a given post type
@@ -905,12 +905,12 @@ class Chroma_Schema_Injector
                 }
                 // Registry will output at priority 99 - don't echo here
             } else {
-                // Fallback: output directly (legacy mode)
+                // Fallback: also route through Registry for consistency
                 $final_schema = [
                     '@context' => 'https://schema.org',
                     '@graph' => $graph
                 ];
-                echo '<script type="application/ld+json">' . wp_json_encode($final_schema) . '</script>' . "\n";
+                Chroma_Schema_Registry::register($final_schema, ['source' => 'schema-injector-modular-legacy']);
             }
         }
     }

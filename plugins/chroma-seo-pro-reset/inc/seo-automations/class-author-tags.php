@@ -54,7 +54,7 @@ class Chroma_Author_Tags
                 $schema['description'] = $author['description'];
             }
             
-            echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+            Chroma_Schema_Registry::register($schema, ['source' => 'author-tags']);
         }
     }
     
