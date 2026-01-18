@@ -1549,7 +1549,6 @@ class Chroma_SEO_Dashboard
                             if (empty($val) && $post_id) {
                                 if (class_exists('Chroma_Fallback_Resolver')) {
                                     $ai_val = Chroma_Fallback_Resolver::get_cached_ai_value($post_id, $key);
-                                    $ai_val = Chroma_Fallback_Resolver::get_cached_ai_value($post_id, $key);
                                     if ($ai_val) {
                                         $val = $ai_val;
                                         $is_ai = true;
@@ -3774,16 +3773,18 @@ class Chroma_SEO_Dashboard
 
             // Flatten Nested Data (Address)
             if (isset($schema['address']) && is_array($schema['address'])) {
-                $schema['streetAddress'] = $schema['address']['streetAddress'] ?? ($schema['streetAddress'] ?? '');
-                $schema['addressLocality'] = $schema['address']['addressLocality'] ?? ($schema['addressLocality'] ?? '');
-                $schema['addressRegion'] = $schema['address']['addressRegion'] ?? ($schema['addressRegion'] ?? '');
-                $schema['postalCode'] = $schema['address']['postalCode'] ?? ($schema['postalCode'] ?? '');
+                $addr = $schema['address'];
+                $schema['streetAddress'] = $addr['streetAddress'] ?? ($schema['streetAddress'] ?? '');
+                $schema['addressLocality'] = $addr['addressLocality'] ?? ($schema['addressLocality'] ?? '');
+                $schema['addressRegion'] = $addr['addressRegion'] ?? ($schema['addressRegion'] ?? '');
+                $schema['postalCode'] = $addr['postalCode'] ?? ($schema['postalCode'] ?? '');
             }
 
             // Flatten Nested Data (Geo)
             if (isset($schema['geo']) && is_array($schema['geo'])) {
-                $schema['geo_lat'] = $schema['geo']['latitude'] ?? ($schema['geo_lat'] ?? '');
-                $schema['geo_lng'] = $schema['geo']['longitude'] ?? ($schema['geo_lng'] ?? '');
+                $geo = $schema['geo'];
+                $schema['geo_lat'] = $geo['latitude'] ?? ($schema['geo_lat'] ?? '');
+                $schema['geo_lng'] = $geo['longitude'] ?? ($schema['geo_lng'] ?? '');
             }
 
             // Extract valid fields defined in our Builder for this type
@@ -3794,23 +3795,35 @@ class Chroma_SEO_Dashboard
                 if (isset($schema[$key])) {
                     $val = $schema[$key];
                     
-                    // Handle Arrays for non-repeater text fields
-                    if (is_array($val) && $field_def['type'] !== 'repeater') {
-                        // If it's a simple array of strings, implode it
-                        if (count(array_filter($val, 'is_string')) === count($val)) {
-                            $val = implode(', ', $val);
-                        } else {
-                            // Complex array (objects) in a text field? Try JSON or take first 'name'?
-                            // Fallback: If it has 'name' property, use that (e.g. areaServed as Place)
-                            $mapped = [];
-                            foreach ($val as $v) {
-                                if (is_array($v) && isset($v['name'])) $mapped[] = $v['name'];
-                                elseif (is_string($v)) $mapped[] = $v;
+                    // Handle Complex Types mapping to Simple Fields
+                    if ($field_def['type'] !== 'repeater') {
+                        // Case 1: Value is an Array
+                        if (is_array($val)) {
+                            // Check if it's an array of strings
+                            if (count(array_filter($val, 'is_string')) === count($val)) {
+                                $val = implode(', ', $val);
+                            } 
+                            // Check if it's a single object (associative array)
+                            elseif (array_keys($val) !== range(0, count($val) - 1)) {
+                                // It's an object. Try to extract common values.
+                                if (isset($val['name'])) $val = $val['name'];
+                                elseif (isset($val['url'])) $val = $val['url'];
+                                elseif (isset($val['@id'])) $val = $val['@id'];
+                                else $val = json_encode($val); // Fallback
                             }
-                            if (!empty($mapped)) {
-                                $val = implode(', ', $mapped);
-                            } else {
-                                $val = ''; // Too complex to map to text field
+                            // Check if it's a list of objects
+                            else {
+                                // Extract names or URLs from list
+                                $mapped = [];
+                                foreach ($val as $v) {
+                                    if (is_array($v)) {
+                                        if (isset($v['name'])) $mapped[] = $v['name'];
+                                        elseif (isset($v['url'])) $mapped[] = $v['url'];
+                                    } elseif (is_string($v)) {
+                                        $mapped[] = $v;
+                                    }
+                                }
+                                $val = !empty($mapped) ? implode(', ', $mapped) : '';
                             }
                         }
                     }
