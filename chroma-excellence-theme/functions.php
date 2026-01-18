@@ -75,7 +75,7 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-cities.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-careers.php';
-require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
+// require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
 require_once CHROMA_THEME_DIR . '/inc/class-amp-blog.php';
 
 // API Handlers
@@ -90,7 +90,7 @@ require_once CHROMA_THEME_DIR . '/inc/parents-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/careers-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/employers-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/privacy-page-meta.php';
-require_once CHROMA_THEME_DIR . '/inc/schema-meta-boxes.php';
+// require_once CHROMA_THEME_DIR . '/inc/schema-meta-boxes.php';
 require_once CHROMA_THEME_DIR . '/inc/general-seo-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/home-page-meta.php';
 
@@ -99,7 +99,7 @@ require_once CHROMA_THEME_DIR . '/inc/home-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
-require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
+// require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-home.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
@@ -114,7 +114,7 @@ require_once CHROMA_THEME_DIR . '/inc/acf-homepage.php';
 require_once CHROMA_THEME_DIR . '/inc/cleanup.php';
 
 // SEO and Internationalization
-require_once CHROMA_THEME_DIR . '/inc/seo-engine.php';
+// require_once CHROMA_THEME_DIR . '/inc/seo-engine.php';
 require_once CHROMA_THEME_DIR . '/inc/city-slug-logic.php';
 // require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
 require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';

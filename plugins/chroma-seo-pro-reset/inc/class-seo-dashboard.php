@@ -4715,59 +4715,83 @@ class Chroma_SEO_Dashboard
     /**
      * Render Registry & Maintenance Tab (Consolidated)
      */
+    /**
+     * Render Registry & Maintenance Tab (Consolidated)
+     */
     public function render_registry_tab()
     {
-        // Get Registry Status
-        $registered = [];
-        $blocked = [];
-        if (class_exists('Chroma_Schema_Registry')) {
-            $registered = Chroma_Schema_Registry::get_all();
-            $blocked = Chroma_Schema_Registry::get_blocked();
+        global $wpdb;
+        
+        // 1. Get Real Database Stats (Not Runtime)
+        $total_schemas_count = 0;
+        $posts_with_schema = $wpdb->get_var("
+            SELECT COUNT(DISTINCT post_id) 
+            FROM {$wpdb->postmeta} 
+            WHERE meta_key = '_chroma_post_schemas' 
+            AND meta_value != '' AND meta_value != 'a:0:{}'
+        ");
+
+        // Calculate total individual schemas
+        $all_meta = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_chroma_post_schemas'");
+        foreach ($all_meta as $val) {
+            $data = maybe_unserialize($val);
+            if (is_array($data)) {
+                $total_schemas_count += count($data);
+            }
         }
+        
+        // 2. Check Registry Class Status
+        $registry_active = class_exists('Chroma_Schema_Registry');
         ?>
         <div class="chroma-seo-card">
-            <h2>📊 Schema Registry Status</h2>
-            <p>This table shows what the <strong>Chroma Schema Registry</strong> is currently outputting to the frontend for this page.</p>
+            <h2>📊 Registry System Status</h2>
+            <p>This dashboard monitors the <strong>Chroma Schema Registry</strong> logic and database health.</p>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                <!-- Active Schemas -->
-                <div style="background: #f0f6fc; padding: 15px; border: 1px solid #c2dbff; border-radius: 5px;">
-                    <h3 style="margin-top: 0; color: #005a9c;">✅ Active Output (<?php echo count($registered); ?>)</h3>
-                    <table class="widefat striped">
-                        <thead><tr><th>Type</th><th>Source</th></tr></thead>
+                <!-- System Health -->
+                <div style="background: <?php echo $registry_active ? '#f0f6fc' : '#fff5f5'; ?>; padding: 15px; border: 1px solid <?php echo $registry_active ? '#c2dbff' : '#fcb3b3'; ?>; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: <?php echo $registry_active ? '#005a9c' : '#d63638'; ?>;">
+                        <?php echo $registry_active ? '✅ Registry Logic Active' : '❌ Registry Logic Missing'; ?>
+                    </h3>
+                    <p>The Registry class is loaded and ready to filter frontend output.</p>
+                    <p><strong>Passthrough Mode:</strong> <span style="color: #00a32a; font-weight: bold;">Enabled</span></p>
+                </div>
+
+                <!-- Database Stats -->
+                <div style="background: #e8f5e9; padding: 15px; border: 1px solid #4caf50; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: #2e7d32;">💾 Database Content</h3>
+                    <table class="widefat striped" style="background: transparent; border: none;">
                         <tbody>
-                            <?php if (empty($registered)): ?>
-                                <tr><td colspan="2">No schemas registered yet.</td></tr>
-                            <?php else: ?>
-                                <?php foreach ($registered as $item): ?>
-                                    <tr>
-                                        <td><strong><?php echo esc_html($item['type']); ?></strong></td>
-                                        <td><?php echo esc_html($item['source']); ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                            <tr>
+                                <td><strong>Managed Posts:</strong></td>
+                                <td><?php echo intval($posts_with_schema); ?> posts have schema</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Schemas:</strong></td>
+                                <td><strong><?php echo intval($total_schemas_count); ?></strong> schemas stored</td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
+            </div>
 
-                <!-- Blocked Schemas -->
-                <div style="background: #fff5f5; padding: 15px; border: 1px solid #fcb3b3; border-radius: 5px;">
-                    <h3 style="margin-top: 0; color: #d63638;">🚫 Blocked / Invalid (<?php echo count($blocked); ?>)</h3>
-                    <table class="widefat striped">
-                        <thead><tr><th>Type</th><th>Reason</th></tr></thead>
-                        <tbody>
-                            <?php if (empty($blocked)): ?>
-                                <tr><td colspan="2">No schemas blocked.</td></tr>
-                            <?php else: ?>
-                                <?php foreach ($blocked as $item): ?>
-                                    <tr>
-                                        <td><strong><?php echo esc_html($item['type']); ?></strong></td>
-                                        <td><?php echo esc_html($item['reason']); ?></td>
-                                    </tr>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+            <!-- UNIVERSAL VALIDATOR -->
+            <div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; border-left: 4px solid #673ab7;">
+                <h3 style="margin-top: 0; color: #673ab7;">🌐 Universal Live Validator</h3>
+                <p>Enter any URL from your site to see EXACTLY what schemas are being output to Google. This detects duplicates and non-Registry schemas.</p>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="url" id="live-check-url" class="regular-text" style="width: 100%; max-width: 500px;" 
+                           placeholder="https://yourwebsite.com/sample-page/" value="<?php echo home_url('/'); ?>">
+                    <button id="live-check-btn" class="button button-primary button-hero">
+                        <span class="dashicons dashicons-search" style="margin-right: 5px; line-height: 1.5;"></span> Check Live Output
+                    </button>
+                </div>
+                
+                <span id="live-check-spinner" class="spinner" style="float: none; margin-top: 10px;"></span>
+                
+                <div id="live-check-results" style="margin-top: 20px; display: none;">
+                    <!-- Results injected here -->
                 </div>
             </div>
         </div>
@@ -4803,8 +4827,136 @@ class Chroma_SEO_Dashboard
             jQuery('.nav-tab').removeClass('nav-tab-active');
             jQuery(e.target).addClass('nav-tab-active');
         }
+
+        jQuery(document).ready(function($) {
+            $('#live-check-btn').on('click', function(e) {
+                e.preventDefault();
+                var url = $('#live-check-url').val();
+                if (!url) {
+                    alert('Please enter a URL');
+                    return;
+                }
+                
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#live-check-spinner').addClass('is-active');
+                $('#live-check-results').hide().html('');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_check_live_registry',
+                    nonce: '<?php echo wp_create_nonce('chroma_schema_live_check'); ?>',
+                    url: url
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    $('#live-check-spinner').removeClass('is-active');
+                    
+                    if (response.success) {
+                        var data = response.data;
+                        var color = data.schema_blocks_found > 1 ? '#d63638' : (data.schema_count > 0 ? '#00a32a' : '#ff9800');
+                        
+                        var html = '<div style="padding: 15px; background: #fafafa; border: 1px solid #ddd; border-left: 4px solid ' + color + ';">';
+                        html += '<h3 style="margin-top: 0; color: ' + color + ';">Analysis Result</h3>';
+                        html += '<p><strong>Status:</strong> Found ' + data.schema_count + ' schema items in ' + data.schema_blocks_found + ' script block(s).</p>';
+                        
+                        if (data.schema_blocks_found > 1) {
+                            html += '<p style="color: #d63638; background: #ffebee; padding: 10px;"><strong>⚠️ WARNING: Multiple JSON-LD blocks found!</strong><br>This usually means something is bypassing the Registry. One block is likely from the Registry, and others are from the Theme or another plugin.</p>';
+                        }
+                        
+                        html += '<hr>';
+                        
+                        // List found schemas
+                        if (data.schemas && data.schemas.length > 0) {
+                            html += '<table class="widefat striped">';
+                            html += '<thead><tr><th>Type</th><th>Source Block</th><th>Context</th></tr></thead><tbody>';
+                            data.schemas.forEach(function(s, index) {
+                                html += '<tr>';
+                                html += '<td><strong>' + s.type + '</strong></td>';
+                                html += '<td>Block #' + (s.block_index + 1) + '</td>';
+                                html += '<td><code>' + (s.context || 'N/A') + '</code></td>';
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                        } else {
+                            html += '<p>No schemas found on this page.</p>';
+                        }
+                        
+                        html += '</div>';
+                        $('#live-check-results').html(html).show();
+                    } else {
+                        alert('Check failed: ' + (response.data || 'Unknown error'));
+                    }
+                });
+            });
+        });
         </script>
         <?php
+    }
+
+    /**
+     * AJAX: Check Live Registry Output
+     */
+    public function ajax_check_live_registry()
+    {
+        check_ajax_referer('chroma_schema_live_check', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $url = isset($_POST['url']) ? esc_url_raw($_POST['url']) : '';
+        if (empty($url)) {
+            wp_send_json_error('Invalid URL');
+        }
+        
+        // Fetch the page
+        $response = wp_remote_get($url, [
+            'timeout' => 15,
+            'sslverify' => false
+        ]);
+        
+        if (is_wp_error($response)) {
+            wp_send_json_error('Fetch failed: ' . $response->get_error_message());
+        }
+        
+        $html = wp_remote_retrieve_body($response);
+        if (empty($html)) {
+            wp_send_json_error('Empty response from URL');
+        }
+        
+        // Parse HTML for JSON-LD
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true); // Suppress HTML5 parsing errors
+        $dom->loadHTML($html);
+        libxml_clear_errors();
+        
+        $scripts = $dom->getElementsByTagName('script');
+        $found_schemas = [];
+        $block_count = 0;
+        
+        foreach ($scripts as $script) {
+            if ($script->getAttribute('type') === 'application/ld+json') {
+                $content = $script->nodeValue;
+                $json = json_decode($content, true);
+                
+                if ($json) {
+                    $items = isset($json['@graph']) ? $json['@graph'] : [$json];
+                    foreach ($items as $item) {
+                        $found_schemas[] = [
+                            'type' => isset($item['@type']) ? (is_array($item['@type']) ? implode(', ', $item['@type']) : $item['@type']) : 'Unknown',
+                            'context' => isset($item['@context']) ? $item['@context'] : '',
+                            'block_index' => $block_count
+                        ];
+                    }
+                    $block_count++;
+                }
+            }
+        }
+        
+        wp_send_json_success([
+            'schema_count' => count($found_schemas),
+            'schema_blocks_found' => $block_count,
+            'schemas' => $found_schemas
+        ]);
     }
 
     /**
@@ -4812,11 +4964,12 @@ class Chroma_SEO_Dashboard
      */
     private function render_cleanup_tab_content()
     {
-        // Get invalid types list
+        // Get invalid types list (Expanded)
         $invalid_types = defined('CHROMA_INVALID_SCHEMA_TYPES') ? CHROMA_INVALID_SCHEMA_TYPES : [
             'VacationRental', 'MobileApplication', 'SoftwareApplication', 'WebApplication',
             'VideoGame', 'RealEstateListing', 'Hotel', 'Restaurant', 'LodgingBusiness',
-            'Brand', 'Motel', 'Resort', 'Hostel', 'BedAndBreakfast', 'Campground'
+            'Brand', 'Motel', 'Resort', 'Hostel', 'BedAndBreakfast', 'Campground',
+            'Product', 'Service', 'Review', 'AggregateRating', 'Offer'
         ];
         
         // Check if registry is active
