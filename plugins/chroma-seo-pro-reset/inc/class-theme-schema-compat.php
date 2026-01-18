@@ -505,6 +505,12 @@ function chroma_city_faq_schema_output()
         return;
     }
 
+    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+    $builder_schemas = get_post_meta(get_the_ID(), '_chroma_post_schemas', true);
+    if (!empty($builder_schemas) && is_array($builder_schemas)) {
+        return;
+    }
+
     // Internal Duplicate Suppression
     global $chroma_faq_output_done;
     if (!empty($chroma_faq_output_done)) {
