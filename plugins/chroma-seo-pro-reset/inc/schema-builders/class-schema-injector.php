@@ -26,7 +26,29 @@ define('CHROMA_INVALID_SCHEMA_TYPES', array(
     'Hotel',
     'Restaurant',
     'LodgingBusiness',
+    'Brand',
+    'Motel',
+    'Resort',
+    'Hostel',
+    'BedAndBreakfast',
+    'Campground',
 ));
+
+/**
+ * Helper function to check if schema type is invalid (case-insensitive)
+ */
+function chroma_is_invalid_schema_type($type) {
+    if (!defined('CHROMA_INVALID_SCHEMA_TYPES')) {
+        return false;
+    }
+    $type_lower = strtolower(trim($type));
+    foreach (CHROMA_INVALID_SCHEMA_TYPES as $invalid) {
+        if (strtolower($invalid) === $type_lower) {
+            return true;
+        }
+    }
+    return false;
+}
 
 class Chroma_Schema_Injector
 {
@@ -591,13 +613,8 @@ class Chroma_Schema_Injector
                 continue;
             }
 
-            // Skip invalid/irrelevant schema types
-            // Explicitly block VacationRental to fix user issue
-            if (strcasecmp($schema_type, 'VacationRental') === 0) {
-                continue;
-            }
-
-            if (defined('CHROMA_INVALID_SCHEMA_TYPES') && in_array($schema_type, CHROMA_INVALID_SCHEMA_TYPES)) {
+            // Skip invalid/irrelevant schema types using case-insensitive helper
+            if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($schema_type)) {
                 continue;
             }
 
@@ -879,11 +896,22 @@ class Chroma_Schema_Injector
         }
 
         if (!empty($graph)) {
-            $final_schema = [
-                '@context' => 'https://schema.org',
-                '@graph' => $graph
-            ];
-            echo '<script type="application/ld+json">' . wp_json_encode($final_schema) . '</script>' . "\n";
+            // Use Schema Registry for deduplication if available
+            if (class_exists('Chroma_Schema_Registry')) {
+                foreach ($graph as $schema) {
+                    // Add @context since registry expects standalone schemas
+                    $schema['@context'] = 'https://schema.org';
+                    Chroma_Schema_Registry::register($schema, ['source' => 'modular_builder']);
+                }
+                // Registry will output at priority 99 - don't echo here
+            } else {
+                // Fallback: output directly (legacy mode)
+                $final_schema = [
+                    '@context' => 'https://schema.org',
+                    '@graph' => $graph
+                ];
+                echo '<script type="application/ld+json">' . wp_json_encode($final_schema) . '</script>' . "\n";
+            }
         }
     }
 }

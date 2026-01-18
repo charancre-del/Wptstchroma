@@ -39,6 +39,8 @@ class Chroma_SEO_Dashboard
         add_action('wp_ajax_chroma_clear_validation_cache', [$this, 'ajax_clear_validation_cache']);
         add_action('wp_ajax_chroma_save_validator_setting', [$this, 'ajax_save_validator_setting']);
         add_action('wp_ajax_chroma_run_link_analysis', [$this, 'ajax_run_link_analysis']);
+        add_action('wp_ajax_chroma_schema_cleanup_scan', [$this, 'ajax_schema_cleanup_scan']);
+        add_action('wp_ajax_chroma_schema_cleanup_execute', [$this, 'ajax_schema_cleanup_execute']);
         add_action('rest_api_init', [$this, 'register_rest_routes']);
         add_action('admin_init', [$this, 'register_settings']);
         add_action('transition_post_status', [$this, 'auto_validate_on_publish'], 10, 3);
@@ -366,6 +368,8 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'combos' ? 'nav-tab-active' : ''; ?>">Combo Pages</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=near-me'); ?>"
                     class="nav-tab <?php echo $active_tab === 'near-me' ? 'nav-tab-active' : ''; ?>">Near Me Pages</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=cleanup'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'cleanup' ? 'nav-tab-active' : ''; ?>">🧹 Schema Cleanup</a>
                 <?php do_action('chroma_seo_dashboard_tabs'); ?>
             </nav>
 
@@ -433,6 +437,9 @@ class Chroma_SEO_Dashboard
                     break;
                 case 'near-me':
                     $this->render_near_me_tab();
+                    break;
+                case 'cleanup':
+                    $this->render_cleanup_tab();
                     break;
                 default:
                     // Allow other tabs to render via action
@@ -4600,5 +4607,324 @@ class Chroma_SEO_Dashboard
 
         update_option('chroma_seo_link_report', $report);
         wp_send_json_success('Analysis complete');
+    }
+
+    /**
+     * Render Schema Cleanup Tab
+     */
+    private function render_cleanup_tab()
+    {
+        // Get invalid types list
+        $invalid_types = defined('CHROMA_INVALID_SCHEMA_TYPES') ? CHROMA_INVALID_SCHEMA_TYPES : [
+            'VacationRental', 'MobileApplication', 'SoftwareApplication', 'WebApplication',
+            'VideoGame', 'RealEstateListing', 'Hotel', 'Restaurant', 'LodgingBusiness',
+            'Brand', 'Motel', 'Resort', 'Hostel', 'BedAndBreakfast', 'Campground'
+        ];
+        ?>
+        <div class="chroma-seo-card">
+            <h2>🧹 Schema Cleanup Tools</h2>
+            <p>Scan and remove invalid or unwanted schema types from your posts. These issues were identified during schema audits.</p>
+        </div>
+
+        <div class="chroma-seo-card">
+            <h3>📋 Invalid Schema Types to Remove</h3>
+            <p>The following schema types will be flagged and can be removed:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0;">
+                <?php foreach ($invalid_types as $type): ?>
+                    <span style="background: #ffebee; color: #d63638; padding: 4px 12px; border-radius: 4px; font-family: monospace;"><?php echo esc_html($type); ?></span>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="chroma-seo-card">
+            <h3>🔍 Scan for Invalid Schemas</h3>
+            <p>Click below to scan all posts for invalid schema types stored in <code>_chroma_post_schemas</code> meta.</p>
+            
+            <button id="cleanup-scan-btn" class="button button-primary" style="margin: 10px 0;">
+                <span class="dashicons dashicons-search" style="margin-right: 5px;"></span> Scan Posts
+            </button>
+            <span id="cleanup-scan-spinner" class="spinner" style="float: none;"></span>
+            
+            <div id="cleanup-scan-results" style="margin-top: 20px; display: none;">
+                <h4>Scan Results</h4>
+                <p id="cleanup-summary"></p>
+                <div id="cleanup-posts-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #fafafa;"></div>
+                
+                <div id="cleanup-actions" style="margin-top: 15px; display: none;">
+                    <button id="cleanup-execute-btn" class="button button-primary">
+                        <span class="dashicons dashicons-trash" style="margin-right: 5px;"></span> Remove Invalid Schemas
+                    </button>
+                    <span id="cleanup-execute-spinner" class="spinner" style="float: none;"></span>
+                    <p class="description" style="color: #d63638;">⚠️ This action cannot be undone. Make sure to backup your database first.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chroma-seo-card">
+            <h3>📊 FAQ Schema Audit</h3>
+            <p>Check for posts with FAQ schema that may not need it. FAQ data is stored in <code>chroma_faq_items</code> meta.</p>
+            <button id="faq-audit-btn" class="button" style="margin: 10px 0;">
+                <span class="dashicons dashicons-editor-help" style="margin-right: 5px;"></span> Audit FAQ Usage
+            </button>
+            <span id="faq-audit-spinner" class="spinner" style="float: none;"></span>
+            <div id="faq-audit-results" style="margin-top: 20px; display: none;"></div>
+        </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            var cleanupNonce = '<?php echo wp_create_nonce('chroma_schema_cleanup'); ?>';
+            var scannedData = [];
+
+            // Scan for invalid schemas
+            $('#cleanup-scan-btn').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#cleanup-scan-spinner').addClass('is-active');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_schema_cleanup_scan',
+                    nonce: cleanupNonce
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    $('#cleanup-scan-spinner').removeClass('is-active');
+                    
+                    if (response.success) {
+                        scannedData = response.data.posts;
+                        var total = response.data.total_posts;
+                        var affected = response.data.affected_posts;
+                        var invalidCount = response.data.invalid_count;
+                        
+                        $('#cleanup-summary').html(
+                            '✅ Scanned <strong>' + total + '</strong> posts. ' +
+                            'Found <strong style="color: #d63638;">' + affected + '</strong> posts with ' +
+                            '<strong style="color: #d63638;">' + invalidCount + '</strong> invalid schema entries.'
+                        );
+                        
+                        var listHtml = '';
+                        if (scannedData.length > 0) {
+                            scannedData.forEach(function(post) {
+                                listHtml += '<div style="padding: 8px; border-bottom: 1px solid #eee;">';
+                                listHtml += '<strong><a href="' + post.edit_url + '" target="_blank">' + post.title + '</a></strong>';
+                                listHtml += ' <span style="color: #666;">(' + post.post_type + ')</span><br>';
+                                listHtml += '<span style="color: #d63638;">Invalid: ' + post.invalid_types.join(', ') + '</span>';
+                                listHtml += '</div>';
+                            });
+                            $('#cleanup-actions').show();
+                        } else {
+                            listHtml = '<p style="color: #00a32a;">✓ No invalid schemas found!</p>';
+                            $('#cleanup-actions').hide();
+                        }
+                        
+                        $('#cleanup-posts-list').html(listHtml);
+                        $('#cleanup-scan-results').show();
+                    } else {
+                        alert('Scan failed: ' + (response.data || 'Unknown error'));
+                    }
+                });
+            });
+
+            // Execute cleanup
+            $('#cleanup-execute-btn').on('click', function(e) {
+                e.preventDefault();
+                
+                if (!confirm('Are you sure you want to remove invalid schemas from ' + scannedData.length + ' posts? This cannot be undone.')) {
+                    return;
+                }
+                
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#cleanup-execute-spinner').addClass('is-active');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_schema_cleanup_execute',
+                    nonce: cleanupNonce,
+                    post_ids: scannedData.map(function(p) { return p.id; })
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    $('#cleanup-execute-spinner').removeClass('is-active');
+                    
+                    if (response.success) {
+                        alert('✅ Cleanup complete! Removed invalid schemas from ' + response.data.cleaned + ' posts.');
+                        $('#cleanup-scan-btn').click(); // Re-scan to show updated state
+                    } else {
+                        alert('Cleanup failed: ' + (response.data || 'Unknown error'));
+                    }
+                });
+            });
+
+            // FAQ Audit
+            $('#faq-audit-btn').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#faq-audit-spinner').addClass('is-active');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_schema_cleanup_scan',
+                    nonce: cleanupNonce,
+                    scan_type: 'faq'
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    $('#faq-audit-spinner').removeClass('is-active');
+                    
+                    if (response.success) {
+                        var html = '<p>Found <strong>' + response.data.faq_count + '</strong> posts with FAQ data.</p>';
+                        
+                        if (response.data.faq_posts && response.data.faq_posts.length > 0) {
+                            html += '<table class="widefat" style="margin-top: 10px;">';
+                            html += '<thead><tr><th>Post</th><th>Type</th><th>FAQ Items</th><th>Actions</th></tr></thead><tbody>';
+                            response.data.faq_posts.forEach(function(post) {
+                                html += '<tr>';
+                                html += '<td><a href="' + post.edit_url + '" target="_blank">' + post.title + '</a></td>';
+                                html += '<td>' + post.post_type + '</td>';
+                                html += '<td>' + post.faq_count + '</td>';
+                                html += '<td><a href="' + post.edit_url + '" class="button button-small">Edit</a></td>';
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                        }
+                        
+                        $('#faq-audit-results').html(html).show();
+                    } else {
+                        alert('Audit failed');
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * AJAX: Scan for invalid schema types
+     */
+    public function ajax_schema_cleanup_scan()
+    {
+        check_ajax_referer('chroma_schema_cleanup', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+
+        global $wpdb;
+        
+        $scan_type = isset($_POST['scan_type']) ? sanitize_text_field($_POST['scan_type']) : 'invalid';
+        
+        if ($scan_type === 'faq') {
+            // Scan for FAQ meta
+            $faq_posts = $wpdb->get_results("
+                SELECT p.ID, p.post_title, p.post_type, pm.meta_value
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+                WHERE pm.meta_key = 'chroma_faq_items'
+                AND p.post_status = 'publish'
+                ORDER BY p.post_title ASC
+            ");
+            
+            $result = [
+                'faq_count' => count($faq_posts),
+                'faq_posts' => []
+            ];
+            
+            foreach ($faq_posts as $post) {
+                $faq_items = maybe_unserialize($post->meta_value);
+                $result['faq_posts'][] = [
+                    'id' => $post->ID,
+                    'title' => $post->post_title,
+                    'post_type' => $post->post_type,
+                    'faq_count' => is_array($faq_items) ? count($faq_items) : 0,
+                    'edit_url' => get_edit_post_link($post->ID, 'raw')
+                ];
+            }
+            
+            wp_send_json_success($result);
+            return;
+        }
+        
+        // Standard invalid schema scan
+        $invalid_types = defined('CHROMA_INVALID_SCHEMA_TYPES') ? CHROMA_INVALID_SCHEMA_TYPES : [];
+        
+        $posts_with_schemas = $wpdb->get_results("
+            SELECT p.ID, p.post_title, p.post_type, pm.meta_value
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+            WHERE pm.meta_key = '_chroma_post_schemas'
+            AND p.post_status = 'publish'
+        ");
+        
+        $affected_posts = [];
+        $total_invalid = 0;
+        
+        foreach ($posts_with_schemas as $post) {
+            $schemas = maybe_unserialize($post->meta_value);
+            if (!is_array($schemas)) continue;
+            
+            $invalid_found = [];
+            foreach ($schemas as $schema) {
+                $type = isset($schema['type']) ? $schema['type'] : '';
+                if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($type)) {
+                    $invalid_found[] = $type;
+                }
+            }
+            
+            if (!empty($invalid_found)) {
+                $affected_posts[] = [
+                    'id' => $post->ID,
+                    'title' => $post->post_title,
+                    'post_type' => $post->post_type,
+                    'invalid_types' => array_unique($invalid_found),
+                    'edit_url' => get_edit_post_link($post->ID, 'raw')
+                ];
+                $total_invalid += count($invalid_found);
+            }
+        }
+        
+        wp_send_json_success([
+            'total_posts' => count($posts_with_schemas),
+            'affected_posts' => count($affected_posts),
+            'invalid_count' => $total_invalid,
+            'posts' => $affected_posts
+        ]);
+    }
+
+    /**
+     * AJAX: Execute schema cleanup
+     */
+    public function ajax_schema_cleanup_execute()
+    {
+        check_ajax_referer('chroma_schema_cleanup', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+
+        $post_ids = isset($_POST['post_ids']) ? array_map('intval', $_POST['post_ids']) : [];
+        
+        if (empty($post_ids)) {
+            wp_send_json_error('No posts specified');
+        }
+        
+        $cleaned = 0;
+        
+        foreach ($post_ids as $post_id) {
+            $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+            if (!is_array($schemas)) continue;
+            
+            $clean_schemas = [];
+            foreach ($schemas as $schema) {
+                $type = isset($schema['type']) ? $schema['type'] : '';
+                if (!function_exists('chroma_is_invalid_schema_type') || !chroma_is_invalid_schema_type($type)) {
+                    $clean_schemas[] = $schema;
+                }
+            }
+            
+            if (count($clean_schemas) !== count($schemas)) {
+                update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
+                $cleaned++;
+            }
+        }
+        
+        wp_send_json_success(['cleaned' => $cleaned]);
     }
 }

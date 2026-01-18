@@ -300,7 +300,13 @@ function chroma_location_schema_pro()
         $schema['paymentAccepted'] = $payment;
     }
 
-    echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    // Use Schema Registry for deduplication if available
+    if (class_exists('Chroma_Schema_Registry')) {
+        $schema['@context'] = 'https://schema.org';
+        Chroma_Schema_Registry::register($schema, ['source' => 'location_schema_pro']);
+    } else {
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    }
 }
 }
 add_action('wp_head', 'chroma_location_schema_pro');

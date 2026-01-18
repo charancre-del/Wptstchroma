@@ -74,6 +74,7 @@ chroma_safe_require(__DIR__ . '/class-careers-api.php');
 chroma_safe_require(__DIR__ . '/class-career-sync.php');
 
 // Load Theme Schema Compatibility (migrated from seo-engine.php)
+chroma_safe_require(__DIR__ . '/class-schema-registry.php');
 chroma_safe_require(__DIR__ . '/class-theme-schema-compat.php');
 
 // Load SEO Automations
@@ -246,6 +247,10 @@ function chroma_advanced_seo_init()
 		add_action('wp_head', ['Chroma_Special_Announcement_Builder', 'output']);
 	if (class_exists('Chroma_Learning_Resource_Builder'))
 		add_action('wp_head', ['Chroma_Learning_Resource_Builder', 'output']);
+	
+	// Modular Schemas from Schema Builder (stored in _chroma_post_schemas meta)
+	if (class_exists('Chroma_Schema_Injector'))
+		add_action('wp_head', ['Chroma_Schema_Injector', 'output_modular_schemas'], 20);
 
 	// Flush Rewrite Rules if KML rule is missing (One-time check)
 	if (get_option('chroma_seo_flush_rewrite_v6') !== 'done') {
