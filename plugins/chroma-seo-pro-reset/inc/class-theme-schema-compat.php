@@ -79,6 +79,12 @@ function chroma_location_schema_pro()
         return;
     }
 
+    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated if user has built schema)
+    $builder_schemas = get_post_meta($location_id, '_chroma_post_schemas', true);
+    if (!empty($builder_schemas) && is_array($builder_schemas)) {
+        return;
+    }
+
     // Ensure Advanced SEO classes are available
     if (!class_exists('Chroma_Fallback_Resolver')) {
         return;
@@ -329,6 +335,7 @@ function chroma_city_schema_pro()
 
     $post_id = get_the_ID();
     
+    // Check for manual override
     $override = get_post_meta($post_id, '_chroma_schema_override', true);
     if ($override) {
         if (strpos($override, '<script') !== false) {
@@ -336,6 +343,12 @@ function chroma_city_schema_pro()
         } else {
             echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
         }
+        return;
+    }
+
+    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+    $builder_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+    if (!empty($builder_schemas) && is_array($builder_schemas)) {
         return;
     }
 
@@ -424,6 +437,12 @@ function chroma_program_schema_pro()
         } else {
             echo '<script type="application/ld+json">' . $override . '</script>';
         }
+        return;
+    }
+
+    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+    $builder_schemas = get_post_meta($program_id, '_chroma_post_schemas', true);
+    if (!empty($builder_schemas) && is_array($builder_schemas)) {
         return;
     }
 
@@ -581,6 +600,12 @@ if (!function_exists('chroma_organization_schema_pro')) {
             return;
         }
 
+        // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+        $builder_schemas = get_post_meta($homepage_id, '_chroma_post_schemas', true);
+        if (!empty($builder_schemas) && is_array($builder_schemas)) {
+            return;
+        }
+
         $en_name = get_post_meta($homepage_id, 'schema_org_name', true) ?: get_bloginfo('name');
         $name = chroma_get_schema_val($homepage_id, '_chroma_es_title', $en_name);
 
@@ -632,10 +657,15 @@ if (!function_exists('chroma_website_schema_pro')) {
     function chroma_website_schema_pro() {
         if (!is_front_page()) return;
         $homepage_id = get_option('page_on_front');
+        $url = home_url();
         $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
         if ($override) return;
 
-        $url = home_url();
+        // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+        $builder_schemas = get_post_meta($homepage_id, '_chroma_post_schemas', true);
+        if (!empty($builder_schemas) && is_array($builder_schemas)) {
+            return;
+        }
         if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
             $url = home_url('/es');
         }
