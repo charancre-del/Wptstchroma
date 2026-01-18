@@ -163,4 +163,4 @@ class Chroma_Canonical_Enforcer
     }
 }
 
-new Chroma_Canonical_Enforcer();
+// new Chroma_Canonical_Enforcer();

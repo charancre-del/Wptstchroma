@@ -187,4 +187,4 @@ class Chroma_Author_Tags
     }
 }
 
-new Chroma_Author_Tags();
+// new Chroma_Author_Tags();

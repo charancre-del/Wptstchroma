@@ -250,4 +250,4 @@ class Chroma_Accessibility_SEO
     }
 }
 
-new Chroma_Accessibility_SEO();
+// new Chroma_Accessibility_SEO();

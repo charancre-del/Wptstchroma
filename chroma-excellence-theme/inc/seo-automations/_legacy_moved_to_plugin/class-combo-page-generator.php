@@ -11,6 +11,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// FORCE DISABLE: Moved to Plugin
+return;
+
 class Chroma_Combo_Page_Generator
 {
     const REWRITE_TAG = 'chroma_combo';

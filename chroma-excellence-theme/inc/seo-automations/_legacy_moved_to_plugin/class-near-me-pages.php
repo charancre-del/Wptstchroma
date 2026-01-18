@@ -11,6 +11,9 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// FORCE DISABLE: Moved to Plugin
+return;
+
 class Chroma_Near_Me_Pages
 {
     const REWRITE_TAG = 'chroma_near_me';

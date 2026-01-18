@@ -3688,7 +3688,7 @@ class Chroma_SEO_Dashboard
         }
         
         $response = wp_remote_get($url, [
-            'timeout' => 30,
+            'timeout' => 60,
             'sslverify' => false,
             'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
         ]);
@@ -3814,11 +3814,12 @@ class Chroma_SEO_Dashboard
                                     if (is_array($v)) {
                                         if (isset($v['name'])) $mapped[] = $v['name'];
                                         elseif (isset($v['url'])) $mapped[] = $v['url'];
+                                        elseif (isset($v['@id'])) $mapped[] = $v['@id'];
                                     } elseif (is_string($v)) {
                                         $mapped[] = $v;
                                     }
                                 }
-                                $val = !empty($mapped) ? implode(', ', $mapped) : '';
+                                $val = !empty($mapped) ? implode(', ', $mapped) : json_encode($val);
                             }
                         }
                     }

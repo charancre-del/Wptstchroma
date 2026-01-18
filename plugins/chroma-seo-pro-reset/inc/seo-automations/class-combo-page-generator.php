@@ -133,9 +133,7 @@ class Chroma_Combo_Page_Generator
         $age_range = get_post_meta($program->ID, 'program_age_range', true);
 
         // Add Schema
-        add_action('wp_head', function() use ($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range) {
-            $this->output_schema($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range);
-        });
+        $this->output_schema($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range);
 
         // Add Body Class
         add_filter('body_class', function($classes) {
@@ -794,13 +792,10 @@ class Chroma_Combo_Page_Generator
             ]
         ];
         
-        if ($loc_address) {
-            $schema['provider']['address']['streetAddress'] = $loc_address;
-        }
         if ($loc_zip) {
             $schema['provider']['address']['postalCode'] = $loc_zip;
         }
-        
+
         if ($age_range) {
             $schema['audience'] = [
                 '@type' => 'EducationalAudience',
@@ -809,7 +804,10 @@ class Chroma_Combo_Page_Generator
             ];
         }
         
-        Chroma_Schema_Registry::register($schema, ['source' => 'combo-page-generator']);
+        // Register to Central Registry
+        if (class_exists('Chroma_Schema_Registry')) {
+            Chroma_Schema_Registry::register($schema, ['source' => 'combo-page-generator']);
+        }
     }
     
     /**
