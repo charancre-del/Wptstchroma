@@ -8,12 +8,12 @@
 function chroma_render_booking_modal() {
     ?>
     <!-- Tour Booking Modal -->
-    <div id="chroma-booking-modal" class="fixed inset-0 z-[99999] hidden" role="dialog" aria-modal="true">
+    <div id="chroma-booking-modal" class="fixed inset-0 z-[1000] hidden" role="dialog" aria-modal="true">
         <!-- Backdrop -->
-        <div class="absolute inset-0 bg-brand-ink/90 backdrop-blur-md transition-opacity" id="chroma-booking-backdrop"></div>
+        <div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="chroma-booking-backdrop"></div>
 
         <!-- Modal Container -->
-        <div class="absolute inset-2 md:inset-8 lg:inset-12 bg-white rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+        <div class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
             <!-- Header -->
             <div class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
                 <h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
@@ -84,14 +84,12 @@ function chroma_render_booking_modal() {
                 const btn = e.target.closest('.booking-btn');
                 if (btn) {
                     const url = btn.getAttribute('href');
-                    
-                    // If it's a real link (not an anchor), open in iframe
                     if (url && (url.startsWith('http') || url.includes('/'))) {
-                        // Exclude internal page anchors if they exist, but booking-btn 
-                        // is strictly for the iframe experience now.
-                        if (!url.startsWith('#')) {
-                            e.preventDefault();
-                            openBooking(url);
+                        // If it's an internal anchor or page, let it be. 
+                        // But if it's a booking link, intercept.
+                        if (url.includes('procare') || url.includes('calendly') || btn.classList.contains('force-iframe')) {
+                             e.preventDefault();
+                             openBooking(url);
                         }
                     }
                 }
