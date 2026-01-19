@@ -160,19 +160,62 @@ class Chroma_Schema_Injector
     /**
      * Output Global Organization Schema
      */
+    /**
+     * Output Global Organization Schema
+     */
     public static function output_organization_schema()
     {
-        if (!is_front_page()) {
+        // Output on Front Page AND About Page
+        if (!is_front_page() && !is_page('about')) {
             return;
         }
 
+        $target_id = is_front_page() ? get_option('page_on_front') : get_queried_object_id();
+
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_option('page_on_front'), '_chroma_schema_override', true);
+        $override = get_post_meta($target_id, '_chroma_schema_override', true);
         if ($override) {
             return;
         }
 
         $schema = self::get_organization_schema_data();
+
+        // Inject Team Members on About Page
+        if (is_page('about')) {
+            $team_posts = get_posts([
+                'post_type'      => 'team_member',
+                'posts_per_page' => -1,
+                'orderby'        => 'menu_order',
+                'order'          => 'ASC',
+                'post_status'    => 'publish'
+            ]);
+
+            if (!empty($team_posts)) {
+                $schema['employee'] = [];
+                foreach ($team_posts as $post) {
+                    $job_title = get_post_meta($post->ID, 'team_member_title', true);
+                    $image_url = get_the_post_thumbnail_url($post->ID, 'medium');
+
+                    $person = [
+                        '@type' => 'Person',
+                        'name' => $post->post_title,
+                        'jobTitle' => $job_title ?: 'Team Member'
+                    ];
+
+                    if ($image_url) {
+                        $person['image'] = $image_url;
+                    }
+
+                    // Optional: Add bio if content exists
+                    if (!empty($post->post_content)) {
+                        $person['description'] = wp_trim_words(strip_shortcodes($post->post_content), 30);
+                    }
+
+                    $schema['employee'][] = $person;
+                }
+            }
+        }
+
         Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-organization']);
     }
 
