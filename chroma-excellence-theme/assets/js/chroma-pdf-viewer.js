@@ -66,9 +66,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             page.render(renderContext).promise.then(function () {
                 pageWrapper.classList.add('rendered');
-                pageWrapper.style.opacity = '1';
                 // Hide main loader if it's the first page
-                if (num === 1) loadingSpinner.style.display = 'none';
+                if (num === 1) {
+                    loadingSpinner.style.display = 'none';
+                    // Trigger a small scroll to ensure observer catches things if needed
+                    setTimeout(() => {
+                        viewerState.scrollWrapper.scrollBy(0, 1);
+                        viewerState.scrollWrapper.scrollBy(0, -1);
+                    }, 100);
+                }
             });
         });
     }
@@ -91,16 +97,16 @@ document.addEventListener('DOMContentLoaded', function () {
         if (viewerState.observer) viewerState.observer.disconnect();
 
         // Setup Intersection Observer for lazy loading and current page tracking
+        // Setup Intersection Observer
         viewerState.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const pageNum = parseInt(entry.target.getAttribute('data-page-wrapper'));
+                const pageNum = parseInt(entry.target.getAttribute('data-page-wrapper'));
 
-                    // Lazy Render
+                if (entry.isIntersecting) {
                     renderPage(pageNum);
 
-                    // Update UI page number (when page is significantly visible)
-                    if (entry.intersectionRatio > 0.5) {
+                    // Track current page: whichever is most visible
+                    if (entry.intersectionRatio > 0.1) {
                         viewerState.pageNum = pageNum;
                         if (pageNumSpan) pageNumSpan.textContent = pageNum;
                         updateNavButtons();
@@ -109,19 +115,18 @@ document.addEventListener('DOMContentLoaded', function () {
             });
         }, {
             root: scrollWrapper,
-            threshold: [0.1, 0.5, 0.9]
+            threshold: [0, 0.1, 0.5, 0.8]
         });
 
         // Create placeholders for all pages
         for (let i = 1; i <= viewerState.pdfDoc.numPages; i++) {
             const pageDiv = document.createElement('div');
-            pageDiv.className = 'pdf-page-container relative bg-white shadow-2xl rounded transition-opacity duration-500 opacity-0';
+            pageDiv.className = 'pdf-page-container relative bg-white shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] rounded-lg opacity-0 mb-10 mx-auto';
             pageDiv.setAttribute('data-page-wrapper', i);
-            pageDiv.style.minHeight = '500px'; // Initial guess
+            pageDiv.style.minHeight = '600px';
             pageDiv.style.width = 'fit-content';
-
-            // Ensure first page loads fast
-            if (i === 1) pageDiv.style.opacity = '1';
+            pageDiv.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            pageDiv.style.transform = 'translateY(20px)';
 
             const canvas = document.createElement('canvas');
             canvas.className = 'block';
