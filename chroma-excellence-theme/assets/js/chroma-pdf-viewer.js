@@ -1,5 +1,5 @@
 /**
- * Chroma Pro PDF Viewer - Paginated Edition
+ * Chroma Pro PDF Viewer - Paginated Edition (Hardened)
  * 
  * Handles lazy-loading of PDF.js and rendering of PDF documents inside a custom modal
  * with a classic single-page paginated experience.
@@ -33,10 +33,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const titleSpan = document.getElementById('chroma-pdf-title');
     const backdrop = document.getElementById('chroma-pdf-backdrop');
 
-    // Initialize Canvas
-    viewerState.canvas = document.getElementById('chroma-pdf-canvas');
-    if (viewerState.canvas) {
-        viewerState.ctx = viewerState.canvas.getContext('2d');
+    // Discovery helpers
+    function ensureCanvas() {
+        if (!viewerState.canvas) {
+            viewerState.canvas = document.getElementById('chroma-pdf-canvas');
+            if (viewerState.canvas) {
+                viewerState.ctx = viewerState.canvas.getContext('2d');
+                console.log('PDF Viewer: Canvas and Context discovered');
+            }
+        }
+        return !!(viewerState.canvas && viewerState.ctx);
     }
 
     /**
@@ -45,22 +51,33 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     function renderPage(num) {
         if (!viewerState.pdfDoc) return;
+        if (!ensureCanvas()) {
+            console.error('PDF Viewer: Fatal - Canvas or Context missing from DOM');
+            return;
+        }
+
         viewerState.pageRendering = true;
+        console.log('PDF Viewer: Rendering page ' + num);
 
         // Fetch page
         viewerState.pdfDoc.getPage(num).then(function (page) {
-            // Calculate responsive scale
-            const containerWidth = canvasContainer.clientWidth;
-            const unscaledViewport = page.getViewport({ scale: 1 });
+            // Measure container for scale
+            let containerWidth = canvasContainer.clientWidth;
+            if (containerWidth <= 0) {
+                // If container is not yet painted, fallback to modal or window
+                containerWidth = modal.clientWidth || window.innerWidth || 800;
+                console.warn('PDF Viewer: Container width 0, using fallback: ' + containerWidth);
+            }
 
-            // Determine scale to fit width (minus some padding)
+            const unscaledViewport = page.getViewport({ scale: 1 });
             let desiredScale = (containerWidth - 60) / unscaledViewport.width;
 
             // Limit max scale to keep quality, but ensure mobile readability
             if (desiredScale > 2.0) desiredScale = 2.0;
-            if (desiredScale < 0.8) desiredScale = 0.8;
+            if (desiredScale < 0.6) desiredScale = 0.6; // Allow more shrink for phone view
 
             const viewport = page.getViewport({ scale: desiredScale });
+            console.log(`PDF Viewer: Scaling to ${desiredScale.toFixed(2)}. Target res: ${viewport.width}x${viewport.height}`);
 
             viewerState.canvas.height = viewport.height;
             viewerState.canvas.width = viewport.width;
@@ -76,16 +93,23 @@ document.addEventListener('DOMContentLoaded', function () {
             // Wait for render to finish
             renderTask.promise.then(function () {
                 viewerState.pageRendering = false;
+                console.log('PDF Viewer: Page ' + num + ' rendered successfully');
 
                 // Hide loader
-                loadingSpinner.style.display = 'none';
+                if (loadingSpinner) loadingSpinner.style.display = 'none';
 
                 if (viewerState.pageNumPending !== null) {
                     // New page rendering is pending
                     renderPage(viewerState.pageNumPending);
                     viewerState.pageNumPending = null;
                 }
+            }).catch(err => {
+                console.error('PDF Viewer: Render task failed', err);
+                viewerState.pageRendering = false;
             });
+        }).catch(err => {
+            console.error('PDF Viewer: Could not get page ' + num, err);
+            viewerState.pageRendering = false;
         });
 
         // Update page counters
@@ -103,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /**
      * If another page rendering in progress, waits until the rendering is
-     * finised. Otherwise, executes rendering immediately.
+     * finished. Otherwise, executes rendering immediately.
      */
     function queueRenderPage(num) {
         if (viewerState.pageRendering) {
@@ -155,12 +179,14 @@ document.addEventListener('DOMContentLoaded', function () {
     function openViewer(url, title) {
         modal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
-        loadingSpinner.style.display = 'flex';
+        if (loadingSpinner) loadingSpinner.style.display = 'flex';
 
         // Reset State
         viewerState.pageNum = 1;
         viewerState.pdfDoc = null;
-        if (viewerState.ctx && viewerState.canvas) {
+
+        // Clear canvas while loading new doc
+        if (ensureCanvas()) {
             viewerState.ctx.clearRect(0, 0, viewerState.canvas.width, viewerState.canvas.height);
         }
 
@@ -172,11 +198,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 viewerState.pdfDoc = pdfDoc_;
                 if (pageCountSpan) pageCountSpan.textContent = pdfDoc_.numPages;
 
-                // Render first page
-                renderPage(viewerState.pageNum);
+                // Render first page (with a small delay for layout stabilization)
+                setTimeout(() => renderPage(viewerState.pageNum), 50);
             }).catch(err => {
                 console.error('PDF Error:', err);
-                loadingSpinner.innerHTML = '<div class="text-white text-center p-10"><i class="fa-solid fa-circle-exclamation text-4xl mb-4 text-chroma-red"></i><br>Failed to load document.<br>Please use the download button above.</div>';
+                if (loadingSpinner) {
+                    loadingSpinner.innerHTML = '<div class="text-white text-center p-10"><i class="fa-solid fa-circle-exclamation text-4xl mb-4 text-chroma-red"></i><br>Failed to load document.<br>Please use the download button above.</div>';
+                }
             });
         });
     }

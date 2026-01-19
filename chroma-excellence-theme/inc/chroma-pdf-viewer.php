@@ -181,23 +181,35 @@ function chroma_render_pdf_modal() {
 
         /* Ensure Navigation Buttons are Very Visible */
         #chroma-pdf-prev, #chroma-pdf-next {
-            background: rgba(255, 255, 255, 0.1);
-            color: white !important;
+            background: rgba(255, 255, 255, 0.15);
+            color: #FFFFFF !important;
             opacity: 1 !important;
             display: flex !important;
             align-items: center;
             justify-content: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        #chroma-pdf-prev i, #chroma-pdf-next i {
+            color: #FFFFFF !important;
+            font-size: 14px;
         }
 
         #chroma-pdf-prev:hover, #chroma-pdf-next:hover {
-            background: #1DABCC; /* chroma-blue */
-            transform: scale(1.05);
+            background: #1DABCC !important; /* chroma-blue */
+            transform: scale(1.1);
         }
 
         #chroma-pdf-prev:disabled, #chroma-pdf-next:disabled {
-            opacity: 0.2 !important;
-            background: rgba(255, 255, 255, 0.05);
-            transform: none;
+            opacity: 0.1 !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            transform: none !important;
+        }
+
+        /* Ensure wrapper takes space even before render */
+        #chroma-pdf-canvas-container > div:last-of-type {
+            min-height: 400px;
+            width: 100%;
         }
 
         .animate-fade-in-down { 
