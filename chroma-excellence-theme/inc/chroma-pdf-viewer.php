@@ -112,15 +112,15 @@ function chroma_render_pdf_modal() {
                 </div>
 
                 <!-- Pagination Tools -->
-                <div class="flex items-center gap-2 md:gap-6 bg-white/5 rounded-full px-4 py-1.5 border border-white/5">
-                    <button id="chroma-pdf-prev" class="w-8 h-8 md:w-10 md:h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed">
-                        <i class="fa-solid fa-chevron-left text-xs"></i>
+                <div class="flex items-center gap-2 md:gap-4 bg-white/5 rounded-full px-4 py-1.5 border border-white/5">
+                    <button id="chroma-pdf-prev" class="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-10 disabled:cursor-not-allowed" title="Previous Page">
+                        <i class="fa-solid fa-arrow-left"></i>
                     </button>
-                    <span class="text-xs md:text-sm font-mono tracking-widest text-white/80">
+                    <span class="text-xs md:text-sm font-mono tracking-[0.2em] text-white/90 px-2 min-w-[60px] text-center">
                         <span id="chroma-pdf-page-num" class="font-bold text-white">1</span> <span class="mx-1 opacity-40">/</span> <span id="chroma-pdf-page-count">--</span>
                     </span>
-                    <button id="chroma-pdf-next" class="w-8 h-8 md:w-10 md:h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed">
-                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    <button id="chroma-pdf-next" class="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-10 disabled:cursor-not-allowed" title="Next Page">
+                        <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
 
@@ -179,30 +179,32 @@ function chroma_render_pdf_modal() {
             font-family: 'Outfit', 'Playfair Display', serif;
         }
 
-        /* Ensure Navigation Buttons are Very Visible */
+        /* Clear Arrow Navigation Styling */
         #chroma-pdf-prev, #chroma-pdf-next {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.05);
             color: #FFFFFF !important;
             opacity: 1 !important;
             display: flex !important;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         #chroma-pdf-prev i, #chroma-pdf-next i {
             color: #FFFFFF !important;
-            font-size: 14px;
+            font-size: 16px;
         }
 
         #chroma-pdf-prev:hover, #chroma-pdf-next:hover {
             background: #1DABCC !important; /* chroma-blue */
-            transform: scale(1.1);
+            border-color: #1DABCC;
+            transform: scale(1.15);
         }
 
         #chroma-pdf-prev:disabled, #chroma-pdf-next:disabled {
             opacity: 0.1 !important;
-            background: rgba(255, 255, 255, 0.05) !important;
+            background: transparent !important;
+            border-color: transparent !important;
             transform: none !important;
         }
 
