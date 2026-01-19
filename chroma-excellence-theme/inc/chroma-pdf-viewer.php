@@ -63,13 +63,13 @@ function chroma_pdf_shortcode($atts) {
     </div>
     <?php
     
-    // Ensure scripts and modal are loaded (footer hook)
-    add_action('wp_footer', 'chroma_render_pdf_modal');
-    add_action('wp_enqueue_scripts', 'chroma_enqueue_pdf_assets');
-
     return ob_get_clean();
 }
 add_shortcode('chroma_pdf', 'chroma_pdf_shortcode');
+
+// hooks moved outside to ensure they run even if shortcode isn't used (e.g. manual triggers)
+add_action('wp_footer', 'chroma_render_pdf_modal');
+add_action('wp_enqueue_scripts', 'chroma_enqueue_pdf_assets');
 
 // Enqueue Assets
 function chroma_enqueue_pdf_assets() {
