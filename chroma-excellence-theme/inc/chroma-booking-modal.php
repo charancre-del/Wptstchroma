@@ -84,12 +84,14 @@ function chroma_render_booking_modal() {
                 const btn = e.target.closest('.booking-btn');
                 if (btn) {
                     const url = btn.getAttribute('href');
+                    
+                    // If it's a real link (not an anchor), open in iframe
                     if (url && (url.startsWith('http') || url.includes('/'))) {
-                        // If it's an internal anchor or page, let it be. 
-                        // But if it's a booking link, intercept.
-                        if (url.includes('procare') || url.includes('calendly') || btn.classList.contains('force-iframe')) {
-                             e.preventDefault();
-                             openBooking(url);
+                        // Exclude internal page anchors if they exist, but booking-btn 
+                        // is strictly for the iframe experience now.
+                        if (!url.startsWith('#')) {
+                            e.preventDefault();
+                            openBooking(url);
                         }
                     }
                 }
