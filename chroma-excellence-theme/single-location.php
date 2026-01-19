@@ -728,4 +728,89 @@ while (have_posts()):
 
 	<?php
 endwhile;
+?>
+
+<!-- Tour Booking Modal (Local to this template) -->
+<div id="chroma-tour-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="chroma-tour-backdrop"></div>
+
+    <!-- Modal Container -->
+    <div class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+        <!-- Header -->
+        <div class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
+            <h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
+            <div class="flex items-center gap-4">
+                <a href="#" id="chroma-tour-external" target="_blank"
+                    class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">
+                    <?php _e('Open in new tab', 'chroma-excellence'); ?> <i class="fa-solid fa-external-link-alt ml-1"></i>
+                </a>
+                <button id="chroma-tour-close"
+                    class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Iframe Container -->
+        <div class="flex-grow relative bg-white">
+            <div id="chroma-tour-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+                <div class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin"></div>
+            </div>
+            <iframe id="chroma-tour-frame" src="" class="w-full h-full border-0"
+                allow="camera; microphone; autoplay; encrypted-media;"></iframe>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('chroma-tour-modal');
+        const backdrop = document.getElementById('chroma-tour-backdrop');
+        const closeBtn = document.getElementById('chroma-tour-close');
+        const iframe = document.getElementById('chroma-tour-frame');
+        const externalLink = document.getElementById('chroma-tour-external');
+        const loader = document.getElementById('chroma-tour-loader');
+
+        function openModal(url) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            loader.classList.remove('hidden');
+            iframe.src = url;
+            externalLink.href = url;
+            iframe.onload = function () {
+                loader.classList.add('hidden');
+            };
+        }
+
+        function closeModal() {
+            modal.classList.add('hidden');
+            document.body.style.overflow = '';
+            iframe.src = '';
+        }
+
+        // Attach listeners to booking buttons
+        const bookingBtns = document.querySelectorAll('.booking-btn');
+        bookingBtns.forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                const url = this.getAttribute('href');
+                if (url && url.startsWith('http')) {
+                    e.preventDefault();
+                    openModal(url);
+                }
+            });
+        });
+
+        // Close actions
+        if (closeBtn) closeBtn.addEventListener('click', closeModal);
+        if (backdrop) backdrop.addEventListener('click', closeModal);
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+                closeModal();
+            }
+        });
+    });
+</script>
+
+<?php
 get_footer();
