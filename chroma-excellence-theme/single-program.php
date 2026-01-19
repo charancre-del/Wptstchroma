@@ -250,14 +250,9 @@ while (have_posts()):
 				<?php endif; ?>
 			<?php endif; endif; ?>
 
-		<!-- CTA Section -->
-		</div>
-		</div>
-		</section>
-
-		?>
 
 	</main>
+
 
 	<style>
 		.fade-in-up {

@@ -146,8 +146,49 @@ function chroma_render_pdf_modal() {
         </div>
     </div>
     <style>
-        .animate-fade-in-down { animation: fadeInDown 0.3s ease-out forwards; }
-        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        /* Robust CSS Fallbacks for PDF Viewer */
+        #chroma-pdf-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 999999 !important;
+            background: rgba(18, 38, 48, 0.95); /* brand-ink equivalent */
+            backdrop-filter: blur(10px);
+        }
+        
+        #chroma-pdf-modal:not(.hidden) {
+            display: flex !important;
+            flex-direction: column;
+        }
+
+        #chroma-pdf-modal .animate-fade-in-down { 
+            animation: fadeInDown 0.3s ease-out forwards; 
+        }
+        
+        @keyframes fadeInDown { 
+            from { opacity: 0; transform: translateY(-20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+
+        /* Ensure mobile readability and canvas fit */
+        #chroma-pdf-canvas {
+            max-width: 100%;
+            height: auto !important;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
     </style>
     <?php
 }
