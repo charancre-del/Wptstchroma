@@ -319,11 +319,28 @@ class Chroma_LLM_Client
             if (!is_array($existing_schemas)) {
                 $existing_schemas = [];
             }
-            // Append new schema
-            $existing_schemas[] = [
-                'type' => $schema_type,
-                'data' => $result
-            ];
+            
+            // Look for existing schema of this type to update instead of appending duplicate
+            $updated = false;
+            foreach ($existing_schemas as $index => &$schema) {
+                if (isset($schema['type']) && $schema['type'] === $schema_type) {
+                    $schema['data'] = $result;
+                    $updated = true;
+                    // Fix: Ensure we only update the FIRST matching schema to avoid updating multiple duplicates if they exist?
+                    // For now, let's just update the first one and break.
+                    break;
+                }
+            }
+            unset($schema); // Break reference
+
+            if (!$updated) {
+                // valid new schema
+                 $existing_schemas[] = [
+                    'type' => $schema_type,
+                    'data' => $result
+                ];
+            }
+
             update_post_meta($post_id, '_chroma_post_schemas', $existing_schemas);
             $result['message'] = 'Schema generated and saved successfully.';
             $result['saved'] = true;
@@ -395,15 +412,15 @@ class Chroma_LLM_Client
         switch ($schema_type) {
             case 'JobPosting':
                 $prompt .= "- Focus on: title, datePosted, validThrough, employmentType\n";
-                $prompt .= "- EXTRACT SALARY: Look for baseSalary (value + currency). If range (e.g. $15-$20), use minValue/maxValue.\n";
-                $prompt .= "- JOB LOCATION: Ensure jobLocation include addressLocality and addressRegion\n";
-                $prompt .= "- HIRING ORG: hiringOrganization should be 'Chroma Early Learning'\n";
+                $prompt .= "- EXTRACT SALARY: Look for baseSalary. Output as simple text (e.g., '50000 USD' or '$15/hour'). DO NOT return an object.\n";
+                $prompt .= "- JOB LOCATION: Output as simple text (e.g. 'Atlanta, GA'). DO NOT return an object.\n";
+                $prompt .= "- HIRING ORG: hiringOrganization should be 'Chroma Early Learning'. Output as text name.\n";
                 $prompt .= "- DESCRIPTION: Include full job description HTML\n";
                 break;
 
             case 'Event':
-                $prompt .= "- Focus on: name, startDate, endDate, location, organizer\n";
-                $prompt .= "- LOCATION: Must be a Place or VirtualLocation\n";
+                $prompt .= "- Focus on: name, startDate, endDate, location_name, location_address, organizer\n";
+                $prompt .= "- LOCATION: Return 'location_name' (text) and 'location_address' (text). DO NOT return a Place object.\n";
                 $prompt .= "- OFFER: Include price, priceCurrency, availability\n";
                 $prompt .= "- IMAGE: Must provide an image URL if available\n";
                 break;
@@ -478,7 +495,11 @@ class Chroma_LLM_Client
                 $prompt .= "- ITEMS: ListItem with position and url\n";
                 break;
 
+            case 'LocalBusiness':
+            case 'ChildCare':
+            default:
                 $prompt .= "- Focus on: geo coordinates (latitude/longitude) for local pack ranking\n";
+                $prompt .= "- OUTPUT GEO AS FLAT FIELDS: 'geo_lat' and 'geo_lng' (do not return a GeoCoordinates object)\n";
                 $prompt .= "- Add openingHoursSpecification for 'Open Now' badge\n";
                 $prompt .= "- Include aggregateRating if reviews exist (critical for CTR)\n";
                 $prompt .= "- Add hasCredential for trust signals (licenses, accreditations)\n";

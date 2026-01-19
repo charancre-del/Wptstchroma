@@ -1222,19 +1222,12 @@ class Chroma_SEO_Dashboard
                         post_id: $('#chroma-inspector-post-id').val(),
                         schemas: schemas
                     }, function (response) {
-                        console.log('Schema Save Response:', response);
-                        console.log('Schemas sent:', JSON.stringify(schemas, null, 2));
                         btn.prop('disabled', false).text('Update Schema Settings');
                         if (response.success) {
                             alert('Settings saved successfully!');
                         } else {
-                            alert('Error saving settings: ' + (response.data && response.data.message ? response.data.message : 'Unknown error'));
+                            alert('Error saving settings.');
                         }
-                    }).fail(function(xhr, status, error) {
-                        console.error('Schema Save AJAX Failed:', status, error);
-                        console.error('Response:', xhr.responseText);
-                        btn.prop('disabled', false).text('Update Schema Settings');
-                        alert('AJAX request failed. Check console for details.');
                     });
                 });
                 // AI Auto-Fill Handler
@@ -1254,25 +1247,66 @@ class Chroma_SEO_Dashboard
                     $.post(ajaxurl, {
                         action: 'chroma_generate_schema',
                         post_id: postId,
-                        schema_type: type
+                        schema_type: type,
+                        auto_save: 'true'
                     }, function (response) {
                         btn.prop('disabled', false).html('<span class="dashicons dashicons-superhero" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> Auto-Fill');
 
                         if (response.success) {
                             var data = response.data;
                             // Populate fields
-                            $.each(data, function (key, value) {
-                                var input = block.find('[data-name="' + key + '"]');
-                                if (input.length) {
-                                    if (input.hasClass('chroma-repeater-input')) {
-                                        // Handle simple repeater logic if needed, for now supports simple fields
-                                    } else {
-                                        input.val(value);
-                                        // Highlight change
-                                        input.css('background-color', '#f0f6fc').animate({ backgroundColor: '#fff' }, 2000);
+                            // Helper: Populate Form Recursive
+                            function populateFormRecursive(data, $container, prefix) {
+                                $.each(data, function (key, value) {
+                                    // 1. Try Simple Field (Direct Match)
+                                    var input = $container.find('[data-name="' + key + '"]').filter(':not(.chroma-repeater-input)');
+                                    
+                                    if (input.length > 0) {
+                                        if (typeof value === 'object' && value !== null) {
+                                            // Handle Nested Object (e.g. geo: {lat: 1, lng: 2} -> geo_lat, geo_lng)
+                                             populateFormRecursive(value, $container, key + '_');
+                                        } else {
+                                            input.val(value).trigger('change');
+                                            input.css('background-color', '#f0f6fc').animate({ backgroundColor: '#fff' }, 2000);
+                                        }
+                                        return; // Continue to next key
                                     }
-                                }
-                            });
+
+                                    // 2. Try Repeater Field (Wrapper Match)
+                                    var repeater = $container.find('.chroma-repeater-wrapper[data-key="' + key + '"]');
+                                    if (repeater.length > 0 && Array.isArray(value)) {
+                                        var $itemsContainer = repeater.find('.chroma-repeater-items');
+                                        $itemsContainer.empty(); // Clear existing rows
+                                        
+                                        var subfields = repeater.data('subfields'); // We need to ensure subfields data is available? 
+                                        // Actually easier: Trigger "Add Row" for each item, then populate the last row
+                                        var $addBtn = repeater.find('.chroma-add-repeater-row');
+                                        
+                                        value.forEach(function(rowItem) {
+                                            $addBtn.trigger('click');
+                                            var $newRow = $itemsContainer.children().last();
+                                            // Recursively populate this new row
+                                            // Note: Row inputs have data-name="fieldName", not "parent_fieldName"
+                                            populateFormRecursive(rowItem, $newRow, ''); 
+                                        });
+                                        return;
+                                    }
+                                    
+                                    // 3. Try Flattening (e.g. location_name -> location.name)
+                                    // If we are here, we didn't find a direct input. 
+                                    // If value is a simple string, maybe the form expects "prefix_key"?
+                                    if (prefix && typeof value !== 'object') {
+                                         var compositeKey = prefix + key;
+                                         var compositeInput = $container.find('[data-name="' + compositeKey + '"]');
+                                         if (compositeInput.length) {
+                                             compositeInput.val(value).css('background-color', '#f0f6fc');
+                                         }
+                                    }
+                                });
+                            }
+
+                            // Start Population
+                            populateFormRecursive(data, block, '');
                              // Auto-save after AI fills data
                                     $('#chroma-inspector-save').trigger('click');
                                 } else {
@@ -1283,6 +1317,59 @@ class Chroma_SEO_Dashboard
                     });
                 </script>
                 
+                // Toggle JSON/Form View Handler
+                $(document).on('click', '.chroma-toggle-json', function(e) {
+                    e.preventDefault();
+                    var block = $(this).closest('.chroma-schema-block');
+                    var formView = block.find('.chroma-schema-form');
+                    var jsonView = block.find('.chroma-json-editor');
+                    var textarea = jsonView.find('textarea');
+
+                    if (formView.is(':visible')) {
+                        // Switch to JSON: Serialize form to JSON
+                        var rawData = {};
+                        
+                        // Scrape simple inputs
+                        block.find('.chroma-schema-input').each(function() {
+                            var name = $(this).data('name');
+                            if (name) rawData[name] = $(this).val();
+                        });
+
+                        // Scrape repeaters
+                        block.find('.chroma-repeater-wrapper').each(function() {
+                            var key = $(this).data('key');
+                            var items = [];
+                            $(this).find('.chroma-repeater-items .chroma-repeater-row').each(function() {
+                                var row = {};
+                                $(this).find('.chroma-schema-input').each(function() { // Note: class is same for simple/repeater inputs
+                                   var rowKey = $(this).data('name');
+                                   if (rowKey) row[rowKey] = $(this).val();
+                                });
+                                // Only push if not empty
+                                if (!$.isEmptyObject(row)) items.push(row);
+                            });
+                             // Don't add empty arrays
+                             if (items.length > 0) rawData[key] = items;
+                        });
+
+                        textarea.val(JSON.stringify(rawData, null, 4));
+                        formView.hide();
+                        jsonView.show();
+                        $(this).html('<span class="dashicons dashicons-editor-table" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> Form');
+                    } else {
+                        // Switch to Form: Parse JSON and populate
+                        try {
+                            var json = JSON.parse(textarea.val());
+                            populateFormRecursive(json, block, '');
+                            formView.show();
+                            jsonView.hide();
+                             $(this).html('<span class="dashicons dashicons-code-standards" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> JSON');
+                        } catch (err) {
+                            alert('Invalid JSON: ' + err.message);
+                        }
+                    }
+                });
+
                 <!-- Feature 14: Schema Sync Toolbar JavaScript -->
                 <script>
                 jQuery(document).ready(function($) {
@@ -1534,6 +1621,9 @@ class Chroma_SEO_Dashboard
                         style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                         <span><?php echo esc_html($def['label']); ?></span>
                         <div>
+                            <button class="button button-small chroma-toggle-json" title="Toggle JSON/Form View" style="margin-right: 5px;">
+                                <span class="dashicons dashicons-code-standards" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> JSON
+                            </button>
                             <button class="button button-small chroma-ai-autofill" data-type="<?php echo esc_attr($type); ?>"
                                 style="margin-right: 10px; border-color: #8c64ff; color: #6b42e4;">
                                 <span class="dashicons dashicons-superhero"
@@ -1543,7 +1633,19 @@ class Chroma_SEO_Dashboard
                         </div>
                     </h3>
 
-                    <table class="form-table" style="margin-top: 0;">
+                    <div class="chroma-json-editor" style="display: none; margin-bottom: 15px;">
+                        <textarea class="large-text code" rows="10" placeholder="{ ... }" style="width: 100%; font-family: monospace; background: #f6f7f7;"><?php 
+                            // Prepare JSON representation for the editor
+                            $clean_data = $data;
+                            if (isset($clean_data['custom_fields'])) {
+                                // Maybe clean up custom fields for display?
+                            }
+                            echo esc_textarea(json_encode($clean_data, JSON_PRETTY_PRINT)); 
+                        ?></textarea>
+                        <p class="description">Edit raw JSON data here. Switch back to Form view to apply changes.</p>
+                    </div>
+
+                    <table class="form-table chroma-schema-form" style="margin-top: 0;">
                         <?php foreach ($def['fields'] as $key => $field):
                             $val = isset($data[$key]) ? $data[$key] : '';
                             $is_ai = false;
