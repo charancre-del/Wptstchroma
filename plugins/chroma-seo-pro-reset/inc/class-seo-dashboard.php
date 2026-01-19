@@ -1222,12 +1222,19 @@ class Chroma_SEO_Dashboard
                         post_id: $('#chroma-inspector-post-id').val(),
                         schemas: schemas
                     }, function (response) {
+                        console.log('Schema Save Response:', response);
+                        console.log('Schemas sent:', JSON.stringify(schemas, null, 2));
                         btn.prop('disabled', false).text('Update Schema Settings');
                         if (response.success) {
                             alert('Settings saved successfully!');
                         } else {
-                            alert('Error saving settings.');
+                            alert('Error saving settings: ' + (response.data && response.data.message ? response.data.message : 'Unknown error'));
                         }
+                    }).fail(function(xhr, status, error) {
+                        console.error('Schema Save AJAX Failed:', status, error);
+                        console.error('Response:', xhr.responseText);
+                        btn.prop('disabled', false).text('Update Schema Settings');
+                        alert('AJAX request failed. Check console for details.');
                     });
                 });
                 // AI Auto-Fill Handler
