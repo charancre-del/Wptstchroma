@@ -2269,7 +2269,7 @@ class Chroma_SEO_Dashboard
                         style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; background: #f0f0f1; padding: 10px; border-radius: 4px;">
                         <label><strong>Post Type:</strong></label>
                         <select
-                            onchange="window.location.href='<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk&ptype='); ?>' + this.value">
+                            onchange="window.location.href='<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=registry&ptype='); ?>' + this.value">
                             <option value="location" <?php selected($ptype, 'location'); ?>>Locations</option>
                             <option value="program" <?php selected($ptype, 'program'); ?>>Programs</option>
                             <option value="page" <?php selected($ptype, 'page'); ?>>Pages</option>
@@ -4915,18 +4915,22 @@ class Chroma_SEO_Dashboard
             <h2>🛠️ Maintenance Tools</h2>
             
             <!-- Tab Navigation for Tools -->
+            <?php
+            // Determine active tool based on URL params
+            $active_tool = (isset($_GET['ptype']) || isset($_GET['paged'])) ? 'tool-bulk' : 'tool-cleanup';
+            ?>
             <h3 class="nav-tab-wrapper" style="margin-bottom: 15px;">
-                <a href="#tool-cleanup" class="nav-tab nav-tab-active" onclick="switchToolTab(event, 'tool-cleanup')">Schema Cleanup</a>
-                <a href="#tool-bulk" class="nav-tab" onclick="switchToolTab(event, 'tool-bulk')">Bulk Actions</a>
+                <a href="#tool-cleanup" class="nav-tab <?php echo $active_tool === 'tool-cleanup' ? 'nav-tab-active' : ''; ?>" onclick="switchToolTab(event, 'tool-cleanup')">Schema Cleanup</a>
+                <a href="#tool-bulk" class="nav-tab <?php echo $active_tool === 'tool-bulk' ? 'nav-tab-active' : ''; ?>" onclick="switchToolTab(event, 'tool-bulk')">Bulk Actions</a>
             </h3>
 
             <!-- Tool: Schema Cleanup -->
-            <div id="tool-cleanup" class="tool-content">
+            <div id="tool-cleanup" class="tool-content" <?php echo $active_tool !== 'tool-cleanup' ? 'style="display: none;"' : ''; ?>>
                 <?php $this->render_cleanup_tab_content(); ?>
             </div>
 
             <!-- Tool: Bulk Actions -->
-            <div id="tool-bulk" class="tool-content" style="display: none;">
+            <div id="tool-bulk" class="tool-content" <?php echo $active_tool !== 'tool-bulk' ? 'style="display: none;"' : ''; ?>>
                 <?php $this->render_bulk_ops_tab_content(); ?>
             </div>
         </div>
