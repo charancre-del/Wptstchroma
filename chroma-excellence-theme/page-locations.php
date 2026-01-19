@@ -205,15 +205,25 @@ function chroma_get_region_color_from_term($term_id)
 									<?php endforeach; ?>
 								</div>
 
-								<div class="grid grid-cols-2 gap-3 mt-auto">
+								<?php
+								$booking_link = chroma_get_translated_meta($location_id, 'location_tour_booking_link');
+								?>
+								<div class="grid grid-cols-2 gap-3 mt-auto relative z-20">
 									<a href="<?php the_permalink(); ?>"
 										class="flex items-center justify-center py-3 rounded-xl bg-brand-ink/5 text-brand-ink text-xs font-bold uppercase tracking-wider hover:bg-brand-ink hover:text-white transition-colors">
 										<?php _e('View Campus', 'chroma-excellence'); ?>
 									</a>
-									<a href="<?php the_permalink(); ?>#tour"
-										class="flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
-										<?php _e('Book Tour', 'chroma-excellence'); ?>
-									</a>
+									<?php if ($booking_link): ?>
+										<a href="<?php echo esc_url($booking_link); ?>"
+											class="booking-btn flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
+											<?php _e('Book Tour', 'chroma-excellence'); ?>
+										</a>
+									<?php else: ?>
+										<a href="<?php the_permalink(); ?>#tour"
+											class="flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
+											<?php _e('Book Tour', 'chroma-excellence'); ?>
+										</a>
+									<?php endif; ?>
 								</div>
 							</div>
 						</div>
