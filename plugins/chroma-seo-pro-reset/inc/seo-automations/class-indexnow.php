@@ -85,3 +85,5 @@ class Chroma_IndexNow
 }
 
 Chroma_IndexNow::init();
+
+

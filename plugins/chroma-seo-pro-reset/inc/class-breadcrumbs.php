@@ -602,3 +602,5 @@ class Chroma_Breadcrumbs
         wp_send_json_success($data);
     }
 }
+
+

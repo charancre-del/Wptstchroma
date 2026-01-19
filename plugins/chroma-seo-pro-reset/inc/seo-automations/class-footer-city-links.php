@@ -230,3 +230,5 @@ class Chroma_City_Links_Widget extends WP_Widget
 
 add_shortcode('city_links', ['Chroma_Footer_City_Links', 'shortcode']);
 new Chroma_Footer_City_Links();
+
+

@@ -1370,26 +1370,26 @@ class Chroma_SEO_Dashboard
         ob_start();
 
         // Debug Logging
-        error_log('Chroma SEO: ajax_fetch_inspector_data called');
+        chroma_debug_log(' SEO: ajax_fetch_inspector_data called');
 
         if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
             ob_end_clean();
-            error_log('Chroma SEO: Nonce verification failed');
+            chroma_debug_log(' SEO: Nonce verification failed');
             wp_send_json_error(['message' => 'Security check failed (Nonce)']);
         }
 
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        error_log('Chroma SEO: Fetching schema for Post ID: ' . $post_id);
+        chroma_debug_log(' SEO: Fetching schema for Post ID: ' . $post_id);
 
         if (!$post_id) {
             ob_end_clean();
-            error_log('Chroma SEO: No Post ID provided');
+            chroma_debug_log(' SEO: No Post ID provided');
             wp_send_json_error(['message' => 'Invalid Post ID']);
         }
 
         if (!class_exists('Chroma_Schema_Types')) {
             ob_end_clean();
-            error_log('Chroma SEO: Chroma_Schema_Types class missing');
+            chroma_debug_log(' SEO: Chroma_Schema_Types class missing');
             wp_send_json_error(['message' => 'Critical Error: Schema Types Library missing']);
         }
 
@@ -1443,7 +1443,7 @@ class Chroma_SEO_Dashboard
 
                         <div id="chroma-active-schemas">
                             <?php
-                            error_log('Chroma SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
+                            chroma_debug_log(' SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
 
                             if (empty($existing_schemas)) {
                                 echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
@@ -1499,11 +1499,13 @@ class Chroma_SEO_Dashboard
                         // Force clean response
                         @header('Content-Type: application/json; charset=utf-8');
                         echo json_encode(['success' => true, 'data' => ['html' => $html]]);
-                        die();
+                        wp_die();
 
         } catch (Throwable $e) {
             ob_end_clean(); // Clean buffer if error
-            error_log('Chroma SEO Error: ' . $e->getMessage());
+            if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                chroma_debug_log(' SEO Error: ' . $e->getMessage());
+            }
             wp_send_json_error(['message' => 'Error: ' . $e->getMessage()]);
         }
     }
@@ -1673,26 +1675,26 @@ class Chroma_SEO_Dashboard
     public function ajax_save_inspector_data()
     {
         // Log incoming request for debugging
-        error_log('Chroma SEO Save: ajax_save_inspector_data called');
+        chroma_debug_log(' SEO Save: ajax_save_inspector_data called');
 
         if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
-            error_log('Chroma SEO Save: Nonce verification failed');
+            chroma_debug_log(' SEO Save: Nonce verification failed');
             wp_send_json_error(['message' => 'Security check failed']);
         }
 
         if (!current_user_can('edit_posts')) {
-            error_log('Chroma SEO Save: User lacks edit_posts capability');
+            chroma_debug_log(' SEO Save: User lacks edit_posts capability');
             wp_send_json_error(['message' => 'Permission denied']);
         }
 
         $post_id = intval($_POST['post_id']);
         $schemas = isset($_POST['schemas']) ? $_POST['schemas'] : [];
 
-        error_log('Chroma SEO Save: Post ID = ' . $post_id);
-        error_log('Chroma SEO Save: Raw schemas received = ' . print_r($schemas, true));
+        chroma_debug_log(' SEO Save: Post ID = ' . $post_id);
+        chroma_debug_log(' SEO Save: Raw schemas received = ' . print_r($schemas, true));
 
         if (!$post_id) {
-            error_log('Chroma SEO Save: Invalid post ID');
+            chroma_debug_log(' SEO Save: Invalid post ID');
             wp_send_json_error(['message' => 'Invalid post ID']);
         }
 
@@ -1732,10 +1734,10 @@ class Chroma_SEO_Dashboard
             }
         }
 
-        error_log('Chroma SEO Save: Cleaned schemas = ' . print_r($clean_schemas, true));
+        chroma_debug_log(' SEO Save: Cleaned schemas = ' . print_r($clean_schemas, true));
 
         $result = update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
-        error_log('Chroma SEO Save: update_post_meta result = ' . ($result ? 'success/updated' : 'no change or failed'));
+        chroma_debug_log(' SEO Save: update_post_meta result = ' . ($result ? 'success/updated' : 'no change or failed'));
 
         wp_send_json_success(['message' => 'Saved successfully', 'schemas_count' => count($clean_schemas)]);
     }
@@ -3977,7 +3979,7 @@ class Chroma_SEO_Dashboard
         ]);
         
         if (is_wp_error($response)) {
-            error_log('[Chroma SEO] Sitemap fetch error for ' . $sitemap_url . ': ' . $response->get_error_message());
+            chroma_debug_log('[Chroma SEO] Sitemap fetch error for ' . $sitemap_url . ': ' . $response->get_error_message());
             return [];
         }
         
@@ -3989,7 +3991,7 @@ class Chroma_SEO_Dashboard
         libxml_clear_errors();
         
         if (!$xml) {
-            error_log('[Chroma SEO] Failed to parse sitemap XML: ' . $sitemap_url);
+            chroma_debug_log('[Chroma SEO] Failed to parse sitemap XML: ' . $sitemap_url);
             return [];
         }
         
@@ -5450,3 +5452,5 @@ class Chroma_SEO_Dashboard
         wp_send_json_success(['cleaned' => $cleaned]);
     }
 }
+
+

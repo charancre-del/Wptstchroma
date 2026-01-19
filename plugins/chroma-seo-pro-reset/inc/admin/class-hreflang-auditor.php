@@ -158,3 +158,5 @@ class Chroma_Hreflang_Auditor
         <?php
     }
 }
+
+

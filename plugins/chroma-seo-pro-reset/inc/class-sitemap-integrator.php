@@ -80,3 +80,5 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
         return max(1, ceil($count / $this->per_page));
     }
 }
+
+

@@ -54,6 +54,68 @@ if (!function_exists('chroma_get_theme_mod')) {
     }
 }
 
+/**
+ * Cached WP_Query helper function
+ * Reduces database queries by caching results in transients
+ *
+ * @param array  $args            WP_Query arguments
+ * @param string $cache_key_prefix Cache key prefix for identification
+ * @param int    $expiration      Cache duration in seconds (default: 1 hour)
+ * @return WP_Query Cached or fresh query results
+ */
+if (!function_exists('chroma_cached_query')) {
+    function chroma_cached_query($args, $cache_key_prefix, $expiration = HOUR_IN_SECONDS) {
+        $cache_key = 'chroma_' . $cache_key_prefix . '_' . md5(serialize($args));
+        $cached = get_transient($cache_key);
+        
+        if (false !== $cached && $cached instanceof WP_Query) {
+            return $cached;
+        }
+        
+        $query = new WP_Query($args);
+        set_transient($cache_key, $query, $expiration);
+        
+        return $query;
+    }
+}
+
+/**
+ * Clear cached queries when posts are updated
+ * Ensures fresh data after content changes
+ */
+function chroma_clear_query_cache($post_id) {
+    $post_type = get_post_type($post_id);
+    if (!$post_type) {
+        return;
+    }
+    
+    // Map post types to cache prefixes
+    $cache_prefixes = array(
+        'post'        => array('footer_blog', 'newsroom'),
+        'location'    => array('locations'),
+        'program'     => array('programs'),
+        'city'        => array('cities'),
+        'team_member' => array('team'),
+    );
+    
+    if (isset($cache_prefixes[$post_type])) {
+        foreach ($cache_prefixes[$post_type] as $prefix) {
+            // Delete all transients with this prefix
+            global $wpdb;
+            $wpdb->query(
+                $wpdb->prepare(
+                    "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+                    '_transient_chroma_' . $wpdb->esc_like($prefix) . '%',
+                    '_transient_timeout_chroma_' . $wpdb->esc_like($prefix) . '%'
+                )
+            );
+        }
+    }
+}
+add_action('save_post', 'chroma_clear_query_cache');
+add_action('delete_post', 'chroma_clear_query_cache');
+add_action('trash_post', 'chroma_clear_query_cache');
+
 
 
 /**

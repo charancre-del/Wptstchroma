@@ -480,3 +480,5 @@ class Chroma_Near_Me_Sitemap_Provider extends WP_Sitemaps_Provider {
 }
 
 
+
+

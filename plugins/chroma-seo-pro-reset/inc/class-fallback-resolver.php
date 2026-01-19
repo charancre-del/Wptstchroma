@@ -379,3 +379,5 @@ class Chroma_Fallback_Resolver
         return $facts;
     }
 }
+
+

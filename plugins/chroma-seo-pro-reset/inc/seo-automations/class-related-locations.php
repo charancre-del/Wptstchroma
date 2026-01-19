@@ -219,3 +219,5 @@ class Chroma_Related_Locations
 
 add_shortcode('related_locations', ['Chroma_Related_Locations', 'shortcode']);
 new Chroma_Related_Locations();
+
+

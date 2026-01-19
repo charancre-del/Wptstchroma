@@ -116,3 +116,5 @@ class Chroma_Location_Reviews_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
         }
     }
 }
+
+

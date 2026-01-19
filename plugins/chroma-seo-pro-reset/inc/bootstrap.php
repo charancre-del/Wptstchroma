@@ -33,6 +33,22 @@ if (!function_exists('chroma_safe_require')) {
 }
 
 /**
+ * Helper function for debug logging.
+ * Only logs when WP_DEBUG and WP_DEBUG_LOG are enabled.
+ * 
+ * @param mixed $message Message to log (string or array/object for print_r)
+ * @param string $prefix Optional prefix for the log message
+ */
+if (!function_exists('chroma_debug_log')) {
+	function chroma_debug_log($message, $prefix = 'Chroma SEO') {
+		if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+			$log_message = is_string($message) ? $message : print_r($message, true);
+			error_log('[' . $prefix . '] ' . $log_message);
+		}
+	}
+}
+
+/**
  * Load Base Classes & Helpers
  */
 chroma_safe_require(__DIR__ . '/class-meta-box-base.php');
@@ -389,3 +405,4 @@ function chroma_seo_missing_files_notice()
 }
 add_action('admin_notices', 'chroma_seo_missing_files_notice');
 }
+

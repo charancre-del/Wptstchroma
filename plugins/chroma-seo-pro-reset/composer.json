@@ -1,0 +1,16 @@
+{
+    "name": "chroma/seo-pro-reset",
+    "type": "wordpress-plugin",
+    "authors": [
+        {
+            "name": "charancre-del",
+            "email": "charancre@gmail.com"
+        }
+    ],
+    "require-dev": {
+        "phpstan/phpstan": "*",
+        "squizlabs/php_codesniffer": "*",
+        "wp-coding-standards/wpcs": "*",
+        "dealerdirect/phpcodesniffer-composer-installer": "*"
+    }
+}

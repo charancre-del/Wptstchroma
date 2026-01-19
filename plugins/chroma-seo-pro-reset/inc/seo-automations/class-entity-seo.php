@@ -112,3 +112,5 @@ class Chroma_Entity_SEO
 }
 
 new Chroma_Entity_SEO();
+
+

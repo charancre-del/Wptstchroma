@@ -15,13 +15,17 @@ $all_regions = get_terms(array(
 ));
 
 // Get all published locations
-$locations_query = new WP_Query(array(
-	'post_type' => 'location',
-	'posts_per_page' => -1,
-	'post_status' => 'publish',
-	'orderby' => 'title',
-	'order' => 'ASC',
-));
+$locations_query = chroma_cached_query(
+	array(
+		'post_type'      => 'location',
+		'posts_per_page' => -1,
+		'post_status'    => 'publish',
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	),
+	'locations_page',
+	7 * DAY_IN_SECONDS
+);
 
 // Helper function to get region color from term meta
 function chroma_get_region_color_from_term($term_id)

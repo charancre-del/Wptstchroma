@@ -288,3 +288,5 @@ class Chroma_Geographic_SEO
 }
 
 new Chroma_Geographic_SEO();
+
+

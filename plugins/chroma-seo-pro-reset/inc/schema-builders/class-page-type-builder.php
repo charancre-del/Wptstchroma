@@ -68,3 +68,5 @@ class Chroma_Page_Type_Builder
         }
     }
 }
+
+

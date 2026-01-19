@@ -338,3 +338,5 @@ class Chroma_Schema_Registry
 
 // Initialize the registry
 add_action('init', ['Chroma_Schema_Registry', 'init']);
+
+

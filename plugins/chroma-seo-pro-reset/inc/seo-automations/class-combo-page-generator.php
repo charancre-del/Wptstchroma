@@ -1538,3 +1538,5 @@ class Chroma_Combo_Sitemap_Provider extends WP_Sitemaps_Provider {
 
 new Chroma_Combo_Page_Generator();
 
+
+

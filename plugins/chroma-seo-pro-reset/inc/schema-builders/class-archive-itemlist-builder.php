@@ -69,3 +69,5 @@ class Chroma_Archive_ItemList_Builder
         Chroma_Schema_Registry::register($schema, ['source' => 'archive-itemlist-builder']);
     }
 }
+
+

@@ -43,3 +43,5 @@ class Chroma_Special_Announcement_Builder
         Chroma_Schema_Registry::register($schema, ['source' => 'special-announcement-builder']);
     }
 }
+
+

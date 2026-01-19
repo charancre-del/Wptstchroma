@@ -10,16 +10,20 @@ get_header();
 
 // Get all cities for the grid (Load All for client-side filtering)
 // Optimized: Pre-cache meta, skip term cache, collect counties during display
-$cities_query = new WP_Query([
-    'post_type' => 'city',
-    'posts_per_page' => -1,
-    'post_status' => 'publish',
-    'orderby' => 'title',
-    'order' => 'ASC',
-    'update_post_meta_cache' => true,  // Batch-load all meta in one query
-    'update_post_term_cache' => false, // Not using taxonomies
-    'no_found_rows' => true,           // Skip counting for pagination (faster)
-]);
+$cities_query = chroma_cached_query(
+    [
+        'post_type'              => 'city',
+        'posts_per_page'         => -1,
+        'post_status'            => 'publish',
+        'orderby'                => 'title',
+        'order'                  => 'ASC',
+        'update_post_meta_cache' => true,
+        'update_post_term_cache' => false,
+        'no_found_rows'          => true,
+    ],
+    'cities_archive',
+    7 * DAY_IN_SECONDS
+);
 
 // Counties will be collected during the main loop to avoid double iteration
 $unique_counties = [];

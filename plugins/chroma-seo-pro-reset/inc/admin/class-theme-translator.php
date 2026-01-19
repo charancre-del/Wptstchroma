@@ -440,3 +440,5 @@ class Chroma_Theme_Translator
         wp_send_json_error('Page not found');
     }
 }
+
+

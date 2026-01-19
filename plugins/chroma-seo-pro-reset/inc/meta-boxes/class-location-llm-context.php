@@ -113,3 +113,5 @@ class Chroma_Location_LLM_Context_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_
         }
     }
 }
+
+

@@ -79,3 +79,5 @@ class Chroma_Validation_Cache
         return 'chroma_val_v' . $version . '_' . md5($url);
     }
 }
+
+

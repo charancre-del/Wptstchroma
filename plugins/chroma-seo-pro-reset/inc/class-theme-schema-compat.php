@@ -717,3 +717,5 @@ function chroma_remove_legacy_theme_schema() {
 }
 // Execute immediately if we are past theme setup, or hook to late init
 add_action('wp_head', 'chroma_remove_legacy_theme_schema', 0);
+
+

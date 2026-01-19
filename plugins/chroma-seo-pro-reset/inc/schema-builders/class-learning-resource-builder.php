@@ -36,3 +36,5 @@ class Chroma_Learning_Resource_Builder
         Chroma_Schema_Registry::register($schema, ['source' => 'learning-resource-builder']);
     }
 }
+
+

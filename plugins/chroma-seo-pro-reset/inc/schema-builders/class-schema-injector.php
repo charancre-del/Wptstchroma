@@ -915,3 +915,5 @@ class Chroma_Schema_Injector
         }
     }
 }
+
+

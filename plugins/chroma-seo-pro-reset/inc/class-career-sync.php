@@ -95,3 +95,5 @@ class Chroma_Career_Sync
         return $trashed;
     }
 }
+
+

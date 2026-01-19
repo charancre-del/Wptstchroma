@@ -52,3 +52,5 @@ class Chroma_Speculation_Rules
 }
 
 Chroma_Speculation_Rules::init();
+
+

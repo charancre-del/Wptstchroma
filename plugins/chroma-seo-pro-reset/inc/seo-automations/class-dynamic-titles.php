@@ -249,3 +249,5 @@ class Chroma_Dynamic_Titles
 }
 
 new Chroma_Dynamic_Titles();
+
+

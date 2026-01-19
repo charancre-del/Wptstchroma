@@ -75,3 +75,5 @@ class Chroma_Post_Newsroom extends Chroma_Advanced_SEO_Meta_Box_Base
         }
     }
 }
+
+

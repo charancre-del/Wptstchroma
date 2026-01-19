@@ -15,7 +15,16 @@
 if (!defined('ABSPATH')) {
     // If running via wp eval-file, this will be defined
     if (!function_exists('add_action')) {
-        die('This script must be run within WordPress context.');
+        // Use wp_die if available, otherwise exit safely
+        if (function_exists('wp_die')) {
+            wp_die(
+                'This script must be run within WordPress context.',
+                'Access Denied',
+                array('response' => 403)
+            );
+        } else {
+            exit('This script must be run within WordPress context.');
+        }
     }
 }
 

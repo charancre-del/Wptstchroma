@@ -201,3 +201,5 @@ class Chroma_Schema_Inspector
 }
 
 new Chroma_Schema_Inspector();
+
+

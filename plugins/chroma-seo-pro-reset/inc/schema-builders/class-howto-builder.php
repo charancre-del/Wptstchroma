@@ -67,3 +67,5 @@ class Chroma_HowTo_Schema_Builder
         }
     }
 }
+
+

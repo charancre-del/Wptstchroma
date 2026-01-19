@@ -29,7 +29,7 @@ $newsroom_args = array(
   )
 );
 
-$newsroom_query = new WP_Query($newsroom_args);
+$newsroom_query = chroma_cached_query($newsroom_args, 'newsroom_page', 7 * DAY_IN_SECONDS);
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?> class="scroll-smooth">

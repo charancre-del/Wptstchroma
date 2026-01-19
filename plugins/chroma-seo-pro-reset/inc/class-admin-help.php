@@ -152,3 +152,5 @@ class Chroma_Admin_Help
         <?php
     }
 }
+
+

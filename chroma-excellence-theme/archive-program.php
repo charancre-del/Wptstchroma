@@ -8,12 +8,17 @@
 get_header();
 
 // Get all programs
-$programs_query = new WP_Query(array(
-	'post_type' => 'program',
-	'posts_per_page' => -1,
-	'orderby' => 'menu_order',
-	'order' => 'ASC',
-));
+// Get all programs
+$programs_query = chroma_cached_query(
+	array(
+		'post_type'      => 'program',
+		'posts_per_page' => -1,
+		'orderby'        => 'menu_order',
+		'order'          => 'ASC',
+	),
+	'programs_archive',
+	7 * DAY_IN_SECONDS
+);
 ?>
 
 <main>

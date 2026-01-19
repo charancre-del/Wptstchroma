@@ -272,3 +272,5 @@ class Chroma_Field_Confidence
 
 // Initialize
 new Chroma_Schema_Review_Queue();
+
+

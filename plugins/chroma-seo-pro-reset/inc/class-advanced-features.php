@@ -368,3 +368,5 @@ add_action('wp_ajax_chroma_compare_competitor', function() {
     
     wp_send_json_success($comparison);
 });
+
+

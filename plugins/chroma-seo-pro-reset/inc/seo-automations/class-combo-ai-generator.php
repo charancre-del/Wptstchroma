@@ -478,3 +478,5 @@ PROMPT;
 }
 
 new Chroma_Combo_AI_Generator();
+
+

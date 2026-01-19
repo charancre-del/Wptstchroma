@@ -15,13 +15,18 @@ $all_regions = get_terms(array(
 ));
 
 // Get all published locations
-$locations_query = new WP_Query(array(
-	'post_type' => 'location',
-	'posts_per_page' => -1,
-	'post_status' => 'publish',
-	'orderby' => 'title',
-	'order' => 'ASC',
-));
+// Get all published locations
+$locations_query = chroma_cached_query(
+	array(
+		'post_type'      => 'location',
+		'posts_per_page' => -1,
+		'post_status'    => 'publish',
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	),
+	'locations_archive',
+	7 * DAY_IN_SECONDS
+);
 
 
 ?>

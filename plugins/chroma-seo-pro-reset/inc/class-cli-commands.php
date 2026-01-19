@@ -142,8 +142,16 @@ class Chroma_CLI_Commands
     {
         global $wpdb;
         
+        // Use prepared statements with esc_like for security
+        $like_pattern = $wpdb->esc_like('_transient_chroma_trans_') . '%';
+        $timeout_pattern = $wpdb->esc_like('_transient_timeout_chroma_trans_') . '%';
+        
         $deleted = $wpdb->query(
-            "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_chroma_trans_%' OR option_name LIKE '_transient_timeout_chroma_trans_%'"
+            $wpdb->prepare(
+                "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+                $like_pattern,
+                $timeout_pattern
+            )
         );
 
         WP_CLI::success("Flushed translation memory cache. Removed $deleted entries.");
@@ -199,3 +207,5 @@ class Chroma_CLI_Commands
 }
 
 WP_CLI::add_command('chroma', 'Chroma_CLI_Commands');
+
+

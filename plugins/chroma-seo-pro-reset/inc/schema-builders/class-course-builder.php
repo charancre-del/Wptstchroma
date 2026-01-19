@@ -69,3 +69,5 @@ class Chroma_Course_Builder
         Chroma_Schema_Registry::register($course_schema, ['source' => 'course-builder']);
     }
 }
+
+

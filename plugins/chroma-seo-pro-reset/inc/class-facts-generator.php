@@ -213,3 +213,5 @@ class Chroma_Facts_Generator
         get_footer();
     }
 }
+
+

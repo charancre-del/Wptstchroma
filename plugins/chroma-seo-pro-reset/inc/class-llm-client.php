@@ -221,12 +221,12 @@ class Chroma_LLM_Client
 
         if (isset($_POST['api_key'])) {
             $key = sanitize_text_field($_POST['api_key']);
-            error_log('Chroma LLM: Saving API Key - Length: ' . strlen($key));
+            chroma_debug_log(' LLM: Saving API Key - Length: ' . strlen($key));
             if (empty($key)) {
-                error_log('Chroma LLM: Warning - Saving EMPTY API Key');
+                chroma_debug_log(' LLM: Warning - Saving EMPTY API Key');
             }
             $updated = update_option('chroma_openai_api_key', $key);
-            error_log('Chroma LLM: update_option result: ' . ($updated ? 'true' : 'false'));
+            chroma_debug_log(' LLM: update_option result: ' . ($updated ? 'true' : 'false'));
         }
         if (isset($_POST['model'])) {
             update_option('chroma_llm_model', sanitize_text_field($_POST['model']));
@@ -257,7 +257,7 @@ class Chroma_LLM_Client
 
         // Lazy-load API key fresh from database (in case user just saved it)
         $api_key = get_option('chroma_openai_api_key', '');
-        error_log('Chroma LLM: Testing Connection. Loaded API Key Length: ' . strlen($api_key));
+        chroma_debug_log(' LLM: Testing Connection. Loaded API Key Length: ' . strlen($api_key));
         if (!$api_key) {
             wp_send_json_error(['message' => 'No API Key found. (DB value empty)']);
         }
@@ -1429,7 +1429,7 @@ class Chroma_LLM_Client
         $validation = Chroma_Schema_Validator::validate_json_ld($content);
 
         if (!$validation['valid']) {
-            error_log('[Chroma SEO] AI Fix generated invalid schema (attempt ' . ($retry_count + 1) . '): ' . print_r($validation['errors'], true));
+            chroma_debug_log('[Chroma SEO] AI Fix generated invalid schema (attempt ' . ($retry_count + 1) . '): ' . print_r($validation['errors'], true));
             
             // Retry up to 2 times with validation errors in prompt
             if ($retry_count < 2) {
@@ -1461,3 +1461,5 @@ class Chroma_LLM_Client
 
 
 }
+
+

@@ -152,3 +152,5 @@ class Chroma_Job_Posting_Builder
         return isset($map[$type]) ? $map[$type] : 'FULL_TIME';
     }
 }
+
+

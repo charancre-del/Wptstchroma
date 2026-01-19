@@ -81,11 +81,15 @@
 			<div class="md:col-span-1 lg:col-span-1">
 				<h3 class="font-bold text-sm mb-4"><?php _e('Latest Blogs', 'chroma-excellence'); ?></h3>
 				<?php
-				$footer_blog_query = new WP_Query(array(
-					'post_type'      => 'post',
-					'posts_per_page' => 2,
-					'ignore_sticky_posts' => 1,
-				));
+				$footer_blog_query = chroma_cached_query(
+					array(
+						'post_type'           => 'post',
+						'posts_per_page'      => 2,
+						'ignore_sticky_posts' => 1,
+					),
+					'footer_blog',
+					DAY_IN_SECONDS
+				);
 
 				if ($footer_blog_query->have_posts()) : ?>
 					<div class="grid grid-cols-2 gap-4">

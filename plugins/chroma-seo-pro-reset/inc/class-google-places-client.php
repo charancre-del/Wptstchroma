@@ -356,3 +356,5 @@ class Chroma_Google_Places_Client
 
 // Initialize
 new Chroma_Google_Places_Client();
+
+
