@@ -91,62 +91,68 @@ function chroma_render_pdf_modal() {
     if (defined('CHROMA_PDF_MODAL_RENDERED')) return;
     define('CHROMA_PDF_MODAL_RENDERED', true);
     ?>
-    <div id="chroma-pdf-modal" class="fixed inset-0 z-[200] hidden" role="dialog" aria-modal="true">
-        <!-- Backdrop -->
-        <div class="absolute inset-0 bg-brand-ink/90 backdrop-blur-md transition-opacity" id="chroma-pdf-backdrop"></div>
+    <div id="chroma-pdf-modal" class="fixed inset-0 hidden" role="dialog" aria-modal="true">
+        <!-- Backdrop with brand-ink styling -->
+        <div class="absolute inset-0 bg-[#0F1E26]/95 backdrop-blur-xl transition-opacity" id="chroma-pdf-backdrop"></div>
 
         <!-- Viewer Container -->
-        <div class="absolute inset-2 md:inset-10 bg-transparent flex flex-col pointer-events-none">
+        <div class="absolute inset-0 md:inset-6 flex flex-col pointer-events-none p-4 md:p-10">
             
-            <!-- Toolbar -->
-            <div class="bg-white rounded-full shadow-2xl mx-auto mb-4 px-6 py-3 flex items-center gap-6 pointer-events-auto animate-fade-in-down">
-                <!-- Title -->
-                <div class="hidden md:block border-r border-gray-200 pr-6 mr-2">
-                    <h3 class="font-serif font-bold text-brand-ink" id="chroma-pdf-title">Document Viewer</h3>
+            <!-- Branded Pro Toolbar -->
+            <div id="chroma-pdf-toolbar" class="bg-brand-ink text-white rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] mx-auto mb-6 px-4 md:px-8 py-4 flex items-center justify-between gap-4 md:gap-10 pointer-events-auto border border-white/10 animate-fade-in-down w-full max-w-4xl">
+                <!-- Branding & Title -->
+                <div class="flex items-center gap-4 border-r border-white/10 pr-6 mr-2">
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                        <i class="fa-solid fa-file-pdf text-chroma-red"></i>
+                    </div>
+                    <div class="hidden md:block">
+                        <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block mb-0.5">Pro Viewer</span>
+                        <h3 class="font-serif font-bold text-sm text-white truncate max-w-[200px]" id="chroma-pdf-title">Document</h3>
+                    </div>
                 </div>
 
-                <!-- Pagination -->
-                <div class="flex items-center gap-4">
-                    <button id="chroma-pdf-prev" class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-brand-ink">
-                        <i class="fa-solid fa-chevron-left"></i>
+                <!-- Pagination Tools -->
+                <div class="flex items-center gap-2 md:gap-6 bg-white/5 rounded-full px-4 py-1.5 border border-white/5">
+                    <button id="chroma-pdf-prev" class="w-8 h-8 md:w-10 md:h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
                     </button>
-                    <span class="text-sm font-mono text-brand-ink/70">
-                        <span id="chroma-pdf-page-num" class="font-bold text-brand-ink">1</span> / <span id="chroma-pdf-page-count">--</span>
+                    <span class="text-xs md:text-sm font-mono tracking-widest text-white/80">
+                        <span id="chroma-pdf-page-num" class="font-bold text-white">1</span> <span class="mx-1 opacity-40">/</span> <span id="chroma-pdf-page-count">--</span>
                     </span>
-                    <button id="chroma-pdf-next" class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition-colors disabled:opacity-30 disabled:cursor-not-allowed text-brand-ink">
-                        <i class="fa-solid fa-chevron-right"></i>
+                    <button id="chroma-pdf-next" class="w-8 h-8 md:w-10 md:h-10 rounded-full hover:bg-white/10 flex items-center justify-center transition-all disabled:opacity-20 disabled:cursor-not-allowed">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
                     </button>
                 </div>
 
-                <!-- Actions -->
-                <div class="flex items-center gap-2 border-l border-gray-200 pl-6 ml-2">
-                    <a href="#" id="chroma-pdf-download" download class="w-10 h-10 rounded-full hover:bg-chroma-blue hover:text-white flex items-center justify-center transition-colors text-brand-ink" title="Download">
+                <!-- Action Buttons -->
+                <div class="flex items-center gap-2 border-l border-white/10 pl-6 ml-2">
+                    <a href="#" id="chroma-pdf-download" download class="w-10 h-10 rounded-full hover:bg-chroma-blue flex items-center justify-center transition-all text-white/80 hover:text-white" title="Download">
                         <i class="fa-solid fa-download"></i>
                     </a>
-                    <button id="chroma-pdf-close" class="w-10 h-10 rounded-full hover:bg-chroma-red hover:text-white flex items-center justify-center transition-colors text-brand-ink" title="Close">
+                    <button id="chroma-pdf-close" class="w-10 h-10 rounded-full hover:bg-chroma-red flex items-center justify-center transition-all text-white/80 hover:text-white" title="Close Content">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Canvas Area -->
-            <div class="flex-grow relative flex items-center justify-center pointer-events-auto" id="chroma-pdf-canvas-container">
-                <!-- Loader -->
-                <div id="chroma-pdf-loader" class="absolute z-10 flex flex-col items-center text-white">
-                    <div class="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin mb-4"></div>
-                    <span class="text-sm font-bold tracking-widest uppercase">Loading Document...</span>
+            <!-- Canvas Rendering Area -->
+            <div class="flex-grow relative flex items-start justify-center overflow-hidden pointer-events-auto" id="chroma-pdf-canvas-container">
+                <!-- Loader Widget -->
+                <div id="chroma-pdf-loader" class="absolute inset-0 z-[10] flex flex-col items-center justify-center text-white bg-brand-ink/40 backdrop-blur-sm rounded-3xl">
+                    <div class="w-14 h-14 border-4 border-white/10 border-t-chroma-red rounded-full animate-spin mb-6"></div>
+                    <span class="text-xs font-bold tracking-[0.3em] uppercase opacity-80">Enhancing Document...</span>
                 </div>
                 
-                <!-- PDF Render Wrapper (Scrollable if zoomed, but we fit to page mostly) -->
-                <div class="max-w-full max-h-full overflow-auto custom-scrollbar rounded shadow-2xl">
-                    <canvas id="chroma-pdf-canvas" class="block bg-white"></canvas>
+                <!-- PDF Render Paper (Simulates high-end print look) -->
+                <div class="max-w-full max-h-full overflow-auto custom-scrollbar rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] bg-slate-100 p-1 md:p-3">
+                    <canvas id="chroma-pdf-canvas" class="block mx-auto rounded shadow-sm bg-white"></canvas>
                 </div>
             </div>
 
         </div>
     </div>
     <style>
-        /* Robust CSS Fallbacks for PDF Viewer */
+        /* Force high z-index and branded aesthetics */
         #chroma-pdf-modal {
             display: none;
             position: fixed;
@@ -154,9 +160,8 @@ function chroma_render_pdf_modal() {
             left: 0;
             right: 0;
             bottom: 0;
-            z-index: 999999 !important;
-            background: rgba(18, 38, 48, 0.95); /* brand-ink equivalent */
-            backdrop-filter: blur(10px);
+            z-index: 9999999 !important; /* Extremely high to prevent bleed-through */
+            background: rgba(15, 30, 38, 0.98);
         }
         
         #chroma-pdf-modal:not(.hidden) {
@@ -164,30 +169,48 @@ function chroma_render_pdf_modal() {
             flex-direction: column;
         }
 
-        #chroma-pdf-modal .animate-fade-in-down { 
-            animation: fadeInDown 0.3s ease-out forwards; 
+        #chroma-pdf-toolbar {
+            font-family: 'Outfit', 'Inter', sans-serif;
+        }
+
+        #chroma-pdf-toolbar h3 {
+            font-family: 'Outfit', 'Playfair Display', serif;
+        }
+
+        .animate-fade-in-down { 
+            animation: fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
         }
         
         @keyframes fadeInDown { 
-            from { opacity: 0; transform: translateY(-20px); } 
+            from { opacity: 0; transform: translateY(-40px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
 
-        /* Ensure mobile readability and canvas fit */
+        /* Responsive Canvas Fit */
         #chroma-pdf-canvas {
             max-width: 100%;
             height: auto !important;
+            image-rendering: -webkit-optimize-contrast;
         }
 
+        /* Luxury Scrollbar */
         .custom-scrollbar::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
+            background-clip: content-box;
         }
     </style>
     <?php
