@@ -687,8 +687,8 @@ while (have_posts()):
 								<span class="text-sm text-brand-ink font-medium uppercase tracking-wider"><?php _e('or', 'chroma-excellence'); ?></span>
 								<div class="flex-1 h-px bg-brand-ink/10"></div>
 							</div>
-							<a href="<?php echo esc_url($tour_booking_link); ?>" target="_blank"
-								class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-green text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-greenDark transition-all hover:-translate-y-1">
+							<a href="<?php echo esc_url($tour_booking_link); ?>"
+								class="booking-btn inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-green text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-greenDark transition-all hover:-translate-y-1">
 								<?php _e('Book a Tour Now', 'chroma-excellence'); ?>
 							</a>
 						</div>

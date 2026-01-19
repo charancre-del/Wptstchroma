@@ -131,6 +131,7 @@ require_once CHROMA_THEME_DIR . '/inc/program-settings.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
 require_once CHROMA_THEME_DIR . '/inc/admin/class-menu-sync.php';
 require_once CHROMA_THEME_DIR . '/inc/chroma-pdf-viewer.php';
+require_once CHROMA_THEME_DIR . '/inc/chroma-booking-modal.php';
 
 // Custom Post Types
 require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
