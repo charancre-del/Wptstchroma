@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             page.render(renderContext).promise.then(function () {
                 pageWrapper.classList.add('rendered');
+                pageWrapper.style.opacity = '1';
                 // Hide main loader if it's the first page
                 if (num === 1) loadingSpinner.style.display = 'none';
             });
@@ -76,9 +77,10 @@ document.addEventListener('DOMContentLoaded', function () {
      * Initializes the scrollable page list
      */
     function initScrollArea() {
-        // Clear previous content
-        const existingWrapper = canvasContainer.querySelector('.pdf-scroll-wrapper');
-        if (existingWrapper) existingWrapper.remove();
+        // Clear everything EXCEPT the loader spinner
+        Array.from(canvasContainer.children).forEach(child => {
+            if (child !== loadingSpinner) child.remove();
+        });
 
         const scrollWrapper = document.createElement('div');
         scrollWrapper.className = 'pdf-scroll-wrapper w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar flex flex-col items-center gap-8 py-10';

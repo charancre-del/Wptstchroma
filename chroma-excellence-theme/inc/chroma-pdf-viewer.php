@@ -169,6 +169,16 @@ function chroma_render_pdf_modal() {
             flex-direction: column;
         }
 
+        .pdf-page-container {
+            transition: transform 0.3s ease, opacity 0.5s ease;
+            transform: translateY(10px);
+        }
+
+        .pdf-page-container.rendered {
+            opacity: 1 !important;
+            transform: translateY(0);
+        }
+
         #chroma-pdf-toolbar {
             font-family: 'Outfit', 'Inter', sans-serif;
         }
