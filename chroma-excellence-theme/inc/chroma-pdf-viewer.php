@@ -136,11 +136,16 @@ function chroma_render_pdf_modal() {
             </div>
 
             <!-- Canvas Rendering Area -->
-            <div class="flex-grow relative overflow-hidden pointer-events-auto" id="chroma-pdf-canvas-container">
+            <div class="flex-grow relative flex items-start justify-center overflow-hidden pointer-events-auto" id="chroma-pdf-canvas-container">
                 <!-- Loader Widget -->
                 <div id="chroma-pdf-loader" class="absolute inset-0 z-[10] flex flex-col items-center justify-center text-white bg-brand-ink/40 backdrop-blur-sm rounded-3xl">
                     <div class="w-14 h-14 border-4 border-white/10 border-t-chroma-red rounded-full animate-spin mb-6"></div>
                     <span class="text-xs font-bold tracking-[0.3em] uppercase opacity-80">Enhancing Document...</span>
+                </div>
+                
+                <!-- PDF Render Paper -->
+                <div class="max-w-full max-h-full overflow-auto custom-scrollbar rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] bg-slate-100 p-1 md:p-4">
+                    <canvas id="chroma-pdf-canvas" class="block mx-auto rounded shadow-sm bg-white"></canvas>
                 </div>
             </div>
 
@@ -155,7 +160,7 @@ function chroma_render_pdf_modal() {
             left: 0;
             right: 0;
             bottom: 0;
-            z-index: 9999999 !important; /* Extremely high to prevent bleed-through */
+            z-index: 9999999 !important;
             background: rgba(15, 30, 38, 0.98);
         }
         
@@ -164,37 +169,35 @@ function chroma_render_pdf_modal() {
             flex-direction: column;
         }
 
-        /* Continuous Scroll Layout */
-        .pdf-scroll-wrapper {
-            display: flex !important;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            padding: 40px 20px;
-        }
-
-        .pdf-page-container {
-            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
-            transform: translateY(20px);
-            opacity: 0;
-            display: block;
-            margin-bottom: 40px;
-        }
-
-        .pdf-page-container.rendered {
-            opacity: 1 !important;
-            transform: translateY(0) !important;
-        }
-
         #chroma-pdf-toolbar {
             font-family: 'Outfit', 'Inter', sans-serif;
+            background: #0F1E26 !important;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
         #chroma-pdf-toolbar h3 {
             font-family: 'Outfit', 'Playfair Display', serif;
+        }
+
+        /* Ensure Navigation Buttons are Very Visible */
+        #chroma-pdf-prev, #chroma-pdf-next {
+            background: rgba(255, 255, 255, 0.1);
+            color: white !important;
+            opacity: 1 !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #chroma-pdf-prev:hover, #chroma-pdf-next:hover {
+            background: #1DABCC; /* chroma-blue */
+            transform: scale(1.05);
+        }
+
+        #chroma-pdf-prev:disabled, #chroma-pdf-next:disabled {
+            opacity: 0.2 !important;
+            background: rgba(255, 255, 255, 0.05);
+            transform: none;
         }
 
         .animate-fade-in-down { 
@@ -211,6 +214,7 @@ function chroma_render_pdf_modal() {
             max-width: 100%;
             height: auto !important;
             image-rendering: -webkit-optimize-contrast;
+            display: block;
         }
 
         /* Luxury Scrollbar */
