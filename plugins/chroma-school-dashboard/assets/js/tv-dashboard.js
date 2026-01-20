@@ -34,6 +34,106 @@ document.addEventListener('DOMContentLoaded', function () {
         menu: document.getElementById('menu-container')
     };
 
+    // PDF Viewer State
+    let pdfDoc = null;
+    let pdfPageNum = 1;
+    let pdfTotalPages = 0;
+    let pdfIntervalId = null;
+    const PDF_PAGE_INTERVAL = 10000; // 10 seconds per page
+
+    /**
+     * Initialize PDF Viewer for Newsletter
+     */
+    async function initPdfViewer(pdfUrl, container, qrSrc, title) {
+        try {
+            // Load PDF
+            pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+            pdfTotalPages = pdfDoc.numPages;
+            pdfPageNum = 1;
+
+            // Build container HTML
+            container.innerHTML = `
+                <div class="bg-[#F8EEEB] rounded-[2rem] shadow-card flex-1 flex flex-col h-full relative overflow-hidden">
+                    <div class="flex items-center justify-between px-6 pt-5 pb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center text-chroma-red text-xl shadow-sm"><i class="fa-regular fa-newspaper"></i></div>
+                            <h2 class="font-serif text-2xl font-bold text-chroma-red">${esc(title) || 'Newsletter'}</h2>
+                        </div>
+                        <span id="pdf-page-counter" class="text-xs font-bold text-brand-ink/40 bg-white/60 px-3 py-1 rounded-full">1 / ${pdfTotalPages}</span>
+                    </div>
+                    <div class="flex-1 relative mx-4 mb-4 rounded-xl overflow-hidden bg-white shadow-inner">
+                        <canvas id="pdf-canvas" class="absolute inset-0 w-full h-full object-contain"></canvas>
+                    </div>
+                    ${qrSrc ? `
+                    <div class="absolute bottom-4 right-4 bg-white rounded-xl p-2 shadow-lg flex items-center gap-2 z-10">
+                        <img src="${qrSrc}" class="w-10 h-10">
+                        <span class="text-[10px] font-bold text-brand-ink/50 leading-tight">Scan to<br>read on phone</span>
+                    </div>` : ''}
+                </div>
+            `;
+
+            // Render first page
+            await renderPdfPage(pdfPageNum);
+
+            // Start auto-scroll
+            if (pdfIntervalId) clearInterval(pdfIntervalId);
+            pdfIntervalId = setInterval(async () => {
+                pdfPageNum = (pdfPageNum % pdfTotalPages) + 1;
+                await renderPdfPage(pdfPageNum);
+            }, PDF_PAGE_INTERVAL);
+
+        } catch (err) {
+            console.error('PDF Load Error:', err);
+            container.innerHTML = `
+                <div class="bg-[#F8EEEB] rounded-[2rem] p-6 shadow-card flex-1 flex flex-col h-full items-center justify-center">
+                    <i class="fa-solid fa-file-pdf text-4xl text-red-300 mb-4"></i>
+                    <p class="text-brand-ink/50 font-medium">Could not load newsletter</p>
+                </div>
+            `;
+        }
+    }
+
+    /**
+     * Render a single PDF page to canvas
+     */
+    async function renderPdfPage(pageNum) {
+        if (!pdfDoc) return;
+
+        const page = await pdfDoc.getPage(pageNum);
+        const canvas = document.getElementById('pdf-canvas');
+        const counter = document.getElementById('pdf-page-counter');
+
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        const container = canvas.parentElement;
+
+        // Calculate scale to fit container
+        const viewport = page.getViewport({ scale: 1 });
+        const scale = Math.min(
+            container.clientWidth / viewport.width,
+            container.clientHeight / viewport.height
+        ) * 0.95;
+
+        const scaledViewport = page.getViewport({ scale });
+
+        canvas.width = scaledViewport.width;
+        canvas.height = scaledViewport.height;
+
+        // Center canvas
+        canvas.style.left = `${(container.clientWidth - scaledViewport.width) / 2}px`;
+        canvas.style.top = `${(container.clientHeight - scaledViewport.height) / 2}px`;
+
+        // Fade effect
+        canvas.style.opacity = 0;
+        await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+        canvas.style.transition = 'opacity 0.4s ease';
+        canvas.style.opacity = 1;
+
+        // Update counter
+        if (counter) counter.textContent = `${pageNum} / ${pdfTotalPages}`;
+    }
+
     /**
      * Start the system
      */
@@ -161,30 +261,38 @@ document.addEventListener('DOMContentLoaded', function () {
             els.eom.style.display = 'none';
         }
 
-        // Newsletter
-        if (els.newsletter && c.newsletter && c.newsletter.title) {
+        // Newsletter (with PDF support)
+        if (els.newsletter && c.newsletter && (c.newsletter.title || c.newsletter.pdf_url)) {
             els.newsletter.style.display = 'flex';
-            const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(c.newsletter.url || '')}`;
-            const html = `
-                <div class="bg-[#F8EEEB] rounded-[2rem] p-6 shadow-card flex-1 flex flex-col h-full">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center text-chroma-red text-xl shadow-sm"><i class="fa-regular fa-newspaper"></i></div>
-                        <h2 class="font-serif text-2xl font-bold text-chroma-red">Newsletter</h2>
-                    </div>
-                    <div class="flex-1 flex flex-col gap-4">
-                        <div>
-                            <h3 class="font-bold text-xl text-brand-ink mb-1">${esc(c.newsletter.title)}</h3>
-                            <p class="text-brand-ink/60 text-sm leading-relaxed line-clamp-3">${esc(c.newsletter.body || '')}</p>
+            const qrSrc = c.newsletter.url ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(c.newsletter.url)}` : '';
+
+            // Check if PDF URL changed - if so, reinitialize PDF viewer
+            if (c.newsletter.pdf_url && c.newsletter.pdf_url !== window._currentPdfUrl) {
+                window._currentPdfUrl = c.newsletter.pdf_url;
+                initPdfViewer(c.newsletter.pdf_url, els.newsletter, qrSrc, c.newsletter.title);
+            } else if (!c.newsletter.pdf_url) {
+                // No PDF - show text card
+                const html = `
+                    <div class="bg-[#F8EEEB] rounded-[2rem] p-6 shadow-card flex-1 flex flex-col h-full">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-white/80 flex items-center justify-center text-chroma-red text-xl shadow-sm"><i class="fa-regular fa-newspaper"></i></div>
+                            <h2 class="font-serif text-2xl font-bold text-chroma-red">Newsletter</h2>
                         </div>
-                        ${c.newsletter.url ? `
-                        <div class="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm mt-auto">
-                            <div class="bg-brand-ink p-1 rounded-lg shrink-0"><img src="${qrSrc}" class="w-12 h-12"></div>
-                            <div class="leading-tight"><p class="font-bold text-base text-brand-ink">Read Full Issue</p><p class="text-xs text-brand-ink/50">Scan with phone</p></div>
-                        </div>` : ''}
+                        <div class="flex-1 flex flex-col gap-4">
+                            <div>
+                                <h3 class="font-bold text-xl text-brand-ink mb-1">${esc(c.newsletter.title)}</h3>
+                                <p class="text-brand-ink/60 text-sm leading-relaxed line-clamp-3">${esc(c.newsletter.body || '')}</p>
+                            </div>
+                            ${qrSrc ? `
+                            <div class="bg-white rounded-2xl p-3 flex items-center gap-3 shadow-sm mt-auto">
+                                <div class="bg-brand-ink p-1 rounded-lg shrink-0"><img src="${qrSrc}" class="w-12 h-12"></div>
+                                <div class="leading-tight"><p class="font-bold text-base text-brand-ink">Read Full Issue</p><p class="text-xs text-brand-ink/50">Scan with phone</p></div>
+                            </div>` : ''}
+                        </div>
                     </div>
-                </div>
-            `;
-            if (els.newsletter.innerHTML !== html) els.newsletter.innerHTML = html;
+                `;
+                if (els.newsletter.innerHTML !== html) els.newsletter.innerHTML = html;
+            }
         } else if (els.newsletter) {
             els.newsletter.style.display = 'none';
         }

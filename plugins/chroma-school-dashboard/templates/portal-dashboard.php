@@ -7,6 +7,13 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
 
 // Logic: Enable WordPress Media Library for this page
 wp_enqueue_media();
+
+// Enqueue the admin CSS that styles the media modal
+wp_enqueue_style('media-views');
+wp_enqueue_style('imgareaselect');
+wp_enqueue_style('dashicons');
+wp_enqueue_style('buttons');
+wp_enqueue_style('wp-mediaelement');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -176,6 +183,7 @@ wp_enqueue_media();
                     // Sync controlled states
                     setFormState({
                         eomPhoto: data.content?.eom?.photo_url || '',
+                        newsletterPdf: data.content?.newsletter?.pdf_url || '',
                         slides: [
                            ...(data.content?.slideshow || []),
                            '', '', '', '', ''
@@ -247,7 +255,8 @@ wp_enqueue_media();
                     newsletter: {
                         title: rawObj['newsletter.title'],
                         body: rawObj['newsletter.body'],
-                        url: rawObj['newsletter.url']
+                        url: rawObj['newsletter.url'],
+                        pdf_url: formState.newsletterPdf
                     },
                     slideshow_title: rawObj['slideshow_title'],
                     slideshow: formState.slides.filter(s => s.trim().length > 0),
@@ -432,6 +441,43 @@ wp_enqueue_media();
                                     <div className="space-y-2">
                                         <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Quick Summary</label>
                                         <textarea name="newsletter.body" defaultValue={c.newsletter?.body} rows="3" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50" />
+                                    </div>
+                                    {/* PDF Upload */}
+                                    <div className="p-6 bg-chroma-blueDark/5 rounded-2xl border border-chroma-blueDark/10">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
+                                                <h4 className="font-bold text-brand-ink">📄 Newsletter PDF</h4>
+                                                <p className="text-xs text-brand-ink/50">Upload a PDF to display on the TV (auto-scrolls pages)</p>
+                                            </div>
+                                            {formState.newsletterPdf && (
+                                                <button type="button" onClick={() => setFormState({...formState, newsletterPdf: ''})} className="text-xs font-bold text-red-500 hover:text-red-700">
+                                                    Remove PDF
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div onClick={() => {
+                                            const frame = wp.media({ title: 'Select Newsletter PDF', multiple: false, library: { type: 'application/pdf' } });
+                                            frame.on('select', () => {
+                                                const url = frame.state().get('selection').first().toJSON().url;
+                                                setFormState({...formState, newsletterPdf: url});
+                                            });
+                                            frame.open();
+                                        }} className="w-full p-6 rounded-xl border-2 border-dashed border-chroma-blueDark/20 bg-white cursor-pointer hover:border-chroma-blue hover:bg-chroma-blue/5 transition-all flex items-center justify-center gap-4">
+                                            {formState.newsletterPdf ? (
+                                                <>
+                                                    <i className="fa-solid fa-file-pdf text-3xl text-red-500"></i>
+                                                    <div className="text-left">
+                                                        <p className="font-bold text-brand-ink">PDF Uploaded</p>
+                                                        <p className="text-xs text-brand-ink/50 truncate max-w-xs">{formState.newsletterPdf.split('/').pop()}</p>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="fa-solid fa-cloud-arrow-up text-2xl text-chroma-blueDark/30"></i>
+                                                    <span className="font-bold text-brand-ink/50">Click to upload PDF</span>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </FormSection>
