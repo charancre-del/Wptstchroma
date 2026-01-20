@@ -151,6 +151,9 @@ class Chroma_School_API_Routes
 
         $email = $google_data['email'];
 
+        // DEBUG LOGGING
+        $log_entry = date('Y-m-d H:i:s') . " - Login Verify: " . $email . "\n";
+        
         // 2. Find School by Director Email (Optimized O(1) query)
         $schools = get_posts([
             'post_type' => 'chroma_school',
@@ -165,24 +168,32 @@ class Chroma_School_API_Routes
         ]);
 
         $found_school = !empty($schools) ? $schools[0] : null;
+        $log_entry .= "O(1) Lookup: " . ($found_school ? "Found ID " . $found_school->ID : "Not Found") . "\n";
 
         // 2b. Legacy Fallback: If not found, try O(N) loop for migration
         if (!$found_school) {
             $all_schools = get_posts(['post_type' => 'chroma_school', 'posts_per_page' => -1]);
             foreach ($all_schools as $s) {
                 $conf = get_post_meta($s->ID, '_chroma_school_config', true);
-                if (isset($conf['director_email']) && strtolower($conf['director_email']) === strtolower($email)) {
+                $stored_email = $conf['director_email'] ?? 'N/A';
+                
+                // Debug matching
+                if (strtolower($stored_email) === strtolower($email)) {
                     $found_school = $s;
-                    // Sync to new meta field for future O(1) lookups
                     update_post_meta($s->ID, '_chroma_school_director_email', $conf['director_email']);
+                    $log_entry .= "Fallback Match: ID " . $s->ID . " (Stored: $stored_email)\n";
                     break;
                 }
             }
         }
 
         if (!$found_school) {
-            return new WP_Error('no_access', 'No school found for this email.', ['status' => 403]);
+            $log_entry .= "FINAL RESULT: No School Found.\n";
+            file_put_contents(WP_CONTENT_DIR . '/chroma_auth_debug.log', $log_entry, FILE_APPEND);
+            return new WP_Error('no_access', 'No school found for: ' . $email, ['status' => 403]);
         }
+
+        file_put_contents(WP_CONTENT_DIR . '/chroma_auth_debug.log', $log_entry, FILE_APPEND);
 
         // 3. Issue Session Token
         $token = bin2hex(random_bytes(32));
