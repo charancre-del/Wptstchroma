@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // State
     let slideImages = window.slideImages || [];
     let currentSlideIndex = 0;
-    const UPDATE_INTERVAL = 60000; // 1 minute
+    const UPDATE_INTERVAL = 20000; // 20 seconds (faster sync)
     const SLIDE_INTERVAL = 8000;   // 8 seconds
 
     // Elements
@@ -106,15 +106,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Today
         if (els.today) {
-            if (!c.today || c.today.length === 0) {
+            const todayData = c.today || {};
+            const items = Array.isArray(todayData) ? todayData : (todayData.items || []);
+
+            if (items.length === 0) {
                 els.today.innerHTML = '<div class="p-6 rounded-2xl bg-brand-cream text-center opacity-60"><p class="font-medium">Have a wonderful day!</p></div>';
             } else {
-                const html = c.today.map(t => `
-                    <div class="flex flex-col p-4 rounded-2xl bg-white border border-chroma-blue/5 shadow-sm">
-                        ${t.time ? `<span class="text-chroma-blue font-bold text-lg mb-1">${esc(t.time)}</span>` : ''}
-                        <span class="font-bold text-xl text-brand-ink leading-tight">${esc(t.label)}</span>
-                    </div>
-                `).join('');
+                const html = items.map(t => {
+                    const label = typeof t === 'string' ? t : (t.label || '');
+                    const time = typeof t === 'string' ? '' : (t.time || '');
+                    return `
+                        <div class="flex flex-col p-4 rounded-2xl bg-white border border-chroma-blue/5 shadow-sm">
+                            ${time ? `<span class="text-chroma-blue font-bold text-lg mb-1">${esc(time)}</span>` : ''}
+                            <span class="font-bold text-xl text-brand-ink leading-tight">${esc(label)}</span>
+                        </div>
+                    `;
+                }).join('');
                 if (els.today.innerHTML !== html) els.today.innerHTML = html;
             }
         }
@@ -130,22 +137,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Star Educator (EOM)
-        if (els.eom && c.eom && c.eom.name) {
+        if (els.eom && c.eom && (c.eom.name || c.eom.photo_url)) {
             els.eom.style.display = 'flex';
             const html = `
-                <div class="h-full w-48 shrink-0 rounded-[2rem] overflow-hidden relative shadow-inner">
+                <div class="h-full w-56 shrink-0 rounded-[2rem] overflow-hidden relative shadow-inner border-2 border-chroma-yellow/20">
                     ${c.eom.photo_url ? `<img src="${esc(c.eom.photo_url)}" class="w-full h-full object-cover">` : '<div class="w-full h-full bg-chroma-blue flex items-center justify-center text-white text-5xl"><i class="fa-solid fa-user"></i></div>'}
                 </div>
-                <div class="flex-1 py-2 pr-6 z-10">
-                    <div class="flex flex-col justify-center h-full">
-                        <h2 class="font-serif text-4xl font-bold text-brand-ink mb-1">${esc(c.eom.name)}</h2>
-                        <p class="text-chroma-blue font-bold uppercase tracking-widest text-xs mb-3">
-                            ${esc(c.eom.role || 'Educator')} • ${esc(c.eom.classroom || 'Classroom')}
-                        </p>
-                        <p class="text-brand-ink/60 text-lg leading-snug line-clamp-2 italic">"${esc(c.eom.blurb || '')}"</p>
+                <div class="flex-1 py-4 pr-8 z-10 flex flex-col justify-center">
+                    <div class="flex items-center gap-2 mb-2">
+                         <span class="bg-chroma-yellow/10 text-chroma-yellow text-[11px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full">Star Educator</span>
+                         <div class="h-px flex-1 bg-chroma-yellow/10"></div>
                     </div>
+                    <h2 class="font-serif text-5xl font-black text-brand-ink leading-none mb-2">${esc(c.eom.name)}</h2>
+                    <p class="text-chroma-blue font-bold uppercase tracking-widest text-sm mb-4">
+                        ${esc(c.eom.role || 'Educator')}
+                    </p>
+                    <p class="text-brand-ink/50 text-xl leading-snug italic font-medium">"${esc(c.eom.blurb || '')}"</p>
                 </div>
-                <div class="absolute top-6 right-6 text-chroma-yellow text-5xl opacity-40"><i class="fa-solid fa-certificate"></i></div>
+                <div class="absolute -bottom-6 -right-6 text-chroma-yellow/5 text-[12rem]"><i class="fa-solid fa-certificate"></i></div>
             `;
             if (els.eom.innerHTML !== html) els.eom.innerHTML = html;
         } else if (els.eom) {

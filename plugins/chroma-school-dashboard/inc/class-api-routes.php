@@ -293,16 +293,11 @@ class Chroma_School_API_Routes
                 }
 
                 $updated = update_post_meta($school_id, '_chroma_school_' . $key, $value);
-                
-                // Log update result
-                $log_update = sprintf(" - Key: %s | Type: %s | Updated: %s\n", 
-                    $key, 
-                    $is_complex ? 'COMPLEX' : 'STRING',
-                    $updated ? 'YES' : 'NO/SAME'
-                );
-                file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', $log_update, FILE_APPEND);
             }
         }
+
+        // Add a global 'last updated' flag for cache busting
+        update_post_meta($school_id, '_chroma_school_last_updated', time());
 
         return rest_ensure_response(['success' => true]);
     }
