@@ -72,5 +72,6 @@ class Chroma_School_Post_Type
         ];
 
         update_post_meta($post_id, '_chroma_school_config', $config);
+        update_post_meta($post_id, '_chroma_school_director_email', $config['director_email']);
     }
 }

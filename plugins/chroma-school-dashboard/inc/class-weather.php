@@ -16,7 +16,9 @@ class Chroma_Weather_Provider
 
         // Fetch from Open-Meteo
         $url = "https://api.open-meteo.com/v1/forecast?latitude={$lat}&longitude={$lon}&current=temperature_2m,weather_code,is_day&temperature_unit=fahrenheit&timezone=auto";
-        $response = wp_remote_get($url);
+        
+        // Add timeout to prevent blocking (default is 5s, we want fail-fast)
+        $response = wp_remote_get($url, ['timeout' => 2]);
 
         if (is_wp_error($response)) {
             return null;

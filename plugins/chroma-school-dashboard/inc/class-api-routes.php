@@ -34,6 +34,28 @@ class Chroma_School_API_Routes
             'callback' => [$this, 'get_director_school'],
             'permission_callback' => [$this, 'check_director_permission']
         ]);
+
+        register_rest_route('chroma/v1', '/weather', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_weather_proxy'],
+            'permission_callback' => '__return_true'
+        ]);
+    }
+
+    /**
+     * Proxy Weather Request (to avoid revealing tokens if we had them, and use server cache)
+     */
+    public function get_weather_proxy($request)
+    {
+        $lat = $request->get_param('lat');
+        $lon = $request->get_param('lon');
+
+        if (!$lat || !$lon) {
+            return new WP_Error('missing_params', 'Lat/Lon required', ['status' => 400]);
+        }
+
+        $weather = Chroma_Weather_Provider::get_weather($lat, $lon);
+        return rest_ensure_response($weather ?: ['error' => 'Weather unavailable']);
     }
 
     public function get_tv_data($request)
@@ -129,18 +151,32 @@ class Chroma_School_API_Routes
 
         $email = $google_data['email'];
 
-        // 2. Find School by Director Email
-        // Optimization: In CPT save, I'll assume we save '_chroma_school_director_email' separately for query speed.
-        // For now, let's just do a meta query on the config array (slower but works for 20 schools).
+        // 2. Find School by Director Email (Optimized O(1) query)
+        $schools = get_posts([
+            'post_type' => 'chroma_school',
+            'posts_per_page' => 1,
+            'meta_query' => [
+                [
+                    'key' => '_chroma_school_director_email',
+                    'value' => $email,
+                    'compare' => '='
+                ]
+            ]
+        ]);
 
-        $all_schools = get_posts(['post_type' => 'chroma_school', 'posts_per_page' => -1]);
-        $found_school = null;
+        $found_school = !empty($schools) ? $schools[0] : null;
 
-        foreach ($all_schools as $s) {
-            $conf = get_post_meta($s->ID, '_chroma_school_config', true);
-            if (isset($conf['director_email']) && strtolower($conf['director_email']) === strtolower($email)) {
-                $found_school = $s;
-                break;
+        // 2b. Legacy Fallback: If not found, try O(N) loop for migration
+        if (!$found_school) {
+            $all_schools = get_posts(['post_type' => 'chroma_school', 'posts_per_page' => -1]);
+            foreach ($all_schools as $s) {
+                $conf = get_post_meta($s->ID, '_chroma_school_config', true);
+                if (isset($conf['director_email']) && strtolower($conf['director_email']) === strtolower($email)) {
+                    $found_school = $s;
+                    // Sync to new meta field for future O(1) lookups
+                    update_post_meta($s->ID, '_chroma_school_director_email', $conf['director_email']);
+                    break;
+                }
             }
         }
 
