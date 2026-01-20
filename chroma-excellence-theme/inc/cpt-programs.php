@@ -26,10 +26,8 @@ function chroma_register_program_cpt()
 		'view_item' => __('View Program', 'chroma-excellence'),
 	);
 
-	$program_slug = chroma_get_program_base_slug();
-	if (empty($program_slug)) {
-		$program_slug = 'programs';
-	}
+	// Force 'programs' as the slug. The customizer option is no longer used for the base.
+	$program_slug = 'programs';
 
 	$args = array(
 		'label' => __('Program', 'chroma-excellence'),
@@ -45,10 +43,10 @@ function chroma_register_program_cpt()
 
 	register_post_type('program', $args);
 
-	// Self-healing: Flush rewrite rules if slug changed or first run
-	if (!get_option('chroma_program_rewrite_flushed')) {
+	// Self-healing: Flush rewrite rules if slug changed or first run. v2 = forces new flush.
+	if (get_option('chroma_program_rewrite_flushed') !== 'v2') {
 		flush_rewrite_rules();
-		update_option('chroma_program_rewrite_flushed', true);
+		update_option('chroma_program_rewrite_flushed', 'v2');
 	}
 }
 add_action('init', 'chroma_register_program_cpt', 0);
