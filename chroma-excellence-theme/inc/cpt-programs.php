@@ -27,6 +27,9 @@ function chroma_register_program_cpt()
 	);
 
 	$program_slug = chroma_get_program_base_slug();
+	if (empty($program_slug)) {
+		$program_slug = 'programs';
+	}
 
 	$args = array(
 		'label' => __('Program', 'chroma-excellence'),
@@ -36,11 +39,17 @@ function chroma_register_program_cpt()
 		'menu_position' => 20,
 		'menu_icon' => 'dashicons-welcome-learn-more',
 		'has_archive' => $program_slug,
-		'rewrite' => array('slug' => $program_slug),
+		'rewrite' => array('slug' => $program_slug, 'with_front' => false),
 		'show_in_rest' => true,
 	);
 
 	register_post_type('program', $args);
+
+	// Self-healing: Flush rewrite rules if slug changed or first run
+	if (!get_option('chroma_program_rewrite_flushed')) {
+		flush_rewrite_rules();
+		update_option('chroma_program_rewrite_flushed', true);
+	}
 }
 add_action('init', 'chroma_register_program_cpt', 0);
 
