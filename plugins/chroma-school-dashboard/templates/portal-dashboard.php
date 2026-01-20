@@ -86,20 +86,19 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
         // --- MAIN APP ---
 
         function App() {
-            const [user, setUser] = useState(null); // { token, schoolId, email }
+            const [user, setUser] = useState(null); 
             const [school, setSchool] = useState(null);
             const [loading, setLoading] = useState(true);
             const [saving, setSaving] = useState(false);
             const [toast, setToast] = useState(null);
+            const [loginError, setLoginError] = useState(null); // New Error State
 
             // Init: Check Session
             useEffect(() => {
                 const token = localStorage.getItem('chroma_token');
                 const schoolId = localStorage.getItem('chroma_school_id');
-                const email = localStorage.getItem('chroma_email');
 
                 if (token && schoolId) {
-                   // Verify token validity by fetching school
                    fetchSchool(token, schoolId);
                 } else {
                     setLoading(false);
@@ -115,7 +114,7 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
                 try {
                     setLoading(true);
                     const res = await fetch(`${API_URL}chroma/v1/portal/me`, {
-                        headers: { 'Authorization': `Bearer ${token}` } // Fixed: Use backticks for template literal
+                        headers: { 'Authorization': `Bearer ${token}` }
                     });
                     
                     if (res.status === 401) {
@@ -126,10 +125,10 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
                     if (!res.ok) throw new Error('Failed to load');
                     const data = await res.json();
                     setUser({ token, schoolId: id, email: localStorage.getItem('chroma_email') });
-                    setSchool(data); // data = { id, title, slug, content: {...} }
+                    setSchool(data); 
                 } catch (err) {
                     console.error(err);
-                    showToast('Session expired orinvalid', 'error');
+                    showToast('Session expired or invalid', 'error');
                     logout();
                 } finally {
                     setLoading(false);
@@ -143,10 +142,12 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
                 setUser(null);
                 setSchool(null);
                 setLoading(false);
+                setLoginError(null);
             };
 
             const handleGoogleLogin = async (response) => {
                 setLoading(true);
+                setLoginError(null);
                 try {
                     const res = await fetch(`${API_URL}chroma/v1/auth/google`, {
                         method: 'POST',
@@ -157,7 +158,6 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
 
                     if (!res.ok) throw new Error(data.message || 'Login failed');
 
-                    // Success
                     localStorage.setItem('chroma_token', data.token);
                     localStorage.setItem('chroma_school_id', data.school_id);
                     localStorage.setItem('chroma_email', data.director_email);
@@ -166,7 +166,7 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
 
                 } catch (err) {
                     console.error(err);
-                    showToast(err.message, 'error');
+                    setLoginError(err.message); // Show persistent error
                     setLoading(false);
                 }
             };
@@ -174,16 +174,21 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
             // Setup Google Button
             useEffect(() => {
                 if (!user && !loading && window.google) {
-                    window.google.accounts.id.initialize({
-                        client_id: GOOGLE_CLIENT_ID,
-                        callback: handleGoogleLogin
-                    });
-                    window.google.accounts.id.renderButton(
-                        document.getElementById("googleBtn"),
-                        { theme: "outline", size: "large", width: 300 }
-                    );
+                    // Re-render button logic if needed or just letting library handle it
+                    try {
+                        window.google.accounts.id.initialize({
+                            client_id: GOOGLE_CLIENT_ID,
+                            callback: handleGoogleLogin
+                        });
+                        window.google.accounts.id.renderButton(
+                            document.getElementById("googleBtn"),
+                            { theme: "outline", size: "large", width: 300 }
+                        );
+                    } catch(e) { console.error("Google Btn Error", e); }
                 }
-            }, [user, loading]);
+            }, [user, loading, loginError]); // Re-run if error clears/sets to ensure button is there
+
+            // ... handleSave ...
 
             const handleSave = async (e) => {
                 e.preventDefault();
@@ -191,26 +196,9 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
                 
                 // Construct payload from form
                 const formData = new FormData(e.target);
-                const payload = {};
-                
-                // Helper to set nested
-                const setPath = (obj, path, val) => {
-                    const keys = path.split('.');
-                    let current = obj;
-                    for (let i=0; i<keys.length-1; i++) {
-                        current[keys[i]] = current[keys[i]] || {};
-                        current = current[keys[i]];
-                    }
-                    current[keys[keys.length-1]] = val;
-                };
-
-                // Simple flat map is easier given our API structure?
-                // Actually API expects 'eom', 'newsletter' objects.
-                // Let's manually rebuild the shape to match API expected payload.
-                
-                const rawObj = Object.fromEntries(formData.entries());
                 
                 // Process Slideshow (Array)
+                const rawObj = Object.fromEntries(formData.entries());
                 const slides = [];
                 for(let k in rawObj) {
                     if (k.startsWith('slideshow_img_')) slides.push(rawObj[k]);
@@ -234,7 +222,7 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
                         title: rawObj['chroma_cares.title'],
                         body: rawObj['chroma_cares.body']
                     },
-                    celebrations: [ // Simple text lines for now
+                    celebrations: [ 
                          rawObj['cel_0'], rawObj['cel_1'], rawObj['cel_2'], rawObj['cel_3']
                     ]
                 };
@@ -244,7 +232,7 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
                         method: 'PATCH',
                         headers: { 
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${user.token}` // Fixed: Use backticks
+                            'Authorization': `Bearer ${user.token}` 
                         },
                         body: JSON.stringify(finalPayload)
                     });
@@ -252,8 +240,7 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
                     if (res.status === 401) { logout(); return; }
                     if (!res.ok) throw new Error('Save failed');
 
-                    showToast('Dashbaord Updated!');
-                    // Refresh data to be sure
+                    showToast('Dashboard Updated!');
                     fetchSchool(user.token, user.schoolId);
 
                 } catch (err) {
@@ -281,6 +268,19 @@ $google_client_id = trim(get_option('chroma_google_client_id', ''));
                         <div className="bg-white p-8 rounded-3xl shadow-soft border border-chroma-blue/10">
                             {GOOGLE_CLIENT_ID ? (
                                 <>
+                                    {loginError && (
+                                        <div className="mb-6 bg-red-50 border border-red-100 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-2 text-left">
+                                            <i className="fa-solid fa-circle-exclamation text-lg"></i>
+                                            <div>
+                                                {loginError === 'no_school_found' ? 'No School Found' : 'Login Failed'}
+                                                <div className="font-normal opacity-80 mt-1">
+                                                    {loginError === 'no_school_found' 
+                                                        ? "This email is not assigned to any school. Please ask an Admin to update the school settings." 
+                                                        : loginError}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                     <div id="googleBtn" className="flex justify-center"></div>
                                     <p className="mt-6 text-xs text-center text-brand-ink/40">Only authorized director emails can access.</p>
                                 </>
