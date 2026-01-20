@@ -4,7 +4,7 @@
  * Served via /portal/ endpoint
  */
 $api_url = get_rest_url();
-$google_client_id = get_option('chroma_google_client_id', '');
+$google_client_id = trim(get_option('chroma_google_client_id', ''));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -279,8 +279,21 @@ $google_client_id = get_option('chroma_google_client_id', '');
                         <p className="text-brand-ink/60 mb-10">Sign in to manage your school's TV dashboard.</p>
                         
                         <div className="bg-white p-8 rounded-3xl shadow-soft border border-chroma-blue/10">
-                            <div id="googleBtn" className="flex justify-center"></div>
-                            <p className="mt-6 text-xs text-center text-brand-ink/40">Only authorized director emails can access.</p>
+                            {GOOGLE_CLIENT_ID ? (
+                                <>
+                                    <div id="googleBtn" className="flex justify-center"></div>
+                                    <p className="mt-6 text-xs text-center text-brand-ink/40">Only authorized director emails can access.</p>
+                                </>
+                            ) : (
+                                <div className="text-red-500 font-bold p-4 bg-red-50 rounded-xl">
+                                    <i className="fa-solid fa-triangle-exclamation mr-2"></i>
+                                    System Config Error
+                                    <p className="text-xs text-brand-ink font-normal mt-2">
+                                        Google Client ID is missing. Please ask an Admin to set it in 
+                                        <strong> WP Admin &gt; Global Dashboard Settings</strong>.
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
