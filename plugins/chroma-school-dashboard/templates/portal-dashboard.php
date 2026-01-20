@@ -45,7 +45,11 @@ wp_enqueue_media();
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
         .shadow-card { box-shadow: 0 20px 50px rgba(38, 50, 56, 0.05); }
+        /* Hide WP Admin Bar and any theme elements injected by wp_head() */
+        #wpadminbar, .site-header, .site-footer, .wp-block-template-part { display: none !important; }
+        html { margin-top: 0 !important; }
     </style>
+    <?php wp_head(); ?>
 </head>
 <body class="selection:bg-chroma-yellow/30">
 
@@ -203,9 +207,14 @@ wp_enqueue_media();
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.message || 'Login failed');
 
+                    // Store in localStorage
                     localStorage.setItem('chroma_token', data.token);
                     localStorage.setItem('chroma_school_id', data.school_id);
                     localStorage.setItem('chroma_email', data.director_email);
+                    
+                    // Store session token as cookie for PHP-side permission checks
+                    document.cookie = `chroma_session=${data.token}; path=/; max-age=43200; SameSite=Lax`;
+                    
                     fetchSchool(data.token, data.school_id);
                 } catch (err) {
                     setLoginError(err.message);
@@ -246,7 +255,11 @@ wp_enqueue_media();
                         title: rawObj['chroma_cares.title'],
                         body: rawObj['chroma_cares.body']
                     },
-                    celebrations: [rawObj['cel_0'], rawObj['cel_1'], rawObj['cel_2'], rawObj['cel_3']],
+                    celebrations: [rawObj['cel_0'], rawObj['cel_1'], rawObj['cel_2'], rawObj['cel_3'], rawObj['cel_4'], rawObj['cel_5'], rawObj['cel_6'], rawObj['cel_7']].filter(Boolean),
+                    announcements: [
+                        { title: rawObj['notice_0_title'], body: rawObj['notice_0_body'], priority: rawObj['notice_0_priority'] || 'normal' },
+                        { title: rawObj['notice_1_title'], body: rawObj['notice_1_body'], priority: rawObj['notice_1_priority'] || 'normal' }
+                    ].filter(n => n.title),
                     today: {
                         title: rawObj['today.title'],
                         items: [rawObj['td_0'], rawObj['td_1'], rawObj['td_2'], rawObj['td_3']].filter(Boolean)
@@ -353,6 +366,25 @@ wp_enqueue_media();
                                 </div>
                             </FormSection>
 
+                            {/* Notices / Announcements */}
+                            <FormSection title="Notices & Announcements" icon="fa-bullhorn" colorClass="bg-chroma-yellow">
+                                <div className="space-y-6">
+                                    {[0, 1].map(i => (
+                                        <div key={i} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-black uppercase tracking-widest text-brand-ink/30">Notice {i+1}</span>
+                                                <label className="flex items-center gap-2 text-xs font-bold">
+                                                    <input type="checkbox" name={`notice_${i}_priority`} value="high" defaultChecked={c.announcements?.[i]?.priority === 'high'} className="accent-chroma-red w-4 h-4" />
+                                                    <span className="text-red-500">Important</span>
+                                                </label>
+                                            </div>
+                                            <input name={`notice_${i}_title`} defaultValue={c.announcements?.[i]?.title || ''} placeholder="Headline" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-white font-bold" />
+                                            <textarea name={`notice_${i}_body`} defaultValue={c.announcements?.[i]?.body || ''} placeholder="Details..." rows="2" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-white" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </FormSection>
+
                             {/* Slideshow */}
                             <FormSection title="Highlights Slideshow" icon="fa-camera-retro" colorClass="bg-chroma-red">
                                 <div className="space-y-8">
@@ -405,9 +437,9 @@ wp_enqueue_media();
                             </FormSection>
 
                             {/* Celebrations */}
-                            <FormSection title="Celebrations" icon="fa-cake-candles" colorClass="bg-chroma-yellow">
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    {[0,1,2,3].map(i => (
+                            <FormSection title="Celebrations & Birthdays" icon="fa-cake-candles" colorClass="bg-chroma-yellow">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    {[0,1,2,3,4,5,6,7].map(i => (
                                         <input key={i} name={`cel_${i}`} defaultValue={c.celebrations?.[i] || ''} placeholder="e.g. Leo's Birthday!" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 text-sm font-medium" />
                                     ))}
                                 </div>
@@ -430,5 +462,6 @@ wp_enqueue_media();
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<App />);
     </script>
+    <?php wp_footer(); ?>
 </body>
 </html>

@@ -92,12 +92,7 @@ $js_config = [
             <div class="absolute top-0 right-0 w-64 h-64 bg-chroma-yellowLight rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
 
             <div class="flex items-center gap-8 z-10">
-                <div class="flex gap-1 mr-2">
-                    <div class="w-6 h-6 rounded-full bg-chroma-red"></div>
-                    <div class="w-6 h-6 rounded-full bg-chroma-yellow"></div>
-                    <div class="w-6 h-6 rounded-full bg-chroma-green"></div>
-                    <div class="w-6 h-6 rounded-full bg-chroma-blue"></div>
-                </div>
+                <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/images/logo_icon_70x70.webp" alt="Chroma" class="w-16 h-16 rounded-xl shadow-sm" />
                 <div>
                     <!-- Welcome Overridden by JS if set -->
                     <h1 id="welcome-message" class="font-serif text-3xl font-bold text-brand-ink leading-tight">Welcome to Chroma Early Learning</h1>
