@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="absolute inset-0 w-full h-full rounded-3xl overflow-hidden bg-white">
                             <iframe 
                                 id="${iframeId}"
-                                src="https://schools.procareconnect.com/"
+                                src="${config.apiUrl}chroma/v1/proxy?url=https://schools.procareconnect.com/"
                                 class="absolute w-[150%] h-[150%] origin-top-left"
                                 style="border: none; transform: scale(0.66) translate(-15%, -15%);"
                             ></iframe>

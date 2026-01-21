@@ -21,6 +21,7 @@ require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-portal-loader.php';
 require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-weather.php';
 require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-admin-settings.php';
 require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-media-permissions.php';
+require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-proxy-route.php';
 
 // Initialize
 function chroma_school_dashboard_init()
@@ -31,6 +32,7 @@ function chroma_school_dashboard_init()
     new Chroma_School_Portal_Loader();
     new Chroma_School_Admin_Settings();
     new Chroma_Media_Permissions();
+    new Chroma_Procare_Proxy();
 }
 add_action('plugins_loaded', 'chroma_school_dashboard_init');
 
