@@ -111,31 +111,42 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Calculate scale to fit container
         const viewport = page.getViewport({ scale: 1 });
-        const containerWidth = container.clientWidth || 800; // Fallback if hidden
+        const containerWidth = container.clientWidth || 800;
         const containerHeight = container.clientHeight || 1200;
 
-        let scale = Math.min(
+        // Use high-DPI rendering for text clarity (2x or system default)
+        const outputScale = window.devicePixelRatio || 2;
+
+        // Fit logic (scale to container size)
+        let fitScale = Math.min(
             containerWidth / viewport.width,
             containerHeight / viewport.height
-        ) * 0.95;
+        ) * 0.96;
 
-        if (scale <= 0) scale = 1.0; // Fail-safe scale
+        if (fitScale <= 0) fitScale = 1.0;
 
-        console.log(`PDF Rendering Page ${pageNum}: Container ${containerWidth}x${containerHeight}, Scale ${scale}`);
+        // Viewport at internal high resolution
+        const scaledViewport = page.getViewport({ scale: fitScale * outputScale });
 
-        const scaledViewport = page.getViewport({ scale });
-
+        // Internal canvas resolution
         canvas.width = scaledViewport.width;
         canvas.height = scaledViewport.height;
 
-        // Center canvas
-        canvas.style.left = `${(containerWidth - scaledViewport.width) / 2}px`;
-        canvas.style.top = `${(containerHeight - scaledViewport.height) / 2}px`;
+        // Visual CSS size (Container fit)
+        canvas.style.width = `${scaledViewport.width / outputScale}px`;
+        canvas.style.height = `${scaledViewport.height / outputScale}px`;
+
+        // Alignment: Push to top (20px margin) instead of vertical centering
+        canvas.style.left = `${(containerWidth - (scaledViewport.width / outputScale)) / 2}px`;
+        canvas.style.top = `20px`;
 
         // Fade effect
         canvas.style.opacity = 0;
         try {
-            await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+            await page.render({
+                canvasContext: ctx,
+                viewport: scaledViewport
+            }).promise;
         } catch (renderErr) {
             console.error('PDF Page Render Error:', renderErr);
         }

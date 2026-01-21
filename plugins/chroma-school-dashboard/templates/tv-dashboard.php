@@ -110,7 +110,7 @@ $js_config = [
 
             <!-- Left: School Info -->
             <div class="flex items-center gap-6 z-10 w-1/4">
-                <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/images/logo_icon_70x70.webp" alt="Chroma" class="w-14 h-14 rounded-xl shadow-sm" />
+                <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/images/chroma_hex_logo.png" alt="Chroma" class="w-14 h-14 object-contain shadow-sm" />
                 <div class="min-w-0">
                     <h1 id="welcome-message" class="font-serif text-xl font-bold text-brand-ink leading-tight truncate">Welcome to Chroma</h1>
                     <div class="font-serif italic text-2xl text-chroma-blue truncate font-semibold">
