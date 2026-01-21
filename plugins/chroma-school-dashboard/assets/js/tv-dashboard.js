@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const ctx = canvas.getContext('2d');
         const container = canvas.parentElement;
 
-        // Calculate scale to fit container
+        // Calculate scale to fit container width primarily
         const viewport = page.getViewport({ scale: 1 });
         const containerWidth = container.clientWidth || 800;
         const containerHeight = container.clientHeight || 1200;
@@ -117,14 +117,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ultra-high DPI for Legal Size crispness (3x for maximum density)
         const outputScale = 3;
 
-        // Revised Scaling: Prioritize filling the width of the column 
-        // ensuring Legal-sized pages fill the container horizontally.
-        let fitScale = (containerWidth / viewport.width) * 0.98;
-
-        // Ensure it doesn't get ridiculously small to fit height (Legal is tall)
-        if (viewport.height * fitScale > containerHeight * 1.8) {
-            fitScale = (containerHeight * 1.8) / viewport.height;
-        }
+        // Revised Scaling: Prioritize filling the width of the column perfectly
+        let fitScale = (containerWidth / viewport.width);
 
         if (fitScale <= 0) fitScale = 1.0;
 
@@ -135,12 +129,12 @@ document.addEventListener('DOMContentLoaded', function () {
         canvas.width = scaledViewport.width;
         canvas.height = scaledViewport.height;
 
-        // Visual CSS size (Container fit)
-        canvas.style.width = `${scaledViewport.width / outputScale}px`;
-        canvas.style.height = `${scaledViewport.height / outputScale}px`;
+        // Visual CSS size: Preserve the PDF's natural aspect ratio relative to its width
+        canvas.style.width = `100%`;
+        canvas.style.height = `${(viewport.height * fitScale)}px`;
 
-        // Alignment: Push to top (0px margin) to maximize space
-        canvas.style.left = `${(containerWidth - (scaledViewport.width / outputScale)) / 2}px`;
+        // Alignment: Reset to top
+        canvas.style.left = `0px`;
         canvas.style.top = `0px`;
 
         // Fade effect
