@@ -99,7 +99,17 @@ class Chroma_Proxy_Route
         
         // Handle Redirects: If ProCare redirects, we need to tell the browser but keep it in the proxy
         if ($code >= 300 && $code < 400 && isset($headers['location'])) {
-            $new_loc = str_replace($this->target_origin, get_rest_url(null, $this->namespace . '/procare-proxy'), $headers['location']);
+            $loc = $headers['location'];
+            $proxy_root = get_rest_url(null, $this->namespace . '/procare-proxy');
+            
+            if (strpos($loc, 'http') === 0) {
+                // Absolute URL
+                $new_loc = str_replace($this->target_origin, $proxy_root, $loc);
+            } else {
+                // Root relative or path relative
+                $new_loc = rtrim($proxy_root, '/') . '/' . ltrim($loc, '/');
+            }
+            
             header("Location: $new_loc");
             exit;
         }
@@ -131,37 +141,45 @@ class Chroma_Proxy_Route
         // 1. Rewrite root-relative links in HTML/CSS/JS (e.g. src="/js/...")
         $body = preg_replace('/(href|src|action)=["\']\//', '$1="' . $base_proxy, $body);
         
-        // 2. Rewrite absolute links to the target origin (e.g. src="https://schools.procare...")
+        // 2. Rewrite absolute links to the target origin
         $body = str_replace($this->target_origin, $base_proxy_clean, $body);
 
         // 3. Fix potential double slashes
         $body = str_replace($base_proxy_clean . '//', $base_proxy_clean . '/', $body);
 
-        // 4. Inject script into HTML to intercept fetch/XHR
+        // 4. Handle <base> tags which can break proxying
+        $body = preg_replace('/<base\s+href=["\'][^"\'\s]+["\']\s*\/?>/i', '', $body);
+
+        // 5. Inject script into HTML to intercept fetch/XHR
         if (strpos($content_type, 'text/html') !== false) {
             $interceptor = "
             <script>
             (function() {
-                const baseProxy = '" . rtrim($base_proxy, '/') . "';
+                const baseProxy = '" . $base_proxy_clean . "';
                 const targetOrigin = '" . $this->target_origin . "';
+
+                function proxyUrl(url) {
+                    if (typeof url !== 'string') return url;
+                    if (url.startsWith('/') && !url.startsWith('//')) {
+                        return baseProxy + url;
+                    }
+                    if (url.includes(targetOrigin)) {
+                        return url.replace(targetOrigin, baseProxy);
+                    }
+                    return url;
+                }
 
                 // Intercept Fetch
                 const originalFetch = window.fetch;
                 window.fetch = function() {
-                    let arg = arguments[0];
-                    if (typeof arg === 'string' && (arg.startsWith('/') || arg.startsWith(targetOrigin))) {
-                        arguments[0] = arg.startsWith('/') ? baseProxy + arg : arg.replace(targetOrigin, baseProxy);
-                    }
+                    if (arguments[0]) arguments[0] = proxyUrl(arguments[0]);
                     return originalFetch.apply(this, arguments);
                 };
 
                 // Intercept XHR
                 const originalOpen = XMLHttpRequest.prototype.open;
                 XMLHttpRequest.prototype.open = function() {
-                    let url = arguments[1];
-                    if (typeof url === 'string' && (url.startsWith('/') || url.startsWith(targetOrigin))) {
-                        arguments[1] = url.startsWith('/') ? baseProxy + url : url.replace(targetOrigin, baseProxy);
-                    }
+                    arguments[1] = proxyUrl(arguments[1]);
                     return originalOpen.apply(this, arguments);
                 };
             })();
