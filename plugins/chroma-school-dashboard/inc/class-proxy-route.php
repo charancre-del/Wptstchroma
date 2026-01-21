@@ -71,12 +71,15 @@ class Chroma_Proxy_Route
         $response = wp_remote_get($url, $args);
 
         if (is_wp_error($response)) {
+            error_log('ProCare Proxy Error: ' . $response->get_error_message());
             return new WP_Error('proxy_error', $response->get_error_message(), ['status' => 500]);
         }
 
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
         $headers = wp_remote_retrieve_headers($response);
+
+        error_log("ProCare Proxy Request: $url | Response Code: $code");
 
         // Process Cookies from ProCare
         $res_cookies = wp_remote_retrieve_cookies($response);
@@ -94,29 +97,73 @@ class Chroma_Proxy_Route
         // Output content
         header("Content-Type: " . ($headers['content-type'] ?? 'text/html'));
         
+        // Handle Redirects: If ProCare redirects, we need to tell the browser but keep it in the proxy
+        if ($code >= 300 && $code < 400 && isset($headers['location'])) {
+            $new_loc = str_replace($this->target_origin, get_rest_url(null, $this->namespace . '/procare-proxy'), $headers['location']);
+            header("Location: $new_loc");
+            exit;
+        }
+
         // STRIP SECURITY HEADERS to allow framing
         header_remove('X-Frame-Options');
         header_remove('Content-Security-Policy');
         header("X-Frame-Options: ALLOWALL"); 
 
-        // Rewrite relative URLs in HTML
-        if (strpos($headers['content-type'], 'text/html') !== false) {
-            $body = $this->rewrite_content($body);
+        // Rewrite content for HTML, CSS, and JS
+        $ct = $headers['content-type'] ?? '';
+        if (strpos($ct, 'text/html') !== false || strpos($ct, 'text/css') !== false || strpos($ct, 'javascript') !== false) {
+            $body = $this->rewrite_content($body, $ct);
         }
 
         echo $body;
         exit;
     }
 
-    private function rewrite_content($body)
+    private function rewrite_content($body, $content_type)
     {
-        // Rewrite root-relative links to go through proxy
         $base_proxy = get_rest_url(null, $this->namespace . '/procare-proxy/');
         
-        // Simple regex to catch common patterns. Real proxying is harder, but this might suffice for login.
-        $body = str_replace('href="/', 'href="' . $base_proxy, $body);
-        $body = str_replace('src="/', 'src="' . $base_proxy, $body);
-        $body = str_replace('action="/', 'action="' . $base_proxy, $body);
+        // 1. Rewrite root-relative links in HTML/CSS/JS
+        $body = preg_replace('/(href|src|action)=["\']\//', '$1="' . $base_proxy, $body);
+        
+        // 2. Rewrite absolute links to the target origin
+        $body = str_replace($this->target_origin, rtrim($base_proxy, '/'), $body);
+
+        // 3. Fix potential double slashes
+        $body = str_replace($base_proxy . '/', $base_proxy, $body);
+
+        // 4. Inject script into HTML to intercept fetch/XHR
+        if (strpos($content_type, 'text/html') !== false) {
+            $interceptor = "
+            <script>
+            (function() {
+                const baseProxy = '" . rtrim($base_proxy, '/') . "';
+                const targetOrigin = '" . $this->target_origin . "';
+
+                // Intercept Fetch
+                const originalFetch = window.fetch;
+                window.fetch = function() {
+                    let arg = arguments[0];
+                    if (typeof arg === 'string' && (arg.startsWith('/') || arg.startsWith(targetOrigin))) {
+                        arguments[0] = arg.startsWith('/') ? baseProxy + arg : arg.replace(targetOrigin, baseProxy);
+                    }
+                    return originalFetch.apply(this, arguments);
+                };
+
+                // Intercept XHR
+                const originalOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function() {
+                    let url = arguments[1];
+                    if (typeof url === 'string' && (url.startsWith('/') || url.startsWith(targetOrigin))) {
+                        arguments[1] = url.startsWith('/') ? baseProxy + url : url.replace(targetOrigin, baseProxy);
+                    }
+                    return originalOpen.apply(this, arguments);
+                };
+            })();
+            </script>";
+            
+            $body = str_replace('<head>', '<head>' . $interceptor, $body);
+        }
         
         return $body;
     }

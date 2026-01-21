@@ -114,14 +114,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const containerWidth = container.clientWidth || 800;
         const containerHeight = container.clientHeight || 1200;
 
-        // Use high-DPI rendering for text clarity (2x or system default)
-        const outputScale = window.devicePixelRatio || 2;
+        // Ultra-high DPI for Legal Size crispness (3x for maximum density)
+        const outputScale = 3;
 
-        // Fit logic (scale to container size)
-        let fitScale = Math.min(
-            containerWidth / viewport.width,
-            containerHeight / viewport.height
-        ) * 0.96;
+        // Revised Scaling: Prioritize filling the width of the column 
+        // ensuring Legal-sized pages fill the container horizontally.
+        let fitScale = (containerWidth / viewport.width) * 0.98;
+
+        // Ensure it doesn't get ridiculously small to fit height (Legal is tall)
+        if (viewport.height * fitScale > containerHeight * 1.8) {
+            fitScale = (containerHeight * 1.8) / viewport.height;
+        }
 
         if (fitScale <= 0) fitScale = 1.0;
 
@@ -136,9 +139,9 @@ document.addEventListener('DOMContentLoaded', function () {
         canvas.style.width = `${scaledViewport.width / outputScale}px`;
         canvas.style.height = `${scaledViewport.height / outputScale}px`;
 
-        // Alignment: Push to top (20px margin) instead of vertical centering
+        // Alignment: Push to top (0px margin) to maximize space
         canvas.style.left = `${(containerWidth - (scaledViewport.width / outputScale)) / 2}px`;
-        canvas.style.top = `20px`;
+        canvas.style.top = `0px`;
 
         // Fade effect
         canvas.style.opacity = 0;
