@@ -3,6 +3,7 @@
  * Director Portal Template
  */
 $api_url = get_rest_url();
+$procare_proxy_url = get_rest_url(null, 'chroma/v1/procare-proxy');
 $google_client_id = trim(get_option('chroma_google_client_id', ''));
 
 // Logic: Enable WordPress Media Library for this page
@@ -65,6 +66,7 @@ wp_enqueue_style('wp-mediaelement');
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         const API_URL = "<?php echo esc_url($api_url); ?>";
+        const PROCARE_PROXY_URL = "<?php echo esc_url($procare_proxy_url); ?>";
         const GOOGLE_CLIENT_ID = "<?php echo esc_js($google_client_id); ?>";
 
         // --- COMPONENTS ---
@@ -431,7 +433,7 @@ wp_enqueue_style('wp-mediaelement');
                                                 <i className="fa-solid fa-lock text-4xl text-purple-200"></i>
                                             </div>
                                             <iframe 
-                                                src={`${window.location.origin}/wp-json/chroma/v1/procare-proxy`}
+                                                src={PROCARE_PROXY_URL}
                                                 className="w-full h-[500px] border-none relative z-10"
                                                 title="ProCare Login"
                                             ></iframe>

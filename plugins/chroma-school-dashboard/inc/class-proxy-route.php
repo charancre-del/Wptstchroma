@@ -122,15 +122,20 @@ class Chroma_Proxy_Route
     private function rewrite_content($body, $content_type)
     {
         $base_proxy = get_rest_url(null, $this->namespace . '/procare-proxy/');
+        $base_proxy_clean = rtrim($base_proxy, '/');
         
-        // 1. Rewrite root-relative links in HTML/CSS/JS
+        // 0. Handle scheme-less URLs (//schools.procare...)
+        $target_origin_noscheme = str_replace(['http:', 'https:'], '', $this->target_origin);
+        $body = str_replace($target_origin_noscheme, str_replace(['http:', 'https:'], '', $base_proxy_clean), $body);
+
+        // 1. Rewrite root-relative links in HTML/CSS/JS (e.g. src="/js/...")
         $body = preg_replace('/(href|src|action)=["\']\//', '$1="' . $base_proxy, $body);
         
-        // 2. Rewrite absolute links to the target origin
-        $body = str_replace($this->target_origin, rtrim($base_proxy, '/'), $body);
+        // 2. Rewrite absolute links to the target origin (e.g. src="https://schools.procare...")
+        $body = str_replace($this->target_origin, $base_proxy_clean, $body);
 
         // 3. Fix potential double slashes
-        $body = str_replace($base_proxy . '/', $base_proxy, $body);
+        $body = str_replace($base_proxy_clean . '//', $base_proxy_clean . '/', $body);
 
         // 4. Inject script into HTML to intercept fetch/XHR
         if (strpos($content_type, 'text/html') !== false) {
