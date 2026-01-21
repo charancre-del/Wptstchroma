@@ -105,7 +105,8 @@ class Chroma_School_API_Routes
             'slideshow_title',
             'chroma_cares',
             'celebrations',
-            'procare' // Added procare configuration
+            'procare',
+            'music_url'
         ];
 
         $data = [
@@ -241,7 +242,8 @@ class Chroma_School_API_Routes
             'slideshow_title',
             'chroma_cares',
             'celebrations',
-            'procare'
+            'procare',
+            'music_url'
         ];
         $content = [];
         foreach ($meta_keys as $key) {
