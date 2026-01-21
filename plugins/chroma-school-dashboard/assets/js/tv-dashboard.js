@@ -110,10 +110,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Calculate scale to fit container
         const viewport = page.getViewport({ scale: 1 });
-        const scale = Math.min(
-            container.clientWidth / viewport.width,
-            container.clientHeight / viewport.height
+        const containerWidth = container.clientWidth || 800; // Fallback if hidden
+        const containerHeight = container.clientHeight || 1200;
+
+        let scale = Math.min(
+            containerWidth / viewport.width,
+            containerHeight / viewport.height
         ) * 0.95;
+
+        if (scale <= 0) scale = 1.0; // Fail-safe scale
+
+        console.log(`PDF Rendering Page ${pageNum}: Container ${containerWidth}x${containerHeight}, Scale ${scale}`);
 
         const scaledViewport = page.getViewport({ scale });
 
@@ -121,12 +128,16 @@ document.addEventListener('DOMContentLoaded', function () {
         canvas.height = scaledViewport.height;
 
         // Center canvas
-        canvas.style.left = `${(container.clientWidth - scaledViewport.width) / 2}px`;
-        canvas.style.top = `${(container.clientHeight - scaledViewport.height) / 2}px`;
+        canvas.style.left = `${(containerWidth - scaledViewport.width) / 2}px`;
+        canvas.style.top = `${(containerHeight - scaledViewport.height) / 2}px`;
 
         // Fade effect
         canvas.style.opacity = 0;
-        await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+        try {
+            await page.render({ canvasContext: ctx, viewport: scaledViewport }).promise;
+        } catch (renderErr) {
+            console.error('PDF Page Render Error:', renderErr);
+        }
         canvas.style.transition = 'opacity 0.4s ease';
         canvas.style.opacity = 1;
 
@@ -235,32 +246,37 @@ document.addEventListener('DOMContentLoaded', function () {
             const iframeId = 'procare-iframe';
             let iframe = document.getElementById(iframeId);
 
-            if (!iframe) {
-                // Create iframe for ProCare
-                // NOTE: Requires 'Ignore X-Frame-Options' extension on the TV browser
-                if (slideshowContainer) {
-                    slideshowContainer.innerHTML = `
-                        <div class="absolute inset-0 w-full h-full rounded-3xl overflow-hidden bg-white">
-                            <iframe 
-                                id="${iframeId}"
-                                src="${config.apiUrl}chroma/v1/proxy?url=https://schools.procareconnect.com/"
-                                class="absolute w-[150%] h-[150%] origin-top-left"
-                                style="border: none; transform: scale(0.66) translate(-15%, -15%);"
-                            ></iframe>
-                        </div>
-                        <div class="absolute top-6 left-6 z-20">
-                            <span class="inline-block px-4 py-2 text-[0.7rem] font-extrabold uppercase tracking-widest rounded-xl bg-chroma-red text-white shadow-lg">Happening Now</span>
-                            <h2 id="slideshow-title" class="font-serif text-4xl font-bold text-white mt-3 drop-shadow-xl">${esc(c.slideshow_title || 'Highlights')}</h2>
-                        </div>
-                        <div class="absolute bottom-6 right-6 z-20 bg-white/90 backdrop-blur px-3 py-2 rounded-xl flex items-center gap-2 shadow-lg">
-                            <span class="text-purple-600 text-lg">🔗</span>
-                            <span class="text-xs font-bold text-brand-ink/60">ProCare Live</span>
-                        </div>
-                    `;
-                }
-                // Hide manual slideshow elements
-                if (els.slideshowImg) els.slideshowImg.style.display = 'none';
+            if (!window._procareFetched) {
+                window._procareFetched = true;
+                // Fetch photos from API
+                fetch(`${config.apiUrl}chroma/v1/procare/photos?slug=${config.slug}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
+                            // Inject into slideshow
+                            slideImages = data.photos;
+                            currentSlideIndex = 0;
+
+                            // Add "Live" badge via overlay
+                            let badge = document.getElementById('procare-badge');
+                            if (!badge && slideshowContainer) {
+                                slideshowContainer.insertAdjacentHTML('beforeend', `
+                                    <div id="procare-badge" class="absolute bottom-6 right-6 z-20 bg-white/90 backdrop-blur px-3 py-2 rounded-xl flex items-center gap-2 shadow-lg animate-fade-in">
+                                        <span class="text-purple-600 text-lg">🔗</span>
+                                        <span class="text-xs font-bold text-brand-ink/60">ProCare Live</span>
+                                    </div>
+                                `);
+                            }
+                        }
+                    })
+                    .catch(e => console.error('ProCare Fetch Error:', e));
             }
+
+            // Ensure manual slideshow is VISIBLE (it acts as container)
+            if (els.slideshowImg) els.slideshowImg.style.display = 'block';
+
+            // Remove any leftover iframe
+            if (iframe) iframe.remove();
         } else {
             // Manual slideshow mode
             const iframe = document.getElementById('procare-iframe');
@@ -309,6 +325,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Newsletter (with PDF support)
         if (els.newsletter && c.newsletter && (c.newsletter.title || c.newsletter.pdf_url)) {
             els.newsletter.style.display = 'flex';
+            els.newsletter.classList.add('flex-1');
             const qrSrc = c.newsletter.url ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(c.newsletter.url)}` : '';
 
             // Check if PDF URL changed - if so, reinitialize PDF viewer
@@ -346,6 +363,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const cares = (c.chroma_cares && c.chroma_cares.title) ? c.chroma_cares : (data.global ? data.global.chroma_cares : null);
         if (els.cares && cares && cares.title) {
             els.cares.style.display = 'flex';
+            els.cares.classList.add('flex-1');
             const html = `
                 <div class="bg-[#E6EFEC] rounded-[2rem] p-6 shadow-card flex-1 relative overflow-hidden flex flex-col justify-between">
                     <div class="absolute top-4 right-4 text-8xl text-chroma-green opacity-[0.08] rotate-12"><i class="fa-solid fa-heart"></i></div>
@@ -364,6 +382,7 @@ document.addEventListener('DOMContentLoaded', function () {
         // Celebrations (Matches logic above, just ensuring cells are filtered)
         if (els.celebrations && c.celebrations && c.celebrations.length > 0) {
             els.celebrations.style.display = 'flex';
+            els.celebrations.classList.add('flex-1');
             const cells = c.celebrations.filter(v => !!v).map(v => `<p>${esc(v)}</p>`).join('');
             const html = `
                 <div class="bg-white rounded-[2rem] p-6 shadow-card border border-chroma-blue/10 flex-1 flex flex-col justify-center text-center relative overflow-hidden">

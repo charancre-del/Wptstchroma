@@ -208,6 +208,10 @@ $js_config = [
     <script>
         window.ChromaConfig = <?php echo json_encode($js_config); ?>;
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
     <script src="<?php echo CHROMA_SCHOOL_DB_URL . 'assets/js/tv-dashboard.js?v=1.0'; ?>"></script>
 </body>
 </html>
