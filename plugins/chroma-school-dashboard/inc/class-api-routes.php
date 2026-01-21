@@ -93,7 +93,8 @@ class Chroma_School_API_Routes
             'youtube',
             'slideshow_title',
             'chroma_cares',
-            'celebrations'
+            'celebrations',
+            'procare' // Added procare configuration
         ];
 
         $data = [
@@ -228,7 +229,8 @@ class Chroma_School_API_Routes
             'welcome_override',
             'slideshow_title',
             'chroma_cares',
-            'celebrations'
+            'celebrations',
+            'procare'
         ];
         $content = [];
         foreach ($meta_keys as $key) {
@@ -268,7 +270,8 @@ class Chroma_School_API_Routes
             'slideshow_title',
             'welcome_override',
             'chroma_cares',
-            'celebrations'
+            'celebrations',
+            'procare'
         ];
 
         foreach ($params as $key => $value) {
@@ -282,7 +285,8 @@ class Chroma_School_API_Routes
                     'qr',
                     'slideshow',
                     'chroma_cares',
-                    'celebrations'
+                    'celebrations',
+                    'procare'
                 ]);
 
                 if ($is_complex) {
