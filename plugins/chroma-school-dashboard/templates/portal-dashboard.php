@@ -426,6 +426,16 @@ wp_enqueue_style('wp-mediaelement');
                                                 <input type="checkbox" name="procare_enabled" defaultChecked={c.procare?.enabled} className="w-5 h-5 accent-purple-600 rounded" />
                                                 <span className="text-sm font-black text-purple-700 uppercase tracking-tighter">Enable Sync</span>
                                             </label>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => {
+                                                    const frame = document.querySelector('iframe[title="ProCare Login"]');
+                                                    if (frame) frame.src = frame.src + '?t=' + Date.now();
+                                                }}
+                                                className="text-[10px] font-bold text-purple-400 hover:text-purple-600 uppercase tracking-widest mt-1"
+                                            >
+                                                Refresh Connection
+                                            </button>
                                         </div>
 
                                         <div className="bg-white rounded-2xl border-2 border-purple-100/50 overflow-hidden shadow-inner relative group">

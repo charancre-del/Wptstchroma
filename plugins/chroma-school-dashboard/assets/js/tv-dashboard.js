@@ -174,17 +174,28 @@ document.addEventListener('DOMContentLoaded', function () {
         setInterval(fetchDashboardData, UPDATE_INTERVAL);
     }
 
+    let isAudioInitialized = false;
+
     /**
      * Initialize Background Music
      */
     function initBackgroundMusic() {
-        if (!config.musicUrl || !els.audio) return;
+        if (!config.musicUrl || !els.audio || isAudioInitialized) return;
 
         const url = config.musicUrl.trim();
         let html = '';
+        console.log('[Audio] Attempting to init with URL:', url);
 
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             let id = '';
+            let listId = '';
+
+            // Handle Playlist
+            if (url.includes('list=')) {
+                listId = url.split('list=')[1].split('&')[0];
+            }
+
+            // Handle Video ID
             if (url.includes('v=')) {
                 id = url.split('v=')[1].split('&')[0];
             } else if (url.includes('youtu.be/')) {
@@ -194,21 +205,58 @@ document.addEventListener('DOMContentLoaded', function () {
                 id = parts[parts.length - 1].split('?')[0];
             }
 
-            if (id) {
-                // YouTube embed with autoplay, loop, and mute=0
-                // We also add playlist=${id} which is required for the loop parameter to work on its own.
-                html = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&controls=0&mute=0" allow="autoplay; encrypted-media"></iframe>`;
+            if (id || listId) {
+                isAudioInitialized = true;
+                const base = "https://www.youtube.com/embed/";
+                const params = new URLSearchParams({
+                    autoplay: 1,
+                    loop: 1,
+                    controls: 0,
+                    mute: 0,
+                    enablejsapi: 1,
+                    origin: window.location.origin
+                });
+
+                if (listId) {
+                    params.set('listType', 'playlist');
+                    params.set('list', listId);
+                } else {
+                    params.set('playlist', id); // Required for loop to work with single video
+                }
+
+                const src = `${base}${id || ''}?${params.toString()}`;
+                console.log('[Audio] YouTube Embed SRC:', src);
+                html = `<iframe src="${src}" allow="autoplay; encrypted-media"></iframe>`;
             }
         } else {
             // Standard Audio
+            isAudioInitialized = true;
             html = `<audio src="${url}" autoplay loop></audio>`;
         }
 
         if (html) {
             els.audio.innerHTML = html;
-            console.log('Audio Player initialized:', url);
+            console.log('[Audio] Player injected into container.');
         }
     }
+
+    // Modern browsers require user interaction to play audio. 
+    // We listen for the first click/touch and re-init if needed.
+    window.addEventListener('click', () => {
+        if (!isAudioInitialized) {
+            console.log('[Audio] First interaction detected. Starting audio...');
+            initBackgroundMusic();
+        } else {
+            // If already initialized, we might need to "kick" the iframe
+            const iframe = els.audio.querySelector('iframe');
+            if (iframe && iframe.src.includes('autoplay=1')) {
+                console.log('[Audio] Refreshing player to trigger autoplay...');
+                const currentSrc = iframe.src;
+                iframe.src = '';
+                setTimeout(() => iframe.src = currentSrc, 100);
+            }
+        }
+    }, { once: true });
 
     /**
      * Fetch Data from API

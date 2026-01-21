@@ -96,7 +96,7 @@ $js_config = [
             display: flex;
             animation: scroll-info 300s linear infinite;
         }
-        #audio-container iframe { width: 1px; height: 1px; opacity: 0; pointer-events: none; position: absolute; }
+        #audio-container iframe { width: 100px; height: 100px; opacity: 0.01; pointer-events: none; position: fixed; bottom: -500px; left: 0; z-index: -1; }
     </style>
 </head>
 
