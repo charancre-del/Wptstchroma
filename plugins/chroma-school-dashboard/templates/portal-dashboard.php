@@ -409,33 +409,41 @@ wp_enqueue_style('wp-mediaelement');
                                     </div>
 
                                     {/* ProCare Integration */}
-                                    <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border border-purple-100">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                                                    <span className="text-xl">🔗</span>
+                                    <div className="p-8 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl border border-purple-100 shadow-sm">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-md text-2xl">
+                                                    🔗
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-bold text-brand-ink">ProCare Connect</h4>
-                                                    <p className="text-xs text-brand-ink/50">Auto-sync photos from your school portal</p>
+                                                    <h4 className="font-extrabold text-brand-ink text-lg leading-tight">ProCare Connect</h4>
+                                                    <p className="text-xs text-brand-ink/50 font-medium">Log in below to sync your photos automatically</p>
                                                 </div>
                                             </div>
-                                            <label className="flex items-center gap-2">
+                                            <label className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-purple-100 cursor-pointer hover:bg-purple-50 transition-colors">
                                                 <input type="checkbox" name="procare_enabled" defaultChecked={c.procare?.enabled} className="w-5 h-5 accent-purple-600 rounded" />
-                                                <span className="text-sm font-bold text-purple-600">Enable</span>
+                                                <span className="text-sm font-black text-purple-700 uppercase tracking-tighter">Enable Sync</span>
                                             </label>
                                         </div>
-                                        <div className="grid md:grid-cols-2 gap-4">
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-bold text-brand-ink/40">ProCare Email</label>
-                                                <input type="email" name="procare_username" defaultValue={c.procare?.username || ''} placeholder="director@school.com" className="w-full p-3 rounded-xl border border-purple-100 bg-white text-sm" />
+
+                                        <div className="bg-white rounded-2xl border-2 border-purple-100/50 overflow-hidden shadow-inner relative group">
+                                            <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center z-0 opacity-0 group-hover:opacity-10 pointer-events-none transition-opacity">
+                                                <i className="fa-solid fa-lock text-4xl text-purple-200"></i>
                                             </div>
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-bold text-brand-ink/40">ProCare Password</label>
-                                                <input type="password" name="procare_password" placeholder="••••••••" className="w-full p-3 rounded-xl border border-purple-100 bg-white text-sm" />
+                                            <iframe 
+                                                src={`${window.location.origin}/wp-json/chroma/v1/procare-proxy`}
+                                                className="w-full h-[500px] border-none relative z-10"
+                                                title="ProCare Login"
+                                            ></iframe>
+                                        </div>
+
+                                        <div className="mt-6 flex items-start gap-3 p-4 bg-purple-100/30 rounded-xl border border-purple-100/50">
+                                            <i className="fa-solid fa-shield-halved text-purple-400 mt-1"></i>
+                                            <div>
+                                                <p className="text-[11px] font-bold text-purple-800 leading-tight">Secure Connection</p>
+                                                <p className="text-[10px] text-purple-700/70 leading-relaxed mt-0.5">Your credentials are never stored in our database. We only securely pass them to ProCare to fetch your campus slideshow photos.</p>
                                             </div>
                                         </div>
-                                        <p className="text-[10px] text-brand-ink/30 mt-3">🔒 Credentials are encrypted and only used to connect to ProCare's slideshow.</p>
                                     </div>
 
                                     {/* Manual Slideshow (Fallback) */}

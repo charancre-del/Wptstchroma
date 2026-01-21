@@ -23,32 +23,86 @@ class Chroma_Procare_API {
         $cached = get_transient($transient_key);
         if ($cached) return $cached;
 
-        // Get Creds
-        $config = get_post_meta($school_id, '_chroma_school_config', true);
-        $username = $config['procare']['username'] ?? '';
-        $password = $config['procare']['password'] ?? '';
-
-        if (!$username || !$password) return [];
-
-        // Auth
-        $token = self::authenticate($username, $password);
-        if (!$token) return [];
-
-        // Fetch Data (Activity Feed or Photos)
-        // Note: We need to know the 'school_id' (ProCare's internal ID), not our WP ID.
-        // Usually login response returns available schools.
+        // Try to get captured session from proxy first
+        $session = get_option('chroma_procare_last_session');
         
-        $procare_school_id = get_transient('chroma_procare_id_' . md5($username));
-        if (!$procare_school_id) {
-            // Re-fetch profile to get school ID
-             // For now, assuming first school in list
+        if (!$session) {
+            // Fallback to credentials if available
+            $config = get_post_meta($school_id, '_chroma_school_config', true);
+            $username = $config['procare']['username'] ?? '';
+            $password = $config['procare']['password'] ?? '';
+            
+            if (!$username || !$password) return [];
+            $token = self::authenticate($username, $password);
+            if (!$token) return [];
+            $session = $token; // Assuming token is the session identifier
         }
 
-        // Implementation of fetching photos would go here.
-        // Since we are flying blind on the exact endpoint for photos without a test run,
-        // we will return an error log if not connected.
+        // Fetch School profile to find the internal ProCare ID
+        $procare_school = self::get_school_profile($session);
+        if (!$procare_school || !isset($procare_school['id'])) return [];
 
-        return []; 
+        $p_school_id = $procare_school['id'];
+
+        // Now fetch photos from activity feed or gallery
+        // Endpoint guess based on standard ProCare patterns:
+        $photos = self::fetch_photos($p_school_id, $session);
+        
+        if (!empty($photos)) {
+            set_transient($transient_key, $photos, 5 * MINUTE_IN_SECONDS);
+        }
+
+        return $photos; 
+    }
+
+    private static function get_school_profile($session) {
+        $url = self::$endpoints['web'] . '/user/profile';
+        
+        $response = wp_remote_get($url, [
+            'headers' => [
+                'Cookie' => '_procare_session=' . $session,
+                'Accept' => 'application/json'
+            ]
+        ]);
+
+        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) return null;
+        
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        return $body['schools'][0] ?? null;
+    }
+
+    private static function fetch_photos($p_school_id, $session) {
+        // We'll try a few common endpoints
+        $endpoints = [
+            "/schools/{$p_school_id}/activity_feed?type=photo",
+            "/schools/{$p_school_id}/photos"
+        ];
+
+        foreach ($endpoints as $path) {
+            $url = self::$endpoints['web'] . $path;
+            $response = wp_remote_get($url, [
+                'headers' => [
+                    'Cookie' => '_procare_session=' . $session,
+                    'Accept' => 'application/json'
+                ]
+            ]);
+
+            if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
+                $body = json_decode(wp_remote_retrieve_body($response), true);
+                // Parse image URLs from response (depends on structure, but usually 'url' or 'image_url')
+                $urls = [];
+                
+                // Recursive search for URLs in the JSON if we don't know the exact key
+                array_walk_recursive($body, function($value, $key) use (&$urls) {
+                    if (is_string($value) && (strpos($value, '.jpg') !== false || strpos($value, '.png') !== false) && strpos($value, 'http') === 0) {
+                        $urls[] = $value;
+                    }
+                });
+
+                if (!empty($urls)) return array_values(array_unique($urls));
+            }
+        }
+        return [];
     }
 
     /**
