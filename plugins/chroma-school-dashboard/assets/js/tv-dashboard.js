@@ -180,18 +180,24 @@ document.addEventListener('DOMContentLoaded', function () {
     function initBackgroundMusic() {
         if (!config.musicUrl || !els.audio) return;
 
-        const url = config.musicUrl;
+        const url = config.musicUrl.trim();
         let html = '';
 
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            // Extract ID
             let id = '';
-            if (url.includes('v=')) id = url.split('v=')[1].split('&')[0];
-            else if (url.includes('youtu.be/')) id = url.split('youtu.be/')[1].split('?')[0];
+            if (url.includes('v=')) {
+                id = url.split('v=')[1].split('&')[0];
+            } else if (url.includes('youtu.be/')) {
+                id = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('shorts/') || url.includes('embed/')) {
+                const parts = url.split('/');
+                id = parts[parts.length - 1].split('?')[0];
+            }
 
             if (id) {
-                // YouTube embed with autoplay, loop, and muted=0 (requires interaction usually)
-                html = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&controls=0" allow="autoplay"></iframe>`;
+                // YouTube embed with autoplay, loop, and mute=0
+                // We also add playlist=${id} which is required for the loop parameter to work on its own.
+                html = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&controls=0&mute=0" allow="autoplay; encrypted-media"></iframe>`;
             }
         } else {
             // Standard Audio
@@ -200,6 +206,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (html) {
             els.audio.innerHTML = html;
+            console.log('Audio Player initialized:', url);
         }
     }
 

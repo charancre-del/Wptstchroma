@@ -97,16 +97,34 @@ class Chroma_Proxy_Route
         // Output content
         header("Content-Type: " . ($headers['content-type'] ?? 'text/html'));
         
+        // Process Cookies from ProCare
+        $res_cookies = wp_remote_retrieve_cookies($response);
+        foreach ($res_cookies as $cookie) {
+            // Set cookie on our domain so the browser sends it back to the proxy
+            // Use SameSite=Lax for compatibility. Secure=true if on HTTPS.
+            $is_secure = is_ssl();
+            setcookie($cookie->name, $cookie->value, [
+                'expires' => $cookie->expires,
+                'path' => '/',
+                'domain' => $_SERVER['HTTP_HOST'],
+                'secure' => $is_secure,
+                'httponly' => true,
+                'samesite' => 'Lax'
+            ]);
+            
+            if ($cookie->name === '_procare_session' || $cookie->name === 'session') {
+                update_option('chroma_procare_last_session', $cookie->value);
+            }
+        }
+
         // Handle Redirects: If ProCare redirects, we need to tell the browser but keep it in the proxy
         if ($code >= 300 && $code < 400 && isset($headers['location'])) {
             $loc = $headers['location'];
             $proxy_root = get_rest_url(null, $this->namespace . '/procare-proxy');
             
             if (strpos($loc, 'http') === 0) {
-                // Absolute URL
                 $new_loc = str_replace($this->target_origin, $proxy_root, $loc);
             } else {
-                // Root relative or path relative
                 $new_loc = rtrim($proxy_root, '/') . '/' . ltrim($loc, '/');
             }
             
@@ -131,7 +149,7 @@ class Chroma_Proxy_Route
 
     private function rewrite_content($body, $content_type)
     {
-        $base_proxy = get_rest_url(null, $this->namespace . '/procare-proxy/');
+        $base_proxy = get_rest_url(null, $this->namespace . '/procare-proxy'); // No trailing slash
         $base_proxy_clean = rtrim($base_proxy, '/');
         
         // 0. Handle scheme-less URLs (//schools.procare...)
@@ -139,18 +157,23 @@ class Chroma_Proxy_Route
         $body = str_replace($target_origin_noscheme, str_replace(['http:', 'https:'], '', $base_proxy_clean), $body);
 
         // 1. Rewrite root-relative links in HTML/CSS/JS (e.g. src="/js/...")
-        $body = preg_replace('/(href|src|action)=["\']\//', '$1="' . $base_proxy, $body);
+        // We ensure we don't create double slashes if base_proxy has one
+        $body = preg_replace('/(href|src|action)=["\']\//', '$1="' . $base_proxy_clean . '/', $body);
         
         // 2. Rewrite absolute links to the target origin
         $body = str_replace($this->target_origin, $base_proxy_clean, $body);
 
-        // 3. Fix potential double slashes
+        // 3. CSS url() replacements
+        $body = preg_replace('/url\(["\']?\//', 'url("' . $base_proxy_clean . '/', $body);
+
+        // 4. Fix potential triple/double slashes resulting from sloppy replacements
+        $body = str_replace($base_proxy_clean . '///', $base_proxy_clean . '/', $body);
         $body = str_replace($base_proxy_clean . '//', $base_proxy_clean . '/', $body);
 
-        // 4. Handle <base> tags which can break proxying
+        // 5. Handle <base> tags which can break proxying
         $body = preg_replace('/<base\s+href=["\'][^"\'\s]+["\']\s*\/?>/i', '', $body);
 
-        // 5. Inject script into HTML to intercept fetch/XHR
+        // 6. Inject script into HTML to intercept fetch/XHR
         if (strpos($content_type, 'text/html') !== false) {
             $interceptor = "
             <script>
@@ -160,6 +183,9 @@ class Chroma_Proxy_Route
 
                 function proxyUrl(url) {
                     if (typeof url !== 'string') return url;
+                    // Skip data URLs, blobs, etc.
+                    if (url.startsWith('data:') || url.startsWith('blob:')) return url;
+                    
                     if (url.startsWith('/') && !url.startsWith('//')) {
                         return baseProxy + url;
                     }
@@ -179,9 +205,16 @@ class Chroma_Proxy_Route
                 // Intercept XHR
                 const originalOpen = XMLHttpRequest.prototype.open;
                 XMLHttpRequest.prototype.open = function() {
-                    arguments[1] = proxyUrl(arguments[1]);
+                    if (arguments[1]) arguments[1] = proxyUrl(arguments[1]);
                     return originalOpen.apply(this, arguments);
                 };
+
+                // Helper to check if we are stuck
+                setTimeout(() => {
+                    if (document.body.innerHTML.includes('Loading')) {
+                        console.warn('ProCare still loading... checking roots.');
+                    }
+                }, 5000);
             })();
             </script>";
             

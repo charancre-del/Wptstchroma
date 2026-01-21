@@ -214,7 +214,7 @@ $js_config = [
         </aside>
 
         <!-- Background Audio -->
-        <div id="audio-container" class="hidden"></div>
+        <div id="audio-container"></div>
 
         <!-- Global Alert -->
         <div id="global-alert-container" style="display: none;"></div>
