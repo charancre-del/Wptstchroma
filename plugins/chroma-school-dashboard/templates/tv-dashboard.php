@@ -16,7 +16,8 @@ $js_config = [
     'slug' => $slug,
     'lat' => $config['lat'] ?? '',
     'lon' => $config['lon'] ?? '',
-    'apiUrl' => get_rest_url() // Ensure we have the base URL
+    'apiUrl' => get_rest_url(), // Ensure we have the base URL
+    'procareProxyUrl' => get_option('chroma_procare_proxy_url', 'http://localhost:3456') // Proxy service URL
 ];
 ?>
 <!DOCTYPE html>

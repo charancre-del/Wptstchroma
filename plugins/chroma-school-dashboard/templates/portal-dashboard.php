@@ -272,6 +272,11 @@ wp_enqueue_style('wp-mediaelement');
                     today: {
                         title: rawObj['today.title'],
                         items: [rawObj['td_0'], rawObj['td_1'], rawObj['td_2'], rawObj['td_3']].filter(Boolean)
+                    },
+                    procare: {
+                        enabled: rawObj['procare_enabled'] === 'on' || rawObj['procare_enabled'] === true,
+                        username: rawObj['procare_username'] || '',
+                        password: rawObj['procare_password'] || ''
                     }
                 };
 
@@ -401,26 +406,61 @@ wp_enqueue_style('wp-mediaelement');
                                         <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Section Title</label>
                                         <input name="slideshow_title" defaultValue={c.slideshow_title || 'Campus Life'} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 font-bold" />
                                     </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                                        {formState.slides.map((url, i) => (
-                                            <div key={i} className="space-y-2">
-                                                <div onClick={() => {
-                                                    const frame = wp.media({ multiple: false });
-                                                    frame.on('select', () => {
-                                                        const url = frame.state().get('selection').first().toJSON().url;
-                                                        const news = [...formState.slides]; news[i] = url;
-                                                        setFormState({...formState, slides: news});
-                                                    });
-                                                    frame.open();
-                                                }} className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 cursor-pointer overflow-hidden flex items-center justify-center hover:border-chroma-red transition-all">
-                                                    {url ? <img src={url} className="w-full h-full object-cover" /> : <i className="fa-solid fa-plus text-gray-300"></i>}
+
+                                    {/* ProCare Integration */}
+                                    <div className="p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-2xl border border-purple-100">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                                                    <span className="text-xl">🔗</span>
                                                 </div>
-                                                {url && <button type="button" onClick={() => {
-                                                    const news = [...formState.slides]; news[i] = '';
-                                                    setFormState({...formState, slides: news});
-                                                }} className="text-[10px] font-black uppercase text-red-500 hover:text-red-700 w-full text-center">Clear</button>}
+                                                <div>
+                                                    <h4 className="font-bold text-brand-ink">ProCare Connect</h4>
+                                                    <p className="text-xs text-brand-ink/50">Auto-sync photos from your school portal</p>
+                                                </div>
                                             </div>
-                                        ))}
+                                            <label className="flex items-center gap-2">
+                                                <input type="checkbox" name="procare_enabled" defaultChecked={c.procare?.enabled} className="w-5 h-5 accent-purple-600 rounded" />
+                                                <span className="text-sm font-bold text-purple-600">Enable</span>
+                                            </label>
+                                        </div>
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-bold text-brand-ink/40">ProCare Email</label>
+                                                <input type="email" name="procare_username" defaultValue={c.procare?.username || ''} placeholder="director@school.com" className="w-full p-3 rounded-xl border border-purple-100 bg-white text-sm" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-bold text-brand-ink/40">ProCare Password</label>
+                                                <input type="password" name="procare_password" placeholder="••••••••" className="w-full p-3 rounded-xl border border-purple-100 bg-white text-sm" />
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-brand-ink/30 mt-3">🔒 Credentials are encrypted and only used to connect to ProCare's slideshow.</p>
+                                    </div>
+
+                                    {/* Manual Slideshow (Fallback) */}
+                                    <div className="pt-4 border-t border-gray-100">
+                                        <p className="text-xs font-bold text-brand-ink/40 uppercase tracking-wider mb-4">Or: Upload Photos Manually</p>
+                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                            {formState.slides.map((url, i) => (
+                                                <div key={i} className="space-y-2">
+                                                    <div onClick={() => {
+                                                        const frame = wp.media({ multiple: false });
+                                                        frame.on('select', () => {
+                                                            const url = frame.state().get('selection').first().toJSON().url;
+                                                            const news = [...formState.slides]; news[i] = url;
+                                                            setFormState({...formState, slides: news});
+                                                        });
+                                                        frame.open();
+                                                    }} className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 cursor-pointer overflow-hidden flex items-center justify-center hover:border-chroma-red transition-all">
+                                                        {url ? <img src={url} className="w-full h-full object-cover" /> : <i className="fa-solid fa-plus text-gray-300"></i>}
+                                                    </div>
+                                                    {url && <button type="button" onClick={() => {
+                                                        const news = [...formState.slides]; news[i] = '';
+                                                        setFormState({...formState, slides: news});
+                                                    }} className="text-[10px] font-black uppercase text-red-500 hover:text-red-700 w-full text-center">Clear</button>}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                             </FormSection>

@@ -226,14 +226,59 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Slideshow List Update (Preserve current index if possible)
-        if (c.slideshow && Array.isArray(c.slideshow)) {
-            // Check if changed
-            if (JSON.stringify(slideImages) !== JSON.stringify(c.slideshow)) {
-                slideImages = c.slideshow;
-                // Reset if index out of bounds
-                if (currentSlideIndex >= slideImages.length) currentSlideIndex = 0;
+        // Slideshow - ProCare Mode or Manual
+        const procareEnabled = c.procare && c.procare.enabled;
+        const slideshowContainer = document.getElementById('slideshow-container');
+
+        if (procareEnabled) {
+            // ProCare iframe mode (Direct Embed)
+            const iframeId = 'procare-iframe';
+            let iframe = document.getElementById(iframeId);
+
+            if (!iframe) {
+                // Create iframe for ProCare
+                // NOTE: Requires 'Ignore X-Frame-Options' extension on the TV browser
+                if (slideshowContainer) {
+                    slideshowContainer.innerHTML = `
+                        <div class="absolute inset-0 w-full h-full rounded-3xl overflow-hidden bg-white">
+                            <iframe 
+                                id="${iframeId}"
+                                src="https://schools.procareconnect.com/"
+                                class="absolute w-[150%] h-[150%] origin-top-left"
+                                style="border: none; transform: scale(0.66) translate(-15%, -15%);"
+                            ></iframe>
+                        </div>
+                        <div class="absolute top-6 left-6 z-20">
+                            <span class="inline-block px-4 py-2 text-[0.7rem] font-extrabold uppercase tracking-widest rounded-xl bg-chroma-red text-white shadow-lg">Happening Now</span>
+                            <h2 id="slideshow-title" class="font-serif text-4xl font-bold text-white mt-3 drop-shadow-xl">${esc(c.slideshow_title || 'Highlights')}</h2>
+                        </div>
+                        <div class="absolute bottom-6 right-6 z-20 bg-white/90 backdrop-blur px-3 py-2 rounded-xl flex items-center gap-2 shadow-lg">
+                            <span class="text-purple-600 text-lg">🔗</span>
+                            <span class="text-xs font-bold text-brand-ink/60">ProCare Live</span>
+                        </div>
+                    `;
+                }
+                // Hide manual slideshow elements
+                if (els.slideshowImg) els.slideshowImg.style.display = 'none';
             }
+        } else {
+            // Manual slideshow mode
+            const iframe = document.getElementById('procare-iframe');
+            if (iframe) {
+                iframe.remove();
+            }
+
+            if (c.slideshow && Array.isArray(c.slideshow)) {
+                // Check if changed
+                if (JSON.stringify(slideImages) !== JSON.stringify(c.slideshow)) {
+                    slideImages = c.slideshow;
+                    // Reset if index out of bounds
+                    if (currentSlideIndex >= slideImages.length) currentSlideIndex = 0;
+                }
+            }
+
+            // Show manual slideshow image element
+            if (els.slideshowImg) els.slideshowImg.style.display = 'block';
         }
 
         // Star Educator (EOM)
