@@ -277,7 +277,8 @@ wp_enqueue_style('wp-mediaelement');
                         enabled: rawObj['procare_enabled'] === 'on' || rawObj['procare_enabled'] === true,
                         username: rawObj['procare_username'] || '',
                         password: rawObj['procare_password'] || ''
-                    }
+                    },
+                    music_url: rawObj['music_url'] || ''
                 };
 
                 try {
@@ -523,11 +524,36 @@ wp_enqueue_style('wp-mediaelement');
                             </FormSection>
 
                             {/* Celebrations */}
-                            <FormSection title="Celebrations & Birthdays" icon="fa-cake-candles" colorClass="bg-chroma-yellow">
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    {[0,1,2,3,4,5,6,7].map(i => (
-                                        <input key={i} name={`cel_${i}`} defaultValue={c.celebrations?.[i] || ''} placeholder="e.g. Leo's Birthday!" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 text-sm font-medium" />
-                                    ))}
+                            <FormSection title="Celebrations & Birthdays" icon="fa-cake-candles" colorClass="bg-chroma-red">
+                                <div className="space-y-4">
+                                    <p className="text-xs text-brand-ink/40 font-bold uppercase tracking-widest mb-2">Display names for the week</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[0,1,2,3,4,5,6,7].map(i => (
+                                            <input key={i} name={`cel_${i}`} defaultValue={c.celebrations?.[i] || ''} placeholder="Name..." className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 text-sm font-medium" />
+                                        ))}
+                                    </div>
+                                </div>
+                            </FormSection>
+
+                            {/* TV Layout & Audio Settings */}
+                            <FormSection title="Global TV Settings" icon="fa-gear" colorClass="bg-brand-ink">
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Background Music URL (YouTube or MP3)</label>
+                                        <div className="flex gap-4">
+                                            <div className="flex-1">
+                                                <input name="music_url" defaultValue={c.music_url || ''} placeholder="https://www.youtube.com/watch?v=..." className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
+                                                <p className="text-[10px] text-brand-ink/40 mt-2 italic">Tip: Use a "Lofi" or "Ambient" YouTube playlist for the best experience.</p>
+                                            </div>
+                                            <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center text-brand-ink/20 text-3xl shrink-0">
+                                                <i className="fa-solid fa-music"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-brand-cream border border-brand-ink/5 rounded-2xl">
+                                        <p className="text-xs font-bold text-brand-ink/60 mb-1">💡 Pro Tip</p>
+                                        <p className="text-[11px] text-brand-ink/50 leading-relaxed">Most browsers require you to click the screen once after the page loads to enable audio playback. If music doesn't start, just tap the screen!</p>
+                                    </div>
                                 </div>
                             </FormSection>
 

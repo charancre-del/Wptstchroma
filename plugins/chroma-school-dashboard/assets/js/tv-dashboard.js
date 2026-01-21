@@ -31,7 +31,8 @@ document.addEventListener('DOMContentLoaded', function () {
         cares: document.getElementById('cares-container'),
         celebrations: document.getElementById('celebrations-container'),
         alert: document.getElementById('global-alert-container'),
-        menu: document.getElementById('menu-container')
+        menu: document.getElementById('menu-container'),
+        audio: document.getElementById('audio-container')
     };
 
     // PDF Viewer State
@@ -155,11 +156,43 @@ document.addEventListener('DOMContentLoaded', function () {
         // Start Slideshow Loop (Independent of data fetch)
         startSlideshow();
 
+        // Background Music
+        initBackgroundMusic();
+
         // Initial Fetch (defer slightly to not block render)
-        setTimeout(fetchDashboardData, 5000);
+        setTimeout(fetchDashboardData, 3000);
 
         // Poll
         setInterval(fetchDashboardData, UPDATE_INTERVAL);
+    }
+
+    /**
+     * Initialize Background Music
+     */
+    function initBackgroundMusic() {
+        if (!config.musicUrl || !els.audio) return;
+
+        const url = config.musicUrl;
+        let html = '';
+
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            // Extract ID
+            let id = '';
+            if (url.includes('v=')) id = url.split('v=')[1].split('&')[0];
+            else if (url.includes('youtu.be/')) id = url.split('youtu.be/')[1].split('?')[0];
+
+            if (id) {
+                // YouTube embed with autoplay, loop, and muted=0 (requires interaction usually)
+                html = `<iframe src="https://www.youtube.com/embed/${id}?autoplay=1&loop=1&playlist=${id}&controls=0" allow="autoplay"></iframe>`;
+            }
+        } else {
+            // Standard Audio
+            html = `<audio src="${url}" autoplay loop></audio>`;
+        }
+
+        if (html) {
+            els.audio.innerHTML = html;
+        }
     }
 
     /**
@@ -203,16 +236,27 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateUI(data) {
         const c = data.content;
 
-        // Notices
+        // Notices (Header)
         if (els.notices) {
-            const html = (c.announcements || []).map(n => `
-                <div class="animate-fade-in">
-                    ${(n.priority === 'high') ? '<span class="inline-block px-3 py-1 rounded-lg bg-chroma-red text-white text-xs font-extra-bold uppercase tracking-wider mb-2">Important</span>' : ''}
-                    <h3 class="font-bold text-xl leading-tight mb-2 text-brand-ink">${esc(n.title)}</h3>
-                    <p class="text-brand-ink/70 text-base leading-relaxed">${esc(n.body)}</p>
-                </div>
-            `).join('');
-            if (els.notices.innerHTML !== html) els.notices.innerHTML = html;
+            const notices = c.announcements || [];
+            if (notices.length === 0) {
+                els.notices.innerHTML = '<p class="text-brand-ink/30 italic text-sm">No new announcements at this time.</p>';
+            } else {
+                const html = notices.map(n => `
+                    <div class="flex items-center gap-3 animate-fade-in shrink-0 mr-12 bg-white/50 px-4 py-2 rounded-xl border border-white/50">
+                        ${(n.priority === 'high') ? '<span class="w-2 h-2 rounded-full bg-chroma-red animate-pulse"></span>' : ''}
+                        <h3 class="font-bold text-lg text-brand-ink whitespace-nowrap">${esc(n.title)}:</h3>
+                        <p class="text-brand-ink/60 text-base whitespace-nowrap">${esc(n.body)}</p>
+                    </div>
+                `).join('');
+
+                // If multiple, wrap in a marquee-like container or scroll
+                if (notices.length > 2) {
+                    els.notices.innerHTML = `<div class="flex animate-scroll-info">${html}${html}</div>`;
+                } else {
+                    els.notices.innerHTML = `<div class="flex items-center">${html}</div>`;
+                }
+            }
         }
 
         // Today
@@ -382,20 +426,19 @@ document.addEventListener('DOMContentLoaded', function () {
         // Celebrations (Matches logic above, just ensuring cells are filtered)
         if (els.celebrations && c.celebrations && c.celebrations.length > 0) {
             els.celebrations.style.display = 'flex';
-            els.celebrations.classList.add('flex-1');
-            const cells = c.celebrations.filter(v => !!v).map(v => `<p>${esc(v)}</p>`).join('');
+            const sorted = (c.celebrations || []).filter(v => !!v);
             const html = `
-                <div class="bg-white rounded-[2rem] p-6 shadow-card border border-chroma-blue/10 flex-1 flex flex-col justify-center text-center relative overflow-hidden">
-                    <div class="flex items-center justify-center gap-3 mb-2">
-                        <i class="fa-solid fa-cake-candles text-2xl text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600"></i>
-                        <h3 class="font-serif text-2xl font-bold text-brand-ink">Celebrations</h3>
-                    </div>
-                    <div class="space-y-1 relative z-10 text-brand-ink/60 text-lg">${cells}</div>
+                <div class="space-y-4 relative z-10">
+                    ${sorted.map(v => `
+                        <div class="p-4 rounded-2xl bg-white border border-rose-100 shadow-sm animate-fade-in">
+                            <p class="text-xl font-bold text-brand-ink">${esc(v)}</p>
+                        </div>
+                    `).join('')}
                 </div>
             `;
             if (els.celebrations.innerHTML !== html) els.celebrations.innerHTML = html;
         } else if (els.celebrations) {
-            els.celebrations.style.display = 'none';
+            els.celebrations.innerHTML = '<div class="text-center opacity-20 py-10"><i class="fa-solid fa-gift text-4xl mb-4 block"></i><p>No celebrations this week</p></div>';
         }
 
         // Global Alert

@@ -17,7 +17,8 @@ $js_config = [
     'lat' => $config['lat'] ?? '',
     'lon' => $config['lon'] ?? '',
     'apiUrl' => get_rest_url(), // Ensure we have the base URL
-    'procareProxyUrl' => get_option('chroma_procare_proxy_url', 'http://localhost:3456') // Proxy service URL
+    'procareProxyUrl' => get_option('chroma_procare_proxy_url', 'http://localhost:3456'), // Proxy service URL
+    'musicUrl' => $config['music_url'] ?? ''
 ];
 ?>
 <!DOCTYPE html>
@@ -87,6 +88,15 @@ $js_config = [
             75% { transform: translate(-1px, 1px); }
             100% { transform: translate(0, 0); }
         }
+        @keyframes scroll-info {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+        .animate-scroll-info {
+            display: flex;
+            animation: scroll-info 300s linear infinite;
+        }
+        #audio-container iframe { width: 1px; height: 1px; opacity: 0; pointer-events: none; position: absolute; }
     </style>
 </head>
 
@@ -98,106 +108,118 @@ $js_config = [
         <header class="col-span-12 row-span-2 flex items-center justify-between bg-white rounded-[2rem] p-8 shadow-soft border border-chroma-blue/10 relative overflow-hidden">
             <div class="absolute top-0 right-0 w-64 h-64 bg-chroma-yellowLight rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/2"></div>
 
-            <div class="flex items-center gap-8 z-10">
-                <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/images/logo_icon_70x70.webp" alt="Chroma" class="w-16 h-16 rounded-xl shadow-sm" />
-                <div>
-                    <!-- Welcome Overridden by JS if set -->
-                    <h1 id="welcome-message" class="font-serif text-3xl font-bold text-brand-ink leading-tight">Welcome to Chroma Early Learning</h1>
-                    <div class="font-serif italic text-4xl text-chroma-blue mt-1 font-semibold">
+            <!-- Left: School Info -->
+            <div class="flex items-center gap-6 z-10 w-1/4">
+                <img src="<?php echo esc_url(get_template_directory_uri()); ?>/assets/images/logo_icon_70x70.webp" alt="Chroma" class="w-14 h-14 rounded-xl shadow-sm" />
+                <div class="min-w-0">
+                    <h1 id="welcome-message" class="font-serif text-xl font-bold text-brand-ink leading-tight truncate">Welcome to Chroma</h1>
+                    <div class="font-serif italic text-2xl text-chroma-blue truncate font-semibold">
                         <?php echo esc_html($school_name); ?>
                     </div>
-                    <p class="text-brand-ink/40 text-lg font-medium mt-2">Today is <span id="current-date" class="text-brand-ink/60">...</span></p>
+                    <p class="text-brand-ink/40 text-[10px] font-medium tracking-wider uppercase mt-1">Today is <span id="current-date" class="text-brand-ink/60">...</span></p>
                 </div>
             </div>
 
-            <div class="flex items-center gap-10 z-10">
-                <!-- Weather Widget (Hidden initially) -->
-                <div id="weather-widget" class="text-right" style="display: none;">
-                    <div class="flex items-center justify-end gap-4 text-brand-ink">
-                        <i id="weather-icon" class="fa-solid fa-sun text-5xl text-chroma-yellow"></i>
-                        <span id="weather-temp" class="text-6xl font-bold tracking-tighter">--°</span>
+            <!-- Center: Notices (Direct in Header) -->
+            <div class="flex-1 h-full flex items-center px-10 border-x border-chroma-blue/5 z-10">
+                <div class="flex items-center gap-4 w-full">
+                    <div class="w-12 h-12 rounded-2xl bg-chroma-yellow/10 flex items-center justify-center text-chroma-yellow text-2xl shrink-0">
+                        <i class="fa-solid fa-bullhorn"></i>
                     </div>
-                    <p id="weather-desc" class="text-brand-ink/50 font-medium text-lg mt-1">--</p>
+                    <div id="notices-container" class="flex-1 overflow-hidden">
+                        <!-- Loaded by JS as a horizontal scroll or single line -->
+                         <div class="animate-pulse flex gap-4">
+                            <div class="h-6 w-48 bg-gray-50 rounded-lg"></div>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: System Info -->
+            <div class="flex items-center gap-10 z-10 pl-10">
+                <div id="weather-widget" class="text-right" style="display: none;">
+                    <div class="flex items-center justify-end gap-3 text-brand-ink">
+                        <i id="weather-icon" class="fa-solid fa-sun text-4xl text-chroma-yellow"></i>
+                        <span id="weather-temp" class="text-5xl font-bold tracking-tighter">--°</span>
+                    </div>
                 </div>
                 
-                <div class="h-20 w-px bg-chroma-blue/10"></div>
+                <div class="h-16 w-px bg-chroma-blue/10"></div>
 
                 <div class="text-right">
-                    <div id="clock" class="text-7xl font-bold text-brand-ink tabular-nums tracking-tighter leading-none">00:00</div>
-                    <div id="ampm" class="text-2xl font-bold text-chroma-blue uppercase tracking-widest text-right mr-1 mt-1 opacity-60">AM</div>
+                    <div id="clock" class="text-6xl font-bold text-brand-ink tabular-nums tracking-tighter leading-none">00:00</div>
+                    <div id="ampm" class="text-xl font-bold text-chroma-blue uppercase tracking-widest text-right mt-1 opacity-60">AM</div>
                 </div>
             </div>
         </header>
 
-        <!-- LEFT COLUMN -->
+        <!-- LEFT COLUMN: Sched & Events -->
         <aside class="col-span-3 row-span-10 flex flex-col gap-6">
-
             <!-- Today -->
-            <div class="bg-white rounded-[2rem] p-6 shadow-card border border-chroma-blue/10 flex-shrink-0 flex flex-col overflow-hidden min-h-[300px]">
+            <div class="bg-white rounded-[2rem] p-6 shadow-card border border-chroma-blue/10 flex-shrink-0 flex flex-col overflow-hidden min-h-[350px]">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 rounded-2xl bg-brand-cream border border-brand-ink/5 flex items-center justify-center text-chroma-blue text-2xl">
+                    <div class="w-10 h-10 rounded-xl bg-brand-cream border border-brand-ink/5 flex items-center justify-center text-chroma-blue text-xl">
                         <i class="fa-regular fa-calendar"></i>
                     </div>
-                    <h2 class="font-serif text-3xl font-bold text-brand-ink">Today</h2>
+                    <h2 class="font-serif text-2xl font-bold text-brand-ink">Today</h2>
                 </div>
                 <div id="today-container" class="space-y-4">
                     <!-- Loading Skeleton -->
-                    <div class="animate-pulse flex flex-col gap-4">
-                         <div class="h-16 bg-gray-100 rounded-2xl"></div>
-                         <div class="h-16 bg-gray-100 rounded-2xl"></div>
-                    </div>
                 </div>
             </div>
 
-            <!-- Notices -->
-            <div class="bg-brand-cream rounded-[2rem] p-6 shadow-card flex-1 flex flex-col relative overflow-hidden border border-chroma-yellow/20">
+            <!-- Celebrations -->
+            <div class="bg-white rounded-[2rem] p-6 shadow-card border border-chroma-blue/10 flex-1 flex flex-col relative overflow-hidden group">
                 <div class="flex items-center gap-3 mb-6 z-10">
-                    <div class="w-12 h-12 rounded-2xl bg-white flex items-center justify-center text-chroma-yellow text-2xl shadow-sm">
-                        <i class="fa-solid fa-bullhorn"></i>
+                    <div class="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center text-rose-500 text-xl shadow-sm border border-rose-100">
+                        <i class="fa-solid fa-cake-candles"></i>
                     </div>
-                    <h2 class="font-serif text-3xl font-bold text-brand-ink">Notices</h2>
+                    <h2 class="font-serif text-2xl font-bold text-brand-ink">Celebrations</h2>
                 </div>
-                <div id="notices-container" class="relative z-10 flex-1 overflow-y-auto space-y-5 pr-2">
+                <div id="celebrations-container" class="relative z-10 flex-1 flex flex-col justify-center">
                     <!-- Loaded by JS -->
                 </div>
-                <i class="fa-solid fa-bell absolute -bottom-8 -right-8 text-[10rem] text-chroma-yellow opacity-10 rotate-12"></i>
+                <div class="absolute -bottom-6 -right-6 text-rose-500/5 text-9xl rotate-12 transition-transform group-hover:scale-110 duration-700">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
             </div>
 
-            <!-- Menu (Hidden if empty) -->
-            <!-- We'll hide it via JS if empty -->
             <div id="menu-container" style="display: none;"></div>
-
         </aside>
 
-        <!-- CENTER COLUMN -->
+        <!-- CENTER COLUMN: Media -->
         <main class="col-span-6 row-span-10 flex flex-col gap-8">
             <!-- Slideshow -->
-            <div class="bg-black rounded-[2.5rem] overflow-hidden shadow-2xl relative flex-grow-[2] border-[6px] border-white ring-1 ring-black/5">
+            <div id="slideshow-container" class="bg-black rounded-[2.5rem] overflow-hidden shadow-2xl relative flex-grow-[2] border-[6px] border-white ring-1 ring-black/5">
                 <img id="slideshow-img" src="" class="w-full h-full object-cover" alt="Slideshow">
                 
-                <div class="absolute bottom-8 left-8 right-8 z-20">
-                    <span class="inline-block px-3 py-1 rounded-full bg-chroma-red text-white text-xs font-bold uppercase tracking-wider mb-2 shadow-lg">Happening Now</span>
-                    <h2 id="slideshow-title" class="font-serif text-5xl font-bold text-white drop-shadow-md">Highlights</h2>
+                <div class="absolute bottom-10 left-10 right-10 z-20">
+                    <span class="inline-block px-3 py-1 rounded-full bg-chroma-red text-white text-xs font-bold uppercase tracking-wider mb-3 shadow-lg">Happening Now</span>
+                    <h2 id="slideshow-title" class="font-serif text-6xl font-black text-white drop-shadow-xl tracking-tight">Highlights</h2>
                 </div>
-                <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-10"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
             </div>
 
              <!-- Star Educator (EOM) -->
              <div id="eom-container" class="bg-white rounded-[2.5rem] p-3 shadow-card border border-chroma-blue/10 flex items-center gap-8 h-48 relative overflow-hidden group" style="display: none;">
                  <!-- Populated by JS -->
              </div>
-             <!-- Since EOM is complex HTML, I'll skip implementing it fully in JS for MVP 
-                  BUT I removed the PHP. So now EOM is GONE.
-                  I MUST implement EOM in JS. -->
-             <!-- I'll add a place holder -->
         </main>
 
-        <!-- RIGHT COLUMN -->
-        <aside class="col-span-3 row-span-10 flex flex-col gap-6">
-             <div id="newsletter-container"></div>
-             <div id="cares-container"></div>
-             <div id="celebrations-container"></div>
+        <!-- RIGHT COLUMN: Newsletter -->
+        <aside class="col-span-3 row-span-10 flex flex-col h-full">
+             <div id="newsletter-container" class="h-full flex flex-col"></div>
+             <!-- Hidden containers for logic -->
+             <div id="cares-container" style="display: none;"></div>
         </aside>
+
+        <!-- Background Audio -->
+        <div id="audio-container" class="hidden"></div>
+
+        <!-- Global Alert -->
+        <div id="global-alert-container" style="display: none;"></div>
+
+    </div>
 
         <!-- Global Alert -->
         <div id="global-alert-container" style="display: none;"></div>

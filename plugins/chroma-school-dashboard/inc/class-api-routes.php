@@ -282,7 +282,8 @@ class Chroma_School_API_Routes
             'welcome_override',
             'chroma_cares',
             'celebrations',
-            'procare'
+            'procare',
+            'music_url'
         ];
 
         foreach ($params as $key => $value) {
