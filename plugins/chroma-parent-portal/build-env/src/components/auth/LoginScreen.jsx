@@ -82,7 +82,7 @@ const LoginScreen = () => {
                 >
                     {isSubmitting ? 'Verifying...' : 'Access Portal'}
                 </button>
-            </motion.div>
+            </div>
         </div>
     );
 };
