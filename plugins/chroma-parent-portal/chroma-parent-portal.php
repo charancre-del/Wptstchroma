@@ -100,9 +100,9 @@ add_filter( 'body_class', function( $classes ) {
 add_shortcode( 'chroma_parent_portal', function() {
     wp_enqueue_script( 'chroma-portal-app' );
     wp_enqueue_style( 'chroma-portal-styles' );
-    
+
     // Fallback/Loading state that React will replace
-    return '<div id="chroma-parent-portal-root" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 99999; background: #FFEB3B; color: black; text-align: center;">
+    return '<div id="chroma-parent-portal-root" style="display: flex !important; flex-direction: column; justify-content: center; align-items: center; height: 100vh !important; width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 99999 !important; background: #FFEB3B; color: black; text-align: center; overflow: visible !important;">
         <h1 style="font-size: 40px; margin: 0;">PHP LOADED</h1>
         <p style="font-size: 20px;">Waiting for React app to mount...</p>
         <p style="font-size: 14px; margin-top: 20px;">If this screen stays visible for more than 5 seconds, the App is broken.</p>
