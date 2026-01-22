@@ -20,16 +20,56 @@ const Dashboard = () => {
         setLoading(true);
         const settings = window.chromaPortalSettings;
         try {
+            console.log('[Dashboard] Fetching with token:', user.token?.substring(0, 16) + '...');
             const res = await fetch(`${settings.root}chroma-portal/v1/content/dashboard?year=${year}`, {
                 headers: {
                     'X-Portal-Token': user.token,
                     'X-WP-Nonce': settings.nonce
                 }
             });
+
+            console.log('[Dashboard] Response status:', res.status);
+
+            // If 403, token is invalid - force re-login
+            if (res.status === 403) {
+                console.error('[Dashboard] 403 Forbidden - Token invalid or expired');
+                localStorage.removeItem('chroma_portal_token');
+                localStorage.removeItem('chroma_portal_family');
+                window.location.reload();
+                return;
+            }
+
+            if (!res.ok) {
+                throw new Error(`API returned ${res.status}`);
+            }
+
             const json = await res.json();
-            setData(json);
+
+            // Ensure all arrays exist to prevent .map() errors
+            const safeData = {
+                is_admin: json.is_admin || false,
+                announcements: json.announcements || [],
+                lesson_plans: json.lesson_plans || [],
+                meal_plans: json.meal_plans || [],
+                resources: json.resources || [],
+                forms: json.forms || [],
+                events: json.events || []
+            };
+
+            console.log('[Dashboard] Data loaded successfully:', Object.keys(safeData).map(k => `${k}:${safeData[k]?.length || safeData[k]}`).join(', '));
+            setData(safeData);
         } catch (e) {
-            console.error("Failed to fetch dashboard", e);
+            console.error("[Dashboard] Failed to fetch dashboard:", e);
+            // Set empty data structure to prevent .map() errors
+            setData({
+                is_admin: false,
+                announcements: [],
+                lesson_plans: [],
+                meal_plans: [],
+                resources: [],
+                forms: [],
+                events: []
+            });
         } finally {
             setLoading(false);
         }
