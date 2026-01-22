@@ -114,7 +114,8 @@ class Chroma_Portal_API_Routes
                     'id' => $p->ID,
                     'title' => $p->post_title,
                     'status' => $p->post_status,
-                    'terms' => wp_get_post_terms($p->ID, 'portal_year', ['fields' => 'names'])
+                    'terms' => wp_get_post_terms($p->ID, 'portal_year', ['fields' => 'names']),
+                    'months' => wp_get_post_terms($p->ID, 'portal_month', ['fields' => 'names'])
                 ];
             }
         }
@@ -344,22 +345,51 @@ class Chroma_Portal_API_Routes
             return [];
         }
 
+        // Base args for post query
         $args = [
             'post_type' => $type,
             'posts_per_page' => -1,
-            'tax_query' => [
+        ];
+
+        // Result Store
+        $posts = [];
+
+        // Attempt 1: Standard Tax Query
+        if (!empty($term_ids)) {
+            $args['tax_query'] = [
                 [
                     'taxonomy' => 'portal_year',
                     'field' => 'term_id',
                     'terms' => $term_ids,
                     'operator' => 'IN'
                 ]
-            ]
-        ];
+            ];
+            $posts = get_posts($args);
+        }
+
+        // Attempt 2: Fallback (Logic: If DB query fails but we have IDs, fetch raw and filter in PHP)
+        // This solves "Admin shows data, Frontend shows nothing" if tax_query quirks exist.
+        if (empty($posts) && !empty($term_ids)) {
+            $fallback_args = [
+                'post_type' => $type,
+                'posts_per_page' => 50, // Check last 50 items
+                'post_status' => 'any'
+            ];
+            $candidates = get_posts($fallback_args);
+
+            foreach ($candidates as $cand) {
+                // Get terms for this candidate
+                $cand_terms = wp_get_post_terms($cand->ID, 'portal_year', ['fields' => 'ids']);
+                if (!is_wp_error($cand_terms) && !empty($cand_terms)) {
+                    // Check intersection
+                    if (count(array_intersect($cand_terms, $term_ids)) > 0) {
+                        $posts[] = $cand;
+                    }
+                }
+            }
+        }
 
         // Debug logging removed to prevent JSON corruption
-
-        $posts = get_posts($args);
 
         $results = [];
 
