@@ -1,4 +1,13 @@
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from '../../context/AuthContext';
+import Announcements from './Announcements';
+import LessonPlanSection from './LessonPlanSection';
+import MealPlansSection from './MealPlansSection';
+import DownloadCenter from './DownloadCenter';
+import PDFCard from '../common/PDFCard';
+import UploadModal from '../common/UploadModal';
+import PDFViewerModal from '../common/PDFViewerModal';
 
 const DashboardGrid = ({ data, refreshData }) => {
     const { user } = useAuth();
