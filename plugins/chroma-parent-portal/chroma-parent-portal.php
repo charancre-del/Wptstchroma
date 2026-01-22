@@ -94,7 +94,9 @@ add_shortcode( 'chroma_parent_portal', function() {
     wp_enqueue_style( 'chroma-portal-styles' );
     
     // Fallback/Loading state that React will replace
-    return '<div id="chroma-parent-portal-root" style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 99999; background: #fff;">
-        <div style="font-family: sans-serif; color: #263238; font-size: 18px;">Loading Parent Portal...</div>
+    return '<div id="chroma-parent-portal-root" style="display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 99999; background: #FFEB3B; color: black; text-align: center;">
+        <h1 style="font-size: 40px; margin: 0;">PHP LOADED</h1>
+        <p style="font-size: 20px;">Waiting for React app to mount...</p>
+        <p style="font-size: 14px; margin-top: 20px;">If this screen stays visible for more than 5 seconds, the App is broken.</p>
     </div>';
 } );
