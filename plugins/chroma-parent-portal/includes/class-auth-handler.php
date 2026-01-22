@@ -45,10 +45,20 @@ class Chroma_Portal_Auth {
         
         // Generate Session Token
         $token = bin2hex( random_bytes( 32 ) );
-        
+
         // Store Token in Transient (Expires in 24 hours)
-        set_transient( 'chroma_portal_session_' . $token, $family_id, 24 * HOUR_IN_SECONDS );
-        
+        $transient_key = 'chroma_portal_session_' . $token;
+        $transient_set = set_transient( $transient_key, $family_id, 24 * HOUR_IN_SECONDS );
+
+        error_log( 'Chroma Portal Auth: Login successful for family ID: ' . $family_id );
+        error_log( 'Chroma Portal Auth: Generated token: ' . substr( $token, 0, 16 ) . '...' );
+        error_log( 'Chroma Portal Auth: Transient key: ' . $transient_key );
+        error_log( 'Chroma Portal Auth: Transient set result: ' . ( $transient_set ? 'SUCCESS' : 'FAILED' ) );
+
+        // Immediately verify the transient was saved
+        $verify = get_transient( $transient_key );
+        error_log( 'Chroma Portal Auth: Immediate verification: ' . ( $verify == $family_id ? 'SUCCESS' : 'FAILED' ) );
+
         return [
             'token' => $token,
             'family_name' => $family_name,
@@ -57,10 +67,25 @@ class Chroma_Portal_Auth {
     }
     
     public static function validate_token( $token ) {
-        $family_id = get_transient( 'chroma_portal_session_' . $token );
-        if ( ! $family_id ) {
+        if ( empty( $token ) ) {
+            error_log( 'Chroma Portal Auth: Empty token received' );
             return false;
         }
+
+        error_log( 'Chroma Portal Auth: Validating token: ' . substr( $token, 0, 16 ) . '...' );
+
+        $transient_key = 'chroma_portal_session_' . $token;
+        $family_id = get_transient( $transient_key );
+
+        error_log( 'Chroma Portal Auth: Transient key: ' . $transient_key );
+        error_log( 'Chroma Portal Auth: Family ID from transient: ' . ( $family_id ? $family_id : 'NULL/FALSE' ) );
+
+        if ( ! $family_id ) {
+            error_log( 'Chroma Portal Auth: Token validation FAILED - no family_id found' );
+            return false;
+        }
+
+        error_log( 'Chroma Portal Auth: Token validation SUCCESS for family ID: ' . $family_id );
         return $family_id;
     }
 }

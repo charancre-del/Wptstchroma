@@ -174,6 +174,16 @@ class Chroma_Portal_API_Routes {
     // --- Helpers ---
     
     private function fetch_posts( $type, $year ) {
+        // Try multiple year formats: "2026", "2026-2027", "2026-27"
+        $year_int = intval($year);
+        $next_year = $year_int + 1;
+
+        $year_variations = [
+            strval($year_int),                              // "2026"
+            $year_int . '-' . $next_year,                   // "2026-2027"
+            $year_int . '-' . substr(strval($next_year), -2)  // "2026-27"
+        ];
+
         $args = [
             'post_type' => $type,
             'posts_per_page' => -1,
@@ -181,15 +191,18 @@ class Chroma_Portal_API_Routes {
                 [
                     'taxonomy' => 'portal_year',
                     'field' => 'name',
-                    'terms' => $year
+                    'terms' => $year_variations,
+                    'operator' => 'IN'
                 ]
             ]
         ];
-        
-        // Announcements might not have Year? If not, ignore tax query?
-        // Actually, user wants "Year" for "both admin and parent" selection. So everything has a year.
-        
+
+        // Debug logging
+        error_log("Chroma Portal: Fetching $type for year variations: " . implode(', ', $year_variations));
+
         $posts = get_posts( $args );
+        error_log("Chroma Portal: Found " . count($posts) . " posts for $type");
+
         $results = [];
         
         foreach ( $posts as $p ) {
