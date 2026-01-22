@@ -46,18 +46,25 @@ class Chroma_Portal_Auth {
         // Generate Session Token
         $token = bin2hex( random_bytes( 32 ) );
 
-        // Store Token in Transient (Expires in 24 hours)
-        $transient_key = 'chroma_portal_session_' . $token;
-        $transient_set = set_transient( $transient_key, $family_id, 24 * HOUR_IN_SECONDS );
+        // Store Token - Use wp_options directly instead of transients to bypass caching issues
+        $option_key = 'chroma_portal_session_' . $token;
+        $expiry = time() + ( 24 * HOUR_IN_SECONDS );
+
+        $session_data = [
+            'family_id' => $family_id,
+            'expires' => $expiry
+        ];
+
+        $option_set = update_option( $option_key, $session_data, false ); // false = don't autoload
 
         error_log( 'Chroma Portal Auth: Login successful for family ID: ' . $family_id );
         error_log( 'Chroma Portal Auth: Generated token: ' . substr( $token, 0, 16 ) . '...' );
-        error_log( 'Chroma Portal Auth: Transient key: ' . $transient_key );
-        error_log( 'Chroma Portal Auth: Transient set result: ' . ( $transient_set ? 'SUCCESS' : 'FAILED' ) );
+        error_log( 'Chroma Portal Auth: Option key: ' . $option_key );
+        error_log( 'Chroma Portal Auth: Option set result: ' . ( $option_set ? 'SUCCESS' : 'FAILED' ) );
 
-        // Immediately verify the transient was saved
-        $verify = get_transient( $transient_key );
-        error_log( 'Chroma Portal Auth: Immediate verification: ' . ( $verify == $family_id ? 'SUCCESS' : 'FAILED' ) );
+        // Immediately verify the option was saved
+        $verify = get_option( $option_key );
+        error_log( 'Chroma Portal Auth: Immediate verification: ' . ( $verify && $verify['family_id'] == $family_id ? 'SUCCESS' : 'FAILED' ) );
 
         return [
             'token' => $token,
@@ -74,17 +81,25 @@ class Chroma_Portal_Auth {
 
         error_log( 'Chroma Portal Auth: Validating token: ' . substr( $token, 0, 16 ) . '...' );
 
-        $transient_key = 'chroma_portal_session_' . $token;
-        $family_id = get_transient( $transient_key );
+        $option_key = 'chroma_portal_session_' . $token;
+        $session_data = get_option( $option_key );
 
-        error_log( 'Chroma Portal Auth: Transient key: ' . $transient_key );
-        error_log( 'Chroma Portal Auth: Family ID from transient: ' . ( $family_id ? $family_id : 'NULL/FALSE' ) );
+        error_log( 'Chroma Portal Auth: Option key: ' . $option_key );
+        error_log( 'Chroma Portal Auth: Session data retrieved: ' . ( $session_data ? 'YES' : 'NO' ) );
 
-        if ( ! $family_id ) {
-            error_log( 'Chroma Portal Auth: Token validation FAILED - no family_id found' );
+        if ( ! $session_data || ! isset( $session_data['family_id'] ) || ! isset( $session_data['expires'] ) ) {
+            error_log( 'Chroma Portal Auth: Token validation FAILED - no session data found' );
             return false;
         }
 
+        // Check if expired
+        if ( $session_data['expires'] < time() ) {
+            error_log( 'Chroma Portal Auth: Token validation FAILED - session expired' );
+            delete_option( $option_key ); // Clean up
+            return false;
+        }
+
+        $family_id = $session_data['family_id'];
         error_log( 'Chroma Portal Auth: Token validation SUCCESS for family ID: ' . $family_id );
         return $family_id;
     }
