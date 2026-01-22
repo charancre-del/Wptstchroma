@@ -15,21 +15,62 @@ const Dashboard = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
+    const [availableYears, setAvailableYears] = useState([]);
 
     const fetchData = async () => {
         setLoading(true);
         const settings = window.chromaPortalSettings;
         try {
+            console.log('[Dashboard] Fetching with token:', user.token?.substring(0, 16) + '...');
             const res = await fetch(`${settings.root}chroma-portal/v1/content/dashboard?year=${year}`, {
                 headers: {
                     'X-Portal-Token': user.token,
                     'X-WP-Nonce': settings.nonce
                 }
             });
+
+            console.log('[Dashboard] Response status:', res.status);
+
+            // If 403, token is invalid - force re-login
+            if (res.status === 403) {
+                console.error('[Dashboard] 403 Forbidden - Token invalid or expired');
+                localStorage.removeItem('chroma_portal_token');
+                localStorage.removeItem('chroma_portal_family');
+                window.location.reload();
+                return;
+            }
+
+            if (!res.ok) {
+                throw new Error(`API returned ${res.status}`);
+            }
+
             const json = await res.json();
-            setData(json);
+
+            // Ensure all arrays exist to prevent .map() errors
+            const safeData = {
+                is_admin: json.is_admin || false,
+                announcements: json.announcements || [],
+                lesson_plans: json.lesson_plans || [],
+                meal_plans: json.meal_plans || [],
+                resources: json.resources || [],
+                forms: json.forms || [],
+                events: json.events || []
+            };
+
+            console.log('[Dashboard] Data loaded successfully:', Object.keys(safeData).map(k => `${k}:${safeData[k]?.length || safeData[k]}`).join(', '));
+            setData(safeData);
         } catch (e) {
-            console.error("Failed to fetch dashboard", e);
+            console.error("[Dashboard] Failed to fetch dashboard:", e);
+            // Set empty data structure to prevent .map() errors
+            setData({
+                is_admin: false,
+                announcements: [],
+                lesson_plans: [],
+                meal_plans: [],
+                resources: [],
+                forms: [],
+                events: []
+            });
         } finally {
             setLoading(false);
         }
@@ -38,6 +79,36 @@ const Dashboard = () => {
     useEffect(() => {
         fetchData();
     }, [year, user.token]);
+
+    useEffect(() => {
+        // Fetch available years from WordPress taxonomy
+        const fetchYears = async () => {
+            const settings = window.chromaPortalSettings;
+            try {
+                const res = await fetch(`${settings.root}chroma-portal/v1/years`, {
+                    headers: {
+                        'X-Portal-Token': user.token,
+                        'X-WP-Nonce': settings.nonce
+                    }
+                });
+
+                if (res.ok) {
+                    const years = await res.json();
+                    console.log('[Dashboard] Available years from WP:', years);
+                    setAvailableYears(years);
+
+                    // Set default year to the first available year if it exists
+                    if (years.length > 0 && !year) {
+                        setYear(years[0].value);
+                    }
+                }
+            } catch (e) {
+                console.error('[Dashboard] Failed to fetch years:', e);
+            }
+        };
+
+        fetchYears();
+    }, [user.token]);
 
     if (!data && !loading) return (
         <div style={{ padding: 50, textAlign: 'center' }}>
@@ -120,7 +191,7 @@ const Dashboard = () => {
 
             <main className="portal-main">
                 <div className="main-viewport">
-                    <Header user={user} year={year} setYear={setYear} />
+                    <Header user={user} year={year} setYear={setYear} availableYears={availableYears} />
 
                     <AnimatePresence mode="wait">
                         <motion.div

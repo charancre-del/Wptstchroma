@@ -1,10 +1,16 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
 
-const Header = ({ user, year, setYear }) => {
+const Header = ({ user, year, setYear, availableYears = [] }) => {
     const { logout } = useAuth();
+
+    // Fallback to current year if no years available from WordPress
     const currentYear = new Date().getFullYear();
-    const years = [currentYear + 1, currentYear, currentYear - 1]; // e.g. 2027, 2026, 2025
+    const fallbackYears = [
+        { value: currentYear.toString(), label: `${currentYear}-${currentYear + 1}` }
+    ];
+
+    const yearsToDisplay = availableYears.length > 0 ? availableYears : fallbackYears;
 
     return (
         <div className="header-top">
@@ -20,7 +26,7 @@ const Header = ({ user, year, setYear }) => {
                     className="glass-select"
                     style={{ padding: '10px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: 'white', fontWeight: '600' }}
                 >
-                    {years.map(y => <option key={y} value={y}>{y}-{y + 1} School Year</option>)}
+                    {yearsToDisplay.map(y => <option key={y.value} value={y.value}>{y.label} School Year</option>)}
                 </select>
 
                 <div className="user-profile">

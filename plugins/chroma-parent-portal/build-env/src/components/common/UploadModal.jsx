@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 
 const UploadModal = ({ isOpen, onClose, type, onSuccess }) => {
@@ -6,15 +6,79 @@ const UploadModal = ({ isOpen, onClose, type, onSuccess }) => {
     const [file, setFile] = useState(null);
     const [title, setTitle] = useState('');
     const [group, setGroup] = useState('');
-    const [year, setYear] = useState(new Date().getFullYear());
+    const [year, setYear] = useState(new Date().getFullYear().toString());
     const [eventDate, setEventDate] = useState('');
     const [isUploading, setIsUploading] = useState(false);
 
-    if (!isOpen) return null;
+    // Dynamic taxonomy values from WordPress
+    const [availableYears, setAvailableYears] = useState([]);
+    const [months, setMonths] = useState([]);
+    const [quarters, setQuarters] = useState([]);
+    const [categories, setCategories] = useState([]);
 
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    const quarters = ['Q1', 'Q2', 'Q3', 'Q4'];
-    const categories = ['Policy', 'Handbook', 'Financial', 'Medical', 'Registration'];
+    // Fetch taxonomy data when modal opens
+    useEffect(() => {
+        if (!isOpen) return;
+
+        const settings = window.chromaPortalSettings;
+        const fetchTaxonomies = async () => {
+            try {
+                // Fetch years
+                const yearsRes = await fetch(`${settings.root}chroma-portal/v1/years`, {
+                    headers: {
+                        'X-Portal-Token': user.token,
+                        'X-WP-Nonce': settings.nonce
+                    }
+                });
+                if (yearsRes.ok) {
+                    const years = await yearsRes.json();
+                    setAvailableYears(years);
+                    if (years.length > 0) {
+                        setYear(years[0].value); // Default to first available year
+                    }
+                }
+
+                // Fetch months
+                const monthsRes = await fetch(`${settings.root}chroma-portal/v1/taxonomy/portal_month`, {
+                    headers: {
+                        'X-Portal-Token': user.token,
+                        'X-WP-Nonce': settings.nonce
+                    }
+                });
+                if (monthsRes.ok) {
+                    setMonths(await monthsRes.json());
+                }
+
+                // Fetch quarters
+                const quartersRes = await fetch(`${settings.root}chroma-portal/v1/taxonomy/portal_quarter`, {
+                    headers: {
+                        'X-Portal-Token': user.token,
+                        'X-WP-Nonce': settings.nonce
+                    }
+                });
+                if (quartersRes.ok) {
+                    setQuarters(await quartersRes.json());
+                }
+
+                // Fetch categories
+                const categoriesRes = await fetch(`${settings.root}chroma-portal/v1/taxonomy/portal_category`, {
+                    headers: {
+                        'X-Portal-Token': user.token,
+                        'X-WP-Nonce': settings.nonce
+                    }
+                });
+                if (categoriesRes.ok) {
+                    setCategories(await categoriesRes.json());
+                }
+            } catch (e) {
+                console.error('[UploadModal] Failed to fetch taxonomies:', e);
+            }
+        };
+
+        fetchTaxonomies();
+    }, [isOpen, user.token]);
+
+    if (!isOpen) return null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -102,9 +166,11 @@ const UploadModal = ({ isOpen, onClose, type, onSuccess }) => {
                         <div style={{ flex: 1 }}>
                             <label style={{ fontSize: '14px', fontWeight: '600', display: 'block', marginBottom: '5px' }}>Year</label>
                             <select value={year} onChange={e => setYear(e.target.value)} style={{ padding: '12px', width: '100%', borderRadius: '8px', border: '1px solid #ddd' }}>
-                                <option value="2025">2025</option>
-                                <option value="2026">2026</option>
-                                <option value="2027">2027</option>
+                                {availableYears.length > 0 ? (
+                                    availableYears.map(y => <option key={y.value} value={y.value}>{y.label}</option>)
+                                ) : (
+                                    <option value={new Date().getFullYear()}>{new Date().getFullYear()}</option>
+                                )}
                             </select>
                         </div>
                         <div style={{ flex: 1 }}>
