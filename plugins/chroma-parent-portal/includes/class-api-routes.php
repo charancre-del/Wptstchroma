@@ -64,48 +64,69 @@ class Chroma_Portal_API_Routes
             'permission_callback' => [$this, 'is_admin_check'],
         ]);
 
-        // DEBUG ROUTE (Temp)
-        register_rest_route('chroma-portal/v1', '/debug-lessons', [
+        // SYSTEM CHECK (Debug)
+        register_rest_route('chroma-portal/v1', '/system-check', [
             'methods' => 'GET',
-            'callback' => [$this, 'debug_lessons_query'],
+            'callback' => [$this, 'debug_system_check'],
             'permission_callback' => '__return_true'
         ]);
     }
 
-    public function debug_lessons_query($request)
+    public function debug_system_check($request)
     {
         $year = $request->get_param('year') ?: '2026';
+        $year_int = intval($year);
+        $year_str = strval($year_int);
 
-        // 1. Dump all Terms
+        // 1. Get All Terms
         $all_terms = get_terms(['taxonomy' => 'portal_year', 'hide_empty' => false]);
 
-        // 2. Do the search logic
-        $year_int = intval($year);
-        $terms_search = get_terms([
-            'taxonomy' => 'portal_year',
-            'name__like' => strval($year_int),
-            'fields' => 'ids',
-            'hide_empty' => false
-        ]);
+        // 2. Filter Terms (PHP)
+        $matched_terms = [];
+        $matched_ids = [];
+        if (!is_wp_error($all_terms)) {
+            foreach ($all_terms as $t) {
+                if (strpos($t->name, $year_str) !== false) {
+                    $matched_terms[] = $t->name;
+                    $matched_ids[] = $t->term_id;
+                }
+            }
+        }
 
-        // 3. Raw Query without tax
-        $raw_posts = get_posts(['post_type' => 'cp_lesson_plan', 'numberposts' => 5]);
-        $raw_data = [];
-        foreach ($raw_posts as $p) {
-            $raw_data[] = [
-                'ID' => $p->ID,
-                'title' => $p->post_title,
-                'status' => $p->post_status,
-                'terms' => wp_get_post_terms($p->ID, 'portal_year', ['fields' => 'names'])
-            ];
+        // 3. Query Posts (Lesson Plans)
+        $posts_found = [];
+        if (!empty($matched_ids)) {
+            $posts = get_posts([
+                'post_type' => 'cp_lesson_plan',
+                'posts_per_page' => 5, // Limit 5
+                'post_status' => 'any', // Check all statuses
+                'tax_query' => [
+                    [
+                        'taxonomy' => 'portal_year',
+                        'field' => 'term_id',
+                        'terms' => $matched_ids,
+                        'operator' => 'IN'
+                    ]
+                ]
+            ]);
+            foreach ($posts as $p) {
+                $posts_found[] = [
+                    'id' => $p->ID,
+                    'title' => $p->post_title,
+                    'status' => $p->post_status,
+                    'terms' => wp_get_post_terms($p->ID, 'portal_year', ['fields' => 'names'])
+                ];
+            }
         }
 
         return [
-            'requested_year' => $year,
-            'all_year_terms' => $all_terms,
-            'search_found_term_ids' => $terms_search,
-            'raw_posts_check' => $raw_data,
-            'fetch_function_result' => $this->fetch_posts('cp_lesson_plan', $year)
+            'status' => 'ok',
+            'input_year' => $year,
+            'all_terms_count' => count($all_terms),
+            'matched_terms' => $matched_terms,
+            'matched_ids' => $matched_ids,
+            'posts_found_count' => count($posts_found),
+            'sample_posts' => $posts_found
         ];
     }
 
@@ -298,20 +319,28 @@ class Chroma_Portal_API_Routes
 
     private function fetch_posts($type, $year)
     {
-        // 1. Find the relevant Terms for this year (Flexible Search)
+        // 1. Find the relevant Terms for this year (PHP Filtering for Robustness)
         $year_int = intval($year);
         $year_str = strval($year_int);
 
-        // This finds terms like "2026", "2026 School Year", "2026-2027"
-        $terms = get_terms([
+        // Fetch ALL years (small dataset) to avoid DB 'like' idiosyncrasies
+        $all_terms = get_terms([
             'taxonomy' => 'portal_year',
-            'name__like' => $year_str,
-            'fields' => 'ids',
             'hide_empty' => false
         ]);
 
+        $term_ids = [];
+        if (!is_wp_error($all_terms) && !empty($all_terms)) {
+            foreach ($all_terms as $t) {
+                // If term name contains "2026" (e.g. "2026 School Year", "SY 2026")
+                if (strpos($t->name, $year_str) !== false) {
+                    $term_ids[] = $t->term_id;
+                }
+            }
+        }
+
         // If no terms found, return empty early
-        if (is_wp_error($terms) || empty($terms)) {
+        if (empty($term_ids)) {
             return [];
         }
 
@@ -322,17 +351,15 @@ class Chroma_Portal_API_Routes
                 [
                     'taxonomy' => 'portal_year',
                     'field' => 'term_id',
-                    'terms' => $terms,
+                    'terms' => $term_ids,
                     'operator' => 'IN'
                 ]
             ]
         ];
 
-        // Debug logging
-        error_log("Chroma Portal: Fetching $type for year: " . $year_str);
+        // Debug logging removed to prevent JSON corruption
 
         $posts = get_posts($args);
-        error_log("Chroma Portal: Found " . count($posts) . " posts for $type");
 
         $results = [];
 
