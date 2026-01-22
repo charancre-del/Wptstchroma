@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-define( 'CHROMA_PORTAL_VERSION', '1.0.0' );
+define( 'CHROMA_PORTAL_VERSION', '1.0.1' ); // Bumped to force cache clear
 define( 'CHROMA_PORTAL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHROMA_PORTAL_URL', plugin_dir_url( __FILE__ ) );
 
@@ -70,7 +70,7 @@ add_action( 'wp_enqueue_scripts', function() {
         'chroma-portal-app',
         CHROMA_PORTAL_URL . 'build/index.js',
         $asset_file['dependencies'],
-        $asset_file['version'],
+        $asset_file['version'] . '-' . time(), // Add timestamp to force cache clear
         true
     );
 
@@ -78,7 +78,7 @@ add_action( 'wp_enqueue_scripts', function() {
         'chroma-portal-styles',
         CHROMA_PORTAL_URL . 'build/index.css',
         ['chroma-portal-google-fonts'], // Add dependency on Google Fonts
-        $asset_file['version']
+        $asset_file['version'] . '-' . time() // Add timestamp to force cache clear
     );
 
     wp_localize_script( 'chroma-portal-app', 'chromaPortalSettings', [
