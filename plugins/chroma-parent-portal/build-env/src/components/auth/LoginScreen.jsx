@@ -52,7 +52,9 @@ const LoginScreen = () => {
             top: 0,
             left: 0,
             zIndex: 999999,
-            opacity: 1
+            opacity: 1,
+            visibility: 'visible',
+            pointerEvents: 'auto'
         }}>
             <div
                 className="glass-card login-card"
