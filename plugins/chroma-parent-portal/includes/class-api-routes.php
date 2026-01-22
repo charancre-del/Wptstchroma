@@ -33,6 +33,13 @@ class Chroma_Portal_API_Routes {
             'permission_callback' => [ $this, 'check_permission' ],
 		] );
 
+        // Get Taxonomy Terms (months, quarters, categories)
+        register_rest_route( 'chroma-portal/v1', '/taxonomy/(?P<taxonomy>[a-z_]+)', [
+			'methods'  => 'GET',
+			'callback' => [ $this, 'get_taxonomy_terms' ],
+            'permission_callback' => [ $this, 'check_permission' ],
+		] );
+
         // Create Content (Admin Only)
         register_rest_route( 'chroma-portal/v1', '/content/create', [
 			'methods'  => 'POST',
@@ -119,6 +126,33 @@ class Chroma_Portal_API_Routes {
         }
 
         return rest_ensure_response( $years );
+    }
+
+    public function get_taxonomy_terms( $request ) {
+        $taxonomy = $request->get_param( 'taxonomy' );
+
+        // Validate taxonomy
+        $allowed_taxonomies = [ 'portal_month', 'portal_quarter', 'portal_category' ];
+        if ( ! in_array( $taxonomy, $allowed_taxonomies ) ) {
+            return new WP_Error( 'invalid_taxonomy', 'Invalid taxonomy', [ 'status' => 400 ] );
+        }
+
+        // Get terms
+        $terms = get_terms([
+            'taxonomy' => $taxonomy,
+            'hide_empty' => false,
+            'orderby' => 'name',
+            'order' => 'ASC'
+        ]);
+
+        $result = [];
+        if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+            foreach ( $terms as $term ) {
+                $result[] = $term->name;
+            }
+        }
+
+        return rest_ensure_response( $result );
     }
     
     public function create_content( $request ) {
