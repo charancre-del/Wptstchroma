@@ -69,7 +69,7 @@ add_action( 'wp_enqueue_scripts', function() {
         'chroma-portal-styles',
         CHROMA_PORTAL_URL . 'build/index.css',
         [],
-        CHROMA_PORTAL_VERSION
+        $asset_file['version']
     );
 
     wp_localize_script( 'chroma-portal-app', 'chromaPortalSettings', [
