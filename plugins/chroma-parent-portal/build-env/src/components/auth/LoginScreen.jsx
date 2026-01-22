@@ -38,13 +38,13 @@ const LoginScreen = () => {
         }
     };
 
+    console.log("Rendering LoginScreen...");
+
     return (
         <div className="login-screen">
-            <motion.div
+            <div
                 className="glass-card login-card"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
+                style={{ opacity: 1, transform: 'scale(1)' }}
             >
                 <div className="brand" style={{ marginBottom: '30px' }}>
                     <h2 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Parent Portal</h2>

@@ -11,10 +11,11 @@ const MainLayout = () => {
         // AND to wake up the dashboard
         const checkAdmin = async () => {
             const settings = window.chromaPortalSettings;
+            // Only check if we have a token OR if we suspect WP Admin session
+            // For now, suppress the noise to avoid confusing the user with 403s
+            if (!settings || !localStorage.getItem('chroma_portal_token')) return;
+
             try {
-                // We try to fetch dashboard content. If it returns content even without a token, we must be admin.
-                // Or we can just check a special endpoint. 
-                // Let's TRY to fetch content with no token.
                 const res = await fetch(`${settings.root}chroma-portal/v1/content/dashboard?year=${new Date().getFullYear()}`, {
                     headers: { 'X-WP-Nonce': settings.nonce }
                 });
