@@ -14,6 +14,13 @@ define( 'CHROMA_PORTAL_VERSION', '1.0.0' );
 define( 'CHROMA_PORTAL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHROMA_PORTAL_URL', plugin_dir_url( __FILE__ ) );
 
+// Force Viewport for Full App feel
+add_action('wp_head', function() {
+    if ( is_page('parent-portal') ) {
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">';
+    }
+});
+
 // Load Backend Components
 require_once CHROMA_PORTAL_PATH . 'includes/class-cpt-registrar.php';
 require_once CHROMA_PORTAL_PATH . 'includes/class-meta-boxes.php';
