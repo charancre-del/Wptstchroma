@@ -7,25 +7,25 @@ const Header = ({ user, year, setYear }) => {
     const years = [currentYear + 1, currentYear, currentYear - 1]; // e.g. 2027, 2026, 2025
 
     return (
-        <div className="portal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', paddingBottom: '20px', borderBottom: '1px solid rgba(255,255,255,0.3)' }}>
-            <div className="left">
-                <h1 style={{ margin: 0, color: '#333' }}>Parent Portal</h1>
-                <span className="subtitle" style={{ color: '#666' }}>Chroma ELA</span>
+        <div className="header-top">
+            <div className="brand">
+                <h1>Parent Portal</h1>
+                <p>Chroma ELA</p>
             </div>
 
             <div className="right" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
                 <select
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
-                    style={{ padding: '8px', borderRadius: '10px', border: '1px solid #ddd' }}
+                    className="glass-select"
+                    style={{ padding: '10px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', background: 'white', fontWeight: '600' }}
                 >
                     {years.map(y => <option key={y} value={y}>{y}-{y + 1} School Year</option>)}
-                    {/* Assuming School Year logic? Or just Calendar Year? Task said "Year". Let's assume Calendar Year for simplicity as requested, but labelling implies school year is often expected. I'll stick to simple value. */}
                 </select>
 
-                <div className="user-profile" style={{ textAlign: 'right' }}>
-                    <div style={{ fontWeight: 'bold' }}>{user.name}</div>
-                    <button onClick={logout} style={{ background: 'none', border: 'none', color: '#6a11cb', cursor: 'pointer', fontSize: '12px' }}>Logout</button>
+                <div className="user-profile">
+                    <div className="name" style={{ fontWeight: '700', fontSize: '1.1rem' }}>{user.name}</div>
+                    <button onClick={logout} className="logout-btn" style={{ background: 'none', border: 'none', color: '#6366f1', cursor: 'pointer', fontSize: '0.9rem', fontWeight: '600', padding: 0 }}>Logout</button>
                 </div>
             </div>
         </div>

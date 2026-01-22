@@ -39,36 +39,48 @@ const LoginScreen = () => {
     };
 
     return (
-        <div className="login-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <div className="login-screen">
             <motion.div
-                className="glass-panel"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                style={{ padding: '40px', width: '350px', textAlign: 'center' }}
+                className="glass-card login-card"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
             >
-                <img src={window.chromaPortalSettings.assetsUrl + 'logo.png'} alt="Chroma ELA" style={{ width: '120px', marginBottom: '20px' }} onError={(e) => e.target.style.display = 'none'} />
-                <h2>Welcome Family</h2>
-                <p style={{ marginBottom: '30px', color: '#666' }}>Please enter your access PIN</p>
-
-                <div className="pin-display" style={{ background: 'rgba(255,255,255,0.5)', padding: '15px', borderRadius: '10px', fontSize: '24px', letterSpacing: '5px', marginBottom: '20px', minHeight: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {pin.replace(/./g, '•')}
+                <div className="brand" style={{ marginBottom: '30px' }}>
+                    <h2 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Parent Portal</h2>
+                    <p style={{ color: '#64748b', fontWeight: '500' }}>Enter your security PIN to access resources</p>
                 </div>
 
-                {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
-
-                <div className="num-pad" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px' }}>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                        <button key={num} onClick={() => handleNumClick(num)} className="portal-btn" style={{ background: 'white', color: '#333', fontSize: '18px', padding: '15px' }}>
-                            {num}
-                        </button>
+                <div className="pin-display">
+                    {[...Array(4)].map((_, i) => (
+                        <div key={i} className={`digit ${pin.length > i ? 'active' : ''}`}></div>
                     ))}
-                    <button onClick={handleClear} className="portal-btn" style={{ background: 'rgba(255,0,0,0.1)', color: 'red' }}>C</button>
-                    <button onClick={() => handleNumClick(0)} className="portal-btn" style={{ background: 'white', color: '#333', fontSize: '18px' }}>0</button>
-                    <button onClick={handleBackspace} className="portal-btn" style={{ background: 'rgba(0,0,0,0.1)', color: '#333' }}>←</button>
                 </div>
 
-                <button onClick={handleSubmit} className="portal-btn" style={{ marginTop: '30px', width: '100%', fontSize: '18px' }} disabled={isSubmitting}>
-                    {isSubmitting ? 'Verifying...' : 'Enter Portal'}
+                {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: '#ef4444', marginBottom: '20px', fontWeight: '600' }}>{error}</motion.div>}
+
+                <div className="pin-grid">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+                        <button key={num} onClick={() => handleNumClick(num)}>{num}</button>
+                    ))}
+                    <button onClick={handleClear} className="clear">C</button>
+                    <button onClick={() => handleNumClick(0)}>0</button>
+                    <button onClick={handleBackspace}>←</button>
+                </div>
+
+                <button
+                    onClick={handleSubmit}
+                    className="portal-btn"
+                    style={{
+                        marginTop: '40px',
+                        width: '100%',
+                        padding: '16px',
+                        fontSize: '1.1rem',
+                        background: 'linear-gradient(135deg, #6366f1, #0ea5e9)'
+                    }}
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? 'Verifying...' : 'Access Portal'}
                 </button>
             </motion.div>
         </div>

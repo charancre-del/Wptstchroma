@@ -35,7 +35,7 @@ const MainLayout = () => {
     }
 
     return (
-        <div className="glass-panel main-layout">
+        <div className="portal-app-wrapper">
             <Dashboard />
         </div>
     );
