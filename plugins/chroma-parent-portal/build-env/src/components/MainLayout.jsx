@@ -29,7 +29,22 @@ const MainLayout = () => {
         checkAdmin();
     }, []);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) return (
+        <div style={{
+            height: '100vh',
+            width: '100vw',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'magenta',
+            color: 'white',
+            fontSize: '2rem',
+            zIndex: 999999,
+            position: 'fixed'
+        }}>
+            Initializing Portal...
+        </div>
+    );
 
     if (!user) {
         return <LoginScreen />;

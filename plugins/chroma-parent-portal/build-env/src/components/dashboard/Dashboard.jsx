@@ -39,7 +39,30 @@ const Dashboard = () => {
         fetchData();
     }, [year, user.token]);
 
-    if (!data && !loading) return null;
+    if (!data && !loading) return (
+        <div style={{ padding: 50, textAlign: 'center' }}>
+            <h1>Dashboard Error</h1>
+            <p>Could not load portal data. Please try logging in again.</p>
+            <button
+                onClick={() => {
+                    localStorage.removeItem('chroma_portal_token');
+                    localStorage.removeItem('chroma_portal_family');
+                    window.location.reload();
+                }}
+                style={{
+                    marginTop: 20,
+                    padding: '10px 20px',
+                    background: '#263238',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 8,
+                    cursor: 'pointer'
+                }}
+            >
+                Return to Login
+            </button>
+        </div>
+    );
 
     const renderView = () => {
         if (loading) return <div style={{ textAlign: 'center', padding: '100px' }}>Loading Portal Data...</div>;

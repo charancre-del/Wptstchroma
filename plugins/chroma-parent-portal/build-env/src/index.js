@@ -4,11 +4,19 @@ import './styles/main.scss';
 
 const rootElement = document.getElementById('chroma-parent-portal-root');
 
+import ErrorBoundary from './components/common/ErrorBoundary';
+
+const PortalRoot = () => (
+    <ErrorBoundary>
+        <App />
+    </ErrorBoundary>
+);
+
 if (rootElement) {
     try {
         console.log("Mounting Chroma Parent Portal...");
         const root = createRoot(rootElement);
-        root.render(<App />);
+        root.render(<PortalRoot />);
         console.log("Portal Mounted Successfully.");
     } catch (e) {
         console.error("Portal Mount Failed:", e);
