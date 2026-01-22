@@ -34,9 +34,12 @@ register_activation_hook( __FILE__, function() {
 
 // Register Assets
 add_action( 'wp_enqueue_scripts', function() {
-    // Only load on the specific page or if shortcode is present
     $post = get_post();
-    if ( ! $post || ( ! is_page( 'parent-portal' ) && ! has_shortcode( $post->post_content, 'chroma_parent_portal' ) ) ) {
+    // Broaden check: If it's the specific page OR has shortcode
+    $is_portal_page = is_page( 'parent-portal' );
+    $has_shortcode = $post && has_shortcode( $post->post_content, 'chroma_parent_portal' );
+
+    if ( ! $is_portal_page && ! $has_shortcode ) {
         return;
     }
 
@@ -47,7 +50,7 @@ add_action( 'wp_enqueue_scripts', function() {
     
     $asset_file = include $asset_file_path;
 
-    wp_register_script(
+    wp_enqueue_script(
         'chroma-portal-app',
         CHROMA_PORTAL_URL . 'build/index.js',
         $asset_file['dependencies'],
@@ -55,7 +58,7 @@ add_action( 'wp_enqueue_scripts', function() {
         true
     );
 
-    wp_register_style(
+    wp_enqueue_style(
         'chroma-portal-styles',
         CHROMA_PORTAL_URL . 'build/index.css',
         [],
@@ -67,6 +70,14 @@ add_action( 'wp_enqueue_scripts', function() {
         'nonce' => wp_create_nonce( 'wp_rest' ),
         'assetsUrl' => CHROMA_PORTAL_URL . 'build/'
     ] );
+} );
+
+// Add Body Class for Full App Mode
+add_filter( 'body_class', function( $classes ) {
+    if ( is_page( 'parent-portal' ) ) {
+        $classes[] = 'portal-is-active';
+    }
+    return $classes;
 } );
 
 // Shortcode

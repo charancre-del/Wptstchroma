@@ -1,147 +1,95 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
 
-// Variables
-$primary: #6366f1;
-$secondary: #0ea5e9;
-$accent: #ec4899;
-$glass-white: rgba(255, 255, 255, 0.4);
-$glass-border: rgba(255, 255, 255, 0.3);
-$text-dark: #1e293b;
-$text-light: #64748b;
+// Corporate Luxury Palette
+$bg-color: #FDFBF7; // Warm off-white (Cream)
+$card-bg: #FFFFFF;
+$text-primary: #1F2937;
+$text-secondary: #6B7280;
+$gold-accent: #9D8253; // The bronze/gold from screenshot
+$navy-brand: #263238;
+$sidebar-bg: #FFFFFF;
 
 :root {
     --sidebar-width: 280px;
-    --glass-blur: blur(25px);
-    --glass-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --card-radius: 24px;
 }
 
-// Global Reset for Portal
+// Global Portal Breakout Mode
+body.portal-is-active {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    background: $bg-color !important;
+
+    // HIde Theme Elements
+    #page,
+    header[data-header],
+    footer,
+    .site-header,
+    .site-footer,
+    #main-content>*:not(#chroma-parent-portal-root) {
+        display: none !important;
+    }
+
+    // Portal Root Takeover
+    #chroma-parent-portal-root {
+        display: flex !important;
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 100vw !important;
+        height: 100vh !important;
+        z-index: 99999;
+        margin: 0 !important;
+    }
+}
+
+// Portal Internal Root
 #chroma-parent-portal-root {
     font-family: 'Inter', sans-serif;
-    color: $text-dark;
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
-    background: #f8fafc;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    // Reset WP Page constraints if possible (hacky but effective for "Full Portal" feel)
-    width: 100vw;
-    margin-left: calc(-50vw + 50%);
-}
-
-// Mesh Background
-.mesh-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
+    color: $text-primary;
     width: 100%;
     height: 100%;
-    z-index: -1;
-    background: #f8fafc;
-    overflow: hidden;
-
-    .circle {
-        position: absolute;
-        border-radius: 50%;
-        filter: blur(80px);
-        opacity: 0.5;
-        animation: float 20s infinite alternate;
-
-        &.c1 {
-            width: 600px;
-            height: 600px;
-            background: $primary;
-            top: -200px;
-            right: -100px;
-            animation-delay: 0s;
-        }
-
-        &.c2 {
-            width: 500px;
-            height: 500px;
-            background: $secondary;
-            bottom: -100px;
-            left: -100px;
-            animation-delay: -5s;
-        }
-
-        &.c3 {
-            width: 400px;
-            height: 400px;
-            background: $accent;
-            top: 40%;
-            left: 50%;
-            animation-delay: -10s;
-        }
-    }
-}
-
-@keyframes float {
-    0% {
-        transform: translate(0, 0) scale(1);
-    }
-
-    100% {
-        transform: translate(50px, 100px) scale(1.1);
-    }
-}
-
-// Main App Layout
-.glass-app-shell {
-    width: 95vw;
-    height: 90vh;
-    max-width: 1600px;
-    background: $glass-white;
-    backdrop-filter: var(--glass-blur);
-    -webkit-backdrop-filter: var(--glass-blur);
-    border: 1px solid $glass-border;
-    border-radius: 32px;
-    box-shadow: var(--glass-shadow);
+    background: $bg-color;
     display: flex;
-    overflow: hidden;
-    animation: fadeIn 0.8s ease-out;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
+// Main Layout - App Shell
+.glass-app-shell {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    background: $bg-color;
+    // No glass border/shadow needed for full screen clean look
 }
 
-// Sidebar
+// Sidebar - Clean White
 .portal-sidebar {
     width: var(--sidebar-width);
-    background: rgba(255, 255, 255, 0.2);
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    background: $sidebar-bg;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    padding: 30px 20px;
+    padding: 40px 30px;
+    z-index: 10;
 
     .sidebar-logo {
         display: flex;
-        align-items: center;
+        alignItems: center;
         gap: 12px;
-        margin-bottom: 50px;
-        font-family: 'Outfit', sans-serif;
-        font-weight: 800;
+        margin-bottom: 60px;
+        font-family: 'Playfair Display', serif;
+        font-weight: 700;
         font-size: 1.5rem;
-        color: $primary;
+        color: $navy-brand;
 
         .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, $primary, $secondary);
+            width: 32px;
+            height: 32px;
+            background: $gold-accent; // Gold Icon
             color: white;
-            border-radius: 12px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -152,46 +100,36 @@ $text-light: #64748b;
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
 
         .nav-item {
-            position: relative;
             display: flex;
             align-items: center;
             gap: 15px;
-            padding: 12px 15px;
+            padding: 12px 16px;
             border: none;
             background: transparent;
-            color: $text-light;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 14px;
+            color: $text-secondary;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
             text-align: left;
 
-            .icon {
-                font-size: 1.25rem;
+            &:hover {
+                background: rgba($gold-accent, 0.05);
+                color: $navy-brand;
             }
 
             &.active {
-                background: white;
-                color: $primary;
-                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
-            }
+                background: $navy-brand;
+                color: white;
+                box-shadow: 0 4px 12px rgba($navy-brand, 0.2);
 
-            &:hover:not(.active) {
-                background: rgba(255, 255, 255, 0.4);
-                color: $text-dark;
-            }
-
-            .active-indicator {
-                position: absolute;
-                left: -20px;
-                width: 4px;
-                height: 20px;
-                background: $primary;
-                border-radius: 0 4px 4px 0;
+                .icon {
+                    color: $gold-accent;
+                }
             }
         }
     }
@@ -203,114 +141,126 @@ $text-light: #64748b;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.1);
+    background: $bg-color;
 
     .main-viewport {
         flex: 1;
         overflow-y: auto;
-        padding: 40px;
-        mask-image: linear-gradient(to bottom, transparent, black 20px, black calc(100% - 20px), transparent);
+        padding: 40px 60px;
 
-        // Custom Scrollbar
-        &::-webkit-scrollbar {
-            width: 6px;
+        // Typography
+        h1,
+        h2,
+        h3 {
+            font-family: 'Playfair Display', serif;
+            color: $navy-brand;
         }
 
-        &::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
+        p {
+            color: $text-secondary;
+            line-height: 1.6;
         }
     }
 }
 
-// Header refinements
+// Header
 .header-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 30px;
+    margin-bottom: 50px;
 
     .brand h1 {
-        font-size: 2rem;
-        margin: 0;
-        background: linear-gradient(to right, $primary, $secondary);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-family: 'Outfit';
+        font-size: 2.5rem;
+        margin-bottom: 5px;
     }
 
     .brand p {
-        margin: 0;
-        color: $text-light;
-        font-weight: 500;
         font-size: 0.9rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: $gold-accent;
+        font-weight: 600;
     }
 }
 
-// Glass Card Style (Repeated usage for sub-items)
-.glass-card {
-    background: rgba(255, 255, 255, 0.5);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 24px;
-}
-
-// Utility
-.add-btn {
+// Corporate Cards (Matches screenshot)
+.glass-card,
+.view-container .section-header {
+    // We reuse glass-card class but style it as solid white
     background: white;
-    color: $primary;
-    border: 1px solid rgba($primary, 0.2);
-    padding: 8px 16px;
-    border-radius: 12px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
+    border-radius: var(--card-radius);
+    padding: 35px;
+    box-shadow: var(--card-shadow);
+    border: none;
+    margin-bottom: 30px;
+    position: relative;
+    overflow: hidden;
 
-    &:hover {
-        background: $primary;
-        color: white;
-        transform: translateY(-2px);
+    // The "Gold Bar" accent on the left
+    &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 6px;
+        background: $gold-accent;
+        border-radius: 4px 0 0 4px;
+    }
+
+    // Typography inside cards
+    h2 {
+        font-size: 1.8rem;
+        margin-bottom: 25px;
     }
 }
 
-// Auth Screen Immersive
+// Auth Screen
 .login-screen {
     width: 100%;
     height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    background: $bg-color;
 
     .login-card {
-        width: 100%;
-        max-width: 450px;
-        padding: 50px;
+        background: white;
+        padding: 60px;
+        border-radius: 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
         text-align: center;
+        width: 100%;
+        max-width: 480px;
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            color: $navy-brand;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: $text-secondary;
+            margin-bottom: 40px;
+        }
 
         .pin-display {
             display: flex;
             justify-content: center;
-            gap: 20px;
-            margin: 40px 0;
+            gap: 15px;
+            margin-bottom: 40px;
 
             .digit {
                 width: 16px;
                 height: 16px;
                 border-radius: 50%;
-                background: rgba(0, 0, 0, 0.1);
-                transition: all 0.2s;
+                background: #E5E7EB;
 
                 &.active {
-                    background: $primary;
-                    transform: scale(1.3);
-                    box-shadow: 0 0 10px rgba($primary, 0.5);
+                    background: $gold-accent;
+                    transform: scale(1.2);
                 }
             }
         }
@@ -318,22 +268,23 @@ $text-light: #64748b;
         .pin-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
+            gap: 15px;
 
             button {
-                height: 70px;
-                font-size: 1.5rem;
-                font-weight: 700;
-                background: rgba(255, 255, 255, 0.4);
-                border: 1px solid rgba(255, 255, 255, 0.2);
-                border-radius: 18px;
+                height: 65px;
+                border-radius: 16px;
+                border: 1px solid #F3F4F6;
+                background: white;
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: $navy-brand;
                 cursor: pointer;
                 transition: all 0.2s;
 
                 &:hover {
-                    background: white;
-                    color: $primary;
-                    transform: scale(1.05);
+                    background: $navy-brand;
+                    color: white;
+                    border-color: $navy-brand;
                 }
             }
         }
