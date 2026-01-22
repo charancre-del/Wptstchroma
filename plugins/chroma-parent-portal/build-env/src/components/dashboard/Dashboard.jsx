@@ -15,6 +15,7 @@ const Dashboard = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
+    const [availableYears, setAvailableYears] = useState([]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -78,6 +79,36 @@ const Dashboard = () => {
     useEffect(() => {
         fetchData();
     }, [year, user.token]);
+
+    useEffect(() => {
+        // Fetch available years from WordPress taxonomy
+        const fetchYears = async () => {
+            const settings = window.chromaPortalSettings;
+            try {
+                const res = await fetch(`${settings.root}chroma-portal/v1/years`, {
+                    headers: {
+                        'X-Portal-Token': user.token,
+                        'X-WP-Nonce': settings.nonce
+                    }
+                });
+
+                if (res.ok) {
+                    const years = await res.json();
+                    console.log('[Dashboard] Available years from WP:', years);
+                    setAvailableYears(years);
+
+                    // Set default year to the first available year if it exists
+                    if (years.length > 0 && !year) {
+                        setYear(years[0].value);
+                    }
+                }
+            } catch (e) {
+                console.error('[Dashboard] Failed to fetch years:', e);
+            }
+        };
+
+        fetchYears();
+    }, [user.token]);
 
     if (!data && !loading) return (
         <div style={{ padding: 50, textAlign: 'center' }}>
@@ -160,7 +191,7 @@ const Dashboard = () => {
 
             <main className="portal-main">
                 <div className="main-viewport">
-                    <Header user={user} year={year} setYear={setYear} />
+                    <Header user={user} year={year} setYear={setYear} availableYears={availableYears} />
 
                     <AnimatePresence mode="wait">
                         <motion.div

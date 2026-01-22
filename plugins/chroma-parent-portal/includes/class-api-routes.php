@@ -25,7 +25,14 @@ class Chroma_Portal_API_Routes {
 			'callback' => [ $this, 'get_dashboard_content' ],
             'permission_callback' => [ $this, 'check_permission' ],
 		] );
-        
+
+        // Get Available Years
+        register_rest_route( 'chroma-portal/v1', '/years', [
+			'methods'  => 'GET',
+			'callback' => [ $this, 'get_available_years' ],
+            'permission_callback' => [ $this, 'check_permission' ],
+		] );
+
         // Create Content (Admin Only)
         register_rest_route( 'chroma-portal/v1', '/content/create', [
 			'methods'  => 'POST',
@@ -72,9 +79,9 @@ class Chroma_Portal_API_Routes {
     
     public function get_dashboard_content( $request ) {
         $year = $request->get_param( 'year' ) ?: date('Y');
-        
+
         $is_admin = current_user_can( 'edit_posts' );
-        
+
         // Fetch all categories
         $data = [
             'is_admin' => $is_admin,
@@ -85,8 +92,33 @@ class Chroma_Portal_API_Routes {
             'forms' => $this->fetch_posts('cp_form', $year),
             'events' => $this->fetch_posts('cp_event', $year),
         ];
-        
+
         return rest_ensure_response( $data );
+    }
+
+    public function get_available_years( $request ) {
+        // Get all terms from portal_year taxonomy
+        $terms = get_terms([
+            'taxonomy' => 'portal_year',
+            'hide_empty' => false,
+            'orderby' => 'name',
+            'order' => 'DESC'
+        ]);
+
+        $years = [];
+        if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
+            foreach ( $terms as $term ) {
+                // Extract the starting year from formats like "2026-2027" or "2026"
+                if ( preg_match('/^(\d{4})/', $term->name, $matches) ) {
+                    $years[] = [
+                        'value' => $matches[1],  // e.g. "2026"
+                        'label' => $term->name   // e.g. "2026-2027"
+                    ];
+                }
+            }
+        }
+
+        return rest_ensure_response( $years );
     }
     
     public function create_content( $request ) {
