@@ -175,10 +175,13 @@ class Chroma_Portal_API_Routes {
     
     private function fetch_posts( $type, $year ) {
         // Try multiple year formats: "2026", "2026-2027", "2026-27"
+        $year_int = intval($year);
+        $next_year = $year_int + 1;
+
         $year_variations = [
-            $year,                          // "2026"
-            $year . '-' . ($year + 1),      // "2026-2027"
-            $year . '-' . substr($year + 1, -2)  // "2026-27"
+            strval($year_int),                              // "2026"
+            $year_int . '-' . $next_year,                   // "2026-2027"
+            $year_int . '-' . substr(strval($next_year), -2)  // "2026-27"
         ];
 
         $args = [
