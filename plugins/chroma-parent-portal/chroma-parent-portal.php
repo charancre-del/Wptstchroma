@@ -94,7 +94,11 @@ add_filter( 'body_class', function( $classes ) {
 
 // Shortcode
 add_shortcode( 'chroma_parent_portal', function() {
-    wp_enqueue_script( 'chroma-portal-app' ); // DISABLED FOR DEBUGGING
+    wp_enqueue_script( 'chroma-portal-app' );
     wp_enqueue_style( 'chroma-portal-styles' );
-    return '<div id="chroma-parent-portal-root" style="color: red; font-size: 20px; font-weight: bold; text-align: center; padding: 50px;">Portal Loading... (PHP Output)</div>';
+    
+    // Fallback/Loading state that React will replace
+    return '<div id="chroma-parent-portal-root" style="display: flex; justify-content: center; align-items: center; height: 100vh; width: 100vw; position: fixed; top: 0; left: 0; z-index: 99999; background: #fff;">
+        <div style="font-family: sans-serif; color: #263238; font-size: 18px;">Loading Parent Portal...</div>
+    </div>';
 } );
