@@ -10,10 +10,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// DEBUG DEPLOYMENT CHECK
-if ( isset($_GET['debug_deploy']) ) {
-    die('<div style="background:white;color:red;padding:50px;text-align:center;font-size:24px;z-index:9999999;position:fixed;top:0;left:0;width:100%;height:100%;">DEPLOYMENT WORKING: v100</div>');
-}
 
 define( 'CHROMA_PORTAL_VERSION', '1.0.0' );
 define( 'CHROMA_PORTAL_PATH', plugin_dir_path( __FILE__ ) );

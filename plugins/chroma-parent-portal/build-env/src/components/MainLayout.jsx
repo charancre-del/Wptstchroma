@@ -36,13 +36,26 @@ const MainLayout = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'magenta',
-            color: 'white',
-            fontSize: '2rem',
+            background: '#ffffff',
+            color: '#263238',
+            fontSize: '1.2rem',
             zIndex: 999999,
-            position: 'fixed'
+            position: 'fixed',
+            flexDirection: 'column',
+            gap: '20px'
         }}>
-            Initializing Portal...
+            <div className="spinner" style={{
+                width: '40px',
+                height: '40px',
+                border: '4px solid #f3f3f3',
+                borderTop: '4px solid #263238',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite'
+            }}></div>
+            <style>{`
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+            `}</style>
+            <span>Initializing Portal...</span>
         </div>
     );
 
