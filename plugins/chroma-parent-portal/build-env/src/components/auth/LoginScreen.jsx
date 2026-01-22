@@ -41,13 +41,34 @@ const LoginScreen = () => {
     console.log("Rendering LoginScreen...");
 
     return (
-        <div className="login-screen">
+        <div className="login-screen" style={{
+            width: '100vw',
+            height: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            background: 'linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%)',
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            zIndex: 999999
+        }}>
             <div
                 className="glass-card login-card"
-                style={{ opacity: 1, transform: 'scale(1)' }}
+                style={{
+                    opacity: 1,
+                    transform: 'scale(1)',
+                    background: 'white',
+                    padding: '60px',
+                    borderRadius: '30px',
+                    boxShadow: '0 25px 50px rgba(0,0,0,0.25)',
+                    textAlign: 'center',
+                    maxWidth: '480px',
+                    width: '90%'
+                }}
             >
                 <div className="brand" style={{ marginBottom: '30px' }}>
-                    <h2 style={{ fontSize: '2.5rem', marginBottom: '10px' }}>Parent Portal</h2>
+                    <h2 style={{ fontSize: '2.5rem', marginBottom: '10px', color: '#1e3a5f' }}>Parent Portal</h2>
                     <p style={{ color: '#64748b', fontWeight: '500' }}>Enter your security PIN to access resources</p>
                 </div>
 
