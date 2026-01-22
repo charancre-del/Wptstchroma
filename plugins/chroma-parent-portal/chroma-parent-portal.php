@@ -10,6 +10,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// DEBUG DEPLOYMENT CHECK
+if ( isset($_GET['debug_deploy']) ) {
+    die('<div style="background:white;color:red;padding:50px;text-align:center;font-size:24px;z-index:9999999;position:fixed;top:0;left:0;width:100%;height:100%;">DEPLOYMENT WORKING: v100</div>');
+}
+
 define( 'CHROMA_PORTAL_VERSION', '1.0.0' );
 define( 'CHROMA_PORTAL_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHROMA_PORTAL_URL', plugin_dir_url( __FILE__ ) );
@@ -89,7 +94,7 @@ add_filter( 'body_class', function( $classes ) {
 
 // Shortcode
 add_shortcode( 'chroma_parent_portal', function() {
-    // wp_enqueue_script( 'chroma-portal-app' ); // DISABLED FOR DEBUGGING
+    wp_enqueue_script( 'chroma-portal-app' ); // DISABLED FOR DEBUGGING
     wp_enqueue_style( 'chroma-portal-styles' );
     return '<div id="chroma-parent-portal-root" style="color: red; font-size: 20px; font-weight: bold; text-align: center; padding: 50px;">Portal Loading... (PHP Output)</div>';
 } );
