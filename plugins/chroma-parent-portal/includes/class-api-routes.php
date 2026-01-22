@@ -239,16 +239,22 @@ class Chroma_Portal_API_Routes {
     
     // --- Helpers ---
     
-    private function fetch_posts( $type, $year ) {
-        // Try multiple year formats: "2026", "2026-2027", "2026-27"
+        // 1. Find the relevant Terms for this year (Flexible Search)
         $year_int = intval($year);
-        $next_year = $year_int + 1;
+        $year_str = strval($year_int);
 
-        $year_variations = [
-            strval($year_int),                              // "2026"
-            $year_int . '-' . $next_year,                   // "2026-2027"
-            $year_int . '-' . substr(strval($next_year), -2)  // "2026-27"
-        ];
+        // This finds terms like "2026", "2026 School Year", "2026-2027"
+        $terms = get_terms([
+            'taxonomy' => 'portal_year',
+            'name__like' => $year_str,
+            'fields' => 'ids',
+            'hide_empty' => false 
+        ]);
+
+        // If no terms found, return empty early
+        if ( is_wp_error( $terms ) || empty( $terms ) ) {
+            return [];
+        }
 
         $args = [
             'post_type' => $type,
@@ -256,8 +262,8 @@ class Chroma_Portal_API_Routes {
             'tax_query' => [
                 [
                     'taxonomy' => 'portal_year',
-                    'field' => 'name',
-                    'terms' => $year_variations,
+                    'field' => 'term_id',
+                    'terms' => $terms,
                     'operator' => 'IN'
                 ]
             ]
