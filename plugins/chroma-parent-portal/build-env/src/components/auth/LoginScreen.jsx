@@ -41,7 +41,7 @@ const LoginScreen = () => {
     console.log("Rendering LoginScreen...");
 
     return (
-        <div className="login-screen" style={{
+        <div className="chroma-login-screen" style={{
             width: '100vw',
             height: '100vh',
             display: 'flex',
@@ -51,7 +51,8 @@ const LoginScreen = () => {
             position: 'fixed',
             top: 0,
             left: 0,
-            zIndex: 999999
+            zIndex: 999999,
+            opacity: 1
         }}>
             <div
                 className="glass-card login-card"

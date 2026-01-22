@@ -91,5 +91,5 @@ add_filter( 'body_class', function( $classes ) {
 add_shortcode( 'chroma_parent_portal', function() {
     wp_enqueue_script( 'chroma-portal-app' );
     wp_enqueue_style( 'chroma-portal-styles' );
-    return '<div id="chroma-parent-portal-root"></div>';
+    return '<div id="chroma-parent-portal-root" style="color: red; font-size: 20px; font-weight: bold; text-align: center; padding: 50px;">Portal Loading... (PHP Output)</div>';
 } );
