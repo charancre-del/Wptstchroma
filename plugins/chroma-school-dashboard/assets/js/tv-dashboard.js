@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
         weatherContainer: document.getElementById('weather-widget'),
         notices: document.getElementById('notices-container'),
         today: document.getElementById('today-container'),
-        slideshowImg: document.getElementById('slideshow-img'),
+        slide1: document.getElementById('slide-layer-1'),
+        slide2: document.getElementById('slide-layer-2'),
         slideshowTitle: document.getElementById('slideshow-title'),
         newsletter: document.getElementById('newsletter-container'),
         eom: document.getElementById('eom-container'),
@@ -167,8 +168,8 @@ document.addEventListener('DOMContentLoaded', function () {
         // Background Music
         initBackgroundMusic();
 
-        // Initial Fetch (defer slightly to not block render)
-        setTimeout(fetchDashboardData, 3000);
+        // Initial Fetch (IMMEDIATE)
+        fetchDashboardData();
 
         // Poll
         setInterval(fetchDashboardData, UPDATE_INTERVAL);
@@ -241,21 +242,34 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Modern browsers require user interaction to play audio. 
-    // We listen for the first click/touch and re-init if needed.
-    window.addEventListener('click', () => {
-        if (!isAudioInitialized) {
-            console.log('[Audio] First interaction detected. Starting audio...');
-            initBackgroundMusic();
-        } else {
-            // If already initialized, we might need to "kick" the iframe
-            const iframe = els.audio.querySelector('iframe');
-            if (iframe && iframe.src.includes('autoplay=1')) {
-                console.log('[Audio] Refreshing player to trigger autoplay...');
-                const currentSrc = iframe.src;
-                iframe.src = '';
-                setTimeout(() => iframe.src = currentSrc, 100);
+    // Interaction listener for Play Audio & Start Dash
+    const overlay = document.getElementById('audio-trigger-overlay');
+    if (overlay) {
+        overlay.addEventListener('click', () => {
+            console.log('[Dashboard] Interaction detected. Starting systems...');
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 500);
+
+            // 1. Kick Audio
+            if (!isAudioInitialized) {
+                initBackgroundMusic();
+            } else {
+                const iframe = els.audio.querySelector('iframe');
+                if (iframe && iframe.src.includes('autoplay=1')) {
+                    const currentSrc = iframe.src;
+                    iframe.src = '';
+                    setTimeout(() => iframe.src = currentSrc, 100);
+                }
             }
-        }
+
+            // 2. Fetch Data (if not already started or to force refresh)
+            fetchDashboardData();
+        });
+    }
+
+    // Still keep a window click as fallback for sound
+    window.addEventListener('click', () => {
+        if (!isAudioInitialized) initBackgroundMusic();
     }, { once: true });
 
     /**
@@ -379,8 +393,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     .catch(e => console.error('ProCare Fetch Error:', e));
             }
 
-            // Ensure manual slideshow is VISIBLE (it acts as container)
-            if (els.slideshowImg) els.slideshowImg.style.display = 'block';
+            // If Layer 1 is hidden, show it
+            if (els.slide1) els.slide1.style.display = 'block';
 
             // Remove any leftover iframe
             if (iframe) iframe.remove();
@@ -392,16 +406,23 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (c.slideshow && Array.isArray(c.slideshow)) {
+                const oldLen = slideImages.length;
                 // Check if changed
                 if (JSON.stringify(slideImages) !== JSON.stringify(c.slideshow)) {
                     slideImages = c.slideshow;
                     // Reset if index out of bounds
                     if (currentSlideIndex >= slideImages.length) currentSlideIndex = 0;
+
+                    // IF FIRST LOAD, SET LAYER 1 IMMEDIATELY
+                    if (oldLen === 0 && slideImages.length > 0 && els.slide1) {
+                        els.slide1.style.backgroundImage = `url("${slideImages[0]}")`;
+                        els.slide1.style.opacity = 1;
+                    }
                 }
             }
 
-            // Show manual slideshow image element
-            if (els.slideshowImg) els.slideshowImg.style.display = 'block';
+            if (els.slide1) els.slide1.style.display = 'block';
+            if (els.slide2) els.slide2.style.display = 'block';
         }
 
         // Star Educator (EOM)
@@ -533,25 +554,41 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    let activeLayer = 1;
+
     /**
      * Slideshow Logic
      */
     function startSlideshow() {
-        if (!els.slideshowImg) return;
+        if (!els.slide1 || !els.slide2) return;
 
         setInterval(() => {
-            if (slideImages.length === 0) return;
+            if (slideImages.length <= 1) return; // Need at least 2 for crossfade
 
             // Increment
             currentSlideIndex = (currentSlideIndex + 1) % slideImages.length;
             const nextSrc = slideImages[currentSlideIndex];
 
-            // Transition
-            els.slideshowImg.style.opacity = 0;
+            // Swap Layers
+            const incoming = activeLayer === 1 ? els.slide2 : els.slide1;
+            const outgoing = activeLayer === 1 ? els.slide1 : els.slide2;
+
+            console.log('[Slideshow] Transitioning to:', nextSrc);
+
+            // Prepare incoming
+            incoming.style.backgroundImage = `url("${nextSrc}")`;
+            incoming.style.opacity = 1;
+            incoming.classList.add('ken-burns');
+
+            // Fade out outgoing
+            outgoing.style.opacity = 0;
+
+            // Clean up outgoing class after fade completes to reset zoom for next use
             setTimeout(() => {
-                els.slideshowImg.src = nextSrc;
-                els.slideshowImg.style.opacity = 1;
-            }, 500);
+                outgoing.classList.remove('ken-burns');
+            }, 2000);
+
+            activeLayer = activeLayer === 1 ? 2 : 1;
 
         }, SLIDE_INTERVAL);
     }

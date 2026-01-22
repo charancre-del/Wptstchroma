@@ -97,6 +97,20 @@ $js_config = [
             animation: scroll-info 300s linear infinite;
         }
         #audio-container iframe { width: 100px; height: 100px; opacity: 0.01; pointer-events: none; position: fixed; bottom: -500px; left: 0; z-index: -1; }
+        
+        /* Slideshow Animation */
+        .slide-layer { 
+            transition: opacity 2s ease-in-out; 
+            background-size: cover; 
+            background-position: center;
+        }
+        .ken-burns {
+            animation: kenburns 20s infinite alternate linear;
+        }
+        @keyframes kenburns {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
     </style>
 </head>
 
@@ -189,19 +203,20 @@ $js_config = [
 
         <!-- CENTER COLUMN: Media -->
         <main class="col-span-6 row-span-10 flex flex-col gap-8">
-            <!-- Slideshow -->
-            <div id="slideshow-container" class="bg-black rounded-[2.5rem] overflow-hidden shadow-2xl relative flex-grow-[2] border-[6px] border-white ring-1 ring-black/5">
-                <img id="slideshow-img" src="" class="w-full h-full object-cover" alt="Slideshow">
+             <!-- Slideshow -->
+             <div id="slideshow-container" class="bg-black rounded-[2.5rem] overflow-hidden shadow-2xl relative flex-1 border-[6px] border-white ring-1 ring-black/5">
+                <div id="slide-layer-1" class="slide-layer absolute inset-0 opacity-100 ken-burns"></div>
+                <div id="slide-layer-2" class="slide-layer absolute inset-0 opacity-0"></div>
                 
                 <div class="absolute bottom-10 left-10 right-10 z-20">
                     <span class="inline-block px-3 py-1 rounded-full bg-chroma-red text-white text-xs font-bold uppercase tracking-wider mb-3 shadow-lg">Happening Now</span>
                     <h2 id="slideshow-title" class="font-serif text-6xl font-black text-white drop-shadow-xl tracking-tight">Highlights</h2>
                 </div>
                 <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
-            </div>
+             </div>
 
              <!-- Star Educator (EOM) -->
-             <div id="eom-container" class="bg-white rounded-[2.5rem] p-3 shadow-card border border-chroma-blue/10 flex items-center gap-8 h-48 relative overflow-hidden group" style="display: none;">
+             <div id="eom-container" class="bg-white rounded-[2.5rem] p-3 shadow-card border border-chroma-blue/10 flex items-center gap-8 h-[220px] shrink-0 relative overflow-hidden group" style="display: none;">
                  <!-- Populated by JS -->
              </div>
         </main>
@@ -215,11 +230,17 @@ $js_config = [
 
         <!-- Background Audio -->
         <div id="audio-container"></div>
-
-        <!-- Global Alert -->
-        <div id="global-alert-container" style="display: none;"></div>
-
-    </div>
+        <div id="audio-trigger-overlay" class="fixed inset-0 z-[100] bg-brand-ink/40 backdrop-blur-sm flex flex-col items-center justify-center cursor-pointer transition-opacity duration-500 overflow-hidden">
+             <div class="bg-white p-12 rounded-[3rem] shadow-2xl flex flex-col items-center gap-6 animate-bounce">
+                <div class="w-24 h-24 rounded-full bg-chroma-blue flex items-center justify-center text-white text-5xl">
+                    <i class="fa-solid fa-play ml-2"></i>
+                </div>
+                <div class="text-center">
+                    <p class="font-serif text-3xl font-black text-brand-ink">Tap to Start Dash</p>
+                    <p class="text-brand-ink/40 font-bold uppercase tracking-widest text-xs mt-2">Enables background music & animations</p>
+                </div>
+             </div>
+        </div>
 
         <!-- Global Alert -->
         <div id="global-alert-container" style="display: none;"></div>

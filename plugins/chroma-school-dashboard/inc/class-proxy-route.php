@@ -71,15 +71,19 @@ class Chroma_Proxy_Route
         $response = wp_remote_get($url, $args);
 
         if (is_wp_error($response)) {
-            error_log('ProCare Proxy Error: ' . $response->get_error_message());
-            return new WP_Error('proxy_error', $response->get_error_message(), ['status' => 500]);
+            $msg = $response->get_error_message();
+            error_log('[CHROMA PROXY] wp_remote_get FAILED for ' . $url . ' Error: ' . $msg);
+            return new WP_Error('proxy_error', $msg, ['status' => 500]);
         }
 
         $code = wp_remote_retrieve_response_code($response);
         $body = wp_remote_retrieve_body($response);
         $headers = wp_remote_retrieve_headers($response);
 
-        error_log("ProCare Proxy Request: $url | Response Code: $code");
+        error_log("[CHROMA PROXY] SUCCESS: $url | Code: $code | Body Len: " . strlen($body));
+        if (strlen($body) < 100) {
+            error_log("[CHROMA PROXY] Body Snippet: " . $body);
+        }
 
         // Process Cookies from ProCare
         $res_cookies = wp_remote_retrieve_cookies($response);
