@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import logo from '../../assets/images/chroma_hex_logo.png';
 
 const Sidebar = ({ activeTab, setActiveTab, isAdmin }) => {
@@ -9,6 +10,9 @@ const Sidebar = ({ activeTab, setActiveTab, isAdmin }) => {
         { id: 'lessons', label: 'Lesson Plans', icon: '📚' },
         { id: 'meals', label: 'Meal Plans', icon: '🍱' },
         { id: 'events', label: 'School Events', icon: '🗓️' },
+        { id: 'news', label: 'News & Updates', icon: '📣' },
+        { id: 'resources', label: 'Resources & Handbooks', icon: '📖' },
+        { id: 'policies', label: 'Policies & Procedures', icon: '📋' },
         { id: 'downloads', label: 'Download Center', icon: '📥' }
     ];
 

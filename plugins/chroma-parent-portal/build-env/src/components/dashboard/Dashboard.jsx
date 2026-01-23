@@ -144,7 +144,6 @@ const Dashboard = () => {
                     <div className="view-container">
                         <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                             <h2>Lesson Plans Library</h2>
-                            {/* Add logic if needed */}
                         </div>
                         <LessonPlanSection items={data.lesson_plans} type="lesson" onView={(f) => { }} onDelete={fetchData} />
                     </div>
@@ -168,6 +167,52 @@ const Dashboard = () => {
                             {data.events.map(event => (
                                 <PDFCard key={event.id} item={event} onClick={() => { }} onDelete={fetchData} />
                             ))}
+                            {data.events.length === 0 && <p>No upcoming events scheduled.</p>}
+                        </div>
+                    </div>
+                );
+            case 'news':
+                return (
+                    <div className="view-container">
+                        <div className="section-header" style={{ marginBottom: '20px' }}>
+                            <h2>School News & Announcements</h2>
+                        </div>
+                        <div className="news-list" style={{ display: 'grid', gap: '20px' }}>
+                            {data.announcements.map(item => (
+                                <div key={item.id} className="glass-card" style={{ padding: '25px' }}>
+                                    <h3>{item.title}</h3>
+                                    <div dangerouslySetInnerHTML={{ __html: item.content }} />
+                                </div>
+                            ))}
+                            {data.announcements.length === 0 && <p>No recent news available.</p>}
+                        </div>
+                    </div>
+                );
+            case 'resources':
+                return (
+                    <div className="view-container">
+                        <div className="section-header" style={{ marginBottom: '20px' }}>
+                            <h2>Resources & Handbooks</h2>
+                        </div>
+                        <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                            {data.resources.map(item => (
+                                <PDFCard key={item.id} item={item} showThumb={false} onClick={() => { }} onDelete={fetchData} />
+                            ))}
+                            {data.resources.length === 0 && <p>No resources found.</p>}
+                        </div>
+                    </div>
+                );
+            case 'policies':
+                return (
+                    <div className="view-container">
+                        <div className="section-header" style={{ marginBottom: '20px' }}>
+                            <h2>Policies & Procedures</h2>
+                        </div>
+                        <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                            {data.forms.map(item => (
+                                <PDFCard key={item.id} item={item} showThumb={false} onClick={() => { }} onDelete={fetchData} />
+                            ))}
+                            {data.forms.length === 0 && <p>No policy documents available.</p>}
                         </div>
                     </div>
                 );
@@ -175,7 +220,7 @@ const Dashboard = () => {
                 return (
                     <div className="view-container">
                         <div className="section-header" style={{ marginBottom: '20px' }}>
-                            <h2>Policy & Resource Center</h2>
+                            <h2>Complete Download Center</h2>
                         </div>
                         <DownloadCenter resources={data.resources} forms={data.forms} onView={() => { }} onDelete={fetchData} />
                     </div>
