@@ -414,6 +414,18 @@ class Chroma_Portal_API_Routes
             ];
         }
 
+        // DEBUG CARD: If empty, show diagnostics
+        if (empty($results)) {
+            $results[] = [
+                'id' => 999999,
+                'title' => 'DEBUG (Wiring Check)',
+                'group' => 'Debug',
+                'content' => "Input Year: '$year'. Found Terms: " . implode(',', $term_ids) . ". Posts Found: " . count($posts),
+                'pdf_url' => null,
+                'debug_mode' => true
+            ];
+        }
+
         return $results;
     }
 
