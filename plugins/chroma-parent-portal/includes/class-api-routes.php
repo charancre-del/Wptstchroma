@@ -74,7 +74,7 @@ class Chroma_Portal_API_Routes
 
     public function debug_system_check($request)
     {
-        $year = $request->get_param('year') ?: '2026';
+        $year = $request->get_param('year') ?: date('Y');
         $year_int = intval($year);
         $year_str = strval($year_int);
 
@@ -235,7 +235,7 @@ class Chroma_Portal_API_Routes
         $post_type = $request->get_param('post_type'); // e.g. cp_lesson_plan
         $file_id = $request->get_param('file_id');
         $year = $request->get_param('year');
-        $month = $request->get_param('month'); // ID or name? assuming name implies term lookup or create
+        $month = $request->get_param('month'); // Also used for quarter/category depending on type
 
         // Basic Validation
         if (!in_array($post_type, ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event'])) {
@@ -257,15 +257,51 @@ class Chroma_Portal_API_Routes
             update_post_meta($post_id, '_cp_pdf_file_id', $file_id);
         }
 
-        // Terms (Year)
+        // FIX: Year Term Matching - Extract digits and find matching term
         if ($year) {
-            wp_set_object_terms($post_id, $year, 'portal_year');
+            $year_str = '';
+            if (preg_match('/(\d{4})/', (string) $year, $matches)) {
+                $year_str = $matches[1];
+            }
+
+            if ($year_str) {
+                // Find actual term that contains this year (e.g., "2026-2027")
+                $all_terms = get_terms([
+                    'taxonomy' => 'portal_year',
+                    'hide_empty' => false
+                ]);
+
+                $matched_term = null;
+                if (!is_wp_error($all_terms) && !empty($all_terms)) {
+                    foreach ($all_terms as $t) {
+                        if (strpos($t->name, $year_str) !== false) {
+                            $matched_term = $t->name;
+                            break;
+                        }
+                    }
+                }
+
+                // Use matched term name, or fall back to creating term with input
+                $term_to_set = $matched_term ?: $year;
+                wp_set_object_terms($post_id, $term_to_set, 'portal_year');
+            }
         }
 
-        // Terms (Month / Quarter / Category)
-        // Simplified mapping for now
-        if ($month && $post_type === 'cp_lesson_plan') {
-            wp_set_object_terms($post_id, $month, 'portal_month');
+        // FIX: Taxonomy Assignment for ALL post types
+        if ($month) {
+            switch ($post_type) {
+                case 'cp_lesson_plan':
+                    wp_set_object_terms($post_id, $month, 'portal_month');
+                    break;
+                case 'cp_meal_plan':
+                    wp_set_object_terms($post_id, $month, 'portal_quarter');
+                    break;
+                case 'cp_resource':
+                case 'cp_form':
+                    wp_set_object_terms($post_id, $month, 'portal_category');
+                    break;
+                // Announcements and events don't need secondary taxonomy
+            }
         }
 
         return rest_ensure_response([
@@ -294,8 +330,28 @@ class Chroma_Portal_API_Routes
 
         if ($file_id)
             update_post_meta($post_id, '_cp_pdf_file_id', $file_id);
-        if ($year)
-            wp_set_object_terms($post_id, $year, 'portal_year');
+
+        // FIX: Year Term Matching - Same logic as create_content
+        if ($year) {
+            $year_str = '';
+            if (preg_match('/(\d{4})/', (string) $year, $matches)) {
+                $year_str = $matches[1];
+            }
+
+            if ($year_str) {
+                $all_terms = get_terms(['taxonomy' => 'portal_year', 'hide_empty' => false]);
+                $matched_term = null;
+                if (!is_wp_error($all_terms) && !empty($all_terms)) {
+                    foreach ($all_terms as $t) {
+                        if (strpos($t->name, $year_str) !== false) {
+                            $matched_term = $t->name;
+                            break;
+                        }
+                    }
+                }
+                wp_set_object_terms($post_id, $matched_term ?: $year, 'portal_year');
+            }
+        }
 
         $post_type = get_post_type($post_id);
         if ($month) {
@@ -325,34 +381,34 @@ class Chroma_Portal_API_Routes
         // Robust Year Parsing: Extract 4 digits from input string (e.g. "2026 School Year" -> "2026")
         // This solves "Wiring" issues where frontend sends a label instead of a value.
         $year_str = '';
-        if (preg_match('/(\d{4})/', (string)$year, $matches)) {
+        if (preg_match('/(\d{4})/', (string) $year, $matches)) {
             $year_str = $matches[1];
         } else {
-             $year_str = date('Y'); // Fallback to current year if no digits found
+            $year_str = date('Y'); // Fallback to current year if no digits found
         }
-        
+
         // Fetch ALL years (small dataset) to avoid DB 'like' idiosyncrasies
         $all_terms = get_terms([
             'taxonomy' => 'portal_year',
-            'hide_empty' => false 
+            'hide_empty' => false
         ]);
 
         $term_ids = [];
-        if ( ! is_wp_error( $all_terms ) && ! empty( $all_terms ) ) {
-            foreach ( $all_terms as $t ) {
+        if (!is_wp_error($all_terms) && !empty($all_terms)) {
+            foreach ($all_terms as $t) {
                 // If term name contains the target year "2026"
-                if ( strpos( $t->name, $year_str ) !== false ) {
+                if (strpos($t->name, $year_str) !== false) {
                     $term_ids[] = $t->term_id;
                 }
             }
         }
-        
+
         // Result Store
         $posts = [];
 
         // Attempt 1: Standard Tax Query
         if (!empty($term_ids)) {
-             $args = [
+            $args = [
                 'post_type' => $type,
                 'posts_per_page' => -1,
                 'post_status' => 'publish',
@@ -370,21 +426,21 @@ class Chroma_Portal_API_Routes
         }
 
         // Attempt 2: Fallback (Logic: Manual Filter)
-        if ( empty($posts) && !empty($term_ids) ) {
+        if (empty($posts) && !empty($term_ids)) {
             $fallback_args = [
                 'post_type' => $type,
-                'posts_per_page' => 50, 
+                'posts_per_page' => -1, // No limit for fallback candidate search
                 'post_status' => 'publish', // Matches standard behavior
                 'suppress_filters' => true
             ];
             $candidates = get_posts($fallback_args);
-            
-            foreach($candidates as $cand) {
+
+            foreach ($candidates as $cand) {
                 // Get terms for this candidate
                 $cand_terms = wp_get_post_terms($cand->ID, 'portal_year', ['fields' => 'ids']);
-                if ( !is_wp_error($cand_terms) && !empty($cand_terms) ) {
+                if (!is_wp_error($cand_terms) && !empty($cand_terms)) {
                     // Check intersection
-                    if ( count(array_intersect($cand_terms, $term_ids)) > 0 ) {
+                    if (count(array_intersect($cand_terms, $term_ids)) > 0) {
                         $posts[] = $cand;
                     }
                 }
@@ -427,11 +483,6 @@ class Chroma_Portal_API_Routes
         }
 
         // 2. Has Token?
-        // Note: Temporarily bypassing token check to diagnose 403 error on frontend
-        // TODO: Restore this check after verification
-        return true;
-
-        /*
         $token = $request->get_header('X-Portal-Token');
         if (!$token) {
             return new WP_Error('rest_forbidden', 'Authentication Required', ['status' => 403]);
@@ -441,7 +492,8 @@ class Chroma_Portal_API_Routes
         if (!Chroma_Portal_Auth::validate_token($token)) {
             return new WP_Error('rest_forbidden', 'Invalid Token', ['status' => 403]);
         }
-        */
+
+        return true;
 
         return true;
     }
