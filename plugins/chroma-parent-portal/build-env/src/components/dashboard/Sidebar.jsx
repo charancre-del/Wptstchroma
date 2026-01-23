@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import logo from '../../assets/images/chroma_hex_logo.png';
 
 const Sidebar = ({ activeTab, setActiveTab, isAdmin }) => {
     const menuItems = [
@@ -13,7 +14,7 @@ const Sidebar = ({ activeTab, setActiveTab, isAdmin }) => {
     return (
         <div className="portal-sidebar">
             <div className="sidebar-logo">
-                <div className="logo-icon">C</div>
+                <img src={logo} alt="Chroma Logo" className="logo-img" />
                 <span>Portal</span>
             </div>
 
