@@ -318,17 +318,7 @@ class Chroma_Portal_API_Routes
 
     // --- Helpers ---
 
-    private function fetch_posts($type, $year)
-    {
-        // 1. Find the relevant Terms for this year (PHP Filtering for Robustness)
-        $year_int = intval($year);
-        $year_str = strval($year_int);
 
-        // Fetch ALL years (small dataset) to avoid DB 'like' idiosyncrasies
-        $all_terms = get_terms([
-            'taxonomy' => 'portal_year',
-            'hide_empty' => false
-        ]);
 
     private function fetch_posts($type, $year)
     {
