@@ -8,6 +8,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/$
 
 const PDFViewerModal = ({ file, onClose }) => {
     // Viewer state
+    const [numPages, setNumPages] = useState(null);
+    const [pageNumber, setPageNumber] = useState(1);
     const containerRef = React.useRef(null);
     const [containerWidth, setContainerWidth] = useState(0);
 

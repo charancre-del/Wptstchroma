@@ -6,7 +6,7 @@ import DashboardGrid from './DashboardGrid';
 import LessonPlanSection from './LessonPlanSection';
 import MealPlansSection from './MealPlansSection';
 import DownloadCenter from './DownloadCenter';
-import PDFCard from '../common/PDFCard';
+import PDFViewerModal from '../common/PDFViewerModal';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const Dashboard = () => {
@@ -16,6 +16,7 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     const [availableYears, setAvailableYears] = useState([]);
+    const [selectedFile, setSelectedFile] = useState(null);
 
     const fetchData = async () => {
         setLoading(true);
@@ -135,6 +136,11 @@ const Dashboard = () => {
         </div>
     );
 
+    const handleView = (file) => {
+        console.log('[Dashboard] Opening PDF:', file.title);
+        setSelectedFile(file);
+    };
+
     const renderView = () => {
         if (loading) return <div style={{ textAlign: 'center', padding: '100px' }}>Loading Portal Data...</div>;
 
@@ -145,7 +151,7 @@ const Dashboard = () => {
                         <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                             <h2>Lesson Plans Library</h2>
                         </div>
-                        <LessonPlanSection items={data.lesson_plans} type="lesson" onView={(f) => { }} onDelete={fetchData} />
+                        <LessonPlanSection items={data.lesson_plans} type="lesson" onView={handleView} onDelete={fetchData} />
                     </div>
                 );
             case 'meals':
@@ -154,7 +160,7 @@ const Dashboard = () => {
                         <div className="section-header" style={{ marginBottom: '20px' }}>
                             <h2>Nutritional Meal Plans</h2>
                         </div>
-                        <MealPlansSection items={data.meal_plans} onView={() => { }} onDelete={fetchData} />
+                        <MealPlansSection items={data.meal_plans} onView={handleView} onDelete={fetchData} />
                     </div>
                 );
             case 'events':
@@ -165,7 +171,7 @@ const Dashboard = () => {
                         </div>
                         <div className="event-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
                             {data.events.map(event => (
-                                <PDFCard key={event.id} item={event} onClick={() => { }} onDelete={fetchData} />
+                                <PDFCard key={event.id} item={event} onClick={handleView} onDelete={fetchData} />
                             ))}
                             {data.events.length === 0 && <p>No upcoming events scheduled.</p>}
                         </div>
@@ -182,6 +188,11 @@ const Dashboard = () => {
                                 <div key={item.id} className="glass-card" style={{ padding: '25px' }}>
                                     <h3>{item.title}</h3>
                                     <div dangerouslySetInnerHTML={{ __html: item.content }} />
+                                    {item.pdf_url && (
+                                        <button onClick={() => handleView(item)} className="portal-btn" style={{ marginTop: '15px' }}>
+                                            View Related Document
+                                        </button>
+                                    )}
                                 </div>
                             ))}
                             {data.announcements.length === 0 && <p>No recent news available.</p>}
@@ -196,7 +207,7 @@ const Dashboard = () => {
                         </div>
                         <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
                             {data.resources.map(item => (
-                                <PDFCard key={item.id} item={item} showThumb={false} onClick={() => { }} onDelete={fetchData} />
+                                <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={fetchData} />
                             ))}
                             {data.resources.length === 0 && <p>No resources found.</p>}
                         </div>
@@ -210,7 +221,7 @@ const Dashboard = () => {
                         </div>
                         <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
                             {data.forms.map(item => (
-                                <PDFCard key={item.id} item={item} showThumb={false} onClick={() => { }} onDelete={fetchData} />
+                                <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={fetchData} />
                             ))}
                             {data.forms.length === 0 && <p>No policy documents available.</p>}
                         </div>
@@ -222,11 +233,11 @@ const Dashboard = () => {
                         <div className="section-header" style={{ marginBottom: '20px' }}>
                             <h2>Complete Download Center</h2>
                         </div>
-                        <DownloadCenter resources={data.resources} forms={data.forms} onView={() => { }} onDelete={fetchData} />
+                        <DownloadCenter resources={data.resources} forms={data.forms} onView={handleView} onDelete={fetchData} />
                     </div>
                 );
             default:
-                return <DashboardGrid data={data} refreshData={fetchData} />;
+                return <DashboardGrid data={data} refreshData={fetchData} onDocumentClick={handleView} />;
         }
     };
 
@@ -251,6 +262,15 @@ const Dashboard = () => {
                     </AnimatePresence>
                 </div>
             </main>
+
+            <AnimatePresence>
+                {selectedFile && (
+                    <PDFViewerModal
+                        file={selectedFile}
+                        onClose={() => setSelectedFile(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };
