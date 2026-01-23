@@ -22,15 +22,22 @@ add_action('wp_head', function () {
     }
 });
 
-// Disable Theme Customizer Scripts on Portal Page to avoid interference
+// Disable Theme Customizer Scripts and Booking Modals on Portal Page
 add_action('wp', function () {
-    if (is_page('parent-portal')) {
-        // High priority removal of theme scripts
+    global $post;
+    $is_portal = is_page('parent-portal') || ($post && has_shortcode($post->post_content, 'chroma_parent_portal'));
+
+    if ($is_portal) {
+        // 1. Remove Hooked Actions
         remove_action('wp_head', 'chroma_output_header_scripts', 1);
         remove_action('wp_footer', 'chroma_output_footer_scripts', 99);
-
-        // Also remove another common script hook if it exists
         remove_action('wp_head', 'chroma_custom_scripts', 100);
+        remove_action('wp_footer', 'chroma_render_booking_modal', 10);
+
+        // 2. Filter Theme Mods (for hardcoded echoes in footer.php/header.php)
+        add_filter('theme_mod_chroma_header_scripts', '__return_empty_string', 999);
+        add_filter('theme_mod_chroma_footer_scripts', '__return_empty_string', 999);
+        add_filter('theme_mod_chroma_custom_scripts', '__return_empty_string', 999);
     }
 }, 1);
 

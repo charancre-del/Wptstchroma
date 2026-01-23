@@ -14,6 +14,22 @@ $sidebar-bg: #FFFFFF;
     --card-radius: 24px;
 }
 
+// Theme Isolation - Hide global elements when portal is active
+body.portal-is-active {
+
+    #sticky-cta,
+    .leadconnector-widget,
+    #lc-widget-container,
+    .booking-bubble,
+    .chat-widget,
+    [id*="leadconnector"] {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+}
+
 // Global Portal Breakout Mode
 body.portal-is-active {
     margin: 0 !important;
