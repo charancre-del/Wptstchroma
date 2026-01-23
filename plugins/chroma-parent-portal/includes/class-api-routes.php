@@ -352,6 +352,7 @@ class Chroma_Portal_API_Routes
         ];
 
         // Result Store
+        // Result Store
         $posts = [];
 
         // Attempt 1: Standard Tax Query
@@ -364,16 +365,17 @@ class Chroma_Portal_API_Routes
                     'operator' => 'IN'
                 ]
             ];
+            $args['suppress_filters'] = true; // Avoid plugin interference
             $posts = get_posts($args);
         }
 
         // Attempt 2: Fallback (Logic: If DB query fails but we have IDs, fetch raw and filter in PHP)
-        // This solves "Admin shows data, Frontend shows nothing" if tax_query quirks exist.
         if (empty($posts) && !empty($term_ids)) {
             $fallback_args = [
                 'post_type' => $type,
                 'posts_per_page' => 50, // Check last 50 items
-                'post_status' => 'any'
+                'post_status' => 'any',
+                'suppress_filters' => true
             ];
             $candidates = get_posts($fallback_args);
 
@@ -389,8 +391,6 @@ class Chroma_Portal_API_Routes
             }
         }
 
-        // Debug logging removed to prevent JSON corruption
-
         $results = [];
 
         foreach ($posts as $p) {
@@ -404,15 +404,16 @@ class Chroma_Portal_API_Routes
             $results[] = [
                 'id' => $p->ID,
                 'title' => $p->post_title,
-                'content' => $p->post_content, // For Announcements/Events
+                'content' => $p->post_content,
                 'pdf_url' => $file_url,
-                'pdf_id' => $file_id, // For Admin Edit
-                'group' => $term_name, // "January" or "Q1" or "Policy"
+                'pdf_id' => $file_id,
+                'group' => $term_name,
                 'priority' => get_post_meta($p->ID, '_cp_priority', true),
                 'event_date' => get_post_meta($p->ID, '_cp_event_date', true),
                 'can_edit' => current_user_can('edit_post', $p->ID)
             ];
         }
+
         return $results;
     }
 
