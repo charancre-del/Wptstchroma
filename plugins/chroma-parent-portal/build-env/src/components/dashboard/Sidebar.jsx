@@ -1,8 +1,9 @@
-import React from 'react';
-import { motion } from 'framer-motion';
 import logo from '../../assets/images/chroma_hex_logo.png';
 
 const Sidebar = ({ activeTab, setActiveTab, isAdmin }) => {
+    // Use localized logo URL if available, fallback to internal import
+    const logoUrl = window.chromaPortalSettings?.logoUrl || logo;
+
     const menuItems = [
         { id: 'overview', label: 'Dashboard', icon: '🏠' },
         { id: 'lessons', label: 'Lesson Plans', icon: '📚' },
@@ -14,7 +15,7 @@ const Sidebar = ({ activeTab, setActiveTab, isAdmin }) => {
     return (
         <div className="portal-sidebar">
             <div className="sidebar-logo">
-                <img src={logo} alt="Chroma Logo" className="logo-img" />
+                <img src={logoUrl} alt="Chroma Logo" className="logo-img" />
                 <span>Portal</span>
             </div>
 

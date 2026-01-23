@@ -15,15 +15,14 @@ const PDFViewerModal = ({ file, onClose }) => {
     useEffect(() => {
         const updateWidth = () => {
             if (containerRef.current) {
-                // Use a slightly smaller width than 100% to allow for scrollbars/margins
-                setContainerWidth(containerRef.current.clientWidth - 40);
+                setContainerWidth(containerRef.current.clientWidth);
             }
         };
 
         updateWidth();
         window.addEventListener('resize', updateWidth);
         return () => window.removeEventListener('resize', updateWidth);
-    }, [file, isOpen]);
+    }, [file]);
 
     if (!file) return null;
 
@@ -95,14 +94,14 @@ const PDFViewerModal = ({ file, onClose }) => {
                 style={{
                     flex: 1,
                     overflowY: 'auto',
-                    padding: '20px',
+                    padding: '0',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    background: '#1e293b' // Slate 800
+                    background: '#0f172a'
                 }}
             >
-                <div style={{ width: '100%', maxWidth: '1200px', display: 'flex', justifyContent: 'center' }}>
+                <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                     <Document
                         file={file.pdf_url}
                         onLoadSuccess={onDocumentLoadSuccess}
@@ -113,7 +112,7 @@ const PDFViewerModal = ({ file, onClose }) => {
                             width={containerWidth}
                             renderTextLayer={false}
                             renderAnnotationLayer={false}
-                            devicePixelRatio={Math.min(2, window.devicePixelRatio || 1)} // Cap DPI for performance
+                            devicePixelRatio={Math.min(2, window.devicePixelRatio || 1)}
                         />
                     </Document>
                 </div>

@@ -6,21 +6,33 @@
  * Author: Chroma Excellence
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (!defined('ABSPATH')) {
+    exit;
 }
 
 
-define( 'CHROMA_PORTAL_VERSION', '1.0.1' ); // Bumped to force cache clear
-define( 'CHROMA_PORTAL_PATH', plugin_dir_path( __FILE__ ) );
-define( 'CHROMA_PORTAL_URL', plugin_dir_url( __FILE__ ) );
+define('CHROMA_PORTAL_VERSION', '1.0.3'); // Force refresh for logo/PDF fixes
+define('CHROMA_PORTAL_PATH', plugin_dir_path(__FILE__));
+define('CHROMA_PORTAL_URL', plugin_dir_url(__FILE__));
 
 // Force Viewport for Full App feel
-add_action('wp_head', function() {
-    if ( is_page('parent-portal') ) {
+add_action('wp_head', function () {
+    if (is_page('parent-portal')) {
         echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">';
     }
 });
+
+// Disable Theme Customizer Scripts on Portal Page to avoid interference
+add_action('wp', function () {
+    if (is_page('parent-portal')) {
+        // High priority removal of theme scripts
+        remove_action('wp_head', 'chroma_output_header_scripts', 1);
+        remove_action('wp_footer', 'chroma_output_footer_scripts', 99);
+
+        // Also remove another common script hook if it exists
+        remove_action('wp_head', 'chroma_custom_scripts', 100);
+    }
+}, 1);
 
 // Load Backend Components
 require_once CHROMA_PORTAL_PATH . 'includes/class-cpt-registrar.php';
@@ -28,31 +40,31 @@ require_once CHROMA_PORTAL_PATH . 'includes/class-meta-boxes.php';
 require_once CHROMA_PORTAL_PATH . 'includes/class-api-routes.php';
 
 // Activation Hook
-register_activation_hook( __FILE__, function() {
-    if ( ! get_page_by_path( 'parent-portal' ) ) {
-        wp_insert_post( [
-            'post_title'   => 'Parent Portal',
-            'post_name'    => 'parent-portal',
+register_activation_hook(__FILE__, function () {
+    if (!get_page_by_path('parent-portal')) {
+        wp_insert_post([
+            'post_title' => 'Parent Portal',
+            'post_name' => 'parent-portal',
             'post_content' => '[chroma_parent_portal]',
-            'post_status'  => 'publish',
-            'post_type'    => 'page',
-        ] );
+            'post_status' => 'publish',
+            'post_type' => 'page',
+        ]);
     }
-} );
+});
 
 // Register Assets
-add_action( 'wp_enqueue_scripts', function() {
+add_action('wp_enqueue_scripts', function () {
     $post = get_post();
     // Broaden check: If it's the specific page OR has shortcode
-    $is_portal_page = is_page( 'parent-portal' );
-    $has_shortcode = $post && has_shortcode( $post->post_content, 'chroma_parent_portal' );
+    $is_portal_page = is_page('parent-portal');
+    $has_shortcode = $post && has_shortcode($post->post_content, 'chroma_parent_portal');
 
-    if ( ! $is_portal_page && ! $has_shortcode ) {
+    if (!$is_portal_page && !$has_shortcode) {
         return;
     }
 
     $asset_file_path = CHROMA_PORTAL_PATH . 'build/index.asset.php';
-    if ( ! file_exists( $asset_file_path ) ) {
+    if (!file_exists($asset_file_path)) {
         return;
     }
 
@@ -81,25 +93,26 @@ add_action( 'wp_enqueue_scripts', function() {
         $asset_file['version'] . '-' . time() // Add timestamp to force cache clear
     );
 
-    wp_localize_script( 'chroma-portal-app', 'chromaPortalSettings', [
-        'root' => esc_url_raw( rest_url() ),
-        'nonce' => wp_create_nonce( 'wp_rest' ),
-        'assetsUrl' => CHROMA_PORTAL_URL . 'build/'
-    ] );
-} );
+    wp_localize_script('chroma-portal-app', 'chromaPortalSettings', [
+        'root' => esc_url_raw(rest_url()),
+        'nonce' => wp_create_nonce('wp_rest'),
+        'assetsUrl' => CHROMA_PORTAL_URL . 'build/',
+        'logoUrl' => CHROMA_PORTAL_URL . 'build-env/src/assets/images/chroma_hex_logo.png'
+    ]);
+});
 
 // Add Body Class for Full App Mode
-add_filter( 'body_class', function( $classes ) {
-    if ( is_page( 'parent-portal' ) ) {
+add_filter('body_class', function ($classes) {
+    if (is_page('parent-portal')) {
         $classes[] = 'portal-is-active';
     }
     return $classes;
-} );
+});
 
 // Shortcode
-add_shortcode( 'chroma_parent_portal', function() {
-    wp_enqueue_script( 'chroma-portal-app' );
-    wp_enqueue_style( 'chroma-portal-styles' );
+add_shortcode('chroma_parent_portal', function () {
+    wp_enqueue_script('chroma-portal-app');
+    wp_enqueue_style('chroma-portal-styles');
 
     // Fallback/Loading state that React will replace
     return '<div id="chroma-parent-portal-root" style="display: flex !important; flex-direction: column; justify-content: center; align-items: center; height: 100vh !important; width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 99999 !important; background: #FFEB3B; color: black; text-align: center; overflow: visible !important;">
@@ -107,4 +120,4 @@ add_shortcode( 'chroma_parent_portal', function() {
         <p style="font-size: 20px;">Waiting for React app to mount...</p>
         <p style="font-size: 14px; margin-top: 20px;">If this screen stays visible for more than 5 seconds, the App is broken.</p>
     </div>';
-} );
+});
