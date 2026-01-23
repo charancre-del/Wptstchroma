@@ -16,11 +16,8 @@ const LessonPlanSection = ({ items, type, onView, onDelete }) => {
 
     const groupNames = useMemo(() => Object.keys(groupedItems), [groupedItems]);
 
-    // Track which groups are expanded. First group open by default.
-    const [expandedGroups, setExpandedGroups] = useState(() => {
-        if (groupNames.length > 0) return [groupNames[0]];
-        return [];
-    });
+    // Track which groups are expanded. Collapsed by default.
+    const [expandedGroups, setExpandedGroups] = useState([]);
 
     const toggleGroup = (name) => {
         setExpandedGroups(prev =>

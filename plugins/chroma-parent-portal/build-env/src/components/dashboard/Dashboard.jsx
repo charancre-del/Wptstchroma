@@ -98,9 +98,13 @@ const Dashboard = () => {
                     console.log('[Dashboard] Available years from WP:', years);
                     setAvailableYears(years);
 
-                    // Set default year to the first available year if it exists
-                    if (years.length > 0 && !year) {
-                        setYear(years[0].value);
+                    // Set default year to the first available year if current year yields nothing
+                    if (years.length > 0) {
+                        const currentCalYear = new Date().getFullYear().toString();
+                        // If current year is NOT in the list, or we haven't set a year yet, use the first one
+                        if (!years.find(y => y.value === year) || year === currentCalYear) {
+                            setYear(years[0].value);
+                        }
                     }
                 }
             } catch (e) {

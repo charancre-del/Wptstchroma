@@ -10,6 +10,7 @@ class Chroma_Portal_Auth
     {
         global $wpdb;
 
+        $pin = sanitize_text_field($pin);
         $hashed_lookup = md5($pin);
 
         $args = [

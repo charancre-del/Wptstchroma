@@ -9,11 +9,10 @@ import PDFCard from '../common/PDFCard';
 import UploadModal from '../common/UploadModal';
 import PDFViewerModal from '../common/PDFViewerModal';
 
-const DashboardGrid = ({ data, refreshData }) => {
+const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
     const { user } = useAuth();
     const [showUpload, setShowUpload] = useState(false);
     const [uploadType, setUploadType] = useState('cp_lesson_plan');
-    const [viewFile, setViewFile] = useState(null);
 
     const containerVariants = {
         hidden: { opacity: 0 },
@@ -36,7 +35,7 @@ const DashboardGrid = ({ data, refreshData }) => {
     };
 
     const handleView = (item) => {
-        if (item.pdf_url) setViewFile(item);
+        if (onDocumentClick) onDocumentClick(item);
     };
 
     return (
@@ -81,6 +80,34 @@ const DashboardGrid = ({ data, refreshData }) => {
                     <DownloadCenter resources={data.resources} forms={data.forms} onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
+                {/* Resources Card */}
+                <motion.div variants={itemVariants} className="glass-card section-card">
+                    <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                        <h3>Resources & Handbooks</h3>
+                        {data.is_admin && <button onClick={() => handleUploadClick('cp_resource')} className="add-btn">+ Add</button>}
+                    </div>
+                    <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+                        {data.resources.slice(0, 4).map(item => (
+                            <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={refreshData} />
+                        ))}
+                        {data.resources.length === 0 && <p style={{ fontStyle: 'italic', color: '#999' }}>No resources.</p>}
+                    </div>
+                </motion.div>
+
+                {/* Policies Card */}
+                <motion.div variants={itemVariants} className="glass-card section-card">
+                    <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                        <h3>Policies & Procedures</h3>
+                        {data.is_admin && <button onClick={() => handleUploadClick('cp_form')} className="add-btn">+ Add</button>}
+                    </div>
+                    <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
+                        {data.forms.slice(0, 4).map(item => (
+                            <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={refreshData} />
+                        ))}
+                        {data.forms.length === 0 && <p style={{ fontStyle: 'italic', color: '#999' }}>No policy documents.</p>}
+                    </div>
+                </motion.div>
+
                 {/* Events Section */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
@@ -88,8 +115,8 @@ const DashboardGrid = ({ data, refreshData }) => {
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_event')} className="add-btn">+ Add Event</button>}
                     </div>
                     <div className="event-list">
-                        {data.events.map(event => (
-                            <PDFCard key={event.id} item={event} onClick={() => { }} onDelete={refreshData} />
+                        {data.events.slice(0, 3).map(event => (
+                            <PDFCard key={event.id} item={event} onClick={handleView} onDelete={refreshData} />
                         ))}
                         {data.events.length === 0 && <p style={{ fontStyle: 'italic', color: '#999' }}>No upcoming events.</p>}
                     </div>
@@ -106,8 +133,6 @@ const DashboardGrid = ({ data, refreshData }) => {
                     onSuccess={refreshData}
                 />
             )}
-
-            {viewFile && <PDFViewerModal file={viewFile} onClose={() => setViewFile(null)} />}
         </motion.div>
     );
 };

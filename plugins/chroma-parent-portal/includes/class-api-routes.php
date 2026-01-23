@@ -230,16 +230,20 @@ class Chroma_Portal_API_Routes
 
     public function create_content($request)
     {
-        // Admin Upload Logic
-        $title = $request->get_param('title');
-        $post_type = $request->get_param('post_type'); // e.g. cp_lesson_plan
-        $file_id = $request->get_param('file_id');
-        $year = $request->get_param('year');
-        $month = $request->get_param('month'); // Also used for quarter/category depending on type
+        // Admin Upload Logic - Strict Sanitization
+        $title = sanitize_text_field($request->get_param('title'));
+        $post_type = sanitize_text_field($request->get_param('post_type')); // e.g. cp_lesson_plan
+        $file_id = absint($request->get_param('file_id'));
+        $year = sanitize_text_field($request->get_param('year'));
+        $month = sanitize_text_field($request->get_param('month')); // Also used for quarter/category depending on type
 
         // Basic Validation
         if (!in_array($post_type, ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event'])) {
             return new WP_Error('invalid_type', 'Invalid Post Type', ['status' => 400]);
+        }
+
+        if (empty($title)) {
+            return new WP_Error('missing_title', 'Title is required', ['status' => 400]);
         }
 
         $post_id = wp_insert_post([
@@ -313,11 +317,11 @@ class Chroma_Portal_API_Routes
 
     public function update_content($request)
     {
-        $post_id = $request->get_param('id');
-        $title = $request->get_param('title');
-        $file_id = $request->get_param('file_id');
-        $year = $request->get_param('year');
-        $month = $request->get_param('month');
+        $post_id = absint($request->get_param('id'));
+        $title = sanitize_text_field($request->get_param('title'));
+        $file_id = absint($request->get_param('file_id'));
+        $year = sanitize_text_field($request->get_param('year'));
+        $month = sanitize_text_field($request->get_param('month'));
 
         if (!get_post($post_id)) {
             return new WP_Error('not_found', 'Content not found', ['status' => 404]);
@@ -364,11 +368,14 @@ class Chroma_Portal_API_Routes
 
     public function delete_content($request)
     {
-        $post_id = $request->get_param('id');
+        $post_id = absint($request->get_param('id'));
         if (!get_post($post_id)) {
             return new WP_Error('not_found', 'Content not found', ['status' => 404]);
         }
-        wp_delete_post($post_id, true);
+        $result = wp_delete_post($post_id, true);
+        if (!$result) {
+            return new WP_Error('delete_failed', 'Failed to delete content', ['status' => 500]);
+        }
         return rest_ensure_response(['success' => true]);
     }
 
