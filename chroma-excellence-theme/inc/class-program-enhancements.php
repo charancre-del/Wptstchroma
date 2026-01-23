@@ -16,7 +16,8 @@ class Chroma_Program_Enhancements
     public function __construct() {
         add_action('add_meta_boxes', [$this, 'add_meta_boxes']);
         add_action('save_post_program', [$this, 'save_meta']);
-        add_action('wp_head', [$this, 'output_faq_schema']);
+        // DISABLED: Schema now handled by Chroma SEO Pro plugin
+        // add_action('wp_head', [$this, 'output_faq_schema']);
 
     }
     

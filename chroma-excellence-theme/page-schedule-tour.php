@@ -22,7 +22,7 @@ $locations_query = new WP_Query(array(
 // Buckets for regions
 $regions = array(
     'gwinnett' => array(
-        'title' => __('Gwinnett County', 'chroma-excellence'),
+        'title' => 'Gwinnett County',
         'icon' => '<i class="fa-solid fa-tree"></i>',
         'color' => 'chroma-green',
         'bg' => 'bg-brand-cream',
@@ -30,7 +30,7 @@ $regions = array(
         'posts' => array(),
     ),
     'cobb' => array(
-        'title' => __('Cobb County', 'chroma-excellence'),
+        'title' => 'Cobb County',
         'icon' => '<i class="fa-solid fa-city"></i>',
         'color' => 'chroma-red',
         'bg' => 'bg-white',
@@ -38,7 +38,7 @@ $regions = array(
         'posts' => array(),
     ),
     'north-metro' => array(
-        'title' => __('North Metro', 'chroma-excellence'),
+        'title' => 'North Metro',
         'icon' => '<i class="fa-solid fa-mountain"></i>',
         'color' => 'chroma-blue',
         'bg' => 'bg-brand-cream',
@@ -46,7 +46,7 @@ $regions = array(
         'posts' => array(),
     ),
     'south-metro' => array(
-        'title' => __('South Metro', 'chroma-excellence'),
+        'title' => 'South Metro',
         'icon' => '<i class="fa-solid fa-sun"></i>',
         'color' => 'chroma-yellow',
         'bg' => 'bg-white',
@@ -110,26 +110,29 @@ get_header();
     <section class="py-20 bg-white border-b border-brand-ink/5 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-12 items-center">
             <div class="text-center lg:text-left fade-in-up">
-                <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Admissions', 'chroma-excellence'); ?></span>
-                <h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6"><?php _e('Come see the magic.', 'chroma-excellence'); ?></h1>
-                <p class="text-lg text-brand-ink/60 mb-10 max-w-xl mx-auto lg:mx-0"><?php _e('Select your preferred campus below to schedule a private walkthrough with the Director. We can\'t wait to meet you!', 'chroma-excellence'); ?></p>
+                <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Admissions</span>
+                <h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6">Come see the magic.</h1>
+                <p class="text-lg text-brand-ink/60 mb-10 max-w-xl mx-auto lg:mx-0">Select your preferred campus
+                    below to schedule a private walkthrough with the Director. We can't wait to meet you!</p>
 
                 <!-- Region Quick Links -->
                 <div class="flex flex-wrap justify-center lg:justify-start gap-3">
                     <a href="#gwinnett"
-                        class="px-5 py-2 rounded-full border border-brand-ink/10 hover:bg-chroma-greenLight hover:border-chroma-green hover:text-chroma-green transition-colors text-xs font-bold uppercase tracking-wider"><?php _e('Gwinnett', 'chroma-excellence'); ?></a>
+                        class="px-5 py-2 rounded-full border border-brand-ink/10 hover:bg-chroma-greenLight hover:border-chroma-green hover:text-chroma-green transition-colors text-xs font-bold uppercase tracking-wider">Gwinnett</a>
                     <a href="#cobb"
-                        class="px-5 py-2 rounded-full border border-brand-ink/10 hover:bg-chroma-redLight hover:border-chroma-red hover:text-chroma-red transition-colors text-xs font-bold uppercase tracking-wider"><?php _e('Cobb', 'chroma-excellence'); ?></a>
+                        class="px-5 py-2 rounded-full border border-brand-ink/10 hover:bg-chroma-redLight hover:border-chroma-red hover:text-chroma-red transition-colors text-xs font-bold uppercase tracking-wider">Cobb</a>
                     <a href="#north-metro"
-                        class="px-5 py-2 rounded-full border border-brand-ink/10 hover:bg-chroma-blueLight hover:border-chroma-blue hover:text-chroma-blue transition-colors text-xs font-bold uppercase tracking-wider"><?php _e('North Metro', 'chroma-excellence'); ?></a>
+                        class="px-5 py-2 rounded-full border border-brand-ink/10 hover:bg-chroma-blueLight hover:border-chroma-blue hover:text-chroma-blue transition-colors text-xs font-bold uppercase tracking-wider">North
+                        Metro</a>
                     <a href="#south-metro"
-                        class="px-5 py-2 rounded-full border border-brand-ink/10 hover:bg-chroma-yellowLight hover:border-chroma-yellow hover:text-chroma-yellow transition-colors text-xs font-bold uppercase tracking-wider"><?php _e('South Metro', 'chroma-excellence'); ?></a>
+                        class="px-5 py-2 rounded-full border border-brand-ink/10 hover:bg-chroma-yellowLight hover:border-chroma-yellow hover:text-chroma-yellow transition-colors text-xs font-bold uppercase tracking-wider">South
+                        Metro</a>
                 </div>
             </div>
             <div
                 class="relative h-[400px] lg:h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rotate-2 hover:rotate-0 transition-transform duration-500">
                 <img src="https://images.unsplash.com/photo-1571210862729-78a52d3779a2?q=80&w=1000&auto=format&fit=crop"
-                    class="w-full h-full object-cover" alt="<?php esc_attr_e('Parent touring a classroom', 'chroma-excellence'); ?>" />
+                    class="w-full h-full object-cover" alt="Parent touring a classroom" />
             </div>
         </div>
     </section>
@@ -144,7 +147,8 @@ get_header();
         <section id="<?php echo esc_attr($slug); ?>" class="py-20 <?php echo esc_attr($data['bg']); ?>">
             <div class="max-w-7xl mx-auto px-4 lg:px-6">
                 <div class="flex items-center gap-4 mb-10">
-                    <div class="w-12 h-12 rounded-full bg-<?php echo esc_attr($data['color']); ?> <?php echo ($slug === 'south-metro') ? 'text-brand-ink' : 'text-white'; ?> flex items-center justify-center text-xl">
+                    <div
+                        class="w-12 h-12 rounded-full bg-<?php echo esc_attr($data['color']); ?> <?php echo ($slug === 'south-metro') ? 'text-brand-ink' : 'text-white'; ?> flex items-center justify-center text-xl">
                         <?php echo $data['icon']; ?> <!-- Allowed HTML from array -->
                     </div>
                     <h2 class="font-serif text-3xl font-bold text-brand-ink"><?php echo esc_html($data['title']); ?>
@@ -153,32 +157,28 @@ get_header();
                 <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <?php foreach ($data['posts'] as $post): ?>
                         <!-- <?php echo esc_html($post['title']); ?> -->
-                        <?php
-                        // Determine the main link for the card
-                        $card_link = $post['booking'] ? $post['booking'] : $post['permalink'] . '#contact';
-                        $is_booking = !empty($post['booking']);
-                        ?>
-                        <div class="relative bg-white p-5 rounded-3xl shadow-sm border border-brand-ink/5 hover:shadow-md transition-shadow group flex flex-col text-left">
-                            <a href="<?php echo esc_url($post['permalink']); ?>" class="absolute inset-0 z-0" aria-label="<?php printf( esc_attr__('View location details for %s', 'chroma-excellence'), esc_attr($post['title']) ); ?>"></a>
-                            
-                            <div class="h-40 rounded-2xl overflow-hidden mb-4 relative z-0">
+                        <div
+                            class="bg-white p-5 rounded-3xl shadow-sm border border-brand-ink/5 hover:shadow-md transition-shadow group flex flex-col">
+                            <div class="h-40 rounded-2xl overflow-hidden mb-4 relative">
                                 <img src="<?php echo esc_url($post['thumb']); ?>"
                                     class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     alt="<?php echo esc_attr($post['title']); ?>">
                             </div>
                             <h3
-                                class="font-bold text-xl mb-1 group-hover:text-<?php echo esc_attr($data['color']); ?> transition-colors text-brand-ink relative z-0">
+                                class="font-bold text-xl mb-1 group-hover:text-<?php echo esc_attr($data['color']); ?> transition-colors">
                                 <?php echo esc_html(str_replace('Location', '', $post['title'])); // Clean title if needed ?>
                             </h3>
-                            <p class="text-xs text-brand-ink/70 mb-4 flex-grow relative z-0"><?php echo esc_html($post['address']); ?>
+                            <p class="text-xs text-brand-ink/50 mb-4 flex-grow"><?php echo esc_html($post['address']); ?>
                             </p>
 
                             <?php if ($post['booking']): ?>
                                 <a href="<?php echo esc_url($post['booking']); ?>"
-                                    class="booking-btn relative z-10 block w-full py-3 bg-<?php echo esc_attr($data['color']); ?> <?php echo esc_attr($data['text']); ?> text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark hover:text-white transition-colors"><?php _e('Schedule Visit', 'chroma-excellence'); ?></a>
+                                    class="booking-btn block w-full py-3 bg-<?php echo esc_attr($data['color']); ?> <?php echo esc_attr($data['text']); ?> text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark hover:text-white transition-colors">Schedule
+                                    Visit</a>
                             <?php else: ?>
                                 <a href="<?php echo esc_url($post['permalink']); ?>#contact"
-                                    class="relative z-10 block w-full py-3 bg-brand-cream text-brand-ink border border-brand-ink/10 text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark hover:text-white transition-colors"><?php _e('Contact Us', 'chroma-excellence'); ?></a>
+                                    class="block w-full py-3 bg-brand-cream text-brand-ink border border-brand-ink/10 text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blueDark hover:text-white transition-colors">Contact
+                                    Us</a>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
@@ -201,11 +201,11 @@ get_header();
         <!-- Header -->
         <div
             class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
-            <h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
+            <h3 class="font-serif text-xl font-bold text-brand-ink">Schedule Your Visit</h3>
             <div class="flex items-center gap-4">
                 <a href="#" id="chroma-tour-external" target="_blank"
-                    class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:block">
-                    <?php _e('Open in new tab', 'chroma-excellence'); ?> <i class="fa-solid fa-external-link-alt ml-1"></i>
+                    class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">
+                    Open in new tab <i class="fa-solid fa-external-link-alt ml-1"></i>
                 </a>
                 <button id="chroma-tour-close"
                     class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">

@@ -85,9 +85,10 @@ while (have_posts()):
 						<a href="#prism"
 							class="px-8 py-4 bg-<?php echo esc_attr($colors['main']); ?> text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:opacity-90 transition-colors shadow-lg"><?php _e('View Curriculum', 'chroma-excellence'); ?></a>
 						<?php if ($lesson_plan_url): ?>
-							<button type="button" id="lesson-plan-trigger"
-								data-lesson-url="<?php echo esc_url($lesson_plan_url); ?>"
-								class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors cursor-pointer">
+							<button type="button" 
+								class="chroma-pdf-trigger px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors cursor-pointer"
+								data-pdf-url="<?php echo esc_url($lesson_plan_url); ?>"
+								data-pdf-title="<?php printf(__('%s Lesson Plan', 'chroma-excellence'), esc_html(get_the_title())); ?>">
 								<?php _e('View Lesson Plan', 'chroma-excellence'); ?>
 							</button>
 						<?php endif; ?>
@@ -249,26 +250,9 @@ while (have_posts()):
 				<?php endif; ?>
 			<?php endif; endif; ?>
 
-		<!-- CTA Section -->
-		</div>
-		</div>
-		</section>
-
-		<?php 
-		// Age Calculator Widget
-		Chroma_Program_Enhancements::render_age_calculator($program_id);
-		
-		// FAQ Section with Schema
-		Chroma_Program_Enhancements::render_faq_section($program_id);
-		
-		// Photo Gallery
-		Chroma_Program_Enhancements::render_gallery_section($program_id);
-		
-		// Parent Testimonials
-		Chroma_Program_Enhancements::render_testimonials_section($program_id);
-		?>
 
 	</main>
+
 
 	<style>
 		.fade-in-up {
@@ -288,6 +272,32 @@ while (have_posts()):
 	<script>
 		// Prismpath Chart Config - Lazy Loaded
 		document.addEventListener('DOMContentLoaded', function () {
+            // Setup Schedule Interactions
+            const steps = document.querySelectorAll('[data-schedule-step-trigger]');
+            const titleEl = document.querySelector('[data-content-title]');
+            const copyEl = document.querySelector('[data-content-copy]');
+            
+            if(steps.length > 0) {
+                steps.forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        // Reset all
+                        steps.forEach(b => {
+                            b.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
+                            b.classList.add('bg-white', 'text-brand-ink/80');
+                        });
+                        
+                        // Active state
+                        this.classList.remove('bg-white', 'text-brand-ink/80');
+                        this.classList.add('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
+                        
+                        // Update content
+                        if(titleEl) titleEl.textContent = this.getAttribute('data-title');
+                        if(copyEl) copyEl.textContent = this.getAttribute('data-copy');
+                    });
+                });
+            }
+
+            // Chart.js Handler
 			const ctx = document.getElementById('programChart');
 			if (ctx) {
 				const observer = new IntersectionObserver((entries) => {
@@ -328,122 +338,35 @@ while (have_posts()):
 											$hex_color = $chart_colors[$color_scheme] ?? '#D67D6B';
 											echo $hex_color . '33'; // Add 20% opacity
 											?>',
-				borderColor: '<?php echo $hex_color; ?>',
-					pointBackgroundColor: '#fff',
-						pointBorderColor: '<?php echo $hex_color; ?>',
-							borderWidth: 2
-			}]
-		},
-			options: {
-			scales: {
-				r: {
-					angleLines: { color: '#e5e5e5' },
-					grid: { color: '#e5e5e5' },
-					pointLabels: { font: { family: 'Outfit', size: 14 }, color: '#263238' },
-					suggestedMin: 0,
-					suggestedMax: 100,
-					ticks: { display: false }
-				}
-			},
-			plugins: { legend: { display: false } }
-		}
-																		});
-																	};
-		document.body.appendChild(script);
-																}
-															});
-														}, { rootMargin: '200px' }); // Start loading 200px before view
-		observer.observe(ctx);
-													}
-												});
+											borderColor: '<?php echo $hex_color; ?>',
+											pointBackgroundColor: '#fff',
+											pointBorderColor: '<?php echo $hex_color; ?>',
+											borderWidth: 2
+										}]
+									},
+									options: {
+										scales: {
+											r: {
+												angleLines: { color: '#e5e5e5' },
+												grid: { color: '#e5e5e5' },
+												pointLabels: { font: { family: 'Outfit', size: 14 }, color: '#263238' },
+												suggestedMin: 0,
+												suggestedMax: 100,
+												ticks: { display: false }
+											}
+										},
+										plugins: { legend: { display: false } }
+									}
+								});
+							};
+							document.body.appendChild(script);
+						}
+					});
+				}, { rootMargin: '200px' }); // Start loading 200px before view
+				observer.observe(ctx);
+			}
+		});
 	</script>
-
-	<?php if ($lesson_plan_url): ?>
-		<!-- Lesson Plan Modal -->
-		<div id="lesson-plan-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
-			<!-- Backdrop -->
-			<div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="lesson-plan-backdrop"></div>
-
-			<!-- Modal Container -->
-			<div
-				class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
-				<!-- Header -->
-				<div
-					class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
-					<h3 class="font-serif text-xl font-bold text-brand-ink">
-						<i class="fa-solid fa-file-signature text-<?php echo esc_attr($colors['main']); ?> mr-2"></i>
-						<?php printf(__('%s Lesson Plan', 'chroma-excellence'), esc_html(get_the_title())); ?>
-					</h3>
-					<div class="flex items-center gap-4">
-						<a href="<?php echo esc_url($lesson_plan_url); ?>" target="_blank" id="lesson-plan-external"
-							class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-chroma-blue transition-colors hidden md:flex items-center gap-1">
-							<i class="fa-solid fa-arrow-up-right-from-square"></i>
-							<?php _e('Open in new tab', 'chroma-excellence'); ?>
-						</a>
-						<a href="<?php echo esc_url($lesson_plan_url); ?>" download
-							class="text-xs font-bold uppercase tracking-wider text-brand-ink/70 hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors hidden md:flex items-center gap-1">
-							<i class="fa-solid fa-download"></i>
-							<?php _e('Download', 'chroma-excellence'); ?>
-						</a>
-						<button id="lesson-plan-close"
-							class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
-							<i class="fa-solid fa-xmark text-lg"></i>
-						</button>
-					</div>
-				</div>
-
-				<!-- PDF Container -->
-				<div class="flex-grow relative bg-gray-100">
-					<div id="lesson-plan-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
-						<div class="text-center">
-							<div
-								class="w-12 h-12 border-4 border-<?php echo esc_attr($colors['main']); ?>/20 border-t-<?php echo esc_attr($colors['main']); ?> rounded-full animate-spin mx-auto mb-4">
-							</div>
-							<p class="text-brand-ink/60 text-sm"><?php _e('Loading lesson plan...', 'chroma-excellence'); ?></p>
-						</div>
-					</div>
-					<iframe id="lesson-plan-frame" src="" class="w-full h-full border-0"></iframe>
-				</div>
-			</div>
-		</div>
-
-		<script>
-			document.addEventListener('DOMContentLoaded', function () {
-				const trigger = document.getElementById('lesson-plan-trigger');
-				const modal = document.getElementById('lesson-plan-modal');
-				const backdrop = document.getElementById('lesson-plan-backdrop');
-				const closeBtn = document.getElementById('lesson-plan-close');
-				const iframe = document.getElementById('lesson-plan-frame');
-				const loader = document.getElementById('lesson-plan-loader');
-
-				function openModal() {
-					const url = trigger.getAttribute('data-lesson-url');
-					modal.classList.remove('hidden');
-					document.body.style.overflow = 'hidden';
-					loader.classList.remove('hidden');
-					iframe.src = url;
-					iframe.onload = function () {
-						loader.classList.add('hidden');
-					};
-				}
-
-				function closeModal() {
-					modal.classList.add('hidden');
-					document.body.style.overflow = '';
-					iframe.src = '';
-				}
-
-				if (trigger) trigger.addEventListener('click', openModal);
-				if (closeBtn) closeBtn.addEventListener('click', closeModal);
-				if (backdrop) backdrop.addEventListener('click', closeModal);
-				document.addEventListener('keydown', function (e) {
-					if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
-						closeModal();
-					}
-				});
-			});
-		</script>
-	<?php endif; ?>
 
 	<?php
 endwhile;

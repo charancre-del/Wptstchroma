@@ -108,7 +108,7 @@ class Chroma_Breadcrumbs
             'itemListElement' => $schema_items
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'breadcrumbs']);
     }
 
     /**
@@ -602,3 +602,5 @@ class Chroma_Breadcrumbs
         wp_send_json_success($data);
     }
 }
+
+

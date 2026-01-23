@@ -66,6 +66,8 @@ class Chroma_Course_Builder
             ]
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($course_schema) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($course_schema, ['source' => 'course-builder']);
     }
 }
+
+

@@ -233,7 +233,8 @@ function chroma_about_meta_output()
                 echo '<script type="application/ld+json">' . wp_kses($seo_fields['structured_data'], array()) . '</script>' . "\n";
         }
 }
-add_action('wp_head', 'chroma_about_meta_output', 0);
+// DISABLED: Schema now handled by Chroma SEO Pro plugin
+// add_action('wp_head', 'chroma_about_meta_output', 0);
 
 /**
  * Filter the document title for the About page

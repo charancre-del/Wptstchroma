@@ -77,3 +77,5 @@ add_action('after_setup_theme', function() {
 register_activation_hook(__FILE__, function() {
     flush_rewrite_rules();
 });
+
+

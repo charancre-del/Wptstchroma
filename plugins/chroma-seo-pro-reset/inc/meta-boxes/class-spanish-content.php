@@ -712,3 +712,5 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
 
 // Register AJAX handlers
 Chroma_Spanish_Content_Meta_Box::register_ajax_handlers();
+
+

@@ -447,3 +447,5 @@ class Chroma_Content_Inspector
         wp_send_json_success();
     }
 }
+
+

@@ -40,6 +40,8 @@ class Chroma_Special_Announcement_Builder
             $schema['expires'] = date('c', strtotime($announcement['expires']));
         }
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'special-announcement-builder']);
     }
 }
+
+

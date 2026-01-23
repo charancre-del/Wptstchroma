@@ -165,3 +165,5 @@ class Chroma_Location_Citation_Facts_Meta_Box extends Chroma_Advanced_SEO_Meta_B
         update_post_meta($post_id, 'seo_llm_citation_facts', $sanitized_facts);
     }
 }
+
+

@@ -147,7 +147,7 @@ class Chroma_LLM_Bulk_Processor
                 $amenities = $chroma_llm_client->generate_amenities_data($post_id);
                 
                 if (is_wp_error($amenities)) {
-                     error_log('[Chroma Bulk] Amenities Error: ' . $amenities->get_error_message());
+                     chroma_debug_log('[Chroma Bulk] Amenities Error: ' . $amenities->get_error_message());
                      return false;
                 }
                 
@@ -157,7 +157,7 @@ class Chroma_LLM_Bulk_Processor
                 }
             }
         } catch (Exception $e) {
-            error_log('[Chroma Bulk] Error processing post ' . $post_id . ': ' . $e->getMessage());
+            chroma_debug_log('[Chroma Bulk] Error processing post ' . $post_id . ': ' . $e->getMessage());
         }
         
         return false;
@@ -331,3 +331,5 @@ class Chroma_LLM_Bulk_Processor
 
 // Initialize
 new Chroma_LLM_Bulk_Processor();
+
+

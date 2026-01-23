@@ -15,6 +15,39 @@ if (!defined('ABSPATH')) {
 class Chroma_Fallback_Resolver
 {
     /**
+     * Get a cached AI-generated value for a field
+     *
+     * @param int $post_id
+     * @param string $field_key
+     * @return string|null
+     */
+    public static function get_cached_ai_value($post_id, $field_key)
+    {
+        $cache = get_post_meta($post_id, '_chroma_ai_fallback_cache', true);
+        if (is_array($cache) && isset($cache[$field_key])) {
+            return $cache[$field_key];
+        }
+        return null;
+    }
+
+    /**
+     * Save an AI-generated value to the cache
+     *
+     * @param int $post_id
+     * @param string $field_key
+     * @param mixed $value
+     */
+    public static function set_ai_field_cache($post_id, $field_key, $value)
+    {
+        $cache = get_post_meta($post_id, '_chroma_ai_fallback_cache', true);
+        if (!is_array($cache)) {
+            $cache = [];
+        }
+        $cache[$field_key] = $value;
+        update_post_meta($post_id, '_chroma_ai_fallback_cache', $cache);
+    }
+
+    /**
      * Get service area circle data
      *
      * @param int $location_id Location post ID
@@ -94,6 +127,12 @@ class Chroma_Fallback_Resolver
             return $desc;
         }
 
+        // Check AI Cache
+        $ai_desc = self::get_cached_ai_value($location_id, 'description');
+        if ($ai_desc) {
+            return $ai_desc;
+        }
+
         // Build from existing data
         $name = get_post_field('post_title', $location_id);
         $city = get_post_meta($location_id, 'location_city', true);
@@ -134,6 +173,12 @@ class Chroma_Fallback_Resolver
             return array_filter($queries);
         }
 
+        // Check AI Cache
+        $ai_queries = self::get_cached_ai_value($location_id, 'target_queries');
+        if (!empty($ai_queries) && is_array($ai_queries)) {
+            return array_filter($ai_queries);
+        }
+
         // Auto-generate from location data
         $city = get_post_meta($location_id, 'location_city', true);
         $name = get_post_field('post_title', $location_id);
@@ -163,6 +208,12 @@ class Chroma_Fallback_Resolver
         $differentiators = get_post_meta($location_id, 'seo_llm_key_differentiators', true);
         if (!empty($differentiators) && is_array($differentiators)) {
             return array_filter($differentiators);
+        }
+
+        // Check AI Cache
+        $ai_diff = self::get_cached_ai_value($location_id, 'key_differentiators');
+        if (!empty($ai_diff) && is_array($ai_diff)) {
+            return array_filter($ai_diff);
         }
 
         // Auto-generate from location data
@@ -328,3 +379,5 @@ class Chroma_Fallback_Resolver
         return $facts;
     }
 }
+
+

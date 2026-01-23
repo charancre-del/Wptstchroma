@@ -156,3 +156,5 @@ class Chroma_Validation_Logger
         ];
     }
 }
+
+

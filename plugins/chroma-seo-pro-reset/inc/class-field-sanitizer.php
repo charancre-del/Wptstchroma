@@ -177,3 +177,5 @@ class Chroma_Field_Sanitizer
         return self::sanitize_number($value);
     }
 }
+
+

@@ -221,12 +221,12 @@ class Chroma_LLM_Client
 
         if (isset($_POST['api_key'])) {
             $key = sanitize_text_field($_POST['api_key']);
-            error_log('Chroma LLM: Saving API Key - Length: ' . strlen($key));
+            chroma_debug_log(' LLM: Saving API Key - Length: ' . strlen($key));
             if (empty($key)) {
-                error_log('Chroma LLM: Warning - Saving EMPTY API Key');
+                chroma_debug_log(' LLM: Warning - Saving EMPTY API Key');
             }
             $updated = update_option('chroma_openai_api_key', $key);
-            error_log('Chroma LLM: update_option result: ' . ($updated ? 'true' : 'false'));
+            chroma_debug_log(' LLM: update_option result: ' . ($updated ? 'true' : 'false'));
         }
         if (isset($_POST['model'])) {
             update_option('chroma_llm_model', sanitize_text_field($_POST['model']));
@@ -257,7 +257,7 @@ class Chroma_LLM_Client
 
         // Lazy-load API key fresh from database (in case user just saved it)
         $api_key = get_option('chroma_openai_api_key', '');
-        error_log('Chroma LLM: Testing Connection. Loaded API Key Length: ' . strlen($api_key));
+        chroma_debug_log(' LLM: Testing Connection. Loaded API Key Length: ' . strlen($api_key));
         if (!$api_key) {
             wp_send_json_error(['message' => 'No API Key found. (DB value empty)']);
         }
@@ -297,16 +297,50 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => $result->get_error_message()]);
         }
 
+        // Save relevant fields to AI Fallback Cache for reuse
+        if (class_exists('Chroma_Fallback_Resolver')) {
+            $mapped_fields = [
+                'description' => 'description',
+                'description_long' => 'description',
+                'target_queries' => 'target_queries',
+                'queries' => 'target_queries',
+                'key_differentiators' => 'key_differentiators',
+                'differentiators' => 'key_differentiators'
+            ];
+            foreach ($mapped_fields as $json_key => $cache_key) {
+                if (!empty($result[$json_key])) {
+                    Chroma_Fallback_Resolver::set_ai_field_cache($post_id, $cache_key, $result[$json_key]);
+                }
+            }
+        }
+
         if (isset($_POST['auto_save']) && $_POST['auto_save'] === 'true') {
             $existing_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
             if (!is_array($existing_schemas)) {
                 $existing_schemas = [];
             }
-            // Append new schema
-            $existing_schemas[] = [
-                'type' => $schema_type,
-                'data' => $result
-            ];
+            
+            // Look for existing schema of this type to update instead of appending duplicate
+            $updated = false;
+            foreach ($existing_schemas as $index => &$schema) {
+                if (isset($schema['type']) && $schema['type'] === $schema_type) {
+                    $schema['data'] = $result;
+                    $updated = true;
+                    // Fix: Ensure we only update the FIRST matching schema to avoid updating multiple duplicates if they exist?
+                    // For now, let's just update the first one and break.
+                    break;
+                }
+            }
+            unset($schema); // Break reference
+
+            if (!$updated) {
+                // valid new schema
+                 $existing_schemas[] = [
+                    'type' => $schema_type,
+                    'data' => $result
+                ];
+            }
+
             update_post_meta($post_id, '_chroma_post_schemas', $existing_schemas);
             $result['message'] = 'Schema generated and saved successfully.';
             $result['saved'] = true;
@@ -378,15 +412,15 @@ class Chroma_LLM_Client
         switch ($schema_type) {
             case 'JobPosting':
                 $prompt .= "- Focus on: title, datePosted, validThrough, employmentType\n";
-                $prompt .= "- EXTRACT SALARY: Look for baseSalary (value + currency). If range (e.g. $15-$20), use minValue/maxValue.\n";
-                $prompt .= "- JOB LOCATION: Ensure jobLocation include addressLocality and addressRegion\n";
-                $prompt .= "- HIRING ORG: hiringOrganization should be 'Chroma Early Learning'\n";
+                $prompt .= "- EXTRACT SALARY: Look for baseSalary. Output as simple text (e.g., '50000 USD' or '$15/hour'). DO NOT return an object.\n";
+                $prompt .= "- JOB LOCATION: Output as simple text (e.g. 'Atlanta, GA'). DO NOT return an object.\n";
+                $prompt .= "- HIRING ORG: hiringOrganization should be 'Chroma Early Learning'. Output as text name.\n";
                 $prompt .= "- DESCRIPTION: Include full job description HTML\n";
                 break;
 
             case 'Event':
-                $prompt .= "- Focus on: name, startDate, endDate, location, organizer\n";
-                $prompt .= "- LOCATION: Must be a Place or VirtualLocation\n";
+                $prompt .= "- Focus on: name, startDate, endDate, location_name, location_address, organizer\n";
+                $prompt .= "- LOCATION: Return 'location_name' (text) and 'location_address' (text). DO NOT return a Place object.\n";
                 $prompt .= "- OFFER: Include price, priceCurrency, availability\n";
                 $prompt .= "- IMAGE: Must provide an image URL if available\n";
                 break;
@@ -461,7 +495,11 @@ class Chroma_LLM_Client
                 $prompt .= "- ITEMS: ListItem with position and url\n";
                 break;
 
+            case 'LocalBusiness':
+            case 'ChildCare':
+            default:
                 $prompt .= "- Focus on: geo coordinates (latitude/longitude) for local pack ranking\n";
+                $prompt .= "- OUTPUT GEO AS FLAT FIELDS: 'geo_lat' and 'geo_lng' (do not return a GeoCoordinates object)\n";
                 $prompt .= "- Add openingHoursSpecification for 'Open Now' badge\n";
                 $prompt .= "- Include aggregateRating if reviews exist (critical for CTR)\n";
                 $prompt .= "- Add hasCredential for trust signals (licenses, accreditations)\n";
@@ -1412,7 +1450,7 @@ class Chroma_LLM_Client
         $validation = Chroma_Schema_Validator::validate_json_ld($content);
 
         if (!$validation['valid']) {
-            error_log('[Chroma SEO] AI Fix generated invalid schema (attempt ' . ($retry_count + 1) . '): ' . print_r($validation['errors'], true));
+            chroma_debug_log('[Chroma SEO] AI Fix generated invalid schema (attempt ' . ($retry_count + 1) . '): ' . print_r($validation['errors'], true));
             
             // Retry up to 2 times with validation errors in prompt
             if ($retry_count < 2) {
@@ -1444,3 +1482,5 @@ class Chroma_LLM_Client
 
 
 }
+
+

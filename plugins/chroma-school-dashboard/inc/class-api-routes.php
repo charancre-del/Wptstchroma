@@ -34,6 +34,39 @@ class Chroma_School_API_Routes
             'callback' => [$this, 'get_director_school'],
             'permission_callback' => [$this, 'check_director_permission']
         ]);
+
+        register_rest_route('chroma/v1', '/weather', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_weather_proxy'],
+            'permission_callback' => '__return_true'
+        ]);
+        register_rest_route('chroma/v1', '/portal/test-procare', [
+            'methods' => 'POST',
+            'callback' => [$this, 'test_procare_connection'],
+            'permission_callback' => [$this, 'check_director_permission']
+        ]);
+
+        register_rest_route('chroma/v1', '/procare/photos', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_procare_photos'],
+            'permission_callback' => '__return_true'
+        ]);
+    }
+
+    /**
+     * Proxy Weather Request (to avoid revealing tokens if we had them, and use server cache)
+     */
+    public function get_weather_proxy($request)
+    {
+        $lat = $request->get_param('lat');
+        $lon = $request->get_param('lon');
+
+        if (!$lat || !$lon) {
+            return new WP_Error('missing_params', 'Lat/Lon required', ['status' => 400]);
+        }
+
+        $weather = Chroma_Weather_Provider::get_weather($lat, $lon);
+        return rest_ensure_response($weather ?: ['error' => 'Weather unavailable']);
     }
 
     public function get_tv_data($request)
@@ -71,7 +104,9 @@ class Chroma_School_API_Routes
             'youtube',
             'slideshow_title',
             'chroma_cares',
-            'celebrations'
+            'celebrations',
+            'procare',
+            'music_url'
         ];
 
         $data = [
@@ -103,7 +138,7 @@ class Chroma_School_API_Routes
     public function login_with_google($request)
     {
         $params = $request->get_json_params();
-        $id_token = $params['id_token'] ?? '';
+        $id_token = $params['token'] ?? $params['id_token'] ?? '';
 
         if (!$params || empty($id_token)) {
             return new WP_Error('missing_token', 'ID Token required', ['status' => 400]);
@@ -129,23 +164,38 @@ class Chroma_School_API_Routes
 
         $email = $google_data['email'];
 
-        // 2. Find School by Director Email
-        // Optimization: In CPT save, I'll assume we save '_chroma_school_director_email' separately for query speed.
-        // For now, let's just do a meta query on the config array (slower but works for 20 schools).
+        // 2. Find School by Director Email (Optimized O(1) query)
+        $schools = get_posts([
+            'post_type' => 'chroma_school',
+            'posts_per_page' => 1,
+            'meta_query' => [
+                [
+                    'key' => '_chroma_school_director_email',
+                    'value' => $email,
+                    'compare' => '='
+                ]
+            ]
+        ]);
 
-        $all_schools = get_posts(['post_type' => 'chroma_school', 'posts_per_page' => -1]);
-        $found_school = null;
+        $found_school = !empty($schools) ? $schools[0] : null;
 
-        foreach ($all_schools as $s) {
-            $conf = get_post_meta($s->ID, '_chroma_school_config', true);
-            if (isset($conf['director_email']) && strtolower($conf['director_email']) === strtolower($email)) {
-                $found_school = $s;
-                break;
+        // 2b. Legacy Fallback: If not found, try O(N) loop for migration
+        if (!$found_school) {
+            $all_schools = get_posts(['post_type' => 'chroma_school', 'posts_per_page' => -1]);
+            foreach ($all_schools as $s) {
+                $conf = get_post_meta($s->ID, '_chroma_school_config', true);
+                $stored_email = $conf['director_email'] ?? 'N/A';
+                
+                if (strtolower($stored_email) === strtolower($email)) {
+                    $found_school = $s;
+                    update_post_meta($s->ID, '_chroma_school_director_email', $conf['director_email']);
+                    break;
+                }
             }
         }
 
         if (!$found_school) {
-            return new WP_Error('no_access', 'No school found for this email.', ['status' => 403]);
+            return new WP_Error('no_access', 'No school found for: ' . $email, ['status' => 403]);
         }
 
         // 3. Issue Session Token
@@ -191,7 +241,9 @@ class Chroma_School_API_Routes
             'welcome_override',
             'slideshow_title',
             'chroma_cares',
-            'celebrations'
+            'celebrations',
+            'procare',
+            'music_url'
         ];
         $content = [];
         foreach ($meta_keys as $key) {
@@ -231,7 +283,9 @@ class Chroma_School_API_Routes
             'slideshow_title',
             'welcome_override',
             'chroma_cares',
-            'celebrations'
+            'celebrations',
+            'procare',
+            'music_url'
         ];
 
         foreach ($params as $key => $value) {
@@ -245,7 +299,8 @@ class Chroma_School_API_Routes
                     'qr',
                     'slideshow',
                     'chroma_cares',
-                    'celebrations'
+                    'celebrations',
+                    'procare'
                 ]);
 
                 if ($is_complex) {
@@ -256,18 +311,57 @@ class Chroma_School_API_Routes
                 }
 
                 $updated = update_post_meta($school_id, '_chroma_school_' . $key, $value);
-                
-                // Log update result
-                $log_update = sprintf(" - Key: %s | Type: %s | Updated: %s\n", 
-                    $key, 
-                    $is_complex ? 'COMPLEX' : 'STRING',
-                    $updated ? 'YES' : 'NO/SAME'
-                );
-                file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', $log_update, FILE_APPEND);
             }
         }
 
+        // Add a global 'last updated' flag for cache busting
+        update_post_meta($school_id, '_chroma_school_last_updated', time());
+
         return rest_ensure_response(['success' => true]);
+    }
+
+    /**
+     * POST /portal/test-procare
+     */
+    public function test_procare_connection($request) {
+        $params = $request->get_json_params();
+        $username = $params['username'] ?? '';
+        $password = $params['password'] ?? '';
+
+        if (!$username || !$password) {
+            return new WP_Error('missing_creds', 'Username and password required', ['status' => 400]);
+        }
+
+        $result = Chroma_Procare_API::test_connection($username, $password);
+        return rest_ensure_response($result);
+    }
+
+    /**
+     * GET /procare/photos
+     * Used by TV Dashboard to get native image URLs
+     */
+    public function get_procare_photos($request) {
+        $referer = $request->get_header('referer');
+        // Optional: validate referer is our own site
+
+        // Identify school based on request or global context?
+        // TV dashboard usually calls 'tv/{slug}'. 
+        // But here we need to know WHICH school.
+        // Let's require the slug param.
+        
+        $slug = $request->get_param('slug');
+        if (!$slug) {
+            // Try to infer from referrer or just fail
+             return new WP_Error('no_slug', 'School slug required', ['status' => 400]);
+        }
+
+        $school = get_page_by_path($slug, OBJECT, 'chroma_school');
+        if (!$school) {
+            return new WP_Error('no_school', 'School not found', ['status' => 404]);
+        }
+
+        $photos = Chroma_Procare_API::get_slideshow_photos($school->ID);
+        return rest_ensure_response(['photos' => $photos]);
     }
 
     /**

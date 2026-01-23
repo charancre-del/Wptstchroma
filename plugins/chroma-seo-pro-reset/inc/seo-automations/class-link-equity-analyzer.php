@@ -563,3 +563,5 @@ add_action('wp_ajax_chroma_link_equity_ai_apply', function() {
 });
 
 new Chroma_Link_Equity_Analyzer();
+
+

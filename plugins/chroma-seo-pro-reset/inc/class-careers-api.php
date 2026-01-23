@@ -39,7 +39,7 @@ class Chroma_Careers_API
         ));
 
         if (is_wp_error($response)) {
-            error_log('Chroma Careers API Error: ' . $response->get_error_message());
+            chroma_debug_log(' Careers API Error: ' . $response->get_error_message());
             return array();
         }
 
@@ -99,3 +99,5 @@ if (!function_exists('chroma_get_careers')) {
         return Chroma_Careers_API::get_careers($force_refresh);
     }
 }
+
+

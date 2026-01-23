@@ -54,6 +54,68 @@ if (!function_exists('chroma_get_theme_mod')) {
     }
 }
 
+/**
+ * Cached WP_Query helper function
+ * Reduces database queries by caching results in transients
+ *
+ * @param array  $args            WP_Query arguments
+ * @param string $cache_key_prefix Cache key prefix for identification
+ * @param int    $expiration      Cache duration in seconds (default: 1 hour)
+ * @return WP_Query Cached or fresh query results
+ */
+if (!function_exists('chroma_cached_query')) {
+    function chroma_cached_query($args, $cache_key_prefix, $expiration = HOUR_IN_SECONDS) {
+        $cache_key = 'chroma_' . $cache_key_prefix . '_' . md5(serialize($args));
+        $cached = get_transient($cache_key);
+        
+        if (false !== $cached && $cached instanceof WP_Query) {
+            return $cached;
+        }
+        
+        $query = new WP_Query($args);
+        set_transient($cache_key, $query, $expiration);
+        
+        return $query;
+    }
+}
+
+/**
+ * Clear cached queries when posts are updated
+ * Ensures fresh data after content changes
+ */
+function chroma_clear_query_cache($post_id) {
+    $post_type = get_post_type($post_id);
+    if (!$post_type) {
+        return;
+    }
+    
+    // Map post types to cache prefixes
+    $cache_prefixes = array(
+        'post'        => array('footer_blog', 'newsroom'),
+        'location'    => array('locations'),
+        'program'     => array('programs'),
+        'city'        => array('cities'),
+        'team_member' => array('team'),
+    );
+    
+    if (isset($cache_prefixes[$post_type])) {
+        foreach ($cache_prefixes[$post_type] as $prefix) {
+            // Delete all transients with this prefix
+            global $wpdb;
+            $wpdb->query(
+                $wpdb->prepare(
+                    "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+                    '_transient_chroma_' . $wpdb->esc_like($prefix) . '%',
+                    '_transient_timeout_chroma_' . $wpdb->esc_like($prefix) . '%'
+                )
+            );
+        }
+    }
+}
+add_action('save_post', 'chroma_clear_query_cache');
+add_action('delete_post', 'chroma_clear_query_cache');
+add_action('trash_post', 'chroma_clear_query_cache');
+
 
 
 /**
@@ -68,6 +130,8 @@ require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
 require_once CHROMA_THEME_DIR . '/inc/program-settings.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
 require_once CHROMA_THEME_DIR . '/inc/admin/class-menu-sync.php';
+require_once CHROMA_THEME_DIR . '/inc/chroma-pdf-viewer.php';
+require_once CHROMA_THEME_DIR . '/inc/chroma-booking-modal.php';
 
 // Custom Post Types
 require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
@@ -75,7 +139,7 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-locations.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-cities.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-careers.php';
-require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
+// require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
 require_once CHROMA_THEME_DIR . '/inc/class-amp-blog.php';
 
 // API Handlers
@@ -90,7 +154,7 @@ require_once CHROMA_THEME_DIR . '/inc/parents-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/careers-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/employers-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/privacy-page-meta.php';
-require_once CHROMA_THEME_DIR . '/inc/schema-meta-boxes.php';
+// require_once CHROMA_THEME_DIR . '/inc/schema-meta-boxes.php';
 require_once CHROMA_THEME_DIR . '/inc/general-seo-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/home-page-meta.php';
 
@@ -99,7 +163,7 @@ require_once CHROMA_THEME_DIR . '/inc/home-page-meta.php';
 require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
-require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
+// require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-home.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
@@ -114,7 +178,7 @@ require_once CHROMA_THEME_DIR . '/inc/acf-homepage.php';
 require_once CHROMA_THEME_DIR . '/inc/cleanup.php';
 
 // SEO and Internationalization
-require_once CHROMA_THEME_DIR . '/inc/seo-engine.php';
+// require_once CHROMA_THEME_DIR . '/inc/seo-engine.php';
 require_once CHROMA_THEME_DIR . '/inc/city-slug-logic.php';
 // require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
 require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';

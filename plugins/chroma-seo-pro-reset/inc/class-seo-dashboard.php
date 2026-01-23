@@ -39,6 +39,8 @@ class Chroma_SEO_Dashboard
         add_action('wp_ajax_chroma_clear_validation_cache', [$this, 'ajax_clear_validation_cache']);
         add_action('wp_ajax_chroma_save_validator_setting', [$this, 'ajax_save_validator_setting']);
         add_action('wp_ajax_chroma_run_link_analysis', [$this, 'ajax_run_link_analysis']);
+        add_action('wp_ajax_chroma_schema_cleanup_scan', [$this, 'ajax_schema_cleanup_scan']);
+        add_action('wp_ajax_chroma_schema_cleanup_execute', [$this, 'ajax_schema_cleanup_execute']);
         add_action('rest_api_init', [$this, 'register_rest_routes']);
         add_action('admin_init', [$this, 'register_settings']);
         add_action('transition_post_status', [$this, 'auto_validate_on_publish'], 10, 3);
@@ -350,8 +352,8 @@ class Chroma_SEO_Dashboard
                     class="nav-tab <?php echo $active_tab === 'sitemap' ? 'nav-tab-active' : ''; ?>">Sitemap</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=social'); ?>"
                     class="nav-tab <?php echo $active_tab === 'social' ? 'nav-tab-active' : ''; ?>">Social Preview</a>
-                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk'); ?>"
-                    class="nav-tab <?php echo $active_tab === 'bulk' ? 'nav-tab-active' : ''; ?>">Bulk Builder</a>
+                <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=registry'); ?>"
+                    class="nav-tab <?php echo $active_tab === 'registry' ? 'nav-tab-active' : ''; ?>">Registry & Maintenance</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk-validation'); ?>"
                     class="nav-tab <?php echo $active_tab === 'bulk-validation' ? 'nav-tab-active' : ''; ?>">Bulk Validation</a>
                 <a href="<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=settings'); ?>"
@@ -410,8 +412,8 @@ class Chroma_SEO_Dashboard
                 case 'social':
                     $this->render_social_tab();
                     break;
-                case 'bulk':
-                    $this->render_bulk_ops_tab();
+                case 'registry':
+                    $this->render_registry_tab();
                     break;
                 case 'bulk-validation':
                     $this->render_bulk_validation_tab();
@@ -867,7 +869,16 @@ class Chroma_SEO_Dashboard
                             </div>
                             <div>
                                 <strong>Description:</strong>
-                                <div style="font-size: 11px; line-height: 1.4;"><?php echo wp_trim_words($desc, 15); ?></div>
+                                <?php 
+                                $is_manual_desc = !empty(get_post_meta($id, 'seo_llm_description', true));
+                                $is_ai_desc = !$is_manual_desc && class_exists('Chroma_Fallback_Resolver') && Chroma_Fallback_Resolver::get_cached_ai_value($id, 'description');
+                                
+                                if ($is_manual_desc): ?>
+                                    <span class="chroma-badge chroma-badge-manual">✏️ Manual</span>
+                                <?php elseif ($is_ai_desc): ?>
+                                    <span class="chroma-badge" style="background: #f0f6fc; color: #005a9c; border: 1px solid #c2dbff;">🤖 AI</span>
+                                <?php endif; ?>
+                                <div style="font-size: 11px; line-height: 1.4; margin-top: 3px;"><?php echo wp_trim_words($desc, 15); ?></div>
                             </div>
                         </td>
                         <td>
@@ -1236,25 +1247,66 @@ class Chroma_SEO_Dashboard
                     $.post(ajaxurl, {
                         action: 'chroma_generate_schema',
                         post_id: postId,
-                        schema_type: type
+                        schema_type: type,
+                        auto_save: 'true'
                     }, function (response) {
                         btn.prop('disabled', false).html('<span class="dashicons dashicons-superhero" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> Auto-Fill');
 
                         if (response.success) {
                             var data = response.data;
                             // Populate fields
-                            $.each(data, function (key, value) {
-                                var input = block.find('[data-name="' + key + '"]');
-                                if (input.length) {
-                                    if (input.hasClass('chroma-repeater-input')) {
-                                        // Handle simple repeater logic if needed, for now supports simple fields
-                                    } else {
-                                        input.val(value);
-                                        // Highlight change
-                                        input.css('background-color', '#f0f6fc').animate({ backgroundColor: '#fff' }, 2000);
+                            // Helper: Populate Form Recursive
+                            function populateFormRecursive(data, $container, prefix) {
+                                $.each(data, function (key, value) {
+                                    // 1. Try Simple Field (Direct Match)
+                                    var input = $container.find('[data-name="' + key + '"]').filter(':not(.chroma-repeater-input)');
+                                    
+                                    if (input.length > 0) {
+                                        if (typeof value === 'object' && value !== null) {
+                                            // Handle Nested Object (e.g. geo: {lat: 1, lng: 2} -> geo_lat, geo_lng)
+                                             populateFormRecursive(value, $container, key + '_');
+                                        } else {
+                                            input.val(value).trigger('change');
+                                            input.css('background-color', '#f0f6fc').animate({ backgroundColor: '#fff' }, 2000);
+                                        }
+                                        return; // Continue to next key
                                     }
-                                }
-                            });
+
+                                    // 2. Try Repeater Field (Wrapper Match)
+                                    var repeater = $container.find('.chroma-repeater-wrapper[data-key="' + key + '"]');
+                                    if (repeater.length > 0 && Array.isArray(value)) {
+                                        var $itemsContainer = repeater.find('.chroma-repeater-items');
+                                        $itemsContainer.empty(); // Clear existing rows
+                                        
+                                        var subfields = repeater.data('subfields'); // We need to ensure subfields data is available? 
+                                        // Actually easier: Trigger "Add Row" for each item, then populate the last row
+                                        var $addBtn = repeater.find('.chroma-add-repeater-row');
+                                        
+                                        value.forEach(function(rowItem) {
+                                            $addBtn.trigger('click');
+                                            var $newRow = $itemsContainer.children().last();
+                                            // Recursively populate this new row
+                                            // Note: Row inputs have data-name="fieldName", not "parent_fieldName"
+                                            populateFormRecursive(rowItem, $newRow, ''); 
+                                        });
+                                        return;
+                                    }
+                                    
+                                    // 3. Try Flattening (e.g. location_name -> location.name)
+                                    // If we are here, we didn't find a direct input. 
+                                    // If value is a simple string, maybe the form expects "prefix_key"?
+                                    if (prefix && typeof value !== 'object') {
+                                         var compositeKey = prefix + key;
+                                         var compositeInput = $container.find('[data-name="' + compositeKey + '"]');
+                                         if (compositeInput.length) {
+                                             compositeInput.val(value).css('background-color', '#f0f6fc');
+                                         }
+                                    }
+                                });
+                            }
+
+                            // Start Population
+                            populateFormRecursive(data, block, '');
                              // Auto-save after AI fills data
                                     $('#chroma-inspector-save').trigger('click');
                                 } else {
@@ -1265,6 +1317,59 @@ class Chroma_SEO_Dashboard
                     });
                 </script>
                 
+                // Toggle JSON/Form View Handler
+                $(document).on('click', '.chroma-toggle-json', function(e) {
+                    e.preventDefault();
+                    var block = $(this).closest('.chroma-schema-block');
+                    var formView = block.find('.chroma-schema-form');
+                    var jsonView = block.find('.chroma-json-editor');
+                    var textarea = jsonView.find('textarea');
+
+                    if (formView.is(':visible')) {
+                        // Switch to JSON: Serialize form to JSON
+                        var rawData = {};
+                        
+                        // Scrape simple inputs
+                        block.find('.chroma-schema-input').each(function() {
+                            var name = $(this).data('name');
+                            if (name) rawData[name] = $(this).val();
+                        });
+
+                        // Scrape repeaters
+                        block.find('.chroma-repeater-wrapper').each(function() {
+                            var key = $(this).data('key');
+                            var items = [];
+                            $(this).find('.chroma-repeater-items .chroma-repeater-row').each(function() {
+                                var row = {};
+                                $(this).find('.chroma-schema-input').each(function() { // Note: class is same for simple/repeater inputs
+                                   var rowKey = $(this).data('name');
+                                   if (rowKey) row[rowKey] = $(this).val();
+                                });
+                                // Only push if not empty
+                                if (!$.isEmptyObject(row)) items.push(row);
+                            });
+                             // Don't add empty arrays
+                             if (items.length > 0) rawData[key] = items;
+                        });
+
+                        textarea.val(JSON.stringify(rawData, null, 4));
+                        formView.hide();
+                        jsonView.show();
+                        $(this).html('<span class="dashicons dashicons-editor-table" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> Form');
+                    } else {
+                        // Switch to Form: Parse JSON and populate
+                        try {
+                            var json = JSON.parse(textarea.val());
+                            populateFormRecursive(json, block, '');
+                            formView.show();
+                            jsonView.hide();
+                             $(this).html('<span class="dashicons dashicons-code-standards" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> JSON');
+                        } catch (err) {
+                            alert('Invalid JSON: ' + err.message);
+                        }
+                    }
+                });
+
                 <!-- Feature 14: Schema Sync Toolbar JavaScript -->
                 <script>
                 jQuery(document).ready(function($) {
@@ -1359,26 +1464,26 @@ class Chroma_SEO_Dashboard
         ob_start();
 
         // Debug Logging
-        error_log('Chroma SEO: ajax_fetch_inspector_data called');
+        chroma_debug_log(' SEO: ajax_fetch_inspector_data called');
 
         if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
             ob_end_clean();
-            error_log('Chroma SEO: Nonce verification failed');
+            chroma_debug_log(' SEO: Nonce verification failed');
             wp_send_json_error(['message' => 'Security check failed (Nonce)']);
         }
 
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        error_log('Chroma SEO: Fetching schema for Post ID: ' . $post_id);
+        chroma_debug_log(' SEO: Fetching schema for Post ID: ' . $post_id);
 
         if (!$post_id) {
             ob_end_clean();
-            error_log('Chroma SEO: No Post ID provided');
+            chroma_debug_log(' SEO: No Post ID provided');
             wp_send_json_error(['message' => 'Invalid Post ID']);
         }
 
         if (!class_exists('Chroma_Schema_Types')) {
             ob_end_clean();
-            error_log('Chroma SEO: Chroma_Schema_Types class missing');
+            chroma_debug_log(' SEO: Chroma_Schema_Types class missing');
             wp_send_json_error(['message' => 'Critical Error: Schema Types Library missing']);
         }
 
@@ -1432,7 +1537,7 @@ class Chroma_SEO_Dashboard
 
                         <div id="chroma-active-schemas">
                             <?php
-                            error_log('Chroma SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
+                            chroma_debug_log(' SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
 
                             if (empty($existing_schemas)) {
                                 echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
@@ -1455,7 +1560,7 @@ class Chroma_SEO_Dashboard
                                         continue;
                                     }
                                     $valid_count++;
-                                    $this->render_schema_block($schema['type'], $schema['data'], $index);
+                                    $this->render_schema_block($schema['type'], $schema['data'], $index, $post_id);
                                 }
                                 if ($valid_count === 0 && !empty($existing_schemas)) {
                                     echo '<div class="notice notice-error" style="padding: 10px; margin: 10px 0;">';
@@ -1488,11 +1593,13 @@ class Chroma_SEO_Dashboard
                         // Force clean response
                         @header('Content-Type: application/json; charset=utf-8');
                         echo json_encode(['success' => true, 'data' => ['html' => $html]]);
-                        die();
+                        wp_die();
 
         } catch (Throwable $e) {
             ob_end_clean(); // Clean buffer if error
-            error_log('Chroma SEO Error: ' . $e->getMessage());
+            if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                chroma_debug_log(' SEO Error: ' . $e->getMessage());
+            }
             wp_send_json_error(['message' => 'Error: ' . $e->getMessage()]);
         }
     }
@@ -1500,7 +1607,7 @@ class Chroma_SEO_Dashboard
     /**
      * Render a single schema block
      */
-    private function render_schema_block($type, $data = [], $index = 0)
+    private function render_schema_block($type, $data = [], $index = 0, $post_id = 0)
     {
         $definitions = Chroma_Schema_Types::get_definitions();
         if (!isset($definitions[$type]))
@@ -1514,6 +1621,9 @@ class Chroma_SEO_Dashboard
                         style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
                         <span><?php echo esc_html($def['label']); ?></span>
                         <div>
+                            <button class="button button-small chroma-toggle-json" title="Toggle JSON/Form View" style="margin-right: 5px;">
+                                <span class="dashicons dashicons-code-standards" style="font-size: 14px; width: 14px; height: 14px; vertical-align: middle;"></span> JSON
+                            </button>
                             <button class="button button-small chroma-ai-autofill" data-type="<?php echo esc_attr($type); ?>"
                                 style="margin-right: 10px; border-color: #8c64ff; color: #6b42e4;">
                                 <span class="dashicons dashicons-superhero"
@@ -1523,9 +1633,34 @@ class Chroma_SEO_Dashboard
                         </div>
                     </h3>
 
-                    <table class="form-table" style="margin-top: 0;">
+                    <div class="chroma-json-editor" style="display: none; margin-bottom: 15px;">
+                        <textarea class="large-text code" rows="10" placeholder="{ ... }" style="width: 100%; font-family: monospace; background: #f6f7f7;"><?php 
+                            // Prepare JSON representation for the editor
+                            $clean_data = $data;
+                            if (isset($clean_data['custom_fields'])) {
+                                // Maybe clean up custom fields for display?
+                            }
+                            echo esc_textarea(json_encode($clean_data, JSON_PRETTY_PRINT)); 
+                        ?></textarea>
+                        <p class="description">Edit raw JSON data here. Switch back to Form view to apply changes.</p>
+                    </div>
+
+                    <table class="form-table chroma-schema-form" style="margin-top: 0;">
                         <?php foreach ($def['fields'] as $key => $field):
                             $val = isset($data[$key]) ? $data[$key] : '';
+                            $is_ai = false;
+                            $placeholder = '';
+
+                            // Only check for AI fallback if current value is empty and we have a post_id
+                            if (empty($val) && $post_id) {
+                                if (class_exists('Chroma_Fallback_Resolver')) {
+                                    $ai_val = Chroma_Fallback_Resolver::get_cached_ai_value($post_id, $key);
+                                    if ($ai_val) {
+                                        $val = $ai_val;
+                                        $is_ai = true;
+                                    }
+                                }
+                            }
 
                             // Handle array values for non-repeater fields (like sameAs)
                             if (is_array($val) && $field['type'] !== 'repeater') {
@@ -1535,6 +1670,9 @@ class Chroma_SEO_Dashboard
                                 <tr>
                                     <th scope="row" style="padding: 10px 0; width: 200px;">
                                         <?php echo esc_html($field['label']); ?>
+                                        <?php if ($is_ai): ?>
+                                            <span class="chroma-ai-badge" title="AI Generated Fallback" style="background: #f0f6fc; color: #005a9c; border: 1px solid #c2dbff; border-radius: 3px; padding: 1px 4px; font-size: 10px; vertical-align: middle; margin-left: 5px;">🤖 AI</span>
+                                        <?php endif; ?>
                                         <?php if (!empty($field['description'])): ?>
                                                 <span class="dashicons dashicons-editor-help chroma-help-tip"
                                                     title="<?php echo esc_attr($field['description']); ?>"
@@ -1634,7 +1772,7 @@ class Chroma_SEO_Dashboard
         }
 
         ob_start();
-        $this->render_schema_block($type, $prefill_data, $index);
+        $this->render_schema_block($type, $prefill_data, $index, $post_id);
         $html = ob_get_clean();
 
         wp_send_json_success(['html' => $html]);
@@ -1646,26 +1784,26 @@ class Chroma_SEO_Dashboard
     public function ajax_save_inspector_data()
     {
         // Log incoming request for debugging
-        error_log('Chroma SEO Save: ajax_save_inspector_data called');
+        chroma_debug_log(' SEO Save: ajax_save_inspector_data called');
 
         if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
-            error_log('Chroma SEO Save: Nonce verification failed');
+            chroma_debug_log(' SEO Save: Nonce verification failed');
             wp_send_json_error(['message' => 'Security check failed']);
         }
 
         if (!current_user_can('edit_posts')) {
-            error_log('Chroma SEO Save: User lacks edit_posts capability');
+            chroma_debug_log(' SEO Save: User lacks edit_posts capability');
             wp_send_json_error(['message' => 'Permission denied']);
         }
 
         $post_id = intval($_POST['post_id']);
         $schemas = isset($_POST['schemas']) ? $_POST['schemas'] : [];
 
-        error_log('Chroma SEO Save: Post ID = ' . $post_id);
-        error_log('Chroma SEO Save: Raw schemas received = ' . print_r($schemas, true));
+        chroma_debug_log(' SEO Save: Post ID = ' . $post_id);
+        chroma_debug_log(' SEO Save: Raw schemas received = ' . print_r($schemas, true));
 
         if (!$post_id) {
-            error_log('Chroma SEO Save: Invalid post ID');
+            chroma_debug_log(' SEO Save: Invalid post ID');
             wp_send_json_error(['message' => 'Invalid post ID']);
         }
 
@@ -1705,10 +1843,10 @@ class Chroma_SEO_Dashboard
             }
         }
 
-        error_log('Chroma SEO Save: Cleaned schemas = ' . print_r($clean_schemas, true));
+        chroma_debug_log(' SEO Save: Cleaned schemas = ' . print_r($clean_schemas, true));
 
         $result = update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
-        error_log('Chroma SEO Save: update_post_meta result = ' . ($result ? 'success/updated' : 'no change or failed'));
+        chroma_debug_log(' SEO Save: update_post_meta result = ' . ($result ? 'success/updated' : 'no change or failed'));
 
         wp_send_json_success(['message' => 'Saved successfully', 'schemas_count' => count($clean_schemas)]);
     }
@@ -2105,9 +2243,9 @@ class Chroma_SEO_Dashboard
     }
 
     /**
-     * Render Bulk Operations Tab
+     * Render Bulk Operations Tab Content (Partial)
      */
-    private function render_bulk_ops_tab()
+    private function render_bulk_ops_tab_content()
     {
         $ptype = isset($_GET['ptype']) ? sanitize_text_field($_GET['ptype']) : 'location';
         $paged = isset($_GET['paged']) ? intval($_GET['paged']) : 1;
@@ -2131,7 +2269,7 @@ class Chroma_SEO_Dashboard
                         style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center; background: #f0f0f1; padding: 10px; border-radius: 4px;">
                         <label><strong>Post Type:</strong></label>
                         <select
-                            onchange="window.location.href='<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=bulk&ptype='); ?>' + this.value">
+                            onchange="window.location.href='<?php echo admin_url('admin.php?page=chroma-seo-dashboard&tab=registry&ptype='); ?>' + this.value">
                             <option value="location" <?php selected($ptype, 'location'); ?>>Locations</option>
                             <option value="program" <?php selected($ptype, 'program'); ?>>Programs</option>
                             <option value="page" <?php selected($ptype, 'page'); ?>>Pages</option>
@@ -3661,7 +3799,7 @@ class Chroma_SEO_Dashboard
         }
         
         $response = wp_remote_get($url, [
-            'timeout' => 30,
+            'timeout' => 60,
             'sslverify' => false,
             'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
         ]);
@@ -3708,32 +3846,116 @@ class Chroma_SEO_Dashboard
         $live_schemas = json_decode(stripslashes($_POST['schemas']), true);
         
         if (!$post_id || empty($live_schemas)) {
-            wp_send_json_error(['message' => 'Invalid data']);
+            wp_send_json_error(['message' => 'Invalid data or no schemas provided']);
         }
         
-        // Convert to Builder format
+        $available_defs = Chroma_Schema_Types::get_definitions();
         $builder_schemas = [];
+        
+        $aliases = [
+            'Preschool' => 'ChildCare',
+            'School' => 'ChildCare',
+            'EducationalOrganization' => 'ChildCare',
+            'DayCare' => 'ChildCare',
+            'EmergencyService' => 'LocalBusiness',
+            'Restaurant' => 'LocalBusiness',
+        ];
+
         foreach ($live_schemas as $schema) {
             $type = $schema['@type'] ?? 'Unknown';
             if (is_array($type)) {
                 $type = $type[0];
             }
             
-            // Remove @context and @type from data (Builder adds these)
-            unset($schema['@context']);
-            unset($schema['@type']);
+            // Handle Aliases
+            if (isset($aliases[$type])) {
+                $type = $aliases[$type];
+            }
             
-            $builder_schemas[] = [
-                'type' => $type,
-                'data' => $schema
-            ];
+            // Skip unrecognized types
+            if (!isset($available_defs[$type])) {
+                continue;
+            }
+
+            // Flatten Nested Data (Address)
+            if (isset($schema['address']) && is_array($schema['address'])) {
+                $addr = $schema['address'];
+                $schema['streetAddress'] = $addr['streetAddress'] ?? ($schema['streetAddress'] ?? '');
+                $schema['addressLocality'] = $addr['addressLocality'] ?? ($schema['addressLocality'] ?? '');
+                $schema['addressRegion'] = $addr['addressRegion'] ?? ($schema['addressRegion'] ?? '');
+                $schema['postalCode'] = $addr['postalCode'] ?? ($schema['postalCode'] ?? '');
+            }
+
+            // Flatten Nested Data (Geo)
+            if (isset($schema['geo']) && is_array($schema['geo'])) {
+                $geo = $schema['geo'];
+                $schema['geo_lat'] = $geo['latitude'] ?? ($schema['geo_lat'] ?? '');
+                $schema['geo_lng'] = $geo['longitude'] ?? ($schema['geo_lng'] ?? '');
+            }
+
+            // Extract valid fields defined in our Builder for this type
+            $field_data = [];
+            $def_fields = $available_defs[$type]['fields'] ?? [];
+            
+            foreach ($def_fields as $key => $field_def) {
+                if (isset($schema[$key])) {
+                    $val = $schema[$key];
+                    
+                    // Handle Complex Types mapping to Simple Fields
+                    if ($field_def['type'] !== 'repeater') {
+                        // Case 1: Value is an Array
+                        if (is_array($val)) {
+                            // Check if it's an array of strings
+                            if (count(array_filter($val, 'is_string')) === count($val)) {
+                                $val = implode(', ', $val);
+                            } 
+                            // Check if it's a single object (associative array)
+                            elseif (array_keys($val) !== range(0, count($val) - 1)) {
+                                // It's an object. Try to extract common values.
+                                if (isset($val['name'])) $val = $val['name'];
+                                elseif (isset($val['url'])) $val = $val['url'];
+                                elseif (isset($val['@id'])) $val = $val['@id'];
+                                else $val = json_encode($val); // Fallback
+                            }
+                            // Check if it's a list of objects
+                            else {
+                                // Extract names or URLs from list
+                                $mapped = [];
+                                foreach ($val as $v) {
+                                    if (is_array($v)) {
+                                        if (isset($v['name'])) $mapped[] = $v['name'];
+                                        elseif (isset($v['url'])) $mapped[] = $v['url'];
+                                        elseif (isset($v['@id'])) $mapped[] = $v['@id'];
+                                    } elseif (is_string($v)) {
+                                        $mapped[] = $v;
+                                    }
+                                }
+                                $val = !empty($mapped) ? implode(', ', $mapped) : json_encode($val);
+                            }
+                        }
+                    }
+                    
+                    $field_data[$key] = $val;
+                }
+            }
+
+            if (!empty($field_data)) {
+                $builder_schemas[] = [
+                    'type' => $type,
+                    'data' => $field_data
+                ];
+            }
         }
         
+        if (empty($builder_schemas)) {
+            wp_send_json_error(['message' => 'Zero recognized schemas found to sync. Only standard Schema.org types are supported by the Builder.']);
+        }
+
         update_post_meta($post_id, '_chroma_post_schemas', $builder_schemas);
         
         wp_send_json_success([
             'synced' => count($builder_schemas),
-            'message' => 'Synced ' . count($builder_schemas) . ' schemas to Builder'
+            'message' => 'Successfully synced ' . count($builder_schemas) . ' schemas to the Builder.'
         ]);
     }
 
@@ -3866,7 +4088,7 @@ class Chroma_SEO_Dashboard
         ]);
         
         if (is_wp_error($response)) {
-            error_log('[Chroma SEO] Sitemap fetch error for ' . $sitemap_url . ': ' . $response->get_error_message());
+            chroma_debug_log('[Chroma SEO] Sitemap fetch error for ' . $sitemap_url . ': ' . $response->get_error_message());
             return [];
         }
         
@@ -3878,7 +4100,7 @@ class Chroma_SEO_Dashboard
         libxml_clear_errors();
         
         if (!$xml) {
-            error_log('[Chroma SEO] Failed to parse sitemap XML: ' . $sitemap_url);
+            chroma_debug_log('[Chroma SEO] Failed to parse sitemap XML: ' . $sitemap_url);
             return [];
         }
         
@@ -4601,4 +4823,747 @@ class Chroma_SEO_Dashboard
         update_option('chroma_seo_link_report', $report);
         wp_send_json_success('Analysis complete');
     }
+
+    /**
+     * Render Registry & Maintenance Tab (Consolidated)
+     */
+    /**
+     * Render Registry & Maintenance Tab (Consolidated)
+     */
+    public function render_registry_tab()
+    {
+        global $wpdb;
+        
+        // 1. Get Real Database Stats (Not Runtime)
+        $total_schemas_count = 0;
+        $posts_with_schema = $wpdb->get_var("
+            SELECT COUNT(DISTINCT post_id) 
+            FROM {$wpdb->postmeta} 
+            WHERE meta_key = '_chroma_post_schemas' 
+            AND meta_value != '' AND meta_value != 'a:0:{}'
+        ");
+
+        // Calculate total individual schemas
+        $all_meta = $wpdb->get_col("SELECT meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_chroma_post_schemas'");
+        foreach ($all_meta as $val) {
+            $data = maybe_unserialize($val);
+            if (is_array($data)) {
+                $total_schemas_count += count($data);
+            }
+        }
+        
+        // 2. Check Registry Class Status
+        $registry_active = class_exists('Chroma_Schema_Registry');
+        ?>
+        <div class="chroma-seo-card">
+            <h2>📊 Registry System Status</h2>
+            <p>This dashboard monitors the <strong>Chroma Schema Registry</strong> logic and database health.</p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <!-- System Health -->
+                <div style="background: <?php echo $registry_active ? '#f0f6fc' : '#fff5f5'; ?>; padding: 15px; border: 1px solid <?php echo $registry_active ? '#c2dbff' : '#fcb3b3'; ?>; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: <?php echo $registry_active ? '#005a9c' : '#d63638'; ?>;">
+                        <?php echo $registry_active ? '✅ Registry Logic Active' : '❌ Registry Logic Missing'; ?>
+                    </h3>
+                    <p>The Registry class is loaded and ready to filter frontend output.</p>
+                    <p><strong>Passthrough Mode:</strong> <span style="color: #00a32a; font-weight: bold;">Enabled</span></p>
+                </div>
+
+                <!-- Database Stats -->
+                <div style="background: #e8f5e9; padding: 15px; border: 1px solid #4caf50; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: #2e7d32;">💾 Database Content</h3>
+                    <table class="widefat striped" style="background: transparent; border: none;">
+                        <tbody>
+                            <tr>
+                                <td><strong>Managed Posts:</strong></td>
+                                <td><?php echo intval($posts_with_schema); ?> posts have schema</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Schemas:</strong></td>
+                                <td><strong><?php echo intval($total_schemas_count); ?></strong> schemas stored</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- UNIVERSAL VALIDATOR -->
+            <div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; border-left: 4px solid #673ab7;">
+                <h3 style="margin-top: 0; color: #673ab7;">🌐 Universal Live Validator</h3>
+                <p>Enter any URL from your site to see EXACTLY what schemas are being output to Google. This detects duplicates and non-Registry schemas.</p>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <input type="url" id="live-check-url" class="regular-text" style="width: 100%; max-width: 500px;" 
+                           placeholder="https://yourwebsite.com/sample-page/" value="<?php echo home_url('/'); ?>">
+                    <button id="live-check-btn" class="button button-primary button-hero">
+                        <span class="dashicons dashicons-search" style="margin-right: 5px; line-height: 1.5;"></span> Check Live Output
+                    </button>
+                </div>
+                
+                <span id="live-check-spinner" class="spinner" style="float: none; margin-top: 10px;"></span>
+                
+                <div id="live-check-results" style="margin-top: 20px; display: none;">
+                    <!-- Results injected here -->
+                </div>
+            </div>
+        </div>
+
+        <hr style="margin: 30px 0;">
+
+        <!-- Consolidated Tools Section -->
+        <div class="chroma-seo-card">
+            <h2>🛠️ Maintenance Tools</h2>
+            
+            <!-- Tab Navigation for Tools -->
+            <?php
+            // Determine active tool based on URL params
+            $active_tool = (isset($_GET['ptype']) || isset($_GET['paged'])) ? 'tool-bulk' : 'tool-cleanup';
+            ?>
+            <h3 class="nav-tab-wrapper" style="margin-bottom: 15px;">
+                <a href="#tool-cleanup" class="nav-tab <?php echo $active_tool === 'tool-cleanup' ? 'nav-tab-active' : ''; ?>" onclick="switchToolTab(event, 'tool-cleanup')">Schema Cleanup</a>
+                <a href="#tool-bulk" class="nav-tab <?php echo $active_tool === 'tool-bulk' ? 'nav-tab-active' : ''; ?>" onclick="switchToolTab(event, 'tool-bulk')">Bulk Actions</a>
+            </h3>
+
+            <!-- Tool: Schema Cleanup -->
+            <div id="tool-cleanup" class="tool-content" <?php echo $active_tool !== 'tool-cleanup' ? 'style="display: none;"' : ''; ?>>
+                <?php $this->render_cleanup_tab_content(); ?>
+            </div>
+
+            <!-- Tool: Bulk Actions -->
+            <div id="tool-bulk" class="tool-content" <?php echo $active_tool !== 'tool-bulk' ? 'style="display: none;"' : ''; ?>>
+                <?php $this->render_bulk_ops_tab_content(); ?>
+            </div>
+        </div>
+
+        <script>
+        function switchToolTab(e, id) {
+            e.preventDefault();
+            jQuery('.tool-content').hide();
+            jQuery('#' + id).show();
+            jQuery('.nav-tab').removeClass('nav-tab-active');
+            jQuery(e.target).addClass('nav-tab-active');
+        }
+
+        jQuery(document).ready(function($) {
+            $('#live-check-btn').on('click', function(e) {
+                e.preventDefault();
+                var url = $('#live-check-url').val();
+                if (!url) {
+                    alert('Please enter a URL');
+                    return;
+                }
+                
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#live-check-spinner').addClass('is-active');
+                $('#live-check-results').hide().html('');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_check_live_registry',
+                    nonce: '<?php echo wp_create_nonce('chroma_schema_live_check'); ?>',
+                    url: url
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    $('#live-check-spinner').removeClass('is-active');
+                    
+                    if (response.success) {
+                        var data = response.data;
+                        var color = data.schema_blocks_found > 1 ? '#d63638' : (data.schema_count > 0 ? '#00a32a' : '#ff9800');
+                        
+                        var html = '<div style="padding: 15px; background: #fafafa; border: 1px solid #ddd; border-left: 4px solid ' + color + ';">';
+                        html += '<h3 style="margin-top: 0; color: ' + color + ';">Analysis Result</h3>';
+                        html += '<p><strong>Status:</strong> Found ' + data.schema_count + ' schema items in ' + data.schema_blocks_found + ' script block(s).</p>';
+                        
+                        if (data.schema_blocks_found > 1) {
+                            html += '<p style="color: #d63638; background: #ffebee; padding: 10px;"><strong>⚠️ WARNING: Multiple JSON-LD blocks found!</strong><br>This usually means something is bypassing the Registry. One block is likely from the Registry, and others are from the Theme or another plugin.</p>';
+                        }
+                        
+                        html += '<hr>';
+                        
+                        // List found schemas
+                        if (data.schemas && data.schemas.length > 0) {
+                            html += '<table class="widefat striped">';
+                            html += '<thead><tr><th>Type</th><th>Source Block</th><th>Context</th></tr></thead><tbody>';
+                            data.schemas.forEach(function(s, index) {
+                                html += '<tr>';
+                                html += '<td><strong>' + s.type + '</strong></td>';
+                                html += '<td>Block #' + (s.block_index + 1) + '</td>';
+                                html += '<td><code>' + (s.context || 'N/A') + '</code></td>';
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                        } else {
+                            html += '<p>No schemas found on this page.</p>';
+                        }
+                        
+                        html += '</div>';
+                        $('#live-check-results').html(html).show();
+                    } else {
+                        alert('Check failed: ' + (response.data || 'Unknown error'));
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * AJAX: Check Live Registry Output
+     */
+    public function ajax_check_live_registry()
+    {
+        check_ajax_referer('chroma_schema_live_check', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+        
+        $url = isset($_POST['url']) ? esc_url_raw($_POST['url']) : '';
+        if (empty($url)) {
+            wp_send_json_error('Invalid URL');
+        }
+        
+        // Fetch the page
+        $response = wp_remote_get($url, [
+            'timeout' => 15,
+            'sslverify' => false
+        ]);
+        
+        if (is_wp_error($response)) {
+            wp_send_json_error('Fetch failed: ' . $response->get_error_message());
+        }
+        
+        $html = wp_remote_retrieve_body($response);
+        if (empty($html)) {
+            wp_send_json_error('Empty response from URL');
+        }
+        
+        // Parse HTML for JSON-LD
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true); // Suppress HTML5 parsing errors
+        $dom->loadHTML($html);
+        libxml_clear_errors();
+        
+        $scripts = $dom->getElementsByTagName('script');
+        $found_schemas = [];
+        $block_count = 0;
+        
+        foreach ($scripts as $script) {
+            if ($script->getAttribute('type') === 'application/ld+json') {
+                $content = $script->nodeValue;
+                $json = json_decode($content, true);
+                
+                if ($json) {
+                    $items = isset($json['@graph']) ? $json['@graph'] : [$json];
+                    foreach ($items as $item) {
+                        $found_schemas[] = [
+                            'type' => isset($item['@type']) ? (is_array($item['@type']) ? implode(', ', $item['@type']) : $item['@type']) : 'Unknown',
+                            'context' => isset($item['@context']) ? $item['@context'] : '',
+                            'block_index' => $block_count
+                        ];
+                    }
+                    $block_count++;
+                }
+            }
+        }
+        
+        wp_send_json_success([
+            'schema_count' => count($found_schemas),
+            'schema_blocks_found' => $block_count,
+            'schemas' => $found_schemas
+        ]);
+    }
+
+    /**
+     * Render Schema Cleanup Tab Content (Partial)
+     */
+    private function render_cleanup_tab_content()
+    {
+        // Get invalid types list (Expanded)
+        $invalid_types = defined('CHROMA_INVALID_SCHEMA_TYPES') ? CHROMA_INVALID_SCHEMA_TYPES : [
+            'VacationRental', 'MobileApplication', 'SoftwareApplication', 'WebApplication',
+            'VideoGame', 'RealEstateListing', 'Hotel', 'Restaurant', 'LodgingBusiness',
+            'Brand', 'Motel', 'Resort', 'Hostel', 'BedAndBreakfast', 'Campground',
+            'Product', 'Service', 'Review', 'AggregateRating', 'Offer'
+        ];
+        
+        // Check if registry is active
+        $registry_active = class_exists('Chroma_Schema_Registry');
+        ?>
+        <div class="chroma-seo-card">
+            <h2>🧹 Schema Cleanup Tools</h2>
+            <p>Scan and remove invalid or unwanted schema types from your posts. These issues were identified during schema audits.</p>
+        </div>
+
+        <!-- Schema Registry Status -->
+        <div class="chroma-seo-card" style="background: <?php echo $registry_active ? '#e8f5e9' : '#fff3e0'; ?>; border-left: 4px solid <?php echo $registry_active ? '#00a32a' : '#ff9800'; ?>;">
+            <h3>🔗 Schema Registry Status</h3>
+            <?php if ($registry_active): ?>
+                <p style="color: #00a32a;"><strong>✅ Registry is ACTIVE</strong></p>
+                <p>The Schema Registry is filtering duplicate and invalid schema types at output time.</p>
+                <ul style="margin-left: 20px;">
+                    <li><strong>Deduplication:</strong> Prevents duplicate @type and @id schemas</li>
+                    <li><strong>Invalid Type Blocking:</strong> Blocks VacationRental, MobileApplication, etc.</li>
+                    <li><strong>Debug Panel:</strong> Add <code>?schema_debug=1</code> to any page URL to see what's registered/blocked</li>
+                </ul>
+                <p><a href="<?php echo home_url('/?schema_debug=1'); ?>" target="_blank" class="button">View Registry Debug on Homepage</a></p>
+            <?php else: ?>
+                <p style="color: #ff9800;"><strong>⚠️ Registry is NOT ACTIVE</strong></p>
+                <p>The Schema Registry class is not loaded. Check that <code>class-schema-registry.php</code> exists.</p>
+            <?php endif; ?>
+        </div>
+
+        <!-- Bulk Cleanup Action -->
+        <div class="chroma-seo-card" style="background: #ffebee; border-left: 4px solid #d63638;">
+            <h3>⚡ Quick Bulk Cleanup</h3>
+            <p>Remove all invalid schema types from <strong>all posts</strong> in one click:</p>
+            <button id="bulk-cleanup-btn" class="button button-primary button-hero" style="background: #d63638; border-color: #b71c1c; font-size: 16px; margin: 10px 0;">
+                <span class="dashicons dashicons-trash" style="margin-right: 8px; line-height: 1.4;"></span> Run Bulk Cleanup Now
+            </button>
+            <span id="bulk-cleanup-spinner" class="spinner" style="float: none;"></span>
+            <div id="bulk-cleanup-result" style="margin-top: 10px;"></div>
+            <p class="description">This scans all posts and removes invalid schema types from <code>_chroma_post_schemas</code> meta.</p>
+        </div>
+
+        <div class="chroma-seo-card">
+            <h3>📋 Invalid Schema Types Blocklist</h3>
+            <p>The following schema types are blocked by the Registry and will be removed by cleanup:</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0;">
+                <?php foreach ($invalid_types as $type): ?>
+                    <span style="background: #ffebee; color: #d63638; padding: 4px 12px; border-radius: 4px; font-family: monospace;"><?php echo esc_html($type); ?></span>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <div class="chroma-seo-card">
+            <h3>🔍 Scan for Invalid Schemas</h3>
+            <p>Click below to scan all posts for invalid schema types stored in <code>_chroma_post_schemas</code> meta.</p>
+            
+            <button id="cleanup-scan-btn" class="button button-primary" style="margin: 10px 0;">
+                <span class="dashicons dashicons-search" style="margin-right: 5px;"></span> Scan Posts
+            </button>
+            <span id="cleanup-scan-spinner" class="spinner" style="float: none;"></span>
+            
+            <div id="cleanup-scan-results" style="margin-top: 20px; display: none;">
+                <h4>Scan Results</h4>
+                <p id="cleanup-summary"></p>
+                <div id="cleanup-posts-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: #fafafa;"></div>
+                
+                <div id="cleanup-actions" style="margin-top: 15px; display: none;">
+                    <button id="cleanup-execute-btn" class="button button-primary">
+                        <span class="dashicons dashicons-trash" style="margin-right: 5px;"></span> Remove Invalid Schemas
+                    </button>
+                    <span id="cleanup-execute-spinner" class="spinner" style="float: none;"></span>
+                    <p class="description" style="color: #d63638;">⚠️ This action cannot be undone. Make sure to backup your database first.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="chroma-seo-card">
+            <h3>📊 FAQ Schema Audit</h3>
+            <p>Check for posts with FAQ schema that may not need it. FAQ data is stored in <code>chroma_faq_items</code> meta.</p>
+            <button id="faq-audit-btn" class="button" style="margin: 10px 0;">
+                <span class="dashicons dashicons-editor-help" style="margin-right: 5px;"></span> Audit FAQ Usage
+            </button>
+            <span id="faq-audit-spinner" class="spinner" style="float: none;"></span>
+            <div id="faq-audit-results" style="margin-top: 20px; display: none;"></div>
+        </div>
+
+        <script>
+        jQuery(document).ready(function($) {
+            var cleanupNonce = '<?php echo wp_create_nonce('chroma_schema_cleanup'); ?>';
+            var scannedData = [];
+
+            // Bulk cleanup (scan + execute in one step)
+            $('#bulk-cleanup-btn').on('click', function(e) {
+                e.preventDefault();
+                
+                if (!confirm('⚠️ This will scan ALL posts and remove invalid schema types.\n\nAre you sure you want to proceed?')) {
+                    return;
+                }
+                
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#bulk-cleanup-spinner').addClass('is-active');
+                $('#bulk-cleanup-result').html('<p>Scanning posts...</p>');
+                
+                // Step 1: Scan
+                $.post(ajaxurl, {
+                    action: 'chroma_schema_cleanup_scan',
+                    nonce: cleanupNonce
+                }, function(response) {
+                    if (!response.success) {
+                        btn.prop('disabled', false);
+                        $('#bulk-cleanup-spinner').removeClass('is-active');
+                        $('#bulk-cleanup-result').html('<p style="color: #d63638;">❌ Scan failed: ' + (response.data || 'Unknown error') + '</p>');
+                        return;
+                    }
+                    
+                    var posts = response.data.posts;
+                    if (posts.length === 0) {
+                        btn.prop('disabled', false);
+                        $('#bulk-cleanup-spinner').removeClass('is-active');
+                        $('#bulk-cleanup-result').html('<p style="color: #00a32a;">✅ No invalid schemas found! Database is clean.</p>');
+                        return;
+                    }
+                    
+                    $('#bulk-cleanup-result').html('<p>Found ' + posts.length + ' posts with invalid schemas. Cleaning up...</p>');
+                    
+                    // Step 2: Execute cleanup
+                    $.post(ajaxurl, {
+                        action: 'chroma_schema_cleanup_execute',
+                        nonce: cleanupNonce,
+                        post_ids: posts.map(function(p) { return p.id; })
+                    }, function(execResponse) {
+                        btn.prop('disabled', false);
+                        $('#bulk-cleanup-spinner').removeClass('is-active');
+                        
+                        if (execResponse.success) {
+                            $('#bulk-cleanup-result').html(
+                                '<p style="color: #00a32a; font-size: 16px;"><strong>✅ Bulk Cleanup Complete!</strong></p>' +
+                                '<p>Removed invalid schemas from <strong>' + execResponse.data.cleaned + '</strong> posts.</p>' +
+                                '<p>Remember to <strong>clear your site cache</strong> to see the changes on the frontend.</p>'
+                            );
+                        } else {
+                            $('#bulk-cleanup-result').html('<p style="color: #d63638;">❌ Cleanup failed: ' + (execResponse.data || 'Unknown error') + '</p>');
+                        }
+                    });
+                });
+            });
+
+            // Scan for invalid schemas
+            $('#cleanup-scan-btn').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#cleanup-scan-spinner').addClass('is-active');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_schema_cleanup_scan',
+                    nonce: cleanupNonce
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    $('#cleanup-scan-spinner').removeClass('is-active');
+                    
+                    if (response.success) {
+                        scannedData = response.data.posts;
+                        var total = response.data.total_posts;
+                        var affected = response.data.affected_posts;
+                        var invalidCount = response.data.invalid_count;
+                        
+                        $('#cleanup-summary').html(
+                            '✅ Scanned <strong>' + total + '</strong> posts. ' +
+                            'Found <strong style="color: #d63638;">' + affected + '</strong> posts with ' +
+                            '<strong style="color: #d63638;">' + invalidCount + '</strong> invalid schema entries.'
+                        );
+                        
+                        // Show breakdown of ALL types (Valid & Invalid)
+                        if (response.data.all_types_breakdown) {
+                            var breakdownHtml = '<div style="margin: 15px 0; padding: 10px; background: #eef; border: 1px solid #ccd; border-radius: 4px;">';
+                            breakdownHtml += '<strong>📊 Diagnostic: All Schema Types Found in DB:</strong><br>';
+                            breakdownHtml += '<small>If you see your "rogue" schema here but it is not flagged as invalid, it is likely a duplicate valid type.</small>';
+                            breakdownHtml += '<ul style="margin: 5px 0 0 20px; list-style: disc; columns: 2;">';
+                            $.each(response.data.all_types_breakdown, function(type, count) {
+                                breakdownHtml += '<li>' + type + ': <strong>' + count + '</strong></li>';
+                            });
+                            breakdownHtml += '</ul></div>';
+                            $('#cleanup-summary').append(breakdownHtml);
+                        }
+                        
+                        var listHtml = '';
+                        if (scannedData.length > 0) {
+                            scannedData.forEach(function(post) {
+                                listHtml += '<div style="padding: 8px; border-bottom: 1px solid #eee;">';
+                                listHtml += '<strong><a href="' + post.edit_url + '" target="_blank">' + post.title + '</a></strong>';
+                                listHtml += ' <span style="color: #666;">(' + post.post_type + ')</span><br>';
+                                listHtml += '<span style="color: #d63638;">Invalid: ' + post.invalid_types.join(', ') + '</span>';
+                                listHtml += '</div>';
+                            });
+                            $('#cleanup-actions').show();
+                        } else {
+                            listHtml = '<p style="color: #00a32a;">✓ No invalid schemas found!</p>';
+                            $('#cleanup-actions').hide();
+                        }
+                        
+                        $('#cleanup-posts-list').html(listHtml);
+                        $('#cleanup-scan-results').show();
+                    } else {
+                        alert('Scan failed: ' + (response.data || 'Unknown error'));
+                    }
+                });
+            });
+
+            // Execute cleanup
+            $('#cleanup-execute-btn').on('click', function(e) {
+                e.preventDefault();
+                
+                if (!confirm('Are you sure you want to remove invalid schemas from ' + scannedData.length + ' posts? This cannot be undone.')) {
+                    return;
+                }
+                
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#cleanup-execute-spinner').addClass('is-active');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_schema_cleanup_execute',
+                    nonce: cleanupNonce,
+                    post_ids: scannedData.map(function(p) { return p.id; })
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    $('#cleanup-execute-spinner').removeClass('is-active');
+                    
+                    if (response.success) {
+                        alert('✅ Cleanup complete! Removed invalid schemas from ' + response.data.cleaned + ' posts.');
+                        $('#cleanup-scan-btn').click(); // Re-scan to show updated state
+                    } else {
+                        alert('Cleanup failed: ' + (response.data || 'Unknown error'));
+                    }
+                });
+            });
+
+            // FAQ Audit
+            $('#faq-audit-btn').on('click', function(e) {
+                e.preventDefault();
+                var btn = $(this);
+                btn.prop('disabled', true);
+                $('#faq-audit-spinner').addClass('is-active');
+                
+                $.post(ajaxurl, {
+                    action: 'chroma_schema_cleanup_scan',
+                    nonce: cleanupNonce,
+                    scan_type: 'faq'
+                }, function(response) {
+                    btn.prop('disabled', false);
+                    $('#faq-audit-spinner').removeClass('is-active');
+                    
+                    if (response.success) {
+                        var html = '<p>Found <strong>' + response.data.faq_count + '</strong> posts with FAQ data.</p>';
+                        
+                        if (response.data.faq_posts && response.data.faq_posts.length > 0) {
+                            html += '<table class="widefat" style="margin-top: 10px;">';
+                            html += '<thead><tr><th>Post</th><th>Type</th><th>FAQ Items</th><th>Actions</th></tr></thead><tbody>';
+                            response.data.faq_posts.forEach(function(post) {
+                                html += '<tr>';
+                                html += '<td><a href="' + post.edit_url + '" target="_blank">' + post.title + '</a></td>';
+                                html += '<td>' + post.post_type + '</td>';
+                                html += '<td>' + post.faq_count + '</td>';
+                                html += '<td><a href="' + post.edit_url + '" class="button button-small">Edit</a></td>';
+                                html += '</tr>';
+                            });
+                            html += '</tbody></table>';
+                        }
+                        
+                        $('#faq-audit-results').html(html).show();
+                    } else {
+                        alert('Audit failed');
+                    }
+                });
+            });
+        });
+        </script>
+        <?php
+    }
+
+    /**
+     * AJAX: Scan for invalid schema types
+     */
+    public function ajax_schema_cleanup_scan()
+    {
+        check_ajax_referer('chroma_schema_cleanup', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+
+        global $wpdb;
+        
+        $scan_type = isset($_POST['scan_type']) ? sanitize_text_field($_POST['scan_type']) : 'invalid';
+        
+        if ($scan_type === 'faq') {
+            // Scan for FAQ meta
+            $faq_posts = $wpdb->get_results("
+                SELECT p.ID, p.post_title, p.post_type, pm.meta_value
+                FROM {$wpdb->posts} p
+                INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+                WHERE pm.meta_key = 'chroma_faq_items'
+                AND p.post_status = 'publish'
+                ORDER BY p.post_title ASC
+            ");
+            
+            $result = [
+                'faq_count' => count($faq_posts),
+                'faq_posts' => []
+            ];
+            
+            foreach ($faq_posts as $post) {
+                $faq_items = maybe_unserialize($post->meta_value);
+                $result['faq_posts'][] = [
+                    'id' => $post->ID,
+                    'title' => $post->post_title,
+                    'post_type' => $post->post_type,
+                    'faq_count' => is_array($faq_items) ? count($faq_items) : 0,
+                    'edit_url' => get_edit_post_link($post->ID, 'raw')
+                ];
+            }
+            
+            wp_send_json_success($result);
+            return;
+        }
+        
+        // Scan ALL schema related meta fields
+        $posts_with_schemas = $wpdb->get_results("
+            SELECT p.ID, p.post_title, p.post_type, pm.meta_key, pm.meta_value
+            FROM {$wpdb->posts} p
+            INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
+            WHERE pm.meta_key IN ('_chroma_post_schemas', '_chroma_schema_override', '_chroma_schema_type')
+            AND p.post_status = 'publish'
+        ");
+        
+        $affected_posts_map = [];
+        $total_invalid = 0;
+        
+        foreach ($posts_with_schemas as $post) {
+            $post_id = $post->ID;
+            if (!isset($affected_posts_map[$post_id])) {
+                $affected_posts_map[$post_id] = [
+                    'id' => $post_id,
+                    'title' => $post->post_title,
+                    'post_type' => $post->post_type,
+                    'invalid_types' => [],
+                    'edit_url' => get_edit_post_link($post_id, 'raw')
+                ];
+            }
+
+            $val = maybe_unserialize($post->meta_value);
+            $invalid_found = [];
+
+            if ($post->meta_key === '_chroma_post_schemas' && is_array($val)) {
+                foreach ($val as $schema) {
+                    $type = isset($schema['type']) ? $schema['type'] : '';
+                    if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($type)) {
+                        $invalid_found[] = $type;
+                    }
+                }
+            } elseif ($post->meta_key === '_chroma_schema_type' && is_string($val)) {
+                if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($val)) {
+                    $invalid_found[] = $val . ' (Legacy)';
+                }
+            } elseif ($post->meta_key === '_chroma_schema_override' && is_string($val)) {
+                $json = json_decode($val, true);
+                if ($json) {
+                    $type = $json['@type'] ?? '';
+                    if (is_array($type)) $type = $type[0] ?? '';
+                    if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($type)) {
+                        $invalid_found[] = $type . ' (Override)';
+                    }
+                }
+            }
+            
+            if (!empty($invalid_found)) {
+                $affected_posts_map[$post_id]['invalid_types'] = array_unique(array_merge($affected_posts_map[$post_id]['invalid_types'], $invalid_found));
+            }
+        }
+        
+        // Filter out posts that don't actually have invalid types
+        $affected_posts = array_values(array_filter($affected_posts_map, function($p) {
+            return !empty($p['invalid_types']);
+        }));
+
+        foreach ($affected_posts as $p) {
+            $total_invalid += count($p['invalid_types']);
+        }
+        
+        // Scan ALL types for reporting (Sprint 9 Update)
+        $all_types_found = [];
+        foreach ($posts_with_schemas as $p) {
+            $val = maybe_unserialize($p->meta_value);
+            if (is_array($val)) {
+                foreach ($val as $s) {
+                    if (isset($s['type'])) {
+                        $t = $s['type'];
+                        $all_types_found[$t] = ($all_types_found[$t] ?? 0) + 1;
+                    }
+                }
+            }
+        }
+
+        wp_send_json_success([
+            'total_posts' => count(array_unique(array_column($posts_with_schemas, 'ID'))),
+            'affected_posts' => count($affected_posts),
+            'invalid_count' => $total_invalid,
+            'posts' => $affected_posts,
+            'all_types_breakdown' => $all_types_found
+        ]);
+    }
+
+    /**
+     * AJAX: Execute schema cleanup
+     */
+    public function ajax_schema_cleanup_execute()
+    {
+        check_ajax_referer('chroma_schema_cleanup', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Permission denied');
+        }
+
+        $post_ids = isset($_POST['post_ids']) ? array_map('intval', $_POST['post_ids']) : [];
+        
+        if (empty($post_ids)) {
+            wp_send_json_error('No posts specified');
+        }
+        
+        $cleaned = 0;
+        
+        foreach ($post_ids as $post_id) {
+            $changed = false;
+
+            // 1. Clean Builder Schemas
+            $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+            if (is_array($schemas)) {
+                $clean_schemas = [];
+                foreach ($schemas as $schema) {
+                    $type = isset($schema['type']) ? $schema['type'] : '';
+                    if (!function_exists('chroma_is_invalid_schema_type') || !chroma_is_invalid_schema_type($type)) {
+                        $clean_schemas[] = $schema;
+                    }
+                }
+                if (count($clean_schemas) !== count($schemas)) {
+                    update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
+                    $changed = true;
+                }
+            }
+
+            // 2. Clean Legacy Type
+            $legacy_type = get_post_meta($post_id, '_chroma_schema_type', true);
+            if ($legacy_type && function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($legacy_type)) {
+                delete_post_meta($post_id, '_chroma_schema_type');
+                $changed = true;
+            }
+
+            // 3. Clean Overrides
+            $override = get_post_meta($post_id, '_chroma_schema_override', true);
+            if ($override) {
+                $json = json_decode($override, true);
+                if ($json) {
+                    $type = $json['@type'] ?? '';
+                    if (is_array($type)) $type = $type[0] ?? '';
+                    if ($type && function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($type)) {
+                        delete_post_meta($post_id, '_chroma_schema_override');
+                        $changed = true;
+                    }
+                }
+            }
+            
+            if ($changed) {
+                $cleaned++;
+            }
+        }
+        
+        wp_send_json_success(['cleaned' => $cleaned]);
+    }
 }
+
+

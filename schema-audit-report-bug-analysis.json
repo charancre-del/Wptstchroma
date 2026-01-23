@@ -1,0 +1,3864 @@
+{
+  "generated": "2026-01-18T05:26:11.112Z",
+  "issues": {
+    "faqOnAllPages": [
+      "https://chromaela.com/locations/satellite-bvd-campus/",
+      "https://chromaela.com/locations/johns-creek/",
+      "https://chromaela.com/locations/tyrone-campus/",
+      "https://chromaela.com/locations/lawrenceville-campus/",
+      "https://chromaela.com/locations/pleasanthill-campus-duluth/",
+      "https://chromaela.com/locations/cherokee-campus/",
+      "https://chromaela.com/locations/lilburn-campus/",
+      "https://chromaela.com/locations/east-cobb-campus/",
+      "https://chromaela.com/locations/roswell-campus/",
+      "https://chromaela.com/locations/ellenwood-campus/",
+      "https://chromaela.com/locations/west-cobb-campus/",
+      "https://chromaela.com/locations/jonesboro-campus/",
+      "https://chromaela.com/locations/rivergreen-campus/",
+      "https://chromaela.com/locations/south-cobb-campus-austell/",
+      "https://chromaela.com/locations/newnan/",
+      "https://chromaela.com/childcare/austell/",
+      "https://chromaela.com/childcare/jonesboro/",
+      "https://chromaela.com/childcare/lovejoy/",
+      "https://chromaela.com/childcare/canton/",
+      "https://chromaela.com/childcare/milton/",
+      "https://chromaela.com/programs/pre-k-prep/",
+      "https://chromaela.com/childcare/lithia-springs/",
+      "https://chromaela.com/childcare/tyrone/",
+      "https://chromaela.com/childcare/waleska/",
+      "https://chromaela.com/childcare/jasper/",
+      "https://chromaela.com/childcare/east-cobb/",
+      "https://chromaela.com/childcare/ellenwood/",
+      "https://chromaela.com/childcare/rex/",
+      "https://chromaela.com/childcare/decatur/",
+      "https://chromaela.com/childcare/stockbridge/",
+      "https://chromaela.com/childcare/morrow/",
+      "https://chromaela.com/childcare/duluth/",
+      "https://chromaela.com/childcare/peachtree-corners/",
+      "https://chromaela.com/childcare/hampton/",
+      "https://chromaela.com/childcare/lawrenceville/",
+      "https://chromaela.com/childcare/snellville/",
+      "https://chromaela.com/childcare/lilburn/",
+      "https://chromaela.com/childcare/tucker/",
+      "https://chromaela.com/childcare/stone-mountain/",
+      "https://chromaela.com/childcare/newnan/",
+      "https://chromaela.com/childcare/fairburn/",
+      "https://chromaela.com/childcare/gainesville/",
+      "https://chromaela.com/childcare/dawsonville/",
+      "https://chromaela.com/childcare/murrayville/",
+      "https://chromaela.com/childcare/dahlonega/",
+      "https://chromaela.com/childcare/clermont/",
+      "https://chromaela.com/childcare/north-hall/",
+      "https://chromaela.com/es/childcare/powder-springs/",
+      "https://chromaela.com/es/childcare/lithia-springs/",
+      "https://chromaela.com/es/childcare/tyrone/",
+      "https://chromaela.com/es/childcare/fayetteville/",
+      "https://chromaela.com/es/childcare/west-cobb/",
+      "https://chromaela.com/es/childcare/kennesaw/",
+      "https://chromaela.com/es/childcare/canton/",
+      "https://chromaela.com/es/childcare/woodstock/",
+      "https://chromaela.com/es/childcare/ballground/",
+      "https://chromaela.com/es/childcare/milton/",
+      "https://chromaela.com/es/childcare/waleska/",
+      "https://chromaela.com/es/childcare/jasper/",
+      "https://chromaela.com/es/childcare/east-cobb/",
+      "https://chromaela.com/es/childcare/marietta/",
+      "https://chromaela.com/es/childcare/roswell/",
+      "https://chromaela.com/es/childcare/ellenwood/",
+      "https://chromaela.com/es/childcare/rex/",
+      "https://chromaela.com/es/childcare/decatur/",
+      "https://chromaela.com/es/childcare/stockbridge/",
+      "https://chromaela.com/es/childcare/morrow/",
+      "https://chromaela.com/es/childcare/johns-creek/",
+      "https://chromaela.com/es/childcare/alpharetta/",
+      "https://chromaela.com/es/childcare/duluth/",
+      "https://chromaela.com/es/childcare/peachtree-corners/",
+      "https://chromaela.com/es/childcare/jonesboro/",
+      "https://chromaela.com/es/childcare/lovejoy/",
+      "https://chromaela.com/es/childcare/hampton/",
+      "https://chromaela.com/es/childcare/lawrenceville/",
+      "https://chromaela.com/es/childcare/snellville/",
+      "https://chromaela.com/es/childcare/norcross/",
+      "https://chromaela.com/es/childcare/lilburn/",
+      "https://chromaela.com/es/childcare/tucker/",
+      "https://chromaela.com/es/childcare/stone-mountain/",
+      "https://chromaela.com/es/childcare/mcdonough/",
+      "https://chromaela.com/es/childcare/locust-grove/",
+      "https://chromaela.com/es/childcare/griffin/",
+      "https://chromaela.com/es/childcare/cumming/",
+      "https://chromaela.com/es/childcare/newnan/",
+      "https://chromaela.com/es/childcare/peachtree-city/",
+      "https://chromaela.com/es/childcare/fairburn/",
+      "https://chromaela.com/es/childcare/palmetto/",
+      "https://chromaela.com/es/childcare/gainesville/",
+      "https://chromaela.com/es/childcare/dawsonville/",
+      "https://chromaela.com/es/childcare/murrayville/",
+      "https://chromaela.com/es/childcare/dahlonega/",
+      "https://chromaela.com/es/childcare/clermont/",
+      "https://chromaela.com/es/childcare/north-hall/",
+      "https://chromaela.com/es/childcare/austell/",
+      "https://chromaela.com/es/childcare/mableton/"
+    ],
+    "excessiveSchemas": [
+      {
+        "url": "https://chromaela.com/",
+        "count": 10,
+        "types": [
+          "ImageObject",
+          "WebSite",
+          "ProfilePage",
+          "WebPage",
+          "FAQPage",
+          "EducationalOrganization",
+          "ChildCare"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/north-hall-campus-murraysville/",
+        "count": 16,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/midway-campus/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "MobileApplication",
+          "Course",
+          "BreadcrumbList",
+          "VacationRental",
+          "SoftwareApplication",
+          "WebApplication",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/satellite-bvd-campus/",
+        "count": 22,
+        "types": [
+          "WebPage",
+          "FAQPage",
+          "BreadcrumbList",
+          "ImageObject",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/tramore-campus-austell/",
+        "count": 13,
+        "types": [
+          "BreadcrumbList",
+          "ImageObject",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2026/01/07/early-education-expansion-chroma-academys-19-new-locations/",
+        "count": 9,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/johns-creek/",
+        "count": 36,
+        "types": [
+          "WebApplication",
+          "ImageObject",
+          "VacationRental",
+          "SoftwareApplication",
+          "Course",
+          "Person",
+          "BreadcrumbList",
+          "MobileApplication",
+          "WebPage",
+          "FAQPage",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/tyrone-campus/",
+        "count": 20,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "WebPage",
+          "FAQPage",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/lawrenceville-campus/",
+        "count": 34,
+        "types": [
+          "ImageObject",
+          "MobileApplication",
+          "SoftwareApplication",
+          "WebApplication",
+          "VacationRental",
+          "Course",
+          "BreadcrumbList",
+          "WebPage",
+          "FAQPage",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/pleasanthill-campus-duluth/",
+        "count": 35,
+        "types": [
+          "VacationRental",
+          "ImageObject",
+          "MobileApplication",
+          "SoftwareApplication",
+          "WebApplication",
+          "Course",
+          "BreadcrumbList",
+          "FAQPage",
+          "Person",
+          "WebPage",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/cherokee-campus/",
+        "count": 33,
+        "types": [
+          "Course",
+          "ImageObject",
+          "VacationRental",
+          "BreadcrumbList",
+          "MobileApplication",
+          "SoftwareApplication",
+          "WebApplication",
+          "WebPage",
+          "FAQPage",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/lilburn-campus/",
+        "count": 32,
+        "types": [
+          "VacationRental",
+          "ImageObject",
+          "BreadcrumbList",
+          "Course",
+          "Person",
+          "SoftwareApplication",
+          "WebApplication",
+          "MobileApplication",
+          "WebPage",
+          "FAQPage",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/east-cobb-campus/",
+        "count": 21,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "WebPage",
+          "FAQPage",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/roswell-campus/",
+        "count": 33,
+        "types": [
+          "VacationRental",
+          "Course",
+          "ImageObject",
+          "SoftwareApplication",
+          "MobileApplication",
+          "BreadcrumbList",
+          "WebApplication",
+          "WebPage",
+          "FAQPage",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/ellenwood-campus/",
+        "count": 25,
+        "types": [
+          "BreadcrumbList",
+          "ImageObject",
+          "WebPage",
+          "FAQPage",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/west-cobb-campus/",
+        "count": 36,
+        "types": [
+          "ImageObject",
+          "Person",
+          "VacationRental",
+          "BreadcrumbList",
+          "MobileApplication",
+          "SoftwareApplication",
+          "WebApplication",
+          "Course",
+          "WebPage",
+          "FAQPage",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/jonesboro-campus/",
+        "count": 28,
+        "types": [
+          "ImageObject",
+          "VacationRental",
+          "BreadcrumbList",
+          "MobileApplication",
+          "SoftwareApplication",
+          "WebApplication",
+          "Course",
+          "WebPage",
+          "FAQPage",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/rivergreen-campus/",
+        "count": 16,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Person",
+          "WebPage",
+          "FAQPage",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/south-cobb-campus-austell/",
+        "count": 17,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Person",
+          "WebPage",
+          "FAQPage",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/locations/newnan/",
+        "count": 20,
+        "types": [
+          "VacationRental",
+          "WebApplication",
+          "SoftwareApplication",
+          "Course",
+          "MobileApplication",
+          "WebPage",
+          "FAQPage",
+          "BreadcrumbList",
+          "ImageObject",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/how-employee-benefits-surveys-boost-retention-and-support-business-growth/",
+        "count": 14,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "Brand",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-ellenwood-ga-chroma-academy/",
+        "count": 16,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-austell-ga-south-cobb-campus-by-chroma/",
+        "count": 15,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-newnan-ga-shenandoah-campus-by-chroma/",
+        "count": 14,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-jonesboro-ga-chroma-academy/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-austell-ga-tramore-campus-by-chroma/",
+        "count": 14,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/secure-the-best-childcare-in-alpharetta-ga-midway-campus/",
+        "count": 9,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/cherokee-academy-by-chroma-childcare-preschool-in-canton-ga/",
+        "count": 10,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-on-satellite-boulevard-duluth-ga-chroma/",
+        "count": 13,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-east-marietta-ga-chroma-academy/",
+        "count": 12,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-tyrone-ga-chroma-academy/",
+        "count": 10,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-murraysville-ga-north-hall-campus-by-chroma/",
+        "count": 14,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/rivergreen-campus-childcare-preschool-in-canton-ga-chroma/",
+        "count": 15,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/trusted-childcare-preschool-in-roswell-ga-chroma-academy/",
+        "count": 14,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/quality-childcare-preschool-in-duluth-ga-downtown-campus-by-chroma/",
+        "count": 9,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-lawrenceville-ga-chroma-academy/",
+        "count": 15,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/trusted-childcare-preschool-in-lilburn-ga-chroma-academy/",
+        "count": 10,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/strategies-for-supporting-children-with-autism-spectrum-disorder/",
+        "count": 12,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/helping-children-cope-with-family-changes/",
+        "count": 11,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/promoting-healthy-eating-habits-for-young-children/",
+        "count": 14,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/home-daycare-vs-childcare-center-a-comparison/",
+        "count": 12,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/fostering-emotional-readiness-for-kindergarten-success/",
+        "count": 11,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/top-questions-to-ask-childcare-providers/",
+        "count": 11,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/mastering-toddler-behavior-effective-tantrum-solutions/",
+        "count": 14,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/recognizing-developmental-red-flags-in-children/",
+        "count": 15,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/tips-for-effective-communication-with-toddlers/",
+        "count": 9,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/engaging-toddler-care-programs-in-roswell-ga/",
+        "count": 9,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/programs/",
+        "count": 15,
+        "types": [
+          "BreadcrumbList",
+          "Brand",
+          "CollectionPage",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/the-benefits-of-play-based-learning-in-preschool/",
+        "count": 9,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/understanding-our-childcare-illness-policy/",
+        "count": 11,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/effective-positive-discipline-techniques-for-young-children/",
+        "count": 9,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/healthy-screen-time-guidelines-for-young-children/",
+        "count": 10,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/comprehensive-allergy-management-in-our-childcare-centers/",
+        "count": 10,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/introducing-stem-concepts-to-preschoolers/",
+        "count": 10,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/engaging-toddler-care-programs-in-marietta-georgia/",
+        "count": 9,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/supporting-cognitive-development-in-school-age-children/",
+        "count": 9,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/austell/",
+        "count": 26,
+        "types": [
+          "VacationRental",
+          "Course",
+          "MobileApplication",
+          "SoftwareApplication",
+          "WebApplication",
+          "BreadcrumbList",
+          "ImageObject",
+          "Service",
+          "FAQPage",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/jonesboro/",
+        "count": 20,
+        "types": [
+          "SoftwareApplication",
+          "FAQPage",
+          "Course",
+          "VacationRental",
+          "MobileApplication",
+          "ImageObject",
+          "WebApplication",
+          "BreadcrumbList",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/lovejoy/",
+        "count": 27,
+        "types": [
+          "ImageObject",
+          "SoftwareApplication",
+          "WebApplication",
+          "Course",
+          "VacationRental",
+          "MobileApplication",
+          "BreadcrumbList",
+          "Service",
+          "FAQPage",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/canton/",
+        "count": 16,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Service",
+          "FAQPage",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/milton/",
+        "count": 23,
+        "types": [
+          "ImageObject",
+          "Course",
+          "VacationRental",
+          "BreadcrumbList",
+          "Service",
+          "SoftwareApplication",
+          "WebApplication",
+          "FAQPage",
+          "MobileApplication",
+          "WebPage",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/programs/toddler-care/",
+        "count": 10,
+        "types": [
+          "BreadcrumbList",
+          "ImageObject",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/programs/pre-k-prep/",
+        "count": 25,
+        "types": [
+          "WebApplication",
+          "VacationRental",
+          "MobileApplication",
+          "Course",
+          "BreadcrumbList",
+          "SoftwareApplication",
+          "WebPage",
+          "FAQPage",
+          "ImageObject",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/chroma-early-learning-academy-opens-registration-for-2025-summer-camp-and-georgia-pre-k-programs/",
+        "count": 18,
+        "types": [
+          "ImageObject",
+          "Event",
+          "Person",
+          "BreadcrumbList",
+          "Article",
+          "NewsArticle",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/16/early-education-trends-us-2025-key-insights-and-best-practices-for-future-learning/",
+        "count": 15,
+        "types": [
+          "ImageObject",
+          "Brand",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/why-you-should-not-over-react-when-your-child-gets-hurt-calm-parenting-and-emotional-support-strategies/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/how-to-raise-a-smarter-child-before-age-3-proven-brain-development-activities-and-early-intelligence-tips/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/chroma-early-learning-academy-your-premier-choice-for-daycare-and-preschool-in-alpharetta-milton-and-cumming-ga/",
+        "count": 14,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/8-pediatric-respiratory-distress-signs-every-parent-should-know/",
+        "count": 11,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/why-early-learning-assessments-are-essential-for-your-childs-success-at-chroma-academy/",
+        "count": 13,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/why-preschool-education-is-crucial-for-early-development-key-benefits-and-preparation-for-lifelong-success/",
+        "count": 16,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/10-practical-steps-to-budget-for-your-childs-early-education-expenses-year-round/",
+        "count": 9,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/the-critical-role-of-a-structured-curriculum-in-early-childhood-education-success-benefits-impact-and-kindergarten-readiness/",
+        "count": 14,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/enroll-at-chroma-academy-mcdonough-preschool-childcare-for-quality-early-learning/",
+        "count": 16,
+        "types": [
+          "Course",
+          "MobileApplication",
+          "VacationRental",
+          "SoftwareApplication",
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "WebApplication",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/how-integrating-technology-in-early-childhood-curriculum-boosts-learning-and-prepares-children-for-the-future/",
+        "count": 9,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/16/how-to-strengthen-home-school-connections-for-early-learners-to-boost-family-engagement-and-child-development/",
+        "count": 15,
+        "types": [
+          "Brand",
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/flexible-learning-areas-for-toddlers-explained-benefits-design-and-adaptable-classroom-ideas/",
+        "count": 14,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/chroma-early-learning-academy-enrollment-faqs-you-need-to-know-complete-guide-to-programs-process-and-parent-resources/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/empowering-families-through-effective-collaboration-in-early-childhood-education/",
+        "count": 14,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "Brand",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/09/interactive-learning-apps-revolutionizing-early-childhood-education-benefits-selection-and-future-trends/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/top-10-employee-retention-strategies-that-boost-job-satisfaction-and-cut-turnover/",
+        "count": 18,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "Article",
+          "Offer",
+          "Brand",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/top-strategies-to-boost-employee-retention-and-build-long-term-organizational-loyalty/",
+        "count": 12,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "Brand",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/learn-how-play-based-learning-transforms-early-childhood-education-for-holistic-child-development/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "Brand",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/your-daycare-tour-questions-a-parents-essential-checklist/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "Brand",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/why-children-need-movement-every-day/",
+        "count": 15,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "Brand",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/signs-your-child-is-ready-for-preschool-the-ultimate-preschool-readiness-checklist-and-guide/",
+        "count": 17,
+        "types": [
+          "Brand",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/5-things-to-say-instead-of-stop-crying/",
+        "count": 20,
+        "types": [
+          "Article",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "Offer",
+          "Brand",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/11/4-things-to-say-when-your-child-isnt-listening-that-actually-work/",
+        "count": 15,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "Article",
+          "Offer",
+          "Brand",
+          "ImageObject",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/rivergreen-campus-childcare-preschool-in-canton-ga-chroma/",
+        "count": 16,
+        "types": [
+          "Person",
+          "ImageObject",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/trusted-childcare-preschool-in-roswell-ga-chroma-academy/",
+        "count": 14,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "ImageObject",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/quality-childcare-preschool-in-duluth-ga-downtown-campus-by-chroma/",
+        "count": 15,
+        "types": [
+          "Person",
+          "ImageObject",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/childcare-preschool-in-lawrenceville-ga-chroma-academy/",
+        "count": 13,
+        "types": [
+          "ImageObject",
+          "Person",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/trusted-childcare-preschool-in-lilburn-ga-chroma-academy/",
+        "count": 13,
+        "types": [
+          "Person",
+          "ImageObject",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/26/best-infant-care-programs-in-atlanta-georgia/",
+        "count": 9,
+        "types": [
+          "Person",
+          "ImageObject",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/26/meet-our-dedicated-early-learning-academy-team/",
+        "count": 10,
+        "types": [
+          "Person",
+          "ImageObject",
+          "BreadcrumbList",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/26/nurturing-infant-care-programs-in-decatur-ga/",
+        "count": 12,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "ImageObject",
+          "BlogPosting",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/johns-creek/",
+        "count": 20,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "FAQPage",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/alpharetta/",
+        "count": 22,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Service",
+          "FAQPage",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/peachtree-corners/",
+        "count": 21,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "FAQPage",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/jonesboro/",
+        "count": 20,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "FAQPage",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/lovejoy/",
+        "count": 19,
+        "types": [
+          "ImageObject",
+          "FAQPage",
+          "BreadcrumbList",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/hampton/",
+        "count": 21,
+        "types": [
+          "BreadcrumbList",
+          "FAQPage",
+          "ImageObject",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/lawrenceville/",
+        "count": 20,
+        "types": [
+          "BreadcrumbList",
+          "ImageObject",
+          "FAQPage",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/snellville/",
+        "count": 19,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "FAQPage",
+          "Service",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/locations/tramore-campus-austell/",
+        "count": 17,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/locations/pleasanthill-campus-duluth/",
+        "count": 24,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/locations/lawrenceville-campus/",
+        "count": 25,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/locations/tyrone-campus/",
+        "count": 19,
+        "types": [
+          "BreadcrumbList",
+          "ImageObject",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/about/",
+        "count": 19,
+        "types": [
+          "ImageObject",
+          "AboutPage",
+          "Person",
+          "BreadcrumbList",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/locations/johns-creek/",
+        "count": 23,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Person",
+          "EducationalOrganization",
+          "ChildCare",
+          "Preschool",
+          "LocalBusiness"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/contact-us/",
+        "count": 11,
+        "types": [
+          "Person",
+          "BreadcrumbList",
+          "ImageObject",
+          "ContactPage",
+          "EducationalOrganization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/programs/infant-care/",
+        "count": 9,
+        "types": [
+          "ImageObject",
+          "BreadcrumbList",
+          "Service",
+          "EducationalOrganization"
+        ]
+      }
+    ],
+    "duplicateTypes": [
+      {
+        "url": "https://chromaela.com/",
+        "duplicates": {
+          "WebSite": 3
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/north-hall-campus-murraysville/",
+        "duplicates": {
+          "ImageObject": 9,
+          "BreadcrumbList": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/midway-campus/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/satellite-bvd-campus/",
+        "duplicates": {
+          "WebPage": 2,
+          "FAQPage": 2,
+          "BreadcrumbList": 2,
+          "ImageObject": 11,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/tramore-campus-austell/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "ImageObject": 8
+        }
+      },
+      {
+        "url": "https://chromaela.com/2026/01/07/early-education-expansion-chroma-academys-19-new-locations/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/johns-creek/",
+        "duplicates": {
+          "WebApplication": 2,
+          "ImageObject": 15,
+          "VacationRental": 2,
+          "SoftwareApplication": 2,
+          "Course": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "MobileApplication": 2,
+          "WebPage": 2,
+          "FAQPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/tyrone-campus/",
+        "duplicates": {
+          "ImageObject": 9,
+          "BreadcrumbList": 2,
+          "WebPage": 2,
+          "FAQPage": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/lawrenceville-campus/",
+        "duplicates": {
+          "ImageObject": 13,
+          "MobileApplication": 2,
+          "SoftwareApplication": 2,
+          "WebApplication": 2,
+          "VacationRental": 2,
+          "Course": 2,
+          "BreadcrumbList": 2,
+          "WebPage": 2,
+          "FAQPage": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/pleasanthill-campus-duluth/",
+        "duplicates": {
+          "VacationRental": 2,
+          "ImageObject": 14,
+          "MobileApplication": 2,
+          "SoftwareApplication": 2,
+          "WebApplication": 2,
+          "Course": 2,
+          "BreadcrumbList": 2,
+          "FAQPage": 2,
+          "Person": 2,
+          "WebPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/cherokee-campus/",
+        "duplicates": {
+          "Course": 2,
+          "ImageObject": 12,
+          "VacationRental": 2,
+          "BreadcrumbList": 2,
+          "MobileApplication": 2,
+          "SoftwareApplication": 2,
+          "WebApplication": 2,
+          "WebPage": 2,
+          "FAQPage": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/lilburn-campus/",
+        "duplicates": {
+          "VacationRental": 2,
+          "ImageObject": 11,
+          "BreadcrumbList": 2,
+          "Course": 2,
+          "Person": 2,
+          "SoftwareApplication": 2,
+          "WebApplication": 2,
+          "MobileApplication": 2,
+          "WebPage": 2,
+          "FAQPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/east-cobb-campus/",
+        "duplicates": {
+          "ImageObject": 12,
+          "Person": 2,
+          "BreadcrumbList": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/roswell-campus/",
+        "duplicates": {
+          "VacationRental": 2,
+          "Course": 2,
+          "ImageObject": 12,
+          "SoftwareApplication": 2,
+          "MobileApplication": 2,
+          "BreadcrumbList": 2,
+          "WebApplication": 2,
+          "WebPage": 2,
+          "FAQPage": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/ellenwood-campus/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "ImageObject": 14,
+          "WebPage": 2,
+          "FAQPage": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/west-cobb-campus/",
+        "duplicates": {
+          "ImageObject": 15,
+          "Person": 2,
+          "VacationRental": 2,
+          "BreadcrumbList": 2,
+          "MobileApplication": 2,
+          "SoftwareApplication": 2,
+          "WebApplication": 2,
+          "Course": 2,
+          "WebPage": 2,
+          "FAQPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/jonesboro-campus/",
+        "duplicates": {
+          "ImageObject": 7,
+          "VacationRental": 2,
+          "BreadcrumbList": 2,
+          "MobileApplication": 2,
+          "SoftwareApplication": 2,
+          "WebApplication": 2,
+          "Course": 2,
+          "WebPage": 2,
+          "FAQPage": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/rivergreen-campus/",
+        "duplicates": {
+          "ImageObject": 5,
+          "BreadcrumbList": 2,
+          "Person": 2,
+          "WebPage": 2,
+          "FAQPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/south-cobb-campus-austell/",
+        "duplicates": {
+          "ImageObject": 8,
+          "BreadcrumbList": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/newnan/",
+        "duplicates": {
+          "VacationRental": 2,
+          "WebApplication": 2,
+          "SoftwareApplication": 2,
+          "Course": 2,
+          "MobileApplication": 2,
+          "WebPage": 2,
+          "FAQPage": 2,
+          "BreadcrumbList": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/how-employee-benefits-surveys-boost-retention-and-support-business-growth/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "Brand": 2,
+          "ImageObject": 4
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-ellenwood-ga-chroma-academy/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 8
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-austell-ga-south-cobb-campus-by-chroma/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 7
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-newnan-ga-shenandoah-campus-by-chroma/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 6
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-jonesboro-ga-chroma-academy/",
+        "duplicates": {
+          "ImageObject": 5,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-austell-ga-tramore-campus-by-chroma/",
+        "duplicates": {
+          "ImageObject": 6,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/secure-the-best-childcare-in-alpharetta-ga-midway-campus/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/cherokee-academy-by-chroma-childcare-preschool-in-canton-ga/",
+        "duplicates": {
+          "ImageObject": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-on-satellite-boulevard-duluth-ga-chroma/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 5
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-east-marietta-ga-chroma-academy/",
+        "duplicates": {
+          "ImageObject": 4,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-tyrone-ga-chroma-academy/",
+        "duplicates": {
+          "ImageObject": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-murraysville-ga-north-hall-campus-by-chroma/",
+        "duplicates": {
+          "ImageObject": 6,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/rivergreen-campus-childcare-preschool-in-canton-ga-chroma/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 7
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/trusted-childcare-preschool-in-roswell-ga-chroma-academy/",
+        "duplicates": {
+          "ImageObject": 6,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/quality-childcare-preschool-in-duluth-ga-downtown-campus-by-chroma/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/childcare-preschool-in-lawrenceville-ga-chroma-academy/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 7
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/30/trusted-childcare-preschool-in-lilburn-ga-chroma-academy/",
+        "duplicates": {
+          "ImageObject": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/strategies-for-supporting-children-with-autism-spectrum-disorder/",
+        "duplicates": {
+          "ImageObject": 4,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/helping-children-cope-with-family-changes/",
+        "duplicates": {
+          "ImageObject": 3,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/promoting-healthy-eating-habits-for-young-children/",
+        "duplicates": {
+          "ImageObject": 6,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/home-daycare-vs-childcare-center-a-comparison/",
+        "duplicates": {
+          "ImageObject": 4,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/fostering-emotional-readiness-for-kindergarten-success/",
+        "duplicates": {
+          "ImageObject": 3,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/top-questions-to-ask-childcare-providers/",
+        "duplicates": {
+          "ImageObject": 3,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/29/strategies-for-preventing-childhood-obesity/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/mastering-toddler-behavior-effective-tantrum-solutions/",
+        "duplicates": {
+          "ImageObject": 6,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/recognizing-developmental-red-flags-in-children/",
+        "duplicates": {
+          "ImageObject": 7,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/required-enrollment-forms-and-documents-for-registration/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/tips-for-effective-communication-with-toddlers/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/27/engaging-toddler-care-programs-in-roswell-ga/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/locations/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "ImageObject": 2,
+          "CollectionPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/programs/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "Brand": 2,
+          "CollectionPage": 2,
+          "ImageObject": 7
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/the-benefits-of-play-based-learning-in-preschool/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/understanding-our-childcare-illness-policy/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 3
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/effective-positive-discipline-techniques-for-young-children/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/healthy-screen-time-guidelines-for-young-children/",
+        "duplicates": {
+          "ImageObject": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/comprehensive-allergy-management-in-our-childcare-centers/",
+        "duplicates": {
+          "ImageObject": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/guide-to-child-development-stages-ages-milestones/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/introducing-stem-concepts-to-preschoolers/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/guide-to-choosing-the-right-infant-daycare/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/engaging-toddler-care-programs-in-marietta-georgia/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/supporting-cognitive-development-in-school-age-children/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/childcare/austell/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "ImageObject": 13,
+          "Service": 2,
+          "FAQPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/childcare/jonesboro/",
+        "duplicates": {
+          "FAQPage": 2,
+          "ImageObject": 7,
+          "BreadcrumbList": 2,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/childcare/lovejoy/",
+        "duplicates": {
+          "ImageObject": 9,
+          "SoftwareApplication": 2,
+          "WebApplication": 2,
+          "Course": 2,
+          "VacationRental": 2,
+          "MobileApplication": 2,
+          "BreadcrumbList": 2,
+          "Service": 2,
+          "FAQPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/childcare/canton/",
+        "duplicates": {
+          "ImageObject": 8,
+          "BreadcrumbList": 2,
+          "Service": 2,
+          "FAQPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/childcare/milton/",
+        "duplicates": {
+          "ImageObject": 8,
+          "BreadcrumbList": 2,
+          "Service": 2,
+          "FAQPage": 3
+        }
+      },
+      {
+        "url": "https://chromaela.com/programs/toddler-care/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "ImageObject": 4,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/programs/pre-k-prep/",
+        "duplicates": {
+          "WebApplication": 2,
+          "VacationRental": 2,
+          "MobileApplication": 2,
+          "Course": 3,
+          "BreadcrumbList": 2,
+          "SoftwareApplication": 2,
+          "WebPage": 2,
+          "FAQPage": 2,
+          "ImageObject": 4,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/chroma-early-learning-academy-opens-registration-for-2025-summer-camp-and-georgia-pre-k-programs/",
+        "duplicates": {
+          "ImageObject": 3,
+          "Event": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "Article": 2,
+          "NewsArticle": 2,
+          "BlogPosting": 3
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/16/early-education-trends-us-2025-key-insights-and-best-practices-for-future-learning/",
+        "duplicates": {
+          "ImageObject": 5,
+          "Brand": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/why-you-should-not-over-react-when-your-child-gets-hurt-calm-parenting-and-emotional-support-strategies/",
+        "duplicates": {
+          "ImageObject": 5,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/how-to-raise-a-smarter-child-before-age-3-proven-brain-development-activities-and-early-intelligence-tips/",
+        "duplicates": {
+          "ImageObject": 5,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/chroma-early-learning-academy-your-premier-choice-for-daycare-and-preschool-in-alpharetta-milton-and-cumming-ga/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 6
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/8-pediatric-respiratory-distress-signs-every-parent-should-know/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 3
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/why-early-learning-assessments-are-essential-for-your-childs-success-at-chroma-academy/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 5
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/why-preschool-education-is-crucial-for-early-development-key-benefits-and-preparation-for-lifelong-success/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 8
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/10-practical-steps-to-budget-for-your-childs-early-education-expenses-year-round/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/the-critical-role-of-a-structured-curriculum-in-early-childhood-education-success-benefits-impact-and-kindergarten-readiness/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 6
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/enroll-at-chroma-academy-mcdonough-preschool-childcare-for-quality-early-learning/",
+        "duplicates": {
+          "ImageObject": 3,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/how-integrating-technology-in-early-childhood-curriculum-boosts-learning-and-prepares-children-for-the-future/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/16/how-to-strengthen-home-school-connections-for-early-learners-to-boost-family-engagement-and-child-development/",
+        "duplicates": {
+          "Brand": 2,
+          "ImageObject": 5,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/flexible-learning-areas-for-toddlers-explained-benefits-design-and-adaptable-classroom-ideas/",
+        "duplicates": {
+          "ImageObject": 6,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/chroma-early-learning-academy-enrollment-faqs-you-need-to-know-complete-guide-to-programs-process-and-parent-resources/",
+        "duplicates": {
+          "ImageObject": 5,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/empowering-families-through-effective-collaboration-in-early-childhood-education/",
+        "duplicates": {
+          "ImageObject": 4,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "Brand": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/09/interactive-learning-apps-revolutionizing-early-childhood-education-benefits-selection-and-future-trends/",
+        "duplicates": {
+          "ImageObject": 5,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/top-10-employee-retention-strategies-that-boost-job-satisfaction-and-cut-turnover/",
+        "duplicates": {
+          "ImageObject": 4,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "Article": 2,
+          "Offer": 2,
+          "Brand": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/top-strategies-to-boost-employee-retention-and-build-long-term-organizational-loyalty/",
+        "duplicates": {
+          "ImageObject": 3,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/learn-how-play-based-learning-transforms-early-childhood-education-for-holistic-child-development/",
+        "duplicates": {
+          "ImageObject": 3,
+          "Brand": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/your-daycare-tour-questions-a-parents-essential-checklist/",
+        "duplicates": {
+          "ImageObject": 3,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "Brand": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/why-children-need-movement-every-day/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "Brand": 2,
+          "ImageObject": 5
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/signs-your-child-is-ready-for-preschool-the-ultimate-preschool-readiness-checklist-and-guide/",
+        "duplicates": {
+          "Brand": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "ImageObject": 7
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/5-things-to-say-instead-of-stop-crying/",
+        "duplicates": {
+          "Article": 2,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "Offer": 2,
+          "Brand": 2,
+          "ImageObject": 6
+        }
+      },
+      {
+        "url": "https://chromaela.com/2025/12/11/4-things-to-say-when-your-child-isnt-listening-that-actually-work/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2,
+          "Article": 2,
+          "Offer": 2,
+          "Brand": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/about/",
+        "duplicates": {
+          "AboutPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/?taxonomy=location_region&term=service-areas-cobb",
+        "duplicates": {
+          "WebSite": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/?taxonomy=location_region&term=service-areas-gwinnett",
+        "duplicates": {
+          "WebSite": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/?taxonomy=location_region&term=service-areas-northmetro",
+        "duplicates": {
+          "WebSite": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/?taxonomy=location_region&term=service-areas-southmetro",
+        "duplicates": {
+          "WebSite": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/rivergreen-campus-childcare-preschool-in-canton-ga-chroma/",
+        "duplicates": {
+          "Person": 2,
+          "ImageObject": 8,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/trusted-childcare-preschool-in-roswell-ga-chroma-academy/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "ImageObject": 6,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/quality-childcare-preschool-in-duluth-ga-downtown-campus-by-chroma/",
+        "duplicates": {
+          "Person": 2,
+          "ImageObject": 7,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/childcare-preschool-in-lawrenceville-ga-chroma-academy/",
+        "duplicates": {
+          "ImageObject": 5,
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/30/trusted-childcare-preschool-in-lilburn-ga-chroma-academy/",
+        "duplicates": {
+          "Person": 2,
+          "ImageObject": 5,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/26/best-infant-care-programs-in-atlanta-georgia/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/26/meet-our-dedicated-early-learning-academy-team/",
+        "duplicates": {
+          "Person": 2,
+          "ImageObject": 2,
+          "BreadcrumbList": 2,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/2025/12/26/nurturing-infant-care-programs-in-decatur-ga/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "ImageObject": 4,
+          "BlogPosting": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/johns-creek/",
+        "duplicates": {
+          "ImageObject": 12,
+          "BreadcrumbList": 2,
+          "FAQPage": 2,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/alpharetta/",
+        "duplicates": {
+          "ImageObject": 14,
+          "BreadcrumbList": 2,
+          "Service": 2,
+          "FAQPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/duluth/",
+        "duplicates": {
+          "FAQPage": 2,
+          "BreadcrumbList": 2,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/peachtree-corners/",
+        "duplicates": {
+          "ImageObject": 13,
+          "BreadcrumbList": 2,
+          "FAQPage": 2,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/jonesboro/",
+        "duplicates": {
+          "ImageObject": 12,
+          "BreadcrumbList": 2,
+          "FAQPage": 2,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/lovejoy/",
+        "duplicates": {
+          "ImageObject": 11,
+          "FAQPage": 2,
+          "BreadcrumbList": 2,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/hampton/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "FAQPage": 2,
+          "ImageObject": 13,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/lawrenceville/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "ImageObject": 12,
+          "FAQPage": 2,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/childcare/snellville/",
+        "duplicates": {
+          "ImageObject": 11,
+          "BreadcrumbList": 2,
+          "FAQPage": 2,
+          "Service": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/locations/tramore-campus-austell/",
+        "duplicates": {
+          "ImageObject": 12,
+          "BreadcrumbList": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/locations/pleasanthill-campus-duluth/",
+        "duplicates": {
+          "ImageObject": 17,
+          "BreadcrumbList": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/locations/lawrenceville-campus/",
+        "duplicates": {
+          "ImageObject": 18,
+          "BreadcrumbList": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/locations/tyrone-campus/",
+        "duplicates": {
+          "BreadcrumbList": 2,
+          "ImageObject": 12,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/about/",
+        "duplicates": {
+          "ImageObject": 9,
+          "AboutPage": 4,
+          "Person": 2,
+          "BreadcrumbList": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/locations/johns-creek/",
+        "duplicates": {
+          "ImageObject": 16,
+          "BreadcrumbList": 2,
+          "Person": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/curriculum/",
+        "duplicates": {
+          "ImageObject": 2,
+          "Person": 2,
+          "BreadcrumbList": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/contact-us/",
+        "duplicates": {
+          "Person": 2,
+          "BreadcrumbList": 2,
+          "ImageObject": 3,
+          "ContactPage": 2
+        }
+      },
+      {
+        "url": "https://chromaela.com/es/programs/infant-care/",
+        "duplicates": {
+          "ImageObject": 3,
+          "BreadcrumbList": 2,
+          "Service": 2
+        }
+      }
+    ],
+    "missingRequired": [
+      {
+        "url": "https://chromaela.com/",
+        "pageType": "homepage",
+        "issues": [
+          "Missing required schema: Organization"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4302",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4296",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4297",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4298",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4284",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4295",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/childcare-preschool-services-in-gwinnett-county-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/effective-homework-help-in-our-after-school-program/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/strategies-for-coping-with-parental-burnout/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/georgia-pre-k-lottery-program-in-marietta-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/understanding-childhood-growth-spurts-development/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/top-rated-preschool-programs-in-alpharetta-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/fostering-social-emotional-learning-in-early-childhood/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/creative-family-bonding-activities-for-all-ages/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/the-art-of-storytelling-for-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/tips-for-preparing-your-child-for-daycare/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/quick-healthy-snack-ideas-for-toddlers/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/chroma-early-learning-academy-mission-core-values/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/recognizing-supporting-adhd-in-early-childhood/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/tips-for-establishing-healthy-sleep-routines-for-kids/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/childcare-preschool-services-in-dekalb-county-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/fostering-problem-solving-skills-in-preschoolers/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/after-school-programs-in-atlanta-georgia/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/essential-training-for-early-childhood-educators/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/effective-potty-training-support-in-toddler-programs/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/top-rated-preschool-programs-in-decatur-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/key-benefits-of-enrolling-in-georgia-pre-k/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/how-to-choose-the-best-preschool-for-your-child/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/tips-for-fostering-toddler-independence/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/how-to-create-a-cozy-reading-nook-for-kids/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/developing-strong-social-skills-in-preschoolers/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/benefits-of-early-intervention-programs-for-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/diverse-enrichment-activities-in-after-school-programs/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/schedule-a-tour-of-our-early-learning-academy/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/key-benefits-of-enrolling-in-after-school-programs/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/essential-kindergarten-readiness-checklist-for-parents/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/building-early-math-skills-in-preschool-programs/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/practicing-mindful-parenting-for-a-calmer-home/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/childcare-subsidies-financial-aid-options/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/easy-diy-learning-games-for-young-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/tips-for-creating-inclusive-classrooms-for-all-learners/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/how-to-build-self-esteem-in-young-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/georgia-pre-k-lottery-program-in-smyrna-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/early-literacy-development-in-our-programs/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/chroma-early-learning-academy-tuition-fees-guide/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/engaging-toddler-care-programs-in-smyrna-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/georgia-pre-k-lottery-program-in-duluth-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/essential-dental-health-tips-for-young-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/nurturing-infant-care-programs-in-johns-creek-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/kindergarten-readiness-programs-in-marietta-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/implementing-personalized-learning-in-preschool/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/ensure-childcare-safety-our-commitment-to-health-policies/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/setting-healthy-boundaries-with-your-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/after-school-programs-in-decatur-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/nurturing-infant-care-programs-in-sandy-springs-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/montessori-vs-reggio-emilia-which-is-best/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/premier-preschool-programs-in-atlanta-georgia/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/loving-infant-care-programs-nurturing-your-babys-growth/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/top-classroom-management-strategies-for-preschool/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/fun-summer-learning-activities-for-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/top-rated-preschool-programs-in-sandy-springs-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/engaging-math-games-for-preschoolers-at-home/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/understanding-infant-feeding-schedules-nutrition/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/kindergarten-readiness-programs-in-roswell-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/childcare-preschool-services-in-cobb-county-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/benefits-of-music-and-movement-in-early-childhood/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/top-rated-preschool-programs-in-peachtree-corners-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/exploring-global-early-education-models-practices/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/after-school-programs-in-alpharetta-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/the-importance-of-reading-aloud-to-young-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/faqs-about-daily-operations-academy-policies/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/fostering-creativity-with-arts-crafts-for-toddlers/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/georgia-pre-k-lottery-program-in-roswell-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/the-role-of-ai-in-early-childhood-education/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/our-emergency-preparedness-plan-for-childcare-safety/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/typical-daily-schedule-in-our-infant-care-program/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/essential-resources-for-parents-of-special-needs-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/finding-support-groups-for-new-parents/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/georgia-pre-k-eligibility-requirements-application-guide/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/the-benefits-of-outdoor-learning-in-early-education/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/is-your-kid-ready-for-preschool-hilarious-signs-to-spot/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/essential-guide-choosing-a-preschool-with-key-questions/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/how-nutrition-impacts-early-learning-and-behavior/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/mini-scientists-how-curiosity-fuels-early-stem-learning/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/16/loving-infant-care-programs-nurturing-your-babys-needs/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/engaging-toddler-care-programs-in-duluth-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/addressing-social-challenges-in-school-age-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/childcare-preschool-services-in-fulton-county-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/after-school-programs-in-johns-creek-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/after-school-programs-in-sandy-springs-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/developing-infant-fine-gross-motor-skills/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/nurturing-infant-care-programs-in-peachtree-corners-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/strategies-for-coping-with-separation-anxiety-in-children/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/benefits-of-speech-therapy-for-toddlers/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/key-toddler-developmental-milestones-how-we-support-them/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/nurturing-toddler-emotional-growth-regulation/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/developing-essential-social-skills-for-kindergarten/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/engaging-sensory-activities-for-infant-development/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/foods-to-boost-your-childs-immunity/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/after-school-programs-in-peachtree-corners-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/boosting-infant-cognitive-development-activities/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/how-to-talk-to-kids-about-difficult-topics/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/daycare-vs-nanny-which-is-right-for-your-family/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/26/kindergarten-readiness-programs-in-smyrna-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/employers-2/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/schedule-a-tour/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/chroma-early-learning-academy-expands-to-16-metro-atlanta-campuses-with-three-strategic-acquisitions/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/west-cobb/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/mableton/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/powder-springs/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/peachtree-city/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/palmetto/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/norcross/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/mcdonough/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/locust-grove/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/kennesaw/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/griffin/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/fayetteville/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/cumming/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/johns-creek/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/marietta/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/roswell/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/ballground/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/woodstock/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/childcare/alpharetta/",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/programs/infant-care/",
+        "pageType": "program",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/programs/preschool/",
+        "pageType": "program",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/programs/ga-pre-k/",
+        "pageType": "program",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/chroma-early-learning-academy-announces-12th-metro-atlanta-location-in-canton-ga/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/how-nutrition-impacts-early-learning-and-behavior-essential-insights-for-child-brain-development-and-cognitive-function/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/choosing-between-full-day-and-half-day-preschool-practical-guidance-every-parent-can-use/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/02/the-psychology-behind-toy-throwing-understanding-your-childs-behavior/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/the-wrong-way-to-raise-confidence/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/play-based-learning-curriculum-examples-for-early-childhood-effective-activities-and-benefits/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/how-quality-of-care-influences-pricing-in-early-childhood-education-services/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/chroma-academy-teaching-staff-who-educates-your-child-and-how-their-qualifications-ensure-quality-early-childhood-education/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/how-parent-involvement-shapes-curriculum-success-in-early-learning/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/early-childhood-assessment-methods-explained-comprehensive-guide-to-child-development-and-kindergarten-readiness/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/key-signs-your-child-is-ready-for-kindergarten-academic-and-social-readiness-indicators-for-parents/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/03/how-preschool-prepares-children-for-kindergarten-success-benefits-skills-and-readiness-strategies/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/safe-and-stimulating-learning-environments-for-early-learners-ensuring-childcare-safety-and-engaging-developmental-activities/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/16/chroma-academy-parent-involvement-tactics-for-effective-family-engagement-in-early-learning/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/16/essential-curriculum-assessment-tools-for-early-learners/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/comparing-chroma-early-learning-academys-quality-to-other-local-preschools-a-detailed-analysis-of-early-childhood-education-standards-and-programs/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/why-early-childhood-education-matters-for-development-key-benefits-and-parental-guidance/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/04/the-importance-of-play-in-early-childhood-development-benefits-activities-and-learning-outcomes/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/09/integrating-technology-in-early-childhood-education-for-better-outcomes-benefits-tools-and-parental-guidance/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/09/chroma-early-learning-academy-design-principles-explained-understanding-the-chroma-spectrum-early-learning-framework/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/programs/parents-day-out/",
+        "pageType": "program",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/2025/12/10/how-workplace-culture-shapes-employee-retention-key-factors-and-practical-strategies/",
+        "pageType": "blog",
+        "issues": [
+          "HTTP error: 429"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4381",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4304",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4305",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4303",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4301",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4300",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/?post_type=team_member&p=4299",
+        "pageType": "unknown",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4381",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4305",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4304",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4303",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4302",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4301",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4300",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4299",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4298",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4297",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4296",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4295",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      },
+      {
+        "url": "https://chromaela.com/es/?post_type=team_member&p=4284",
+        "pageType": "spanish",
+        "issues": [
+          "HTTP error: 404"
+        ]
+      }
+    ]
+  }
+}

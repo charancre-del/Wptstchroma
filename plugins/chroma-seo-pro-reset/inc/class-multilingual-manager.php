@@ -1203,3 +1203,5 @@ if (!function_exists('chroma_get_theme_mod')) {
         return $val;
     }
 }
+
+

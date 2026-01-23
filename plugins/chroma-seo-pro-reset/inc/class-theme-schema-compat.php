@@ -29,10 +29,16 @@ if (!function_exists('chroma_general_content_schema_pro')) {
 
         $override = get_post_meta($post_id, '_chroma_schema_override', true);
         if ($override) {
-            if (strpos($override, '<script') !== false) {
-                echo $override;
+            // Parse override JSON and route through Registry
+            $override_data = json_decode($override, true);
+            if ($override_data) {
+                if (!isset($override_data['@context'])) {
+                    $override_data['@context'] = 'https://schema.org';
+                }
+                Chroma_Schema_Registry::register($override_data, ['source' => 'theme-compat-override']);
             } else {
-                echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
+                // Raw JSON string, output as-is with script tags
+                echo (strpos($override, '<script') !== false) ? $override : '<script type="application/ld+json">' . $override . '</script>' . "\n";
             }
         }
     }
@@ -70,6 +76,12 @@ function chroma_location_schema_pro()
         } else {
             echo '<script type="application/ld+json">' . $override . '</script>';
         }
+        return;
+    }
+
+    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated if user has built schema)
+    $builder_schemas = get_post_meta($location_id, '_chroma_post_schemas', true);
+    if (!empty($builder_schemas) && is_array($builder_schemas)) {
         return;
     }
 
@@ -300,7 +312,13 @@ function chroma_location_schema_pro()
         $schema['paymentAccepted'] = $payment;
     }
 
-    echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    // Use Schema Registry for deduplication if available
+    if (class_exists('Chroma_Schema_Registry')) {
+        $schema['@context'] = 'https://schema.org';
+        Chroma_Schema_Registry::register($schema, ['source' => 'location_schema_pro']);
+    } else {
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    }
 }
 }
 add_action('wp_head', 'chroma_location_schema_pro');
@@ -317,6 +335,7 @@ function chroma_city_schema_pro()
 
     $post_id = get_the_ID();
     
+    // Check for manual override
     $override = get_post_meta($post_id, '_chroma_schema_override', true);
     if ($override) {
         if (strpos($override, '<script') !== false) {
@@ -324,6 +343,12 @@ function chroma_city_schema_pro()
         } else {
             echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
         }
+        return;
+    }
+
+    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+    $builder_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+    if (!empty($builder_schemas) && is_array($builder_schemas)) {
         return;
     }
 
@@ -388,7 +413,7 @@ function chroma_city_schema_pro()
         );
     }
 
-    echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    Chroma_Schema_Registry::register($schema, ['source' => 'theme-compat-city']);
 }
 }
 add_action('wp_head', 'chroma_city_schema_pro');
@@ -412,6 +437,12 @@ function chroma_program_schema_pro()
         } else {
             echo '<script type="application/ld+json">' . $override . '</script>';
         }
+        return;
+    }
+
+    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+    $builder_schemas = get_post_meta($program_id, '_chroma_post_schemas', true);
+    if (!empty($builder_schemas) && is_array($builder_schemas)) {
         return;
     }
 
@@ -452,7 +483,7 @@ function chroma_program_schema_pro()
         $schema['category'] = $category;
     }
 
-    echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    Chroma_Schema_Registry::register($schema, ['source' => 'theme-compat-program']);
 }
 }
 add_action('wp_head', 'chroma_program_schema');
@@ -471,6 +502,12 @@ function chroma_city_faq_schema_output()
     // Check for manual override
     $override = get_post_meta(get_the_ID(), '_chroma_schema_override', true);
     if ($override) {
+        return;
+    }
+
+    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+    $builder_schemas = get_post_meta(get_the_ID(), '_chroma_post_schemas', true);
+    if (!empty($builder_schemas) && is_array($builder_schemas)) {
         return;
     }
 
@@ -543,7 +580,7 @@ function chroma_city_faq_schema_output()
         'mainEntity' => $entities,
     );
 
-    echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+    Chroma_Schema_Registry::register($schema, ['source' => 'theme-compat-city-faq']);
     global $chroma_faq_output_done;
     $chroma_faq_output_done = true;
 }
@@ -566,6 +603,12 @@ if (!function_exists('chroma_organization_schema_pro')) {
         $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
         if ($override) {
             echo (strpos($override, '<script') !== false) ? $override : '<script type="application/ld+json">' . $override . '</script>';
+            return;
+        }
+
+        // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+        $builder_schemas = get_post_meta($homepage_id, '_chroma_post_schemas', true);
+        if (!empty($builder_schemas) && is_array($builder_schemas)) {
             return;
         }
 
@@ -611,7 +654,7 @@ if (!function_exists('chroma_organization_schema_pro')) {
         if ($telephone) $schema['telephone'] = $telephone;
         if ($email) $schema['email'] = $email;
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'theme-compat-organization']);
     }
 }
 add_action('wp_head', 'chroma_organization_schema_pro', 5);
@@ -620,10 +663,15 @@ if (!function_exists('chroma_website_schema_pro')) {
     function chroma_website_schema_pro() {
         if (!is_front_page()) return;
         $homepage_id = get_option('page_on_front');
+        $url = home_url();
         $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
         if ($override) return;
 
-        $url = home_url();
+        // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
+        $builder_schemas = get_post_meta($homepage_id, '_chroma_post_schemas', true);
+        if (!empty($builder_schemas) && is_array($builder_schemas)) {
+            return;
+        }
         if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {
             $url = home_url('/es');
         }
@@ -639,7 +687,7 @@ if (!function_exists('chroma_website_schema_pro')) {
                 'query-input' => 'required name=search_term_string',
             ],
         ];
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'theme-compat-website']);
     }
 }
 add_action('wp_head', 'chroma_website_schema_pro', 6);
@@ -669,3 +717,5 @@ function chroma_remove_legacy_theme_schema() {
 }
 // Execute immediately if we are past theme setup, or hook to late init
 add_action('wp_head', 'chroma_remove_legacy_theme_schema', 0);
+
+

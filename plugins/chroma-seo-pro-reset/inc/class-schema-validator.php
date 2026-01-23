@@ -1240,13 +1240,15 @@ if (defined('WP_DEBUG') && WP_DEBUG) {
         $result = Chroma_Schema_Validator::validate_json_ld($json_ld);
         
         if (!$result['valid']) {
-            error_log('Chroma Schema Validation FAILED: ' . print_r($result['errors'], true));
+            chroma_debug_log(' Schema Validation FAILED: ' . print_r($result['errors'], true));
         }
         
         if (!empty($result['warnings'])) {
-            error_log('Chroma Schema Warnings: ' . print_r($result['warnings'], true));
+            chroma_debug_log(' Schema Warnings: ' . print_r($result['warnings'], true));
         }
         
         return $json_ld;
     });
 }
+
+

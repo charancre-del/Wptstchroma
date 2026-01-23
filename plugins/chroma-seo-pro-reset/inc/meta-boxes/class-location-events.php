@@ -151,3 +151,5 @@ class Chroma_Location_Events_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
         }
     }
 }
+
+

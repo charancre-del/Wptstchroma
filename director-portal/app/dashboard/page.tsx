@@ -24,13 +24,26 @@ type DashboardData = {
     }
 }
 
+function ImagePreview({ url }: { url: string }) {
+    if (!url) return <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center text-[10px] text-gray-400">No Image</div>
+    return (
+        <div className="w-16 h-16 rounded-lg overflow-hidden border border-gray-200">
+            <img src={url} alt="Preview" className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = 'https://placehold.co/100x100?text=Error')} />
+        </div>
+    )
+}
+
 export default function DashboardPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [school, setSchool] = useState<DashboardData | null>(null)
 
-    const { register, control, handleSubmit, reset } = useForm<DashboardData['content']>()
+    const { register, control, handleSubmit, reset, watch } = useForm<DashboardData['content']>()
+
+    // Watch values for preview
+    const watchedEomPhoto = watch('eom.photo_url')
+    const watchedSlides = watch('slideshow')
 
     // Field Arrays
     const { fields: annFields, append: addAnn, remove: removeAnn } = useFieldArray({ control, name: 'announcements' })
@@ -88,6 +101,12 @@ export default function DashboardPage() {
                 },
                 body: JSON.stringify(data)
             })
+
+            if (res.status === 401) {
+                localStorage.removeItem('chroma_token')
+                router.push('/')
+                return
+            }
 
             if (!res.ok) throw new Error('Save failed')
             alert('Saved successfully!')
@@ -169,9 +188,12 @@ export default function DashboardPage() {
                                 <label className="block text-xs font-bold uppercase mb-1">Name</label>
                                 <input {...register('eom.name')} className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-bold" />
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase mb-1">Photo URL</label>
-                                <input {...register('eom.photo_url')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                            <div className="flex gap-4 items-end">
+                                <div className="flex-1">
+                                    <label className="block text-xs font-bold uppercase mb-1">Photo URL</label>
+                                    <input {...register('eom.photo_url')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                                </div>
+                                <ImagePreview url={watchedEomPhoto || ''} />
                             </div>
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-bold uppercase mb-1">Blurb / Quote</label>
@@ -272,18 +294,15 @@ export default function DashboardPage() {
                             </div>
 
                             {/* Slideshow */}
-                            <div>
-                                <label className="block text-xs font-bold uppercase mb-1">Slideshow Image 1 URL</label>
-                                <input {...register('slideshow.0')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase mb-1">Slideshow Image 2 URL</label>
-                                <input {...register('slideshow.1')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase mb-1">Slideshow Image 3 URL</label>
-                                <input {...register('slideshow.2')} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
-                            </div>
+                            {[0, 1, 2].map(i => (
+                                <div key={i} className="flex gap-4 items-end">
+                                    <div className="flex-1">
+                                        <label className="block text-xs font-bold uppercase mb-1">Slideshow Image {i + 1} URL</label>
+                                        <input {...register(`slideshow.${i}`)} placeholder="https://..." className="w-full p-3 rounded-xl border border-gray-200 bg-gray-50" />
+                                    </div>
+                                    <ImagePreview url={(watchedSlides || [])[i] || ''} />
+                                </div>
+                            ))}
                         </div>
                     </section>
 

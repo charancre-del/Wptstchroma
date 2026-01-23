@@ -24,7 +24,7 @@ class Chroma_School_Admin_Settings
     {
         register_setting('chroma_school_global', 'chroma_global_cares');
         register_setting('chroma_school_global', 'chroma_global_alert');
-        register_setting('chroma_school_global', 'chroma_google_client_id');
+        register_setting('chroma_school_global', 'chroma_google_client_id', 'sanitize_text_field');
     }
 
     public function settings_page_html()

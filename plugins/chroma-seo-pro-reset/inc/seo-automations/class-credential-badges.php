@@ -222,3 +222,5 @@ class Chroma_Credential_Badges
 }
 
 new Chroma_Credential_Badges();
+
+

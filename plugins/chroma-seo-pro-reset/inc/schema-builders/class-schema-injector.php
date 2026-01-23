@@ -26,7 +26,29 @@ define('CHROMA_INVALID_SCHEMA_TYPES', array(
     'Hotel',
     'Restaurant',
     'LodgingBusiness',
+    'Brand',
+    'Motel',
+    'Resort',
+    'Hostel',
+    'BedAndBreakfast',
+    'Campground',
 ));
+
+/**
+ * Helper function to check if schema type is invalid (case-insensitive)
+ */
+function chroma_is_invalid_schema_type($type) {
+    if (!defined('CHROMA_INVALID_SCHEMA_TYPES')) {
+        return false;
+    }
+    $type_lower = strtolower(trim($type));
+    foreach (CHROMA_INVALID_SCHEMA_TYPES as $invalid) {
+        if (strtolower($invalid) === $type_lower) {
+            return true;
+        }
+    }
+    return false;
+}
 
 class Chroma_Schema_Injector
 {
@@ -80,7 +102,7 @@ class Chroma_Schema_Injector
 
         $schema = self::get_person_schema_data(get_the_ID());
         if ($schema) {
-            echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+            Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-person']);
         }
     }
 
@@ -138,20 +160,63 @@ class Chroma_Schema_Injector
     /**
      * Output Global Organization Schema
      */
+    /**
+     * Output Global Organization Schema
+     */
     public static function output_organization_schema()
     {
-        if (!is_front_page()) {
+        // Output on Front Page AND About Page
+        if (!is_front_page() && !is_page('about')) {
             return;
         }
 
+        $target_id = is_front_page() ? get_option('page_on_front') : get_queried_object_id();
+
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_option('page_on_front'), '_chroma_schema_override', true);
+        $override = get_post_meta($target_id, '_chroma_schema_override', true);
         if ($override) {
             return;
         }
 
         $schema = self::get_organization_schema_data();
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+
+        // Inject Team Members on About Page
+        if (is_page('about')) {
+            $team_posts = get_posts([
+                'post_type'      => 'team_member',
+                'posts_per_page' => -1,
+                'orderby'        => 'menu_order',
+                'order'          => 'ASC',
+                'post_status'    => 'publish'
+            ]);
+
+            if (!empty($team_posts)) {
+                $schema['employee'] = [];
+                foreach ($team_posts as $post) {
+                    $job_title = get_post_meta($post->ID, 'team_member_title', true);
+                    $image_url = get_the_post_thumbnail_url($post->ID, 'medium');
+
+                    $person = [
+                        '@type' => 'Person',
+                        'name' => $post->post_title,
+                        'jobTitle' => $job_title ?: 'Team Member'
+                    ];
+
+                    if ($image_url) {
+                        $person['image'] = $image_url;
+                    }
+
+                    // Optional: Add bio if content exists
+                    if (!empty($post->post_content)) {
+                        $person['description'] = wp_trim_words(strip_shortcodes($post->post_content), 30);
+                    }
+
+                    $schema['employee'][] = $person;
+                }
+            }
+        }
+
+        Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-organization']);
     }
 
     /**
@@ -188,7 +253,7 @@ class Chroma_Schema_Injector
             'publisher' => ['@id' => home_url('/') . '#organization']
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-website']);
     }
 
     /**
@@ -379,7 +444,7 @@ class Chroma_Schema_Injector
             }
         }
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-location']);
 
         // Feature: Open House Event Schema (separate output)
         $open_house_date = get_post_meta($location_id, '_chroma_open_house_date', true);
@@ -411,7 +476,7 @@ class Chroma_Schema_Injector
                     'url' => get_permalink()
                 ]
             ];
-            echo '<script type="application/ld+json">' . wp_json_encode($event_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
+            Chroma_Schema_Registry::register($event_schema, ['source' => 'schema-injector-open-house']);
         }
     }
 
@@ -451,7 +516,7 @@ class Chroma_Schema_Injector
             $schema['description'] = $author_bio;
         }
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+        Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-author']);
     }
     /**
      * Get default schema data for a given post type
@@ -591,13 +656,8 @@ class Chroma_Schema_Injector
                 continue;
             }
 
-            // Skip invalid/irrelevant schema types
-            // Explicitly block VacationRental to fix user issue
-            if (strcasecmp($schema_type, 'VacationRental') === 0) {
-                continue;
-            }
-
-            if (defined('CHROMA_INVALID_SCHEMA_TYPES') && in_array($schema_type, CHROMA_INVALID_SCHEMA_TYPES)) {
+            // Skip invalid/irrelevant schema types using case-insensitive helper
+            if (function_exists('chroma_is_invalid_schema_type') && chroma_is_invalid_schema_type($schema_type)) {
                 continue;
             }
 
@@ -879,11 +939,24 @@ class Chroma_Schema_Injector
         }
 
         if (!empty($graph)) {
-            $final_schema = [
-                '@context' => 'https://schema.org',
-                '@graph' => $graph
-            ];
-            echo '<script type="application/ld+json">' . wp_json_encode($final_schema) . '</script>' . "\n";
+            // Use Schema Registry for deduplication if available
+            if (class_exists('Chroma_Schema_Registry')) {
+                foreach ($graph as $schema) {
+                    // Add @context since registry expects standalone schemas
+                    $schema['@context'] = 'https://schema.org';
+                    Chroma_Schema_Registry::register($schema, ['source' => 'modular_builder']);
+                }
+                // Registry will output at priority 99 - don't echo here
+            } else {
+                // Fallback: also route through Registry for consistency
+                $final_schema = [
+                    '@context' => 'https://schema.org',
+                    '@graph' => $graph
+                ];
+                Chroma_Schema_Registry::register($final_schema, ['source' => 'schema-injector-modular-legacy']);
+            }
         }
     }
 }
+
+

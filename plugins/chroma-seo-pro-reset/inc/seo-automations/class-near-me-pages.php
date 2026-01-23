@@ -374,7 +374,7 @@ class Chroma_Near_Me_Pages
             'itemListElement' => $items
         ];
         
-        echo '<script type="application/ld+json">' . json_encode($schema, JSON_UNESCAPED_SLASHES) . '</script>';
+        Chroma_Schema_Registry::register($schema, ['source' => 'near-me-pages']);
     }
     
     /**
@@ -478,5 +478,7 @@ class Chroma_Near_Me_Sitemap_Provider extends WP_Sitemaps_Provider {
         return ceil(count($links) / 2000);
     }
 }
+
+
 
 

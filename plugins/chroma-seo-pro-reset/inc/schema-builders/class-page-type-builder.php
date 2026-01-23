@@ -64,7 +64,9 @@ class Chroma_Page_Type_Builder
         }
 
         if ($schema) {
-            echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+            Chroma_Schema_Registry::register($schema, ['source' => 'page-type-builder']);
         }
     }
 }
+
+

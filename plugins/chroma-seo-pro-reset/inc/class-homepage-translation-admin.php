@@ -280,3 +280,5 @@ class Chroma_Homepage_Translation_Admin {
 add_action('plugins_loaded', function() {
     (new Chroma_Homepage_Translation_Admin())->init();
 });
+
+

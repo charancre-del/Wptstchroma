@@ -1,21 +1,29 @@
 <?php
 /**
  * Director Portal Template
- * Standalone Single Page App for School Directors to manage TV content.
  */
+$api_url = get_rest_url();
+$procare_proxy_url = get_rest_url(null, 'chroma/v1/procare-proxy');
+$google_client_id = trim(get_option('chroma_google_client_id', ''));
 
-// Fetch Google Client ID from plugin settings
-$google_client_id = get_option('chroma_google_client_id', '');
+// Logic: Enable WordPress Media Library for this page
+wp_enqueue_media();
 
+// Enqueue the admin CSS that styles the media modal
+wp_enqueue_style('media-views');
+wp_enqueue_style('imgareaselect');
+wp_enqueue_style('dashicons');
+wp_enqueue_style('buttons');
+wp_enqueue_style('wp-mediaelement');
 ?>
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Director Portal | Chroma</title>
-    <!-- Tailwind CSS -->
+    <title>Director Portal | Chroma Early Learning</title>
+    <meta name="robots" content="noindex, nofollow">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -24,575 +32,568 @@ $google_client_id = get_option('chroma_google_client_id', '');
                     fontFamily: { sans: ['Outfit', 'sans-serif'], serif: ['Playfair Display', 'serif'] },
                     colors: {
                         brand: { ink: '#263238', cream: '#FFFCF8' },
-                        chroma: { red: '#D67D6B', yellow: '#E6BE75', green: '#8DA399', blue: '#4A6C7C', blueDark: '#2F4858' }
+                        chroma: { red: '#D67D6B', blue: '#4A6C7C', blueDark: '#2F4858', yellow: '#E6BE75' }
                     }
                 }
             }
         }
     </script>
-    <!-- Fonts & Icons -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Playfair+Display:wght@700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Identity -->
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body { background-color: #FFFCF8; color: #263238; }
+        .shim-fade { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
+        .shadow-card { box-shadow: 0 20px 50px rgba(38, 50, 56, 0.05); }
+        /* Hide WP Admin Bar and any theme elements injected by wp_head() */
+        #wpadminbar, .site-header, .site-footer, .wp-block-template-part { display: none !important; }
+        html { margin-top: 0 !important; }
+    </style>
+    <?php wp_head(); ?>
 </head>
+<body class="selection:bg-chroma-yellow/30">
 
-<body class="bg-brand-cream text-brand-ink min-h-screen">
+    <div id="root"></div>
 
-    <!-- ================= CONFIG ================= -->
-    <div id="g_config" data-client-id="<?php echo esc_attr($google_client_id); ?>"></div>
-    <!-- ========================================== -->
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const API_URL = "<?php echo esc_url($api_url); ?>";
+        const PROCARE_PROXY_URL = "<?php echo esc_url($procare_proxy_url); ?>";
+        const GOOGLE_CLIENT_ID = "<?php echo esc_js($google_client_id); ?>";
 
-    <!-- LOGIN VIEW -->
-    <div id="login-view" class="min-h-screen flex flex-col items-center justify-center p-6 hidden">
-        <div class="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl border border-chroma-blue/10 text-center">
-            <div class="flex justify-center -space-x-2 mb-6">
-                <span class="w-4 h-4 rounded-full bg-chroma-red"></span>
-                <span class="w-4 h-4 rounded-full bg-chroma-yellow"></span>
-                <span class="w-4 h-4 rounded-full bg-chroma-green"></span>
-                <span class="w-4 h-4 rounded-full bg-chroma-blue"></span>
-            </div>
-            <h1 class="font-serif text-3xl font-bold mb-2">Director Portal</h1>
-            <p class="text-brand-ink/60 mb-8">Sign in to manage your school's TV dashboard.</p>
+        // --- COMPONENTS ---
 
-            <div class="flex justify-center">
-                <!-- Google Button Container -->
-                <div id="g_id_onload" data-context="signin" data-ux_mode="popup"
-                    data-callback="handleCredentialResponse" data-auto_prompt="false">
-                </div>
-                <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline"
-                    data-text="signin_with" data-size="large" data-logo_alignment="left">
-                </div>
-            </div>
-            <p id="login-error" class="mt-4 text-red-500 text-sm font-bold hidden"></p>
-        </div>
-    </div>
-
-    <!-- DASHBOARD VIEW -->
-    <div id="dashboard-view" class="min-h-screen pb-20 hidden">
-        <!-- Header -->
-        <header class="bg-white border-b border-brand-ink/5 sticky top-0 z-50">
-            <div class="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-                <h1 class="font-serif text-xl font-bold">Chroma Portal <span class="text-brand-ink/40">|</span> <span
-                        id="school-title">Loading...</span></h1>
-                <div class="flex items-center gap-4">
-                    <a id="preview-link" href="#" target="_blank"
-                        class="text-sm font-bold text-chroma-blue flex items-center gap-2 hover:underline">
-                        <i class="fa-solid fa-external-link-alt"></i> Preview TV
-                    </a>
-                    <button onclick="logout()" class="text-red-500 hover:bg-red-50 p-2 rounded-full">
-                        <i class="fa-solid fa-right-from-bracket"></i>
-                    </button>
-                </div>
-            </div>
-        </header>
-
-        <main class="max-w-5xl mx-auto px-6 py-8">
-            <form id="dashboard-form" onsubmit="saveChanges(event)" class="space-y-8">
-
-                <div class="flex justify-end sticky top-24 z-40">
-                    <button type="submit" id="save-btn"
-                        class="bg-chroma-blue text-white px-8 py-3 rounded-full font-bold shadow-lg hover:bg-chroma-blueDark transition-colors flex items-center gap-2">
-                        <i class="fa-solid fa-save"></i> <span id="save-text">Save Changes</span>
-                    </button>
-                </div>
-
-                <!-- General Settings -->
-                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <h2 class="font-serif text-2xl font-bold mb-6 text-brand-ink">General Settings</h2>
-                    <div class="grid gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Welcome Message Override</label>
-                            <input name="welcome_override" placeholder="Default: Welcome to Chroma..."
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                            <p class="text-xs text-brand-ink/40 mt-1">Leave empty to show standard welcome.</p>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Weekly Menu URL</label>
-                            <input name="menu" placeholder="https://..."
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Newsletter -->
-                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <h2 class="font-serif text-2xl font-bold mb-6 text-chroma-red">Newsletter</h2>
-                    <div class="grid gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Title</label>
-                            <input name="newsletter[title]"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-bold focus:outline-none focus:border-chroma-red">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Body Text (Short)</label>
-                            <textarea name="newsletter[body]" rows="3"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-red"></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Drive Link (Share URL)</label>
-                            <input name="newsletter[url]" placeholder="https://drive.google.com/..."
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-red">
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Star Educator -->
-                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <h2 class="font-serif text-2xl font-bold mb-6 text-chroma-blue">Star Educator</h2>
-                    <div class="grid gap-4 md:grid-cols-2">
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Name</label>
-                            <input name="eom[name]"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-bold focus:outline-none focus:border-chroma-blue">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Photo URL</label>
-                            <input name="eom[photo_url]" placeholder="https://..."
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Role / Position</label>
-                            <input name="eom[role]" placeholder="e.g. Lead Teacher"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Classroom</label>
-                            <input name="eom[classroom]" placeholder="e.g. Infants"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                        </div>
-                        <div class="md:col-span-2">
-                            <label class="block text-xs font-bold uppercase mb-1">Blurb / Quote</label>
-                            <textarea name="eom[blurb]" rows="2"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue"></textarea>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Chroma Cares -->
-                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <h2 class="font-serif text-2xl font-bold mb-6 text-chroma-green">Chroma Cares</h2>
-                    <div class="grid gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Title</label>
-                            <input name="chroma_cares[title]" placeholder="Global Default"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 font-bold focus:outline-none focus:border-chroma-green">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Body</label>
-                            <textarea name="chroma_cares[body]" rows="2" placeholder="Global Default"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-green"></textarea>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Notices -->
-                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-serif text-2xl font-bold text-chroma-yellow">Notices</h2>
-                        <button type="button" onclick="addNotice()"
-                            class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                            <i class="fa-solid fa-plus"></i> Add
-                        </button>
-                    </div>
-                    <div id="notices-list" class="space-y-4">
-                        <!-- Dynamic Notices -->
-                    </div>
-                </section>
-
-                <!-- Today & Celebrations -->
-                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-serif text-2xl font-bold">Today & Celebrations</h2>
-                    </div>
-                    <div class="grid md:grid-cols-2 gap-8">
-                        <!-- Today -->
-                        <!-- Celebrations -->
-                        <div class="bg-gray-50 p-4 rounded-xl border border-gray-100">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="font-bold text-sm uppercase text-brand-ink/50">Celebrations</h3>
-                                <button type="button" onclick="addCelebration()"
-                                    class="text-xs bg-white hover:bg-gray-100 px-3 py-1 rounded-full font-bold flex items-center gap-1 border">
-                                    <i class="fa-solid fa-plus"></i> Add
-                                </button>
-                            </div>
-                            <div id="celebrations-list" class="space-y-2">
-                                <!-- Dynamic Celebrations -->
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- QR Links -->
-                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-serif text-2xl font-bold text-chroma-blue">QR Links</h2>
-                        <button type="button" onclick="addQRLink()"
-                            class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                            <i class="fa-solid fa-plus"></i> Add Link
-                        </button>
-                    </div>
-                    <p class="text-xs text-brand-ink/40 mb-4">Add up to 4 custom links that will generate QR codes for parents to scan.</p>
-                    <div id="qr-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Dynamic QR Links -->
-                    </div>
-                </section>
-
-
-                <!-- Visuals -->
-                <section class="bg-white p-6 rounded-3xl shadow-sm border border-brand-ink/5">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-serif text-2xl font-bold">Visuals</h2>
-                        <button type="button" onclick="addSlide()"
-                            class="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-full font-bold flex items-center gap-1">
-                            <i class="fa-solid fa-plus"></i> Add Image
-                        </button>
-                    </div>
-                    <div class="grid gap-4">
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">YouTube URL (Overrides
-                                Slideshow)</label>
-                            <input name="youtube" placeholder="https://youtube.com/..."
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Slideshow Title</label>
-                            <input name="slideshow_title" placeholder="e.g. Fall Festival Highlights"
-                                class="w-full p-3 rounded-xl border border-gray-200 bg-gray-50 focus:outline-none focus:border-chroma-blue">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold uppercase mb-1">Slideshow Images (URLs)</label>
-                            <div id="slides-list" class="space-y-2">
-                                <!-- Dynamic Slides -->
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-            </form>
-        </main>
-    </div>
-
-    <!-- JAVASCRIPT LOGIC -->
-    <script>
-        const API_URL = '/wp-json'; // Relative to WP
-        let currentSchoolId = null;
-
-        // --- INIT ---
-        window.onload = function () {
-            // Set Google Client ID from config
-            const clientId = document.getElementById('g_config').getAttribute('data-client-id');
-            const gIdContainer = document.getElementById('g_id_onload');
-            
-            if (clientId === '') {
-                 // SHOW CONFIG ERROR
-                 document.getElementById('login-view').classList.remove('hidden');
-                 document.getElementById('login-view').innerHTML = `
-                    <div class="bg-red-50 border-2 border-red-500 rounded-2xl p-8 max-w-md text-center">
-                        <i class="fa-solid fa-triangle-exclamation text-4xl text-red-500 mb-4"></i>
-                        <h1 class="text-2xl font-bold text-red-600 mb-2">Setup Required</h1>
-                        <p class="text-brand-ink/70 mb-4">You must go to <strong>Schools > Global Settings</strong> in the WordPress dashboard and paste your <strong>Google Client ID</strong>.</p>
-                        <p class="text-xs bg-white p-2 border rounded font-mono">This is required for the Director Portal login to function.</p>
-                    </div>
-                 `;
-                 return;
-            }
-
-            if (gIdContainer) {
-                gIdContainer.setAttribute('data-client_id', clientId);
-            }
-
-            checkSession();
-        };
-
-        function checkSession() {
-            const token = localStorage.getItem('chroma_token');
-            if (token) {
-                showDashboard();
-            } else {
-                document.getElementById('login-view').classList.remove('hidden');
-                document.getElementById('dashboard-view').classList.add('hidden');
-            }
-        }
-
-        // --- AUTH ---
-        async function handleCredentialResponse(response) {
-            try {
-                const res = await fetch(`${API_URL}/chroma/v1/auth/google`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id_token: response.credential })
+        const MediaUploader = ({ value, onChange, label }) => {
+            const openMedia = () => {
+                const frame = wp.media({
+                    title: 'Select Image',
+                    multiple: false,
+                    library: { type: 'image' }
                 });
 
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.message || 'Login failed');
-
-                localStorage.setItem('chroma_token', data.token);
-                localStorage.setItem('chroma_school_id', data.school_id);
-                showDashboard();
-
-            } catch (err) {
-                document.getElementById('login-error').innerText = err.message;
-                document.getElementById('login-error').classList.remove('hidden');
-            }
-        }
-
-        function logout() {
-            localStorage.clear();
-            window.location.reload();
-        }
-
-        // --- DASHBOARD ---
-        async function showDashboard() {
-            document.getElementById('login-view').classList.add('hidden');
-            document.getElementById('dashboard-view').classList.remove('hidden');
-
-            const token = localStorage.getItem('chroma_token');
-            try {
-                const res = await fetch(`${API_URL}/chroma/v1/portal/me`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                frame.on('select', () => {
+                    const attachment = frame.state().get('selection').first().toJSON();
+                    onChange(attachment.url);
                 });
-                if (res.status === 401) { logout(); return; }
 
-                const data = await res.json();
-                currentSchoolId = data.id;
-                populateForm(data);
-
-            } catch (err) {
-                console.error(err);
-                logout();
-            }
-        }
-
-        function populateForm(data) {
-            document.getElementById('school-title').innerText = data.title;
-            document.getElementById('preview-link').href = `/tv/${data.slug}`;
-
-            const c = data.content || {};
-
-            // Simple inputs
-            setVal('welcome_override', c.welcome_override);
-            setVal('menu', c.menu);
-            setVal('youtube', c.youtube);
-            setVal('slideshow_title', c.slideshow_title);
-
-            // Nested objects
-            setVal('newsletter[title]', c.newsletter?.title);
-            setVal('newsletter[body]', c.newsletter?.body);
-            setVal('newsletter[url]', c.newsletter?.url);
-
-            setVal('eom[name]', c.eom?.name);
-            setVal('eom[photo_url]', c.eom?.photo_url);
-            setVal('eom[role]', c.eom?.role);
-            setVal('eom[classroom]', c.eom?.classroom);
-            setVal('eom[blurb]', c.eom?.blurb);
-
-            setVal('chroma_cares[title]', c.chroma_cares?.title);
-            setVal('chroma_cares[body]', c.chroma_cares?.body);
-
-            // Dynamic Lists
-            const noticesList = document.getElementById('notices-list');
-            noticesList.innerHTML = '';
-            (c.announcements || []).forEach(n => addNotice(n));
-
-            const todayList = document.getElementById('today-list');
-            todayList.innerHTML = '';
-            (c.today || []).forEach(t => addTodayItem(t));
-
-            const celebrationsList = document.getElementById('celebrations-list');
-            celebrationsList.innerHTML = '';
-            (c.celebrations || []).forEach(str => addCelebration(str));
-
-            const qrList = document.getElementById('qr-list');
-            qrList.innerHTML = '';
-            (c.qr || []).forEach(item => addQRLink(item));
-
-            const slidesList = document.getElementById('slides-list');
-            slidesList.innerHTML = '';
-            (c.slideshow || []).forEach(url => addSlide(url));
-        }
-
-        function setVal(name, val) {
-            const el = document.querySelector(`[name="${name}"]`);
-            if (el) el.value = val || '';
-        }
-
-        // --- DYNAMIC FIELDS ---
-        function addNotice(data = { title: '', body: '', priority: 'normal' }) {
-            const id = Date.now() + Math.random();
-            const html = `
-                <div class="p-4 bg-gray-50 rounded-2xl flex gap-4 items-start relative group notice-item">
-                    <div class="flex-1 grid gap-2">
-                        <input name="notice_title[]" value="${esc(data.title)}" placeholder="Title" class="font-bold bg-transparent border-b border-gray-200 focus:outline-none">
-                        <textarea name="notice_body[]" placeholder="Details..." rows="2" class="text-sm bg-transparent border-b border-gray-200 focus:outline-none resize-none">${dirEsc(data.body)}</textarea>
-                        <select name="notice_priority[]" class="text-xs bg-white rounded-md p-1 border border-gray-200 w-32">
-                            <option value="normal" ${data.priority === 'normal' ? 'selected' : ''}>Normal</option>
-                            <option value="high" ${data.priority === 'high' ? 'selected' : ''}>High Priority</option>
-                        </select>
-                    </div>
-                    <button type="button" onclick="this.closest('.notice-item').remove()" class="text-red-400 hover:text-red-600">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>`;
-            document.getElementById('notices-list').insertAdjacentHTML('beforeend', html);
-        }
-
-        function addTodayItem(data = { time: '', label: '' }) {
-            const html = `
-                <div class="flex gap-2 items-center today-item">
-                    <input name="today_time[]" value="${esc(data.time)}" placeholder="9:00 AM" class="w-24 p-2 rounded-lg border border-gray-200 bg-gray-50 text-sm font-bold">
-                    <input name="today_label[]" value="${esc(data.label)}" placeholder="Event Name" class="flex-1 p-2 rounded-lg border border-gray-200 bg-gray-50 text-sm">
-                    <button type="button" onclick="this.closest('.today-item').remove()" class="text-red-400 hover:text-red-600">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>`;
-            document.getElementById('today-list').insertAdjacentHTML('beforeend', html);
-        }
-
-        function addCelebration(str = '') {
-            const html = `
-                <div class="flex gap-2 items-center celebration-item">
-                    <input name="celebrations[]" value="${esc(str)}" placeholder="Happy Birthday..." class="flex-1 p-2 rounded-lg border border-gray-200 bg-white text-sm focus:outline-none focus:border-chroma-blue">
-                    <button type="button" onclick="this.closest('.celebration-item').remove()" class="text-red-300 hover:text-red-500">
-                        <i class="fa-solid fa-times-circle"></i>
-                    </button>
-                </div>`;
-            document.getElementById('celebrations-list').insertAdjacentHTML('beforeend', html);
-        }
-
-        function addSlide(url = '') {
-            const html = `
-                <div class="flex gap-2 items-center slide-item">
-                    <input name="slideshow[]" value="${esc(url)}" placeholder="https://..." class="flex-1 p-2 rounded-lg border border-gray-200 bg-gray-50 text-sm focus:outline-none focus:border-chroma-blue">
-                    <button type="button" onclick="this.closest('.slide-item').remove()" class="text-red-400 hover:text-red-600">
-                        <i class="fa-solid fa-trash"></i>
-                    </button>
-                </div>`;
-            document.getElementById('slides-list').insertAdjacentHTML('beforeend', html);
-        }
-
-        function addQRLink(data = { label: '', url: '' }) {
-            const html = `
-                <div class="p-4 bg-gray-50 rounded-xl border border-gray-100 qr-item relative group">
-                    <div class="grid gap-2">
-                        <input name="qr_label[]" value="${esc(data.label)}" placeholder="Label (e.g. Enrollment)" class="text-sm font-bold bg-transparent border-b border-gray-200 focus:outline-none focus:border-chroma-blue">
-                        <input name="qr_url[]" value="${esc(data.url)}" placeholder="URL (https://...)" class="text-xs bg-transparent border-b border-gray-100 focus:outline-none focus:border-chroma-blue">
-                    </div>
-                    <button type="button" onclick="this.closest('.qr-item').remove()" class="absolute top-2 right-2 text-red-300 hover:text-red-500">
-                        <i class="fa-solid fa-times"></i>
-                    </button>
-                </div>`;
-            document.getElementById('qr-list').insertAdjacentHTML('beforeend', html);
-        }
-
-        function esc(str) { return (str || '').replace(/"/g, '&quot;'); }
-        function dirEsc(str) { return (str || ''); } // Textarea raw content
-
-        // --- SAVE ---
-        async function saveChanges(e) {
-            e.preventDefault();
-            const btn = document.getElementById('save-btn');
-            const btnText = document.getElementById('save-text');
-            const originalText = btnText.innerText;
-
-            btn.disabled = true;
-            btnText.innerText = 'Saving...';
-
-            const form = document.getElementById('dashboard-form');
-            const fd = new FormData(form);
-
-            // Construct Payload manually to handle arrays properly
-            const payload = {
-                welcome_override: fd.get('welcome_override'),
-                menu: fd.get('menu'),
-                youtube: fd.get('youtube'),
-                newsletter: {
-                    title: fd.get('newsletter[title]'),
-                    body: fd.get('newsletter[body]'),
-                    url: fd.get('newsletter[url]'),
-                },
-                eom: {
-                    name: fd.get('eom[name]'),
-                    photo_url: fd.get('eom[photo_url]'),
-                    role: fd.get('eom[role]'),
-                    classroom: fd.get('eom[classroom]'),
-                    blurb: fd.get('eom[blurb]'),
-                },
-                chroma_cares: {
-                    title: fd.get('chroma_cares[title]'),
-                    body: fd.get('chroma_cares[body]'),
-                },
-                slideshow_title: fd.get('slideshow_title'),
-                // Dynamic Arrays
-                announcements: [],
-                today: [],
-                celebrations: Array.from(document.querySelectorAll('input[name="celebrations[]"]')).map(i => i.value).filter(Boolean),
-                qr: [],
-                slideshow: Array.from(document.querySelectorAll('input[name="slideshow[]"]')).map(i => i.value).filter(Boolean),
+                frame.open();
             };
 
-            // Parse QR
-            const qrLabels = document.getElementsByName('qr_label[]');
-            const qrUrls = document.getElementsByName('qr_url[]');
-            for (let i = 0; i < qrLabels.length; i++) {
-                if (qrLabels[i].value) {
-                    payload.qr.push({
-                        label: qrLabels[i].value,
-                        url: qrUrls[i].value
-                    });
-                }
-            }
+            return (
+                <div className="space-y-2">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">{label}</label>
+                    <div className="flex items-center gap-4">
+                        <div onClick={openMedia} className="flex-1 cursor-pointer group">
+                             <div className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 group-hover:border-chroma-blue group-hover:bg-chroma-blue/5 transition-all flex flex-col items-center justify-center min-h-[140px]">
+                                {value ? (
+                                    <div className="relative w-full h-full flex flex-col items-center">
+                                         <img src={value} className="h-24 w-24 object-cover rounded-xl shadow-sm mb-3" />
+                                         <span className="text-xs font-bold text-chroma-blue">Change Image</span>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <i className="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 mb-2"></i>
+                                        <span className="text-xs font-bold text-gray-400 uppercase">Upload or Select Image</span>
+                                    </>
+                                )}
+                             </div>
+                        </div>
+                        {value && (
+                            <button type="button" onClick={() => onChange('')} className="p-3 text-red-400 hover:text-red-600 transition">
+                                <i className="fa-solid fa-trash"></i>
+                            </button>
+                        )}
+                    </div>
+                    {/* Hidden input for form capture if using native FormData */}
+                    <input type="hidden" name={label.toLowerCase().replace(' ', '_')} value={value} />
+                </div>
+            );
+        };
 
-            // Parse Notices
-            const nTitles = document.getElementsByName('notice_title[]');
-            const nBodies = document.getElementsByName('notice_body[]');
-            const nPriorities = document.getElementsByName('notice_priority[]');
-            for (let i = 0; i < nTitles.length; i++) {
-                if (nTitles[i].value) {
-                    payload.announcements.push({
-                        title: nTitles[i].value,
-                        body: nBodies[i].value,
-                        priority: nPriorities[i].value
-                    });
-                }
-            }
+        const Toast = ({ msg, type }) => {
+            if (!msg) return null;
+            const colors = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+            return (
+                <div className={`fixed bottom-6 right-6 ${colors} text-white px-6 py-3 rounded-xl shadow-2xl font-bold z-50 animate-fade-in flex items-center gap-3`}>
+                    {type === 'error' ? <i className="fa-solid fa-triangle-exclamation"></i> : <i className="fa-solid fa-check"></i>}
+                    {msg}
+                </div>
+            );
+        };
 
-            // Parse Today
-            const tTimes = document.getElementsByName('today_time[]');
-            const tLabels = document.getElementsByName('today_label[]');
-            for (let i = 0; i < tLabels.length; i++) {
-                if (tLabels[i].value) {
-                    payload.today.push({
-                        time: tTimes[i].value,
-                        label: tLabels[i].value
-                    });
-                }
-            }
+        const FormSection = ({ title, icon, colorClass, children }) => (
+            <section className="bg-white rounded-[2.5rem] p-10 shadow-card border border-chroma-blue/5 relative overflow-hidden">
+                <div className={`absolute top-0 left-0 w-2 h-full ${colorClass}`}></div>
+                <div className="flex items-center gap-4 mb-8">
+                    <div className={`w-12 h-12 rounded-2xl ${colorClass} bg-opacity-10 flex items-center justify-center text-2xl ${colorClass.replace('bg-', 'text-')}`}>
+                        <i className={`fa-solid ${icon}`}></i>
+                    </div>
+                    <h2 className="font-serif text-3xl font-bold tracking-tight">{title}</h2>
+                </div>
+                {children}
+            </section>
+        );
 
-            try {
+        // --- MAIN APP ---
+
+        function App() {
+            const [user, setUser] = useState(null); 
+            const [school, setSchool] = useState(null);
+            const [loading, setLoading] = useState(true);
+            const [saving, setSaving] = useState(false);
+            const [toast, setToast] = useState(null);
+            const [loginError, setLoginError] = useState(null);
+
+            // Field states that need direct management for Uploader or list logic
+            const [formState, setFormState] = useState({
+                eomPhoto: '',
+                slides: ['', '', '', '', '']
+            });
+
+            useEffect(() => {
                 const token = localStorage.getItem('chroma_token');
-                const res = await fetch(`${API_URL}/chroma/v1/portal/school/${currentSchoolId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                const schoolId = localStorage.getItem('chroma_school_id');
+                if (token && schoolId) fetchSchool(token, schoolId);
+                else setLoading(false);
+            }, []);
+
+            const showToast = (msg, type='success') => {
+                setToast({ msg, type });
+                setTimeout(() => setToast(null), 3000);
+            };
+
+            const fetchSchool = async (token, id) => {
+                try {
+                    setLoading(true);
+                    const res = await fetch(`${API_URL}chroma/v1/portal/me`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.status === 401) { logout(); return; }
+                    if (!res.ok) throw new Error('Failed to load');
+                    const data = await res.json();
+                    setUser({ token, schoolId: id, email: localStorage.getItem('chroma_email') });
+                    setSchool(data); 
+                    
+                    // Sync controlled states
+                    setFormState({
+                        eomPhoto: data.content?.eom?.photo_url || '',
+                        newsletterPdf: data.content?.newsletter?.pdf_url || '',
+                        slides: [
+                           ...(data.content?.slideshow || []),
+                           '', '', '', '', ''
+                        ].slice(0, 5)
+                    });
+
+                } catch (err) {
+                    console.error(err);
+                    showToast('Session expired', 'error');
+                    logout();
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const logout = () => {
+                localStorage.clear();
+                setUser(null); setSchool(null); setLoading(false); setLoginError(null);
+            };
+
+            const handleGoogleLogin = async (response) => {
+                setLoading(true); setLoginError(null);
+                try {
+                    const res = await fetch(`${API_URL}chroma/v1/auth/google`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token: response.credential })
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.message || 'Login failed');
+
+                    // Store in localStorage
+                    localStorage.setItem('chroma_token', data.token);
+                    localStorage.setItem('chroma_school_id', data.school_id);
+                    localStorage.setItem('chroma_email', data.director_email);
+                    
+                    // Store session token as cookie for PHP-side permission checks
+                    document.cookie = `chroma_session=${data.token}; path=/; max-age=43200; SameSite=Lax`;
+                    
+                    fetchSchool(data.token, data.school_id);
+                } catch (err) {
+                    setLoginError(err.message);
+                    setLoading(false);
+                }
+            };
+
+            useEffect(() => {
+                if (!user && !loading && window.google) {
+                    try {
+                        window.google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin });
+                        window.google.accounts.id.renderButton(document.getElementById("googleBtn"), { theme: "outline", size: "large", width: 300 });
+                    } catch(e) {}
+                }
+            }, [user, loading, loginError]);
+
+            const handleSave = async (e) => {
+                e.preventDefault();
+                setSaving(true);
+                const formData = new FormData(e.target);
+                const rawObj = Object.fromEntries(formData.entries());
+                
+                const finalPayload = {
+                    eom: {
+                        name: rawObj['eom.name'],
+                        role: rawObj['eom.role'],
+                        photo_url: formState.eomPhoto,
+                        blurb: rawObj['eom.blurb']
                     },
-                    body: JSON.stringify(payload)
-                });
+                    newsletter: {
+                        title: rawObj['newsletter.title'],
+                        body: rawObj['newsletter.body'],
+                        url: rawObj['newsletter.url'],
+                        pdf_url: formState.newsletterPdf
+                    },
+                    slideshow_title: rawObj['slideshow_title'],
+                    slideshow: formState.slides.filter(s => s.trim().length > 0),
+                    chroma_cares: {
+                        title: rawObj['chroma_cares.title'],
+                        body: rawObj['chroma_cares.body']
+                    },
+                    celebrations: [rawObj['cel_0'], rawObj['cel_1'], rawObj['cel_2'], rawObj['cel_3'], rawObj['cel_4'], rawObj['cel_5'], rawObj['cel_6'], rawObj['cel_7']].filter(Boolean),
+                    announcements: [
+                        { title: rawObj['notice_0_title'], body: rawObj['notice_0_body'], priority: rawObj['notice_0_priority'] || 'normal' },
+                        { title: rawObj['notice_1_title'], body: rawObj['notice_1_body'], priority: rawObj['notice_1_priority'] || 'normal' }
+                    ].filter(n => n.title),
+                    today: {
+                        title: rawObj['today.title'],
+                        items: [rawObj['td_0'], rawObj['td_1'], rawObj['td_2'], rawObj['td_3']].filter(Boolean)
+                    },
+                    procare: {
+                        enabled: rawObj['procare_enabled'] === 'on' || rawObj['procare_enabled'] === true,
+                        username: rawObj['procare_username'] || '',
+                        password: rawObj['procare_password'] || ''
+                    },
+                    music_url: rawObj['music_url'] || ''
+                };
 
-                if (!res.ok) throw new Error('Save failed');
+                try {
+                    const res = await fetch(`${API_URL}chroma/v1/portal/school/${user.schoolId}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${user.token}` },
+                        body: JSON.stringify(finalPayload)
+                    });
+                    if (!res.ok) throw new Error('Save failed');
+                    showToast('Dashboard Updated!');
+                    fetchSchool(user.token, user.schoolId);
+                } catch (err) {
+                    showToast('Error saving changes', 'error');
+                } finally {
+                    setSaving(false);
+                }
+            };
+            
+            if (loading) return <div className="h-screen w-screen flex items-center justify-center bg-brand-cream text-chroma-red text-4xl"><i className="fa-solid fa-circle-notch fa-spin"></i></div>;
 
-                alert('Saved successfully!');
-            } catch (err) {
-                alert('Error saving: ' + err.message);
-            } finally {
-                btn.disabled = false;
-                btnText.innerText = originalText;
-            }
+            if (!user) return (
+                <div className="h-screen w-screen flex flex-col items-center justify-center bg-brand-cream p-6">
+                    <div className="max-w-md w-full text-center">
+                        <div className="mb-8 flex justify-center text-chroma-blue text-6xl"><i className="fa-solid fa-shapes"></i></div>
+                        <h1 className="font-serif text-5xl font-bold mb-4 tracking-tight text-brand-ink">Director Portal</h1>
+                        <p className="text-brand-ink/50 text-xl font-medium mb-12">Sign in to manage your school's display.</p>
+                        
+                        <div className="bg-white p-12 rounded-[2.5rem] shadow-card border border-chroma-blue/10">
+                            {GOOGLE_CLIENT_ID ? (
+                                <>
+                                    {loginError && <div className="mb-8 bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-bold shadow-sm">{loginError}</div>}
+                                    <div id="googleBtn" className="flex justify-center scale-110"></div>
+                                    <p className="mt-10 text-xs font-bold uppercase tracking-widest text-brand-ink/30">Authorized Directors Only</p>
+                                </>
+                            ) : <div className="text-red-500 font-bold p-6 bg-red-50 rounded-2xl border border-red-100">Client ID Missing</div>}
+                        </div>
+                    </div>
+                </div>
+            );
+
+            const c = school?.content || {};
+            const tdItems = c.today?.items || [];
+
+            return (
+                <div className="min-h-screen bg-brand-cream pb-32">
+                    {toast && <Toast msg={toast.msg} type={toast.type} />}
+                    
+                    <header className="bg-white/80 backdrop-blur-md border-b border-chroma-blue/10 sticky top-0 z-40">
+                        <div className="max-w-6xl mx-auto px-8 h-24 flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <div className="text-chroma-red text-3xl"><i className="fa-solid fa-shapes"></i></div>
+                                <div>
+                                    <h1 className="font-bold text-xl leading-none">{school.title}</h1>
+                                    <p className="text-xs text-brand-ink/40 uppercase tracking-widest font-black mt-1">Live Dashboard Controller</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-6">
+                                <a href={`/tv/${school.slug}`} target="_blank" className="bg-gray-100/80 px-5 py-3 rounded-xl font-bold text-sm text-brand-ink hover:bg-gray-200 transition">View Display</a>
+                                <button onClick={logout} className="p-3 text-brand-ink/30 hover:text-chroma-red transition text-xl"><i className="fa-solid fa-right-from-bracket"></i></button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-4xl mx-auto mt-16 px-8 space-y-12">
+                        <form onSubmit={handleSave} className="space-y-12 shim-fade">
+                            
+                            {/* Star Educator */}
+                            <FormSection title="Star Educator" icon="fa-star" colorClass="bg-chroma-yellow">
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Name</label>
+                                            <input name="eom.name" defaultValue={c.eom?.name} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Classroom / Role</label>
+                                            <input name="eom.role" defaultValue={c.eom?.role} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
+                                        </div>
+                                    </div>
+                                    <MediaUploader label="Teacher Photo" value={formState.eomPhoto} onChange={(url) => setFormState({...formState, eomPhoto: url})} />
+                                    <div className="md:col-span-2 space-y-2">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">A Little About Them</label>
+                                        <textarea name="eom.blurb" defaultValue={c.eom?.blurb} rows="3" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
+                                    </div>
+                                </div>
+                            </FormSection>
+
+                            {/* Today's Schedule */}
+                            <FormSection title="Today's Schedule" icon="fa-calendar-day" colorClass="bg-chroma-blue">
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Header (e.g. Activity Schedule)</label>
+                                        <input name="today.title" defaultValue={c.today?.title || 'Daily Schedule'} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 font-bold" />
+                                    </div>
+                                    <div className="grid md:grid-cols-2 gap-4">
+                                        {[0,1,2,3].map(i => (
+                                            <input key={i} name={`td_${i}`} defaultValue={tdItems[i] || ''} placeholder={`Item ${i+1}`} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 text-sm font-medium" />
+                                        ))}
+                                    </div>
+                                </div>
+                            </FormSection>
+
+                            {/* Notices / Announcements */}
+                            <FormSection title="Notices & Announcements" icon="fa-bullhorn" colorClass="bg-chroma-yellow">
+                                <div className="space-y-6">
+                                    {[0, 1].map(i => (
+                                        <div key={i} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-black uppercase tracking-widest text-brand-ink/30">Notice {i+1}</span>
+                                                <label className="flex items-center gap-2 text-xs font-bold">
+                                                    <input type="checkbox" name={`notice_${i}_priority`} value="high" defaultChecked={c.announcements?.[i]?.priority === 'high'} className="accent-chroma-red w-4 h-4" />
+                                                    <span className="text-red-500">Important</span>
+                                                </label>
+                                            </div>
+                                            <input name={`notice_${i}_title`} defaultValue={c.announcements?.[i]?.title || ''} placeholder="Headline" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-white font-bold" />
+                                            <textarea name={`notice_${i}_body`} defaultValue={c.announcements?.[i]?.body || ''} placeholder="Details..." rows="2" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-white" />
+                                        </div>
+                                    ))}
+                                </div>
+                            </FormSection>
+
+                            {/* Slideshow */}
+                            <FormSection title="Highlights Slideshow" icon="fa-camera-retro" colorClass="bg-chroma-red">
+                                <div className="space-y-8">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Section Title</label>
+                                        <input name="slideshow_title" defaultValue={c.slideshow_title || 'Campus Life'} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 font-bold" />
+                                    </div>
+
+                                    {/* ProCare Integration */}
+                                    <div className="p-8 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl border border-purple-100 shadow-sm">
+                                        <div className="flex items-center justify-between mb-6">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-md text-2xl">
+                                                    🔗
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-extrabold text-brand-ink text-lg leading-tight">ProCare Connect</h4>
+                                                    <p className="text-xs text-brand-ink/50 font-medium">Log in below to sync your photos automatically</p>
+                                                </div>
+                                            </div>
+                                            <label className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-purple-100 cursor-pointer hover:bg-purple-50 transition-colors">
+                                                <input type="checkbox" name="procare_enabled" defaultChecked={c.procare?.enabled} className="w-5 h-5 accent-purple-600 rounded" />
+                                                <span className="text-sm font-black text-purple-700 uppercase tracking-tighter">Enable Sync</span>
+                                            </label>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => {
+                                                    const frame = document.querySelector('iframe[title="ProCare Login"]');
+                                                    if (frame) frame.src = frame.src + '?t=' + Date.now();
+                                                }}
+                                                className="text-[10px] font-bold text-purple-400 hover:text-purple-600 uppercase tracking-widest mt-1"
+                                            >
+                                                Refresh Connection
+                                            </button>
+                                        </div>
+
+                                        <div className="bg-white rounded-2xl border-2 border-purple-100/50 overflow-hidden shadow-inner relative group">
+                                            <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center z-0 opacity-0 group-hover:opacity-10 pointer-events-none transition-opacity">
+                                                <i className="fa-solid fa-lock text-4xl text-purple-200"></i>
+                                            </div>
+                                            <iframe 
+                                                src={PROCARE_PROXY_URL}
+                                                className="w-full h-[500px] border-none relative z-10"
+                                                title="ProCare Login"
+                                            ></iframe>
+                                        </div>
+
+                                        <div className="mt-6 flex items-start gap-3 p-4 bg-purple-100/30 rounded-xl border border-purple-100/50">
+                                            <i className="fa-solid fa-shield-halved text-purple-400 mt-1"></i>
+                                            <div>
+                                                <p className="text-[11px] font-bold text-purple-800 leading-tight">Secure Connection</p>
+                                                <p className="text-[10px] text-purple-700/70 leading-relaxed mt-0.5">Your credentials are never stored in our database. We only securely pass them to ProCare to fetch your campus slideshow photos.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Manual Slideshow (Fallback) */}
+                                    <div className="pt-4 border-t border-gray-100">
+                                        <p className="text-xs font-bold text-brand-ink/40 uppercase tracking-wider mb-4">Or: Upload Photos Manually</p>
+                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                                            {formState.slides.map((url, i) => (
+                                                <div key={i} className="space-y-2">
+                                                    <div onClick={() => {
+                                                        const frame = wp.media({ multiple: false });
+                                                        frame.on('select', () => {
+                                                            const url = frame.state().get('selection').first().toJSON().url;
+                                                            const news = [...formState.slides]; news[i] = url;
+                                                            setFormState({...formState, slides: news});
+                                                        });
+                                                        frame.open();
+                                                    }} className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 cursor-pointer overflow-hidden flex items-center justify-center hover:border-chroma-red transition-all">
+                                                        {url ? <img src={url} className="w-full h-full object-cover" /> : <i className="fa-solid fa-plus text-gray-300"></i>}
+                                                    </div>
+                                                    {url && <button type="button" onClick={() => {
+                                                        const news = [...formState.slides]; news[i] = '';
+                                                        setFormState({...formState, slides: news});
+                                                    }} className="text-[10px] font-black uppercase text-red-500 hover:text-red-700 w-full text-center">Clear</button>}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </FormSection>
+
+                            {/* Newsletter */}
+                            <FormSection title="Newsletter & Events" icon="fa-paper-plane" colorClass="bg-chroma-blueDark">
+                                <div className="space-y-6">
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Headline</label>
+                                            <input name="newsletter.title" defaultValue={c.newsletter?.title} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Link URL (QR)</label>
+                                            <input name="newsletter.url" defaultValue={c.newsletter?.url} placeholder="https://" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Quick Summary</label>
+                                        <textarea name="newsletter.body" defaultValue={c.newsletter?.body} rows="3" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50" />
+                                    </div>
+                                    {/* PDF Upload */}
+                                    <div className="p-6 bg-chroma-blueDark/5 rounded-2xl border border-chroma-blueDark/10">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div>
+                                                <h4 className="font-bold text-brand-ink">📄 Newsletter PDF</h4>
+                                                <p className="text-xs text-brand-ink/50">Upload a PDF to display on the TV (auto-scrolls pages)</p>
+                                            </div>
+                                            {formState.newsletterPdf && (
+                                                <button type="button" onClick={() => setFormState({...formState, newsletterPdf: ''})} className="text-xs font-bold text-red-500 hover:text-red-700">
+                                                    Remove PDF
+                                                </button>
+                                            )}
+                                        </div>
+                                        <div onClick={() => {
+                                            const frame = wp.media({ title: 'Select Newsletter PDF', multiple: false, library: { type: 'application/pdf' } });
+                                            frame.on('select', () => {
+                                                const url = frame.state().get('selection').first().toJSON().url;
+                                                setFormState({...formState, newsletterPdf: url});
+                                            });
+                                            frame.open();
+                                        }} className="w-full p-6 rounded-xl border-2 border-dashed border-chroma-blueDark/20 bg-white cursor-pointer hover:border-chroma-blue hover:bg-chroma-blue/5 transition-all flex items-center justify-center gap-4">
+                                            {formState.newsletterPdf ? (
+                                                <>
+                                                    <i className="fa-solid fa-file-pdf text-3xl text-red-500"></i>
+                                                    <div className="text-left">
+                                                        <p className="font-bold text-brand-ink">PDF Uploaded</p>
+                                                        <p className="text-xs text-brand-ink/50 truncate max-w-xs">{formState.newsletterPdf.split('/').pop()}</p>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <i className="fa-solid fa-cloud-arrow-up text-2xl text-chroma-blueDark/30"></i>
+                                                    <span className="font-bold text-brand-ink/50">Click to upload PDF</span>
+                                                </>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </FormSection>
+
+                            {/* Celebrations */}
+                            <FormSection title="Celebrations & Birthdays" icon="fa-cake-candles" colorClass="bg-chroma-red">
+                                <div className="space-y-4">
+                                    <p className="text-xs text-brand-ink/40 font-bold uppercase tracking-widest mb-2">Display names for the week</p>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                        {[0,1,2,3,4,5,6,7].map(i => (
+                                            <input key={i} name={`cel_${i}`} defaultValue={c.celebrations?.[i] || ''} placeholder="Name..." className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 text-sm font-medium" />
+                                        ))}
+                                    </div>
+                                </div>
+                            </FormSection>
+
+                            {/* TV Layout & Audio Settings */}
+                            <FormSection title="Global TV Settings" icon="fa-gear" colorClass="bg-brand-ink">
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Background Music URL (YouTube or MP3)</label>
+                                        <div className="flex gap-4">
+                                            <div className="flex-1">
+                                                <input name="music_url" defaultValue={c.music_url || ''} placeholder="https://www.youtube.com/watch?v=..." className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
+                                                <p className="text-[10px] text-brand-ink/40 mt-2 italic">Tip: Use a "Lofi" or "Ambient" YouTube playlist for the best experience.</p>
+                                            </div>
+                                            <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center text-brand-ink/20 text-3xl shrink-0">
+                                                <i className="fa-solid fa-music"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="p-4 bg-brand-cream border border-brand-ink/5 rounded-2xl">
+                                        <p className="text-xs font-bold text-brand-ink/60 mb-1">💡 Pro Tip</p>
+                                        <p className="text-[11px] text-brand-ink/50 leading-relaxed">Most browsers require you to click the screen once after the page loads to enable audio playback. If music doesn't start, just tap the screen!</p>
+                                    </div>
+                                </div>
+                            </FormSection>
+
+                            {/* Floating Save Actions */}
+                            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50">
+                                <button disabled={saving} className="bg-brand-ink text-white font-black text-xl px-20 py-6 rounded-[2rem] shadow-2xl hover:bg-chroma-blueDark transition-all active:scale-95 flex items-center gap-4 group">
+                                    {saving ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-floppy-disk group-hover:animate-bounce"></i>}
+                                    {saving ? 'Syncing...' : 'Push to Display'}
+                                </button>
+                            </div>
+
+                        </form>
+                    </main>
+                </div>
+            );
         }
-    </script>
-</body>
 
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+    <?php wp_footer(); ?>
+</body>
 </html>

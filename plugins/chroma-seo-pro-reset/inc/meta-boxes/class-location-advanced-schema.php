@@ -180,3 +180,5 @@ class Chroma_Location_Advanced_Schema
         }
     }
 }
+
+

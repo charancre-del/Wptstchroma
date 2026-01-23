@@ -259,3 +259,5 @@ class Chroma_Translation_API
         ];
     }
 }
+
+

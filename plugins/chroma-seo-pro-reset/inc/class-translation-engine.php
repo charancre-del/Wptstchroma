@@ -27,10 +27,10 @@ class Chroma_Translation_Engine
      */
     public static function ajax_auto_translate_post()
     {
-        error_log('Chroma Translate: Ajax Request Received for post ' . ($_POST['post_id'] ?? 'unknown'));
+        chroma_debug_log(' Translate: Ajax Request Received for post ' . ($_POST['post_id'] ?? 'unknown'));
         // Verify nonce manually to debug
         if (!check_ajax_referer('chroma_seo_nonce', 'nonce', false)) {
-            error_log('Chroma Translate: Invalid Nonce');
+            chroma_debug_log(' Translate: Invalid Nonce');
             wp_send_json_error(['message' => 'Invalid Nonce (Session Expired?)']);
         }
 
@@ -393,7 +393,7 @@ class Chroma_Translation_Engine
         $translated = json_decode($content, true);
 
         if (!$translated) {
-            error_log('Chroma Translate: JSON Parse Failure. Raw Content: ' . substr($content, 0, 500));
+            chroma_debug_log(' Translate: JSON Parse Failure. Raw Content: ' . substr($content, 0, 500));
             return ['_error' => 'Failed to parse translation JSON. The AI returned an invalid format.'];
         }
 
@@ -404,3 +404,5 @@ class Chroma_Translation_Engine
         return array_merge($fields, $translated);
     }
 }
+
+

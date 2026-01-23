@@ -63,7 +63,9 @@ class Chroma_HowTo_Schema_Builder
 
         $schema = self::build(get_the_ID());
         if ($schema) {
-            echo '<script type="application/ld+json">' . wp_json_encode($schema) . '</script>';
+            Chroma_Schema_Registry::register($schema, ['source' => 'howto-builder']);
         }
     }
 }
+
+

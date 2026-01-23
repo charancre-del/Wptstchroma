@@ -108,3 +108,5 @@ class Chroma_Schema_Bulk_Ops
 }
 
 new Chroma_Schema_Bulk_Ops();
+
+

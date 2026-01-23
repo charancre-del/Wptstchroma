@@ -106,12 +106,16 @@ while (have_posts()):
 	$cta_description = chroma_get_translated_meta($page_id, 'about_cta_description') ?: __('Come see why over 2,000 families trust Chroma with their children\'s early years.', 'chroma-excellence');
 
 	// Get Team Members
-	$team_members = new WP_Query(array(
-		'post_type' => 'team_member',
-		'posts_per_page' => -1,
-		'orderby' => 'menu_order',
-		'order' => 'ASC',
-	));
+	$team_members = chroma_cached_query(
+		array(
+			'post_type'      => 'team_member',
+			'posts_per_page' => -1,
+			'orderby'        => 'menu_order',
+			'order'          => 'ASC',
+		),
+		'team_members_about',
+		7 * DAY_IN_SECONDS
+	);
 	?>
 
 	<main id="main-content" role="main">

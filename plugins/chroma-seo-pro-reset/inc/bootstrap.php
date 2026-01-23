@@ -33,6 +33,22 @@ if (!function_exists('chroma_safe_require')) {
 }
 
 /**
+ * Helper function for debug logging.
+ * Only logs when WP_DEBUG and WP_DEBUG_LOG are enabled.
+ * 
+ * @param mixed $message Message to log (string or array/object for print_r)
+ * @param string $prefix Optional prefix for the log message
+ */
+if (!function_exists('chroma_debug_log')) {
+	function chroma_debug_log($message, $prefix = 'Chroma SEO') {
+		if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+			$log_message = is_string($message) ? $message : print_r($message, true);
+			error_log('[' . $prefix . '] ' . $log_message);
+		}
+	}
+}
+
+/**
  * Load Base Classes & Helpers
  */
 chroma_safe_require(__DIR__ . '/class-meta-box-base.php');
@@ -74,6 +90,7 @@ chroma_safe_require(__DIR__ . '/class-careers-api.php');
 chroma_safe_require(__DIR__ . '/class-career-sync.php');
 
 // Load Theme Schema Compatibility (migrated from seo-engine.php)
+chroma_safe_require(__DIR__ . '/class-schema-registry.php');
 chroma_safe_require(__DIR__ . '/class-theme-schema-compat.php');
 
 // Load SEO Automations
@@ -246,6 +263,10 @@ function chroma_advanced_seo_init()
 		add_action('wp_head', ['Chroma_Special_Announcement_Builder', 'output']);
 	if (class_exists('Chroma_Learning_Resource_Builder'))
 		add_action('wp_head', ['Chroma_Learning_Resource_Builder', 'output']);
+	
+	// Modular Schemas from Schema Builder (stored in _chroma_post_schemas meta)
+	if (class_exists('Chroma_Schema_Injector'))
+		add_action('wp_head', ['Chroma_Schema_Injector', 'output_modular_schemas'], 20);
 
 	// Flush Rewrite Rules if KML rule is missing (One-time check)
 	if (get_option('chroma_seo_flush_rewrite_v6') !== 'done') {
@@ -384,3 +405,4 @@ function chroma_seo_missing_files_notice()
 }
 add_action('admin_notices', 'chroma_seo_missing_files_notice');
 }
+

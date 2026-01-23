@@ -21,6 +21,18 @@ define( 'CHROMA_SEO_PATH', plugin_dir_path( __FILE__ ) );
 define( 'CHROMA_SEO_URL', plugin_dir_url( __FILE__ ) );
 
 /**
+ * Load plugin textdomain for translations.
+ */
+function chroma_seo_pro_load_textdomain() {
+    load_plugin_textdomain(
+        'chroma-seo-pro',
+        false,
+        dirname(plugin_basename(__FILE__)) . '/languages/'
+    );
+}
+add_action('plugins_loaded', 'chroma_seo_pro_load_textdomain', 5);
+
+/**
  * Initialize the Plugin
  */
 function chroma_seo_init() {

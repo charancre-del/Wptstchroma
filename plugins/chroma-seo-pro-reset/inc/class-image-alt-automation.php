@@ -78,3 +78,5 @@ class Chroma_Image_Alt_Automation
         return $attr;
     }
 }
+
+

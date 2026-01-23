@@ -94,8 +94,10 @@ class Chroma_Universal_FAQ_Builder
             'mainEntity' => $main_entity
         ];
 
-        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>';
+        Chroma_Schema_Registry::register($schema, ['source' => 'universal-faq-builder']);
         
         $chroma_faq_output_done = true;
     }
 }
+
+

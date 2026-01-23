@@ -1,0 +1,6 @@
+# Ignore node_modules
+node_modules/
+services/procare-proxy/node_modules/
+
+# Ignore services directory if not used
+services/

@@ -320,3 +320,5 @@ class Chroma_Schema_Editor_Metabox
 
 // Initialize
 new Chroma_Schema_Editor_Metabox();
+
+
