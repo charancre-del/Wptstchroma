@@ -1,14 +1,16 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
+if (!defined('ABSPATH')) {
+    exit;
 }
 
-class Chroma_Portal_Auth {
+class Chroma_Portal_Auth
+{
 
-    public static function login( $pin ) {
+    public static function login($pin)
+    {
         global $wpdb;
 
-        $hashed_lookup = md5( $pin );
+        $hashed_lookup = md5($pin);
 
         $args = [
             'post_type' => 'cp_family',
@@ -20,19 +22,19 @@ class Chroma_Portal_Auth {
 
         $families = get_posts($args);
 
-        if ( empty($families) ) {
-            return new WP_Error( 'invalid_pin', 'Invalid PIN', [ 'status' => 401 ] );
+        if (empty($families)) {
+            return new WP_Error('invalid_pin', 'Invalid PIN', ['status' => 401]);
         }
 
         $family_id = $families[0];
-        $family_name = get_the_title( $family_id );
+        $family_name = get_the_title($family_id);
 
         // Generate Session Token
-        $token = bin2hex( random_bytes( 32 ) );
+        $token = bin2hex(random_bytes(32));
 
         // Store Token - Use DIRECT DATABASE QUERY to bypass ALL caching (object cache, Redis, Memcached, etc.)
         $option_key = 'chroma_portal_session_' . $token;
-        $expiry = time() + ( 24 * HOUR_IN_SECONDS );
+        $expiry = time() + (24 * HOUR_IN_SECONDS);
 
         $session_data = [
             'family_id' => $family_id,
@@ -40,21 +42,21 @@ class Chroma_Portal_Auth {
         ];
 
         // Serialize the data for database storage
-        $serialized_data = maybe_serialize( $session_data );
+        $serialized_data = maybe_serialize($session_data);
 
         // Direct database insert/update - bypasses all caching
-        $existing = $wpdb->get_var( $wpdb->prepare(
+        $existing = $wpdb->get_var($wpdb->prepare(
             "SELECT option_id FROM {$wpdb->options} WHERE option_name = %s",
             $option_key
-        ) );
+        ));
 
-        if ( $existing ) {
+        if ($existing) {
             $result = $wpdb->update(
                 $wpdb->options,
-                [ 'option_value' => $serialized_data ],
-                [ 'option_name' => $option_key ],
-                [ '%s' ],
-                [ '%s' ]
+                ['option_value' => $serialized_data],
+                ['option_name' => $option_key],
+                ['%s'],
+                ['%s']
             );
         } else {
             $result = $wpdb->insert(
@@ -64,21 +66,22 @@ class Chroma_Portal_Auth {
                     'option_value' => $serialized_data,
                     'autoload' => 'no'
                 ],
-                [ '%s', '%s', '%s' ]
+                ['%s', '%s', '%s']
             );
         }
 
-        error_log( 'Chroma Portal Auth: Login successful for family ID: ' . $family_id );
-        error_log( 'Chroma Portal Auth: Generated token: ' . substr( $token, 0, 16 ) . '...' );
-        error_log( 'Chroma Portal Auth: Database write result: ' . ( $result !== false ? 'SUCCESS' : 'FAILED' ) );
+        /*
+         * Note: Removed error_log calls to prevent JSON output corruption.
+         * The logs were causing "Unexpected end of JSON" errors on the frontend 
+         * because they output text before the JSON headers.
+         */
 
         // Immediately verify with direct database query
-        $verify_data = $wpdb->get_var( $wpdb->prepare(
+        $verify_data = $wpdb->get_var($wpdb->prepare(
             "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
             $option_key
-        ) );
-        $verify_unserialized = maybe_unserialize( $verify_data );
-        error_log( 'Chroma Portal Auth: Immediate DB verification: ' . ( $verify_unserialized && $verify_unserialized['family_id'] == $family_id ? 'SUCCESS' : 'FAILED' ) );
+        ));
+        $verify_unserialized = maybe_unserialize($verify_data);
 
         return [
             'token' => $token,
@@ -86,51 +89,42 @@ class Chroma_Portal_Auth {
             'family_id' => $family_id
         ];
     }
-    
-    public static function validate_token( $token ) {
+
+    public static function validate_token($token)
+    {
         global $wpdb;
 
-        if ( empty( $token ) ) {
-            error_log( 'Chroma Portal Auth: Empty token received' );
+        if (empty($token)) {
             return false;
         }
-
-        error_log( 'Chroma Portal Auth: Validating token: ' . substr( $token, 0, 16 ) . '...' );
 
         $option_key = 'chroma_portal_session_' . $token;
 
         // Direct database query - bypasses ALL caching
-        $option_value = $wpdb->get_var( $wpdb->prepare(
+        $option_value = $wpdb->get_var($wpdb->prepare(
             "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
             $option_key
-        ) );
+        ));
 
-        error_log( 'Chroma Portal Auth: Direct DB query for: ' . $option_key );
-        error_log( 'Chroma Portal Auth: Raw DB result: ' . ( $option_value ? 'FOUND' : 'NOT FOUND' ) );
-
-        if ( ! $option_value ) {
-            error_log( 'Chroma Portal Auth: Token validation FAILED - no session in database' );
+        if (!$option_value) {
             return false;
         }
 
         // Unserialize the data
-        $session_data = maybe_unserialize( $option_value );
+        $session_data = maybe_unserialize($option_value);
 
-        if ( ! $session_data || ! isset( $session_data['family_id'] ) || ! isset( $session_data['expires'] ) ) {
-            error_log( 'Chroma Portal Auth: Token validation FAILED - invalid session data structure' );
+        if (!$session_data || !isset($session_data['family_id']) || !isset($session_data['expires'])) {
             return false;
         }
 
         // Check if expired
-        if ( $session_data['expires'] < time() ) {
-            error_log( 'Chroma Portal Auth: Token validation FAILED - session expired' );
+        if ($session_data['expires'] < time()) {
             // Clean up expired session with direct query
-            $wpdb->delete( $wpdb->options, [ 'option_name' => $option_key ], [ '%s' ] );
+            $wpdb->delete($wpdb->options, ['option_name' => $option_key], ['%s']);
             return false;
         }
 
         $family_id = $session_data['family_id'];
-        error_log( 'Chroma Portal Auth: Token validation SUCCESS for family ID: ' . $family_id );
         return $family_id;
     }
 }
