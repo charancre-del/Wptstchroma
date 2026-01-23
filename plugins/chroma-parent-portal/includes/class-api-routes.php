@@ -330,61 +330,71 @@ class Chroma_Portal_API_Routes
             'hide_empty' => false
         ]);
 
+    private function fetch_posts($type, $year)
+    {
+        // Robust Year Parsing: Extract 4 digits from input string (e.g. "2026 School Year" -> "2026")
+        // This solves "Wiring" issues where frontend sends a label instead of a value.
+        $year_str = '';
+        if (preg_match('/(\d{4})/', (string)$year, $matches)) {
+            $year_str = $matches[1];
+        } else {
+             $year_str = date('Y'); // Fallback to current year if no digits found
+        }
+        
+        // Fetch ALL years (small dataset) to avoid DB 'like' idiosyncrasies
+        $all_terms = get_terms([
+            'taxonomy' => 'portal_year',
+            'hide_empty' => false 
+        ]);
+
         $term_ids = [];
-        if (!is_wp_error($all_terms) && !empty($all_terms)) {
-            foreach ($all_terms as $t) {
-                // If term name contains "2026" (e.g. "2026 School Year", "SY 2026")
-                if (strpos($t->name, $year_str) !== false) {
+        if ( ! is_wp_error( $all_terms ) && ! empty( $all_terms ) ) {
+            foreach ( $all_terms as $t ) {
+                // If term name contains the target year "2026"
+                if ( strpos( $t->name, $year_str ) !== false ) {
                     $term_ids[] = $t->term_id;
                 }
             }
         }
-
-        // If no terms found, return empty early
-        if (empty($term_ids)) {
-            return [];
-        }
-
-        // Base args for post query
-        $args = [
-            'post_type' => $type,
-            'posts_per_page' => -1,
-        ];
-
-        // Result Store
+        
         // Result Store
         $posts = [];
 
         // Attempt 1: Standard Tax Query
         if (!empty($term_ids)) {
-            $args['tax_query'] = [
-                [
-                    'taxonomy' => 'portal_year',
-                    'field' => 'term_id',
-                    'terms' => $term_ids,
-                    'operator' => 'IN'
-                ]
+             $args = [
+                'post_type' => $type,
+                'posts_per_page' => -1,
+                'post_status' => 'publish',
+                'tax_query' => [
+                    [
+                        'taxonomy' => 'portal_year',
+                        'field' => 'term_id',
+                        'terms' => $term_ids,
+                        'operator' => 'IN'
+                    ]
+                ],
+                'suppress_filters' => true // CRITICAL: Bypass theme/plugin interference
             ];
-            $args['suppress_filters'] = true; // Avoid plugin interference
             $posts = get_posts($args);
         }
 
-        // Attempt 2: Fallback (Logic: If DB query fails but we have IDs, fetch raw and filter in PHP)
-        if (empty($posts) && !empty($term_ids)) {
+        // Attempt 2: Fallback (Logic: Manual Filter)
+        if ( empty($posts) && !empty($term_ids) ) {
             $fallback_args = [
                 'post_type' => $type,
-                'posts_per_page' => 50, // Check last 50 items
-                'post_status' => 'any',
+                'posts_per_page' => 50, 
+                'post_status' => 'publish', // Matches standard behavior
                 'suppress_filters' => true
             ];
             $candidates = get_posts($fallback_args);
-
-            foreach ($candidates as $cand) {
+            
+            foreach($candidates as $cand) {
                 // Get terms for this candidate
                 $cand_terms = wp_get_post_terms($cand->ID, 'portal_year', ['fields' => 'ids']);
-                if (!is_wp_error($cand_terms) && !empty($cand_terms)) {
+                if ( !is_wp_error($cand_terms) && !empty($cand_terms) ) {
                     // Check intersection
-                    if (count(array_intersect($cand_terms, $term_ids)) > 0) {
+                    if ( count(array_intersect($cand_terms, $term_ids)) > 0 ) {
                         $posts[] = $cand;
                     }
                 }
@@ -411,18 +421,6 @@ class Chroma_Portal_API_Routes
                 'priority' => get_post_meta($p->ID, '_cp_priority', true),
                 'event_date' => get_post_meta($p->ID, '_cp_event_date', true),
                 'can_edit' => current_user_can('edit_post', $p->ID)
-            ];
-        }
-
-        // DEBUG CARD: If empty, show diagnostics
-        if (empty($results)) {
-            $results[] = [
-                'id' => 999999,
-                'title' => 'DEBUG (Wiring Check)',
-                'group' => 'Debug',
-                'content' => "Input Year: '$year'. Found Terms: " . implode(',', $term_ids) . ". Posts Found: " . count($posts),
-                'pdf_url' => null,
-                'debug_mode' => true
             ];
         }
 
