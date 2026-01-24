@@ -41,12 +41,12 @@ const PDFCard = ({ item, onClick, onDelete, showThumb = true }) => {
             <div className="icon" style={{ fontSize: '24px', background: '#f0f2f5', width: '50px', height: '50px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
                 {icon}
             </div>
-            <div className="info" style={{ flex: 1 }}>
-                <h5 style={{ margin: '0 0 5px 0', fontSize: '16px' }}>{item.title}</h5>
+            <div className="info" style={{ flex: 1, minWidth: 0 }}>
+                <h5 style={{ margin: '0 0 5px 0', fontSize: '16px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.title}</h5>
                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '12px', color: '#888' }}>{item.group || 'Document'}</span>
+                    <span style={{ fontSize: '12px', color: '#888', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.group || 'Document'}</span>
                     {item.event_date && (
-                        <span style={{ fontSize: '12px', color: '#6a11cb', fontWeight: '600' }}>
+                        <span style={{ fontSize: '12px', color: '#6a11cb', fontWeight: '600', whiteSpace: 'nowrap' }}>
                             {new Date(item.event_date).toLocaleDateString()}
                         </span>
                     )}

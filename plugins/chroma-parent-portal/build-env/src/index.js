@@ -1,10 +1,9 @@
 import { createRoot } from '@wordpress/element';
 import App from './App';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import './styles/main.scss';
 
 const rootElement = document.getElementById('chroma-parent-portal-root');
-
-import ErrorBoundary from './components/common/ErrorBoundary';
 
 const PortalRoot = () => (
     <ErrorBoundary>
@@ -14,101 +13,90 @@ const PortalRoot = () => (
 
 if (rootElement) {
     try {
-        console.log("Mounting Chroma Parent Portal...");
+        console.log("=== Chroma Parent Portal: Starting Mount ===");
 
-        // DIAGNOSTIC: Check parent chain
-        console.log("=== PARENT CHAIN DIAGNOSTICS ===");
-        let current = rootElement;
-        let depth = 0;
-        while (current && depth < 10) {
-            const styles = window.getComputedStyle(current);
-            console.log(`Level ${depth}: ${current.tagName}#${current.id || 'no-id'}.${current.className || 'no-class'}`, {
-                width: current.offsetWidth,
-                height: current.offsetHeight,
-                display: styles.display,
-                position: styles.position,
-                maxWidth: styles.maxWidth,
-                maxHeight: styles.maxHeight,
-                overflow: styles.overflow
-            });
-            current = current.parentElement;
-            depth++;
-        }
-        console.log("=== END DIAGNOSTICS ===");
-
-        // ULTRA NUCLEAR: Fix entire parent chain + force dimensions
         const forceStyles = () => {
-            // Fix all parents up to body
+            // 1. Fix the root element itself
+            const style = rootElement.style;
+            style.setProperty('display', 'flex', 'important');
+            style.setProperty('position', 'fixed', 'important');
+            style.setProperty('top', '0', 'important');
+            style.setProperty('left', '0', 'important');
+            style.setProperty('width', '100vw', 'important');
+            style.setProperty('height', '100vh', 'important');
+            style.setProperty('z-index', '999999', 'important');
+            style.setProperty('background-color', '#FDFBF7', 'important');
+            style.setProperty('visibility', 'visible', 'important');
+            style.setProperty('opacity', '1', 'important');
+            style.setProperty('margin', '0', 'important');
+            style.setProperty('padding', '0', 'important');
+            style.setProperty('overflow', 'visible', 'important');
+
+            // 2. Iterate up the parent chain and force visibility/size
             let parent = rootElement.parentElement;
-            let level = 0;
-            while (parent && level < 10) {
-                parent.style.cssText = `
-                    max-width: none !important;
-                    max-height: none !important;
-                    width: 100% !important;
-                    height: 100% !important;
-                    overflow: visible !important;
-                    display: block !important;
-                `;
+            let depth = 0;
+            while (parent && depth < 20) {
+                // Skip script/style tags
+                if (['SCRIPT', 'STYLE', 'LINK', 'META'].includes(parent.tagName)) {
+                    parent = parent.parentElement;
+                    continue;
+                }
+
+                parent.style.setProperty('max-width', 'none', 'important');
+                parent.style.setProperty('max-height', 'none', 'important');
+                parent.style.setProperty('overflow', 'visible', 'important');
+                parent.style.setProperty('visibility', 'visible', 'important');
+                parent.style.setProperty('opacity', '1', 'important');
+
+                // If the parent is hidden, force it to be a block
+                const currentDisplay = window.getComputedStyle(parent).display;
+                if (currentDisplay === 'none') {
+                    parent.style.setProperty('display', 'block', 'important');
+                }
+
                 parent = parent.parentElement;
-                level++;
+                depth++;
             }
 
-            // Fix html and body
-            document.documentElement.style.cssText = 'height: 100% !important; overflow: hidden !important; max-width: none !important; max-height: none !important;';
-            document.body.style.cssText = 'height: 100% !important; overflow: hidden !important; margin: 0 !important; max-width: none !important; max-height: none !important;';
-
-            // Fix root element
-            rootElement.style.cssText = `
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                right: 0 !important;
-                bottom: 0 !important;
-                width: 100vw !important;
-                height: 100vh !important;
-                min-width: 100vw !important;
-                min-height: 100vh !important;
-                max-width: none !important;
-                max-height: none !important;
-                display: flex !important;
-                z-index: 999999 !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                background: #FDFBF7 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                overflow: visible !important;
-            `;
+            // 3. Force HTML and Body to be full screen
+            document.documentElement.style.setProperty('height', '100%', 'important');
+            document.documentElement.style.setProperty('overflow', 'hidden', 'important');
+            document.body.style.setProperty('height', '100%', 'important');
+            document.body.style.setProperty('overflow', 'hidden', 'important');
+            document.body.style.setProperty('margin', '0', 'important');
         };
 
         forceStyles();
 
-        console.log("After force styles - Root Element Dimensions:", {
-            width: rootElement.offsetWidth,
-            height: rootElement.offsetHeight,
-            clientWidth: rootElement.clientWidth,
-            clientHeight: rootElement.clientHeight,
-            display: window.getComputedStyle(rootElement).display,
-            position: window.getComputedStyle(rootElement).position
-        });
-
         const root = createRoot(rootElement);
         root.render(<PortalRoot />);
-        console.log("Portal Mounted Successfully.");
 
-        // Reapply styles after render
+        console.log("=== Chroma Parent Portal: Render Triggered ===");
+
+        // Re-apply styles after a delay to override theme late-loads
         setTimeout(() => {
             forceStyles();
-            console.log("Post-render Root Dimensions:", {
-                width: rootElement.offsetWidth,
-                height: rootElement.offsetHeight,
-                childCount: rootElement.children.length
+            console.log("Post-Mount Diagnostic:", {
+                rootHeight: rootElement.offsetHeight,
+                rootWidth: rootElement.offsetWidth,
+                children: rootElement.children.length,
+                isAppVisible: !!document.querySelector('.portal-app-wrapper')
             });
-        }, 100);
+        }, 500);
+
+        // Periodically pulse styles if it's still height 0
+        const pulse = setInterval(() => {
+            if (rootElement.offsetHeight === 0) {
+                console.warn("Portal Height still 0, pulsing styles...");
+                forceStyles();
+            } else {
+                clearInterval(pulse);
+            }
+        }, 2000);
+
     } catch (e) {
-        console.error("Portal Mount Failed:", e);
-        rootElement.innerHTML = '<div style="color:red; padding:20px;">Portal Error: ' + e.message + '</div>';
+        console.error("Portal Mount Fatal Error:", e);
+        rootElement.innerHTML = '<div style="color:red; padding:40px; background:white; position:fixed; inset:0; z-index:999999;"><h1>Portal Mount Failed</h1><p>' + e.message + '</p></div>';
     }
 } else {
     console.warn("Portal Root Not Found. Ensure [chroma_parent_portal] shortcode is present.");

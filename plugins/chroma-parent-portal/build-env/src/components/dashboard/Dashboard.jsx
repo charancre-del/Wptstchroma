@@ -6,6 +6,7 @@ import DashboardGrid from './DashboardGrid';
 import LessonPlanSection from './LessonPlanSection';
 import MealPlansSection from './MealPlansSection';
 import DownloadCenter from './DownloadCenter';
+import PDFCard from '../common/PDFCard';
 import PDFViewerModal from '../common/PDFViewerModal';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -17,6 +18,19 @@ const Dashboard = () => {
     const [activeTab, setActiveTab] = useState('overview');
     const [availableYears, setAvailableYears] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+        // Initialize from localStorage for persistence
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('chroma_portal_sidebar_collapsed');
+            return stored === 'true';
+        }
+        return false;
+    });
+
+    // Persist sidebar state to localStorage
+    useEffect(() => {
+        localStorage.setItem('chroma_portal_sidebar_collapsed', String(isSidebarCollapsed));
+    }, [isSidebarCollapsed]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -246,8 +260,14 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="glass-app-shell">
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={data?.is_admin} />
+        <div className={`glass-app-shell ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+            <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                isAdmin={data?.is_admin}
+                isCollapsed={isSidebarCollapsed}
+                onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            />
 
             <main className="portal-main">
                 <div className="main-viewport">

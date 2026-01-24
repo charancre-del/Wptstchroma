@@ -1,101 +1,59 @@
 // Corporate Luxury Palette
-// Note: Google Fonts are now loaded via wp_enqueue_style in the PHP file
-$bg-color: #FDFBF7; // Warm off-white (Cream)
+$bg-color: #FDFBF7;
 $card-bg: #FFFFFF;
 $text-primary: #1F2937;
 $text-secondary: #6B7280;
-$gold-accent: #9D8253; // The bronze/gold from screenshot
+$gold-accent: #9D8253;
 $navy-brand: #263238;
 $sidebar-bg: #FFFFFF;
 
 :root {
     --sidebar-width: 280px;
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --card-radius: 24px;
+    --sidebar-collapsed-width: 80px;
+    --transition-speed: 0.3s;
 }
 
-// Theme Isolation - Hide global elements when portal is active
-body.portal-is-active {
-
-    #sticky-cta,
-    .leadconnector-widget,
-    #lc-widget-container,
-    .booking-bubble,
-    .chat-widget,
-    [id*="leadconnector"] {
-        display: none !important;
-        visibility: hidden !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-    }
-}
-
-// Global Portal Breakout Mode
 body.portal-is-active {
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
     background: $bg-color !important;
 
-    // HIde Theme Elements
-    #page,
-    header[data-header],
-    footer,
-    .site-header,
-    .site-footer,
-    #main-content>*:not(#chroma-parent-portal-root) {
-        display: none !important;
-    }
-
-    // Portal Root Takeover - Use inset only, no viewport units
     #chroma-parent-portal-root {
         display: flex !important;
         position: fixed !important;
-        inset: 0 !important;
-        width: auto !important;
-        height: auto !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
         z-index: 999999 !important;
-        margin: 0 !important;
-        padding: 0 !important;
+        background: $bg-color !important;
     }
 }
 
-// Portal Internal Root - CRITICAL: Use inset instead of viewport units
 #chroma-parent-portal-root {
     font-family: 'Inter', sans-serif !important;
-    color: $text-primary !important;
-    // Use inset instead of width/height viewport units
     position: fixed !important;
-    inset: 0 !important; // This sets top, right, bottom, left to 0
-    // Remove viewport units entirely as they don't work in this context
-    width: auto !important;
-    height: auto !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
     background: $bg-color !important;
     display: flex !important;
+    flex-direction: column !important;
     z-index: 999999 !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-    pointer-events: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-
-    // Force all children to be visible
-    * {
-        visibility: visible !important;
-        opacity: 1 !important;
-    }
+    overflow: hidden !important;
 }
 
-// Main Layout - App Shell
+.portal-app-wrapper,
 .glass-app-shell {
-    width: 100%;
-    height: 100%;
-    display: flex;
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex !important;
     background: $bg-color;
-    // No glass border/shadow needed for full screen clean look
+    overflow: hidden !important;
 }
 
-// Sidebar - Clean White
 .portal-sidebar {
     width: var(--sidebar-width);
     background: $sidebar-bg;
@@ -103,128 +61,127 @@ body.portal-is-active {
     display: flex;
     flex-direction: column;
     padding: 40px 30px;
-    z-index: 10;
+    transition: width var(--transition-speed) ease, padding var(--transition-speed) ease;
+    position: relative;
+    z-index: 1000;
 
-    .sidebar-logo {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 60px;
-        font-family: 'Playfair Display', serif;
-        font-weight: 700;
-        font-size: 1.5rem;
-        color: $navy-brand;
+    &.collapsed {
+        width: var(--sidebar-collapsed-width);
+        padding: 40px 15px;
 
-        .logo-img {
-            width: 38px;
-            height: auto;
-            object-fit: contain;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.05));
+        .sidebar-logo {
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .nav-item {
+            justify-content: center;
+            padding: 12px 0;
+            width: 50px;
+            margin: 0 auto;
+        }
+
+        .sidebar-footer {
+            text-align: center;
         }
     }
 
-    .sidebar-nav {
-        flex: 1;
+    .sidebar-toggle {
+        position: absolute;
+        top: 20px;
+        right: -15px;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.1);
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        z-index: 1100;
+        color: $navy-brand;
+        font-size: 12px;
+        transition: background 0.2s;
 
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding: 12px 16px;
-            border: none;
-            background: transparent;
-            color: $text-secondary;
-            font-size: 0.95rem;
-            font-weight: 500;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: left;
-
-            &:hover {
-                background: rgba($gold-accent, 0.05);
-                color: $navy-brand;
-            }
-
-            &.active {
-                background: $navy-brand;
-                color: white;
-                box-shadow: 0 4px 12px rgba($navy-brand, 0.2);
-
-                .icon {
-                    color: $gold-accent;
-                }
-            }
+        &:hover {
+            background: #f0f0f0;
         }
     }
 }
 
-// Main Content Area
 .portal-main {
     flex: 1;
     display: flex;
     flex-direction: column;
     overflow: hidden;
     background: $bg-color;
+    transition: all var(--transition-speed) ease;
 
     .main-viewport {
         flex: 1;
         overflow-y: auto;
         padding: 40px 60px;
 
-        // Typography
-        h1,
-        h2,
-        h3 {
-            font-family: 'Playfair Display', serif;
-            color: $navy-brand;
+        @media (max-width: 1024px) {
+            padding: 30px;
         }
 
-        p {
-            color: $text-secondary;
-            line-height: 1.6;
+        @media (max-width: 768px) {
+            padding: 20px;
         }
     }
 }
 
-// Header
-.header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-bottom: 50px;
-
-    .brand h1 {
-        font-size: 2.5rem;
-        margin-bottom: 5px;
-    }
-
-    .brand p {
-        font-size: 0.9rem;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: $gold-accent;
-        font-weight: 600;
+// Media Queries for overall responsiveness
+@media (max-width: 1200px) {
+    #chroma-parent-portal-root {
+        --sidebar-width: 240px;
     }
 }
 
-// Corporate Cards (Matches screenshot)
-.glass-card,
-.view-container .section-header {
-    // We reuse glass-card class but style it as solid white
+@media (max-width: 992px) {
+    .glass-app-shell:not(.sidebar-collapsed) {
+        .portal-sidebar {
+            width: var(--sidebar-collapsed-width);
+            padding: 40px 15px;
+
+            .sidebar-logo span,
+            .nav-item .label,
+            .sidebar-footer .admin-badge:not(:empty) {
+                display: none;
+            }
+
+            .nav-item {
+                justify-content: center;
+            }
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+
+        .right {
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+}
+
+// Keep the rest of the styles (cards, buttons, etc.)
+.glass-card {
     background: white;
-    border-radius: var(--card-radius);
+    border-radius: 24px;
     padding: 35px;
-    box-shadow: var(--card-shadow);
-    border: none;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     margin-bottom: 30px;
     position: relative;
-    overflow: hidden;
 
-    // The "Gold Bar" accent on the left
     &::before {
         content: '';
         position: absolute;
@@ -235,85 +192,61 @@ body.portal-is-active {
         background: $gold-accent;
         border-radius: 4px 0 0 4px;
     }
+}
 
-    // Typography inside cards
-    h2 {
-        font-size: 1.8rem;
-        margin-bottom: 25px;
+.portal-btn {
+    padding: 12px 24px;
+    border-radius: 12px;
+    border: none;
+    background: $navy-brand;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &:hover {
+        background: lighten($navy-brand, 10%);
     }
 }
 
-// Auth Screen
-.chroma-login-screen {
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: $bg-color;
-
-    .login-card {
-        background: white;
-        padding: 60px;
-        border-radius: 30px;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
-        text-align: center;
-        width: 100%;
-        max-width: 480px;
-
-        h2 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2rem;
-            color: $navy-brand;
-            margin-bottom: 10px;
-        }
-
-        p {
-            color: $text-secondary;
-            margin-bottom: 40px;
-        }
-
-        .pin-display {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-bottom: 40px;
-
-            .digit {
-                width: 16px;
-                height: 16px;
-                border-radius: 50%;
-                background: #E5E7EB;
-
-                &.active {
-                    background: $gold-accent;
-                    transform: scale(1.2);
-                }
-            }
-        }
-
-        .pin-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-
-            button {
-                height: 65px;
-                border-radius: 16px;
-                border: 1px solid #F3F4F6;
-                background: white;
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: $navy-brand;
-                cursor: pointer;
-                transition: all 0.2s;
-
-                &:hover {
-                    background: $navy-brand;
-                    color: white;
-                    border-color: $navy-brand;
-                }
-            }
-        }
+// Very small viewports (< 320px)
+@media (max-width: 320px) {
+    .portal-sidebar {
+        display: none !important;
     }
+
+    .portal-main .main-viewport {
+        padding: 15px;
+    }
+
+    .glass-card {
+        padding: 20px;
+        border-radius: 16px;
+    }
+}
+
+// Notched Phone Safe Areas
+@supports (padding: env(safe-area-inset-top)) {
+    #chroma-parent-portal-root {
+        padding-top: env(safe-area-inset-top);
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: env(safe-area-inset-left);
+        padding-right: env(safe-area-inset-right);
+    }
+}
+
+// Performance: Smooth animations
+.portal-sidebar {
+    will-change: width, padding;
+}
+
+// Focus Styles for Accessibility
+.sidebar-toggle:focus {
+    outline: 2px solid $gold-accent;
+    outline-offset: 2px;
+}
+
+.nav-item:focus {
+    outline: 2px solid $gold-accent;
+    outline-offset: -2px;
 }

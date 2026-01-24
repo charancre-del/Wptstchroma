@@ -24,71 +24,73 @@ class Chroma_Portal_Auth
         $families = get_posts($args);
 
         if (empty($families)) {
+            // SECURITY: Log failed PIN attempts for monitoring
+            error_log('Parent Portal Login Failure: Invalid PIN attempted.');
             return new WP_Error('invalid_pin', 'Invalid PIN', ['status' => 401]);
         }
 
         $family_id = $families[0];
         $family_name = get_the_title($family_id);
 
-        // Generate Session Token
-        $token = bin2hex(random_bytes(32));
+        try {
+            // Generate Session Token
+            $token = bin2hex(random_bytes(32));
 
-        // Store Token - Use DIRECT DATABASE QUERY to bypass ALL caching (object cache, Redis, Memcached, etc.)
-        $option_key = 'chroma_portal_session_' . $token;
-        $expiry = time() + (24 * HOUR_IN_SECONDS);
+            // Store Token - Use DIRECT DATABASE QUERY to bypass ALL caching
+            $option_key = 'chroma_portal_session_' . $token;
+            $expiry = time() + (24 * HOUR_IN_SECONDS);
 
-        $session_data = [
-            'family_id' => $family_id,
-            'expires' => $expiry
-        ];
+            $session_data = [
+                'family_id' => $family_id,
+                'expires' => $expiry
+            ];
 
-        // Serialize the data for database storage
-        $serialized_data = maybe_serialize($session_data);
+            $serialized_data = maybe_serialize($session_data);
 
-        // Direct database insert/update - bypasses all caching
-        $existing = $wpdb->get_var($wpdb->prepare(
-            "SELECT option_id FROM {$wpdb->options} WHERE option_name = %s",
-            $option_key
-        ));
+            $existing = $wpdb->get_var($wpdb->prepare(
+                "SELECT option_id FROM {$wpdb->options} WHERE option_name = %s",
+                $option_key
+            ));
 
-        if ($existing) {
-            $result = $wpdb->update(
-                $wpdb->options,
-                ['option_value' => $serialized_data],
-                ['option_name' => $option_key],
-                ['%s'],
-                ['%s']
-            );
-        } else {
-            $result = $wpdb->insert(
-                $wpdb->options,
-                [
-                    'option_name' => $option_key,
-                    'option_value' => $serialized_data,
-                    'autoload' => 'no'
-                ],
-                ['%s', '%s', '%s']
-            );
+            if ($existing) {
+                $wpdb->update(
+                    $wpdb->options,
+                    ['option_value' => $serialized_data],
+                    ['option_name' => $option_key],
+                    ['%s'],
+                    ['%s']
+                );
+            } else {
+                $wpdb->insert(
+                    $wpdb->options,
+                    [
+                        'option_name' => $option_key,
+                        'option_value' => $serialized_data,
+                        'autoload' => 'no'
+                    ],
+                    ['%s', '%s', '%s']
+                );
+            }
+
+            // Verification
+            $verify_data = $wpdb->get_var($wpdb->prepare(
+                "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
+                $option_key
+            ));
+
+            if (!$verify_data) {
+                throw new Exception('Failed to verify session storage in database.');
+            }
+
+            return [
+                'token' => $token,
+                'family_name' => $family_name,
+                'family_id' => $family_id
+            ];
+        } catch (Exception $e) {
+            error_log('Parent Portal Session Creation Error: ' . $e->getMessage());
+            return new WP_Error('session_error', 'Failed to create secure session.', ['status' => 500]);
         }
-
-        /*
-         * Note: Removed error_log calls to prevent JSON output corruption.
-         * The logs were causing "Unexpected end of JSON" errors on the frontend 
-         * because they output text before the JSON headers.
-         */
-
-        // Immediately verify with direct database query
-        $verify_data = $wpdb->get_var($wpdb->prepare(
-            "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
-            $option_key
-        ));
-        $verify_unserialized = maybe_unserialize($verify_data);
-
-        return [
-            'token' => $token,
-            'family_name' => $family_name,
-            'family_id' => $family_id
-        ];
     }
 
     public static function validate_token($token)

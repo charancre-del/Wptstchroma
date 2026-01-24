@@ -51,7 +51,7 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
             </motion.div>
 
             {/* Main Sections */}
-            <div className="grid-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '30px' }}>
+            <div className="grid-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
 
                 {/* Lesson Plans */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
@@ -114,7 +114,7 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
                         <h3>School Events</h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_event')} className="add-btn">+ Add Event</button>}
                     </div>
-                    <div className="event-list">
+                    <div className="event-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px' }}>
                         {data.events.slice(0, 3).map(event => (
                             <PDFCard key={event.id} item={event} onClick={handleView} onDelete={refreshData} />
                         ))}
