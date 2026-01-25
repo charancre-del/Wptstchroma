@@ -10,9 +10,8 @@ const Sidebar = ({ activeTab, setActiveTab, isAdmin, isCollapsed, onToggle }) =>
         { id: 'meals', label: 'Meal Plans', icon: '🍱' },
         { id: 'events', label: 'School Events', icon: '🗓️' },
         { id: 'news', label: 'News & Updates', icon: '📣' },
-        { id: 'resources', label: 'Resources & Handbooks', icon: '📖' },
-        { id: 'policies', label: 'Policies & Procedures', icon: '📋' },
-        { id: 'downloads', label: 'Download Center', icon: '📥' }
+        { id: 'resources', label: 'Resources', icon: '📖' },
+        { id: 'policies', label: 'Policies & Procedures', icon: '📋' }
     ];
 
     return (

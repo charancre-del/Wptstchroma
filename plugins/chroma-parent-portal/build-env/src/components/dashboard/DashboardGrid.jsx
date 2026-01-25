@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext';
 import Announcements from './Announcements';
 import LessonPlanSection from './LessonPlanSection';
 import MealPlansSection from './MealPlansSection';
-import DownloadCenter from './DownloadCenter';
 import PDFCard from '../common/PDFCard';
 import UploadModal from '../common/UploadModal';
 import PDFViewerModal from '../common/PDFViewerModal';
@@ -71,19 +70,12 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
                     <MealPlansSection items={data.meal_plans} onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
-                {/* Download Center (Forms & Policies) */}
-                <motion.div variants={itemVariants} className="glass-card section-card" style={{ gridColumn: '1 / -1' }}>
-                    <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3>Download Center</h3>
-                        {data.is_admin && <button onClick={() => handleUploadClick('cp_resource')} className="add-btn">+ Add Resource</button>}
-                    </div>
-                    <DownloadCenter resources={data.resources} forms={data.forms} onView={handleView} onDelete={refreshData} />
-                </motion.div>
+
 
                 {/* Resources Card */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3>Resources & Handbooks</h3>
+                        <h3>Resources</h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_resource')} className="add-btn">+ Add</button>}
                     </div>
                     <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>

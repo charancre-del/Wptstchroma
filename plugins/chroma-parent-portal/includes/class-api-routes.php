@@ -205,7 +205,7 @@ class Chroma_Portal_API_Routes
         $taxonomy = $request->get_param('taxonomy');
 
         // Validate taxonomy
-        $allowed_taxonomies = ['portal_month', 'portal_quarter', 'portal_category'];
+        $allowed_taxonomies = ['portal_month', 'portal_quarter', 'portal_category', 'portal_school'];
         if (!in_array($taxonomy, $allowed_taxonomies)) {
             return new WP_Error('invalid_taxonomy', 'Invalid taxonomy', ['status' => 400]);
         }
@@ -236,6 +236,7 @@ class Chroma_Portal_API_Routes
             $file_id = absint($request->get_param('file_id'));
             $year = sanitize_text_field($request->get_param('year'));
             $month = sanitize_text_field($request->get_param('month'));
+            $school = sanitize_text_field($request->get_param('school'));
 
             if (!in_array($post_type, ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event'])) {
                 return new WP_Error('invalid_type', 'Invalid Post Type', ['status' => 400]);
@@ -281,9 +282,15 @@ class Chroma_Portal_API_Routes
                 }
             }
 
+            if ($school) {
+                wp_set_object_terms($post_id, $school, 'portal_school');
+            }
+
             if ($month) {
                 switch ($post_type) {
                     case 'cp_lesson_plan':
+                    case 'cp_announcement':
+                    case 'cp_event':
                         wp_set_object_terms($post_id, $month, 'portal_month');
                         break;
                     case 'cp_meal_plan':
@@ -311,6 +318,7 @@ class Chroma_Portal_API_Routes
             $file_id = absint($request->get_param('file_id'));
             $year = sanitize_text_field($request->get_param('year'));
             $month = sanitize_text_field($request->get_param('month'));
+            $school = sanitize_text_field($request->get_param('school'));
 
             if (!get_post($post_id)) {
                 return new WP_Error('not_found', 'Content not found', ['status' => 404]);
@@ -353,8 +361,16 @@ class Chroma_Portal_API_Routes
             }
 
             $post_type = get_post_type($post_id);
+            if ($school) {
+                wp_set_object_terms($post_id, $school, 'portal_school');
+            }
             if ($month) {
-                $tax = ($post_type === 'cp_meal_plan') ? 'portal_quarter' : (($post_type === 'cp_lesson_plan') ? 'portal_month' : 'portal_category');
+                $tax = 'portal_category';
+                if ($post_type === 'cp_meal_plan') {
+                    $tax = 'portal_quarter';
+                } elseif (in_array($post_type, ['cp_lesson_plan', 'cp_announcement', 'cp_event'])) {
+                    $tax = 'portal_month';
+                }
                 wp_set_object_terms($post_id, $month, $tax);
             }
 
@@ -460,6 +476,9 @@ class Chroma_Portal_API_Routes
                 $terms = wp_get_post_terms($p->ID, ['portal_month', 'portal_quarter', 'portal_category']);
                 $term_name = (!is_wp_error($terms) && !empty($terms)) ? $terms[0]->name : '';
 
+                $school_terms = wp_get_post_terms($p->ID, 'portal_school');
+                $school_name = (!is_wp_error($school_terms) && !empty($school_terms)) ? $school_terms[0]->name : '';
+
                 $results[] = [
                     'id' => $p->ID,
                     'title' => $p->post_title,
@@ -467,6 +486,7 @@ class Chroma_Portal_API_Routes
                     'pdf_url' => $file_url,
                     'pdf_id' => $file_id,
                     'group' => $term_name,
+                    'school' => $school_name,
                     'priority' => get_post_meta($p->ID, '_cp_priority', true),
                     'event_date' => get_post_meta($p->ID, '_cp_event_date', true),
                     'can_edit' => current_user_can('edit_post', $p->ID)

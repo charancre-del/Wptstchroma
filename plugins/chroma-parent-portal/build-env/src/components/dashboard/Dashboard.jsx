@@ -5,8 +5,8 @@ import Header from './Header';
 import DashboardGrid from './DashboardGrid';
 import LessonPlanSection from './LessonPlanSection';
 import MealPlansSection from './MealPlansSection';
-import DownloadCenter from './DownloadCenter';
 import PDFCard from '../common/PDFCard';
+import OrganizationGroup from '../common/OrganizationGroup';
 import PDFViewerModal from '../common/PDFViewerModal';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -187,12 +187,12 @@ const Dashboard = () => {
                         <div className="section-header" style={{ marginBottom: '20px' }}>
                             <h2>Upcoming School Events</h2>
                         </div>
-                        <div className="event-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                            {data.events.map(event => (
-                                <PDFCard key={event.id} item={event} onClick={handleView} onDelete={fetchData} />
-                            ))}
-                            {data.events.length === 0 && <p>No upcoming events scheduled.</p>}
-                        </div>
+                        <OrganizationGroup
+                            items={data.events}
+                            onView={handleView}
+                            onDelete={fetchData}
+                            emptyMessage="No upcoming events scheduled."
+                        />
                     </div>
                 );
             case 'news':
@@ -201,27 +201,19 @@ const Dashboard = () => {
                         <div className="section-header" style={{ marginBottom: '20px' }}>
                             <h2>School News & Announcements</h2>
                         </div>
-                        <div className="news-list" style={{ display: 'grid', gap: '20px' }}>
-                            {data.announcements.map(item => (
-                                <div key={item.id} className="glass-card" style={{ padding: '25px' }}>
-                                    <h3>{item.title}</h3>
-                                    <div dangerouslySetInnerHTML={{ __html: item.content }} />
-                                    {item.pdf_url && (
-                                        <button onClick={() => handleView(item)} className="portal-btn" style={{ marginTop: '15px' }}>
-                                            View Related Document
-                                        </button>
-                                    )}
-                                </div>
-                            ))}
-                            {data.announcements.length === 0 && <p>No recent news available.</p>}
-                        </div>
+                        <OrganizationGroup
+                            items={data.announcements}
+                            onView={handleView}
+                            onDelete={fetchData}
+                            emptyMessage="No recent news available."
+                        />
                     </div>
                 );
             case 'resources':
                 return (
                     <div className="view-container">
                         <div className="section-header" style={{ marginBottom: '20px' }}>
-                            <h2>Resources & Handbooks</h2>
+                            <h2>Resources</h2>
                         </div>
                         <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
                             {data.resources.map(item => (
@@ -245,15 +237,7 @@ const Dashboard = () => {
                         </div>
                     </div>
                 );
-            case 'downloads':
-                return (
-                    <div className="view-container">
-                        <div className="section-header" style={{ marginBottom: '20px' }}>
-                            <h2>Complete Download Center</h2>
-                        </div>
-                        <DownloadCenter resources={data.resources} forms={data.forms} onView={handleView} onDelete={fetchData} />
-                    </div>
-                );
+
             default:
                 return <DashboardGrid data={data} refreshData={fetchData} onDocumentClick={handleView} />;
         }

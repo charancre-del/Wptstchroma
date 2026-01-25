@@ -56,7 +56,7 @@ class Chroma_Portal_CPT_Registrar
 			'menu_icon' => 'dashicons-carrot',
 		]);
 
-		// Resources (Policies & Handbooks)
+		// Resources (Policies & Procedures)
 		register_post_type('cp_resource', [
 			'labels' => [
 				'name' => 'Resources',
@@ -129,6 +129,16 @@ class Chroma_Portal_CPT_Registrar
 
 	public function register_taxonomies()
 	{
+		// Shared School (Tag-like but hierarchical for consistency)
+		register_taxonomy('portal_school', ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event'], [
+			'labels' => ['name' => 'Schools', 'singular_name' => 'School'],
+			'public' => false,
+			'show_ui' => true,
+			'show_in_rest' => true,
+			'hierarchical' => true,
+			'show_admin_column' => true,
+		]);
+
 		// Shared Year
 		register_taxonomy('portal_year', ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event'], [
 			'labels' => ['name' => 'Years', 'singular_name' => 'Year'],
@@ -139,8 +149,8 @@ class Chroma_Portal_CPT_Registrar
 			'show_admin_column' => true,
 		]);
 
-		// Month (for Lessons)
-		register_taxonomy('portal_month', ['cp_lesson_plan'], [
+		// Month
+		register_taxonomy('portal_month', ['cp_lesson_plan', 'cp_announcement', 'cp_event'], [
 			'labels' => ['name' => 'Months', 'singular_name' => 'Month'],
 			'public' => false,
 			'show_ui' => true,

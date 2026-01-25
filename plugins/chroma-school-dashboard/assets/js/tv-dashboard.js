@@ -358,72 +358,25 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Slideshow - ProCare Mode or Manual
-        const procareEnabled = c.procare && c.procare.enabled;
-        const slideshowContainer = document.getElementById('slideshow-container');
+        // Slideshow - Manual Only
+        if (c.slideshow && Array.isArray(c.slideshow)) {
+            const oldLen = slideImages.length;
+            // Check if changed
+            if (JSON.stringify(slideImages) !== JSON.stringify(c.slideshow)) {
+                slideImages = c.slideshow;
+                // Reset if index out of bounds
+                if (currentSlideIndex >= slideImages.length) currentSlideIndex = 0;
 
-        if (procareEnabled) {
-            // ProCare iframe mode (Direct Embed)
-            const iframeId = 'procare-iframe';
-            let iframe = document.getElementById(iframeId);
-
-            if (!window._procareFetched) {
-                window._procareFetched = true;
-                // Fetch photos from API
-                fetch(`${config.apiUrl}chroma/v1/procare/photos?slug=${config.slug}`)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.photos && Array.isArray(data.photos) && data.photos.length > 0) {
-                            // Inject into slideshow
-                            slideImages = data.photos;
-                            currentSlideIndex = 0;
-
-                            // Add "Live" badge via overlay
-                            let badge = document.getElementById('procare-badge');
-                            if (!badge && slideshowContainer) {
-                                slideshowContainer.insertAdjacentHTML('beforeend', `
-                                    <div id="procare-badge" class="absolute bottom-6 right-6 z-20 bg-white/90 backdrop-blur px-3 py-2 rounded-xl flex items-center gap-2 shadow-lg animate-fade-in">
-                                        <span class="text-purple-600 text-lg">🔗</span>
-                                        <span class="text-xs font-bold text-brand-ink/60">ProCare Live</span>
-                                    </div>
-                                `);
-                            }
-                        }
-                    })
-                    .catch(e => console.error('ProCare Fetch Error:', e));
-            }
-
-            // If Layer 1 is hidden, show it
-            if (els.slide1) els.slide1.style.display = 'block';
-
-            // Remove any leftover iframe
-            if (iframe) iframe.remove();
-        } else {
-            // Manual slideshow mode
-            const iframe = document.getElementById('procare-iframe');
-            if (iframe) {
-                iframe.remove();
-            }
-
-            if (c.slideshow && Array.isArray(c.slideshow)) {
-                const oldLen = slideImages.length;
-                // Check if changed
-                if (JSON.stringify(slideImages) !== JSON.stringify(c.slideshow)) {
-                    slideImages = c.slideshow;
-                    // Reset if index out of bounds
-                    if (currentSlideIndex >= slideImages.length) currentSlideIndex = 0;
-
-                    // IF FIRST LOAD, SET LAYER 1 IMMEDIATELY
-                    if (oldLen === 0 && slideImages.length > 0 && els.slide1) {
-                        els.slide1.style.backgroundImage = `url("${slideImages[0]}")`;
-                        els.slide1.style.opacity = 1;
-                    }
+                // IF FIRST LOAD, SET LAYER 1 IMMEDIATELY
+                if (oldLen === 0 && slideImages.length > 0 && els.slide1) {
+                    els.slide1.style.backgroundImage = `url("${slideImages[0]}")`;
+                    els.slide1.style.opacity = 1;
                 }
             }
-
-            if (els.slide1) els.slide1.style.display = 'block';
-            if (els.slide2) els.slide2.style.display = 'block';
         }
+
+        if (els.slide1) els.slide1.style.display = 'block';
+        if (els.slide2) els.slide2.style.display = 'block';
 
         // Star Educator (EOM)
         if (els.eom && c.eom && (c.eom.name || c.eom.photo_url)) {

@@ -3,7 +3,6 @@
  * Director Portal Template
  */
 $api_url = get_rest_url();
-$procare_proxy_url = get_rest_url(null, 'chroma/v1/procare-proxy');
 $google_client_id = trim(get_option('chroma_google_client_id', ''));
 
 // Logic: Enable WordPress Media Library for this page
@@ -18,12 +17,13 @@ wp_enqueue_style('wp-mediaelement');
 ?>
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Director Portal | Chroma Early Learning</title>
     <meta name="robots" content="noindex, nofollow">
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -44,21 +44,56 @@ wp_enqueue_style('wp-mediaelement');
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-        body { background-color: #FFFCF8; color: #263238; }
-        .shim-fade { animation: fadeIn 0.3s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .shadow-soft { box-shadow: 0 10px 30px rgba(0,0,0,0.03); }
-        .shadow-card { box-shadow: 0 20px 50px rgba(38, 50, 56, 0.05); }
+        body {
+            background-color: #FFFCF8;
+            color: #263238;
+        }
+
+        .shim-fade {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .shadow-soft {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        }
+
+        .shadow-card {
+            box-shadow: 0 20px 50px rgba(38, 50, 56, 0.05);
+        }
+
         /* Hide WP Admin Bar and any theme elements injected by wp_head() */
-        #wpadminbar, .site-header, .site-footer, .wp-block-template-part { display: none !important; }
-        html { margin-top: 0 !important; }
+        #wpadminbar,
+        .site-header,
+        .site-footer,
+        .wp-block-template-part {
+            display: none !important;
+        }
+
+        html {
+            margin-top: 0 !important;
+        }
     </style>
     <?php wp_head(); ?>
 </head>
+
 <body class="selection:bg-chroma-yellow/30">
 
     <div id="root"></div>
@@ -66,7 +101,6 @@ wp_enqueue_style('wp-mediaelement');
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
         const API_URL = "<?php echo esc_url($api_url); ?>";
-        const PROCARE_PROXY_URL = "<?php echo esc_url($procare_proxy_url); ?>";
         const GOOGLE_CLIENT_ID = "<?php echo esc_js($google_client_id); ?>";
 
         // --- COMPONENTS ---
@@ -92,11 +126,11 @@ wp_enqueue_style('wp-mediaelement');
                     <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">{label}</label>
                     <div className="flex items-center gap-4">
                         <div onClick={openMedia} className="flex-1 cursor-pointer group">
-                             <div className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 group-hover:border-chroma-blue group-hover:bg-chroma-blue/5 transition-all flex flex-col items-center justify-center min-h-[140px]">
+                            <div className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 group-hover:border-chroma-blue group-hover:bg-chroma-blue/5 transition-all flex flex-col items-center justify-center min-h-[140px]">
                                 {value ? (
                                     <div className="relative w-full h-full flex flex-col items-center">
-                                         <img src={value} className="h-24 w-24 object-cover rounded-xl shadow-sm mb-3" />
-                                         <span className="text-xs font-bold text-chroma-blue">Change Image</span>
+                                        <img src={value} className="h-24 w-24 object-cover rounded-xl shadow-sm mb-3" />
+                                        <span className="text-xs font-bold text-chroma-blue">Change Image</span>
                                     </div>
                                 ) : (
                                     <>
@@ -104,7 +138,7 @@ wp_enqueue_style('wp-mediaelement');
                                         <span className="text-xs font-bold text-gray-400 uppercase">Upload or Select Image</span>
                                     </>
                                 )}
-                             </div>
+                            </div>
                         </div>
                         {value && (
                             <button type="button" onClick={() => onChange('')} className="p-3 text-red-400 hover:text-red-600 transition">
@@ -145,7 +179,7 @@ wp_enqueue_style('wp-mediaelement');
         // --- MAIN APP ---
 
         function App() {
-            const [user, setUser] = useState(null); 
+            const [user, setUser] = useState(null);
             const [school, setSchool] = useState(null);
             const [loading, setLoading] = useState(true);
             const [saving, setSaving] = useState(false);
@@ -165,7 +199,7 @@ wp_enqueue_style('wp-mediaelement');
                 else setLoading(false);
             }, []);
 
-            const showToast = (msg, type='success') => {
+            const showToast = (msg, type = 'success') => {
                 setToast({ msg, type });
                 setTimeout(() => setToast(null), 3000);
             };
@@ -180,15 +214,15 @@ wp_enqueue_style('wp-mediaelement');
                     if (!res.ok) throw new Error('Failed to load');
                     const data = await res.json();
                     setUser({ token, schoolId: id, email: localStorage.getItem('chroma_email') });
-                    setSchool(data); 
-                    
+                    setSchool(data);
+
                     // Sync controlled states
                     setFormState({
                         eomPhoto: data.content?.eom?.photo_url || '',
                         newsletterPdf: data.content?.newsletter?.pdf_url || '',
                         slides: [
-                           ...(data.content?.slideshow || []),
-                           '', '', '', '', ''
+                            ...(data.content?.slideshow || []),
+                            '', '', '', '', ''
                         ].slice(0, 5)
                     });
 
@@ -221,10 +255,10 @@ wp_enqueue_style('wp-mediaelement');
                     localStorage.setItem('chroma_token', data.token);
                     localStorage.setItem('chroma_school_id', data.school_id);
                     localStorage.setItem('chroma_email', data.director_email);
-                    
+
                     // Store session token as cookie for PHP-side permission checks
                     document.cookie = `chroma_session=${data.token}; path=/; max-age=43200; SameSite=Lax`;
-                    
+
                     fetchSchool(data.token, data.school_id);
                 } catch (err) {
                     setLoginError(err.message);
@@ -237,7 +271,7 @@ wp_enqueue_style('wp-mediaelement');
                     try {
                         window.google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin });
                         window.google.accounts.id.renderButton(document.getElementById("googleBtn"), { theme: "outline", size: "large", width: 300 });
-                    } catch(e) {}
+                    } catch (e) { }
                 }
             }, [user, loading, loginError]);
 
@@ -246,7 +280,7 @@ wp_enqueue_style('wp-mediaelement');
                 setSaving(true);
                 const formData = new FormData(e.target);
                 const rawObj = Object.fromEntries(formData.entries());
-                
+
                 const finalPayload = {
                     eom: {
                         name: rawObj['eom.name'],
@@ -275,11 +309,6 @@ wp_enqueue_style('wp-mediaelement');
                         title: rawObj['today.title'],
                         items: [rawObj['td_0'], rawObj['td_1'], rawObj['td_2'], rawObj['td_3']].filter(Boolean)
                     },
-                    procare: {
-                        enabled: rawObj['procare_enabled'] === 'on' || rawObj['procare_enabled'] === true,
-                        username: rawObj['procare_username'] || '',
-                        password: rawObj['procare_password'] || ''
-                    },
                     music_url: rawObj['music_url'] || ''
                 };
 
@@ -298,7 +327,7 @@ wp_enqueue_style('wp-mediaelement');
                     setSaving(false);
                 }
             };
-            
+
             if (loading) return <div className="h-screen w-screen flex items-center justify-center bg-brand-cream text-chroma-red text-4xl"><i className="fa-solid fa-circle-notch fa-spin"></i></div>;
 
             if (!user) return (
@@ -307,7 +336,7 @@ wp_enqueue_style('wp-mediaelement');
                         <div className="mb-8 flex justify-center text-chroma-blue text-6xl"><i className="fa-solid fa-shapes"></i></div>
                         <h1 className="font-serif text-5xl font-bold mb-4 tracking-tight text-brand-ink">Director Portal</h1>
                         <p className="text-brand-ink/50 text-xl font-medium mb-12">Sign in to manage your school's display.</p>
-                        
+
                         <div className="bg-white p-12 rounded-[2.5rem] shadow-card border border-chroma-blue/10">
                             {GOOGLE_CLIENT_ID ? (
                                 <>
@@ -327,7 +356,7 @@ wp_enqueue_style('wp-mediaelement');
             return (
                 <div className="min-h-screen bg-brand-cream pb-32">
                     {toast && <Toast msg={toast.msg} type={toast.type} />}
-                    
+
                     <header className="bg-white/80 backdrop-blur-md border-b border-chroma-blue/10 sticky top-0 z-40">
                         <div className="max-w-6xl mx-auto px-8 h-24 flex items-center justify-between">
                             <div className="flex items-center gap-4">
@@ -346,7 +375,7 @@ wp_enqueue_style('wp-mediaelement');
 
                     <main className="max-w-4xl mx-auto mt-16 px-8 space-y-12">
                         <form onSubmit={handleSave} className="space-y-12 shim-fade">
-                            
+
                             {/* Star Educator */}
                             <FormSection title="Star Educator" icon="fa-star" colorClass="bg-chroma-yellow">
                                 <div className="grid md:grid-cols-2 gap-8">
@@ -360,7 +389,7 @@ wp_enqueue_style('wp-mediaelement');
                                             <input name="eom.role" defaultValue={c.eom?.role} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
                                         </div>
                                     </div>
-                                    <MediaUploader label="Teacher Photo" value={formState.eomPhoto} onChange={(url) => setFormState({...formState, eomPhoto: url})} />
+                                    <MediaUploader label="Teacher Photo" value={formState.eomPhoto} onChange={(url) => setFormState({ ...formState, eomPhoto: url })} />
                                     <div className="md:col-span-2 space-y-2">
                                         <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">A Little About Them</label>
                                         <textarea name="eom.blurb" defaultValue={c.eom?.blurb} rows="3" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
@@ -376,8 +405,8 @@ wp_enqueue_style('wp-mediaelement');
                                         <input name="today.title" defaultValue={c.today?.title || 'Daily Schedule'} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 font-bold" />
                                     </div>
                                     <div className="grid md:grid-cols-2 gap-4">
-                                        {[0,1,2,3].map(i => (
-                                            <input key={i} name={`td_${i}`} defaultValue={tdItems[i] || ''} placeholder={`Item ${i+1}`} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 text-sm font-medium" />
+                                        {[0, 1, 2, 3].map(i => (
+                                            <input key={i} name={`td_${i}`} defaultValue={tdItems[i] || ''} placeholder={`Item ${i + 1}`} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 text-sm font-medium" />
                                         ))}
                                     </div>
                                 </div>
@@ -389,7 +418,7 @@ wp_enqueue_style('wp-mediaelement');
                                     {[0, 1].map(i => (
                                         <div key={i} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs font-black uppercase tracking-widest text-brand-ink/30">Notice {i+1}</span>
+                                                <span className="text-xs font-black uppercase tracking-widest text-brand-ink/30">Notice {i + 1}</span>
                                                 <label className="flex items-center gap-2 text-xs font-bold">
                                                     <input type="checkbox" name={`notice_${i}_priority`} value="high" defaultChecked={c.announcements?.[i]?.priority === 'high'} className="accent-chroma-red w-4 h-4" />
                                                     <span className="text-red-500">Important</span>
@@ -410,57 +439,9 @@ wp_enqueue_style('wp-mediaelement');
                                         <input name="slideshow_title" defaultValue={c.slideshow_title || 'Campus Life'} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 font-bold" />
                                     </div>
 
-                                    {/* ProCare Integration */}
-                                    <div className="p-8 bg-gradient-to-br from-purple-50 to-indigo-50 rounded-3xl border border-purple-100 shadow-sm">
-                                        <div className="flex items-center justify-between mb-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-md text-2xl">
-                                                    🔗
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-extrabold text-brand-ink text-lg leading-tight">ProCare Connect</h4>
-                                                    <p className="text-xs text-brand-ink/50 font-medium">Log in below to sync your photos automatically</p>
-                                                </div>
-                                            </div>
-                                            <label className="flex items-center gap-3 bg-white px-4 py-2 rounded-xl shadow-sm border border-purple-100 cursor-pointer hover:bg-purple-50 transition-colors">
-                                                <input type="checkbox" name="procare_enabled" defaultChecked={c.procare?.enabled} className="w-5 h-5 accent-purple-600 rounded" />
-                                                <span className="text-sm font-black text-purple-700 uppercase tracking-tighter">Enable Sync</span>
-                                            </label>
-                                            <button 
-                                                type="button" 
-                                                onClick={() => {
-                                                    const frame = document.querySelector('iframe[title="ProCare Login"]');
-                                                    if (frame) frame.src = frame.src + '?t=' + Date.now();
-                                                }}
-                                                className="text-[10px] font-bold text-purple-400 hover:text-purple-600 uppercase tracking-widest mt-1"
-                                            >
-                                                Refresh Connection
-                                            </button>
-                                        </div>
-
-                                        <div className="bg-white rounded-2xl border-2 border-purple-100/50 overflow-hidden shadow-inner relative group">
-                                            <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center z-0 opacity-0 group-hover:opacity-10 pointer-events-none transition-opacity">
-                                                <i className="fa-solid fa-lock text-4xl text-purple-200"></i>
-                                            </div>
-                                            <iframe 
-                                                src={PROCARE_PROXY_URL}
-                                                className="w-full h-[500px] border-none relative z-10"
-                                                title="ProCare Login"
-                                            ></iframe>
-                                        </div>
-
-                                        <div className="mt-6 flex items-start gap-3 p-4 bg-purple-100/30 rounded-xl border border-purple-100/50">
-                                            <i className="fa-solid fa-shield-halved text-purple-400 mt-1"></i>
-                                            <div>
-                                                <p className="text-[11px] font-bold text-purple-800 leading-tight">Secure Connection</p>
-                                                <p className="text-[10px] text-purple-700/70 leading-relaxed mt-0.5">Your credentials are never stored in our database. We only securely pass them to ProCare to fetch your campus slideshow photos.</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Manual Slideshow (Fallback) */}
-                                    <div className="pt-4 border-t border-gray-100">
-                                        <p className="text-xs font-bold text-brand-ink/40 uppercase tracking-wider mb-4">Or: Upload Photos Manually</p>
+                                    {/* Photo Upload Section */}
+                                    <div>
+                                        <p className="text-xs font-bold text-brand-ink/40 uppercase tracking-wider mb-4">Upload Photos</p>
                                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                             {formState.slides.map((url, i) => (
                                                 <div key={i} className="space-y-2">
@@ -469,7 +450,7 @@ wp_enqueue_style('wp-mediaelement');
                                                         frame.on('select', () => {
                                                             const url = frame.state().get('selection').first().toJSON().url;
                                                             const news = [...formState.slides]; news[i] = url;
-                                                            setFormState({...formState, slides: news});
+                                                            setFormState({ ...formState, slides: news });
                                                         });
                                                         frame.open();
                                                     }} className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 cursor-pointer overflow-hidden flex items-center justify-center hover:border-chroma-red transition-all">
@@ -477,7 +458,7 @@ wp_enqueue_style('wp-mediaelement');
                                                     </div>
                                                     {url && <button type="button" onClick={() => {
                                                         const news = [...formState.slides]; news[i] = '';
-                                                        setFormState({...formState, slides: news});
+                                                        setFormState({ ...formState, slides: news });
                                                     }} className="text-[10px] font-black uppercase text-red-500 hover:text-red-700 w-full text-center">Clear</button>}
                                                 </div>
                                             ))}
@@ -511,7 +492,7 @@ wp_enqueue_style('wp-mediaelement');
                                                 <p className="text-xs text-brand-ink/50">Upload a PDF to display on the TV (auto-scrolls pages)</p>
                                             </div>
                                             {formState.newsletterPdf && (
-                                                <button type="button" onClick={() => setFormState({...formState, newsletterPdf: ''})} className="text-xs font-bold text-red-500 hover:text-red-700">
+                                                <button type="button" onClick={() => setFormState({ ...formState, newsletterPdf: '' })} className="text-xs font-bold text-red-500 hover:text-red-700">
                                                     Remove PDF
                                                 </button>
                                             )}
@@ -520,7 +501,7 @@ wp_enqueue_style('wp-mediaelement');
                                             const frame = wp.media({ title: 'Select Newsletter PDF', multiple: false, library: { type: 'application/pdf' } });
                                             frame.on('select', () => {
                                                 const url = frame.state().get('selection').first().toJSON().url;
-                                                setFormState({...formState, newsletterPdf: url});
+                                                setFormState({ ...formState, newsletterPdf: url });
                                             });
                                             frame.open();
                                         }} className="w-full p-6 rounded-xl border-2 border-dashed border-chroma-blueDark/20 bg-white cursor-pointer hover:border-chroma-blue hover:bg-chroma-blue/5 transition-all flex items-center justify-center gap-4">
@@ -548,7 +529,7 @@ wp_enqueue_style('wp-mediaelement');
                                 <div className="space-y-4">
                                     <p className="text-xs text-brand-ink/40 font-bold uppercase tracking-widest mb-2">Display names for the week</p>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                        {[0,1,2,3,4,5,6,7].map(i => (
+                                        {[0, 1, 2, 3, 4, 5, 6, 7].map(i => (
                                             <input key={i} name={`cel_${i}`} defaultValue={c.celebrations?.[i] || ''} placeholder="Name..." className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 text-sm font-medium" />
                                         ))}
                                     </div>
@@ -596,4 +577,5 @@ wp_enqueue_style('wp-mediaelement');
     </script>
     <?php wp_footer(); ?>
 </body>
+
 </html>
