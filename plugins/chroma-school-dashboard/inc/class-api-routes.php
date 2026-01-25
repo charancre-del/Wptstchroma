@@ -40,17 +40,6 @@ class Chroma_School_API_Routes
             'callback' => [$this, 'get_weather_proxy'],
             'permission_callback' => '__return_true'
         ]);
-        register_rest_route('chroma/v1', '/portal/test-procare', [
-            'methods' => 'POST',
-            'callback' => [$this, 'test_procare_connection'],
-            'permission_callback' => [$this, 'check_director_permission']
-        ]);
-
-        register_rest_route('chroma/v1', '/procare/photos', [
-            'methods' => 'GET',
-            'callback' => [$this, 'get_procare_photos'],
-            'permission_callback' => '__return_true'
-        ]);
     }
 
     /**
@@ -105,7 +94,6 @@ class Chroma_School_API_Routes
             'slideshow_title',
             'chroma_cares',
             'celebrations',
-            'procare',
             'music_url'
         ];
 
@@ -151,7 +139,7 @@ class Chroma_School_API_Routes
         }
 
         $google_data = json_decode(wp_remote_retrieve_body($response), true);
-        
+
         // 1.1 Verify Audience (Client ID)
         $client_id = get_option('chroma_google_client_id');
         if (empty($client_id) || empty($google_data['aud']) || $google_data['aud'] !== $client_id) {
@@ -185,7 +173,7 @@ class Chroma_School_API_Routes
             foreach ($all_schools as $s) {
                 $conf = get_post_meta($s->ID, '_chroma_school_config', true);
                 $stored_email = $conf['director_email'] ?? 'N/A';
-                
+
                 if (strtolower($stored_email) === strtolower($email)) {
                     $found_school = $s;
                     update_post_meta($s->ID, '_chroma_school_director_email', $conf['director_email']);
@@ -242,7 +230,6 @@ class Chroma_School_API_Routes
             'slideshow_title',
             'chroma_cares',
             'celebrations',
-            'procare',
             'music_url'
         ];
         $content = [];
@@ -284,7 +271,6 @@ class Chroma_School_API_Routes
             'welcome_override',
             'chroma_cares',
             'celebrations',
-            'procare',
             'music_url'
         ];
 
@@ -298,9 +284,7 @@ class Chroma_School_API_Routes
                     'today',
                     'qr',
                     'slideshow',
-                    'chroma_cares',
-                    'celebrations',
-                    'procare'
+                    'celebrations'
                 ]);
 
                 if ($is_complex) {
@@ -318,50 +302,6 @@ class Chroma_School_API_Routes
         update_post_meta($school_id, '_chroma_school_last_updated', time());
 
         return rest_ensure_response(['success' => true]);
-    }
-
-    /**
-     * POST /portal/test-procare
-     */
-    public function test_procare_connection($request) {
-        $params = $request->get_json_params();
-        $username = $params['username'] ?? '';
-        $password = $params['password'] ?? '';
-
-        if (!$username || !$password) {
-            return new WP_Error('missing_creds', 'Username and password required', ['status' => 400]);
-        }
-
-        $result = Chroma_Procare_API::test_connection($username, $password);
-        return rest_ensure_response($result);
-    }
-
-    /**
-     * GET /procare/photos
-     * Used by TV Dashboard to get native image URLs
-     */
-    public function get_procare_photos($request) {
-        $referer = $request->get_header('referer');
-        // Optional: validate referer is our own site
-
-        // Identify school based on request or global context?
-        // TV dashboard usually calls 'tv/{slug}'. 
-        // But here we need to know WHICH school.
-        // Let's require the slug param.
-        
-        $slug = $request->get_param('slug');
-        if (!$slug) {
-            // Try to infer from referrer or just fail
-             return new WP_Error('no_slug', 'School slug required', ['status' => 400]);
-        }
-
-        $school = get_page_by_path($slug, OBJECT, 'chroma_school');
-        if (!$school) {
-            return new WP_Error('no_school', 'School not found', ['status' => 404]);
-        }
-
-        $photos = Chroma_Procare_API::get_slideshow_photos($school->ID);
-        return rest_ensure_response(['photos' => $photos]);
     }
 
     /**

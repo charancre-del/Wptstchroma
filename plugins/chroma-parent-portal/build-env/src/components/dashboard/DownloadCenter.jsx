@@ -31,7 +31,7 @@ const DownloadCenter = ({ resources, forms, onView, onDelete }) => {
                 />
                 <select value={view} onChange={(e) => setView(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #ddd' }}>
                     <option value="all">All Downloads</option>
-                    <option value="policies">Policies & Handbooks</option>
+                    <option value="policies">Policies & Procedures</option>
                     <option value="forms">Forms</option>
                 </select>
             </div>

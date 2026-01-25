@@ -5,8 +5,9 @@ import Header from './Header';
 import DashboardGrid from './DashboardGrid';
 import LessonPlanSection from './LessonPlanSection';
 import MealPlansSection from './MealPlansSection';
-import DownloadCenter from './DownloadCenter';
 import PDFCard from '../common/PDFCard';
+import OrganizationGroup from '../common/OrganizationGroup';
+import PDFViewerModal from '../common/PDFViewerModal';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const Dashboard = () => {
@@ -16,6 +17,20 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('overview');
     const [availableYears, setAvailableYears] = useState([]);
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+        // Initialize from localStorage for persistence
+        if (typeof window !== 'undefined') {
+            const stored = localStorage.getItem('chroma_portal_sidebar_collapsed');
+            return stored === 'true';
+        }
+        return false;
+    });
+
+    // Persist sidebar state to localStorage
+    useEffect(() => {
+        localStorage.setItem('chroma_portal_sidebar_collapsed', String(isSidebarCollapsed));
+    }, [isSidebarCollapsed]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -97,9 +112,13 @@ const Dashboard = () => {
                     console.log('[Dashboard] Available years from WP:', years);
                     setAvailableYears(years);
 
-                    // Set default year to the first available year if it exists
-                    if (years.length > 0 && !year) {
-                        setYear(years[0].value);
+                    // Set default year to the first available year if current year yields nothing
+                    if (years.length > 0) {
+                        const currentCalYear = new Date().getFullYear().toString();
+                        // If current year is NOT in the list, or we haven't set a year yet, use the first one
+                        if (!years.find(y => y.value === year) || year === currentCalYear) {
+                            setYear(years[0].value);
+                        }
                     }
                 }
             } catch (e) {
@@ -135,6 +154,11 @@ const Dashboard = () => {
         </div>
     );
 
+    const handleView = (file) => {
+        console.log('[Dashboard] Opening PDF:', file.title);
+        setSelectedFile(file);
+    };
+
     const renderView = () => {
         if (loading) return <div style={{ textAlign: 'center', padding: '100px' }}>Loading Portal Data...</div>;
 
@@ -144,9 +168,8 @@ const Dashboard = () => {
                     <div className="view-container">
                         <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                             <h2>Lesson Plans Library</h2>
-                            {/* Add logic if needed */}
                         </div>
-                        <LessonPlanSection items={data.lesson_plans} type="lesson" onView={(f) => { }} onDelete={fetchData} />
+                        <LessonPlanSection items={data.lesson_plans} type="lesson" onView={handleView} onDelete={fetchData} />
                     </div>
                 );
             case 'meals':
@@ -155,7 +178,7 @@ const Dashboard = () => {
                         <div className="section-header" style={{ marginBottom: '20px' }}>
                             <h2>Nutritional Meal Plans</h2>
                         </div>
-                        <MealPlansSection items={data.meal_plans} onView={() => { }} onDelete={fetchData} />
+                        <MealPlansSection items={data.meal_plans} onView={handleView} onDelete={fetchData} />
                     </div>
                 );
             case 'events':
@@ -164,30 +187,71 @@ const Dashboard = () => {
                         <div className="section-header" style={{ marginBottom: '20px' }}>
                             <h2>Upcoming School Events</h2>
                         </div>
-                        <div className="event-list" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
-                            {data.events.map(event => (
-                                <PDFCard key={event.id} item={event} onClick={() => { }} onDelete={fetchData} />
-                            ))}
-                        </div>
+                        <OrganizationGroup
+                            items={data.events}
+                            onView={handleView}
+                            onDelete={fetchData}
+                            emptyMessage="No upcoming events scheduled."
+                        />
                     </div>
                 );
-            case 'downloads':
+            case 'news':
                 return (
                     <div className="view-container">
                         <div className="section-header" style={{ marginBottom: '20px' }}>
-                            <h2>Policy & Resource Center</h2>
+                            <h2>School News & Announcements</h2>
                         </div>
-                        <DownloadCenter resources={data.resources} forms={data.forms} onView={() => { }} onDelete={fetchData} />
+                        <OrganizationGroup
+                            items={data.announcements}
+                            onView={handleView}
+                            onDelete={fetchData}
+                            emptyMessage="No recent news available."
+                        />
                     </div>
                 );
+            case 'resources':
+                return (
+                    <div className="view-container">
+                        <div className="section-header" style={{ marginBottom: '20px' }}>
+                            <h2>Resources</h2>
+                        </div>
+                        <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                            {data.resources.map(item => (
+                                <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={fetchData} />
+                            ))}
+                            {data.resources.length === 0 && <p>No resources found.</p>}
+                        </div>
+                    </div>
+                );
+            case 'policies':
+                return (
+                    <div className="view-container">
+                        <div className="section-header" style={{ marginBottom: '20px' }}>
+                            <h2>Policies & Procedures</h2>
+                        </div>
+                        <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
+                            {data.forms.map(item => (
+                                <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={fetchData} />
+                            ))}
+                            {data.forms.length === 0 && <p>No policy documents available.</p>}
+                        </div>
+                    </div>
+                );
+
             default:
-                return <DashboardGrid data={data} refreshData={fetchData} />;
+                return <DashboardGrid data={data} refreshData={fetchData} onDocumentClick={handleView} />;
         }
     };
 
     return (
-        <div className="glass-app-shell">
-            <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isAdmin={data?.is_admin} />
+        <div className={`glass-app-shell ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+            <Sidebar
+                activeTab={activeTab}
+                setActiveTab={setActiveTab}
+                isAdmin={data?.is_admin}
+                isCollapsed={isSidebarCollapsed}
+                onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            />
 
             <main className="portal-main">
                 <div className="main-viewport">
@@ -206,6 +270,15 @@ const Dashboard = () => {
                     </AnimatePresence>
                 </div>
             </main>
+
+            <AnimatePresence>
+                {selectedFile && (
+                    <PDFViewerModal
+                        file={selectedFile}
+                        onClose={() => setSelectedFile(null)}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };

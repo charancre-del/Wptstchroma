@@ -33,8 +33,8 @@ const UploadModal = ({ isOpen, onClose, type, onSuccess }) => {
                 if (yearsRes.ok) {
                     const years = await yearsRes.json();
                     setAvailableYears(years);
-                    if (years.length > 0) {
-                        setYear(years[0].value); // Default to first available year
+                    if (years.length > 0 && !year) {
+                        setYear(years[0].label); // Default to first available year LABEL
                     }
                 }
 
@@ -106,7 +106,7 @@ const UploadModal = ({ isOpen, onClose, type, onSuccess }) => {
             const contentData = {
                 title,
                 post_type: type,
-                year,
+                year, // Now sending the label (e.g. "2026-2027")
                 month: group,
                 file_id: fileId,
                 event_date: eventDate
@@ -167,7 +167,7 @@ const UploadModal = ({ isOpen, onClose, type, onSuccess }) => {
                             <label style={{ fontSize: '14px', fontWeight: '600', display: 'block', marginBottom: '5px' }}>Year</label>
                             <select value={year} onChange={e => setYear(e.target.value)} style={{ padding: '12px', width: '100%', borderRadius: '8px', border: '1px solid #ddd' }}>
                                 {availableYears.length > 0 ? (
-                                    availableYears.map(y => <option key={y.value} value={y.value}>{y.label}</option>)
+                                    availableYears.map(y => <option key={y.label} value={y.label}>{y.label}</option>)
                                 ) : (
                                     <option value={new Date().getFullYear()}>{new Date().getFullYear()}</option>
                                 )}
