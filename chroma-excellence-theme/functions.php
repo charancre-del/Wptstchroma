@@ -35,8 +35,7 @@ define('CHROMA_THEME_URI', get_template_directory_uri());
  * Prevent theme crash if Chroma SEO Pro plugin is disabled
  */
 if (!function_exists('chroma_url')) {
-    function chroma_url($path = '')
-    {
+    function chroma_url($path = '') {
         return home_url($path);
     }
 }
@@ -50,8 +49,7 @@ if (!function_exists('chroma_get_theme_mod')) {
      * @param mixed $default Default value
      * @return mixed
      */
-    function chroma_get_theme_mod($name, $default = false)
-    {
+    function chroma_get_theme_mod($name, $default = false) {
         return get_theme_mod($name, $default);
     }
 }
@@ -66,18 +64,17 @@ if (!function_exists('chroma_get_theme_mod')) {
  * @return WP_Query Cached or fresh query results
  */
 if (!function_exists('chroma_cached_query')) {
-    function chroma_cached_query($args, $cache_key_prefix, $expiration = HOUR_IN_SECONDS)
-    {
+    function chroma_cached_query($args, $cache_key_prefix, $expiration = HOUR_IN_SECONDS) {
         $cache_key = 'chroma_' . $cache_key_prefix . '_' . md5(serialize($args));
         $cached = get_transient($cache_key);
-
+        
         if (false !== $cached && $cached instanceof WP_Query) {
             return $cached;
         }
-
+        
         $query = new WP_Query($args);
         set_transient($cache_key, $query, $expiration);
-
+        
         return $query;
     }
 }
@@ -86,22 +83,21 @@ if (!function_exists('chroma_cached_query')) {
  * Clear cached queries when posts are updated
  * Ensures fresh data after content changes
  */
-function chroma_clear_query_cache($post_id)
-{
+function chroma_clear_query_cache($post_id) {
     $post_type = get_post_type($post_id);
     if (!$post_type) {
         return;
     }
-
+    
     // Map post types to cache prefixes
     $cache_prefixes = array(
-        'post' => array('footer_blog', 'newsroom'),
-        'location' => array('locations'),
-        'program' => array('programs'),
-        'city' => array('cities'),
+        'post'        => array('footer_blog', 'newsroom'),
+        'location'    => array('locations'),
+        'program'     => array('programs'),
+        'city'        => array('cities'),
         'team_member' => array('team'),
     );
-
+    
     if (isset($cache_prefixes[$post_type])) {
         foreach ($cache_prefixes[$post_type] as $prefix) {
             // Delete all transients with this prefix
@@ -149,20 +145,18 @@ require_once CHROMA_THEME_DIR . '/inc/class-amp-blog.php';
 // API Handlers
 
 
-// Page Meta Boxes - Admin Only
-if (is_admin()) {
-    require_once CHROMA_THEME_DIR . '/inc/about-page-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/curriculum-page-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/contact-page-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/stories-page-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/parents-page-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/careers-page-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/employers-page-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/privacy-page-meta.php';
-    // require_once CHROMA_THEME_DIR . '/inc/schema-meta-boxes.php';
-    require_once CHROMA_THEME_DIR . '/inc/general-seo-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/home-page-meta.php';
-}
+// Page Meta Boxes
+require_once CHROMA_THEME_DIR . '/inc/about-page-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/curriculum-page-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/contact-page-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/stories-page-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/parents-page-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/careers-page-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/employers-page-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/privacy-page-meta.php';
+// require_once CHROMA_THEME_DIR . '/inc/schema-meta-boxes.php';
+require_once CHROMA_THEME_DIR . '/inc/general-seo-meta.php';
+require_once CHROMA_THEME_DIR . '/inc/home-page-meta.php';
 
 
 // Utility Functions
@@ -170,15 +164,12 @@ require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
 // require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
-// Customizers - Admin or Preview Only
-if (is_admin() || is_customize_preview()) {
-    require_once CHROMA_THEME_DIR . '/inc/customizer-home.php';
-    require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
-    require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
-    require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
-    require_once CHROMA_THEME_DIR . '/inc/customizer-seo.php';
-    require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
-}
+require_once CHROMA_THEME_DIR . '/inc/customizer-home.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-seo.php';
+require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
 
 // Legacy helper files (ACF plugin optional; helpers run on core WP functions only)
 require_once CHROMA_THEME_DIR . '/inc/acf-options.php';
@@ -236,16 +227,15 @@ add_action('init', 'chroma_remove_legacy_assets');
  * Remove Gutenberg Block Library CSS on Frontend
  * This theme doesn't use Gutenberg blocks, so we can remove these render-blocking styles
  */
-function chroma_remove_block_library_css()
-{
+function chroma_remove_block_library_css() {
     if (!is_admin()) {
         // Remove core block library CSS
         wp_dequeue_style('wp-block-library');
         wp_dequeue_style('wp-block-library-theme');
-
+        
         // Remove WooCommerce block CSS (if any)
         wp_dequeue_style('wc-blocks-style');
-
+        
         // Remove global styles (theme.json generated)
         wp_dequeue_style('global-styles');
         wp_dequeue_style('wp-block-navigation');
@@ -258,7 +248,7 @@ add_action('wp_enqueue_scripts', 'chroma_remove_block_library_css', 100);
 add_filter('should_load_separate_core_block_assets', '__return_false');
 
 // Remove inline block styles for specific blocks
-add_action('wp_enqueue_scripts', function () {
+add_action('wp_enqueue_scripts', function() {
     // Get all registered block styles and remove them
     $blocks_to_remove = ['heading', 'paragraph', 'list', 'list-item', 'quote', 'image', 'separator'];
     foreach ($blocks_to_remove as $block) {
@@ -271,14 +261,14 @@ add_action('wp_enqueue_scripts', function () {
  * Exclude images with 'no-lazy' class from LiteSpeed lazy loading
  * This prevents CLS on hero images and other critical above-the-fold images
  */
-add_filter('litespeed_media_lazy_img_excludes', function ($excludes) {
+add_filter('litespeed_media_lazy_img_excludes', function($excludes) {
     $excludes[] = 'no-lazy';
     $excludes[] = 'fetchpriority';
     return $excludes;
 });
 
 // Also exclude from native WordPress lazy loading
-add_filter('wp_img_tag_add_loading_attr', function ($value, $image, $context) {
+add_filter('wp_img_tag_add_loading_attr', function($value, $image, $context) {
     if (strpos($image, 'no-lazy') !== false || strpos($image, 'fetchpriority') !== false) {
         return false; // Don't add loading="lazy"
     }
@@ -388,6 +378,23 @@ add_filter('upload_mimes', 'chroma_mime_types');
 
 
 /**
+ * Defer non-critical third-party scripts.
+ */
+function chroma_defer_scripts($tag, $handle, $src)
+{
+    // List of scripts to defer (Removed jQuery to prevent "jQuery is not defined" errors)
+    $defer_scripts = array('gtag', 'did-0014');
+
+    foreach ($defer_scripts as $script) {
+        if ($src && strpos($src, $script) !== false) {
+            return str_replace(' src', ' defer src', $tag);
+        }
+    }
+
+    return $tag;
+}
+add_filter('script_loader_tag', 'chroma_defer_scripts', 10, 3);
+/**
  * LCP Optimization: Preload hero image to improve Largest Content Paint
  */
 function chroma_preload_lcp_image()
@@ -495,27 +502,3 @@ remove_action('wp_head', 'wp_speculation_rules');
 remove_action('wp_footer', 'wp_speculation_rules');
 add_filter('wp_speculation_rules_configuration', '__return_empty_array', PHP_INT_MAX);
 add_filter('pl_speculation_rules_configuration', '__return_empty_array', PHP_INT_MAX);
-
-/**
- * Performance Profiling Helper
- * Appends debug info to the end of the page for users with specific permission
- */
-add_action('wp_footer', function () {
-    if (!defined('CHROMA_PERF_PROFILE') || !CHROMA_PERF_PROFILE) {
-        return;
-    }
-
-    if (!current_user_can('manage_options') && !isset($_GET['perf_debug'])) {
-        return;
-    }
-
-    $queries = get_num_queries();
-    $time = timer_stop(0, 4);
-    $memory = round(memory_get_peak_usage() / 1024 / 1024, 2);
-
-    echo "\n<!-- \nPERFORMANCE AUDIT:\n";
-    echo "Total Queries: $queries\n";
-    echo "Execution Time: $time seconds\n";
-    echo "Peak Memory: $memory MB\n";
-    echo "-->\n";
-}, 999);
