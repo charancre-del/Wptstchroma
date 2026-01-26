@@ -121,5 +121,11 @@ add_action('admin_init', function () {
         ];
         foreach ($caps as $cap)
             $role->add_cap($cap);
+
+        // FORCE ENABLE REACT UI (Bypass legacy PHP)
+        $routes = ['dashboard', 'schools', 'reports', 'wizard', 'settings'];
+        foreach ($routes as $route) {
+            update_option('cqa_flag_react_' . $route, true);
+        }
     }
 });

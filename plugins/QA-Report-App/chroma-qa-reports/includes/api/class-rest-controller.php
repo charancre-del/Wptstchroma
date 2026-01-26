@@ -417,9 +417,20 @@ class REST_Controller
         ];
 
         $schools = School::all($args);
+        $total_count = School::count($args); // Handle pagination metadata
+
         $data = array_map([$this, 'prepare_school_response'], $schools);
 
-        return new WP_REST_Response($data, 200);
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $data,
+            'meta' => [
+                'total' => $total_count,
+                'pages' => ceil($total_count / $args['limit']),
+                'current_page' => $request->get_param('page') ?: 1,
+                'per_page' => $args['limit']
+            ]
+        ], 200);
     }
 
     public function get_school(WP_REST_Request $request)
@@ -517,9 +528,20 @@ class REST_Controller
         ];
 
         $reports = Report::all($args);
+        $total_count = Report::count($args);
+
         $data = array_map([$this, 'prepare_report_response'], $reports);
 
-        return new WP_REST_Response($data, 200);
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $data,
+            'meta' => [
+                'total' => $total_count,
+                'pages' => ceil($total_count / $args['limit']),
+                'current_page' => $request->get_param('page') ?: 1,
+                'per_page' => $args['limit']
+            ]
+        ], 200);
     }
 
     public function get_report(WP_REST_Request $request)
