@@ -60,10 +60,9 @@ class Plugin
      */
     private function check_version()
     {
-        if (get_option('cqa_db_version') !== $this->version) {
-            require_once CQA_PLUGIN_DIR . 'includes/class-activator.php';
-            Activator::activate();
-        }
+        // Safe upgrade check
+        require_once CQA_PLUGIN_DIR . 'includes/class-upgrade-manager.php';
+        Upgrade_Manager::check_and_run();
     }
 
     /**

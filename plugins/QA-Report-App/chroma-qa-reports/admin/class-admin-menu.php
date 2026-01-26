@@ -96,6 +96,16 @@ class Admin_Menu
             [$this, 'render_settings']
         );
 
+        // Tools & Integrity
+        add_submenu_page(
+            self::MENU_SLUG,
+            __('System Tools', 'chroma-qa-reports'),
+            __('System Tools', 'chroma-qa-reports'),
+            'cqa_manage_settings',
+            self::MENU_SLUG . '-tools',
+            [$this, 'render_tools']
+        );
+
         // Help & Guide
         add_submenu_page(
             self::MENU_SLUG,
@@ -525,6 +535,14 @@ class Admin_Menu
     public function render_documentation()
     {
         include CQA_PLUGIN_DIR . 'admin/views/documentation.php';
+    }
+
+    /**
+     * Render tools page.
+     */
+    public function render_tools()
+    {
+        include CQA_PLUGIN_DIR . 'admin/views/tools.php';
     }
 
     /**

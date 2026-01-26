@@ -66,7 +66,7 @@ export function Dashboard() {
                     icon={FileText}
                     label="Total Reports"
                     value={reportsLoading ? '...' : recentReports.length}
-                    color="purple"
+                    color="amber"
                     to="/reports"
                 />
                 <StatCard
@@ -164,8 +164,8 @@ export function Dashboard() {
                                         <td className="px-6 py-4 text-sm text-gray-600">{report.report_type || 'Standard'}</td>
                                         <td className="px-6 py-4">
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${report.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                    report.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                                                        'bg-gray-100 text-gray-800'
+                                                report.status === 'pending' ? 'bg-amber-100 text-amber-800' :
+                                                    'bg-gray-100 text-gray-800'
                                                 }`}>
                                                 {report.status || 'draft'}
                                             </span>

@@ -9,7 +9,7 @@ const Shell = () => {
     const { isSidebarOpen } = useUIStore();
 
     return (
-        <div className="flex h-screen bg-gray-100 overflow-hidden font-sans text-gray-900">
+        <div className="flex h-screen bg-[#fdfbf7] overflow-hidden font-sans text-gray-900">
             <ConflictModal />
 
             {/* Sidebar */}

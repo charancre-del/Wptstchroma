@@ -8,9 +8,13 @@ module.exports = {
             colors: {
                 cqa: {
                     primary: {
-                        DEFAULT: '#6366f1',
-                        dark: '#4f46e5',
-                        light: '#818cf8',
+                        DEFAULT: '#9d8253', // Gold/Bronze
+                        dark: '#7d6842',
+                        light: '#bca882',
+                    },
+                    slate: {
+                        DEFAULT: '#263238', // Dark Slate
+                        light: '#37474f',
                     },
                     success: '#10b981',
                     warning: '#f59e0b',

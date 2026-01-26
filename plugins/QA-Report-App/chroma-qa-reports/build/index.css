@@ -570,7 +570,7 @@
 }
 .border-cqa-primary {
     --tw-border-opacity: 1;
-    border-color: rgb(99 102 241 / var(--tw-border-opacity, 1))
+    border-color: rgb(157 130 83 / var(--tw-border-opacity, 1))
 }
 .border-emerald-200 {
     --tw-border-opacity: 1;
@@ -618,6 +618,10 @@
 .border-t-transparent {
     border-top-color: transparent
 }
+.bg-\[\#fdfbf7\] {
+    --tw-bg-opacity: 1;
+    background-color: rgb(253 251 247 / var(--tw-bg-opacity, 1))
+}
 .bg-amber-100 {
     --tw-bg-opacity: 1;
     background-color: rgb(254 243 199 / var(--tw-bg-opacity, 1))
@@ -643,10 +647,10 @@
 }
 .bg-cqa-primary {
     --tw-bg-opacity: 1;
-    background-color: rgb(99 102 241 / var(--tw-bg-opacity, 1))
+    background-color: rgb(157 130 83 / var(--tw-bg-opacity, 1))
 }
 .bg-cqa-primary-light\/10 {
-    background-color: rgb(129 140 248 / 0.1)
+    background-color: rgb(188 168 130 / 0.1)
 }
 .bg-cqa-success {
     --tw-bg-opacity: 1;
@@ -928,7 +932,7 @@
 }
 .text-cqa-primary {
     --tw-text-opacity: 1;
-    color: rgb(99 102 241 / var(--tw-text-opacity, 1))
+    color: rgb(157 130 83 / var(--tw-text-opacity, 1))
 }
 .text-emerald-800 {
     --tw-text-opacity: 1;
@@ -1054,7 +1058,7 @@
 }
 .ring-cqa-primary {
     --tw-ring-opacity: 1;
-    --tw-ring-color: rgb(99 102 241 / var(--tw-ring-opacity, 1))
+    --tw-ring-color: rgb(157 130 83 / var(--tw-ring-opacity, 1))
 }
 .ring-offset-1 {
     --tw-ring-offset-width: 1px
@@ -1116,7 +1120,7 @@
 }
 .hover\:border-cqa-primary:hover {
     --tw-border-opacity: 1;
-    border-color: rgb(99 102 241 / var(--tw-border-opacity, 1))
+    border-color: rgb(157 130 83 / var(--tw-border-opacity, 1))
 }
 .hover\:border-green-300:hover {
     --tw-border-opacity: 1;
@@ -1136,7 +1140,7 @@
 }
 .hover\:bg-cqa-primary-dark:hover {
     --tw-bg-opacity: 1;
-    background-color: rgb(79 70 229 / var(--tw-bg-opacity, 1))
+    background-color: rgb(125 104 66 / var(--tw-bg-opacity, 1))
 }
 .hover\:bg-gray-100:hover {
     --tw-bg-opacity: 1;
@@ -1175,7 +1179,7 @@
 }
 .hover\:text-cqa-primary:hover {
     --tw-text-opacity: 1;
-    color: rgb(99 102 241 / var(--tw-text-opacity, 1))
+    color: rgb(157 130 83 / var(--tw-text-opacity, 1))
 }
 .hover\:text-gray-700:hover {
     --tw-text-opacity: 1;
@@ -1203,7 +1207,7 @@
 }
 .focus\:border-cqa-primary:focus {
     --tw-border-opacity: 1;
-    border-color: rgb(99 102 241 / var(--tw-border-opacity, 1))
+    border-color: rgb(157 130 83 / var(--tw-border-opacity, 1))
 }
 .focus\:ring-1:focus {
     --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
@@ -1217,7 +1221,7 @@
 }
 .focus\:ring-cqa-primary:focus {
     --tw-ring-opacity: 1;
-    --tw-ring-color: rgb(99 102 241 / var(--tw-ring-opacity, 1))
+    --tw-ring-color: rgb(157 130 83 / var(--tw-ring-opacity, 1))
 }
 .disabled\:cursor-not-allowed:disabled {
     cursor: not-allowed
