@@ -29,7 +29,10 @@ export function StepAISummary() {
         }
 
         try {
-            const result = await generateSummary.mutateAsync(report.id);
+            const result = await generateSummary.mutateAsync({
+                reportId: report.id,
+                checklistData: responses
+            });
             setReport({
                 ...report,
                 ai_summary: result.summary,

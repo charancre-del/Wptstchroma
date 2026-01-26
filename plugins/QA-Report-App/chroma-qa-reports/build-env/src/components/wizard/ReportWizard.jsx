@@ -29,14 +29,6 @@ const ReportWizard = () => {
     // Detect View Mode
     const isViewMode = location.pathname.includes('/reports/') && !location.pathname.includes('/edit');
 
-    // DEBUG: Route Tracing
-    console.log('Wizard Debug:', {
-        id,
-        pathname: location.pathname,
-        isViewMode: location.pathname.includes('/reports/') && !location.pathname.includes('/edit'),
-        searchParams: searchParams.toString()
-    });
-
     const { addToast } = useUIStore();
     const {
         report: draft,
@@ -59,6 +51,10 @@ const ReportWizard = () => {
     const submitMutation = useSubmitReport();
 
     const isSavingManual = createMutation.isPending || updateMutation.isPending || submitMutation.isPending;
+
+    // Auto-Save Hook (Handles DB sync & Conflict Modal)
+    // CRITICAL FIX: Must be called before early returns to satisfy Rules of Hooks (Error #310)
+    const { lastSaved, isSaving, saveError } = useAutoSave(draft, isDirty);
 
     // Initialize from Params or Existing Report
     useEffect(() => {
@@ -209,9 +205,6 @@ const ReportWizard = () => {
             addToast({ type: 'error', message: 'Failed to submit report. Please try again.' });
         }
     };
-
-    // Auto-Save Hook (Handles DB sync & Conflict Modal)
-    const { lastSaved, isSaving, saveError } = useAutoSave(draft, isDirty);
 
     return (
         <div className="max-w-4xl mx-auto bg-brand-cream/30 backdrop-blur-sm rounded-3xl shadow-sm border border-brand-ink/10 overflow-hidden min-h-[600px] flex flex-col font-outfit">
