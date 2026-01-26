@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import apiFetch from '../../../api/client';
 import ChecklistSection from '@components/wizard/checklist/ChecklistSection';
 import { ListChecks, AlertTriangle } from 'lucide-react';
-import useReportWizardStore from '../../../stores/index';
+import { useReportWizardStore } from '../../../stores/index';
 
 const StepChecklist = ({ draft, updateDraft, nextStep }) => {
     const { responses, setResponse } = useReportWizardStore();

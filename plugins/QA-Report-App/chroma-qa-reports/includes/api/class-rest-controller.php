@@ -384,14 +384,14 @@ class REST_Controller
 
         // 4. Compliant Schools (Have at least one 'meets' or 'exceeds' report)
         $compliant_schools = (int) $wpdb->get_var("
-            SELECT COUNT(DISTINCT school_id) FROM $reports_table 
-            WHERE status = 'approved' AND (rating = 'Meets Expectations' OR rating = 'Exceeds Expectations')
+            SELECT COUNT(DISTINCT school_id) FROM $reports_table
+            WHERE status = 'approved' AND (overall_rating = 'meets' OR overall_rating = 'exceeds')
         ");
 
         // 5. My Reports (Current User)
         $user_id = get_current_user_id();
         $my_reports = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM $reports_table WHERE author_id = %d",
+            "SELECT COUNT(*) FROM $reports_table WHERE user_id = %d",
             $user_id
         ));
 
@@ -426,7 +426,8 @@ class REST_Controller
             'data' => $data,
             'meta' => [
                 'total' => $total_count,
-                'pages' => ceil($total_count / $args['limit']),
+                'total_pages' => ceil($total_count / $args['limit']),
+                'pages' => ceil($total_count / $args['limit']), // Legacy alias
                 'current_page' => $request->get_param('page') ?: 1,
                 'per_page' => $args['limit']
             ]
@@ -537,7 +538,8 @@ class REST_Controller
             'data' => $data,
             'meta' => [
                 'total' => $total_count,
-                'pages' => ceil($total_count / $args['limit']),
+                'total_pages' => ceil($total_count / $args['limit']),
+                'pages' => ceil($total_count / $args['limit']), // Legacy alias
                 'current_page' => $request->get_param('page') ?: 1,
                 'per_page' => $args['limit']
             ]
@@ -1352,6 +1354,16 @@ class REST_Controller
         $author = \get_userdata($report->user_id);
         $author_name = $author ? $author->display_name : 'Unknown';
 
+        // Derive tier from report_type for frontend display
+        $tier = 1; // Default tier
+        if ($report->report_type === 'tier1') {
+            $tier = 1;
+        } elseif ($report->report_type === 'tier1_tier2') {
+            $tier = 2;
+        } elseif ($report->report_type === 'new_acquisition') {
+            $tier = 0; // New acquisition = Tier 0
+        }
+
         $data = [
             'id' => $report->id,
             'school_id' => $report->school_id,
@@ -1359,11 +1371,13 @@ class REST_Controller
             'author_name' => $author_name,
             'report_type' => $report->report_type,
             'report_type_label' => $report->get_type_label(),
+            'tier' => $tier,                          // Frontend tier display
             'inspection_date' => $report->inspection_date,
             'visit_date' => $report->inspection_date, // Frontend alias
             'date' => $report->inspection_date,       // Dashboard alias
             'previous_report_id' => $report->previous_report_id,
             'overall_rating' => $report->overall_rating,
+            'rating' => $report->get_rating_label(),  // Frontend rating display
             'rating_label' => $report->get_rating_label(),
             'status' => $report->status,
             'status_label' => $report->get_status_label(),
