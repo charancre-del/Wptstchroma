@@ -95,4 +95,12 @@ export const apiFetch = async (endpoint, options = {}) => {
     }
 };
 
+// Axios-like wrapper for compatibility with useQueries
+export const apiClient = {
+    get: (endpoint, config = {}) => apiFetch(endpoint, { ...config, method: 'GET' }),
+    post: (endpoint, data, config = {}) => apiFetch(endpoint, { ...config, method: 'POST', body: data }),
+    put: (endpoint, data, config = {}) => apiFetch(endpoint, { ...config, method: 'PUT', body: data }),
+    delete: (endpoint, config = {}) => apiFetch(endpoint, { ...config, method: 'DELETE' }),
+};
+
 export default apiFetch;
