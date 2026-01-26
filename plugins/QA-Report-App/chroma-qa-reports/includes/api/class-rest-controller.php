@@ -1360,6 +1360,8 @@ class REST_Controller
             'report_type' => $report->report_type,
             'report_type_label' => $report->get_type_label(),
             'inspection_date' => $report->inspection_date,
+            'visit_date' => $report->inspection_date, // Frontend alias
+            'date' => $report->inspection_date,       // Dashboard alias
             'previous_report_id' => $report->previous_report_id,
             'overall_rating' => $report->overall_rating,
             'rating_label' => $report->get_rating_label(),
