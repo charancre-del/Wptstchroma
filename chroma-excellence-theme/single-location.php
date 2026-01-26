@@ -72,6 +72,9 @@ while (have_posts()):
 		'posts_per_page' => -1,
 		'orderby' => 'menu_order',
 		'order' => 'ASC',
+		'no_found_rows' => true,
+		'update_post_meta_cache' => true,
+		'update_post_term_cache' => false,
 		'meta_query' => array(
 			array(
 				'key' => 'program_locations',
@@ -125,7 +128,8 @@ while (have_posts()):
 					<?php if ($license_number): ?>
 						<div class="mb-8 flex items-center gap-2 text-sm font-semibold text-brand-ink/60">
 							<i class="fa-solid fa-certificate text-<?php echo esc_attr($region_colors['text']); ?>"></i>
-							<span><?php _e('DECAL License #:', 'chroma-excellence'); ?> <?php echo esc_html($license_number); ?></span>
+							<span><?php _e('DECAL License #:', 'chroma-excellence'); ?>
+								<?php echo esc_html($license_number); ?></span>
 						</div>
 					<?php endif; ?>
 
@@ -148,21 +152,24 @@ while (have_posts()):
 							<div class="text-2xl font-serif font-bold text-chroma-red mb-1">
 								<?php echo esc_html($ages_served); ?>
 							</div>
-							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold"><?php _e('Ages Served', 'chroma-excellence'); ?>
+							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold">
+								<?php _e('Ages Served', 'chroma-excellence'); ?>
 							</div>
 						</div>
 						<div>
 							<div class="text-2xl font-serif font-bold text-chroma-yellow mb-1">
 								<?php echo esc_html($google_rating); ?>
 							</div>
-							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold"><?php _e('Google Rating', 'chroma-excellence'); ?>
+							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold">
+								<?php _e('Google Rating', 'chroma-excellence'); ?>
 							</div>
 						</div>
 						<div>
 							<div class="text-2xl font-serif font-bold text-chroma-green mb-1">
 								<?php echo esc_html($hours); ?>
 							</div>
-							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold"><?php _e('Mon - Fri', 'chroma-excellence'); ?>
+							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold">
+								<?php _e('Mon - Fri', 'chroma-excellence'); ?>
 							</div>
 						</div>
 					</div>
@@ -286,8 +293,11 @@ while (have_posts()):
 				<div class="text-center mb-16 max-w-3xl mx-auto">
 					<span
 						class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Campus Features', 'chroma-excellence'); ?></span>
-					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4"><?php _e('Designed for discovery.', 'chroma-excellence'); ?></h2>
-					<p class="text-brand-ink/90"><?php printf(__('Every corner of our %s campus is intentional—from the soft lighting in our infant suites to the collaborative stations in our Pre-K classrooms.', 'chroma-excellence'), esc_html($city)); ?></p>
+					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
+						<?php _e('Designed for discovery.', 'chroma-excellence'); ?></h2>
+					<p class="text-brand-ink/90">
+						<?php printf(__('Every corner of our %s campus is intentional—from the soft lighting in our infant suites to the collaborative stations in our Pre-K classrooms.', 'chroma-excellence'), esc_html($city)); ?>
+					</p>
 				</div>
 
 				<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -298,8 +308,11 @@ while (have_posts()):
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-blue text-xl mb-6 group-hover:scale-110 transition-transform">
 							<i class="fa-solid fa-shield-halved"></i>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3"><?php _e('Secure Access', 'chroma-excellence'); ?></h3>
-						<p class="text-sm text-brand-ink/90 leading-relaxed"><?php _e('Keypad entry, 24/7 video monitoring, and a staffed front desk ensure your child is always safe.', 'chroma-excellence'); ?></p>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
+							<?php _e('Secure Access', 'chroma-excellence'); ?></h3>
+						<p class="text-sm text-brand-ink/90 leading-relaxed">
+							<?php _e('Keypad entry, 24/7 video monitoring, and a staffed front desk ensure your child is always safe.', 'chroma-excellence'); ?>
+						</p>
 					</div>
 
 					<!-- Feature 2 -->
@@ -309,8 +322,11 @@ while (have_posts()):
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-red text-xl mb-6 group-hover:scale-110 transition-transform">
 							<i class="fa-solid fa-tree"></i>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3"><?php _e('Nature Playground', 'chroma-excellence'); ?></h3>
-						<p class="text-sm text-brand-ink/80 leading-relaxed"><?php _e('Our oversized, shaded outdoor space features gardening beds, trike paths, and natural sensory zones.', 'chroma-excellence'); ?></p>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
+							<?php _e('Nature Playground', 'chroma-excellence'); ?></h3>
+						<p class="text-sm text-brand-ink/80 leading-relaxed">
+							<?php _e('Our oversized, shaded outdoor space features gardening beds, trike paths, and natural sensory zones.', 'chroma-excellence'); ?>
+						</p>
 					</div>
 
 					<!-- Feature 3 -->
@@ -320,8 +336,11 @@ while (have_posts()):
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-yellow text-xl mb-6 group-hover:scale-110 transition-transform">
 							<i class="fa-solid fa-flask"></i>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3"><?php _e('STEM Atelier', 'chroma-excellence'); ?></h3>
-						<p class="text-sm text-brand-ink/80 leading-relaxed"><?php _e('A dedicated studio for science experiments, light table exploration, and early engineering projects.', 'chroma-excellence'); ?></p>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
+							<?php _e('STEM Atelier', 'chroma-excellence'); ?></h3>
+						<p class="text-sm text-brand-ink/80 leading-relaxed">
+							<?php _e('A dedicated studio for science experiments, light table exploration, and early engineering projects.', 'chroma-excellence'); ?>
+						</p>
 					</div>
 
 					<!-- Feature 4 -->
@@ -331,8 +350,11 @@ while (have_posts()):
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-green text-xl mb-6 group-hover:scale-110 transition-transform">
 							<i class="fa-solid fa-graduation-cap"></i>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3"><?php _e('GA Lottery Pre-K', 'chroma-excellence'); ?></h3>
-						<p class="text-sm text-brand-ink/80 leading-relaxed"><?php _e('We are a proud partner of the Georgia Pre-K Program, offering tuition-free education for 4-year-olds.', 'chroma-excellence'); ?></p>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
+							<?php _e('GA Lottery Pre-K', 'chroma-excellence'); ?></h3>
+						<p class="text-sm text-brand-ink/80 leading-relaxed">
+							<?php _e('We are a proud partner of the Georgia Pre-K Program, offering tuition-free education for 4-year-olds.', 'chroma-excellence'); ?>
+						</p>
 					</div>
 				</div>
 			</div>
@@ -351,7 +373,8 @@ while (have_posts()):
 								class="absolute inset-0 bg-<?php echo esc_attr($region_colors['text']); ?> rounded-[2.5rem] rotate-3">
 							</div>
 							<img src="<?php echo esc_url($director_photo); ?>" alt="<?php echo esc_attr($director_name); ?>"
-								class="relative rounded-[2.5rem] w-full object-cover shadow-2xl grayscale transition-all duration-1000 ease-out" data-reveal-color />
+								class="relative rounded-[2.5rem] w-full object-cover shadow-2xl grayscale transition-all duration-1000 ease-out"
+								data-reveal-color />
 						</div>
 					<?php endif; ?>
 
@@ -359,8 +382,8 @@ while (have_posts()):
 						<span
 							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Meet the Director', 'chroma-excellence'); ?></span>
 						<h2 class="text-3xl md:text-4xl font-serif font-bold mb-6">
-							<?php 
-							echo $director_heading ?: sprintf(__('Welcome to Chroma %s.', 'chroma-excellence'), esc_html($city)); 
+							<?php
+							echo $director_heading ?: sprintf(__('Welcome to Chroma %s.', 'chroma-excellence'), esc_html($city));
 							?>
 						</h2>
 						<div class="space-y-4 text-white/80 text-lg leading-relaxed mb-8">
@@ -388,8 +411,11 @@ while (have_posts()):
 					<div class="text-center mb-12">
 						<span
 							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Explore Our Campus', 'chroma-excellence'); ?></span>
-						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4"><?php _e('Take a Virtual Tour', 'chroma-excellence'); ?></h2>
-						<p class="text-brand-ink/80 max-w-2xl mx-auto"><?php printf(__('Walk through our %s campus from the comfort of your home. Explore our classrooms, outdoor play areas, and learning spaces.', 'chroma-excellence'), esc_html($city)); ?></p>
+						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
+							<?php _e('Take a Virtual Tour', 'chroma-excellence'); ?></h2>
+						<p class="text-brand-ink/80 max-w-2xl mx-auto">
+							<?php printf(__('Walk through our %s campus from the comfort of your home. Explore our classrooms, outdoor play areas, and learning spaces.', 'chroma-excellence'), esc_html($city)); ?>
+						</p>
 					</div>
 
 					<div
@@ -429,9 +455,11 @@ while (have_posts()):
 				<div class="max-w-7xl mx-auto px-4 lg:px-6">
 					<div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
 						<div>
-							<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-3"><?php _e('Programs at this location', 'chroma-excellence'); ?>
+							<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-3">
+								<?php _e('Programs at this location', 'chroma-excellence'); ?>
 							</h2>
-							<p class="text-brand-ink/80"><?php _e('Curriculum tailored to the specific developmental window of your child.', 'chroma-excellence'); ?>
+							<p class="text-brand-ink/80">
+								<?php _e('Curriculum tailored to the specific developmental window of your child.', 'chroma-excellence'); ?>
 							</p>
 						</div>
 						<a href="<?php echo esc_url(chroma_get_program_archive_url()); ?>"
@@ -461,7 +489,8 @@ while (have_posts()):
 							?>
 							<div
 								class="bg-white rounded-3xl shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition group overflow-hidden flex flex-col relative">
-								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0" aria-label="Learn more about <?php the_title_attribute(); ?>"></a>
+								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0"
+									aria-label="Learn more about <?php the_title_attribute(); ?>"></a>
 								<?php if ($prog_img): ?>
 									<div class="h-48 overflow-hidden relative z-0">
 										<img src="<?php echo esc_url($prog_img); ?>" alt="<?php the_title(); ?>"
@@ -481,7 +510,8 @@ while (have_posts()):
 									<p class="text-sm text-brand-ink/90 mb-6 flex-1"><?php echo esc_html($excerpt); ?></p>
 									<a href="<?php the_permalink(); ?>"
 										class="relative z-10 text-xs font-bold text-<?php echo esc_attr($colors['text']); ?> uppercase tracking-wider hover:underline mt-auto">
-										<?php _e('Learn More', 'chroma-excellence'); ?> <i class="fa-solid fa-arrow-right text-[10px]"></i>
+										<?php _e('Learn More', 'chroma-excellence'); ?> <i
+											class="fa-solid fa-arrow-right text-[10px]"></i>
 									</a>
 								</div>
 							</div>
@@ -497,7 +527,8 @@ while (have_posts()):
 			<div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">
 				<span
 					class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Family Stories', 'chroma-excellence'); ?></span>
-				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-8"><?php _e('Why Families Love Us', 'chroma-excellence'); ?></h2>
+				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-8">
+					<?php _e('Why Families Love Us', 'chroma-excellence'); ?></h2>
 				<blockquote class="text-2xl md:text-3xl font-serif italic text-brand-ink/80 leading-relaxed mb-8">
 					"<?php echo esc_html($hero_review_text ?: __("We absolutely love Chroma! The teachers are so caring and my child has learned so much.", 'chroma-excellence')); ?>"
 				</blockquote>
@@ -511,25 +542,26 @@ while (have_posts()):
 		<section class="py-20 bg-brand-cream border-t border-brand-ink/5">
 			<div class="max-w-3xl mx-auto px-4 lg:px-6">
 				<div class="text-center mb-12">
-						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4"><?php _e('Frequently Asked Questions', 'chroma-excellence'); ?>
-						</h2>
-					</div>
-
-					<div class="space-y-6">
-						<?php
-						$location_faqs = chroma_get_location_faq_items($location_id);
-						foreach ($location_faqs as $item):
-							?>
-							<div class="bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
-								<h3 class="font-bold text-brand-ink mb-2"><?php echo esc_html($item['question']); ?></h3>
-								<div class="text-brand-ink/80 text-sm leading-relaxed">
-									<?php echo wp_kses_post($item['answer']); ?>
-								</div>
-							</div>
-						<?php endforeach; ?>
-					</div>
+					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
+						<?php _e('Frequently Asked Questions', 'chroma-excellence'); ?>
+					</h2>
 				</div>
-			</section>
+
+				<div class="space-y-6">
+					<?php
+					$location_faqs = chroma_get_location_faq_items($location_id);
+					foreach ($location_faqs as $item):
+						?>
+						<div class="bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
+							<h3 class="font-bold text-brand-ink mb-2"><?php echo esc_html($item['question']); ?></h3>
+							<div class="text-brand-ink/80 text-sm leading-relaxed">
+								<?php echo wp_kses_post($item['answer']); ?>
+							</div>
+						</div>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</section>
 
 		<!-- Tour / Contact Section -->
 		<section id="contact" class="py-24 bg-white relative">
@@ -539,7 +571,8 @@ while (have_posts()):
 				<div>
 					<span
 						class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Visit Us', 'chroma-excellence'); ?></span>
-					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6"><?php _e('Come see the magic in person.', 'chroma-excellence'); ?>
+					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
+						<?php _e('Come see the magic in person.', 'chroma-excellence'); ?>
 					</h2>
 					<p class="text-brand-ink/90 mb-8">
 						<?php _e('Tours are the best way to feel the Chroma difference.', 'chroma-excellence'); ?>
@@ -593,11 +626,13 @@ while (have_posts()):
 									<h3 class="font-bold text-brand-ink"><?php _e('Contact', 'chroma-excellence'); ?></h3>
 									<p class="text-sm text-brand-ink/80">
 										<?php if ($phone): ?>
-											<?php _e('Phone:', 'chroma-excellence'); ?> <a href="tel:<?php echo esc_attr(preg_replace('/[^0-9]/', '', $phone)); ?>"
+											<?php _e('Phone:', 'chroma-excellence'); ?> <a
+												href="tel:<?php echo esc_attr(preg_replace('/[^0-9]/', '', $phone)); ?>"
 												class="hover:text-<?php echo esc_attr($region_colors['text']); ?>"><?php echo esc_html($phone); ?></a><br>
 										<?php endif; ?>
 										<?php if ($email): ?>
-											<?php _e('Email:', 'chroma-excellence'); ?> <a href="mailto:<?php echo esc_attr($email); ?>"
+											<?php _e('Email:', 'chroma-excellence'); ?> <a
+												href="mailto:<?php echo esc_attr($email); ?>"
 												class="hover:text-<?php echo esc_attr($region_colors['text']); ?>"><?php echo esc_html($email); ?></a>
 										<?php endif; ?>
 									</p>
@@ -611,9 +646,11 @@ while (have_posts()):
 								<i class="fa-solid fa-clock"></i>
 							</div>
 							<div>
-								<h3 class="font-bold text-brand-ink"><?php _e('Hours of Operation', 'chroma-excellence'); ?></h3>
+								<h3 class="font-bold text-brand-ink"><?php _e('Hours of Operation', 'chroma-excellence'); ?>
+								</h3>
 								<p class="text-sm text-brand-ink/80">
-									<?php _e('Monday - Friday:', 'chroma-excellence'); ?> <?php echo esc_html($hours); ?><br>
+									<?php _e('Monday - Friday:', 'chroma-excellence'); ?>
+									<?php echo esc_html($hours); ?><br>
 									<?php _e('Weekends: Closed', 'chroma-excellence'); ?>
 								</p>
 							</div>
@@ -629,8 +666,10 @@ while (have_posts()):
 										<i class="fa-solid fa-bus"></i>
 									</div>
 									<div>
-										<h3 class="font-bold text-brand-ink"><?php _e('School Pickups', 'chroma-excellence'); ?></h3>
-										<p class="text-sm text-brand-ink/80"><?php _e('We provide pickup service to:', 'chroma-excellence'); ?></p>
+										<h3 class="font-bold text-brand-ink"><?php _e('School Pickups', 'chroma-excellence'); ?>
+										</h3>
+										<p class="text-sm text-brand-ink/80">
+											<?php _e('We provide pickup service to:', 'chroma-excellence'); ?></p>
 										<ul class="text-sm text-brand-ink/80 mt-2 space-y-1">
 											<?php foreach ($schools as $school): ?>
 												<li class="flex items-start gap-2">
@@ -675,8 +714,11 @@ while (have_posts()):
 				<!-- Form Side -->
 				<div id="tour"
 					class="bg-brand-cream p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-<?php echo esc_attr($region_colors['border']); ?>/10 h-fit sticky top-28">
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-2"><?php _e('Request a Tour', 'chroma-excellence'); ?></h3>
-					<p class="text-sm text-brand-ink/90 mb-6"><?php _e("Fill out the form below and we'll contact you to confirm a time.", 'chroma-excellence'); ?></p>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-2">
+						<?php _e('Request a Tour', 'chroma-excellence'); ?></h3>
+					<p class="text-sm text-brand-ink/90 mb-6">
+						<?php _e("Fill out the form below and we'll contact you to confirm a time.", 'chroma-excellence'); ?>
+					</p>
 
 					<?php echo do_shortcode('[chroma_tour_form location_id="' . $location_id . '"]'); ?>
 
@@ -684,7 +726,8 @@ while (have_posts()):
 						<div class="mt-6 text-center">
 							<div class="flex items-center gap-4 mb-4">
 								<div class="flex-1 h-px bg-brand-ink/10"></div>
-								<span class="text-sm text-brand-ink font-medium uppercase tracking-wider"><?php _e('or', 'chroma-excellence'); ?></span>
+								<span
+									class="text-sm text-brand-ink font-medium uppercase tracking-wider"><?php _e('or', 'chroma-excellence'); ?></span>
 								<div class="flex-1 h-px bg-brand-ink/10"></div>
 							</div>
 							<a href="<?php echo esc_url($tour_booking_link); ?>"
@@ -732,84 +775,89 @@ endwhile;
 
 <!-- Tour Booking Modal (Local to this template) -->
 <div id="chroma-tour-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="chroma-tour-backdrop"></div>
+	<!-- Backdrop -->
+	<div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="chroma-tour-backdrop"></div>
 
-    <!-- Modal Container -->
-    <div class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
-        <!-- Header -->
-        <div class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
-            <h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
-            <div class="flex items-center gap-4">
-                <a href="#" id="chroma-tour-external" target="_blank"
-                    class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">
-                    <?php _e('Open in new tab', 'chroma-excellence'); ?> <i class="fa-solid fa-external-link-alt ml-1"></i>
-                </a>
-                <button id="chroma-tour-close"
-                    class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-        </div>
+	<!-- Modal Container -->
+	<div
+		class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+		<!-- Header -->
+		<div
+			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
+			<h3 class="font-serif text-xl font-bold text-brand-ink">
+				<?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
+			<div class="flex items-center gap-4">
+				<a href="#" id="chroma-tour-external" target="_blank"
+					class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">
+					<?php _e('Open in new tab', 'chroma-excellence'); ?> <i
+						class="fa-solid fa-external-link-alt ml-1"></i>
+				</a>
+				<button id="chroma-tour-close"
+					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
+					<i class="fa-solid fa-xmark text-lg"></i>
+				</button>
+			</div>
+		</div>
 
-        <!-- Iframe Container -->
-        <div class="flex-grow relative bg-white">
-            <div id="chroma-tour-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
-                <div class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin"></div>
-            </div>
-            <iframe id="chroma-tour-frame" src="" class="w-full h-full border-0"
-                allow="camera; microphone; autoplay; encrypted-media;"></iframe>
-        </div>
-    </div>
+		<!-- Iframe Container -->
+		<div class="flex-grow relative bg-white">
+			<div id="chroma-tour-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+				<div class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin">
+				</div>
+			</div>
+			<iframe id="chroma-tour-frame" src="" class="w-full h-full border-0"
+				allow="camera; microphone; autoplay; encrypted-media;"></iframe>
+		</div>
+	</div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const modal = document.getElementById('chroma-tour-modal');
-        const backdrop = document.getElementById('chroma-tour-backdrop');
-        const closeBtn = document.getElementById('chroma-tour-close');
-        const iframe = document.getElementById('chroma-tour-frame');
-        const externalLink = document.getElementById('chroma-tour-external');
-        const loader = document.getElementById('chroma-tour-loader');
+	document.addEventListener('DOMContentLoaded', function () {
+		const modal = document.getElementById('chroma-tour-modal');
+		const backdrop = document.getElementById('chroma-tour-backdrop');
+		const closeBtn = document.getElementById('chroma-tour-close');
+		const iframe = document.getElementById('chroma-tour-frame');
+		const externalLink = document.getElementById('chroma-tour-external');
+		const loader = document.getElementById('chroma-tour-loader');
 
-        function openModal(url) {
-            modal.classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            loader.classList.remove('hidden');
-            iframe.src = url;
-            externalLink.href = url;
-            iframe.onload = function () {
-                loader.classList.add('hidden');
-            };
-        }
+		function openModal(url) {
+			modal.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+			loader.classList.remove('hidden');
+			iframe.src = url;
+			externalLink.href = url;
+			iframe.onload = function () {
+				loader.classList.add('hidden');
+			};
+		}
 
-        function closeModal() {
-            modal.classList.add('hidden');
-            document.body.style.overflow = '';
-            iframe.src = '';
-        }
+		function closeModal() {
+			modal.classList.add('hidden');
+			document.body.style.overflow = '';
+			iframe.src = '';
+		}
 
-        // Attach listeners to booking buttons
-        const bookingBtns = document.querySelectorAll('.booking-btn');
-        bookingBtns.forEach(btn => {
-            btn.addEventListener('click', function (e) {
-                const url = this.getAttribute('href');
-                if (url && url.startsWith('http')) {
-                    e.preventDefault();
-                    openModal(url);
-                }
-            });
-        });
+		// Attach listeners to booking buttons
+		const bookingBtns = document.querySelectorAll('.booking-btn');
+		bookingBtns.forEach(btn => {
+			btn.addEventListener('click', function (e) {
+				const url = this.getAttribute('href');
+				if (url && url.startsWith('http')) {
+					e.preventDefault();
+					openModal(url);
+				}
+			});
+		});
 
-        // Close actions
-        if (closeBtn) closeBtn.addEventListener('click', closeModal);
-        if (backdrop) backdrop.addEventListener('click', closeModal);
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
-                closeModal();
-            }
-        });
-    });
+		// Close actions
+		if (closeBtn) closeBtn.addEventListener('click', closeModal);
+		if (backdrop) backdrop.addEventListener('click', closeModal);
+		document.addEventListener('keydown', function (e) {
+			if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+				closeModal();
+			}
+		});
+	});
 </script>
 
 <?php
