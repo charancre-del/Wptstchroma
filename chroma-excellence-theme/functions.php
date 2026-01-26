@@ -388,23 +388,6 @@ add_filter('upload_mimes', 'chroma_mime_types');
 
 
 /**
- * Defer non-critical third-party scripts.
- */
-function chroma_defer_scripts($tag, $handle, $src)
-{
-    // List of scripts to defer (Removed jQuery to prevent "jQuery is not defined" errors)
-    $defer_scripts = array('gtag', 'did-0014');
-
-    foreach ($defer_scripts as $script) {
-        if ($src && strpos($src, $script) !== false) {
-            return str_replace(' src', ' defer src', $tag);
-        }
-    }
-
-    return $tag;
-}
-add_filter('script_loader_tag', 'chroma_defer_scripts', 10, 3);
-/**
  * LCP Optimization: Preload hero image to improve Largest Content Paint
  */
 function chroma_preload_lcp_image()

@@ -138,12 +138,13 @@
 		<div
 			class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80">
 			<p>&copy; <?php echo date('Y'); ?>
-				<?php _e('Chroma Early Learning Academy. All rights reserved.', 'chroma-excellence'); ?></p>
+				<?php _e('Chroma Early Learning Academy. All rights reserved.', 'chroma-excellence'); ?>
+			</p>
 
 			<div class="flex items-center gap-6">
 				<?php
 				if (function_exists('chroma_render_language_switcher')) {
-					chroma_render_language_switcher('footer');
+					chroma_render_language_switcher();
 				}
 				?>
 				<div class="flex gap-4 border-l border-white/10 pl-6">
