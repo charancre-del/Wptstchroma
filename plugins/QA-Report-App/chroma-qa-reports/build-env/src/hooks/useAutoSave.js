@@ -45,11 +45,14 @@ const useAutoSave = (draft, isDirty) => {
                 const response = await apiFetch(`reports/${currentDraft.id}`, {
                     method: 'PUT',
                     body: {
-                        // Only send fields relevant to draft update
+                        // Send all relevant draft fields to ensure sync
                         status: currentDraft.status || 'draft',
-                        // ... other fields mapping
+                        school_id: currentDraft.school_id,
+                        report_type: currentDraft.report_type,
+                        inspection_date: currentDraft.inspection_date,
+                        overall_rating: currentDraft.overall_rating,
                         closing_notes: currentDraft.closing_notes,
-                        // Don't send everything blindly, but for v1 wizard, we might need a mapper
+                        previous_report_id: currentDraft.previous_report_id,
                     },
                     ...options
                 });
@@ -71,9 +74,32 @@ const useAutoSave = (draft, isDirty) => {
                     updatedBy: error.data?.details?.updated_by || 'Unknown',
                     updatedAt: error.data?.details?.updated_at,
                     onOverwrite: async () => {
-                        // Force save logic (omitting if-unmodified-since)
-                        // To be implemented in Wizard Container or passed down
-                        alert('Overwrite logic to be implemented');
+                        // Force save without If-Unmodified-Since header
+                        try {
+                            const forceSaveResponse = await apiFetch(`reports/${currentDraft.id}`, {
+                                method: 'PUT',
+                                body: {
+                                    status: currentDraft.status || 'draft',
+                                    school_id: currentDraft.school_id,
+                                    report_type: currentDraft.report_type,
+                                    inspection_date: currentDraft.inspection_date,
+                                    overall_rating: currentDraft.overall_rating,
+                                    closing_notes: currentDraft.closing_notes,
+                                    previous_report_id: currentDraft.previous_report_id,
+                                }
+                                // No ifUnmodifiedSince = force overwrite
+                            });
+                            // Update local timestamp from server response
+                            if (forceSaveResponse.data?.updated_at) {
+                                draftRef.current.updated_at = forceSaveResponse.data.updated_at;
+                            }
+                            showConflictModal(null); // Close modal
+                            addToast({ type: 'success', message: 'Report saved (overwritten server version)' });
+                            setLastSaved(new Date());
+                        } catch (forceSaveError) {
+                            console.error('Force save failed:', forceSaveError);
+                            addToast({ type: 'error', message: 'Failed to force save. Please try again.' });
+                        }
                     },
                     onReload: () => {
                         window.location.reload();

@@ -43,7 +43,22 @@ export const apiFetch = async (endpoint, options = {}) => {
         headers['If-Unmodified-Since'] = options.ifUnmodifiedSince;
     }
 
-    const url = `${config.restUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+    // Build URL with query params support
+    let url = `${config.restUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+
+    // Handle params option (like axios)
+    if (options.params) {
+        const searchParams = new URLSearchParams();
+        Object.entries(options.params).forEach(([key, value]) => {
+            if (value !== undefined && value !== null && value !== '') {
+                searchParams.append(key, value);
+            }
+        });
+        const queryString = searchParams.toString();
+        if (queryString) {
+            url += (url.includes('?') ? '&' : '?') + queryString;
+        }
+    }
 
     try {
         const response = await fetch(url, {
