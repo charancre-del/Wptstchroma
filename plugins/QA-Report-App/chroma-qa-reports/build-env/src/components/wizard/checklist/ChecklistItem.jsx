@@ -29,7 +29,7 @@ const ChecklistItem = ({ item, response, onChange }) => {
                 {ratings.map((rate) => (
                     <button
                         key={rate.value}
-                        onClick={() => onChange(item.id, { ...response, rating: rate.value })}
+                        onClick={() => onChange(item.key || item.id, { ...response, rating: rate.value })}
                         className={`
                             px-3 py-2 rounded-md text-sm font-medium border transition-colors flex items-center justify-center gap-2
                             ${currentRating === rate.value

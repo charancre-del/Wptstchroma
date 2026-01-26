@@ -84,79 +84,90 @@ export const useReportWizardStore = create(
     persist(
         (set, get) => ({
             // Wizard state
-            currentStep: 0,
+            currentStep: 1,
             isSubmitting: false,
 
             // Report data
-            reportData: {
+            report: {
                 school_id: null,
+                school_name: '',
                 report_type: 'tier1',
+                visit_date: new Date().toISOString().split('T')[0],
                 inspection_date: new Date().toISOString().split('T')[0],
                 previous_report_id: null,
-                responses: {},
-                photos: [],
                 closing_notes: '',
                 overall_rating: 'pending',
+                status: 'draft',
             },
+            responses: {},
+            photos: [],
 
             // Actions
             setStep: (step) => set({ currentStep: step }),
             nextStep: () => set((state) => ({ currentStep: state.currentStep + 1 })),
-            prevStep: () => set((state) => ({ currentStep: Math.max(0, state.currentStep - 1) })),
+            prevStep: () => set((state) => ({ currentStep: Math.max(1, state.currentStep - 1) })),
 
-            updateReportData: (data) => set((state) => ({
-                reportData: { ...state.reportData, ...data },
+            setReport: (data) => set((state) => ({
+                report: { ...state.report, ...data },
             })),
 
+            // Legacy alias for setReport
+            updateReportData: (data) => set((state) => ({
+                report: { ...state.report, ...data },
+            })),
+
+            setResponses: (responses) => set({ responses }),
+
             setResponse: (sectionKey, itemKey, response) => set((state) => ({
-                reportData: {
-                    ...state.reportData,
-                    responses: {
-                        ...state.reportData.responses,
-                        [sectionKey]: {
-                            ...state.reportData.responses[sectionKey],
-                            [itemKey]: response,
-                        },
+                responses: {
+                    ...state.responses,
+                    [sectionKey]: {
+                        ...state.responses[sectionKey],
+                        [itemKey]: response,
                     },
                 },
             })),
 
+            setPhotos: (photos) => set({ photos }),
+
             addPhoto: (photo) => set((state) => ({
-                reportData: {
-                    ...state.reportData,
-                    photos: [...state.reportData.photos, photo],
-                },
+                photos: [...state.photos, photo],
             })),
 
             removePhoto: (photoId) => set((state) => ({
-                reportData: {
-                    ...state.reportData,
-                    photos: state.reportData.photos.filter((p) => p.id !== photoId),
-                },
+                photos: state.photos.filter((p) => p.id !== photoId),
             })),
 
             setSubmitting: (isSubmitting) => set({ isSubmitting }),
 
             reset: () => set({
-                currentStep: 0,
+                currentStep: 1,
                 isSubmitting: false,
-                reportData: {
+                report: {
                     school_id: null,
+                    school_name: '',
                     report_type: 'tier1',
+                    visit_date: new Date().toISOString().split('T')[0],
                     inspection_date: new Date().toISOString().split('T')[0],
                     previous_report_id: null,
-                    responses: {},
-                    photos: [],
                     closing_notes: '',
                     overall_rating: 'pending',
+                    status: 'draft',
                 },
+                responses: {},
+                photos: [],
             }),
 
             // Computed
             getTotalResponses: () => {
-                const { responses } = get().reportData;
+                const { responses } = get();
                 return Object.values(responses).reduce(
-                    (total, section) => total + Object.keys(section).length,
+                    (total, section) => {
+                        if (typeof section === 'object' && section !== null) {
+                            return total + Object.keys(section).length;
+                        }
+                        return total + 1; // Flat response
+                    },
                     0
                 );
             },
@@ -165,7 +176,9 @@ export const useReportWizardStore = create(
             name: 'cqa-wizard-draft',
             partialize: (state) => ({
                 currentStep: state.currentStep,
-                reportData: state.reportData,
+                report: state.report,
+                responses: state.responses,
+                photos: state.photos,
             }),
         }
     )

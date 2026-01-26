@@ -191,10 +191,10 @@ export function StepReview({ onBack }) {
             )}
 
             {/* Notes */}
-            {report?.notes && (
+            {report?.closing_notes && (
                 <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
-                    <h3 className="font-medium text-gray-700 mb-2">Notes</h3>
-                    <p className="text-gray-600">{report.notes}</p>
+                    <h3 className="font-medium text-gray-700 mb-2">Closing Notes</h3>
+                    <p className="text-gray-600">{report.closing_notes}</p>
                 </div>
             )}
         </div>

@@ -28,14 +28,17 @@ const ChecklistSection = ({ section, responses, onResponseChange }) => {
 
             {/* Items Grid */}
             <div className="grid grid-cols-1 gap-6">
-                {section.items.map((item) => (
-                    <ChecklistItem
-                        key={item.id}
-                        item={item}
-                        response={responses[item.id] || {}}
-                        onChange={onResponseChange}
-                    />
-                ))}
+                {section.items.map((item) => {
+                    const itemKey = item.key || item.id;
+                    return (
+                        <ChecklistItem
+                            key={itemKey}
+                            item={item}
+                            response={responses[itemKey] || {}}
+                            onChange={(itemId, response) => onResponseChange(itemId, response, section.key)}
+                        />
+                    );
+                })}
             </div>
         </div>
     );

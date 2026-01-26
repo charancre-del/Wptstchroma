@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import apiFetch from '../../../api/client';
 import ChecklistSection from '@components/wizard/checklist/ChecklistSection';
 import { ListChecks, AlertTriangle } from 'lucide-react';
+import useReportWizardStore from '../../../stores/index';
 
 const StepChecklist = ({ draft, updateDraft, nextStep }) => {
+    const { responses, setResponse } = useReportWizardStore();
+
     // Determine checklist type from draft or default to 'tier1'
     const checklistType = draft.report_type || 'tier1';
 
@@ -15,22 +18,8 @@ const StepChecklist = ({ draft, updateDraft, nextStep }) => {
         staleTime: Infinity, // Definitions rarely change
     });
 
-    // Local state to manage responses before pushing to draft
-    // Initialize from draft.responses if exists
-    // Structure: { itemId: { rating: 'meets', notes: '...' } }
-    const [responses, setResponses] = useState(draft.responses || {});
-
-    // Sync responses back to draft parent whenever they change
-    // Debounced sync could be optimizing, but for now we rely on the parents updates
-    useEffect(() => {
-        updateDraft({ responses });
-    }, [responses]);
-
-    const handleResponseChange = (itemId, newResponse) => {
-        setResponses(prev => ({
-            ...prev,
-            [itemId]: newResponse
-        }));
+    const handleResponseChange = (itemId, newResponse, sectionKey) => {
+        setResponse(sectionKey, itemId, newResponse);
     };
 
     // Calculate Completion
@@ -41,9 +30,11 @@ const StepChecklist = ({ draft, updateDraft, nextStep }) => {
         let answered = 0;
 
         checklistDef.sections.forEach(section => {
+            const sectionResponses = responses[section.key] || {};
             total += section.items.length;
             section.items.forEach(item => {
-                if (responses[item.id]?.rating) answered++;
+                const itemKey = item.key || item.id;
+                if (sectionResponses[itemKey]?.rating) answered++;
             });
         });
 
@@ -103,7 +94,7 @@ const StepChecklist = ({ draft, updateDraft, nextStep }) => {
                     <ChecklistSection
                         key={section.id}
                         section={section}
-                        responses={responses}
+                        responses={responses[section.key] || {}}
                         onResponseChange={handleResponseChange}
                     />
                 ))}

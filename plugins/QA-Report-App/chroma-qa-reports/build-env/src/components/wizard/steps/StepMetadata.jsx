@@ -9,6 +9,19 @@ const StepMetadata = ({ draft, updateDraft }) => {
 
     return (
         <div className="space-y-8 animate-fade-in">
+            {/* Closing Notes (Prominent) */}
+            <div className="space-y-2 bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <label className="block text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <FileText size={16} className="text-cqa-primary" /> Closing Remarks
+                </label>
+                <textarea
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none h-32 resize-none"
+                    placeholder="General observations or executive summary for this visit..."
+                    value={draft.closing_notes || ''}
+                    onChange={(e) => handleChange('closing_notes', e.target.value)}
+                />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                 {/* Inspection Date */}
@@ -65,18 +78,6 @@ const StepMetadata = ({ draft, updateDraft }) => {
                 </div>
             </div>
 
-            {/* Closing Notes (Initial) */}
-            <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                    Closing Notes (Optional)
-                </label>
-                <textarea
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none h-32 resize-none"
-                    placeholder="General observations or executive summary..."
-                    value={draft.closing_notes || ''}
-                    onChange={(e) => handleChange('closing_notes', e.target.value)}
-                />
-            </div>
         </div>
     );
 };
