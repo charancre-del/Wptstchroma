@@ -21,9 +21,6 @@ $locations_query = new WP_Query(array(
 	'post_status' => 'publish',
 	'orderby' => 'title',
 	'order' => 'ASC',
-	'no_found_rows' => true,
-	'update_post_term_cache' => true,
-	'update_post_meta_cache' => true,
 ));
 
 // Helper function to get region color from term meta
