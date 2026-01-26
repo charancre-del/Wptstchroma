@@ -21,9 +21,13 @@ $first = $profile_list[0];
 <section id="curriculum" class="py-20 bg-brand-cream border-y border-chroma-blue/10" data-section="curriculum">
         <div class="max-w-6xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-12 items-center">
                 <div class="space-y-5">
-                        <span class="text-chroma-blue font-bold tracking-[0.2em] text-[11px] uppercase"><?php _e('The Prismpath™ Curriculum', 'chroma-excellence'); ?></span>
-                        <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink"><?php _e('A curriculum that shifts as your child grows', 'chroma-excellence'); ?></h2>
-                        <p class="text-brand-ink text-sm md:text-base"><?php _e('Our Prismpath™ framework balances five pillars – physical, emotional, social, academic, and creative development. The mix changes at each age so your child gets exactly what they need, when they need it.', 'chroma-excellence'); ?></p>
+                        <span
+                                class="text-chroma-blue font-bold tracking-[0.2em] text-[11px] uppercase"><?php _e('The Prismpath™ Curriculum', 'chroma-excellence'); ?></span>
+                        <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink">
+                                <?php _e('A curriculum that shifts as your child grows', 'chroma-excellence'); ?></h2>
+                        <p class="text-brand-ink text-sm md:text-base">
+                                <?php _e('Our Prismpath™ framework balances five pillars – physical, emotional, social, academic, and creative development. The mix changes at each age so your child gets exactly what they need, when they need it.', 'chroma-excellence'); ?>
+                        </p>
                         <div class="flex flex-wrap gap-2 text-xs" data-curriculum-buttons>
                                 <?php foreach ($profiles['profiles'] as $index => $profile):
                                         $label = $profile['label'] ?? ucfirst($profile['key']);
@@ -53,12 +57,13 @@ $first = $profile_list[0];
                                 <h3 class="font-serif text-xl md:text-2xl font-bold text-brand-ink mb-2"
                                         data-curriculum-title><?php echo esc_html($first['title']); ?></h3>
                                 <p class="text-brand-ink text-sm md:text-base" data-curriculum-description>
-                                        <?php echo esc_html($first['description']); ?></p>
+                                        <?php echo esc_html($first['description']); ?>
+                                </p>
                         </div>
                 </div>
                 <div>
                         <div class="bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 p-6">
-                                <div class="relative h-[340px] md:h-[380px]">
+                                <div class="relative h-[340px] md:h-[380px] aspect-square mx-auto">
                                         <canvas data-curriculum-chart aria-label="Curriculum focus radar chart"
                                                 role="img"></canvas>
                                 </div>

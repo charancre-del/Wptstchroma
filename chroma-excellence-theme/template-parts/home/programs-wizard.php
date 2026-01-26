@@ -43,8 +43,11 @@ function chroma_get_wizard_color_classes($key)
     <div class="max-w-5xl mx-auto px-4 lg:px-6">
 
         <div class="text-center mb-10 fade-in-up">
-            <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-3"><?php _e('Find the right program in 10 seconds', 'chroma-excellence'); ?></h2>
-            <p class="text-brand-ink text-sm md:text-base max-w-2xl mx-auto"><?php _e('Choose your child\'s age and we\'ll suggest the Chroma program designed for their development stage and your family\'s needs.', 'chroma-excellence'); ?></p>
+            <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-3">
+                <?php _e('Find the right program in 10 seconds', 'chroma-excellence'); ?></h2>
+            <p class="text-brand-ink text-sm md:text-base max-w-2xl mx-auto">
+                <?php _e('Choose your child\'s age and we\'ll suggest the Chroma program designed for their development stage and your family\'s needs.', 'chroma-excellence'); ?>
+            </p>
         </div>
 
         <div class="bg-white rounded-3xl p-6 md:p-8 border border-chroma-blue/10 shadow-soft fade-in-up"
@@ -93,9 +96,9 @@ function chroma_get_wizard_color_classes($key)
 
                     <!-- Image (Right) -->
                     <div
-                        class="order-1 md:order-2 relative h-48 md:h-64 rounded-2xl overflow-hidden shadow-card border-4 border-white transform rotate-2 transition-transform duration-700 hover:rotate-0">
-                        <img src="" alt="<?php esc_attr_e('Program Preview', 'chroma-excellence'); ?>" class="w-full h-full object-cover"
-                            data-program-wizard-image />
+                        class="order-1 md:order-2 relative w-full aspect-video md:aspect-[4/3] rounded-2xl overflow-hidden shadow-card border-4 border-white transform rotate-2 transition-transform duration-700 hover:rotate-0 bg-brand-cream/50">
+                        <img src="" alt="<?php esc_attr_e('Program Preview', 'chroma-excellence'); ?>"
+                            class="w-full h-full object-cover" width="640" height="480" data-program-wizard-image />
                     </div>
                 </div>
 

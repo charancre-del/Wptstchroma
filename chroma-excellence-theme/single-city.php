@@ -88,7 +88,8 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
             <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-ink">
                 <?php printf(__('Chroma Locations Serving %s', 'chroma-excellence'), esc_html($city)); ?>
             </h2>
-            <p class="text-brand-ink/60 mt-3"><?php _e('Select the campus closest to your home or work.', 'chroma-excellence'); ?></p>
+            <p class="text-brand-ink/60 mt-3">
+                <?php _e('Select the campus closest to your home or work.', 'chroma-excellence'); ?></p>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -98,7 +99,10 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                     'post_type' => 'location',
                     'post__in' => $location_ids,
                     'orderby' => 'post__in',
-                    'posts_per_page' => -1
+                    'posts_per_page' => -1,
+                    'no_found_rows' => true,
+                    'update_post_meta_cache' => true,
+                    'update_post_term_cache' => false, // No terms used in the loop
                 ]);
 
                 if ($locations_query->have_posts()):
@@ -172,7 +176,9 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
             else:
                 ?>
                 <div class="col-span-full text-center py-12">
-                    <p class="text-brand-ink/60"><?php _e('No locations are currently linked to this city. Please check back soon!', 'chroma-excellence'); ?></p>
+                    <p class="text-brand-ink/60">
+                        <?php _e('No locations are currently linked to this city. Please check back soon!', 'chroma-excellence'); ?>
+                    </p>
                     <a href="<?php echo esc_url(home_url('/locations/')); ?>"
                         class="inline-block mt-4 text-chroma-blue font-semibold hover:underline">
                         <?php _e('View All Locations →', 'chroma-excellence'); ?>
@@ -201,7 +207,8 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
             <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-ink">
                 <?php printf(__('Programs Available in %s', 'chroma-excellence'), esc_html($city)); ?>
             </h2>
-            <p class="text-brand-ink/60 mt-3"><?php _e('World-class curriculum served locally.', 'chroma-excellence'); ?></p>
+            <p class="text-brand-ink/60 mt-3">
+                <?php _e('World-class curriculum served locally.', 'chroma-excellence'); ?></p>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -209,9 +216,12 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
             $programs_query = new WP_Query([
                 'post_type' => 'program',
                 'posts_per_page' => -1,
-                'orderby' => 'menu_order', 
+                'orderby' => 'menu_order',
                 'order' => 'ASC',
-                'post_status' => 'publish'
+                'post_status' => 'publish',
+                'no_found_rows' => true,
+                'update_post_meta_cache' => true,
+                'update_post_term_cache' => false,
             ]);
 
             if ($programs_query->have_posts()):
@@ -220,32 +230,34 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                     $program_slug = get_post_field('post_name');
                     $city_slug = sanitize_title($city);
                     // Construct Combo URL: /program-in-city-state/
-                    $combo_url = home_url("/{$program_slug}-in-{$city_slug}-{$state}/"); 
-                    
+                    $combo_url = home_url("/{$program_slug}-in-{$city_slug}-{$state}/");
+
                     $age_range = get_post_meta(get_the_ID(), 'program_age_range', true);
                     ?>
-                    <div class="group p-6 rounded-3xl bg-brand-cream border border-brand-ink/5 hover:border-chroma-blue/30 transition-all hover:-translate-y-1 flex flex-col shadow-card">
+                    <div
+                        class="group p-6 rounded-3xl bg-brand-cream border border-brand-ink/5 hover:border-chroma-blue/30 transition-all hover:-translate-y-1 flex flex-col shadow-card">
                         <div class="h-48 rounded-2xl bg-chroma-blue/5 mb-6 overflow-hidden relative">
-                             <?php if (has_post_thumbnail()): ?>
+                            <?php if (has_post_thumbnail()): ?>
                                 <?php the_post_thumbnail('medium_large', ['class' => 'w-full h-full object-cover']); ?>
                             <?php else: ?>
-                                <div class="absolute inset-0 bg-gradient-to-br from-chroma-blue/20 to-chroma-green/20 flex items-center justify-center">
+                                <div
+                                    class="absolute inset-0 bg-gradient-to-br from-chroma-blue/20 to-chroma-green/20 flex items-center justify-center">
                                     <span class="text-4xl">📚</span>
                                 </div>
                             <?php endif; ?>
                         </div>
 
                         <h3 class="font-serif text-xl font-bold text-brand-ink mb-2"><?php the_title(); ?></h3>
-                        
+
                         <?php if ($age_range): ?>
-                        <p class="text-xs text-brand-ink/60 font-bold uppercase tracking-widest mb-6">
-                            <?php printf(__('Ages %s', 'chroma-excellence'), esc_html($age_range)); ?>
-                        </p>
+                            <p class="text-xs text-brand-ink/60 font-bold uppercase tracking-widest mb-6">
+                                <?php printf(__('Ages %s', 'chroma-excellence'), esc_html($age_range)); ?>
+                            </p>
                         <?php endif; ?>
 
                         <div class="mt-auto">
-                            <a href="<?php echo esc_url($combo_url); ?>" 
-                               class="block w-full py-3 bg-chroma-blue text-white text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blue/90 transition-colors">
+                            <a href="<?php echo esc_url($combo_url); ?>"
+                                class="block w-full py-3 bg-chroma-blue text-white text-center rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-chroma-blue/90 transition-colors">
                                 <?php _e('View Program', 'chroma-excellence'); ?>
                             </a>
                         </div>

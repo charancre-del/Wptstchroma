@@ -83,29 +83,34 @@
 				<?php
 				$footer_blog_query = chroma_cached_query(
 					array(
-						'post_type'           => 'post',
-						'posts_per_page'      => 2,
+						'post_type' => 'post',
+						'posts_per_page' => 2,
 						'ignore_sticky_posts' => 1,
 					),
 					'footer_blog',
 					DAY_IN_SECONDS
 				);
 
-				if ($footer_blog_query->have_posts()) : ?>
+				if ($footer_blog_query->have_posts()): ?>
 					<div class="grid grid-cols-2 gap-4">
-						<?php while ($footer_blog_query->have_posts()) : $footer_blog_query->the_post(); ?>
+						<?php while ($footer_blog_query->have_posts()):
+							$footer_blog_query->the_post(); ?>
 							<a href="<?php the_permalink(); ?>" class="group block">
 								<div class="aspect-video relative rounded-lg overflow-hidden bg-brand-ink/10 mb-2">
-									<?php if (has_post_thumbnail()) : ?>
+									<?php if (has_post_thumbnail()): ?>
 										<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105')); ?>
-									<?php else : ?>
-										<div class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
+									<?php else: ?>
+										<div
+											class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
 											<i class="fa-solid fa-newspaper text-xl"></i>
 										</div>
 									<?php endif; ?>
-									<div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300"></div>
+									<div
+										class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300">
+									</div>
 								</div>
-								<h4 class="text-[10px] font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
+								<h4
+									class="text-[10px] font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
 									<?php the_title(); ?>
 								</h4>
 								<span class="text-[9px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
@@ -113,7 +118,7 @@
 						<?php endwhile; ?>
 					</div>
 					<?php wp_reset_postdata(); ?>
-				<?php else : ?>
+				<?php else: ?>
 					<p class="text-xs text-white/60"><?php _e('No recent updates.', 'chroma-excellence'); ?></p>
 				<?php endif; ?>
 			</div>
@@ -123,7 +128,8 @@
 		<?php
 		$seo_text = chroma_get_theme_mod('chroma_footer_seo_text');
 		if ($seo_text): ?>
-			<div class="border-t border-white/10 pt-6 mb-6 text-[11px] text-white/60 leading-relaxed text-center max-w-5xl mx-auto">
+			<div
+				class="border-t border-white/10 pt-6 mb-6 text-[11px] text-white/60 leading-relaxed text-center max-w-5xl mx-auto">
 				<?php echo wp_kses_post($seo_text); ?>
 			</div>
 		<?php endif; ?>
@@ -131,17 +137,21 @@
 		<!-- Bottom Section -->
 		<div
 			class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80">
-			<p>&copy; <?php echo date('Y'); ?> <?php _e('Chroma Early Learning Academy. All rights reserved.', 'chroma-excellence'); ?></p>
-			
+			<p>&copy; <?php echo date('Y'); ?>
+				<?php _e('Chroma Early Learning Academy. All rights reserved.', 'chroma-excellence'); ?>
+			</p>
+
 			<div class="flex items-center gap-6">
-				<?php 
-				if ( function_exists( 'chroma_render_language_switcher' ) ) {
-					chroma_render_language_switcher( 'footer' );
+				<?php
+				if (function_exists('chroma_render_language_switcher')) {
+					chroma_render_language_switcher();
 				}
 				?>
 				<div class="flex gap-4 border-l border-white/10 pl-6">
-					<a href="<?php echo chroma_get_localized_url(home_url('/privacy-policy/')); ?>" class="hover:text-white"><?php _e('Privacy Policy', 'chroma-excellence'); ?></a>
-					<a href="<?php echo chroma_get_localized_url(home_url('/terms-of-service/')); ?>" class="hover:text-white"><?php _e('Terms of Service', 'chroma-excellence'); ?></a>
+					<a href="<?php echo chroma_get_localized_url(home_url('/privacy-policy/')); ?>"
+						class="hover:text-white"><?php _e('Privacy Policy', 'chroma-excellence'); ?></a>
+					<a href="<?php echo chroma_get_localized_url(home_url('/terms-of-service/')); ?>"
+						class="hover:text-white"><?php _e('Terms of Service', 'chroma-excellence'); ?></a>
 				</div>
 			</div>
 		</div>
@@ -159,9 +169,9 @@ $sticky_url = chroma_get_localized_url(home_url('/schedule-a-tour/'));
 if (is_page('schedule-a-tour')) {
 	$show_sticky_cta = false;
 } elseif (is_singular('program')) {
-	$sticky_text = sprintf( __('Ready to enroll in <strong>%s</strong>?', 'chroma-excellence'), get_the_title() );
+	$sticky_text = sprintf(__('Ready to enroll in <strong>%s</strong>?', 'chroma-excellence'), get_the_title());
 } elseif (is_singular('location')) {
-	$sticky_text = sprintf( __('Ready to visit our <strong>%s</strong> campus?', 'chroma-excellence'), get_the_title() );
+	$sticky_text = sprintf(__('Ready to visit our <strong>%s</strong> campus?', 'chroma-excellence'), get_the_title());
 } elseif (is_page('careers')) {
 	$show_sticky_cta = false;
 }
@@ -170,7 +180,8 @@ if ($show_sticky_cta):
 	?>
 	<div id="sticky-cta"
 		class="md:hidden will-change-transform transform translate-y-full fixed bottom-0 left-0 right-0 bg-brand-ink/95 backdrop-blur-md text-white py-4 px-6 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] border-t border-white/10 transition-transform duration-500 ease-out">
-		<div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
+		<div
+			class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
 			<span class="text-sm md:text-base font-medium tracking-wide">
 				<?php echo $sticky_text; // Allowed html tags ?>
 			</span>
@@ -183,26 +194,6 @@ if ($show_sticky_cta):
 <?php endif; ?>
 
 <?php wp_footer(); ?>
-<?php
-// Footer scripts from Customizer - sanitized for safety
-$footer_scripts = get_theme_mod('chroma_footer_scripts');
-if ($footer_scripts) {
-	if (current_user_can('unfiltered_html')) {
-		echo $footer_scripts;
-	} else {
-		echo wp_kses($footer_scripts, array(
-			'script' => array(
-				'src' => true,
-				'async' => true,
-				'defer' => true,
-				'type' => true,
-				'id' => true,
-			),
-			'noscript' => array(),
-		));
-	}
-}
-?>
 </body>
 
 </html>

@@ -1,0 +1,60 @@
+
+Running 2 tests using 1 worker
+
+  ✘  1 tests\e2e\wizard-flow.spec.js:97:5 › Report Wizard Flow (Phase 2 Logic) › Full Wizard Happy Path: Select School -> Link -> Draft (5.1s)
+  ✘  2 tests\e2e\wizard-flow.spec.js:145:5 › Report Wizard Flow (Phase 2 Logic) › Guardrail: Creation Blocked without School (5.2s)
+
+
+  1) tests\e2e\wizard-flow.spec.js:97:5 › Report Wizard Flow (Phase 2 Logic) › Full Wizard Happy Path: Select School -> Link -> Draft 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoContainText[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator: locator('h1')
+    Expected substring: [32m"Dashboard"[39m
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toContainText" with timeout 5000ms[22m
+    [2m  - waiting for locator('h1')[22m
+
+
+       97 |     test('Full Wizard Happy Path: Select School -> Link -> Draft', async ({ page }) => {
+       98 |         // 1. Dashboard Load
+    >  99 |         await expect(page.locator('h1')).toContainText('Dashboard'); // Assuming Dashboard placeholder
+          |                                          ^
+      100 |
+      101 |         // 2. Navigate to Create
+      102 |         await page.click('text=New Report'); // Or Navigate via sidebar
+        at C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\tests\e2e\wizard-flow.spec.js:99:42
+
+    Error Context: test-results\tests-e2e-wizard-flow-Repo-e9e65-elect-School---Link---Draft\error-context.md
+
+  2) tests\e2e\wizard-flow.spec.js:145:5 › Report Wizard Flow (Phase 2 Logic) › Guardrail: Creation Blocked without School 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: locator('text=Select School')
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for locator('text=Select School')[22m
+
+
+      145 |     test('Guardrail: Creation Blocked without School', async ({ page }) => {
+      146 |         await page.evaluate(() => window.location.hash = '#/create');
+    > 147 |         await expect(page.locator('text=Select School')).toBeVisible();
+          |                                                          ^
+      148 |
+      149 |         // Try to click Next without selection
+      150 |         const nextButton = page.locator('button:has-text("Next Step")');
+        at C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\tests\e2e\wizard-flow.spec.js:147:58
+
+    Error Context: test-results\tests-e2e-wizard-flow-Repo-f9c88-tion-Blocked-without-School\error-context.md
+
+  2 failed
+    tests\e2e\wizard-flow.spec.js:97:5 › Report Wizard Flow (Phase 2 Logic) › Full Wizard Happy Path: Select School -> Link -> Draft 
+    tests\e2e\wizard-flow.spec.js:145:5 › Report Wizard Flow (Phase 2 Logic) › Guardrail: Creation Blocked without School 
