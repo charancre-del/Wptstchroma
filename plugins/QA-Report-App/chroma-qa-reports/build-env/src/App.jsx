@@ -10,15 +10,11 @@ import Shell from './components/layout/Shell';
 // Wizard
 import ReportWizard from './components/wizard/ReportWizard';
 
-// List Views
-import SchoolsList from './components/schools/SchoolsList';
-import ReportsList from './components/reports/ReportsList';
-
 // Pages
 import Dashboard from './pages/Dashboard';
-
-// Placeholder for missing components if any
-const Settings = () => <div className="p-6"><h1>Settings</h1></div>;
+import SchoolsPage from './pages/Schools';
+import ReportsPage from './pages/Reports';
+import Settings from './pages/Settings';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -50,8 +46,9 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<Shell />}>
                         <Route index element={<Dashboard />} />
-                        <Route path="schools" element={<SchoolsList />} />
-                        <Route path="reports" element={<ReportsList />} />
+                        <Route path="schools" element={<SchoolsPage />} />
+                        <Route path="reports" element={<ReportsPage />} />
+                        <Route path="reports/:id" element={<ReportWizard />} /> {/* View/Edit logic inside ReportWizard or separate? */}
                         <Route path="create" element={<ReportWizard />} />
                         <Route path="settings" element={<Settings />} />
                         <Route path="*" element={<Navigate to="/" replace />} />

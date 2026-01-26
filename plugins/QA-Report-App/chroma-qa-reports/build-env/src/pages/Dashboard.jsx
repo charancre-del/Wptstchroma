@@ -1,184 +1,214 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useReports, useSchools } from '../hooks/useQueries';
+import { useReports, useStats } from '../hooks/useQueries';
 import { useAuthStore } from '../stores';
+import ComplianceChart from '../components/dashboard/ComplianceChart';
+import NeedsAttention from '../components/dashboard/NeedsAttention';
 import {
     FileText,
     School,
     FilePlus,
     Clock,
     CheckCircle,
-    AlertCircle,
-    ArrowRight
+    AlertTriangle,
+    ArrowRight,
+    Settings,
+    BarChart3
 } from 'lucide-react';
 
-function StatCard({ icon: Icon, label, value, color = 'primary', to }) {
+function StatCard({ icon: Icon, label, value, color = 'cqa-primary', to }) {
     const content = (
-        <div className={`bg-white rounded-xl p-6 border border-gray-200 hover:shadow-md transition-shadow`}>
-            <div className="flex items-start justify-between">
-                <div>
-                    <p className="text-sm text-gray-600 mb-1">{label}</p>
-                    <p className="text-3xl font-bold text-gray-900">{value}</p>
+        <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
+            <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity text-${color}`}>
+                <Icon size={48} />
+            </div>
+            <div className="flex items-start gap-4 relaltive z-10">
+                <div className={`w-12 h-12 rounded-xl bg-${color}/10 flex items-center justify-center shrink-0`}>
+                    <Icon className={`w-6 h-6 text-${color}`} />
                 </div>
-                <div className={`w-12 h-12 rounded-xl bg-${color}-100 flex items-center justify-center`}>
-                    <Icon className={`w-6 h-6 text-${color}-600`} />
+                <div>
+                    <h3 className="text-3xl font-bold text-gray-900">{value}</h3>
+                    <p className="text-sm text-gray-500 font-medium">{label}</p>
                 </div>
             </div>
         </div>
     );
 
-    return to ? <Link to={to}>{content}</Link> : content;
+    return to ? <Link to={to} className="block h-full">{content}</Link> : content;
 }
 
 export function Dashboard() {
     const { user, hasCapability } = useAuthStore();
-    const { data: reports, isLoading: reportsLoading } = useReports({ limit: 10 });
-    const { data: schools, isLoading: schoolsLoading } = useSchools();
+    const { data: reports, isLoading: reportsLoading } = useReports({ limit: 5 });
+    const { data: stats, isLoading: statsLoading } = useStats();
 
-    const recentReports = reports?.data || reports || [];
-    const schoolCount = schools?.length || 0;
+    // Use stats data or fallback
+    const totalSchools = stats?.total_schools || 0;
+    const compliantSchools = stats?.compliant_schools || 0;
+    const overdueVisits = stats?.overdue_visits || 0;
+    const myReports = stats?.my_reports || 0;
 
-    const pendingCount = recentReports.filter(r => r.status === 'pending').length;
-    const approvedCount = recentReports.filter(r => r.status === 'approved').length;
+    const recentReports = Array.isArray(reports) ? reports : (reports?.data || []);
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
+        <div className="p-6 max-w-7xl mx-auto space-y-8">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-bold text-gray-900">
-                    Welcome back, {user?.name?.split(' ')[0] || 'User'}
-                </h1>
-                <p className="text-gray-600 mt-1">
-                    Here's an overview of your QA reporting activity.
-                </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900">
+                        Welcome back, {user?.name?.split(' ')[0] || 'User'}
+                    </h1>
+                    <p className="text-gray-500 mt-1">
+                        Here's what's happening in your district today.
+                    </p>
+                </div>
+                {/* Optional Date/Time Widget could go here */}
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     icon={School}
                     label="Total Schools"
-                    value={schoolsLoading ? '...' : schoolCount}
-                    color="blue"
+                    value={statsLoading ? '...' : totalSchools}
+                    color="indigo-600"
                     to="/schools"
                 />
                 <StatCard
-                    icon={FileText}
-                    label="Total Reports"
-                    value={reportsLoading ? '...' : recentReports.length}
-                    color="amber"
-                    to="/reports"
-                />
-                <StatCard
-                    icon={Clock}
-                    label="Pending Review"
-                    value={reportsLoading ? '...' : pendingCount}
-                    color="amber"
-                />
-                <StatCard
                     icon={CheckCircle}
-                    label="Approved"
-                    value={reportsLoading ? '...' : approvedCount}
-                    color="green"
+                    label="Compliant Schools"
+                    value={statsLoading ? '...' : compliantSchools}
+                    color="emerald-500"
+                />
+                <StatCard
+                    icon={AlertTriangle}
+                    label="Overdue Visits"
+                    value={statsLoading ? '...' : overdueVisits}
+                    color="amber-500"
+                />
+                <StatCard
+                    icon={BarChart3}
+                    label="My Total Reports"
+                    value={statsLoading ? '...' : myReports}
+                    color="blue-500"
                 />
             </div>
 
-            {/* Quick Actions */}
-            <div className="mb-8">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {hasCapability('cqa_create_reports') && (
-                        <Link
-                            to="/create"
-                            className="flex items-center gap-4 p-4 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-xl hover:from-primary-600 hover:to-primary-700 transition-all"
-                        >
-                            <FilePlus className="w-8 h-8" />
-                            <div>
-                                <p className="font-semibold">Create New Report</p>
-                                <p className="text-sm text-primary-100">Start a new QA assessment</p>
-                            </div>
-                            <ArrowRight className="w-5 h-5 ml-auto" />
-                        </Link>
-                    )}
+            {/* Main Content Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column: Compliance Chart (2/3) */}
+                <div className="lg:col-span-2">
+                    <ComplianceChart stats={stats} isLoading={statsLoading} />
+                </div>
 
-                    <Link
-                        to="/reports"
-                        className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-md transition-all"
-                    >
-                        <FileText className="w-8 h-8 text-gray-600" />
-                        <div>
-                            <p className="font-semibold text-gray-900">View All Reports</p>
-                            <p className="text-sm text-gray-500">Browse and manage reports</p>
-                        </div>
-                        <ArrowRight className="w-5 h-5 ml-auto text-gray-400" />
-                    </Link>
-
-                    <Link
-                        to="/schools"
-                        className="flex items-center gap-4 p-4 bg-white border border-gray-200 rounded-xl hover:border-primary-300 hover:shadow-md transition-all"
-                    >
-                        <School className="w-8 h-8 text-gray-600" />
-                        <div>
-                            <p className="font-semibold text-gray-900">Manage Schools</p>
-                            <p className="text-sm text-gray-500">View and edit schools</p>
-                        </div>
-                        <ArrowRight className="w-5 h-5 ml-auto text-gray-400" />
-                    </Link>
+                {/* Right Column: Needs Attention (1/3) */}
+                <div className="lg:col-span-1">
+                    <NeedsAttention stats={stats} isLoading={statsLoading} />
                 </div>
             </div>
 
-            {/* Recent Reports */}
-            <div>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-900">Recent Reports</h2>
-                    <Link to="/reports" className="text-sm text-primary-600 hover:text-primary-700">
-                        View all →
-                    </Link>
+            {/* Bottom Row: Recent Reports & Quick Actions */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Recent Reports List (2 cols) */}
+                <div className="lg:col-span-2 space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-gray-500" />
+                            Recent Reports
+                        </h2>
+                        <Link to="/reports" className="text-sm font-medium text-cqa-primary hover:text-primary-700">
+                            View All
+                        </Link>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                        {reportsLoading ? (
+                            <div className="p-8 text-center text-gray-400">Loading reports...</div>
+                        ) : recentReports.length > 0 ? (
+                            <div className="divide-y divide-gray-100">
+                                {recentReports.map(report => (
+                                    <div key={report.id} className="p-4 hover:bg-gray-50 transition-colors flex items-center justify-between group">
+                                        <div>
+                                            <h4 className="font-semibold text-gray-900">{report.school_name}</h4>
+                                            <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                                                <span>Tier {report.tier || 1}</span>
+                                                <span>•</span>
+                                                <span>{new Date(report.date || report.created_at).toLocaleDateString()}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium capitalize 
+                                                ${report.status === 'approved' ? 'bg-green-100 text-green-700' :
+                                                    report.status === 'pending' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                {report.status}
+                                            </span>
+                                            {report.rating && (
+                                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                                    ${report.rating.includes('Exceeds') ? 'bg-emerald-100 text-emerald-700' :
+                                                        report.rating.includes('Meets') ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                                    {report.rating.replace(' Expectations', '')}
+                                                </span>
+                                            )}
+
+                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                                                <Link to={`/reports/${report.id}`} className="px-3 py-1 bg-white border border-gray-200 rounded text-sm text-gray-600 hover:border-gray-400">
+                                                    View
+                                                </Link>
+                                                {report.status === 'draft' && (
+                                                    <Link to={`/edit/${report.id}`} className="px-3 py-1 bg-cqa-primary text-white rounded text-sm hover:bg-primary-700">
+                                                        Edit
+                                                    </Link>
+                                                )}
+                                                {report.status === 'approved' && report.rating !== 'Exceeds Expectations' && (
+                                                    <Link to={`/create?school=${report.school_id}`} className="px-3 py-1 bg-cqa-primary text-white rounded text-sm hover:bg-primary-700">
+                                                        Continue
+                                                    </Link>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="p-8 text-center text-gray-500">
+                                No recent reports found.
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                {reportsLoading ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                        <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin mx-auto" />
-                        <p className="text-gray-500 mt-4">Loading recent reports...</p>
+                {/* Quick Actions (1 col) */}
+                <div className="lg:col-span-1 space-y-4">
+                    <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <Clock className="w-5 h-5 text-gray-500" />
+                        Quick Actions
+                    </h2>
+
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3">
+                        {hasCapability('cqa_create_reports') && (
+                            <Link to="/create" className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                                <div className="w-10 h-10 rounded-lg bg-indigo-50 text-cqa-primary flex items-center justify-center group-hover:bg-cqa-primary group-hover:text-white transition-colors">
+                                    <FilePlus size={20} />
+                                </div>
+                                <span className="font-medium text-gray-700 group-hover:text-gray-900">Start New Report</span>
+                            </Link>
+                        )}
+
+                        <Link to="/schools" className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                            <div className="w-10 h-10 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center group-hover:bg-orange-600 group-hover:text-white transition-colors">
+                                <School size={20} />
+                            </div>
+                            <span className="font-medium text-gray-700 group-hover:text-gray-900">Manage Schools</span>
+                        </Link>
+
+                        <Link to="/settings" className="flex items-center gap-4 p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                            <div className="w-10 h-10 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center group-hover:bg-gray-600 group-hover:text-white transition-colors">
+                                <Settings size={20} />
+                            </div>
+                            <span className="font-medium text-gray-700 group-hover:text-gray-900">Settings</span>
+                        </Link>
                     </div>
-                ) : recentReports.length === 0 ? (
-                    <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                        <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                        <p className="text-gray-500">No reports found. Create your first report to get started!</p>
-                    </div>
-                ) : (
-                    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                        <table className="w-full">
-                            <thead className="bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">School</th>
-                                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Type</th>
-                                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Status</th>
-                                    <th className="text-left px-6 py-3 text-xs font-medium text-gray-500 uppercase">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-200">
-                                {recentReports.slice(0, 5).map((report) => (
-                                    <tr key={report.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 text-sm text-gray-900">{report.school_name || 'Unknown School'}</td>
-                                        <td className="px-6 py-4 text-sm text-gray-600">{report.report_type || 'Standard'}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${report.status === 'approved' ? 'bg-green-100 text-green-800' :
-                                                report.status === 'pending' ? 'bg-amber-100 text-amber-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                                }`}>
-                                                {report.status || 'draft'}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-4 text-sm text-gray-500">
-                                            {new Date(report.created_at || report.date).toLocaleDateString()}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+                </div>
             </div>
         </div>
     );

@@ -196,6 +196,13 @@ class REST_Controller
                 'permission_callback' => [$this, 'check_settings_permission'],
             ],
         ]);
+
+        // Dashboard Stats
+        \register_rest_route(self::NAMESPACE , '/stats', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_stats'],
+            'permission_callback' => [$this, 'check_read_permission'],
+        ]);
     }
 
     // ===== PERMISSION CALLBACKS =====
@@ -319,6 +326,83 @@ class REST_Controller
         ];
 
         return new WP_REST_Response($response, 200);
+    }
+
+    public function get_stats(WP_REST_Request $request)
+    {
+        global $wpdb;
+        $reports_table = $wpdb->prefix . 'cqa_reports';
+        $schools_table = $wpdb->prefix . 'cqa_schools';
+
+        // 1. Total Schools
+        $total_schools = (int) $wpdb->get_var("SELECT COUNT(*) FROM $schools_table");
+
+        // 2. Overdue Visits (Schools with no reports or older than 90 days)
+        // For MVP, returning schools with NO reports or last report > 90 days
+        $overdue_list = $wpdb->get_results("
+            SELECT s.id, s.name, MAX(r.inspection_date) as last_visit
+            FROM $schools_table s
+            LEFT JOIN $reports_table r ON s.id = r.school_id
+            GROUP BY s.id
+            HAVING last_visit IS NULL OR last_visit < DATE_SUB(NOW(), INTERVAL 90 DAY)
+            LIMIT 5
+        ");
+
+        $overdue_visits = (int) $wpdb->get_var("
+            SELECT COUNT(*) FROM (
+                SELECT s.id, MAX(r.inspection_date) as last_visit
+                FROM $schools_table s
+                LEFT JOIN $reports_table r ON s.id = r.school_id
+                GROUP BY s.id
+                HAVING last_visit IS NULL OR last_visit < DATE_SUB(NOW(), INTERVAL 90 DAY)
+            ) as sub
+        ");
+
+        // 3. Compliance Breakdown (Approved Reports Ratings)
+        $ratings = $wpdb->get_results("
+            SELECT rating, COUNT(*) as count 
+            FROM $reports_table 
+            WHERE status = 'approved' AND rating IS NOT NULL 
+            GROUP BY rating
+        ");
+
+        $compliance = [
+            'exceeds' => 0,
+            'meets' => 0,
+            'improvement' => 0
+        ];
+
+        foreach ($ratings as $row) {
+            $key = strtolower(str_replace(' ', '_', $row->rating));
+            if ($key === 'exceeds_expectations')
+                $compliance['exceeds'] += $row->count;
+            elseif ($key === 'meets_expectations' || $key === 'meets')
+                $compliance['meets'] += $row->count;
+            elseif ($key === 'needs_improvement')
+                $compliance['improvement'] += $row->count;
+        }
+
+        // 4. Compliant Schools (Have at least one 'meets' or 'exceeds' report)
+        $compliant_schools = (int) $wpdb->get_var("
+            SELECT COUNT(DISTINCT school_id) FROM $reports_table 
+            WHERE status = 'approved' AND (rating = 'Meets Expectations' OR rating = 'Exceeds Expectations')
+        ");
+
+        // 5. My Reports (Current User)
+        $user_id = get_current_user_id();
+        $my_reports = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM $reports_table WHERE author_id = %d",
+            $user_id
+        ));
+
+        return new WP_REST_Response([
+            'total_schools' => $total_schools,
+            'overdue_visits' => $overdue_visits,
+            'overdue_list' => $overdue_list,
+            'compliant_schools' => $compliant_schools,
+            'my_reports' => $my_reports,
+            'compliance' => $compliance
+        ], 200);
     }
 
     // ===== SCHOOLS ENDPOINTS =====

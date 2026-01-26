@@ -30,7 +30,7 @@ export function SchoolsPage() {
     const [regionFilter, setRegionFilter] = useState('');
 
     const { data, isLoading, error } = useSchools();
-    const schools = data?.data || [];
+    const schools = Array.isArray(data) ? data : (data?.data || []);
 
     // Get unique regions
     const regions = useMemo(() => {

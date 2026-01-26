@@ -18,8 +18,9 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
 
     // Auto-select school if in draft
     useEffect(() => {
-        if (draft.school_id && schoolsData?.data) {
-            const found = schoolsData.data.find(s => s.id === draft.school_id);
+        const schools = Array.isArray(schoolsData) ? schoolsData : (schoolsData?.data || []);
+        if (draft.school_id && schools.length > 0) {
+            const found = schools.find(s => s.id === draft.school_id);
             if (found) setSelectedSchool(found);
         }
     }, [draft.school_id, schoolsData]);
@@ -40,8 +41,11 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
                     `reports?school_id=${selectedSchool.id}&status=approved&per_page=1&page=1&orderby=inspection_date&order=desc`
                 );
 
-                if (response.data && response.data.length > 0) {
-                    const latest = response.data[0];
+                // Check if response is array or data envelope
+                const reports = Array.isArray(response) ? response : (response.data || []);
+
+                if (reports.length > 0) {
+                    const latest = reports[0];
                     setLatestReport(latest);
 
                     // Auto-suggest link if not already set (Default Behavior)
@@ -113,30 +117,36 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
 
                 {/* School List */}
                 <div className="border border-gray-200 rounded-md max-h-60 overflow-y-auto divide-y divide-gray-100">
-                    {isLoadingSchools ? (
-                        <div className="p-4 text-center text-gray-500">Loading schools...</div>
-                    ) : schoolsData?.data?.length > 0 ? (
-                        schoolsData.data.map((school) => (
-                            <div
-                                key={school.id}
-                                onClick={() => handleSelectSchool(school)}
-                                className={`
-                                    p-3 cursor-pointer hover:bg-gray-50 flex justify-between items-center transition-colors
-                                    ${draft.school_id === school.id ? 'bg-indigo-50 border-l-4 border-cqa-primary' : ''}
-                                `}
-                            >
-                                <div>
-                                    <div className="font-medium text-gray-900">{school.name}</div>
-                                    <div className="text-xs text-gray-500">{school.region} • Tier {school.tier || 1}</div>
+                    {(() => {
+                        const schools = Array.isArray(schoolsData) ? schoolsData : (schoolsData?.data || []);
+
+                        if (isLoadingSchools) {
+                            return <div className="p-4 text-center text-gray-500">Loading schools...</div>;
+                        }
+
+                        if (schools.length > 0) {
+                            return schools.map((school) => (
+                                <div
+                                    key={school.id}
+                                    onClick={() => handleSelectSchool(school)}
+                                    className={`
+                                        p-3 cursor-pointer hover:bg-gray-50 flex justify-between items-center transition-colors
+                                        ${draft.school_id === school.id ? 'bg-indigo-50 border-l-4 border-cqa-primary' : ''}
+                                    `}
+                                >
+                                    <div>
+                                        <div className="font-medium text-gray-900">{school.name}</div>
+                                        <div className="text-xs text-gray-500">{school.region} • Tier {school.tier || 1}</div>
+                                    </div>
+                                    {draft.school_id === school.id && (
+                                        <span className="text-cqa-primary font-bold text-sm">Selected</span>
+                                    )}
                                 </div>
-                                {draft.school_id === school.id && (
-                                    <span className="text-cqa-primary font-bold text-sm">Selected</span>
-                                )}
-                            </div>
-                        ))
-                    ) : (
-                        <div className="p-4 text-center text-gray-500">No schools found.</div>
-                    )}
+                            ));
+                        }
+
+                        return <div className="p-4 text-center text-gray-500">No schools found.</div>;
+                    })()}
                 </div>
             </div>
 

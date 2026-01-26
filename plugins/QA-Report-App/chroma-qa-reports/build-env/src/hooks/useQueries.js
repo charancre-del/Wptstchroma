@@ -197,3 +197,39 @@ export function useCurrentUser() {
         staleTime: 10 * 60 * 1000, // 10 minutes
     });
 }
+
+/**
+ * Fetch Dashboard Stats
+ */
+export function useStats() {
+    return useQuery({
+        queryKey: ['stats'],
+        queryFn: () => apiClient.get('/stats'),
+        staleTime: 1 * 60 * 1000, // 1 minute
+        retry: 1
+    });
+}
+
+/**
+ * Fetch Settings
+ */
+export function useSettings() {
+    return useQuery({
+        queryKey: ['settings'],
+        queryFn: () => apiClient.get('/settings'),
+        staleTime: 5 * 60 * 1000,
+    });
+}
+
+/**
+ * Update Settings
+ */
+export function useUpdateSettings() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (data) => apiClient.post('/settings', data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['settings'] });
+        },
+    });
+}

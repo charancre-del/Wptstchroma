@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import useAuthStore from '../../stores/useAuthStore';
 import useUIStore from '../../stores/useUIStore';
 import useAutoSave from '../../hooks/useAutoSave';
+import { useReport } from '../../hooks/useQueries'; // Assuming this hook exists
 
 // Steps
 import StepSchool from './steps/StepSchool';
@@ -13,9 +14,14 @@ import StepPhotos from './steps/StepPhotos';
 
 const ReportWizard = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
+    const [searchParams] = useSearchParams();
     const { user } = useAuthStore();
     const { addToast } = useUIStore();
     const [isDirty, setIsDirty] = useState(false);
+
+    // Fetch report if ID is present (Edit Mode)
+    const { data: existingReport, isLoading: isLoadingReport } = useReport(id);
 
     // Wizard State
     const [currentStep, setCurrentStep] = useState(1);
@@ -28,8 +34,30 @@ const ReportWizard = () => {
         previous_report_date: null, // For display
         report_type: 'tier1',
         inspection_date: new Date().toISOString().split('T')[0],
+        status: 'draft',
         // ... other fields
     });
+
+    // Initialize from Params or Existing Report
+    useEffect(() => {
+        if (existingReport && id) {
+            setDraft(prev => ({
+                ...prev,
+                ...existingReport,
+                // Ensure IDs are integers if needed
+                school_id: parseInt(existingReport.school_id),
+            }));
+            // If editing, maybe jump to summary or just start at 1? 
+            // Usually start at 1 to review.
+        } else {
+            // Check for query params (e.g. ?school=123)
+            const schoolId = searchParams.get('school');
+            if (schoolId) {
+                setDraft(prev => ({ ...prev, school_id: parseInt(schoolId) }));
+            }
+        }
+    }, [existingReport, id, searchParams]);
+
 
     // Step Definitions
     const steps = [

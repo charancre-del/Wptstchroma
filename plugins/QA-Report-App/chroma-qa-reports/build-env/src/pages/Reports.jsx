@@ -51,7 +51,7 @@ export function ReportsPage() {
     const [sorting, setSorting] = useState([{ id: 'visit_date', desc: true }]);
 
     const { data, isLoading, error } = useReports();
-    const reports = data?.data || [];
+    const reports = Array.isArray(data) ? data : (data?.data || []);
 
     // Apply filters
     const filteredReports = useMemo(() => {
