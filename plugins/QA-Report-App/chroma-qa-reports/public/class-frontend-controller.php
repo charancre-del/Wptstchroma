@@ -21,6 +21,7 @@ class Frontend_Controller
     public static function init()
     {
         add_action('init', [self::class, 'register_rewrites']);
+        error_log('CQA DEBUG: Frontend_Controller::init called');
         add_filter('query_vars', [self::class, 'add_query_vars']);
         add_action('template_redirect', [self::class, 'handle_routes']);
 
@@ -82,6 +83,7 @@ class Frontend_Controller
      */
     public static function register_rewrites()
     {
+        error_log('CQA DEBUG: register_rewrites called');
         // Login Route
         add_rewrite_rule('^qa-reports/login/?$', 'index.php?cqa_page=login', 'top');
 
@@ -98,6 +100,7 @@ class Frontend_Controller
      */
     public static function add_query_vars($vars)
     {
+        error_log('CQA DEBUG: add_query_vars called');
         $vars[] = 'cqa_page';
         return $vars;
     }
@@ -108,6 +111,9 @@ class Frontend_Controller
     public static function handle_routes()
     {
         $page = get_query_var('cqa_page');
+        if (!empty($page)) {
+            error_log('CQA DEBUG: handle_routes triggered for page: ' . $page);
+        }
 
         if (empty($page)) {
             return;

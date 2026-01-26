@@ -21,7 +21,7 @@ const ReportWizard = () => {
     const [searchParams] = useSearchParams();
     const { addToast } = useUIStore();
     const {
-        report,
+        report: draft,
         responses,
         photos,
         updateReportData: setDraft,
@@ -94,7 +94,7 @@ const ReportWizard = () => {
         setIsDirty(true);
     };
 
-    const reportState = report;
+    const reportState = draft;
 
     const handleSave = async () => {
         try {

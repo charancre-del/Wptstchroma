@@ -1,0 +1,44 @@
+
+> chroma-qa-reports-react@1.0.0 build
+> wp-scripts build
+
+assets by path [1m[32m*.css[39m[22m 67.1 KiB
+  asset [1m[32mindex.css[39m[22m 33.5 KiB [1m[32m[emitted][39m[22m (name: index)
+  asset [1m[32mindex-rtl.css[39m[22m 33.5 KiB [1m[32m[emitted][39m[22m (name: index)
+asset [1m[33mindex.js[39m[22m [1m[33m675 KiB[39m[22m [1m[32m[emitted][39m[22m [1m[32m[minimized][39m[22m [1m[33m[big][39m[22m (name: index)
+asset [1m[32mindex.asset.php[39m[22m 104 bytes [1m[32m[emitted][39m[22m (name: index)
+Entrypoint [1mindex[39m[22m [1m[33m[big][39m[22m 742 KiB = [1m[32mindex.css[39m[22m 33.5 KiB [1m[32mindex.js[39m[22m 675 KiB [1m[32mindex-rtl.css[39m[22m 33.5 KiB [1m[32mindex.asset.php[39m[22m 104 bytes
+orphan modules 3.67 MiB (javascript) 937 bytes (runtime) [1m[33m[orphan][39m[22m 2030 modules
+runtime modules 2.1 KiB 6 modules
+built modules 2.12 MiB (javascript) 33.5 KiB (css/mini-extract) [1m[33m[built][39m[22m
+  modules by path [1m./node_modules/es-toolkit/[39m[22m 43.6 KiB 58 modules
+  modules by path [1m./node_modules/use-sync-external-store/[39m[22m 7.84 KiB 6 modules
+  modules by path [1m./node_modules/prop-types/[39m[22m 2.6 KiB 3 modules
+  modules by path [1m./src/[39m[22m 2 MiB (javascript) 33.5 KiB (css/mini-extract) 2 modules
+  modules by path [1m./node_modules/react/[39m[22m 1.05 KiB
+    [1m./node_modules/react/jsx-runtime.js[39m[22m 214 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+    [1m./node_modules/react/cjs/react-jsx-runtime.production.min.js[39m[22m 859 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  modules by path [1m./node_modules/react-is/[39m[22m 2.4 KiB
+    [1m./node_modules/react-is/index.js[39m[22m 196 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+    [1m./node_modules/react-is/cjs/react-is.production.min.js[39m[22m 2.21 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  + 6 modules
+
+[1m[33mWARNING[39m[22m in [1masset size limit: The following asset(s) exceed the recommended size limit (244 KiB).
+This can impact web performance.
+Assets: 
+  index.js (675 KiB)[39m[22m
+
+[1m[33mWARNING[39m[22m in [1mentrypoint size limit: The following entrypoint(s) combined asset size exceeds the recommended limit (244 KiB). This can impact web performance.
+Entrypoints:
+  index (742 KiB)
+      index.css
+      index.js
+      index-rtl.css
+      index.asset.php
+[39m[22m
+
+[1m[33mWARNING[39m[22m in [1mwebpack performance recommendations: 
+You can limit the size of your bundles by using import() or require.ensure to lazy load some parts of your application.
+For more info visit https://webpack.js.org/guides/code-splitting/[39m[22m
+
+webpack 5.104.1 compiled with [1m[33m3 warnings[39m[22m in 17183 ms

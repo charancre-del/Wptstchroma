@@ -1,5 +1,5 @@
 import React from 'react';
-import ChecklistItem from './ChecklistItem';
+import ChecklistItem from '../ChecklistItem';
 
 const ChecklistSection = ({ section, responses, onResponseChange }) => {
 
