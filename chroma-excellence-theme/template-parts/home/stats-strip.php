@@ -2,14 +2,23 @@
 /**
  * Template Part: Stats Strip
  * Displays 4 key stats from hardcoded helpers (no ACF)
- *
- * @package Chroma_Excellence
  */
+
+$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
+$cache_key = 'chroma_home_stats_strip_' . ($is_es ? 'es' : 'en');
+$cached = get_transient($cache_key);
+
+if ($cached !== false) {
+    echo $cached;
+    return;
+}
 
 $stats = chroma_home_stats();
 if (!$stats) {
-        return;
+    return;
 }
+
+ob_start();
 ?>
 
 <section class="bg-white py-12 border-y border-chroma-blue/10" data-section="stats">
@@ -28,3 +37,9 @@ if (!$stats) {
                 <?php endforeach; ?>
         </div>
 </section>
+
+<?php
+$output = ob_get_clean();
+set_transient($cache_key, $output, DAY_IN_SECONDS);
+echo $output;
+?>

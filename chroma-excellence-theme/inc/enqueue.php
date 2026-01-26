@@ -313,20 +313,21 @@ add_filter('style_loader_tag', 'chroma_async_styles', 10, 4);
  * Deregisters core jQuery and re-registers it in the footer.
  * Considers admin bar and login status.
  */
-function chroma_move_jquery_to_footer() {
-    // Do not move if admin bar is showing (prevents breakage)
-    if (is_admin() || is_user_logged_in()) {
-        return;
-    }
+function chroma_move_jquery_to_footer()
+{
+        // Do not move if admin bar is showing (prevents breakage)
+        if (is_admin() || is_user_logged_in()) {
+                return;
+        }
 
-    wp_deregister_script('jquery');
-    wp_deregister_script('jquery-core');
-    wp_deregister_script('jquery-migrate');
+        wp_deregister_script('jquery');
+        wp_deregister_script('jquery-core');
+        wp_deregister_script('jquery-migrate');
 
-    // Re-register jQuery in footer
-    // Uses includes_url() to maintain compatibility with WP versioning
-    wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), false, null, true);
-    wp_enqueue_script('jquery');
+        // Re-register jQuery in footer
+        // Uses includes_url() to maintain compatibility with WP versioning
+        wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), false, null, true);
+        wp_enqueue_script('jquery');
 }
 add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
 
@@ -343,12 +344,13 @@ function chroma_dequeue_dashicons()
 /**
  * Preload Main CSS to minimize FOUC (Flash of Unstyled Content)
  */
-function chroma_preload_main_css() {
-    $css_path = CHROMA_THEME_DIR . '/assets/css/main.css';
-    $css_version = file_exists($css_path) ? filemtime($css_path) : CHROMA_VERSION;
-    $css_url = CHROMA_THEME_URI . '/assets/css/main.css?ver=' . $css_version;
-    
-    echo '<link rel="preload" href="' . esc_url($css_url) . '" as="style">' . "\n";
+function chroma_preload_main_css()
+{
+        $css_path = CHROMA_THEME_DIR . '/assets/css/main.css';
+        $css_version = file_exists($css_path) ? filemtime($css_path) : CHROMA_VERSION;
+        $css_url = CHROMA_THEME_URI . '/assets/css/main.css?ver=' . $css_version;
+
+        echo '<link rel="preload" href="' . esc_url($css_url) . '" as="style">' . "\n";
 }
 add_action('wp_head', 'chroma_preload_main_css', 1);
 
@@ -384,5 +386,26 @@ function chroma_dequeue_cdn_styles()
         }
 }
 add_action('wp_enqueue_scripts', 'chroma_dequeue_cdn_styles', 100);
+
+/**
+ * Add defer attribute to enqueued scripts for performance
+ */
+function chroma_defer_scripts($tag, $handle, $src)
+{
+        // List of scripts to NOT defer
+        $exclude = array('jquery-core', 'jquery');
+
+        if (in_array($handle, $exclude) || is_admin()) {
+                return $tag;
+        }
+
+        // Add defer if not already present
+        if (strpos($tag, 'defer') === false) {
+                $tag = str_replace(' src', ' defer src', $tag);
+        }
+
+        return $tag;
+}
+add_filter('script_loader_tag', 'chroma_defer_scripts', 10, 3);
 
 

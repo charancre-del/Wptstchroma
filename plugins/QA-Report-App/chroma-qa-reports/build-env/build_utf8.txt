@@ -1,0 +1,56 @@
+
+> chroma-qa-reports-react@1.0.0 build
+> wp-scripts build
+
+assets by status 269 KiB [1m[32m[cached][39m[22m 4 assets
+Entrypoint [1mindex[39m[22m = [1m[32mindex.css[39m[22m [1m[32mindex.js[39m[22m [1m[32mindex-rtl.css[39m[22m [1m[32mindex.asset.php[39m[22m
+orphan modules 1.85 MiB (javascript) 937 bytes (runtime) [1m[33m[orphan][39m[22m 1474 modules
+built modules 758 KiB (javascript) 28.3 KiB (css/mini-extract) [1m[33m[built][39m[22m
+  modules by path [1m./node_modules/[39m[22m 10.1 KiB
+    modules by path [1m./node_modules/use-sync-external-store/[39m[22m 5.03 KiB 4 modules
+    modules by path [1m./node_modules/prop-types/[39m[22m 2.6 KiB 3 modules
+    modules by path [1m./node_modules/react/[39m[22m 1.05 KiB
+      [1m./node_modules/react/jsx-runtime.js[39m[22m 214 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+      [1m./node_modules/react/cjs/react-jsx-runtime.production.min.js[39m[22m 859 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+    [1m./node_modules/react-dom/client.js[39m[22m 619 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+    [1m./node_modules/attr-accept/dist/es/index.js[39m[22m 881 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  modules by path [1m./src/[39m[22m 748 KiB (javascript) 28.3 KiB (css/mini-extract)
+    [1m./src/index.js + 80 modules[39m[22m 748 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+    css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[1].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[1].use[2]![1m./src/index.css[39m[22m 28.3 KiB [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  [1mexternal "React"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+  [1mexternal "ReactDOM"[39m[22m 42 bytes [1m[33m[built][39m[22m [1m[33m[code generated][39m[22m
+
+[1m[31mERROR[39m[22m in [1m./src/components/wizard/steps/StepChecklist.jsx[39m[22m [1m[32m5:0-60[39m[22m
+[1mModule [1m[31mnot found[39m[22m[1m: [1m[31mError[39m[22m[1m: Can't resolve './checklist/ChecklistSection' in 'C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps'[39m[22m
+resolve './checklist/ChecklistSection' in 'C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps'
+  using description file: C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\package.json (relative path: ./src/components/wizard/steps)
+    Field 'browser' doesn't contain a valid alias configuration
+    using description file: C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\package.json (relative path: ./src/components/wizard/steps/checklist/ChecklistSection)
+      no extension
+        Field 'browser' doesn't contain a valid alias configuration
+[1m[31m        C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps\checklist\ChecklistSection doesn't exist[39m[22m
+      .jsx
+        Field 'browser' doesn't contain a valid alias configuration
+[1m[31m        C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps\checklist\ChecklistSection.jsx doesn't exist[39m[22m
+      .ts
+        Field 'browser' doesn't contain a valid alias configuration
+[1m[31m        C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps\checklist\ChecklistSection.ts doesn't exist[39m[22m
+      .tsx
+        Field 'browser' doesn't contain a valid alias configuration
+[1m[31m        C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps\checklist\ChecklistSection.tsx doesn't exist[39m[22m
+      .js
+        Field 'browser' doesn't contain a valid alias configuration
+[1m[31m        C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps\checklist\ChecklistSection.js doesn't exist[39m[22m
+      .json
+        Field 'browser' doesn't contain a valid alias configuration
+[1m[31m        C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps\checklist\ChecklistSection.json doesn't exist[39m[22m
+      .wasm
+        Field 'browser' doesn't contain a valid alias configuration
+[1m[31m        C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps\checklist\ChecklistSection.wasm doesn't exist[39m[22m
+      as directory
+[1m[31m        C:\Users\chara\Documents\wptheme\Wptstchroma\plugins\QA-Report-App\chroma-qa-reports\build-env\src\components\wizard\steps\checklist\ChecklistSection doesn't exist[39m[22m
+ @ ./src/components/wizard/ReportWizard.jsx 11:0-50 54:15-28
+ @ ./src/App.jsx 12:0-60 74:27-39
+ @ ./src/index.js 4:0-24 10:30-33
+
+webpack 5.104.1 compiled with [1m[31m1 error[39m[22m in 2893 ms

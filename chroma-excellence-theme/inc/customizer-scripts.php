@@ -44,7 +44,7 @@ function chroma_scripts_customizer_settings($wp_customize)
     // Footer Scripts (wp_footer)
     $wp_customize->add_setting('chroma_footer_scripts', array(
         'default' => '',
-        'sanitize_callback' => 'chroma_sanitize_scripts', 
+        'sanitize_callback' => 'chroma_sanitize_scripts',
         'transport' => 'refresh',
     ));
 
@@ -64,7 +64,8 @@ add_action('customize_register', 'chroma_scripts_customizer_settings');
 /**
  * Sanitize callback for scripts (allow standard HTML/JS)
  */
-function chroma_sanitize_scripts($input) {
+function chroma_sanitize_scripts($input)
+{
     if (current_user_can('unfiltered_html')) {
         return $input;
     }
@@ -74,7 +75,8 @@ function chroma_sanitize_scripts($input) {
 /**
  * Output Header Scripts
  */
-function chroma_output_header_scripts() {
+function chroma_output_header_scripts()
+{
     $scripts = get_theme_mod('chroma_header_scripts');
     if ($scripts) {
         echo "<!-- Global Header Scripts -->\n";
@@ -86,11 +88,39 @@ add_action('wp_head', 'chroma_output_header_scripts', 1);
 
 /**
  * Output Footer Scripts
+ * Processed to lazy-load heavy third-party widgets
  */
-function chroma_output_footer_scripts() {
+function chroma_output_footer_scripts()
+{
     $scripts = get_theme_mod('chroma_footer_scripts');
     if ($scripts) {
-        echo "<!-- Global Footer Scripts -->\n";
+        // Performance: Lazy-load LeadConnector if present
+        if (strpos($scripts, 'widgets.leadconnectorhq.com') !== false) {
+            $scripts = "
+                <script>
+                (function() {
+                    var loadLC = function() {
+                        window.removeEventListener('scroll', loadLC);
+                        window.removeEventListener('mousemove', loadLC);
+                        window.removeEventListener('touchstart', loadLC);
+                        var div = document.createElement('div');
+                        div.innerHTML = " . json_encode($scripts) . ";
+                        var scripts = div.querySelectorAll('script');
+                        scripts.forEach(function(s) {
+                            var ns = document.createElement('script');
+                            if (s.src) ns.src = s.src;
+                            if (s.innerHTML) ns.innerHTML = s.innerHTML;
+                            document.body.appendChild(ns);
+                        });
+                    };
+                    window.addEventListener('scroll', loadLC, {passive:true});
+                    window.addEventListener('mousemove', loadLC, {passive:true});
+                    window.addEventListener('touchstart', loadLC, {passive:true});
+                })();
+                </script>";
+        }
+
+        echo "<!-- Global Footer Scripts (Optimized) -->\n";
         echo $scripts . "\n";
         echo "<!-- End Global Footer Scripts -->\n";
     }
