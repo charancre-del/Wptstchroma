@@ -1,0 +1,27 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]: WP Admin Bar
+  - generic [ref=e4]: Menu
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - generic [ref=e9]:
+        - generic [ref=e10]: Chroma QA
+        - button [ref=e11]:
+          - img [ref=e12]
+      - navigation [ref=e14]:
+        - list [ref=e15]:
+          - listitem [ref=e16]:
+            - link "Dashboard" [ref=e17] [cursor=pointer]:
+              - /url: "#/"
+              - img [ref=e18]
+              - generic [ref=e23]: Dashboard
+          - listitem [ref=e24]:
+            - link "Reports" [ref=e25] [cursor=pointer]:
+              - /url: "#/reports"
+              - img [ref=e26]
+              - generic [ref=e29]: Reports
+    - main [ref=e31]:
+      - heading "Dashboard" [level=1] [ref=e34]
+```
