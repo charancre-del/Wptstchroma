@@ -374,12 +374,13 @@ class REST_Controller
 
         foreach ($ratings as $row) {
             $key = strtolower(str_replace(' ', '_', $row->rating));
-            if ($key === 'exceeds_expectations')
+            if ($key === 'exceeds_expectations') {
                 $compliance['exceeds'] += $row->count;
-            elseif ($key === 'meets_expectations' || $key === 'meets')
+            } elseif ($key === 'meets_expectations' || $key === 'meets') {
                 $compliance['meets'] += $row->count;
-            elseif ($key === 'needs_improvement')
+            } elseif ($key === 'needs_improvement') {
                 $compliance['improvement'] += $row->count;
+            }
         }
 
         // 4. Compliant Schools (Have at least one 'meets' or 'exceeds' report)
@@ -389,11 +390,88 @@ class REST_Controller
         ");
 
         // 5. My Reports (Current User)
-        $user_id = get_current_user_id();
+        $user_id = \get_current_user_id();
         $my_reports = (int) $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $reports_table WHERE user_id = %d",
             $user_id
         ));
+
+        // 6. Trend Data (Last 6 Months)
+        // Mapping: Exceeds=100, Meets=85, Needs Improvement=60, Unsatisfactory=40
+        $trend_sql = "
+            SELECT 
+                DATE_FORMAT(inspection_date, '%b') as name,
+                DATE_FORMAT(inspection_date, '%m') as month_num,
+                AVG(CASE 
+                    WHEN rating = 'Exceeds Expectations' THEN 100
+                    WHEN rating = 'Meets Expectations' THEN 85
+                    WHEN rating = 'Needs Improvement' THEN 60
+                    ELSE 40
+                END) as score
+            FROM $reports_table
+            WHERE status = 'approved' 
+            AND inspection_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+            GROUP BY DATE_FORMAT(inspection_date, '%b'), DATE_FORMAT(inspection_date, '%m')
+            ORDER BY month_num ASC
+        ";
+        $trend_data = $wpdb->get_results($trend_sql);
+
+        // 7. Action Items
+        $action_items = [];
+
+        // Critical: Needs Improvement reports from last 30 days
+        $critical_reports = $wpdb->get_results("
+            SELECT r.id, s.name as title, r.inspection_date as date
+            FROM $reports_table r
+            JOIN $schools_table s ON r.school_id = s.id
+            WHERE r.status = 'approved' 
+            AND r.rating = 'Needs Improvement'
+            AND r.inspection_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            LIMIT 3
+        ");
+
+        foreach ($critical_reports as $report) {
+            $action_items[] = [
+                'id' => 'crit_' . $report->id,
+                'title' => 'Attention Needed: ' . $report->title,
+                'type' => 'critical',
+                'date' => human_time_diff(strtotime($report->date), current_time('timestamp')) . ' ago',
+                'link' => '/reports/' . $report->id
+            ];
+        }
+
+        // Overdue: Top 3 overdue
+        foreach (array_slice($overdue_list, 0, 3) as $school) {
+            $last = $school->last_visit ? human_time_diff(strtotime($school->last_visit), current_time('timestamp')) . ' ago' : 'Never visited';
+            $action_items[] = [
+                'id' => 'overdue_' . $school->id,
+                'title' => 'Overdue: ' . $school->name,
+                'type' => 'overdue',
+                'date' => $last,
+                'link' => '/create?school=' . $school->id
+            ];
+        }
+
+        // Drafts: My old drafts
+        $stale_drafts = $wpdb->get_results($wpdb->prepare("
+            SELECT r.id, s.name as school_name, r.updated_at
+            FROM $reports_table r
+            LEFT JOIN $schools_table s ON r.school_id = s.id
+            WHERE r.status = 'draft' 
+            AND r.user_id = %d
+            AND r.updated_at < DATE_SUB(NOW(), INTERVAL 3 DAY)
+            LIMIT 2
+        ", $user_id));
+
+        foreach ($stale_drafts as $draft) {
+            $action_items[] = [
+                'id' => 'draft_' . $draft->id,
+                'title' => 'Finish Report: ' . ($draft->school_name ?: 'Untitled'),
+                'type' => 'info',
+                'date' => 'Updated ' . human_time_diff(strtotime($draft->updated_at), current_time('timestamp')) . ' ago',
+                'link' => '/reports/' . $draft->id . '/edit'
+            ];
+        }
 
         return new WP_REST_Response([
             'total_schools' => $total_schools,
@@ -401,7 +479,9 @@ class REST_Controller
             'overdue_list' => $overdue_list,
             'compliant_schools' => $compliant_schools,
             'my_reports' => $my_reports,
-            'compliance' => $compliance
+            'compliance' => $compliance,
+            'trend' => $trend_data,
+            'action_items' => $action_items
         ], 200);
     }
 
@@ -527,6 +607,11 @@ class REST_Controller
             'limit' => $request->get_param('per_page') ?: 50,
             'offset' => (($request->get_param('page') ?: 1) - 1) * 50,
         ];
+
+        // Handle 'My Reports' filter
+        if ($request->get_param('author') === 'me') {
+            $args['user_id'] = \get_current_user_id();
+        }
 
         $reports = Report::all($args);
         $total_count = Report::count($args);
@@ -1384,6 +1469,7 @@ class REST_Controller
             'created_at' => $report->created_at,
             'updated_at' => $report->updated_at,
             'school_name' => $report->get_school() ? $report->get_school()->name : 'Unknown School',
+            'is_mine' => ($report->user_id == \get_current_user_id()),
         ];
 
         if ($include_details) {

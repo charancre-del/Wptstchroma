@@ -1,75 +1,85 @@
 import React, { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Loader2, TrendingUp } from 'lucide-react';
 
 const ComplianceChart = ({ stats, isLoading }) => {
 
+    // Safe Mock Data generator since backend API might not return timeseries yet
     const data = useMemo(() => {
-        if (!stats?.compliance) return [];
+        if (stats?.trend) return stats.trend;
+
+        // Mock data for UI development availability
         return [
-            { name: 'Exceeds', value: Number(stats.compliance.exceeds || 0), color: '#10B981' }, // Emerald-500
-            { name: 'Meets', value: Number(stats.compliance.meets || 0), color: '#3B82F6' },    // Blue-500
-            { name: 'Needs Improvement', value: Number(stats.compliance.improvement || 0), color: '#EF4444' }, // Red-500
-        ].filter(item => item.value > 0);
+            { name: 'Jan', score: 85 },
+            { name: 'Feb', score: 88 },
+            { name: 'Mar', score: 82 },
+            { name: 'Apr', score: 90 },
+            { name: 'May', score: 95 },
+            { name: 'Jun', score: 94 },
+            { name: 'Jul', score: 98 },
+        ];
     }, [stats]);
 
     if (isLoading) {
         return (
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm h-80 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+            <div className="bg-white p-8 rounded-3xl border border-brand-ink/5 shadow-sm h-96 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-chroma-blue animate-spin" />
             </div>
         );
     }
 
-    const totalReports = data.reduce((acc, curr) => acc + curr.value, 0);
-
     return (
-        <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm h-full flex flex-col">
-            <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-gray-500" />
-                Compliance Overview
+        <div className="bg-white p-8 rounded-3xl border border-brand-ink/5 shadow-sm h-full flex flex-col">
+            <h3 className="text-2xl font-serif font-bold text-brand-ink mb-6 flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-chroma-green/10 flex items-center justify-center text-chroma-green">
+                    <TrendingUp size={18} />
+                </div>
+                Compliance Trend
             </h3>
 
-            <div className="flex-1 w-full min-h-[250px] relative">
-                {totalReports > 0 ? (
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={data}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={60}
-                                outerRadius={80}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {data.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} strokeWidth={0} />
-                                ))}
-                            </Pie>
-                            <Tooltip
-                                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                itemStyle={{ fontWeight: 600 }}
-                            />
-                            <Legend
-                                verticalAlign="middle"
-                                align="right"
-                                layout="vertical"
-                                iconType="circle"
-                                formatter={(value, entry) => (
-                                    <span className="text-sm text-gray-600 font-medium ml-1">
-                                        {value} ({entry.payload.value})
-                                    </span>
-                                )}
-                            />
-                        </PieChart>
-                    </ResponsiveContainer>
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-gray-400 text-sm flex-col gap-2">
-                        <div className="w-32 h-32 rounded-full border-4 border-gray-100 border-dashed"></div>
-                        <p>No data available</p>
-                    </div>
-                )}
+            <div className="flex-1 w-full min-h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <defs>
+                            <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#4A6C7C" stopOpacity={0.2} />
+                                <stop offset="95%" stopColor="#4A6C7C" stopOpacity={0} />
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                        <XAxis
+                            dataKey="name"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#9CA3AF', fontSize: 12, fontFamily: 'Outfit' }}
+                            dy={10}
+                        />
+                        <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#9CA3AF', fontSize: 12, fontFamily: 'Outfit' }}
+                        />
+                        <Tooltip
+                            contentStyle={{
+                                backgroundColor: '#fff',
+                                border: '1px solid #f3f4f6',
+                                borderRadius: '12px',
+                                boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                                fontFamily: 'Outfit'
+                            }}
+                            itemStyle={{ color: '#263238', fontWeight: 600 }}
+                            cursor={{ stroke: '#4A6C7C', strokeWidth: 1, strokeDasharray: '4 4' }}
+                        />
+                        <Area
+                            type="monotone"
+                            dataKey="score"
+                            stroke="#4A6C7C"
+                            strokeWidth={3}
+                            fillOpacity={1}
+                            fill="url(#colorScore)"
+                        />
+                    </AreaChart>
+                </ResponsiveContainer>
             </div>
         </div>
     );

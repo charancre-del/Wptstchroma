@@ -767,10 +767,9 @@
 
                 // File input (Per Item) - Delegated
                 $(document).on('change', '.cqa-item-photo-input', function (e) {
-                    console.log('Photo input changed', this.files);
                     const section = $(this).data('section');
                     const item = $(this).data('item');
-                    console.log('Section:', section, 'Item:', item);
+
                     if (this.files && this.files.length > 0) {
                         CQA.handleItemFiles(this, this.files, section, item);
                     }

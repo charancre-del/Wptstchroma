@@ -23,7 +23,11 @@ import StepReview from './steps/StepReview';
 const ReportWizard = () => {
     const navigate = useNavigate();
     const { id } = useParams();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
+
+    // Detect View Mode
+    const isViewMode = location.pathname.includes('/reports/') && !location.pathname.includes('/edit');
 
     // DEBUG: Route Tracing
     console.log('Wizard Debug:', {
@@ -47,7 +51,7 @@ const ReportWizard = () => {
     const [isDirty, setIsDirty] = useState(false);
 
     // Fetch report if ID is present (Edit Mode)
-    const { data: existingReport } = useReport(id);
+    const { data: existingReport, isLoading: reportLoading, isError } = useReport(id);
 
     // React Query Mutations
     const createMutation = useCreateReport();
@@ -63,13 +67,45 @@ const ReportWizard = () => {
                 ...existingReport,
                 school_id: parseInt(existingReport.school_id),
             });
+
+            // If viewing a completed report or explicitly in view mode, jump to Review/Summary
+            if (isViewMode || ['submitted', 'approved'].includes(existingReport.status)) {
+                setCurrentStep(6);
+            }
         } else {
             const schoolId = searchParams.get('school');
             if (schoolId) {
                 setDraft({ school_id: parseInt(schoolId) });
             }
         }
-    }, [existingReport, id]);
+    }, [existingReport, id, isViewMode]);
+
+    // LOADING STATE: Prevent showing "Create New Report" while fetching "Edit" data
+    if (id && reportLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-ink"></div>
+                <span className="mt-4 text-brand-ink/60 font-medium font-outfit">Loading Report Details...</span>
+            </div>
+        );
+    }
+
+    if (id && isError) {
+        return (
+            <div className="flex items-center justify-center h-96">
+                <div className="text-center p-8 bg-chroma-red/5 rounded-3xl border border-chroma-red/20 max-w-lg">
+                    <h3 className="text-chroma-red font-bold text-xl mb-2 font-serif">Error Loading Report</h3>
+                    <p className="text-brand-ink/70 mb-6 font-outfit">The requested report could not be found or you do not have permission to view it.</p>
+                    <button
+                        onClick={() => navigate('/reports')}
+                        className="px-6 py-2.5 bg-white border border-chroma-red/30 text-chroma-red rounded-2xl hover:bg-chroma-red/10 font-bold transition-all shadow-sm"
+                    >
+                        Return to Reports
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
 
     // Step Definitions
@@ -178,25 +214,27 @@ const ReportWizard = () => {
     const { lastSaved, isSaving, saveError } = useAutoSave(draft, isDirty);
 
     return (
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden min-h-[600px] flex flex-col">
+        <div className="max-w-4xl mx-auto bg-brand-cream/30 backdrop-blur-sm rounded-3xl shadow-sm border border-brand-ink/10 overflow-hidden min-h-[600px] flex flex-col font-outfit">
             {/* Wizard Header */}
-            <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Create New Report</h2>
-                <div className="text-sm text-gray-500">
-                    Step {currentStep} of {steps.length}: <span className="font-medium text-gray-900">{steps[currentStep - 1].title}</span>
+            <div className="bg-brand-cream/50 px-8 py-6 border-b border-brand-ink/5 flex justify-between items-center">
+                <h2 className="text-2xl font-serif font-bold text-brand-ink">
+                    {isViewMode ? 'View Report' : (id ? 'Edit Report' : 'Create New Report')}
+                </h2>
+                <div className="text-sm text-brand-ink/60 font-medium">
+                    Step {currentStep} of {steps.length}: <span className="text-brand-ink ml-1 font-bold">{steps[currentStep - 1].title}</span>
                 </div>
             </div>
 
             {/* Progress Bar */}
-            <div className="w-full bg-gray-200 h-1.5">
+            <div className="w-full bg-brand-ink/5 h-1.5">
                 <div
-                    className="bg-cqa-primary h-1.5 transition-all duration-300 ease-in-out"
+                    className="bg-brand-secondary h-1.5 transition-all duration-300 ease-in-out"
                     style={{ width: `${(currentStep / steps.length) * 100}%` }}
                 ></div>
             </div>
 
             {/* Step Content */}
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
                 <CurrentComponent
                     draft={draft}
                     updateDraft={updateDraft}
@@ -205,27 +243,31 @@ const ReportWizard = () => {
             </div>
 
             {/* Wizard Footer */}
-            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+            <div className="px-8 py-6 border-t border-brand-ink/5 bg-brand-cream/50 flex justify-between items-center">
                 <button
                     onClick={prevStep}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-100 font-medium text-sm transition-colors"
+                    className="px-6 py-2.5 border border-brand-ink/10 rounded-2xl text-brand-ink hover:bg-brand-ink/5 font-bold text-sm transition-all"
                 >
                     {currentStep === 1 ? 'Cancel' : 'Back'}
                 </button>
 
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     <button
                         onClick={handleSave}
-                        className="px-4 py-2 border border-blue-300 text-blue-600 rounded-md font-medium text-sm hover:bg-blue-50 transition-colors"
+                        className="px-6 py-2.5 border border-chroma-blue/30 text-chroma-blue rounded-2xl font-bold text-sm hover:bg-chroma-blue/10 transition-all flex items-center gap-2"
                         disabled={isSaving || isSavingManual}
                     >
-                        {isSaving || isSavingManual ? 'Saving...' : 'Save Draft'}
+                        {isSaving || isSavingManual ? (
+                            <>Saving...</>
+                        ) : (
+                            <>Save Draft</>
+                        )}
                     </button>
 
                     {currentStep < steps.length ? (
                         <button
                             onClick={nextStep}
-                            className="px-4 py-2 bg-cqa-primary hover:bg-cqa-primary-dark text-white rounded-md font-medium text-sm transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-6 py-2.5 bg-brand-ink hover:bg-brand-ink/90 text-brand-cream rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={currentStep === 1 && !draft.school_id}
                         >
                             Next Step
@@ -233,7 +275,7 @@ const ReportWizard = () => {
                     ) : (
                         <button
                             onClick={handleSubmit}
-                            className="px-4 py-2 bg-cqa-success hover:bg-green-600 text-white rounded-md font-medium text-sm transition-colors shadow-sm"
+                            className="px-6 py-2.5 bg-chroma-green hover:bg-chroma-green/90 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg"
                         >
                             Submit Report
                         </button>

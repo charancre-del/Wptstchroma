@@ -24,10 +24,17 @@ import {
     AlertCircle,
 } from 'lucide-react';
 
+import { useSearchParams } from 'react-router-dom';
+
 export function SchoolsPage() {
+    const [searchParams] = useSearchParams();
+    const initialRegion = searchParams.get('region') || '';
+    const initialStatus = searchParams.get('status') || '';
+
     const [globalFilter, setGlobalFilter] = useState('');
     const [sorting, setSorting] = useState([]);
-    const [regionFilter, setRegionFilter] = useState('');
+    const [regionFilter, setRegionFilter] = useState(initialRegion);
+    const [statusFilter, setStatusFilter] = useState(initialStatus);
 
     const { data, isLoading, error } = useSchools();
     const schools = Array.isArray(data) ? data : (data?.data || []);
@@ -38,11 +45,24 @@ export function SchoolsPage() {
         return unique.sort();
     }, [schools]);
 
-    // Filter by region
+    // Filter by region and status
     const filteredSchools = useMemo(() => {
-        if (!regionFilter) return schools;
-        return schools.filter(s => s.region === regionFilter);
-    }, [schools, regionFilter]);
+        let result = schools;
+        if (regionFilter) {
+            result = result.filter(s => s.region === regionFilter);
+        }
+        if (statusFilter === 'overdue') {
+            // Filter logic for overdue schools (assuming 'is_overdue' or calculating from last_inspection)
+            const ninetyDaysAgo = new Date();
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            result = result.filter(s => {
+                const lastDate = s.last_inspection_date ? new Date(s.last_inspection_date) : null;
+                // If never inspected, it's overdue? Or if last inspection > 90 days
+                return !lastDate || lastDate < ninetyDaysAgo;
+            });
+        }
+        return result;
+    }, [schools, regionFilter, statusFilter]);
 
     const columns = useMemo(() => [
         {
@@ -50,18 +70,18 @@ export function SchoolsPage() {
             header: 'School Name',
             cell: ({ row }) => (
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                        <Building2 className="w-5 h-5 text-primary-600" />
+                    <div className="w-10 h-10 bg-chroma-blue/10 rounded-xl flex items-center justify-center">
+                        <Building2 className="w-5 h-5 text-chroma-blue" />
                     </div>
                     <div>
                         <Link
                             to={`/schools/${row.original.id}`}
-                            className="font-medium text-gray-900 hover:text-primary-600"
+                            className="font-bold text-brand-ink hover:text-chroma-blue transition-colors font-outfit"
                         >
                             {row.original.name}
                         </Link>
                         {row.original.address && (
-                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                            <p className="text-sm text-brand-ink/60 flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
                                 {row.original.address}
                             </p>
@@ -74,7 +94,7 @@ export function SchoolsPage() {
             accessorKey: 'region',
             header: 'Region',
             cell: ({ getValue }) => (
-                <span className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded">
+                <span className="px-3 py-1 bg-brand-ink/5 text-brand-ink/80 text-sm font-medium rounded-full">
                     {getValue() || '—'}
                 </span>
             ),
@@ -85,7 +105,7 @@ export function SchoolsPage() {
             cell: ({ getValue }) => {
                 const tier = getValue();
                 return tier ? (
-                    <span className="px-2 py-1 bg-primary-100 text-primary-700 text-sm font-medium rounded">
+                    <span className="px-3 py-1 bg-chroma-blue/10 text-chroma-blue text-sm font-bold rounded-full">
                         Tier {tier}
                     </span>
                 ) : '—';
@@ -95,7 +115,7 @@ export function SchoolsPage() {
             accessorKey: 'reports_count',
             header: 'Reports',
             cell: ({ getValue }) => (
-                <div className="flex items-center gap-1 text-gray-600">
+                <div className="flex items-center gap-2 text-brand-ink/60 font-medium">
                     <FileText className="w-4 h-4" />
                     {getValue() || 0}
                 </div>
@@ -108,7 +128,7 @@ export function SchoolsPage() {
                 <div className="flex items-center gap-2">
                     <Link
                         to={`/create?school=${row.original.id}`}
-                        className="px-3 py-1.5 text-sm bg-primary-50 text-primary-700 rounded-lg hover:bg-primary-100 transition-colors"
+                        className="px-4 py-1.5 text-sm bg-brand-ink text-white rounded-xl hover:bg-brand-ink/90 transition-colors font-medium shadow-sm"
                     >
                         New Report
                     </Link>
@@ -138,16 +158,16 @@ export function SchoolsPage() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center py-16">
-                <Loader2 className="w-8 h-8 text-primary-600 animate-spin" />
+                <Loader2 className="w-8 h-8 text-chroma-blue animate-spin" />
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-6 text-center">
-                <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                <p className="text-red-700">Failed to load schools. Please try again.</p>
+            <div className="bg-chroma-red/5 border border-chroma-red/20 rounded-3xl p-8 text-center">
+                <AlertCircle className="w-12 h-12 text-chroma-red mx-auto mb-4" />
+                <p className="text-brand-ink font-medium">Failed to load schools. Please try again.</p>
             </div>
         );
     }
@@ -157,12 +177,12 @@ export function SchoolsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Schools</h1>
-                    <p className="text-gray-600">{schools.length} schools total</p>
+                    <h1 className="text-3xl font-serif font-bold text-brand-ink">Schools</h1>
+                    <p className="text-brand-ink/60 font-medium mt-1">{schools.length} schools total</p>
                 </div>
                 <Link
                     to="/schools/new"
-                    className="btn btn-primary flex items-center gap-2"
+                    className="btn bg-brand-ink text-white hover:bg-brand-ink/90 rounded-xl px-6 py-2.5 flex items-center gap-2 font-medium shadow-sm transition-all hover:scale-105 active:scale-95"
                 >
                     <Plus className="w-4 h-4" />
                     Add School
@@ -172,19 +192,19 @@ export function SchoolsPage() {
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
                 <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-brand-ink/40" />
                     <input
                         type="text"
                         placeholder="Search schools..."
                         value={globalFilter}
                         onChange={(e) => setGlobalFilter(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                        className="w-full pl-12 pr-4 py-3 border border-brand-ink/10 rounded-2xl focus:ring-2 focus:ring-chroma-blue/20 focus:border-chroma-blue transition-all bg-white"
                     />
                 </div>
                 <select
                     value={regionFilter}
                     onChange={(e) => setRegionFilter(e.target.value)}
-                    className="px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                    className="px-4 py-3 border border-brand-ink/10 rounded-2xl focus:ring-2 focus:ring-chroma-blue/20 focus:border-chroma-blue bg-white text-brand-ink font-medium"
                 >
                     <option value="">All Regions</option>
                     {regions.map(region => (
@@ -194,21 +214,21 @@ export function SchoolsPage() {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="bg-white/80 backdrop-blur-sm rounded-3xl border border-brand-ink/5 overflow-hidden shadow-sm">
                 <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-200">
+                    <thead className="bg-brand-cream border-b border-brand-ink/5">
                         {table.getHeaderGroups().map(headerGroup => (
                             <tr key={headerGroup.id}>
                                 {headerGroup.headers.map(header => (
                                     <th
                                         key={header.id}
-                                        className="px-4 py-3 text-left text-sm font-medium text-gray-700"
+                                        className="px-6 py-4 text-left text-sm font-bold text-brand-ink/60 uppercase tracking-wider"
                                     >
                                         {header.isPlaceholder ? null : (
                                             <div
                                                 className={cn(
-                                                    'flex items-center gap-1',
-                                                    header.column.getCanSort() && 'cursor-pointer select-none'
+                                                    'flex items-center gap-2',
+                                                    header.column.getCanSort() && 'cursor-pointer select-none hover:text-brand-ink transition-colors'
                                                 )}
                                                 onClick={header.column.getToggleSortingHandler()}
                                             >
@@ -222,11 +242,11 @@ export function SchoolsPage() {
                             </tr>
                         ))}
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-brand-ink/5">
                         {table.getRowModel().rows.map(row => (
-                            <tr key={row.id} className="hover:bg-gray-50">
+                            <tr key={row.id} className="hover:bg-brand-cream/50 transition-colors">
                                 {row.getVisibleCells().map(cell => (
-                                    <td key={cell.id} className="px-4 py-3">
+                                    <td key={cell.id} className="px-6 py-4">
                                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                                     </td>
                                 ))}
@@ -236,15 +256,15 @@ export function SchoolsPage() {
                 </table>
 
                 {table.getRowModel().rows.length === 0 && (
-                    <div className="py-12 text-center text-gray-500">
+                    <div className="py-16 text-center text-brand-ink/40">
                         <Building2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No schools found</p>
+                        <p className="font-medium">No schools found</p>
                     </div>
                 )}
 
                 {/* Pagination */}
-                <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-                    <div className="text-sm text-gray-600">
+                <div className="px-6 py-4 border-t border-brand-ink/5 flex items-center justify-between bg-brand-cream/20">
+                    <div className="text-sm text-brand-ink/60 font-medium">
                         Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
                         {Math.min(
                             (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
@@ -256,19 +276,19 @@ export function SchoolsPage() {
                         <button
                             onClick={() => table.previousPage()}
                             disabled={!table.getCanPreviousPage()}
-                            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 border border-brand-ink/10 rounded-xl hover:bg-brand-ink/5 text-brand-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
-                            <ChevronLeft className="w-4 h-4" />
+                            <ChevronLeft className="w-5 h-5" />
                         </button>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-sm text-brand-ink font-bold">
                             Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
                         </span>
                         <button
                             onClick={() => table.nextPage()}
                             disabled={!table.getCanNextPage()}
-                            className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="p-2 border border-brand-ink/10 rounded-xl hover:bg-brand-ink/5 text-brand-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                         >
-                            <ChevronRight className="w-4 h-4" />
+                            <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
