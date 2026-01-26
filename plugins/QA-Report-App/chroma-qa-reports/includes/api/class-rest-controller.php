@@ -384,8 +384,8 @@ class REST_Controller
 
         // 4. Compliant Schools (Have at least one 'meets' or 'exceeds' report)
         $compliant_schools = (int) $wpdb->get_var("
-            SELECT COUNT(DISTINCT school_id) FROM $reports_table 
-            WHERE status = 'approved' AND (rating = 'Meets Expectations' OR rating = 'Exceeds Expectations')
+            SELECT COUNT(DISTINCT school_id) FROM $reports_table
+            WHERE status = 'approved' AND (overall_rating = 'meets' OR overall_rating = 'exceeds')
         ");
 
         // 5. My Reports (Current User)

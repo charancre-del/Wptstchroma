@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import useReportWizardStore from '../../stores/index';
+import { useReportWizardStore } from '../../stores/index';
 import useAuthStore from '../../stores/useAuthStore';
 import useUIStore from '../../stores/useUIStore';
 import useAutoSave from '../../hooks/useAutoSave';
