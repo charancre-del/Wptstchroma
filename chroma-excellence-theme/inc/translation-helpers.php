@@ -18,23 +18,15 @@ if (!function_exists('chroma_get_translated_meta')) {
      * @param bool   $single  Whether to return a single value.
      * @return mixed
      */
-    function chroma_get_translated_meta($post_id, $key, $single = true)
-    {
-        static $meta_cache = array();
-        $cache_key = "{$post_id}_{$key}_" . ($single ? '1' : '0');
-
-        if (isset($meta_cache[$cache_key])) {
-            return $meta_cache[$cache_key];
-        }
-
+    function chroma_get_translated_meta($post_id, $key, $single = true) {
         // Check if we are in Spanish mode
         $is_spanish = false;
-
+        
         // Check URL
         if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/es/') !== false) {
             $is_spanish = true;
         }
-
+        
         // Check Multilingual Manager if exists
         if (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish')) {
             if (Chroma_Multilingual_Manager::is_spanish()) {
@@ -46,15 +38,12 @@ if (!function_exists('chroma_get_translated_meta')) {
             $es_key = '_chroma_es_' . $key;
             $val = get_post_meta($post_id, $es_key, $single);
             if (!empty($val)) {
-                $meta_cache[$cache_key] = $val;
                 return $val;
             }
         }
 
         // Fallback to original
-        $val = get_post_meta($post_id, $key, $single);
-        $meta_cache[$cache_key] = $val;
-        return $val;
+        return get_post_meta($post_id, $key, $single);
     }
 }
 
@@ -65,8 +54,7 @@ if (!function_exists('chroma_get_localized_url')) {
      * @param string $url The internal URL.
      * @return string The localized URL.
      */
-    function chroma_get_localized_url($url)
-    {
+    function chroma_get_localized_url($url) {
         if (empty($url)) {
             return $url;
         }
@@ -79,7 +67,7 @@ if (!function_exists('chroma_get_localized_url')) {
         // Only localize relative or internal absolute URLs
         $home_url = home_url();
         $is_internal = (strpos($url, $home_url) === 0 || strpos($url, '/') === 0) && strpos($url, '://') === false;
-
+        
         // Handle URLs that already have the protocol but are internal (e.g. http://site.com/about)
         if (!$is_internal && strpos($url, $home_url) === 0) {
             $is_internal = true;
@@ -119,7 +107,7 @@ if (!function_exists('chroma_get_localized_url')) {
         // Only apply if it's not a direct file link (e.g. .png, .pdf)
         $path_only = explode('?', $processed_url)[0];
         if (!preg_match('/\.(jpg|jpeg|png|gif|pdf|doc|docx|zip|webp)$/i', $path_only)) {
-            $processed_url = user_trailingslashit($processed_url);
+             $processed_url = user_trailingslashit($processed_url);
         }
 
         return $processed_url . $anchor;

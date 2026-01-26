@@ -1,6 +1,0 @@
-# Unit Tests
-/vendor/
-/node_modules/
-/coverage/
-/.phpunit.cache/
-/tests/php/coverage/
