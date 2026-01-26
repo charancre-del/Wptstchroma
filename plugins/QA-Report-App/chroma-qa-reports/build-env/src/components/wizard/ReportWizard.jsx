@@ -24,6 +24,15 @@ const ReportWizard = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [searchParams] = useSearchParams();
+
+    // DEBUG: Route Tracing
+    console.log('Wizard Debug:', {
+        id,
+        pathname: location.pathname,
+        isViewMode: location.pathname.includes('/reports/') && !location.pathname.includes('/edit'),
+        searchParams: searchParams.toString()
+    });
+
     const { addToast } = useUIStore();
     const {
         report: draft,

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import useAuthStore from '@stores/useAuthStore';
 import useUIStore from '@stores/useUIStore';
@@ -42,7 +42,7 @@ const App = () => {
 
     return (
         <QueryClientProvider client={queryClient}>
-            <BrowserRouter basename="/qa-reports">
+            <HashRouter>
                 <Routes>
                     <Route path="/" element={<Shell />}>
                         <Route index element={<Dashboard />} />
@@ -55,7 +55,7 @@ const App = () => {
                         <Route path="*" element={<Navigate to="/" replace />} />
                     </Route>
                 </Routes>
-            </BrowserRouter>
+            </HashRouter>
         </QueryClientProvider>
     );
 };
