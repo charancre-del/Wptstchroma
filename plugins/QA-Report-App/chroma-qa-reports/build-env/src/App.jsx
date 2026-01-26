@@ -48,7 +48,8 @@ const App = () => {
                         <Route index element={<Dashboard />} />
                         <Route path="schools" element={<SchoolsPage />} />
                         <Route path="reports" element={<ReportsPage />} />
-                        <Route path="reports/:id" element={<ReportWizard />} /> {/* View/Edit logic inside ReportWizard or separate? */}
+                        <Route path="reports/:id" element={<ReportWizard />} />
+                        <Route path="edit/:id" element={<ReportWizard />} />
                         <Route path="create" element={<ReportWizard />} />
                         <Route path="settings" element={<Settings />} />
                         <Route path="*" element={<Navigate to="/" replace />} />

@@ -79,18 +79,21 @@ export function Dashboard() {
                     label="Compliant Schools"
                     value={statsLoading ? '...' : compliantSchools}
                     color="emerald-500"
+                    to="/reports?status=approved&rating=meets" // Filter? 
                 />
                 <StatCard
                     icon={AlertTriangle}
                     label="Overdue Visits"
                     value={statsLoading ? '...' : overdueVisits}
                     color="amber-500"
+                    to="/schools?status=overdue" // Assuming schools page has this filter
                 />
                 <StatCard
                     icon={BarChart3}
                     label="My Total Reports"
                     value={statsLoading ? '...' : myReports}
                     color="blue-500"
+                    to="/reports?author=me"
                 />
             </div>
 
