@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { useReportWizardStore } from '../../stores/index';
-import useAuthStore from '../../stores/useAuthStore';
-import useUIStore from '../../stores/useUIStore';
-import useAutoSave from '../../hooks/useAutoSave';
-import { useReport } from '../../hooks/useQueries';
+import { useReportWizardStore } from '@stores/index';
+import useAuthStore from '@stores/useAuthStore';
+import useUIStore from '@stores/useUIStore';
+import useAutoSave from '@hooks/useAutoSave';
+import {
+    useReport,
+    useCreateReport,
+    useUpdateReport,
+    useSubmitReport
+} from '@hooks/useQueries';
 import apiFetch from '../../api/client';
 
 // Steps
@@ -34,6 +39,13 @@ const ReportWizard = () => {
 
     // Fetch report if ID is present (Edit Mode)
     const { data: existingReport } = useReport(id);
+
+    // React Query Mutations
+    const createMutation = useCreateReport();
+    const updateMutation = useUpdateReport();
+    const submitMutation = useSubmitReport();
+
+    const isSavingManual = createMutation.isPending || updateMutation.isPending || submitMutation.isPending;
 
     // Initialize from Params or Existing Report
     useEffect(() => {
@@ -71,8 +83,6 @@ const ReportWizard = () => {
             return;
         }
 
-        // Audit Guardrail: Metadata check? (Maybe report type required)
-
         if (currentStep < steps.length) {
             setCurrentStep(prev => prev + 1);
         }
@@ -82,7 +92,6 @@ const ReportWizard = () => {
         if (currentStep > 1) {
             setCurrentStep(prev => prev - 1);
         } else {
-            // Cancel / Go Back to Dashboard?
             if (confirm('Exit wizard? Unsaved changes will be lost (v1 drafts coming soon).')) {
                 navigate('/');
             }
@@ -98,33 +107,55 @@ const ReportWizard = () => {
 
     const handleSave = async () => {
         try {
-            const method = reportState.id ? 'PUT' : 'POST';
-            const endpoint = reportState.id ? `reports/${reportState.id}` : 'reports';
-
-            const response = await apiFetch(endpoint, {
-                method,
-                body: { ...reportState, responses, photos }
-            });
-
-            if (response.id) {
-                updateDraft({ id: response.id });
-                addToast({ type: 'success', message: 'Draft saved successfully.' });
+            if (reportState.id) {
+                // Update
+                await updateMutation.mutateAsync({
+                    ...reportState,
+                    responses,
+                    photos,
+                    updatedAt: reportState.updated_at // Pass timestamp for optimistic lock
+                });
+            } else {
+                // Create
+                const newReport = await createMutation.mutateAsync({
+                    ...reportState,
+                    responses,
+                    photos
+                });
+                updateDraft({ id: newReport.id });
             }
+
+            addToast({ type: 'success', message: 'Draft saved successfully.' });
         } catch (error) {
+            console.error('Save failed', error);
             addToast({ type: 'error', message: 'Failed to save draft.' });
         }
     };
 
     const handleSubmit = async () => {
-        if (!reportState.id) {
-            await handleSave(); // Must have ID to submit correctly
+        // Ensure saved first if new
+        let currentId = reportState.id;
+
+        if (!currentId) {
+            try {
+                const newReport = await createMutation.mutateAsync({ ...reportState, responses, photos });
+                currentId = newReport.id;
+                updateDraft({ id: currentId });
+            } catch (err) {
+                addToast({ type: 'error', message: 'Failed to create report before submission.' });
+                return;
+            }
+        } else {
+            try {
+                // Update latest state before submitting
+                await updateMutation.mutateAsync({ ...reportState, responses, photos, updatedAt: reportState.updated_at });
+            } catch (err) {
+                console.warn('Pre-submit save had issues', err);
+            }
         }
 
         try {
-            await apiFetch(`reports/${reportState.id}/submit`, {
-                method: 'POST',
-                body: { ...reportState, responses, photos, status: 'submitted' }
-            });
+            await submitMutation.mutateAsync(currentId);
 
             addToast({ type: 'success', message: 'Report submitted successfully!' });
             resetWizard();
@@ -177,9 +208,9 @@ const ReportWizard = () => {
                     <button
                         onClick={handleSave}
                         className="px-4 py-2 border border-blue-300 text-blue-600 rounded-md font-medium text-sm hover:bg-blue-50 transition-colors"
-                        disabled={isSaving}
+                        disabled={isSaving || isSavingManual}
                     >
-                        {isSaving ? 'Saving...' : 'Save Draft'}
+                        {isSaving || isSavingManual ? 'Saving...' : 'Save Draft'}
                     </button>
 
                     {currentStep < steps.length ? (

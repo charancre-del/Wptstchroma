@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useSchools } from '../../../hooks/useQueries';
-import { useReportWizardStore } from '../../../stores';
-import { cn } from '../../../utils/helpers';
+import { useSchools } from '@hooks/useQueries';
+import { useReportWizardStore } from '@stores';
+import { cn } from '@utils/helpers';
 import { Search, MapPin, Building2, Check, AlertCircle } from 'lucide-react';
 
 export function StepSchoolSelect({ onNext }) {

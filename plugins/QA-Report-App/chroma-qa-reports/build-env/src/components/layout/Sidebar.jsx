@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, School, FileText, PlusCircle, Settings, Menu, ChevronLeft } from 'lucide-react';
-import useUIStore from '../../stores/useUIStore';
-import useAuthStore from '../../stores/useAuthStore';
+import useUIStore from '@stores/useUIStore';
+import useAuthStore from '@stores/useAuthStore';
 
 const Sidebar = ({ isOpen }) => {
     const { toggleSidebar } = useUIStore();

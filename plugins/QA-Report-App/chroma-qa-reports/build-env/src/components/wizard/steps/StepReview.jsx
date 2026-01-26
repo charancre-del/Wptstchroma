@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
-import { useReportWizardStore } from '../../../stores';
-import { useSchool } from '../../../hooks/useQueries';
-import { formatDate, cn } from '../../../utils/helpers';
+import { useReportWizardStore } from '@stores';
+import { useSchool } from '@hooks/useQueries';
+import { formatDate, cn } from '@utils/helpers';
 import {
     CheckCircle,
     AlertCircle,

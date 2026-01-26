@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import useUIStore from '../stores/useUIStore';
-import apiFetch from '../api/client';
-import { saveLocalDraft } from '../utils/db';
+import useUIStore from '@stores/useUIStore';
+import apiFetch from '@api/client';
+import { saveLocalDraft } from '@utils/db';
 
 const AUTOSAVE_INTERVAL = 30000; // 30 seconds
 

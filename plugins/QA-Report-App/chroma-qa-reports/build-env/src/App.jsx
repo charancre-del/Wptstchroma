@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import useAuthStore from './stores/useAuthStore';
-import useUIStore from './stores/useUIStore';
+import useAuthStore from '@stores/useAuthStore';
+import useUIStore from '@stores/useUIStore';
 
 // Layout
 import Shell from './components/layout/Shell';

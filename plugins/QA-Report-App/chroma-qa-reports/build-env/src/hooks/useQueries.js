@@ -2,7 +2,7 @@
  * React Query hooks for data fetching
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '../api/client';
+import { apiClient } from '@api/client';
 
 // Query key factories
 export const queryKeys = {
@@ -105,7 +105,7 @@ export function useReport(id) {
 export function useReportChecklist(reportType) {
     return useQuery({
         queryKey: ['checklist', reportType],
-        queryFn: () => apiClient.get('/checklist', { params: { type: reportType } }),
+        queryFn: () => apiClient.get(`/checklists/${reportType}`),
         enabled: !!reportType,
         staleTime: 30 * 60 * 1000, // 30 minutes - checklists don't change often
     });
@@ -150,7 +150,8 @@ export function useSubmitReport() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: (id) => apiClient.post(`/reports/${id}/submit`),
+        // Use PUT with status='submitted' instead of non-existent RPC endpoint
+        mutationFn: (id) => apiClient.put(`/reports/${id}`, { status: 'submitted' }),
         onSuccess: (_, id) => {
             queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(id) });
             queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
@@ -181,7 +182,7 @@ export function useUploadPhotos() {
 export function useGenerateAISummary() {
     return useMutation({
         mutationFn: ({ reportId, checklistData }) =>
-            apiClient.post(`/reports/${reportId}/ai-summary`, { checklist: checklistData }),
+            apiClient.post(`/reports/${reportId}/generate-summary`, { checklist: checklistData }),
     });
 }
 

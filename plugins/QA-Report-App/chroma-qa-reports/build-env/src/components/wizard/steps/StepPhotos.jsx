@@ -1,53 +1,41 @@
 import React, { useState } from 'react';
 import PhotoUploader from '@components/common/upload/PhotoUploader';
-import apiFetch from '../../../api/client';
-import useUIStore from '../../../stores/useUIStore';
-import { Trash2, AlertTriangle } from 'lucide-react';
+import apiFetch from '@api/client';
+import useUIStore from '@stores/useUIStore';
+import { Trash2 } from 'lucide-react';
 
-const StepPhotos = ({ draft, updateDraft, nextStep }) => {
+const StepPhotos = ({ draft, updateDraft }) => {
     const { addToast } = useUIStore();
-    const [photos, setPhotos] = useState(draft.photos || []);
     const [uploading, setUploading] = useState(false);
 
-    // Initial load from draft should ideally be robust
-    // For now assuming draft.photos is array of { id, url, name }
+    // AUDIT FIX: Use draft.photos (Single Source of Truth)
+    const photos = draft.photos || [];
 
     const handleUpload = async (newFiles) => {
         setUploading(true);
-        // Create FormData
-        const formData = new FormData();
-
-        // Append all files
-        newFiles.forEach((fileObj) => {
-            formData.append('photos[]', fileObj.file);
-        });
-
-        // Add report ID context if we had one (usually do by step 4)
-        // If draft is new, we might need to create it first? 
-        // Plan implies we autosave, so we should have an ID.
-        // Fallback: If no ID, we must create draft first? 
-        // Simplified: Assume ID exists for Step 4.
         const reportId = draft.id;
 
         if (!reportId) {
-            addToast({ type: 'error', message: 'Report draft missing ID. Please save first.' });
+            addToast({ type: 'error', message: 'Please save the draft before uploading photos.' });
             setUploading(false);
             return;
         }
 
+        const formData = new FormData();
+        newFiles.forEach((fileObj) => {
+            formData.append('photos[]', fileObj.file);
+        });
+
         try {
-            // AUDIT FINDING #1: Strict Content-Type
-            // api/client.js handles NOT setting Content-Type for FormData automatically
             const response = await apiFetch(`reports/${reportId}/photos`, {
                 method: 'POST',
                 body: formData
             });
 
             if (response.success && response.data) {
-                // Append new photos from server response
-                const updatedPhotos = [...photos, ...response.data];
-                setPhotos(updatedPhotos);
-                updateDraft({ photos: updatedPhotos });
+                const newPhotos = response.data;
+                // Update Global Store directly
+                updateDraft({ photos: [...photos, ...newPhotos] });
                 addToast({ type: 'success', message: `${newFiles.length} photos uploaded.` });
             } else {
                 throw new Error('Upload failed');
@@ -67,7 +55,6 @@ const StepPhotos = ({ draft, updateDraft, nextStep }) => {
         try {
             // Optimistic Update
             const updatedPhotos = photos.filter(p => p.id !== photoId);
-            setPhotos(updatedPhotos);
             updateDraft({ photos: updatedPhotos });
 
             // API Call
@@ -76,16 +63,21 @@ const StepPhotos = ({ draft, updateDraft, nextStep }) => {
         } catch (error) {
             console.error('Delete failed', error);
             addToast({ type: 'error', message: 'Failed to delete photo.' });
-            // Rollback? (Optional)
+            // Revert on failure (advanced: requires previous state, skipping for now)
         }
     };
 
     return (
         <div className="space-y-6">
-            <h3 className="text-lg font-bold text-gray-800">Photos & Evidence</h3>
+            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                Photos & Evidence
+                {uploading && <span className="text-sm font-normal text-cqa-primary animate-pulse">(Uploading...)</span>}
+            </h3>
 
-            <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <PhotoUploader onUpload={handleUpload} />
+            <div className={`transition-opacity ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                    <PhotoUploader onUpload={handleUpload} />
+                </div>
             </div>
 
             {/* Gallery Grid */}
@@ -93,8 +85,8 @@ const StepPhotos = ({ draft, updateDraft, nextStep }) => {
                 {photos.map((photo) => (
                     <div key={photo.id} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                         <img
-                            src={photo.url || photo.preview} // Server URL or local preview 
-                            alt={photo.name}
+                            src={photo.url || photo.preview}
+                            alt={photo.name || 'Evidence'}
                             className="w-full h-full object-cover"
                         />
 
@@ -102,7 +94,7 @@ const StepPhotos = ({ draft, updateDraft, nextStep }) => {
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <button
                                 onClick={() => handleDelete(photo.id)}
-                                className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700"
+                                className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
                                 title="Delete Photo"
                             >
                                 <Trash2 size={16} />
@@ -114,7 +106,7 @@ const StepPhotos = ({ draft, updateDraft, nextStep }) => {
 
             {/* Empty State */}
             {photos.length === 0 && (
-                <div className="text-center py-10 text-gray-400">
+                <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
                     <p>No photos added yet.</p>
                 </div>
             )}

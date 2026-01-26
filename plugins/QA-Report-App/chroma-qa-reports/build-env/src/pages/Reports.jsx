@@ -8,8 +8,8 @@ import {
     getSortedRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import { useReports } from '../hooks/useQueries';
-import { formatDate, cn } from '../utils/helpers';
+import { useReports } from '@hooks/useQueries';
+import { formatDate, cn } from '@utils/helpers';
 import {
     Search,
     Plus,

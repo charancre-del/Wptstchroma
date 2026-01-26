@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload, X, AlertCircle, FileImage } from 'lucide-react';
-import useUIStore from '../../../stores/useUIStore';
+import useUIStore from '@stores/useUIStore';
 
 const PhotoUploader = ({ onUpload, currentPhotos = [] }) => {
     const { addToast } = useUIStore();

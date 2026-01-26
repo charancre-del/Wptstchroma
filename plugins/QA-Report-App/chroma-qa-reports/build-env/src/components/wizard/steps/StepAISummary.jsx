@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useReportWizardStore } from '../../../stores';
-import { useGenerateAISummary } from '../../../hooks/useQueries';
+import { useReportWizardStore } from '@stores';
+import { useGenerateAISummary } from '@hooks/useQueries';
 import { cn } from '../../../utils/helpers';
 import {
     Sparkles,

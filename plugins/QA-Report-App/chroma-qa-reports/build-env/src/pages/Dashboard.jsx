@@ -1,9 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useReports, useStats } from '../hooks/useQueries';
-import { useAuthStore } from '../stores';
-import ComplianceChart from '../components/dashboard/ComplianceChart';
-import NeedsAttention from '../components/dashboard/NeedsAttention';
+import { useReports, useStats } from '@hooks/useQueries';
+import { useAuthStore } from '@stores';
+import ComplianceChart from '@components/dashboard/ComplianceChart';
+import NeedsAttention from '@components/dashboard/NeedsAttention';
 import {
     FileText,
     School,
