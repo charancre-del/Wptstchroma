@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mock QA Reports Admin</title>
+
+    <!-- React & ReactDOM (WP Core Dependencies) -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.development.js"></script>
+
+    <!-- Mock WP Globals -->
+    <script>
+        // 1. Mock wp.element (Critical for WP builds)
+        window.wp = {
+            element: window.React
+        };
+
+        // 2. Mock Plugin Data
+        window.cqaData = {
+            root: 'https://mock-wp/wp-json/cqa/v1/',
+            nonce: 'mock-nonce',
+            userValues: {
+                id: 1,
+                display_name: 'QA Tester',
+                capabilities: { 'manage_options': true }
+            },
+            featureFlags: {
+                react_dashboard: true,
+                react_wizard: true,
+                react_schools: true,
+                react_reports: true
+            }
+        };
+    </script>
+
+    <link rel="stylesheet" href="../build/index.css">
+    <style>
+        body {
+            margin: 0;
+            background: #f1f1f1;
+            font-family: sans-serif;
+        }
+
+        #wpadminbar {
+            height: 32px;
+            background: #1d2327;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 999;
+        }
+
+        #adminmenuwrap {
+            width: 160px;
+            background: #1d2327;
+            height: 100vh;
+            position: fixed;
+            top: 32px;
+            color: #fff;
+            padding: 10px;
+        }
+
+        #wpbody {
+            margin-left: 160px;
+            margin-top: 32px;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="wpadminbar">
+        <div style="color:white; padding: 5px 20px;">WP Admin Bar</div>
+    </div>
+    <div id="adminmenuwrap">Menu</div>
+    <div id="wpbody">
+        <div id="cqa-react-app"></div>
+    </div>
+
+    <!-- Load Built App -->
+    <script src="../build/index.js"></script>
+</body>
+
+</html>
