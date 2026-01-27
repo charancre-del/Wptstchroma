@@ -2,7 +2,29 @@ import React, { useState } from 'react';
 import PhotoUploader from '@components/common/upload/PhotoUploader';
 import apiFetch from '@api/client';
 import useUIStore from '@stores/useUIStore';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Image as ImageIcon, CloudOff } from 'lucide-react';
+
+const PhotoThumbnail = ({ photo }) => {
+    const [error, setError] = useState(false);
+
+    if (error) {
+        return (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-400 p-4 text-center">
+                <CloudOff size={24} className="mb-2" />
+                <span className="text-[10px] leading-tight">Media Missing from Cloud</span>
+            </div>
+        );
+    }
+
+    return (
+        <img
+            src={photo.url || photo.preview}
+            alt={photo.name || 'Evidence'}
+            className="w-full h-full object-cover"
+            onError={() => setError(true)}
+        />
+    );
+};
 
 const StepPhotos = ({ draft, updateDraft }) => {
     const { addToast } = useUIStore();
@@ -84,11 +106,7 @@ const StepPhotos = ({ draft, updateDraft }) => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {photos.map((photo) => (
                     <div key={photo.id} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                        <img
-                            src={photo.url || photo.preview}
-                            alt={photo.name || 'Evidence'}
-                            className="w-full h-full object-cover"
-                        />
+                        <PhotoThumbnail photo={photo} />
 
                         {/* Overlay Actions */}
                         <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">

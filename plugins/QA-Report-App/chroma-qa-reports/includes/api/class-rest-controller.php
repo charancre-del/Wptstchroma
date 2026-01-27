@@ -203,6 +203,13 @@ class REST_Controller
             'callback' => [$this, 'get_stats'],
             'permission_callback' => [$this, 'check_read_permission'],
         ]);
+
+        // System Health Check
+        \register_rest_route(self::NAMESPACE , '/system-check', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_system_status'],
+            'permission_callback' => [$this, 'check_manage_options_permission'],
+        ]);
     }
 
     // ===== PERMISSION CALLBACKS =====
@@ -485,6 +492,48 @@ class REST_Controller
         ], 200);
     }
 
+    /**
+     * Diagnostic endpoint for system health.
+     * 
+     * @return WP_REST_Response
+     */
+    public function get_system_status()
+    {
+        $status = [
+            'database' => [
+                'connection' => true,
+                'prefix' => $GLOBALS['wpdb']->prefix,
+                'version' => $GLOBALS['wpdb']->db_version(),
+            ],
+            'integrations' => [
+                'google_drive' => ['status' => 'unknown', 'message' => ''],
+                'gemini' => ['status' => 'unknown', 'message' => ''],
+            ]
+        ];
+
+        // Check Google Drive
+        try {
+            $drive = new \ChromaQA\Integrations\Google_Drive();
+            $drive_connected = $drive->test_connection();
+            $status['integrations']['google_drive'] = [
+                'status' => $drive_connected ? 'healthy' : 'disconnected',
+                'message' => $drive_connected ? 'Connected to Google Drive API' : 'Failed to connect'
+            ];
+        } catch (\Exception $e) {
+            $status['integrations']['google_drive'] = ['status' => 'error', 'message' => $e->getMessage()];
+        }
+
+        // Check Gemini
+        $gemini_key = \get_option('cqa_gemini_api_key');
+        if (empty($gemini_key)) {
+            $status['integrations']['gemini'] = ['status' => 'missing_key', 'message' => 'API Key not configured'];
+        } else {
+            $status['integrations']['gemini'] = ['status' => 'configured', 'message' => 'API Key set (connectivity not tested in this health check)'];
+        }
+
+        return new WP_REST_Response(['success' => true, 'data' => $status], 200);
+    }
+
     // ===== SCHOOLS ENDPOINTS =====
 
     public function get_schools(WP_REST_Request $request)
@@ -600,12 +649,16 @@ class REST_Controller
 
     public function get_reports(WP_REST_Request $request)
     {
+        $limit = (int) ($request->get_param('per_page') ?: 50);
+        $page = (int) ($request->get_param('page') ?: 1);
+        $offset = ($page - 1) * $limit;
+
         $args = [
             'school_id' => $request->get_param('school_id') ?: 0,
             'report_type' => $request->get_param('report_type') ?: '',
             'status' => $request->get_param('status') ?: '',
-            'limit' => $request->get_param('per_page') ?: 50,
-            'offset' => (($request->get_param('page') ?: 1) - 1) * 50,
+            'limit' => $limit,
+            'offset' => $offset,
         ];
 
         // Handle 'My Reports' filter
@@ -646,28 +699,12 @@ class REST_Controller
     {
         // Initialize Report
         $report = new Report();
-        $school_id = intval($request->get_param('school_id'));
+        $school_id = (int) $request->get_param('school_id');
 
-        // FALLBACK 1: Check $_GET (The Nuclear Option)
-        if (empty($school_id) && isset($_GET['school_id'])) {
-            $school_id = intval($_GET['school_id']);
-            error_log('create_report: Recovered school_id from $_GET: ' . $school_id);
-        }
-
-        // FALLBACK 2: Check Raw PHP Input (The Double Nuclear Option)
+        // Robust recovery if param is missing from standard getters but exists in payload
         if (empty($school_id)) {
-            $raw_input = file_get_contents('php://input');
-            $json = json_decode($raw_input, true);
-            if (isset($json['school_id'])) {
-                $school_id = intval($json['school_id']);
-                error_log('create_report: Recovered school_id from php://input: ' . $school_id);
-            }
-        }
-
-        // FALLBACK 3: Check Cookies (The Triple Nuclear Option)
-        if (empty($school_id) && isset($_COOKIE['cqa_temp_school_id'])) {
-            $school_id = intval($_COOKIE['cqa_temp_school_id']);
-            error_log('create_report: Recovered school_id from COOKIE: ' . $school_id);
+            $params = $request->get_params();
+            $school_id = isset($params['school_id']) ? (int) $params['school_id'] : 0;
         }
 
         $report->school_id = $school_id;
@@ -718,7 +755,7 @@ class REST_Controller
         }
 
         // === CONCURRENCY PROTECTION ===
-        // Check If-Unmodified-Since header for concurrent edit detection
+        // 1. Timestamp based (Legacy)
         $if_unmodified_since = $request->get_header('If-Unmodified-Since');
         if ($if_unmodified_since && $report->updated_at) {
             $client_timestamp = strtotime($if_unmodified_since);
@@ -746,20 +783,31 @@ class REST_Controller
             }
         }
 
+        // 2. Version ID based (New precise locking via header or param)
+        $client_version = $request->get_header('X-CQA-Version') ?: $request->get_param('version_id');
+
+        if ($client_version) {
+            $client_version = (int) $client_version;
+            if ($client_version < $report->version_id) {
+                return new WP_Error(
+                    'CONCURRENCY_CONFLICT',
+                    __('This report has been updated by another user. Please refresh and try again.', 'chroma-qa-reports'),
+                    [
+                        'status' => 409,
+                        'client_version' => $client_version,
+                        'server_version' => $report->version_id
+                    ]
+                );
+            }
+        }
+
         if ($request->has_param('report_type')) {
             $report->report_type = \sanitize_text_field($request->get_param('report_type'));
         }
 
         // Allow updating School ID (Vital for fixing Unknown Schools)
         if ($request->has_param('school_id')) {
-            $school_id = intval($request->get_param('school_id'));
-            // Fallback 1: $_GET
-            if (empty($school_id) && isset($_GET['school_id'])) {
-                $school_id = intval($_GET['school_id']);
-            }
-            // Fallback 2: POST/JSON handled by has_param generally, but if param is strict...
-            // Just take the param if it exists.
-
+            $school_id = (int) $request->get_param('school_id');
             if ($school_id > 0) {
                 $report->school_id = $school_id;
             }
@@ -1189,189 +1237,30 @@ class REST_Controller
         if (!$report)
             return;
 
-        $school = $report->get_school();
-        $folder_id = $school->drive_folder_id ?? null;
+        // Consolidate photo processing using memory-efficient method
+        $new_photos_captions = $request->get_param('new_photos_captions') ?: [];
+        $new_photos_sections = $request->get_param('new_photos_sections') ?: [];
 
-        // Load image functions for fallback
-        require_once(\ABSPATH . 'wp-admin/includes/image.php');
-        require_once(\ABSPATH . 'wp-admin/includes/file.php');
-        require_once(\ABSPATH . 'wp-admin/includes/media.php');
-
-        foreach ($new_photos as $index => $data_url) {
-            if (!is_string($data_url))
-                continue;
-
-            // Decode Base64
-            if (!preg_match('/^data:image\/(\w+);base64,/', $data_url, $type)) {
-                continue;
-            }
-
-            $data = substr($data_url, strpos($data_url, ',') + 1);
-            $ext = strtolower($type[1]);
-
-            if (!in_array($ext, ['jpg', 'jpeg', 'gif', 'png'])) {
-                continue;
-            }
-
-            $decoded_data = base64_decode($data);
-            if ($decoded_data === false) {
-                continue;
-            }
-
-            if (strlen($decoded_data) > 10 * 1024 * 1024) { // 10MB limit
-                error_log('File too large: ' . $filename);
-                continue;
-            }
-
-            $filename = 'report-' . $report_id . '-photo-' . time() . '-' . $index . '.' . $ext;
-            $drive_file_id = '';
-            $tmp_file = sys_get_temp_dir() . '/' . $filename;
-
-            // 1. Try Google Drive Upload
-            if (\get_option('cqa_google_client_id')) {
-                \file_put_contents($tmp_file, $decoded_data);
-                $drive_result = Google_Drive::upload_file($tmp_file, $filename, $folder_id);
-                if (!\is_wp_error($drive_result) && isset($drive_result['id'])) {
-                    $drive_file_id = $drive_result['id'];
-                }
-            }
-
-            // 2. Fallback to Local Media Library
-            if (empty($drive_file_id)) {
-                $upload = \wp_upload_bits($filename, null, $decoded_data);
-
-                if (!$upload['error']) {
-                    $file_path = $upload['file'];
-                    $file_name = basename($file_path);
-                    $file_type = \wp_check_filetype($file_name, null);
-
-                    $attachment = [
-                        'post_mime_type' => $file_type['type'],
-                        'post_title' => \sanitize_file_name(pathinfo($file_name, PATHINFO_FILENAME)),
-                        'post_content' => '',
-                        'post_status' => 'inherit',
-                    ];
-
-                    $attach_id = \wp_insert_attachment($attachment, $file_path);
-                    $attach_data = \wp_generate_attachment_metadata($attach_id, $file_path);
-                    \wp_update_attachment_metadata($attach_id, $attach_data);
-
-                    $drive_file_id = 'wp_' . $attach_id;
-                } else {
-                    // Log error or handle upload failure
-                    error_log('Upload failed: ' . $upload['error']);
-                }
-            }
-
-            // Cleanup temp file
-            if (file_exists($tmp_file)) {
-                unlink($tmp_file);
-            }
-
-            // Save Photo Record
-            if ($drive_file_id) {
-                $photo = new Photo();
-                $photo->report_id = $report_id;
-                $photo->drive_file_id = $drive_file_id;
-                $photo->filename = $filename;
-
-                // Get caption for this photo (if provided)
-                $captions = $request->get_param('new_photos_captions');
-                if (!empty($captions) && isset($captions[$index])) {
-                    $photo->caption = \sanitize_text_field($captions[$index]);
-                }
-
-                // Get section key for this photo (if provided)
-                $sections = $request->get_param('new_photos_sections');
-                if (!empty($sections) && isset($sections[$index])) {
-                    $photo->section_key = \sanitize_text_field($sections[$index]);
-                } else {
-                    $photo->section_key = 'general';
-                }
-
-                $photo->save();
+        if (!empty($new_photos)) {
+            foreach ($new_photos as $index => $data_url) {
+                $section = !empty($new_photos_sections[$index]) ? $new_photos_sections[$index] : 'general';
+                $caption = !empty($new_photos_captions[$index]) ? $new_photos_captions[$index] : '';
+                $this->process_single_photo($data_url, $report_id, $folder_id, $section, $caption);
             }
         }
 
         // Handle Item-Specific Photos
         $item_photos = $request->get_param('item_photos');
         if (!empty($item_photos) && is_array($item_photos)) {
+            $item_captions = $request->get_param('item_photos_captions') ?: [];
             foreach ($item_photos as $section_key => $items) {
                 foreach ($items as $item_key => $photos) {
                     if (!is_array($photos))
                         continue;
-
                     foreach ($photos as $i => $data_url) {
-                        if (!is_string($data_url))
-                            continue;
-                        // Process Item Photo (Reuse logic - simpler to refactor but duplicating for safety now)
-                        // ... (Duplicate processing logic for speed, or extract method? Extracting is better but risky mid-flight. I will duplicate strictly for the item context)
-
-                        if (!preg_match('/^data:image\/(\w+);base64,/', $data_url, $type))
-                            continue;
-                        $data = substr($data_url, strpos($data_url, ',') + 1);
-                        $ext = strtolower($type[1]);
-                        if (!in_array($ext, ['jpg', 'jpeg', 'gif', 'png']))
-                            continue;
-                        $decoded_data = base64_decode($data);
-                        if ($decoded_data === false)
-                            continue;
-
-                        $filename = 'report-' . $report_id . '-' . $section_key . '-' . $item_key . '-' . time() . '-' . $i . '.' . $ext;
-                        $drive_file_id = '';
-                        $tmp_file = sys_get_temp_dir() . '/' . $filename;
-
-                        if (\get_option('cqa_google_client_id')) {
-                            \file_put_contents($tmp_file, $decoded_data);
-                            $drive_result = Google_Drive::upload_file($tmp_file, $filename, $folder_id);
-                            if (!\is_wp_error($drive_result) && isset($drive_result['id'])) {
-                                $drive_file_id = $drive_result['id'];
-                            }
-                        }
-
-                        if (empty($drive_file_id)) {
-                            $upload = \wp_upload_bits($filename, null, $decoded_data);
-                            if (!$upload['error']) {
-                                // Create attachment...
-                                $file_path = $upload['file'];
-                                $file_name = basename($file_path);
-                                $file_type = \wp_check_filetype($file_name, null);
-                                $attachment = [
-                                    'post_mime_type' => $file_type['type'],
-                                    'post_title' => \sanitize_file_name(pathinfo($file_name, PATHINFO_FILENAME)),
-                                    'post_content' => '',
-                                    'post_status' => 'inherit',
-                                ];
-                                $attach_id = \wp_insert_attachment($attachment, $file_path);
-                                $attach_data = \wp_generate_attachment_metadata($attach_id, $file_path);
-                                \wp_update_attachment_metadata($attach_id, $attach_data);
-                                $drive_file_id = 'wp_' . $attach_id;
-                            }
-                        }
-
-                        if (file_exists($tmp_file))
-                            unlink($tmp_file);
-
-                        if ($drive_file_id) {
-                            $photo = new Photo();
-                            $photo->report_id = $report_id;
-                            $photo->drive_file_id = $drive_file_id;
-                            $photo->filename = $filename;
-                            $photo->section_key = $section_key . '|' . $item_key;
-
-                            // Get caption for this item photo (if provided)
-                            $item_captions = $request->get_param('item_photos_captions');
-                            if (
-                                !empty($item_captions)
-                                && isset($item_captions[$section_key])
-                                && isset($item_captions[$section_key][$item_key])
-                                && isset($item_captions[$section_key][$item_key][$i])
-                            ) {
-                                $photo->caption = \sanitize_text_field($item_captions[$section_key][$item_key][$i]);
-                            }
-
-                            $photo->save();
-                        }
+                        $full_section = $section_key . '|' . $item_key;
+                        $caption = $item_captions[$section_key][$item_key][$i] ?? '';
+                        $this->process_single_photo($data_url, $report_id, $folder_id, $full_section, $caption);
                     }
                 }
             }
@@ -1379,11 +1268,92 @@ class REST_Controller
     }
 
     /**
-     * Process Google Drive files selected via Picker.
-     *
-     * @param int             $report_id Report ID.
-     * @param WP_REST_Request $request   Request object.
+     * Process a single photo with memory efficiency.
      */
+    private function process_single_photo($data_url, $report_id, $folder_id, $section, $caption = '')
+    {
+        if (!is_string($data_url))
+            return;
+
+        // Decode Base64
+        if (!preg_match('/^data:image\/(\w+);base64,/', $data_url, $type))
+            return;
+
+        $base64_str = substr($data_url, strpos($data_url, ',') + 1);
+        $ext = strtolower($type[1]);
+        if (!in_array($ext, ['jpg', 'jpeg', 'gif', 'png']))
+            return;
+
+        $filename = 'report-' . $report_id . '-photo-' . time() . '-' . wp_generate_uuid4() . '.' . $ext;
+        $tmp_file = sys_get_temp_dir() . '/' . $filename;
+
+        // Memory-efficient Base64 decode to file
+        $fp = fopen($tmp_file, 'wb');
+        if ($fp) {
+            stream_filter_append($fp, 'convert.base64-decode', STREAM_FILTER_WRITE);
+            fwrite($fp, $base64_str);
+            fclose($fp);
+            unset($base64_str); // Free up string memory
+        } else {
+            return;
+        }
+
+        if (filesize($tmp_file) > 10 * 1024 * 1024) {
+            @unlink($tmp_file);
+            return;
+        }
+
+        $drive_file_id = '';
+
+        // 1. Try Google Drive Upload
+        if (\get_option('cqa_google_client_id')) {
+            $drive_result = Google_Drive::upload_file($tmp_file, $filename, $folder_id);
+            if (!\is_wp_error($drive_result) && isset($drive_result['id'])) {
+                $drive_file_id = $drive_result['id'];
+            }
+        }
+
+        // 2. Fallback to Local Media Library
+        if (empty($drive_file_id)) {
+            // wp_upload_bits still needs a string, but we minimized copies elsewhere
+            $decoded_data = file_get_contents($tmp_file);
+            $upload = \wp_upload_bits($filename, null, $decoded_data);
+            unset($decoded_data);
+
+            if (!$upload['error']) {
+                $file_path = $upload['file'];
+                require_once(\ABSPATH . 'wp-admin/includes/image.php');
+                require_once(\ABSPATH . 'wp-admin/includes/file.php');
+                require_once(\ABSPATH . 'wp-admin/includes/media.php');
+
+                $file_name = basename($file_path);
+                $file_type = \wp_check_filetype($file_name, null);
+                $attachment = [
+                    'post_mime_type' => $file_type['type'],
+                    'post_title' => \sanitize_file_name(pathinfo($file_name, PATHINFO_FILENAME)),
+                    'post_content' => '',
+                    'post_status' => 'inherit',
+                ];
+                $attach_id = \wp_insert_attachment($attachment, $file_path);
+                $attach_data = \wp_generate_attachment_metadata($attach_id, $file_path);
+                \wp_update_attachment_metadata($attach_id, $attach_data);
+                $drive_file_id = 'wp_' . $attach_id;
+            }
+        }
+
+        @unlink($tmp_file);
+
+        if ($drive_file_id) {
+            $photo = new Photo();
+            $photo->report_id = $report_id;
+            $photo->drive_file_id = $drive_file_id;
+            $photo->filename = $filename;
+            $photo->caption = \sanitize_text_field($caption);
+            $photo->section_key = \sanitize_text_field($section);
+            $photo->save();
+        }
+    }
+
     private function process_drive_files($report_id, $request)
     {
         $drive_files = $request->get_param('drive_files');

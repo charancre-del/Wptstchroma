@@ -118,4 +118,24 @@ export const apiClient = {
     delete: (endpoint, config = {}) => apiFetch(endpoint, { ...config, method: 'DELETE' }),
 };
 
+/**
+ * Pulse check to keep nonce alive during long sessions
+ */
+let pulseInterval = null;
+export const startNoncePulse = (intervalMs = 300000) => { // Default 5 mins
+    if (pulseInterval) clearInterval(pulseInterval);
+
+    pulseInterval = setInterval(async () => {
+        try {
+            // Ping /me - this updates the cookie/session and validates nonce
+            await apiFetch('/me');
+        } catch (e) {
+            if (e.status === 401) {
+                console.warn('[CQA] Pulse failed: Session expired');
+                clearInterval(pulseInterval);
+            }
+        }
+    }, intervalMs);
+};
+
 export default apiFetch;

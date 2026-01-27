@@ -3,6 +3,49 @@ import { useDropzone } from 'react-dropzone';
 import { Upload, X, AlertCircle, FileImage } from 'lucide-react';
 import useUIStore from '@stores/useUIStore';
 
+const compressImage = (file, maxWidth = 2048, maxHeight = 2048, quality = 0.8) => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > maxWidth) {
+                        height *= maxWidth / width;
+                        width = maxWidth;
+                    }
+                } else {
+                    if (height > maxHeight) {
+                        width *= maxHeight / height;
+                        height = maxHeight;
+                    }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        resolve(new File([blob], file.name, { type: 'image/jpeg', lastModified: Date.now() }));
+                    } else {
+                        reject(new Error('Canvas toBlob failed'));
+                    }
+                }, 'image/jpeg', quality);
+            };
+            img.onerror = (err) => reject(err);
+        };
+        reader.onerror = (err) => reject(err);
+    });
+};
+
 const PhotoUploader = ({ onUpload, currentPhotos = [] }) => {
     const { addToast } = useUIStore();
     const [uploading, setUploading] = useState(false);
@@ -12,8 +55,23 @@ const PhotoUploader = ({ onUpload, currentPhotos = [] }) => {
 
         setUploading(true);
         try {
-            // Process files locally first
-            const newPhotos = acceptedFiles.map(file => ({
+            // Compress and process files locally
+            const processedFiles = await Promise.all(
+                acceptedFiles.map(async (file) => {
+                    try {
+                        // Only compress if it's an image
+                        if (file.type.startsWith('image/')) {
+                            return await compressImage(file);
+                        }
+                        return file;
+                    } catch (err) {
+                        console.warn('Compression failed, using original', err);
+                        return file;
+                    }
+                })
+            );
+
+            const newPhotos = processedFiles.map(file => ({
                 id: `temp-${Date.now()}-${file.name}`,
                 file,
                 preview: URL.createObjectURL(file), // Local preview

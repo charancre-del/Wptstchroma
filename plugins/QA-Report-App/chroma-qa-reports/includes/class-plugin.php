@@ -51,7 +51,9 @@ class Plugin
         $this->set_locale();
         $this->define_admin_hooks();
         $this->define_api_hooks();
+        $this->define_cron_hooks();
         $this->init_enhancements();
+        $this->force_utc_database_session();
         $this->check_version();
     }
 
@@ -180,13 +182,56 @@ class Plugin
         add_action('admin_head', [$this, 'add_pwa_manifest']);
     }
 
-    /**
-     * Register REST API hooks.
-     */
     private function define_api_hooks()
     {
         $this->api = new API\REST_Controller();
         add_action('rest_api_init', [$this->api, 'register_routes']);
+    }
+
+    /**
+     * Register Cron hooks.
+     */
+    private function define_cron_hooks()
+    {
+        add_action('cqa_cleanup_orphaned_media', [$this, 'cleanup_orphaned_media']);
+
+        if (!wp_next_scheduled('cqa_cleanup_orphaned_media')) {
+            wp_schedule_event(time(), 'weekly', 'cqa_cleanup_orphaned_media');
+        }
+    }
+
+    /**
+     * Terminate the "Ghost Photos" - Cleanup DB records without reports.
+     */
+    public function cleanup_orphaned_media()
+    {
+        global $wpdb;
+        $photos_table = $wpdb->prefix . 'cqa_photos';
+        $reports_table = $wpdb->prefix . 'cqa_reports';
+
+        $orphans = $wpdb->get_results("
+            SELECT p.id 
+            FROM {$photos_table} p 
+            LEFT JOIN {$reports_table} r ON p.report_id = r.id 
+            WHERE r.id IS NULL
+        ");
+
+        if (!empty($orphans)) {
+            foreach ($orphans as $orphan) {
+                $wpdb->delete($photos_table, ['id' => $orphan->id], ['%d']);
+            }
+        }
+    }
+
+    /**
+     * Force UTC for database consistency.
+     */
+    private function force_utc_database_session()
+    {
+        add_action('init', function () {
+            global $wpdb;
+            $wpdb->query("SET time_zone = '+00:00'");
+        }, 1);
     }
 
     /**

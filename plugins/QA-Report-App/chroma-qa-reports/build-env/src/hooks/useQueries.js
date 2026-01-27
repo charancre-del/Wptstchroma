@@ -132,9 +132,9 @@ export function useUpdateReport() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ id, updatedAt, ...data }) =>
+        mutationFn: ({ id, version_id, ...data }) =>
             apiClient.put(`/reports/${id}`, data, {
-                headers: updatedAt ? { 'If-Unmodified-Since': updatedAt } : {},
+                headers: version_id ? { 'X-CQA-Version': version_id } : {},
             }),
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(variables.id) });
