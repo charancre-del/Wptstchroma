@@ -112,7 +112,14 @@ const ReportWizard = () => {
         { id: 6, title: 'Review & Submit', component: StepReview },
     ];
 
-    const CurrentComponent = steps[currentStep - 1].component;
+    const safeStep = Math.min(Math.max(currentStep, 1), steps.length);
+    const CurrentComponent = steps[safeStep - 1]?.component;
+
+    useEffect(() => {
+        if (currentStep !== safeStep) {
+            setCurrentStep(safeStep);
+        }
+    }, [currentStep, safeStep, setCurrentStep]);
 
     // Navigation Handlers
     const nextStep = () => {
@@ -241,7 +248,7 @@ const ReportWizard = () => {
                     {isViewMode ? 'View Report' : (id ? 'Edit Report' : 'Create New Report')}
                 </h2>
                 <div className="text-sm text-brand-ink/60 font-medium">
-                    Step {currentStep} of {steps.length}: <span className="text-brand-ink ml-1 font-bold">{steps[currentStep - 1].title}</span>
+                    Step {safeStep} of {steps.length}: <span className="text-brand-ink ml-1 font-bold">{steps[safeStep - 1]?.title}</span>
                 </div>
             </div>
 
@@ -249,7 +256,7 @@ const ReportWizard = () => {
             <div className="w-full bg-brand-ink/5 h-1.5">
                 <div
                     className="bg-brand-secondary h-1.5 transition-all duration-300 ease-in-out"
-                    style={{ width: `${(currentStep / steps.length) * 100}%` }}
+                    style={{ width: `${(safeStep / steps.length) * 100}%` }}
                 ></div>
             </div>
 
@@ -264,7 +271,7 @@ const ReportWizard = () => {
                     />
                 ) : (
                     <div className="p-8 text-center text-red-500">
-                        Error: Component for step {currentStep} not found.
+                        Error: Component for step {safeStep} not found.
                     </div>
                 )}
             </div>
@@ -275,7 +282,7 @@ const ReportWizard = () => {
                     onClick={prevStep}
                     className="px-6 py-2.5 border border-brand-ink/10 rounded-2xl text-brand-ink hover:bg-brand-ink/5 font-bold text-sm transition-all"
                 >
-                    {currentStep === 1 ? 'Cancel' : 'Back'}
+                    {safeStep === 1 ? 'Cancel' : 'Back'}
                 </button>
 
                 <div className="flex gap-3">
@@ -293,11 +300,11 @@ const ReportWizard = () => {
                         </button>
                     )}
 
-                    {currentStep < steps.length ? (
+                    {safeStep < steps.length ? (
                         <button
                             onClick={nextStep}
                             className="px-6 py-2.5 bg-brand-ink hover:bg-brand-ink/90 text-brand-cream rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={currentStep === 1 && !draft.school_id}
+                            disabled={safeStep === 1 && !draft.school_id}
                         >
                             Next Step
                         </button>

@@ -38,6 +38,10 @@ class REST_Controller
      */
     public function register_routes()
     {
+        if (defined('CQA_DEBUG') && CQA_DEBUG) {
+            \add_filter('rest_request_after_callbacks', [$this, 'log_rest_errors'], 10, 3);
+        }
+
         // Current user info (/me)
         \register_rest_route(self::NAMESPACE , '/me', [
             'methods' => WP_REST_Server::READABLE,
@@ -213,6 +217,86 @@ class REST_Controller
             'callback' => [$this, 'get_system_status'],
             'permission_callback' => [$this, 'check_manage_options_permission'],
         ]);
+    }
+
+    /**
+     * Log REST API errors when debug mode is enabled.
+     *
+     * @param WP_REST_Response|WP_Error $response Response object.
+     * @param array                    $handler  Handler metadata.
+     * @param WP_REST_Request          $request  Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function log_rest_errors($response, $handler, $request)
+    {
+        if (!defined('CQA_DEBUG') || !CQA_DEBUG) {
+            return $response;
+        }
+
+        $route = $request instanceof WP_REST_Request ? $request->get_route() : '';
+        $method = $request instanceof WP_REST_Request ? $request->get_method() : '';
+
+        if (is_wp_error($response)) {
+            $data = $this->sanitize_log_data($response->get_error_data());
+            error_log(
+                sprintf(
+                    '[CQA REST Error] %s %s | %s | %s',
+                    $method,
+                    $route,
+                    $response->get_error_message(),
+                    wp_json_encode($data)
+                )
+            );
+            return $response;
+        }
+
+        if ($response instanceof WP_REST_Response) {
+            $status = $response->get_status();
+            if ($status >= 400) {
+                $data = $this->sanitize_log_data($response->get_data());
+                error_log(
+                    sprintf(
+                        '[CQA REST Error] %s %s | Status %d | %s',
+                        $method,
+                        $route,
+                        $status,
+                        wp_json_encode($data)
+                    )
+                );
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+     * Sanitize data for logging.
+     *
+     * @param mixed $data Data to sanitize.
+     * @return mixed
+     */
+    private function sanitize_log_data($data)
+    {
+        $sensitive_keys = ['password', 'token', 'secret', 'nonce', 'authorization'];
+
+        if (is_array($data)) {
+            $sanitized = [];
+            foreach ($data as $key => $value) {
+                $key_label = is_string($key) ? $key : (string) $key;
+                if (is_string($key_label) && in_array(strtolower($key_label), $sensitive_keys, true)) {
+                    $sanitized[$key] = '[REDACTED]';
+                    continue;
+                }
+                $sanitized[$key] = $this->sanitize_log_data($value);
+            }
+            return $sanitized;
+        }
+
+        if (is_object($data)) {
+            return $this->sanitize_log_data((array) $data);
+        }
+
+        return $data;
     }
 
     // ===== PERMISSION CALLBACKS =====

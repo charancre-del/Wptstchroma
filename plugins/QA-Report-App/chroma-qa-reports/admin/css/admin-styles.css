@@ -1016,3 +1016,8 @@ input:checked+.cqa-slider:before {
     font-family: monospace;
     font-size: 12px !important;
 }
+
+.recharts-responsive-container {
+    min-height: 300px;
+    min-width: 0;
+}

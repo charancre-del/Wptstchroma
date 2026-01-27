@@ -197,6 +197,7 @@ class Admin_Menu
             'nonce' => wp_create_nonce('wp_rest'),
             'googleClientId' => get_option('cqa_google_client_id'),
             'developerKey' => get_option('cqa_google_developer_key'),
+            'debug' => defined('CQA_DEBUG') ? CQA_DEBUG : false,
             'strings' => [
                 'confirm_delete' => __('Are you sure you want to delete this?', 'chroma-qa-reports'),
                 'saving' => __('Saving...', 'chroma-qa-reports'),
@@ -274,6 +275,7 @@ class Admin_Menu
                 'restUrl' => rest_url('cqa/v1/'),
                 'nonce' => wp_create_nonce('wp_rest'),
                 'pluginUrl' => CQA_PLUGIN_URL,
+                'debug' => defined('CQA_DEBUG') ? CQA_DEBUG : false,
                 'strings' => [
                     'confirm_delete' => __('Are you sure you want to delete this?', 'chroma-qa-reports'),
                     'saving' => __('Saving...', 'chroma-qa-reports'),
@@ -356,9 +358,17 @@ class Admin_Menu
 
         // Enqueue React app scripts
         wp_enqueue_script(
+            'cqa-runtime-guard',
+            CQA_PLUGIN_URL . 'public/js/cqa-runtime-guard.js',
+            [],
+            CQA_VERSION,
+            true
+        );
+
+        wp_enqueue_script(
             'cqa-react-app',
             CQA_PLUGIN_URL . 'build/index.js',
-            $assets['dependencies'],
+            array_merge(['cqa-runtime-guard'], $assets['dependencies']),
             $assets['version'],
             true
         );
@@ -373,6 +383,7 @@ class Admin_Menu
             'nonce' => wp_create_nonce('wp_rest'),
             'adminUrl' => admin_url('admin.php'),
             'pluginUrl' => CQA_PLUGIN_URL,
+            'debug' => defined('CQA_DEBUG') ? CQA_DEBUG : false,
             'user' => [
                 'id' => $user->ID,
                 'name' => $user->display_name,
