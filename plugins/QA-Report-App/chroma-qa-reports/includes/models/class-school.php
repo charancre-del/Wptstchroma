@@ -10,7 +10,8 @@ namespace ChromaQA\Models;
 /**
  * Represents a school in the QA system.
  */
-class School {
+class School
+{
 
     /**
      * Table name.
@@ -46,6 +47,7 @@ class School {
      * @var string
      */
     public $region;
+    public $tier;
 
     /**
      * Date school was acquired.
@@ -115,7 +117,8 @@ class School {
      *
      * @return string
      */
-    public static function get_table_name() {
+    public static function get_table_name()
+    {
         global $wpdb;
         return $wpdb->prefix . self::$table;
     }
@@ -126,20 +129,21 @@ class School {
      * @param int $id School ID.
      * @return School|null
      */
-    public static function find( $id ) {
+    public static function find($id)
+    {
         global $wpdb;
         $table = self::get_table_name();
-        
+
         $row = $wpdb->get_row(
-            $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ),
+            $wpdb->prepare("SELECT * FROM {$table} WHERE id = %d", $id),
             \ARRAY_A
         );
 
-        if ( ! $row ) {
+        if (!$row) {
             return null;
         }
 
-        return self::from_row( $row );
+        return self::from_row($row);
     }
 
     /**
@@ -148,42 +152,43 @@ class School {
      * @param array $args Query arguments.
      * @return School[]
      */
-    public static function all( $args = [] ) {
+    public static function all($args = [])
+    {
         global $wpdb;
         $table = self::get_table_name();
         $reports_table = Report::get_table_name();
 
         $defaults = [
-            'status'            => '',
-            'region'            => '',
+            'status' => '',
+            'region' => '',
             'compliance_status' => '', // exceeds, meets, needs_improvement
-            'overdue'           => false,
-            'search'            => '',
+            'overdue' => false,
+            'search' => '',
             'include_report_meta' => false,
-            'orderby'           => 'name',
-            'order'             => 'ASC',
-            'limit'             => 100,
-            'offset'            => 0,
+            'orderby' => 'name',
+            'order' => 'ASC',
+            'limit' => 100,
+            'offset' => 0,
         ];
 
-        $args = \wp_parse_args( $args, $defaults );
+        $args = \wp_parse_args($args, $defaults);
 
         $where = [];
         $values = [];
 
-        if ( ! empty( $args['status'] ) ) {
+        if (!empty($args['status'])) {
             $where[] = 's.status = %s';
             $values[] = $args['status'];
         }
 
-        if ( ! empty( $args['region'] ) ) {
+        if (!empty($args['region'])) {
             $where[] = 's.region = %s';
             $values[] = $args['region'];
         }
 
-        $search = trim( $args['search'] );
-        if ( $search !== '' ) {
-            $search_like = '%' . $wpdb->esc_like( $search ) . '%';
+        $search = trim($args['search']);
+        if ($search !== '') {
+            $search_like = '%' . $wpdb->esc_like($search) . '%';
             $where[] = '(s.name LIKE %s OR s.location LIKE %s OR s.region LIKE %s OR CAST(s.id AS CHAR) LIKE %s)';
             $values[] = $search_like;
             $values[] = $search_like;
@@ -193,7 +198,7 @@ class School {
 
         $join_parts = [];
         $select_fields = ['s.*'];
-        if ( ! empty( $args['compliance_status'] ) || $args['overdue'] ) {
+        if (!empty($args['compliance_status']) || $args['overdue']) {
             // Need latest report info
             $join_parts[] = " LEFT JOIN (
                 SELECT school_id, MAX(inspection_date) as last_inspection, overall_rating
@@ -202,17 +207,17 @@ class School {
                 GROUP BY school_id
             ) r ON s.id = r.school_id ";
 
-            if ( ! empty( $args['compliance_status'] ) ) {
+            if (!empty($args['compliance_status'])) {
                 $where[] = 'r.overall_rating = %s';
                 $values[] = $args['compliance_status'];
             }
 
-            if ( $args['overdue'] ) {
+            if ($args['overdue']) {
                 $where[] = "(DATEDIFF(NOW(), r.last_inspection) > 90 OR r.last_inspection IS NULL)";
             }
         }
 
-        if ( ! empty( $args['include_report_meta'] ) ) {
+        if (!empty($args['include_report_meta'])) {
             $join_parts[] = " LEFT JOIN (
                 SELECT school_id, MAX(inspection_date) as last_inspection_date, COUNT(*) as reports_count
                 FROM {$reports_table}
@@ -222,7 +227,7 @@ class School {
             $select_fields[] = 'rmeta.reports_count';
         }
 
-        $where_clause = ! empty( $where ) ? 'WHERE ' . implode( ' AND ', $where ) : '';
+        $where_clause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
         $allowed_orderby = [
             'name' => 's.name',
             'region' => 's.region',
@@ -230,25 +235,25 @@ class School {
             'created_at' => 's.created_at',
             'id' => 's.id',
         ];
-        $order = strtoupper( $args['order'] ) === 'ASC' ? 'ASC' : 'DESC';
-        $orderby_key = $allowed_orderby[ $args['orderby'] ] ?? 's.name';
-        $orderby = \sanitize_sql_orderby( "{$orderby_key} {$order}" );
-        if ( empty( $orderby ) ) {
+        $order = strtoupper($args['order']) === 'ASC' ? 'ASC' : 'DESC';
+        $orderby_key = $allowed_orderby[$args['orderby']] ?? 's.name';
+        $orderby = \sanitize_sql_orderby("{$orderby_key} {$order}");
+        if (empty($orderby)) {
             $orderby = 's.name ASC';
         }
 
-        $join = implode( ' ', $join_parts );
-        $select_clause = implode( ', ', $select_fields );
+        $join = implode(' ', $join_parts);
+        $select_clause = implode(', ', $select_fields);
         $sql = "SELECT {$select_clause} FROM {$table} s {$join} {$where_clause} ORDER BY {$orderby} LIMIT %d OFFSET %d";
         $values[] = $args['limit'];
         $values[] = $args['offset'];
 
         $rows = $wpdb->get_results(
-            $wpdb->prepare( $sql, $values ),
+            $wpdb->prepare($sql, $values),
             \ARRAY_A
         );
 
-        return array_map( [ self::class, 'from_row' ], $rows );
+        return array_map([self::class, 'from_row'], $rows);
     }
 
     /**
@@ -257,26 +262,27 @@ class School {
      * @param array $args Query arguments.
      * @return int
      */
-    public static function count( $args = [] ) {
+    public static function count($args = [])
+    {
         global $wpdb;
         $table = self::get_table_name();
 
         $where = [];
         $values = [];
 
-        if ( ! empty( $args['status'] ) ) {
+        if (!empty($args['status'])) {
             $where[] = 'status = %s';
             $values[] = $args['status'];
         }
 
-        if ( ! empty( $args['region'] ) ) {
+        if (!empty($args['region'])) {
             $where[] = 'region = %s';
             $values[] = $args['region'];
         }
 
-        $search = isset( $args['search'] ) ? trim( $args['search'] ) : '';
-        if ( $search !== '' ) {
-            $search_like = '%' . $wpdb->esc_like( $search ) . '%';
+        $search = isset($args['search']) ? trim($args['search']) : '';
+        if ($search !== '') {
+            $search_like = '%' . $wpdb->esc_like($search) . '%';
             $where[] = '(name LIKE %s OR location LIKE %s OR region LIKE %s OR CAST(id AS CHAR) LIKE %s)';
             $values[] = $search_like;
             $values[] = $search_like;
@@ -284,16 +290,16 @@ class School {
             $values[] = $search_like;
         }
 
-        $where_clause = ! empty( $where ) ? 'WHERE ' . implode( ' AND ', $where ) : '';
+        $where_clause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
-        if ( ! empty( $values ) ) {
-            return (int) $wpdb->get_var( $wpdb->prepare(
+        if (!empty($values)) {
+            return (int) $wpdb->get_var($wpdb->prepare(
                 "SELECT COUNT(*) FROM {$table} {$where_clause}",
                 $values
-            ) );
+            ));
         }
 
-        return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
     }
 
     /**
@@ -302,20 +308,22 @@ class School {
      * @param array $row Database row.
      * @return School
      */
-    public static function from_row( $row ) {
+    public static function from_row($row)
+    {
         $school = new self();
         $school->id = (int) $row['id'];
         $school->name = $row['name'];
         $school->location = $row['location'];
         $school->region = $row['region'];
+        $school->tier = isset($row['tier']) ? (int) $row['tier'] : 1;
         $school->acquired_date = $row['acquired_date'] ?: null;
         $school->status = $row['status'] ?? 'active';
         $school->drive_folder_id = $row['drive_folder_id'];
-        $school->classroom_config = json_decode( $row['classroom_config'] ?: '{}', true );
+        $school->classroom_config = json_decode($row['classroom_config'] ?: '{}', true);
         $school->created_at = $row['created_at'];
         $school->updated_at = $row['updated_at'];
         $school->last_inspection_date = $row['last_inspection_date'] ?? null;
-        $school->reports_count = isset( $row['reports_count'] ) ? (int) $row['reports_count'] : null;
+        $school->reports_count = isset($row['reports_count']) ? (int) $row['reports_count'] : null;
         return $school;
     }
 
@@ -324,41 +332,43 @@ class School {
      *
      * @return bool|int False on failure, ID on success.
      */
-    public function save() {
+    public function save()
+    {
         global $wpdb;
         $table = self::get_table_name();
 
         $data = [
-            'name'             => $this->name,
-            'location'         => $this->location,
-            'region'           => $this->region,
-            'acquired_date'    => ! empty( $this->acquired_date ) ? $this->acquired_date : null,
-            'status'           => $this->status ?: 'active',
-            'drive_folder_id'  => $this->drive_folder_id,
-            'classroom_config' => \wp_json_encode( $this->classroom_config ?: [] ),
+            'name' => $this->name,
+            'location' => $this->location,
+            'region' => $this->region,
+            'tier' => (int) $this->tier ?: 1,
+            'acquired_date' => !empty($this->acquired_date) ? $this->acquired_date : null,
+            'status' => $this->status ?: 'active',
+            'drive_folder_id' => $this->drive_folder_id,
+            'classroom_config' => \wp_json_encode($this->classroom_config ?: []),
         ];
 
-        $format = [ '%s', '%s', '%s', '%s', '%s', '%s', '%s' ];
+        $format = ['%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s'];
 
-        if ( $this->id ) {
+        if ($this->id) {
             // Update existing
-            error_log( 'CQA Error Log: Updating school ID ' . $this->id );
-            $result = $wpdb->update( $table, $data, [ 'id' => $this->id ], $format, [ '%d' ] );
-            if ( $result === false ) {
-                error_log( 'CQA Error Log: DB UPDATE FAILED: ' . $wpdb->last_error );
+            error_log('CQA Error Log: Updating school ID ' . $this->id);
+            $result = $wpdb->update($table, $data, ['id' => $this->id], $format, ['%d']);
+            if ($result === false) {
+                error_log('CQA Error Log: DB UPDATE FAILED: ' . $wpdb->last_error);
             }
             return $result !== false ? $this->id : false;
         } else {
             // Insert new
-            error_log( 'CQA Error Log: Inserting new school: ' . $this->name );
-            $result = $wpdb->insert( $table, $table_data = $data, $format ); // Assignment purely for log
-            if ( $result ) {
+            error_log('CQA Error Log: Inserting new school: ' . $this->name);
+            $result = $wpdb->insert($table, $table_data = $data, $format); // Assignment purely for log
+            if ($result) {
                 $this->id = $wpdb->insert_id;
-                error_log( 'CQA Error Log: DB INSERT SUCCESS: ID ' . $this->id );
+                error_log('CQA Error Log: DB INSERT SUCCESS: ID ' . $this->id);
                 return $this->id;
             } else {
-                error_log( 'CQA Error Log: DB INSERT FAILED: ' . $wpdb->last_error );
-                error_log( 'CQA Error Log: Data attempted: ' . print_r( $data, true ) );
+                error_log('CQA Error Log: DB INSERT FAILED: ' . $wpdb->last_error);
+                error_log('CQA Error Log: Data attempted: ' . print_r($data, true));
                 return false;
             }
         }
@@ -369,15 +379,16 @@ class School {
      *
      * @return bool
      */
-    public function delete() {
-        if ( ! $this->id ) {
+    public function delete()
+    {
+        if (!$this->id) {
             return false;
         }
 
         global $wpdb;
         $table = self::get_table_name();
 
-        return $wpdb->delete( $table, [ 'id' => $this->id ], [ '%d' ] ) !== false;
+        return $wpdb->delete($table, ['id' => $this->id], ['%d']) !== false;
     }
 
     /**
@@ -386,13 +397,14 @@ class School {
      * @param int $limit Number of reports to retrieve.
      * @return array
      */
-    public function get_recent_reports( $limit = 2 ) {
-        return Report::all( [
+    public function get_recent_reports($limit = 2)
+    {
+        return Report::all([
             'school_id' => $this->id,
-            'limit'     => $limit,
-            'orderby'   => 'inspection_date',
-            'order'     => 'DESC',
-        ] );
+            'limit' => $limit,
+            'orderby' => 'inspection_date',
+            'order' => 'DESC',
+        ]);
     }
 
     /**
@@ -400,11 +412,12 @@ class School {
      *
      * @return array
      */
-    public static function get_regions() {
+    public static function get_regions()
+    {
         global $wpdb;
         $table = self::get_table_name();
-        
-        return $wpdb->get_col( "SELECT DISTINCT region FROM {$table} WHERE region != '' ORDER BY region" );
+
+        return $wpdb->get_col("SELECT DISTINCT region FROM {$table} WHERE region != '' ORDER BY region");
     }
 
     /**
@@ -412,11 +425,12 @@ class School {
      *
      * @return array
      */
-    public static function get_locations() {
+    public static function get_locations()
+    {
         global $wpdb;
         $table = self::get_table_name();
-        
-        return $wpdb->get_col( "SELECT DISTINCT location FROM {$table} WHERE location != '' ORDER BY location" );
+
+        return $wpdb->get_col("SELECT DISTINCT location FROM {$table} WHERE location != '' ORDER BY location");
     }
 
     /**
@@ -425,11 +439,12 @@ class School {
      * @param int $days_threshold Days threshold (default 90).
      * @return array Array of schools with days_since_last_report.
      */
-    public static function get_overdue_schools( $days_threshold = 90 ) {
+    public static function get_overdue_schools($days_threshold = 90)
+    {
         global $wpdb;
         $schools_table = self::get_table_name();
         $reports_table = Report::get_table_name();
-        
+
         $sql = "
             SELECT s.*, 
             DATEDIFF(NOW(), MAX(r.inspection_date)) as days_since_last_report,
@@ -442,15 +457,15 @@ class School {
             ORDER BY days_since_last_report DESC
             LIMIT 5
         ";
-        
-        $rows = $wpdb->get_results( $wpdb->prepare( $sql, $days_threshold ), \ARRAY_A );
-        
-        return array_map( function($row) {
+
+        $rows = $wpdb->get_results($wpdb->prepare($sql, $days_threshold), \ARRAY_A);
+
+        return array_map(function ($row) {
             $school = self::from_row($row);
             $school->days_since_last_report = $row['days_since_last_report'];
             $school->last_inspection_date = $row['last_inspection_date'];
             return $school;
-        }, $rows );
+        }, $rows);
     }
 
     /**
@@ -458,10 +473,11 @@ class School {
      *
      * @return array
      */
-    public static function get_compliance_stats() {
+    public static function get_compliance_stats()
+    {
         global $wpdb;
         $reports_table = Report::get_table_name();
-        
+
         // Get counts of latest approved report ratings
         // We need a complex query to get only the LATEST report for each school
         $sql = "
@@ -476,32 +492,33 @@ class School {
             WHERE r.status IN ('approved', 'submitted') AND r.overall_rating != 'pending'
             GROUP BY r.overall_rating
         ";
-        
-        $results = $wpdb->get_results( $sql, \ARRAY_A );
-        
+
+        $results = $wpdb->get_results($sql, \ARRAY_A);
+
         $stats = [
             'exceeds' => 0,
             'meets' => 0,
             'needs_improvement' => 0
         ];
-        
-        foreach ( $results as $row ) {
+
+        foreach ($results as $row) {
             $stats[$row['overall_rating']] = (int) $row['count'];
         }
-        
+
         return $stats;
     }
-    public function get_last_visit_display() {
-        if ( ! empty( $this->last_inspection_date ) ) {
-             return date_i18n( get_option( 'date_format' ), strtotime( $this->last_inspection_date ) );
+    public function get_last_visit_display()
+    {
+        if (!empty($this->last_inspection_date)) {
+            return date_i18n(get_option('date_format'), strtotime($this->last_inspection_date));
         }
 
         // Try to fetch if not populated
-        $recent = $this->get_recent_reports( 1 );
-        if ( ! empty( $recent ) ) {
-            return date_i18n( get_option( 'date_format' ), strtotime( $recent[0]->inspection_date ) );
+        $recent = $this->get_recent_reports(1);
+        if (!empty($recent)) {
+            return date_i18n(get_option('date_format'), strtotime($recent[0]->inspection_date));
         }
 
-        return __( 'Never', 'chroma-qa-reports' );
+        return __('Never', 'chroma-qa-reports');
     }
 }

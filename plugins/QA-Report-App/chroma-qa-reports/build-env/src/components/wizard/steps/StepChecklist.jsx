@@ -5,7 +5,7 @@ import ChecklistSection from '@components/wizard/checklist/ChecklistSection';
 import { ListChecks, AlertTriangle } from 'lucide-react';
 import { useReportWizardStore } from '@stores/index';
 
-const StepChecklist = ({ draft, updateDraft, nextStep }) => {
+const StepChecklist = ({ draft, updateDraft, nextStep, readOnly = false }) => {
     const { responses, setResponse } = useReportWizardStore();
 
     // Determine checklist type from draft or default to 'tier1'
@@ -19,6 +19,7 @@ const StepChecklist = ({ draft, updateDraft, nextStep }) => {
     });
 
     const handleResponseChange = (itemId, newResponse, sectionKey) => {
+        if (readOnly) return;
         setResponse(sectionKey, itemId, newResponse);
     };
 
@@ -95,6 +96,7 @@ const StepChecklist = ({ draft, updateDraft, nextStep }) => {
                         key={section.id}
                         section={section}
                         responses={responses[section.key] || {}}
+                        readOnly={readOnly}
                         onResponseChange={handleResponseChange}
                     />
                 ))}

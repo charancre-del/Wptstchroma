@@ -38,6 +38,8 @@ const ReportWizard = () => {
         responses,
         photos,
         updateReportData: setDraft,
+        setResponses,
+        setPhotos,
         currentStep,
         setStep: setCurrentStep,
         reset: resetWizard
@@ -73,6 +75,14 @@ const ReportWizard = () => {
                 school_id: parseInt(existingReport.school_id, 10),
             });
 
+            // Hydrate responses and photos from server
+            if (existingReport.responses) {
+                setResponses(existingReport.responses);
+            }
+            if (existingReport.photos) {
+                setPhotos(existingReport.photos);
+            }
+
             // If viewing a completed report or explicitly in view mode, jump to Review/Summary
             if (isViewMode || ['submitted', 'approved'].includes(existingReport.status)) {
                 setCurrentStep(6);
@@ -83,7 +93,7 @@ const ReportWizard = () => {
                 setDraft({ school_id: parseInt(schoolId, 10) });
             }
         }
-    }, [existingReport, id, isViewMode, schoolParam, stateSchoolId]);
+    }, [existingReport, id, isViewMode, schoolParam, stateSchoolId, setDraft, setResponses, setPhotos, setCurrentStep]);
 
     // LOADING STATE: Prevent showing "Create New Report" while fetching "Edit" data
     if (id && reportLoading) {
@@ -237,11 +247,18 @@ const ReportWizard = () => {
 
             {/* Step Content */}
             <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
-                <CurrentComponent
-                    draft={draft}
-                    updateDraft={updateDraft}
-                    nextStep={nextStep}
-                />
+                {CurrentComponent ? (
+                    <CurrentComponent
+                        draft={draft}
+                        updateDraft={updateDraft}
+                        nextStep={nextStep}
+                        isViewMode={isViewMode}
+                    />
+                ) : (
+                    <div className="p-8 text-center text-red-500">
+                        Error: Component for step {currentStep} not found.
+                    </div>
+                )}
             </div>
 
             {/* Wizard Footer */}
@@ -254,17 +271,19 @@ const ReportWizard = () => {
                 </button>
 
                 <div className="flex gap-3">
-                    <button
-                        onClick={handleSave}
-                        className="px-6 py-2.5 border border-chroma-blue/30 text-chroma-blue rounded-2xl font-bold text-sm hover:bg-chroma-blue/10 transition-all flex items-center gap-2"
-                        disabled={isSaving || isSavingManual}
-                    >
-                        {isSaving || isSavingManual ? (
-                            <>Saving...</>
-                        ) : (
-                            <>Save Draft</>
-                        )}
-                    </button>
+                    {!isViewMode && (
+                        <button
+                            onClick={handleSave}
+                            className="px-6 py-2.5 border border-chroma-blue/30 text-chroma-blue rounded-2xl font-bold text-sm hover:bg-chroma-blue/10 transition-all flex items-center gap-2"
+                            disabled={isSaving || isSavingManual}
+                        >
+                            {isSaving || isSavingManual ? (
+                                <>Saving...</>
+                            ) : (
+                                <>Save Draft</>
+                            )}
+                        </button>
+                    )}
 
                     {currentStep < steps.length ? (
                         <button
@@ -276,10 +295,10 @@ const ReportWizard = () => {
                         </button>
                     ) : (
                         <button
-                            onClick={handleSubmit}
-                            className="px-6 py-2.5 bg-chroma-green hover:bg-chroma-green/90 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg"
+                            onClick={isViewMode ? () => navigate('/reports') : handleSubmit}
+                            className={`px-6 py-2.5 ${isViewMode ? 'bg-brand-ink' : 'bg-chroma-green'} hover:opacity-90 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg`}
                         >
-                            Submit Report
+                            {isViewMode ? 'Exit View' : 'Submit Report'}
                         </button>
                     )}
                 </div>

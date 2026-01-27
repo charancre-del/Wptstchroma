@@ -57,14 +57,21 @@ const SchoolsList = () => {
         {
             accessorKey: 'tier',
             header: 'Tier',
-            cell: info => (
-                <span className={`
-                    inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                    ${info.getValue() === 1 ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'}
-                `}>
-                    Tier {info.getValue()}
-                </span>
-            )
+            cell: info => {
+                const tier = info.getValue() || 0;
+                const colors = {
+                    0: 'bg-gray-100 text-gray-800',
+                    1: 'bg-blue-100 text-blue-800',
+                    2: 'bg-green-100 text-green-800',
+                    3: 'bg-orange-100 text-orange-800',
+                    4: 'bg-red-100 text-red-800'
+                };
+                return (
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${colors[tier] || colors[0]}`}>
+                        Tier {tier}
+                    </span>
+                );
+            }
         },
         {
             id: 'actions',
@@ -72,17 +79,18 @@ const SchoolsList = () => {
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <Link
+                        to={`/reports?school_id=${row.original.id}`}
+                        className="text-indigo-600 hover:text-indigo-900 text-sm font-medium flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <FileText size={14} /> History
+                    </Link>
+                    <span className="text-gray-300">|</span>
+                    <Link
                         to={`/create?school=${row.original.id}`}
                         className="text-cqa-primary hover:text-indigo-800 text-sm font-medium"
                     >
                         New Report
-                    </Link>
-                    <span className="text-gray-300">|</span>
-                    <Link
-                        to={`/reports?school_id=${row.original.id}`}
-                        className="text-gray-600 hover:text-gray-900 text-sm flex items-center gap-1"
-                    >
-                        <FileText size={14} /> History
                     </Link>
                 </div>
             )

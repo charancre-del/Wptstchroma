@@ -1,13 +1,13 @@
 import React from 'react';
 import { Star, MessageSquare, Camera } from 'lucide-react';
 
-const ChecklistItem = ({ item, response, onChange }) => {
-    // Rating Options
+const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
+    // Rating Options - Values MUST match backend Checklist_Response constants
     const ratings = [
-        { value: 'exceeds', label: 'Exceeds', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
-        { value: 'meets', label: 'Meets', color: 'bg-amber-100 text-amber-800 border-amber-200' },
-        { value: 'needs_improvement', label: 'Needs Improvement', color: 'bg-red-100 text-red-800 border-red-200' },
-        { value: 'not_applicable', label: 'N/A', color: 'bg-gray-100 text-gray-800 border-gray-200' },
+        { value: 'yes', label: 'Exceeds/Meets', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
+        { value: 'sometimes', label: 'Needs Improvement', color: 'bg-amber-100 text-amber-800 border-amber-200' },
+        { value: 'no', label: 'Critical/No', color: 'bg-red-100 text-red-800 border-red-200' },
+        { value: 'na', label: 'N/A', color: 'bg-gray-100 text-gray-800 border-gray-200' },
     ];
 
     const currentRating = response?.rating || '';
@@ -25,17 +25,19 @@ const ChecklistItem = ({ item, response, onChange }) => {
             </div>
 
             {/* Rating Controls */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
+            <div className={`grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 ${readOnly ? 'opacity-90' : ''}`}>
                 {ratings.map((rate) => (
                     <button
                         key={rate.value}
-                        onClick={() => onChange(item.key || item.id, { ...response, rating: rate.value })}
+                        onClick={() => !readOnly && onChange(item.id, { ...response, rating: rate.value })}
+                        disabled={readOnly}
                         className={`
                             px-3 py-2 rounded-md text-sm font-medium border transition-colors flex items-center justify-center gap-2
                             ${currentRating === rate.value
                                 ? `${rate.color} ring-2 ring-offset-1 ring-cqa-primary`
                                 : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                             }
+                            ${readOnly ? 'cursor-default' : ''}
                         `}
                     >
                         {rate.label}
@@ -49,19 +51,21 @@ const ChecklistItem = ({ item, response, onChange }) => {
                 <div className="relative">
                     <MessageSquare size={16} className="absolute top-3 left-3 text-gray-400" />
                     <textarea
-                        className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-1 focus:ring-cqa-primary focus:border-cqa-primary outline-none transition-shadow min-h-[60px]"
-                        placeholder="Add notes..."
+                        className={`w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm outline-none transition-shadow min-h-[60px] ${readOnly ? 'bg-gray-50 text-gray-600 cursor-default' : 'focus:ring-1 focus:ring-cqa-primary focus:border-cqa-primary'}`}
+                        placeholder={readOnly ? "" : "Add notes..."}
                         value={currentNotes}
-                        onChange={(e) => onChange(item.id, { ...response, notes: e.target.value })}
+                        readOnly={readOnly}
+                        onChange={(e) => !readOnly && onChange(item.id, { ...response, notes: e.target.value })}
                     />
                 </div>
 
-                {/* Photo Placeholder (Coming in Step 4, but item-level photos go here) */}
-                <div className="flex justify-end">
-                    <button className="text-xs text-gray-500 hover:text-cqa-primary flex items-center gap-1 transition-colors">
-                        <Camera size={14} /> Add Info
-                    </button>
-                </div>
+                {!readOnly && (
+                    <div className="flex justify-end">
+                        <button className="text-xs text-gray-500 hover:text-cqa-primary flex items-center gap-1 transition-colors">
+                            <Camera size={14} /> Add Info
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );

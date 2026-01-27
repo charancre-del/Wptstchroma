@@ -47,6 +47,7 @@ class Activator
             name VARCHAR(255) NOT NULL,
             location VARCHAR(255) DEFAULT '',
             region VARCHAR(100) DEFAULT '',
+            tier TINYINT(1) DEFAULT 1,
             acquired_date DATE DEFAULT NULL,
             status VARCHAR(50) DEFAULT 'active',
             drive_folder_id VARCHAR(100) DEFAULT '',

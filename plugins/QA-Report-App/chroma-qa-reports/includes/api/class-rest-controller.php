@@ -127,7 +127,10 @@ class REST_Controller
         \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/pdf', [
             'methods' => WP_REST_Server::READABLE,
             'callback' => [$this, 'generate_report_pdf'],
-            'permission_callback' => [$this, 'check_export_permission'],
+            'permission_callback' => function ($request) {
+                // Allow direct browser download if user is logged in
+                return is_user_logged_in() && current_user_can('cqa_export_reports');
+            },
         ]);
 
         // AI endpoints
@@ -380,12 +383,14 @@ class REST_Controller
         ];
 
         foreach ($ratings as $row) {
-            $key = strtolower(str_replace(' ', '_', $row->rating));
-            if ($key === 'exceeds_expectations') {
+            $key = strtolower(str_replace('Expectations', '', $row->rating));
+            $key = trim(str_replace(' ', '_', $key));
+
+            if ($key === 'exceeds' || $key === 'exceeds_expectations') {
                 $compliance['exceeds'] += $row->count;
-            } elseif ($key === 'meets_expectations' || $key === 'meets') {
+            } elseif ($key === 'meets' || $key === 'meets_expectations') {
                 $compliance['meets'] += $row->count;
-            } elseif ($key === 'needs_improvement') {
+            } elseif ($key === 'needs_improvement' || $key === 'improvement') {
                 $compliance['improvement'] += $row->count;
             }
         }
@@ -410,9 +415,9 @@ class REST_Controller
                 DATE_FORMAT(inspection_date, '%b') as name,
                 DATE_FORMAT(inspection_date, '%m') as month_num,
                 AVG(CASE 
-                    WHEN rating = 'Exceeds Expectations' THEN 100
-                    WHEN rating = 'Meets Expectations' THEN 85
-                    WHEN rating = 'Needs Improvement' THEN 60
+                    WHEN rating IN ('exceeds', 'Exceeds Expectations', 'Exceeds') THEN 100
+                    WHEN rating IN ('meets', 'Meets Expectations', 'Meets') THEN 85
+                    WHEN rating IN ('needs_improvement', 'Needs Improvement') THEN 60
                     ELSE 40
                 END) as score
             FROM $reports_table
@@ -767,6 +772,12 @@ class REST_Controller
         // Process Drive Files (Picker)
         $this->process_drive_files($report->id, $request);
 
+        // [FIX] Save Checklist Responses
+        $responses = $request->get_param('responses');
+        if (!empty($responses) && is_array($responses)) {
+            \ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses);
+        }
+
         return new WP_REST_Response($this->prepare_report_response($report), 201);
     }
 
@@ -867,6 +878,12 @@ class REST_Controller
         // Process Photos
         $this->process_report_photos($report->id, $request);
         $this->process_drive_files($report->id, $request);
+
+        // [FIX] Save Checklist Responses
+        $responses = $request->get_param('responses');
+        if (!empty($responses) && is_array($responses)) {
+            \ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses);
+        }
 
         // Process AI Summary Updates (Plan of Improvement)
         $summary_poi = $request->get_param('summary_poi');
@@ -1420,6 +1437,7 @@ class REST_Controller
             'location' => $school->location,
             'address' => $school->location,
             'region' => $school->region,
+            'tier' => (int) $school->tier ?: 1,
             'acquired_date' => $school->acquired_date,
             'status' => $school->status,
             'drive_folder_id' => $school->drive_folder_id,

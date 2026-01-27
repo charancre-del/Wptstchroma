@@ -76,7 +76,8 @@ export function SchoolsPage() {
                     <div>
                         <Link
                             to={`/reports?school_id=${row.original.id}`}
-                            className="font-bold text-brand-ink hover:text-chroma-blue transition-colors font-outfit"
+                            className="text-indigo-600 hover:text-indigo-900 font-medium"
+                            onClick={(e) => e.stopPropagation()}
                         >
                             {row.original.name}
                         </Link>
@@ -100,26 +101,36 @@ export function SchoolsPage() {
             ),
         },
         {
+            header: 'Reports',
+            accessorKey: 'reports_count',
+            cell: ({ row }) => (
+                <Link
+                    to={`/reports?school_id=${row.original.id}`}
+                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 hover:bg-gray-200"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    {row.original.reports_count || 0}
+                </Link>
+            )
+        },
+        {
             accessorKey: 'tier',
             header: 'Tier',
             cell: ({ getValue }) => {
-                const tier = getValue();
-                return tier ? (
-                    <span className="px-3 py-1 bg-chroma-blue/10 text-chroma-blue text-sm font-bold rounded-full">
+                const tier = getValue() || 0;
+                const colors = {
+                    0: 'bg-gray-100 text-gray-800',
+                    1: 'bg-blue-100 text-blue-800',
+                    2: 'bg-green-100 text-green-800',
+                    3: 'bg-orange-100 text-orange-800',
+                    4: 'bg-red-100 text-red-800'
+                };
+                return (
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${colors[tier] || colors[0]}`}>
                         Tier {tier}
                     </span>
-                ) : '—';
+                );
             },
-        },
-        {
-            accessorKey: 'reports_count',
-            header: 'Reports',
-            cell: ({ getValue }) => (
-                <div className="flex items-center gap-2 text-brand-ink/60 font-medium">
-                    <FileText className="w-4 h-4" />
-                    {getValue() || 0}
-                </div>
-            ),
         },
         {
             id: 'actions',
