@@ -25,6 +25,9 @@ const ReportWizard = () => {
     const { id } = useParams();
     const location = useLocation();
     const [searchParams] = useSearchParams();
+    const editIdParam = searchParams.get('edit') || searchParams.get('id');
+    const schoolParam = searchParams.get('school');
+    const stateSchoolId = location.state?.school_id;
 
     // Detect View Mode
     const isViewMode = location.pathname.includes('/reports/') && !location.pathname.includes('/edit');
@@ -56,12 +59,18 @@ const ReportWizard = () => {
     // CRITICAL FIX: Must be called before early returns to satisfy Rules of Hooks (Error #310)
     const { lastSaved, isSaving, saveError } = useAutoSave(draft, isDirty);
 
+    useEffect(() => {
+        if (!id && editIdParam) {
+            navigate(`/edit/${editIdParam}`, { replace: true });
+        }
+    }, [editIdParam, id, navigate]);
+
     // Initialize from Params or Existing Report
     useEffect(() => {
         if (existingReport && id) {
             setDraft({
                 ...existingReport,
-                school_id: parseInt(existingReport.school_id),
+                school_id: parseInt(existingReport.school_id, 10),
             });
 
             // If viewing a completed report or explicitly in view mode, jump to Review/Summary
@@ -69,12 +78,12 @@ const ReportWizard = () => {
                 setCurrentStep(6);
             }
         } else {
-            const schoolId = searchParams.get('school');
+            const schoolId = schoolParam || stateSchoolId;
             if (schoolId) {
-                setDraft({ school_id: parseInt(schoolId) });
+                setDraft({ school_id: parseInt(schoolId, 10) });
             }
         }
-    }, [existingReport, id, isViewMode]);
+    }, [existingReport, id, isViewMode, schoolParam, stateSchoolId]);
 
     // LOADING STATE: Prevent showing "Create New Report" while fetching "Edit" data
     if (id && reportLoading) {

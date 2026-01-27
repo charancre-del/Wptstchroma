@@ -103,18 +103,18 @@ const ReportsList = () => {
                     <div className="flex items-center gap-3">
                         {report.status === 'draft' ? (
                             <Link
-                                to={`/create?id=${report.id}`} // Resume Draft Logic needs implementation in Wizard
+                                to={`/edit/${report.id}`}
                                 className="text-cqa-primary hover:text-indigo-800 text-sm font-medium flex items-center gap-1"
                             >
                                 <Clock size={14} /> Resume
                             </Link>
                         ) : (
-                            <a
-                                href={`/wp-admin/admin.php?page=chroma-qa-reports-view&id=${report.id}`} // Legacy View for now until React View is ready
+                            <Link
+                                to={`/reports/${report.id}`}
                                 className="text-gray-600 hover:text-gray-900 text-sm flex items-center gap-1"
                             >
                                 <FileText size={14} /> View
-                            </a>
+                            </Link>
                         )}
                     </div>
                 );

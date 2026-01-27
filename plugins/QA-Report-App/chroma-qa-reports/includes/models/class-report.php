@@ -105,12 +105,15 @@ class Report
     {
         global $wpdb;
         $table = self::get_table_name();
+        $schools_table = School::get_table_name();
+        $users_table = $wpdb->users;
 
         $defaults = [
             'school_id' => 0,
             'user_id' => 0,
             'report_type' => '',
             'status' => '',
+            'search' => '',
             'orderby' => 'inspection_date',
             'order' => 'DESC',
             'limit' => 50,
@@ -121,31 +124,67 @@ class Report
 
         $where = [];
         $values = [];
+        $join = '';
 
         if ($args['school_id']) {
-            $where[] = 'school_id = %d';
+            $where[] = 'r.school_id = %d';
             $values[] = $args['school_id'];
         }
 
         if ($args['user_id']) {
-            $where[] = 'user_id = %d';
+            $where[] = 'r.user_id = %d';
             $values[] = $args['user_id'];
         }
 
         if (!empty($args['report_type'])) {
-            $where[] = 'report_type = %s';
+            $where[] = 'r.report_type = %s';
             $values[] = $args['report_type'];
         }
 
         if (!empty($args['status'])) {
-            $where[] = 'status = %s';
+            $where[] = 'r.status = %s';
             $values[] = $args['status'];
         }
 
-        $where_clause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
-        $orderby = sanitize_sql_orderby("{$args['orderby']} {$args['order']}");
+        $search = trim($args['search']);
+        if ($search !== '') {
+            $join = " LEFT JOIN {$schools_table} s ON r.school_id = s.id
+                      LEFT JOIN {$users_table} u ON r.user_id = u.ID ";
+            $search_like = '%' . $wpdb->esc_like($search) . '%';
+            $where[] = "(s.name LIKE %s OR u.display_name LIKE %s OR r.report_type LIKE %s OR r.inspection_date LIKE %s OR CAST(r.id AS CHAR) LIKE %s OR CAST(r.school_id AS CHAR) LIKE %s)";
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+        }
 
-        $sql = "SELECT * FROM {$table} {$where_clause} ORDER BY {$orderby} LIMIT %d OFFSET %d";
+        $allowed_orderby = [
+            'inspection_date' => 'r.inspection_date',
+            'created_at' => 'r.created_at',
+            'updated_at' => 'r.updated_at',
+            'status' => 'r.status',
+            'report_type' => 'r.report_type',
+            'id' => 'r.id',
+            'school_name' => 's.name',
+            'author_name' => 'u.display_name',
+        ];
+
+        if (in_array($args['orderby'], ['school_name', 'author_name'], true) && $join === '') {
+            $join = " LEFT JOIN {$schools_table} s ON r.school_id = s.id
+                      LEFT JOIN {$users_table} u ON r.user_id = u.ID ";
+        }
+
+        $where_clause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+        $order = strtoupper($args['order']) === 'ASC' ? 'ASC' : 'DESC';
+        $orderby_key = $allowed_orderby[$args['orderby']] ?? 'r.inspection_date';
+        $orderby = sanitize_sql_orderby("{$orderby_key} {$order}");
+        if (empty($orderby)) {
+            $orderby = 'r.inspection_date DESC';
+        }
+
+        $sql = "SELECT r.* FROM {$table} r {$join} {$where_clause} ORDER BY {$orderby} LIMIT %d OFFSET %d";
         $values[] = $args['limit'];
         $values[] = $args['offset'];
 
@@ -167,40 +206,57 @@ class Report
     {
         global $wpdb;
         $table = self::get_table_name();
+        $schools_table = School::get_table_name();
+        $users_table = $wpdb->users;
 
         $where = [];
         $values = [];
+        $join = '';
 
         if (!empty($args['school_id'])) {
-            $where[] = 'school_id = %d';
+            $where[] = 'r.school_id = %d';
             $values[] = $args['school_id'];
         }
 
         if (!empty($args['user_id'])) {
-            $where[] = 'user_id = %d';
+            $where[] = 'r.user_id = %d';
             $values[] = $args['user_id'];
         }
 
         if (!empty($args['status'])) {
-            $where[] = 'status = %s';
+            $where[] = 'r.status = %s';
             $values[] = $args['status'];
         }
 
         if (!empty($args['report_type'])) {
-            $where[] = 'report_type = %s';
+            $where[] = 'r.report_type = %s';
             $values[] = $args['report_type'];
+        }
+
+        $search = isset($args['search']) ? trim($args['search']) : '';
+        if ($search !== '') {
+            $join = " LEFT JOIN {$schools_table} s ON r.school_id = s.id
+                      LEFT JOIN {$users_table} u ON r.user_id = u.ID ";
+            $search_like = '%' . $wpdb->esc_like($search) . '%';
+            $where[] = "(s.name LIKE %s OR u.display_name LIKE %s OR r.report_type LIKE %s OR r.inspection_date LIKE %s OR CAST(r.id AS CHAR) LIKE %s OR CAST(r.school_id AS CHAR) LIKE %s)";
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
         }
 
         $where_clause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
 
         if (!empty($values)) {
             return (int) $wpdb->get_var($wpdb->prepare(
-                "SELECT COUNT(*) FROM {$table} {$where_clause}",
+                "SELECT COUNT(*) FROM {$table} r {$join} {$where_clause}",
                 $values
             ));
         }
 
-        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} r {$join}");
     }
 
     /**
@@ -476,4 +532,3 @@ class Report
         return self::all($args);
     }
 }
-

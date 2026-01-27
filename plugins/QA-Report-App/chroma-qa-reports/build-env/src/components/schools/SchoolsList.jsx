@@ -72,8 +72,7 @@ const SchoolsList = () => {
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     <Link
-                        to={`/create`}
-                        state={{ school_id: row.original.id }}
+                        to={`/create?school=${row.original.id}`}
                         className="text-cqa-primary hover:text-indigo-800 text-sm font-medium"
                     >
                         New Report
