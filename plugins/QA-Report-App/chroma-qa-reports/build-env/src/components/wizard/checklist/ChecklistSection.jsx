@@ -1,7 +1,7 @@
 import React from 'react';
-import ChecklistItem from './ChecklistItem';
+import ChecklistItem from '../ChecklistItem';
 
-const ChecklistSection = ({ section, responses, onResponseChange }) => {
+const ChecklistSection = ({ section, responses, onResponseChange, readOnly = false }) => {
 
     // Calculate progress for this section
     const totalItems = section.items.length;
@@ -35,6 +35,7 @@ const ChecklistSection = ({ section, responses, onResponseChange }) => {
                             key={itemKey}
                             item={item}
                             response={responses[itemKey] || {}}
+                            readOnly={readOnly}
                             onChange={(itemId, response) => onResponseChange(itemId, response, section.key)}
                         />
                     );

@@ -10,7 +10,8 @@ namespace ChromaQA\Models;
 /**
  * Represents a photo attached to a report.
  */
-class Photo {
+class Photo
+{
 
     /**
      * Table name.
@@ -39,7 +40,8 @@ class Photo {
      *
      * @return string
      */
-    public static function get_table_name() {
+    public static function get_table_name()
+    {
         global $wpdb;
         return $wpdb->prefix . self::$table;
     }
@@ -50,16 +52,17 @@ class Photo {
      * @param int $id Photo ID.
      * @return Photo|null
      */
-    public static function find( $id ) {
+    public static function find($id)
+    {
         global $wpdb;
         $table = self::get_table_name();
-        
+
         $row = $wpdb->get_row(
-            $wpdb->prepare( "SELECT * FROM {$table} WHERE id = %d", $id ),
+            $wpdb->prepare("SELECT * FROM {$table} WHERE id = %d", $id),
             \ARRAY_A
         );
 
-        return $row ? self::from_row( $row ) : null;
+        return $row ? self::from_row($row) : null;
     }
 
     /**
@@ -68,7 +71,8 @@ class Photo {
      * @param int $report_id Report ID.
      * @return Photo[]
      */
-    public static function get_by_report( $report_id ) {
+    public static function get_by_report($report_id)
+    {
         global $wpdb;
         $table = self::get_table_name();
 
@@ -80,7 +84,7 @@ class Photo {
             \ARRAY_A
         );
 
-        return array_map( [ self::class, 'from_row' ], $rows );
+        return array_map([self::class, 'from_row'], $rows);
     }
 
     /**
@@ -89,16 +93,17 @@ class Photo {
      * @param int $report_id Report ID.
      * @return array
      */
-    public static function get_by_report_grouped( $report_id ) {
-        $photos = self::get_by_report( $report_id );
+    public static function get_by_report_grouped($report_id)
+    {
+        $photos = self::get_by_report($report_id);
         $grouped = [];
 
-        foreach ( $photos as $photo ) {
+        foreach ($photos as $photo) {
             $key = $photo->section_key ?: 'general';
-            if ( ! isset( $grouped[ $key ] ) ) {
-                $grouped[ $key ] = [];
+            if (!isset($grouped[$key])) {
+                $grouped[$key] = [];
             }
-            $grouped[ $key ][] = $photo;
+            $grouped[$key][] = $photo;
         }
 
         return $grouped;
@@ -110,7 +115,8 @@ class Photo {
      * @param array $row Database row.
      * @return Photo
      */
-    public static function from_row( $row ) {
+    public static function from_row($row)
+    {
         $photo = new self();
         $photo->id = (int) $row['id'];
         $photo->report_id = (int) $row['report_id'];
@@ -133,7 +139,8 @@ class Photo {
      * @param string $item_key  Checklist item key.
      * @return Photo[]
      */
-    public static function get_by_item( $report_id, $item_key ) {
+    public static function get_by_item($report_id, $item_key)
+    {
         global $wpdb;
         $table = self::get_table_name();
 
@@ -146,7 +153,7 @@ class Photo {
             \ARRAY_A
         );
 
-        return array_map( [ self::class, 'from_row' ], $rows );
+        return array_map([self::class, 'from_row'], $rows);
     }
 
     /**
@@ -154,30 +161,31 @@ class Photo {
      *
      * @return bool|int
      */
-    public function save() {
+    public function save()
+    {
         global $wpdb;
         $table = self::get_table_name();
 
         $data = [
-            'report_id'     => $this->report_id,
-            'section_key'   => $this->section_key,
-            'item_key'      => $this->item_key,
-            'location_tag'  => $this->location_tag,
+            'report_id' => $this->report_id,
+            'section_key' => $this->section_key,
+            'item_key' => $this->item_key,
+            'location_tag' => $this->location_tag,
             'drive_file_id' => $this->drive_file_id,
-            'filename'      => $this->filename,
-            'caption'       => $this->caption,
-            'has_markup'    => $this->has_markup ? 1 : 0,
-            'sort_order'    => $this->sort_order ?: 0,
+            'filename' => $this->filename,
+            'caption' => $this->caption,
+            'has_markup' => $this->has_markup ? 1 : 0,
+            'sort_order' => $this->sort_order ?: 0,
         ];
 
-        $format = [ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d' ];
+        $format = ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%d', '%d'];
 
-        if ( $this->id ) {
-            $result = $wpdb->update( $table, $data, [ 'id' => $this->id ], $format, [ '%d' ] );
+        if ($this->id) {
+            $result = $wpdb->update($table, $data, ['id' => $this->id], $format, ['%d']);
             return $result !== false ? $this->id : false;
         } else {
-            $result = $wpdb->insert( $table, $data, $format );
-            if ( $result ) {
+            $result = $wpdb->insert($table, $data, $format);
+            if ($result) {
                 $this->id = $wpdb->insert_id;
                 return $this->id;
             }
@@ -190,13 +198,14 @@ class Photo {
      *
      * @return bool
      */
-    public function delete() {
-        if ( ! $this->id ) {
+    public function delete()
+    {
+        if (!$this->id) {
             return false;
         }
 
         global $wpdb;
-        return $wpdb->delete( self::get_table_name(), [ 'id' => $this->id ], [ '%d' ] ) !== false;
+        return $wpdb->delete(self::get_table_name(), ['id' => $this->id], ['%d']) !== false;
     }
 
     /**
@@ -205,15 +214,16 @@ class Photo {
      * @param int $size Thumbnail size in pixels.
      * @return string
      */
-    public function get_thumbnail_url( $size = 200 ) {
-        if ( empty( $this->drive_file_id ) ) {
+    public function get_thumbnail_url($size = 200)
+    {
+        if (empty($this->drive_file_id)) {
             return '';
         }
 
         // Check for local WP attachment
-        if ( strpos( $this->drive_file_id, 'wp_' ) === 0 ) {
-            $attachment_id = (int) substr( $this->drive_file_id, 3 );
-            $src = wp_get_attachment_image_src( $attachment_id, 'thumbnail' );
+        if (strpos($this->drive_file_id, 'wp_') === 0) {
+            $attachment_id = (int) substr($this->drive_file_id, 3);
+            $src = wp_get_attachment_image_src($attachment_id, 'thumbnail');
             return $src ? $src[0] : '';
         }
 
@@ -225,15 +235,16 @@ class Photo {
      *
      * @return string
      */
-    public function get_view_url() {
-        if ( empty( $this->drive_file_id ) ) {
+    public function get_view_url()
+    {
+        if (empty($this->drive_file_id)) {
             return '';
         }
 
         // Check for local WP attachment
-        if ( strpos( $this->drive_file_id, 'wp_' ) === 0 ) {
-            $attachment_id = (int) substr( $this->drive_file_id, 3 );
-            return wp_get_attachment_url( $attachment_id ) ?: '';
+        if (strpos($this->drive_file_id, 'wp_') === 0) {
+            $attachment_id = (int) substr($this->drive_file_id, 3);
+            return wp_get_attachment_url($attachment_id) ?: '';
         }
 
         return "https://drive.google.com/file/d/{$this->drive_file_id}/view";
@@ -244,18 +255,45 @@ class Photo {
      *
      * @return string
      */
-    public function get_section_label() {
+    public function get_section_label()
+    {
         $labels = [
-            'general'       => __( 'General', 'chroma-qa-reports' ),
-            'classrooms'    => __( 'Classrooms', 'chroma-qa-reports' ),
-            'playgrounds'   => __( 'Playgrounds', 'chroma-qa-reports' ),
-            'vehicles'      => __( 'Vehicles', 'chroma-qa-reports' ),
-            'kitchen'       => __( 'Kitchen/Laundry', 'chroma-qa-reports' ),
-            'lobby'         => __( 'Lobby/Office', 'chroma-qa-reports' ),
-            'maintenance'   => __( 'Building/Maintenance', 'chroma-qa-reports' ),
-            'sleep_nap'     => __( 'Sleep/Nap', 'chroma-qa-reports' ),
-            'curb_appeal'   => __( 'Curb Appeal', 'chroma-qa-reports' ),
+            'general' => __('General', 'chroma-qa-reports'),
+            'classrooms' => __('Classrooms', 'chroma-qa-reports'),
+            'playgrounds' => __('Playgrounds', 'chroma-qa-reports'),
+            'vehicles' => __('Vehicles', 'chroma-qa-reports'),
+            'kitchen' => __('Kitchen/Laundry', 'chroma-qa-reports'),
+            'lobby' => __('Lobby/Office', 'chroma-qa-reports'),
+            'maintenance' => __('Building/Maintenance', 'chroma-qa-reports'),
+            'sleep_nap' => __('Sleep/Nap', 'chroma-qa-reports'),
+            'curb_appeal' => __('Curb Appeal', 'chroma-qa-reports'),
         ];
-        return $labels[ $this->section_key ] ?? ucfirst( str_replace( '_', ' ', $this->section_key ) );
+        return $labels[$this->section_key] ?? ucfirst(str_replace('_', ' ', $this->section_key));
+    }
+
+    /**
+     * Check if the photo actually exists in Google Drive or Local.
+     * 
+     * @return bool
+     */
+    public function exists_in_cloud()
+    {
+        if (empty($this->drive_file_id)) {
+            return false;
+        }
+
+        // 1. Check for local WP attachment
+        if (strpos($this->drive_file_id, 'wp_') === 0) {
+            $attachment_id = (int) substr($this->drive_file_id, 3);
+            return (bool) get_post_status($attachment_id);
+        }
+
+        // 2. Check Google Drive
+        $drive = new \ChromaQA\Integrations\Google_Drive();
+        try {
+            return $drive->file_exists($this->drive_file_id);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 }

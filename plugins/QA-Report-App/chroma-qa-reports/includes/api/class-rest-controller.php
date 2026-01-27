@@ -38,6 +38,10 @@ class REST_Controller
      */
     public function register_routes()
     {
+        if (defined('CQA_DEBUG') && CQA_DEBUG) {
+            \add_filter('rest_request_after_callbacks', [$this, 'log_rest_errors'], 10, 3);
+        }
+
         // Current user info (/me)
         \register_rest_route(self::NAMESPACE , '/me', [
             'methods' => WP_REST_Server::READABLE,
@@ -127,7 +131,10 @@ class REST_Controller
         \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/pdf', [
             'methods' => WP_REST_Server::READABLE,
             'callback' => [$this, 'generate_report_pdf'],
-            'permission_callback' => [$this, 'check_export_permission'],
+            'permission_callback' => function ($request) {
+                // Allow direct browser download if user is logged in
+                return is_user_logged_in() && current_user_can('cqa_export_reports');
+            },
         ]);
 
         // AI endpoints
@@ -203,6 +210,93 @@ class REST_Controller
             'callback' => [$this, 'get_stats'],
             'permission_callback' => [$this, 'check_read_permission'],
         ]);
+
+        // System Health Check
+        \register_rest_route(self::NAMESPACE , '/system-check', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_system_status'],
+            'permission_callback' => [$this, 'check_manage_options_permission'],
+        ]);
+    }
+
+    /**
+     * Log REST API errors when debug mode is enabled.
+     *
+     * @param WP_REST_Response|WP_Error $response Response object.
+     * @param array                    $handler  Handler metadata.
+     * @param WP_REST_Request          $request  Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function log_rest_errors($response, $handler, $request)
+    {
+        if (!defined('CQA_DEBUG') || !CQA_DEBUG) {
+            return $response;
+        }
+
+        $route = $request instanceof WP_REST_Request ? $request->get_route() : '';
+        $method = $request instanceof WP_REST_Request ? $request->get_method() : '';
+
+        if (is_wp_error($response)) {
+            $data = $this->sanitize_log_data($response->get_error_data());
+            error_log(
+                sprintf(
+                    '[CQA REST Error] %s %s | %s | %s',
+                    $method,
+                    $route,
+                    $response->get_error_message(),
+                    wp_json_encode($data)
+                )
+            );
+            return $response;
+        }
+
+        if ($response instanceof WP_REST_Response) {
+            $status = $response->get_status();
+            if ($status >= 400) {
+                $data = $this->sanitize_log_data($response->get_data());
+                error_log(
+                    sprintf(
+                        '[CQA REST Error] %s %s | Status %d | %s',
+                        $method,
+                        $route,
+                        $status,
+                        wp_json_encode($data)
+                    )
+                );
+            }
+        }
+
+        return $response;
+    }
+
+    /**
+     * Sanitize data for logging.
+     *
+     * @param mixed $data Data to sanitize.
+     * @return mixed
+     */
+    private function sanitize_log_data($data)
+    {
+        $sensitive_keys = ['password', 'token', 'secret', 'nonce', 'authorization'];
+
+        if (is_array($data)) {
+            $sanitized = [];
+            foreach ($data as $key => $value) {
+                $key_label = is_string($key) ? $key : (string) $key;
+                if (is_string($key_label) && in_array(strtolower($key_label), $sensitive_keys, true)) {
+                    $sanitized[$key] = '[REDACTED]';
+                    continue;
+                }
+                $sanitized[$key] = $this->sanitize_log_data($value);
+            }
+            return $sanitized;
+        }
+
+        if (is_object($data)) {
+            return $this->sanitize_log_data((array) $data);
+        }
+
+        return $data;
     }
 
     // ===== PERMISSION CALLBACKS =====
@@ -373,13 +467,16 @@ class REST_Controller
         ];
 
         foreach ($ratings as $row) {
-            $key = strtolower(str_replace(' ', '_', $row->rating));
-            if ($key === 'exceeds_expectations')
+            $key = strtolower(str_replace('Expectations', '', $row->rating));
+            $key = trim(str_replace(' ', '_', $key));
+
+            if ($key === 'exceeds' || $key === 'exceeds_expectations') {
                 $compliance['exceeds'] += $row->count;
-            elseif ($key === 'meets_expectations' || $key === 'meets')
+            } elseif ($key === 'meets' || $key === 'meets_expectations') {
                 $compliance['meets'] += $row->count;
-            elseif ($key === 'needs_improvement')
+            } elseif ($key === 'needs_improvement' || $key === 'improvement') {
                 $compliance['improvement'] += $row->count;
+            }
         }
 
         // 4. Compliant Schools (Have at least one 'meets' or 'exceeds' report)
@@ -389,11 +486,88 @@ class REST_Controller
         ");
 
         // 5. My Reports (Current User)
-        $user_id = get_current_user_id();
+        $user_id = \get_current_user_id();
         $my_reports = (int) $wpdb->get_var($wpdb->prepare(
             "SELECT COUNT(*) FROM $reports_table WHERE user_id = %d",
             $user_id
         ));
+
+        // 6. Trend Data (Last 6 Months)
+        // Mapping: Exceeds=100, Meets=85, Needs Improvement=60, Unsatisfactory=40
+        $trend_sql = "
+            SELECT 
+                DATE_FORMAT(inspection_date, '%b') as name,
+                DATE_FORMAT(inspection_date, '%m') as month_num,
+                AVG(CASE 
+                    WHEN rating IN ('exceeds', 'Exceeds Expectations', 'Exceeds') THEN 100
+                    WHEN rating IN ('meets', 'Meets Expectations', 'Meets') THEN 85
+                    WHEN rating IN ('needs_improvement', 'Needs Improvement') THEN 60
+                    ELSE 40
+                END) as score
+            FROM $reports_table
+            WHERE status = 'approved' 
+            AND inspection_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
+            GROUP BY DATE_FORMAT(inspection_date, '%b'), DATE_FORMAT(inspection_date, '%m')
+            ORDER BY month_num ASC
+        ";
+        $trend_data = $wpdb->get_results($trend_sql);
+
+        // 7. Action Items
+        $action_items = [];
+
+        // Critical: Needs Improvement reports from last 30 days
+        $critical_reports = $wpdb->get_results("
+            SELECT r.id, s.name as title, r.inspection_date as date
+            FROM $reports_table r
+            JOIN $schools_table s ON r.school_id = s.id
+            WHERE r.status = 'approved' 
+            AND r.rating = 'Needs Improvement'
+            AND r.inspection_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            LIMIT 3
+        ");
+
+        foreach ($critical_reports as $report) {
+            $action_items[] = [
+                'id' => 'crit_' . $report->id,
+                'title' => 'Attention Needed: ' . $report->title,
+                'type' => 'critical',
+                'date' => human_time_diff(strtotime($report->date), current_time('timestamp')) . ' ago',
+                'link' => '/reports/' . $report->id
+            ];
+        }
+
+        // Overdue: Top 3 overdue
+        foreach (array_slice($overdue_list, 0, 3) as $school) {
+            $last = $school->last_visit ? human_time_diff(strtotime($school->last_visit), current_time('timestamp')) . ' ago' : 'Never visited';
+            $action_items[] = [
+                'id' => 'overdue_' . $school->id,
+                'title' => 'Overdue: ' . $school->name,
+                'type' => 'overdue',
+                'date' => $last,
+                'link' => '/create?school=' . $school->id
+            ];
+        }
+
+        // Drafts: My old drafts
+        $stale_drafts = $wpdb->get_results($wpdb->prepare("
+            SELECT r.id, s.name as school_name, r.updated_at
+            FROM $reports_table r
+            LEFT JOIN $schools_table s ON r.school_id = s.id
+            WHERE r.status = 'draft' 
+            AND r.user_id = %d
+            AND r.updated_at < DATE_SUB(NOW(), INTERVAL 3 DAY)
+            LIMIT 2
+        ", $user_id));
+
+        foreach ($stale_drafts as $draft) {
+            $action_items[] = [
+                'id' => 'draft_' . $draft->id,
+                'title' => 'Finish Report: ' . ($draft->school_name ?: 'Untitled'),
+                'type' => 'info',
+                'date' => 'Updated ' . human_time_diff(strtotime($draft->updated_at), current_time('timestamp')) . ' ago',
+                'link' => '/edit/' . $draft->id
+            ];
+        }
 
         return new WP_REST_Response([
             'total_schools' => $total_schools,
@@ -401,19 +575,71 @@ class REST_Controller
             'overdue_list' => $overdue_list,
             'compliant_schools' => $compliant_schools,
             'my_reports' => $my_reports,
-            'compliance' => $compliance
+            'compliance' => $compliance,
+            'trend' => $trend_data,
+            'action_items' => $action_items
         ], 200);
+    }
+
+    /**
+     * Diagnostic endpoint for system health.
+     * 
+     * @return WP_REST_Response
+     */
+    public function get_system_status()
+    {
+        $status = [
+            'database' => [
+                'connection' => true,
+                'prefix' => $GLOBALS['wpdb']->prefix,
+                'version' => $GLOBALS['wpdb']->db_version(),
+            ],
+            'integrations' => [
+                'google_drive' => ['status' => 'unknown', 'message' => ''],
+                'gemini' => ['status' => 'unknown', 'message' => ''],
+            ]
+        ];
+
+        // Check Google Drive
+        try {
+            $drive = new \ChromaQA\Integrations\Google_Drive();
+            $drive_connected = $drive->test_connection();
+            $status['integrations']['google_drive'] = [
+                'status' => $drive_connected ? 'healthy' : 'disconnected',
+                'message' => $drive_connected ? 'Connected to Google Drive API' : 'Failed to connect'
+            ];
+        } catch (\Exception $e) {
+            $status['integrations']['google_drive'] = ['status' => 'error', 'message' => $e->getMessage()];
+        }
+
+        // Check Gemini
+        $gemini_key = \get_option('cqa_gemini_api_key');
+        if (empty($gemini_key)) {
+            $status['integrations']['gemini'] = ['status' => 'missing_key', 'message' => 'API Key not configured'];
+        } else {
+            $status['integrations']['gemini'] = ['status' => 'configured', 'message' => 'API Key set (connectivity not tested in this health check)'];
+        }
+
+        return new WP_REST_Response(['success' => true, 'data' => $status], 200);
     }
 
     // ===== SCHOOLS ENDPOINTS =====
 
     public function get_schools(WP_REST_Request $request)
     {
+        $limit = (int) ($request->get_param('per_page') ?: 100);
+        $page = (int) ($request->get_param('page') ?: 1);
+        $offset = ($page - 1) * $limit;
+
         $args = [
             'status' => $request->get_param('status') ?: '',
             'region' => $request->get_param('region') ?: '',
-            'limit' => $request->get_param('per_page') ?: 100,
-            'offset' => (($request->get_param('page') ?: 1) - 1) * 100,
+            'search' => $request->get_param('search') ?: '',
+            'orderby' => $request->get_param('orderby') ?: 'name',
+            'order' => $request->get_param('order') ?: 'ASC',
+            'include_report_meta' => true,
+            'limit' => $limit,
+            'offset' => $offset,
         ];
 
         $schools = School::all($args);
@@ -520,13 +746,38 @@ class REST_Controller
 
     public function get_reports(WP_REST_Request $request)
     {
+        $limit = (int) ($request->get_param('per_page') ?: 50);
+        $page = (int) ($request->get_param('page') ?: 1);
+        $offset = ($page - 1) * $limit;
+
+        $order_by_param = $request->get_param('orderby') ?: 'inspection_date';
+        $order_map = [
+            'date' => 'inspection_date',
+            'inspection_date' => 'inspection_date',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+            'status' => 'status',
+            'report_type' => 'report_type',
+            'school_name' => 'school_name',
+            'author_name' => 'author_name',
+            'id' => 'id',
+        ];
+
         $args = [
             'school_id' => $request->get_param('school_id') ?: 0,
             'report_type' => $request->get_param('report_type') ?: '',
             'status' => $request->get_param('status') ?: '',
-            'limit' => $request->get_param('per_page') ?: 50,
-            'offset' => (($request->get_param('page') ?: 1) - 1) * 50,
+            'search' => $request->get_param('search') ?: '',
+            'orderby' => $order_map[$order_by_param] ?? 'inspection_date',
+            'order' => $request->get_param('order') ?: 'DESC',
+            'limit' => $limit,
+            'offset' => $offset,
         ];
+
+        // Handle 'My Reports' filter
+        if ($request->get_param('author') === 'me') {
+            $args['user_id'] = \get_current_user_id();
+        }
 
         $reports = Report::all($args);
         $total_count = Report::count($args);
@@ -561,28 +812,12 @@ class REST_Controller
     {
         // Initialize Report
         $report = new Report();
-        $school_id = intval($request->get_param('school_id'));
+        $school_id = (int) $request->get_param('school_id');
 
-        // FALLBACK 1: Check $_GET (The Nuclear Option)
-        if (empty($school_id) && isset($_GET['school_id'])) {
-            $school_id = intval($_GET['school_id']);
-            error_log('create_report: Recovered school_id from $_GET: ' . $school_id);
-        }
-
-        // FALLBACK 2: Check Raw PHP Input (The Double Nuclear Option)
+        // Robust recovery if param is missing from standard getters but exists in payload
         if (empty($school_id)) {
-            $raw_input = file_get_contents('php://input');
-            $json = json_decode($raw_input, true);
-            if (isset($json['school_id'])) {
-                $school_id = intval($json['school_id']);
-                error_log('create_report: Recovered school_id from php://input: ' . $school_id);
-            }
-        }
-
-        // FALLBACK 3: Check Cookies (The Triple Nuclear Option)
-        if (empty($school_id) && isset($_COOKIE['cqa_temp_school_id'])) {
-            $school_id = intval($_COOKIE['cqa_temp_school_id']);
-            error_log('create_report: Recovered school_id from COOKIE: ' . $school_id);
+            $params = $request->get_params();
+            $school_id = isset($params['school_id']) ? (int) $params['school_id'] : 0;
         }
 
         $report->school_id = $school_id;
@@ -621,6 +856,12 @@ class REST_Controller
         // Process Drive Files (Picker)
         $this->process_drive_files($report->id, $request);
 
+        // [FIX] Save Checklist Responses
+        $responses = $request->get_param('responses');
+        if (!empty($responses) && is_array($responses)) {
+            \ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses);
+        }
+
         return new WP_REST_Response($this->prepare_report_response($report), 201);
     }
 
@@ -633,7 +874,7 @@ class REST_Controller
         }
 
         // === CONCURRENCY PROTECTION ===
-        // Check If-Unmodified-Since header for concurrent edit detection
+        // 1. Timestamp based (Legacy)
         $if_unmodified_since = $request->get_header('If-Unmodified-Since');
         if ($if_unmodified_since && $report->updated_at) {
             $client_timestamp = strtotime($if_unmodified_since);
@@ -661,20 +902,31 @@ class REST_Controller
             }
         }
 
+        // 2. Version ID based (New precise locking via header or param)
+        $client_version = $request->get_header('X-CQA-Version') ?: $request->get_param('version_id');
+
+        if ($client_version) {
+            $client_version = (int) $client_version;
+            if ($client_version < $report->version_id) {
+                return new WP_Error(
+                    'CONCURRENCY_CONFLICT',
+                    __('This report has been updated by another user. Please refresh and try again.', 'chroma-qa-reports'),
+                    [
+                        'status' => 409,
+                        'client_version' => $client_version,
+                        'server_version' => $report->version_id
+                    ]
+                );
+            }
+        }
+
         if ($request->has_param('report_type')) {
             $report->report_type = \sanitize_text_field($request->get_param('report_type'));
         }
 
         // Allow updating School ID (Vital for fixing Unknown Schools)
         if ($request->has_param('school_id')) {
-            $school_id = intval($request->get_param('school_id'));
-            // Fallback 1: $_GET
-            if (empty($school_id) && isset($_GET['school_id'])) {
-                $school_id = intval($_GET['school_id']);
-            }
-            // Fallback 2: POST/JSON handled by has_param generally, but if param is strict...
-            // Just take the param if it exists.
-
+            $school_id = (int) $request->get_param('school_id');
             if ($school_id > 0) {
                 $report->school_id = $school_id;
             }
@@ -710,6 +962,12 @@ class REST_Controller
         // Process Photos
         $this->process_report_photos($report->id, $request);
         $this->process_drive_files($report->id, $request);
+
+        // [FIX] Save Checklist Responses
+        $responses = $request->get_param('responses');
+        if (!empty($responses) && is_array($responses)) {
+            \ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses);
+        }
 
         // Process AI Summary Updates (Plan of Improvement)
         $summary_poi = $request->get_param('summary_poi');
@@ -1104,189 +1362,30 @@ class REST_Controller
         if (!$report)
             return;
 
-        $school = $report->get_school();
-        $folder_id = $school->drive_folder_id ?? null;
+        // Consolidate photo processing using memory-efficient method
+        $new_photos_captions = $request->get_param('new_photos_captions') ?: [];
+        $new_photos_sections = $request->get_param('new_photos_sections') ?: [];
 
-        // Load image functions for fallback
-        require_once(\ABSPATH . 'wp-admin/includes/image.php');
-        require_once(\ABSPATH . 'wp-admin/includes/file.php');
-        require_once(\ABSPATH . 'wp-admin/includes/media.php');
-
-        foreach ($new_photos as $index => $data_url) {
-            if (!is_string($data_url))
-                continue;
-
-            // Decode Base64
-            if (!preg_match('/^data:image\/(\w+);base64,/', $data_url, $type)) {
-                continue;
-            }
-
-            $data = substr($data_url, strpos($data_url, ',') + 1);
-            $ext = strtolower($type[1]);
-
-            if (!in_array($ext, ['jpg', 'jpeg', 'gif', 'png'])) {
-                continue;
-            }
-
-            $decoded_data = base64_decode($data);
-            if ($decoded_data === false) {
-                continue;
-            }
-
-            if (strlen($decoded_data) > 10 * 1024 * 1024) { // 10MB limit
-                error_log('File too large: ' . $filename);
-                continue;
-            }
-
-            $filename = 'report-' . $report_id . '-photo-' . time() . '-' . $index . '.' . $ext;
-            $drive_file_id = '';
-            $tmp_file = sys_get_temp_dir() . '/' . $filename;
-
-            // 1. Try Google Drive Upload
-            if (\get_option('cqa_google_client_id')) {
-                \file_put_contents($tmp_file, $decoded_data);
-                $drive_result = Google_Drive::upload_file($tmp_file, $filename, $folder_id);
-                if (!\is_wp_error($drive_result) && isset($drive_result['id'])) {
-                    $drive_file_id = $drive_result['id'];
-                }
-            }
-
-            // 2. Fallback to Local Media Library
-            if (empty($drive_file_id)) {
-                $upload = \wp_upload_bits($filename, null, $decoded_data);
-
-                if (!$upload['error']) {
-                    $file_path = $upload['file'];
-                    $file_name = basename($file_path);
-                    $file_type = \wp_check_filetype($file_name, null);
-
-                    $attachment = [
-                        'post_mime_type' => $file_type['type'],
-                        'post_title' => \sanitize_file_name(pathinfo($file_name, PATHINFO_FILENAME)),
-                        'post_content' => '',
-                        'post_status' => 'inherit',
-                    ];
-
-                    $attach_id = \wp_insert_attachment($attachment, $file_path);
-                    $attach_data = \wp_generate_attachment_metadata($attach_id, $file_path);
-                    \wp_update_attachment_metadata($attach_id, $attach_data);
-
-                    $drive_file_id = 'wp_' . $attach_id;
-                } else {
-                    // Log error or handle upload failure
-                    error_log('Upload failed: ' . $upload['error']);
-                }
-            }
-
-            // Cleanup temp file
-            if (file_exists($tmp_file)) {
-                unlink($tmp_file);
-            }
-
-            // Save Photo Record
-            if ($drive_file_id) {
-                $photo = new Photo();
-                $photo->report_id = $report_id;
-                $photo->drive_file_id = $drive_file_id;
-                $photo->filename = $filename;
-
-                // Get caption for this photo (if provided)
-                $captions = $request->get_param('new_photos_captions');
-                if (!empty($captions) && isset($captions[$index])) {
-                    $photo->caption = \sanitize_text_field($captions[$index]);
-                }
-
-                // Get section key for this photo (if provided)
-                $sections = $request->get_param('new_photos_sections');
-                if (!empty($sections) && isset($sections[$index])) {
-                    $photo->section_key = \sanitize_text_field($sections[$index]);
-                } else {
-                    $photo->section_key = 'general';
-                }
-
-                $photo->save();
+        if (!empty($new_photos)) {
+            foreach ($new_photos as $index => $data_url) {
+                $section = !empty($new_photos_sections[$index]) ? $new_photos_sections[$index] : 'general';
+                $caption = !empty($new_photos_captions[$index]) ? $new_photos_captions[$index] : '';
+                $this->process_single_photo($data_url, $report_id, $folder_id, $section, $caption);
             }
         }
 
         // Handle Item-Specific Photos
         $item_photos = $request->get_param('item_photos');
         if (!empty($item_photos) && is_array($item_photos)) {
+            $item_captions = $request->get_param('item_photos_captions') ?: [];
             foreach ($item_photos as $section_key => $items) {
                 foreach ($items as $item_key => $photos) {
                     if (!is_array($photos))
                         continue;
-
                     foreach ($photos as $i => $data_url) {
-                        if (!is_string($data_url))
-                            continue;
-                        // Process Item Photo (Reuse logic - simpler to refactor but duplicating for safety now)
-                        // ... (Duplicate processing logic for speed, or extract method? Extracting is better but risky mid-flight. I will duplicate strictly for the item context)
-
-                        if (!preg_match('/^data:image\/(\w+);base64,/', $data_url, $type))
-                            continue;
-                        $data = substr($data_url, strpos($data_url, ',') + 1);
-                        $ext = strtolower($type[1]);
-                        if (!in_array($ext, ['jpg', 'jpeg', 'gif', 'png']))
-                            continue;
-                        $decoded_data = base64_decode($data);
-                        if ($decoded_data === false)
-                            continue;
-
-                        $filename = 'report-' . $report_id . '-' . $section_key . '-' . $item_key . '-' . time() . '-' . $i . '.' . $ext;
-                        $drive_file_id = '';
-                        $tmp_file = sys_get_temp_dir() . '/' . $filename;
-
-                        if (\get_option('cqa_google_client_id')) {
-                            \file_put_contents($tmp_file, $decoded_data);
-                            $drive_result = Google_Drive::upload_file($tmp_file, $filename, $folder_id);
-                            if (!\is_wp_error($drive_result) && isset($drive_result['id'])) {
-                                $drive_file_id = $drive_result['id'];
-                            }
-                        }
-
-                        if (empty($drive_file_id)) {
-                            $upload = \wp_upload_bits($filename, null, $decoded_data);
-                            if (!$upload['error']) {
-                                // Create attachment...
-                                $file_path = $upload['file'];
-                                $file_name = basename($file_path);
-                                $file_type = \wp_check_filetype($file_name, null);
-                                $attachment = [
-                                    'post_mime_type' => $file_type['type'],
-                                    'post_title' => \sanitize_file_name(pathinfo($file_name, PATHINFO_FILENAME)),
-                                    'post_content' => '',
-                                    'post_status' => 'inherit',
-                                ];
-                                $attach_id = \wp_insert_attachment($attachment, $file_path);
-                                $attach_data = \wp_generate_attachment_metadata($attach_id, $file_path);
-                                \wp_update_attachment_metadata($attach_id, $attach_data);
-                                $drive_file_id = 'wp_' . $attach_id;
-                            }
-                        }
-
-                        if (file_exists($tmp_file))
-                            unlink($tmp_file);
-
-                        if ($drive_file_id) {
-                            $photo = new Photo();
-                            $photo->report_id = $report_id;
-                            $photo->drive_file_id = $drive_file_id;
-                            $photo->filename = $filename;
-                            $photo->section_key = $section_key . '|' . $item_key;
-
-                            // Get caption for this item photo (if provided)
-                            $item_captions = $request->get_param('item_photos_captions');
-                            if (
-                                !empty($item_captions)
-                                && isset($item_captions[$section_key])
-                                && isset($item_captions[$section_key][$item_key])
-                                && isset($item_captions[$section_key][$item_key][$i])
-                            ) {
-                                $photo->caption = \sanitize_text_field($item_captions[$section_key][$item_key][$i]);
-                            }
-
-                            $photo->save();
-                        }
+                        $full_section = $section_key . '|' . $item_key;
+                        $caption = $item_captions[$section_key][$item_key][$i] ?? '';
+                        $this->process_single_photo($data_url, $report_id, $folder_id, $full_section, $caption);
                     }
                 }
             }
@@ -1294,11 +1393,92 @@ class REST_Controller
     }
 
     /**
-     * Process Google Drive files selected via Picker.
-     *
-     * @param int             $report_id Report ID.
-     * @param WP_REST_Request $request   Request object.
+     * Process a single photo with memory efficiency.
      */
+    private function process_single_photo($data_url, $report_id, $folder_id, $section, $caption = '')
+    {
+        if (!is_string($data_url))
+            return;
+
+        // Decode Base64
+        if (!preg_match('/^data:image\/(\w+);base64,/', $data_url, $type))
+            return;
+
+        $base64_str = substr($data_url, strpos($data_url, ',') + 1);
+        $ext = strtolower($type[1]);
+        if (!in_array($ext, ['jpg', 'jpeg', 'gif', 'png']))
+            return;
+
+        $filename = 'report-' . $report_id . '-photo-' . time() . '-' . wp_generate_uuid4() . '.' . $ext;
+        $tmp_file = sys_get_temp_dir() . '/' . $filename;
+
+        // Memory-efficient Base64 decode to file
+        $fp = fopen($tmp_file, 'wb');
+        if ($fp) {
+            stream_filter_append($fp, 'convert.base64-decode', STREAM_FILTER_WRITE);
+            fwrite($fp, $base64_str);
+            fclose($fp);
+            unset($base64_str); // Free up string memory
+        } else {
+            return;
+        }
+
+        if (filesize($tmp_file) > 10 * 1024 * 1024) {
+            @unlink($tmp_file);
+            return;
+        }
+
+        $drive_file_id = '';
+
+        // 1. Try Google Drive Upload
+        if (\get_option('cqa_google_client_id')) {
+            $drive_result = Google_Drive::upload_file($tmp_file, $filename, $folder_id);
+            if (!\is_wp_error($drive_result) && isset($drive_result['id'])) {
+                $drive_file_id = $drive_result['id'];
+            }
+        }
+
+        // 2. Fallback to Local Media Library
+        if (empty($drive_file_id)) {
+            // wp_upload_bits still needs a string, but we minimized copies elsewhere
+            $decoded_data = file_get_contents($tmp_file);
+            $upload = \wp_upload_bits($filename, null, $decoded_data);
+            unset($decoded_data);
+
+            if (!$upload['error']) {
+                $file_path = $upload['file'];
+                require_once(\ABSPATH . 'wp-admin/includes/image.php');
+                require_once(\ABSPATH . 'wp-admin/includes/file.php');
+                require_once(\ABSPATH . 'wp-admin/includes/media.php');
+
+                $file_name = basename($file_path);
+                $file_type = \wp_check_filetype($file_name, null);
+                $attachment = [
+                    'post_mime_type' => $file_type['type'],
+                    'post_title' => \sanitize_file_name(pathinfo($file_name, PATHINFO_FILENAME)),
+                    'post_content' => '',
+                    'post_status' => 'inherit',
+                ];
+                $attach_id = \wp_insert_attachment($attachment, $file_path);
+                $attach_data = \wp_generate_attachment_metadata($attach_id, $file_path);
+                \wp_update_attachment_metadata($attach_id, $attach_data);
+                $drive_file_id = 'wp_' . $attach_id;
+            }
+        }
+
+        @unlink($tmp_file);
+
+        if ($drive_file_id) {
+            $photo = new Photo();
+            $photo->report_id = $report_id;
+            $photo->drive_file_id = $drive_file_id;
+            $photo->filename = $filename;
+            $photo->caption = \sanitize_text_field($caption);
+            $photo->section_key = \sanitize_text_field($section);
+            $photo->save();
+        }
+    }
+
     private function process_drive_files($report_id, $request)
     {
         $drive_files = $request->get_param('drive_files');
@@ -1339,12 +1519,16 @@ class REST_Controller
             'id' => $school->id,
             'name' => $school->name,
             'location' => $school->location,
+            'address' => $school->location,
             'region' => $school->region,
+            'tier' => (int) $school->tier ?: 1,
             'acquired_date' => $school->acquired_date,
             'status' => $school->status,
             'drive_folder_id' => $school->drive_folder_id,
             'classroom_config' => $school->classroom_config,
             'created_at' => $school->created_at,
+            'last_inspection_date' => $school->last_inspection_date,
+            'reports_count' => $school->reports_count ?? 0,
         ];
     }
 
@@ -1384,6 +1568,7 @@ class REST_Controller
             'created_at' => $report->created_at,
             'updated_at' => $report->updated_at,
             'school_name' => $report->get_school() ? $report->get_school()->name : 'Unknown School',
+            'is_mine' => ($report->user_id == \get_current_user_id()),
         ];
 
         if ($include_details) {

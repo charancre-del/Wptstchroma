@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSettings, useUpdateSettings } from '../hooks/useQueries';
+import { useSettings, useUpdateSettings } from '@hooks/useQueries';
 import { Save, Lock, Bot, Database, Check } from 'lucide-react';
 
 const Settings = () => {

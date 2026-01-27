@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import apiFetch from '../api/client';
+import apiFetch from '@api/client';
 
 const useAuthStore = create((set, get) => ({
     user: null,
+    isAuthenticated: false,
     isLoading: true,
     error: null,
     capabilities: {},
@@ -16,16 +17,17 @@ const useAuthStore = create((set, get) => ({
             if (response.success) {
                 set({
                     user: response.data,
+                    isAuthenticated: true,
                     capabilities: response.data.capabilities || {},
                     flags: response.data.flags || {},
                     isLoading: false,
                     error: null,
                 });
             } else {
-                set({ error: 'Failed to load user', isLoading: false });
+                set({ error: 'Failed to load user', isAuthenticated: false, isLoading: false });
             }
         } catch (error) {
-            set({ error: error.message, isLoading: false });
+            set({ error: error.message, isAuthenticated: false, isLoading: false });
         }
     },
 

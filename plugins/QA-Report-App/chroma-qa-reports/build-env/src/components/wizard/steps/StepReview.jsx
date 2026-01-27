@@ -1,7 +1,8 @@
-import React, { useMemo } from 'react';
-import { useReportWizardStore } from '../../../stores';
-import { useSchool } from '../../../hooks/useQueries';
-import { formatDate, cn } from '../../../utils/helpers';
+import React, { useMemo, useState } from 'react';
+import { useReportWizardStore } from '@stores';
+import StepChecklist from './StepChecklist';
+import { useSchool } from '@hooks/useQueries';
+import { formatDate, cn } from '@utils/helpers';
 import {
     CheckCircle,
     AlertCircle,
@@ -14,8 +15,9 @@ import {
     AlertTriangle,
 } from 'lucide-react';
 
-export function StepReview({ onBack }) {
+export function StepReview({ onBack, isViewMode = false }) {
     const { report, responses, photos } = useReportWizardStore();
+    const [showFullDetails, setShowFullDetails] = useState(isViewMode);
     const { data: school } = useSchool(report?.school_id);
 
     // Validation checks
@@ -65,8 +67,18 @@ export function StepReview({ onBack }) {
     }, [report, responses, photos]);
 
     const checklistStats = useMemo(() => {
-        const total = Object.keys(responses).length;
-        const withNotes = Object.values(responses).filter(r => r.notes?.trim()).length;
+        let total = 0;
+        let withNotes = 0;
+
+        // responses is { section_key: { item_key: { rating, notes, ... } } }
+        Object.values(responses || {}).forEach(section => {
+            if (typeof section === 'object' && section !== null) {
+                const items = Object.values(section);
+                total += items.length;
+                withNotes += items.filter(item => item?.notes?.trim()).length;
+            }
+        });
+
         return { total, withNotes };
     }, [responses]);
 
@@ -195,6 +207,24 @@ export function StepReview({ onBack }) {
                 <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
                     <h3 className="font-medium text-gray-700 mb-2">Closing Notes</h3>
                     <p className="text-gray-600">{report.closing_notes}</p>
+                </div>
+            )}
+
+            {/* Full Details Toggle */}
+            <div className="pt-4 border-t border-brand-ink/5">
+                <button
+                    onClick={() => setShowFullDetails(!showFullDetails)}
+                    className="flex items-center gap-2 text-primary-600 font-bold hover:text-primary-700 transition-colors"
+                >
+                    <ClipboardList className="w-5 h-5" />
+                    {showFullDetails ? 'Hide Detailed Results' : 'Show Detailed Results'}
+                </button>
+            </div>
+
+            {showFullDetails && (
+                <div className="mt-6 p-6 bg-white rounded-3xl border border-brand-ink/10 shadow-sm animate-fade-in">
+                    <h3 className="text-xl font-serif font-bold text-brand-ink mb-6">Detailed Inspection Results</h3>
+                    <StepChecklist draft={report} readOnly={true} />
                 </div>
             )}
         </div>

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import useUIStore from '../stores/useUIStore';
-import apiFetch from '../api/client';
-import { saveLocalDraft } from '../utils/db';
+import useUIStore from '@stores/useUIStore';
+import apiFetch from '@api/client';
+import { saveLocalDraft } from '@utils/db';
 
 const AUTOSAVE_INTERVAL = 30000; // 30 seconds
 
@@ -53,6 +53,8 @@ const useAutoSave = (draft, isDirty) => {
                         overall_rating: currentDraft.overall_rating,
                         closing_notes: currentDraft.closing_notes,
                         previous_report_id: currentDraft.previous_report_id,
+                        responses: currentDraft.responses,
+                        photos: currentDraft.photos,
                     },
                     ...options
                 });
@@ -86,6 +88,8 @@ const useAutoSave = (draft, isDirty) => {
                                     overall_rating: currentDraft.overall_rating,
                                     closing_notes: currentDraft.closing_notes,
                                     previous_report_id: currentDraft.previous_report_id,
+                                    responses: currentDraft.responses,
+                                    photos: currentDraft.photos,
                                 }
                                 // No ifUnmodifiedSince = force overwrite
                             });

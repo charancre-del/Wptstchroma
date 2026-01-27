@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { useReportWizardStore } from '../../../stores';
-import { useGenerateAISummary } from '../../../hooks/useQueries';
+import { useReportWizardStore } from '@stores';
+import { useGenerateAISummary } from '@hooks/useQueries';
 import { cn } from '../../../utils/helpers';
 import {
     Sparkles,
@@ -29,7 +29,10 @@ export function StepAISummary() {
         }
 
         try {
-            const result = await generateSummary.mutateAsync(report.id);
+            const result = await generateSummary.mutateAsync({
+                reportId: report.id,
+                checklistData: responses
+            });
             setReport({
                 ...report,
                 ai_summary: result.summary,
