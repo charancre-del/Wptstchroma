@@ -202,7 +202,21 @@ class Frontend_Controller
             wp_enqueue_style('cqa-react-app', CQA_PLUGIN_URL . 'build/index.css', [], $assets['version']);
 
             // React Script
-            wp_enqueue_script('cqa-react-app', CQA_PLUGIN_URL . 'build/index.js', $assets['dependencies'], $assets['version'], true);
+            wp_enqueue_script(
+                'cqa-runtime-guard',
+                CQA_PLUGIN_URL . 'public/js/cqa-runtime-guard.js',
+                [],
+                CQA_VERSION,
+                true
+            );
+
+            wp_enqueue_script(
+                'cqa-react-app',
+                CQA_PLUGIN_URL . 'build/index.js',
+                array_merge(['cqa-runtime-guard'], $assets['dependencies']),
+                $assets['version'],
+                true
+            );
 
             // Localize Data (Ported from Admin_Menu)
             $user = wp_get_current_user();
@@ -211,6 +225,7 @@ class Frontend_Controller
                 'nonce' => wp_create_nonce('wp_rest'),
                 'adminUrl' => admin_url('admin.php'), // React app might use this for back-links
                 'pluginUrl' => CQA_PLUGIN_URL,
+                'debug' => defined('CQA_DEBUG') ? CQA_DEBUG : false,
                 'user' => [
                     'id' => $user->ID,
                     'name' => $user->display_name,
