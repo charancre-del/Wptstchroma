@@ -95,34 +95,6 @@ const ReportWizard = () => {
         }
     }, [existingReport, id, isViewMode, schoolParam, stateSchoolId, setDraft, setResponses, setPhotos, setCurrentStep]);
 
-    // LOADING STATE: Prevent showing "Create New Report" while fetching "Edit" data
-    if (id && reportLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-96">
-                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-ink"></div>
-                <span className="mt-4 text-brand-ink/60 font-medium font-outfit">Loading Report Details...</span>
-            </div>
-        );
-    }
-
-    if (id && isError) {
-        return (
-            <div className="flex items-center justify-center h-96">
-                <div className="text-center p-8 bg-chroma-red/5 rounded-3xl border border-chroma-red/20 max-w-lg">
-                    <h3 className="text-chroma-red font-bold text-xl mb-2 font-serif">Error Loading Report</h3>
-                    <p className="text-brand-ink/70 mb-6 font-outfit">The requested report could not be found or you do not have permission to view it.</p>
-                    <button
-                        onClick={() => navigate('/reports')}
-                        className="px-6 py-2.5 bg-white border border-chroma-red/30 text-chroma-red rounded-2xl hover:bg-chroma-red/10 font-bold transition-all shadow-sm"
-                    >
-                        Return to Reports
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-
     // Step Definitions
     const steps = [
         { id: 1, title: 'Select School', component: StepSchool },
@@ -163,6 +135,7 @@ const ReportWizard = () => {
         setIsDirty(true);
     };
 
+    // Use current ID from hook or param
     const reportState = draft;
 
     const handleSave = async () => {
@@ -224,6 +197,34 @@ const ReportWizard = () => {
             addToast({ type: 'error', message: 'Failed to submit report. Please try again.' });
         }
     };
+
+    // LOADING RENDER
+    if (id && reportLoading) {
+        return (
+            <div className="flex flex-col items-center justify-center h-96">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-ink"></div>
+                <span className="mt-4 text-brand-ink/60 font-medium font-outfit">Loading Report Details...</span>
+            </div>
+        );
+    }
+
+    // ERROR RENDER
+    if (id && isError) {
+        return (
+            <div className="flex items-center justify-center h-96">
+                <div className="text-center p-8 bg-chroma-red/5 rounded-3xl border border-chroma-red/20 max-w-lg">
+                    <h3 className="text-chroma-red font-bold text-xl mb-2 font-serif">Error Loading Report</h3>
+                    <p className="text-brand-ink/70 mb-6 font-outfit">The requested report could not be found or you do not have permission to view it.</p>
+                    <button
+                        onClick={() => navigate('/reports')}
+                        className="px-6 py-2.5 bg-white border border-chroma-red/30 text-chroma-red rounded-2xl hover:bg-chroma-red/10 font-bold transition-all shadow-sm"
+                    >
+                        Return to Reports
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-4xl mx-auto bg-brand-cream/30 backdrop-blur-sm rounded-3xl shadow-sm border border-brand-ink/10 overflow-hidden min-h-[600px] flex flex-col font-outfit">
