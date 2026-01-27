@@ -67,6 +67,13 @@ const ReportWizard = () => {
         }
     }, [editIdParam, id, navigate]);
 
+    // Cleanup on unmount to prevent stale state when navigating back
+    useEffect(() => {
+        return () => {
+            resetWizard();
+        };
+    }, [resetWizard]);
+
     // Initialize from Params or Existing Report
     useEffect(() => {
         if (existingReport && id) {
