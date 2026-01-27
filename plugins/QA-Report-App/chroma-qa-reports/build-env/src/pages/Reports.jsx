@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
     useReactTable,
@@ -24,7 +24,6 @@ import {
     AlertCircle,
     Clock,
     CheckCircle,
-    XCircle,
     Eye,
     Download,
     MoreHorizontal,
@@ -33,15 +32,14 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
 const STATUS_CONFIG = {
     draft: { label: 'Draft', color: 'bg-brand-ink/5 text-brand-ink/60', icon: Clock },
-    pending: { label: 'Pending Review', color: 'bg-chroma-yellow/10 text-chroma-yellow', icon: Clock },
+    submitted: { label: 'Submitted', color: 'bg-chroma-yellow/10 text-chroma-yellow', icon: Clock },
     approved: { label: 'Approved', color: 'bg-chroma-green/10 text-chroma-green', icon: CheckCircle },
-    rejected: { label: 'Needs Revision', color: 'bg-chroma-red/10 text-chroma-red', icon: XCircle },
 };
 
 const REPORT_TYPES = {
-    'tier-1': 'Tier 1 Assessment',
-    'tier-2': 'Tier 2 CQI',
-    'follow-up': 'Follow-up Visit',
+    tier1: 'Tier 1 Assessment',
+    tier1_tier2: 'Tier 1 + Tier 2 (CQI)',
+    new_acquisition: 'New Acquisition',
 };
 import { useSearchParams } from 'react-router-dom';
 
@@ -50,11 +48,13 @@ export function ReportsPage() {
     const initialStatus = searchParams.get('status') || '';
     const initialType = searchParams.get('type') || '';
     const initialAuthor = searchParams.get('author') || '';
+    const initialSchoolId = searchParams.get('school_id') || '';
 
     const [globalFilter, setGlobalFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState(initialStatus);
     const [typeFilter, setTypeFilter] = useState(initialType);
     const [authorFilter, setAuthorFilter] = useState(initialAuthor);
+    const [schoolFilter] = useState(initialSchoolId);
     const [sorting, setSorting] = useState([{ id: 'visit_date', desc: true }]);
 
     // Sync URL with state
@@ -63,8 +63,9 @@ export function ReportsPage() {
         if (statusFilter) params.set('status', statusFilter);
         if (typeFilter) params.set('type', typeFilter);
         if (authorFilter) params.set('author', authorFilter);
+        if (schoolFilter) params.set('school_id', schoolFilter);
         setSearchParams(params);
-    }, [statusFilter, typeFilter, authorFilter]);
+    }, [statusFilter, typeFilter, authorFilter, schoolFilter, setSearchParams]);
 
     const { data, isLoading, error } = useReports();
     const reports = Array.isArray(data) ? data : (data?.data || []);
@@ -75,9 +76,10 @@ export function ReportsPage() {
             if (statusFilter && report.status !== statusFilter) return false;
             if (typeFilter && report.report_type !== typeFilter) return false;
             if (authorFilter === 'me' && report.is_mine !== true) return false; // Assuming 'is_mine' or similar prop exists from API
+            if (schoolFilter && String(report.school_id) !== String(schoolFilter)) return false;
             return true;
         });
-    }, [reports, statusFilter, typeFilter]);
+    }, [reports, statusFilter, typeFilter, authorFilter, schoolFilter]);
 
     const columns = useMemo(() => [
         {
@@ -96,7 +98,7 @@ export function ReportsPage() {
                             {row.original.school_name || 'Unknown School'}
                         </Link>
                         <p className="text-sm text-brand-ink/60 font-medium">
-                            {REPORT_TYPES[row.original.report_type] || row.original.report_type}
+                            {row.original.report_type_label || REPORT_TYPES[row.original.report_type] || row.original.report_type}
                         </p>
                     </div>
                 </div>
@@ -181,12 +183,12 @@ export function ReportsPage() {
                             )}
                             {row.original.status === 'draft' && (
                                 <DropdownMenu.Item asChild>
-                                    <Link
-                                        to={`/create?edit=${row.original.id}`}
-                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"
-                                    >
-                                        <FileText className="w-4 h-4 text-brand-ink/40" />
-                                        Continue Editing
+                                <Link
+                                    to={`/edit/${row.original.id}`}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"
+                                >
+                                    <FileText className="w-4 h-4 text-brand-ink/40" />
+                                    Continue Editing
                                     </Link>
                                 </DropdownMenu.Item>
                             )}
@@ -238,7 +240,6 @@ export function ReportsPage() {
                 <AlertCircle className="w-12 h-12 text-chroma-red mx-auto mb-4" />
                 <p className="text-brand-ink font-medium">Failed to load reports. Please try again.</p>
             </div>
-        );
         );
     }
 

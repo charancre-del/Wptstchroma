@@ -75,7 +75,7 @@ export function SchoolsPage() {
                     </div>
                     <div>
                         <Link
-                            to={`/schools/${row.original.id}`}
+                            to={`/reports?school_id=${row.original.id}`}
                             className="font-bold text-brand-ink hover:text-chroma-blue transition-colors font-outfit"
                         >
                             {row.original.name}
@@ -180,13 +180,13 @@ export function SchoolsPage() {
                     <h1 className="text-3xl font-serif font-bold text-brand-ink">Schools</h1>
                     <p className="text-brand-ink/60 font-medium mt-1">{schools.length} schools total</p>
                 </div>
-                <Link
-                    to="/schools/new"
+                <a
+                    href={window?.cqaData?.adminUrl ? `${window.cqaData.adminUrl}?page=chroma-qa-reports-schools` : '#'}
                     className="btn bg-brand-ink text-white hover:bg-brand-ink/90 rounded-xl px-6 py-2.5 flex items-center gap-2 font-medium shadow-sm transition-all hover:scale-105 active:scale-95"
                 >
                     <Plus className="w-4 h-4" />
-                    Add School
-                </Link>
+                    Manage Schools
+                </a>
             </div>
 
             {/* Filters */}

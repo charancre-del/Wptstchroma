@@ -476,7 +476,7 @@ class REST_Controller
                 'title' => 'Finish Report: ' . ($draft->school_name ?: 'Untitled'),
                 'type' => 'info',
                 'date' => 'Updated ' . human_time_diff(strtotime($draft->updated_at), current_time('timestamp')) . ' ago',
-                'link' => '/reports/' . $draft->id . '/edit'
+                'link' => '/edit/' . $draft->id
             ];
         }
 
@@ -538,11 +538,19 @@ class REST_Controller
 
     public function get_schools(WP_REST_Request $request)
     {
+        $limit = (int) ($request->get_param('per_page') ?: 100);
+        $page = (int) ($request->get_param('page') ?: 1);
+        $offset = ($page - 1) * $limit;
+
         $args = [
             'status' => $request->get_param('status') ?: '',
             'region' => $request->get_param('region') ?: '',
-            'limit' => $request->get_param('per_page') ?: 100,
-            'offset' => (($request->get_param('page') ?: 1) - 1) * 100,
+            'search' => $request->get_param('search') ?: '',
+            'orderby' => $request->get_param('orderby') ?: 'name',
+            'order' => $request->get_param('order') ?: 'ASC',
+            'include_report_meta' => true,
+            'limit' => $limit,
+            'offset' => $offset,
         ];
 
         $schools = School::all($args);
@@ -653,10 +661,26 @@ class REST_Controller
         $page = (int) ($request->get_param('page') ?: 1);
         $offset = ($page - 1) * $limit;
 
+        $order_by_param = $request->get_param('orderby') ?: 'inspection_date';
+        $order_map = [
+            'date' => 'inspection_date',
+            'inspection_date' => 'inspection_date',
+            'created_at' => 'created_at',
+            'updated_at' => 'updated_at',
+            'status' => 'status',
+            'report_type' => 'report_type',
+            'school_name' => 'school_name',
+            'author_name' => 'author_name',
+            'id' => 'id',
+        ];
+
         $args = [
             'school_id' => $request->get_param('school_id') ?: 0,
             'report_type' => $request->get_param('report_type') ?: '',
             'status' => $request->get_param('status') ?: '',
+            'search' => $request->get_param('search') ?: '',
+            'orderby' => $order_map[$order_by_param] ?? 'inspection_date',
+            'order' => $request->get_param('order') ?: 'DESC',
             'limit' => $limit,
             'offset' => $offset,
         ];
@@ -1394,12 +1418,15 @@ class REST_Controller
             'id' => $school->id,
             'name' => $school->name,
             'location' => $school->location,
+            'address' => $school->location,
             'region' => $school->region,
             'acquired_date' => $school->acquired_date,
             'status' => $school->status,
             'drive_folder_id' => $school->drive_folder_id,
             'classroom_config' => $school->classroom_config,
             'created_at' => $school->created_at,
+            'last_inspection_date' => $school->last_inspection_date,
+            'reports_count' => $school->reports_count ?? 0,
         ];
     }
 

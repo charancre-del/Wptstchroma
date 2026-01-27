@@ -104,6 +104,13 @@ class School {
     public $last_inspection_date;
 
     /**
+     * Reports count (dynamic).
+     *
+     * @var int|null
+     */
+    public $reports_count;
+
+    /**
      * Get the full table name with prefix.
      *
      * @return string
@@ -151,6 +158,8 @@ class School {
             'region'            => '',
             'compliance_status' => '', // exceeds, meets, needs_improvement
             'overdue'           => false,
+            'search'            => '',
+            'include_report_meta' => false,
             'orderby'           => 'name',
             'order'             => 'ASC',
             'limit'             => 100,
@@ -172,10 +181,21 @@ class School {
             $values[] = $args['region'];
         }
 
-        $join = "";
+        $search = trim( $args['search'] );
+        if ( $search !== '' ) {
+            $search_like = '%' . $wpdb->esc_like( $search ) . '%';
+            $where[] = '(s.name LIKE %s OR s.location LIKE %s OR s.region LIKE %s OR CAST(s.id AS CHAR) LIKE %s)';
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+        }
+
+        $join_parts = [];
+        $select_fields = ['s.*'];
         if ( ! empty( $args['compliance_status'] ) || $args['overdue'] ) {
             // Need latest report info
-            $join = " LEFT JOIN (
+            $join_parts[] = " LEFT JOIN (
                 SELECT school_id, MAX(inspection_date) as last_inspection, overall_rating
                 FROM {$reports_table}
                 WHERE status IN ('approved', 'submitted')
@@ -192,10 +212,34 @@ class School {
             }
         }
 
-        $where_clause = ! empty( $where ) ? 'WHERE ' . implode( ' AND ', $where ) : '';
-        $orderby = \sanitize_sql_orderby( "{$args['orderby']} {$args['order']}" );
+        if ( ! empty( $args['include_report_meta'] ) ) {
+            $join_parts[] = " LEFT JOIN (
+                SELECT school_id, MAX(inspection_date) as last_inspection_date, COUNT(*) as reports_count
+                FROM {$reports_table}
+                GROUP BY school_id
+            ) rmeta ON s.id = rmeta.school_id ";
+            $select_fields[] = 'rmeta.last_inspection_date';
+            $select_fields[] = 'rmeta.reports_count';
+        }
 
-        $sql = "SELECT s.* FROM {$table} s {$join} {$where_clause} ORDER BY {$orderby} LIMIT %d OFFSET %d";
+        $where_clause = ! empty( $where ) ? 'WHERE ' . implode( ' AND ', $where ) : '';
+        $allowed_orderby = [
+            'name' => 's.name',
+            'region' => 's.region',
+            'status' => 's.status',
+            'created_at' => 's.created_at',
+            'id' => 's.id',
+        ];
+        $order = strtoupper( $args['order'] ) === 'ASC' ? 'ASC' : 'DESC';
+        $orderby_key = $allowed_orderby[ $args['orderby'] ] ?? 's.name';
+        $orderby = \sanitize_sql_orderby( "{$orderby_key} {$order}" );
+        if ( empty( $orderby ) ) {
+            $orderby = 's.name ASC';
+        }
+
+        $join = implode( ' ', $join_parts );
+        $select_clause = implode( ', ', $select_fields );
+        $sql = "SELECT {$select_clause} FROM {$table} s {$join} {$where_clause} ORDER BY {$orderby} LIMIT %d OFFSET %d";
         $values[] = $args['limit'];
         $values[] = $args['offset'];
 
@@ -223,6 +267,21 @@ class School {
         if ( ! empty( $args['status'] ) ) {
             $where[] = 'status = %s';
             $values[] = $args['status'];
+        }
+
+        if ( ! empty( $args['region'] ) ) {
+            $where[] = 'region = %s';
+            $values[] = $args['region'];
+        }
+
+        $search = isset( $args['search'] ) ? trim( $args['search'] ) : '';
+        if ( $search !== '' ) {
+            $search_like = '%' . $wpdb->esc_like( $search ) . '%';
+            $where[] = '(name LIKE %s OR location LIKE %s OR region LIKE %s OR CAST(id AS CHAR) LIKE %s)';
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
+            $values[] = $search_like;
         }
 
         $where_clause = ! empty( $where ) ? 'WHERE ' . implode( ' AND ', $where ) : '';
@@ -255,6 +314,8 @@ class School {
         $school->classroom_config = json_decode( $row['classroom_config'] ?: '{}', true );
         $school->created_at = $row['created_at'];
         $school->updated_at = $row['updated_at'];
+        $school->last_inspection_date = $row['last_inspection_date'] ?? null;
+        $school->reports_count = isset( $row['reports_count'] ) ? (int) $row['reports_count'] : null;
         return $school;
     }
 
