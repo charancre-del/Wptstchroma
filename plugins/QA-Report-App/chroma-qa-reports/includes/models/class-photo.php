@@ -205,6 +205,24 @@ class Photo
         }
 
         global $wpdb;
+
+        // Cleanup actual files before removing the database record
+        if (!empty($this->drive_file_id)) {
+            if (strpos($this->drive_file_id, 'wp_') === 0) {
+                // Local WP attachment
+                $attachment_id = (int) substr($this->drive_file_id, 3);
+                wp_delete_attachment($attachment_id, true);
+            } else {
+                // Google Drive file
+                try {
+                    \ChromaQA\Integrations\Google_Drive::delete_file($this->drive_file_id);
+                } catch (\Exception $e) {
+                    // Log but don't block DB deletion
+                    error_log("Failed to delete Google Drive file {$this->drive_file_id}: " . $e->getMessage());
+                }
+            }
+        }
+
         return $wpdb->delete(self::get_table_name(), ['id' => $this->id], ['%d']) !== false;
     }
 
@@ -214,7 +232,7 @@ class Photo
      * @param int $size Thumbnail size in pixels.
      * @return string
      */
-    public function get_thumbnail_url($size = 200)
+    public function get_thumbnail_url($size = 400)
     {
         if (empty($this->drive_file_id)) {
             return '';
@@ -223,7 +241,8 @@ class Photo
         // Check for local WP attachment
         if (strpos($this->drive_file_id, 'wp_') === 0) {
             $attachment_id = (int) substr($this->drive_file_id, 3);
-            $src = wp_get_attachment_image_src($attachment_id, 'thumbnail');
+            // Use 'medium' (300px) for better grid quality than 'thumbnail' (150px)
+            $src = wp_get_attachment_image_src($attachment_id, 'medium');
             return $src ? $src[0] : '';
         }
 

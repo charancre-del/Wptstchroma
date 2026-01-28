@@ -22,6 +22,8 @@
         isDirty: false,
         isSaving: false,
         photos: [],
+        schoolOptions: [], // QAR-048 Cache
+        schoolOptions: [], // QAR-048 Cache
 
         /**
          * Initialize the wizard
@@ -32,6 +34,7 @@
             this.loadSchoolReports();
             this.initAutosave();
             this.initPhotoUploader();
+            this.cacheSchoolOptions(); // QAR-048
         },
 
         /**
@@ -64,6 +67,11 @@
             $('#school_id').on('change', function () {
                 self.loadSchoolReports();
                 self.markDirty();
+            });
+
+            // School filter (QAR-048)
+            $('#school-search-filter').on('input', function () {
+                self.filterSchools($(this).val());
             });
 
             // Report type change
@@ -209,6 +217,60 @@
 
             $status.removeClass('saving saved unsaved error').addClass(statusClass);
             $status.find('.status-text').text(statusText);
+        },
+
+        /**
+         * Cache school options for filtering (QAR-048)
+         */
+        cacheSchoolOptions: function () {
+            var self = this;
+            var $select = $('#school_id');
+            // Cache all options except the placeholder (first one)
+            $select.find('option').each(function () {
+                var $opt = $(this);
+                // Store all, including empty value
+                self.schoolOptions.push({
+                    val: $opt.val(),
+                    text: $opt.text(),
+                    selected: $opt.is(':selected')
+                });
+            });
+        },
+
+        /**
+         * Filter school options (QAR-048)
+         */
+        filterSchools: function (query) {
+            var $select = $('#school_id');
+            var currentVal = $select.val();
+            var lowerQuery = query.toLowerCase();
+
+            $select.empty();
+
+            var matches = this.schoolOptions.filter(function (opt) {
+                // Always keep the placeholder (empty value)
+                if (opt.val === '') return true;
+                return opt.text.toLowerCase().indexOf(lowerQuery) > -1;
+            });
+
+            matches.forEach(function (opt) {
+                var $option = $('<option></option>')
+                    .val(opt.val)
+                    .text(opt.text);
+
+                // Restore selection if value matches current or original selected state
+                // Actually, if we re-render, we lose the 'currentVal' if it's not in the new list.
+                // If the user selected 'Lincoln', and types 'X', 'Lincoln' disappears.
+                // The value of select becomes '' (first option).
+                // That is desired for a filter.
+
+                // But we should try to keep the cached selected state if it matches?
+                if (opt.val === currentVal) {
+                    $option.prop('selected', true);
+                }
+
+                $select.append($option);
+            });
         },
 
         /**

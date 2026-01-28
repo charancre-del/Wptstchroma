@@ -5,6 +5,7 @@ import { useAuthStore } from '@stores';
 import ComplianceChart from '@components/dashboard/ComplianceChart';
 import ActionItems from '@components/dashboard/ActionItems';
 import StatCard from '@components/dashboard/StatCard';
+import Skeleton from '@components/common/Skeleton';
 import {
     FileText,
     School,
@@ -49,28 +50,28 @@ export function Dashboard() {
                 <StatCard
                     icon={School}
                     label="Total Schools"
-                    value={statsLoading ? '...' : totalSchools}
+                    value={statsLoading ? <Skeleton className="h-10 w-16" /> : totalSchools}
                     variant="blue"
                     to="/schools"
                 />
                 <StatCard
                     icon={CheckCircle}
                     label="Compliant Schools"
-                    value={statsLoading ? '...' : compliantSchools}
+                    value={statsLoading ? <Skeleton className="h-10 w-16" /> : compliantSchools}
                     variant="green"
                     to="/reports?status=approved&rating=meets"
                 />
                 <StatCard
                     icon={AlertTriangle}
                     label="Overdue Visits"
-                    value={statsLoading ? '...' : overdueVisits}
+                    value={statsLoading ? <Skeleton className="h-10 w-16" /> : overdueVisits}
                     variant="yellow"
                     to="/schools?status=overdue"
                 />
                 <StatCard
                     icon={BarChart3}
                     label="My Reports"
-                    value={statsLoading ? '...' : myReports}
+                    value={statsLoading ? <Skeleton className="h-10 w-16" /> : myReports}
                     variant="red"
                     to="/reports?author=me"
                 />
@@ -105,21 +106,34 @@ export function Dashboard() {
 
                 <div className="overflow-hidden">
                     {reportsLoading ? (
-                        <div className="p-12 text-center text-brand-ink/40 font-bold">Loading reports...</div>
+                        <div className="space-y-4">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="p-4 rounded-xl border border-brand-ink/5 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <Skeleton className="w-12 h-12 rounded-full" />
+                                        <div className="space-y-2">
+                                            <Skeleton className="h-5 w-48" />
+                                            <Skeleton className="h-3 w-32" />
+                                        </div>
+                                    </div>
+                                    <Skeleton className="h-8 w-24 rounded-full" />
+                                </div>
+                            ))}
+                        </div>
                     ) : recentReports.length > 0 ? (
                         <div className="grid gap-4">
                             {recentReports.map(report => (
                                 <div key={report.id} className="p-4 rounded-xl bg-brand-cream/50 border border-brand-ink/5 hover:border-chroma-blue/20 hover:shadow-md transition-all flex items-center justify-between group">
                                     <div className="flex items-center gap-4">
                                         <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-white text-lg ${report.status === 'approved' ? 'bg-chroma-green' :
-                                                report.status === 'pending' ? 'bg-chroma-yellow' : 'bg-brand-ink/20'
+                                            report.status === 'pending' ? 'bg-chroma-yellow' : 'bg-brand-ink/20'
                                             }`}>
                                             {report.school_name.charAt(0)}
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-brand-ink text-lg">{report.school_name}</h4>
                                             <div className="flex items-center gap-2 text-xs font-bold text-brand-ink/40 uppercase tracking-wide mt-1">
-                                                <span>Tier {report.tier || 1}</span>
+                                                <span>Tier {report.tier !== undefined ? report.tier : 1}</span>
                                                 <span>•</span>
                                                 <span>{new Date(report.date || report.created_at).toLocaleDateString()}</span>
                                             </div>

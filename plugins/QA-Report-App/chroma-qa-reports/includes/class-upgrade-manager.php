@@ -35,9 +35,19 @@ class Upgrade_Manager
         require_once CQA_PLUGIN_DIR . 'includes/class-activator.php';
         Activator::activate(); // Re-runs dbDelta
 
+        // Version 1.1.0: Fix schools JSON
+        if (version_compare($current_version, '1.1.0', '<')) {
+            self::migration_v1_1_fix_school_json();
+        }
+
         // Version-specific data migrations
         if (version_compare($current_version, '1.1.0', '<')) {
             self::migration_v1_1_fix_school_json();
+        }
+
+        // Version 1.2.0: Consolidate Options (FIX-306)
+        if (version_compare($current_version, '1.2.0', '<')) {
+            self::migration_v1_2_consolidate_options();
         }
 
         // Update version option

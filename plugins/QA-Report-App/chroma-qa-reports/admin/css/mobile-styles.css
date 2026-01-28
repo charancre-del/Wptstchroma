@@ -215,14 +215,20 @@
 
 @media (max-width: 782px) {
 
-    /* Hide admin menu on mobile */
-    #adminmenumain {
-        display: none;
+    /* QAR-044: Fix Admin Menu Collision */
+    /* Instead of display: none, we allow the menu but fix the content overlap */
+    /* #adminmenumain { display: none; } */
+
+    /* Ensure content clears the mobile WP Admin Bar */
+    .cqa-wrap {
+        padding-top: 46px;
+        /* WP Admin Bar height on mobile */
     }
 
     #wpcontent {
-        padding-left: 0 !important;
-        margin-left: 0 !important;
+        padding-left: 0;
+        /* Keep flush for app-feel */
+        margin-left: 0;
     }
 
     /* Larger touch targets */
@@ -415,7 +421,10 @@
    =================================== */
 .cqa-install-prompt {
     position: fixed;
-    bottom: 100px;
+    top: 80px;
+    /* QAR-045: Moved to top to avoid keyboard/footer collision */
+    bottom: auto;
+    /* QAR-045: Was 100px */
     left: 16px;
     right: 16px;
     background: white;

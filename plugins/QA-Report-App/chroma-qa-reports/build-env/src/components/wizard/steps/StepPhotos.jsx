@@ -18,8 +18,8 @@ const PhotoThumbnail = ({ photo }) => {
 
     return (
         <img
-            src={photo.url || photo.preview}
-            alt={photo.name || 'Evidence'}
+            src={photo.thumbnail_url || photo.preview || photo.url}
+            alt={photo.filename || photo.name || 'Evidence'}
             className="w-full h-full object-cover"
             onError={() => setError(true)}
         />
@@ -33,7 +33,7 @@ const StepPhotos = ({ draft, updateDraft }) => {
     // AUDIT FIX: Use draft.photos (Single Source of Truth)
     const photos = draft.photos || [];
 
-    const handleUpload = async (newFiles) => {
+    const handleUpload = React.useCallback(async (newFiles) => {
         setUploading(true);
         const reportId = draft.id;
 
@@ -69,9 +69,9 @@ const StepPhotos = ({ draft, updateDraft }) => {
         } finally {
             setUploading(false);
         }
-    };
+    }, [draft.id, photos, updateDraft, addToast]);
 
-    const handleDelete = async (photoId) => {
+    const handleDelete = React.useCallback(async (photoId) => {
         if (!confirm('Delete this photo?')) return;
 
         try {
@@ -85,9 +85,8 @@ const StepPhotos = ({ draft, updateDraft }) => {
         } catch (error) {
             console.error('Delete failed', error);
             addToast({ type: 'error', message: 'Failed to delete photo.' });
-            // Revert on failure (advanced: requires previous state, skipping for now)
         }
-    };
+    }, [draft.id, photos, updateDraft, addToast]);
 
     return (
         <div className="space-y-6">

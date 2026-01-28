@@ -20,7 +20,7 @@ const ConflictModal = () => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 bg-black/50 z-[100000] flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full overflow-hidden border border-red-100">
                 <div className="p-6">
                     <div className="flex items-start gap-4">

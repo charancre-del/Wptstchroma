@@ -20,7 +20,18 @@ module.exports = {
                     warning: '#f59e0b',
                     danger: '#ef4444',
                     info: '#3b82f6',
+                    // Brand Colors
+                    brand: {
+                        cream: '#F9F7F2',
+                        ink: '#1A1A1A',
+                        secondary: '#9D8253',
+                    }
                 }
+            },
+            fontFamily: {
+                sans: ['Outfit', 'sans-serif'],
+                outfit: ['Outfit', 'sans-serif'],
+                serif: ['"DM Serif Display"', 'serif'],
             }
         },
     },

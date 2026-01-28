@@ -3,7 +3,7 @@
  * Plugin Name: Chroma QA Reports
  * Plugin URI: https://chromaearlylearning.com/qa-reports
  * Description: Quality Assurance Report Management System for Chroma Early Learning Academy schools.
- * Version: 1.0.1
+ * Version: 1.1.0
  * Author: Chroma Early Learning Academy
  * Author URI: https://chromaearlylearning.com
  * License: GPL v2 or later
@@ -24,7 +24,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('CQA_VERSION', '1.0.1');
+define('CQA_VERSION', '1.1.0');
 define('CQA_PLUGIN_FILE', __FILE__);
 define('CQA_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('CQA_PLUGIN_URL', plugin_dir_url(__FILE__));
@@ -102,30 +102,5 @@ function run_chroma_qa_reports()
 // Start the plugin
 add_action('plugins_loaded', __NAMESPACE__ . '\\run_chroma_qa_reports');
 
-// TEMPORARY FIX: Add capabilities to admin on next load
-add_action('admin_init', function () {
-    $role = get_role('administrator');
-    if ($role) {
-        $caps = [
-            'cqa_manage_settings',
-            'cqa_manage_users',
-            'cqa_manage_schools',
-            'cqa_view_all_reports',
-            'cqa_create_reports',
-            'cqa_edit_all_reports',
-            'cqa_delete_reports',
-            'cqa_export_reports',
-            'cqa_use_ai_features',
-            'cqa_view_own_reports',
-            'cqa_approve_reports'
-        ];
-        foreach ($caps as $cap)
-            $role->add_cap($cap);
-
-        // FORCE ENABLE REACT UI (Bypass legacy PHP)
-        $routes = ['dashboard', 'schools', 'reports', 'wizard', 'settings'];
-        foreach ($routes as $route) {
-            update_option('cqa_flag_react_' . $route, true);
-        }
-    }
-});
+// Start the plugin
+add_action('plugins_loaded', __NAMESPACE__ . '\\run_chroma_qa_reports');

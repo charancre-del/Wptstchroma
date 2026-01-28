@@ -18,14 +18,14 @@ const StepChecklist = ({ draft, updateDraft, nextStep, readOnly = false }) => {
         staleTime: Infinity, // Definitions rarely change
     });
 
-    const handleResponseChange = (itemId, newResponse, sectionKey) => {
+    const handleResponseChange = React.useCallback((itemId, newResponse, sectionKey) => {
         if (readOnly) return;
         setResponse(sectionKey, itemId, newResponse);
-    };
+    }, [readOnly, setResponse]);
 
     // Calculate Completion
-    const calculateCompletion = () => {
-        if (!checklistDef?.sections) return { total: 0, answered: 0 };
+    const completion = React.useMemo(() => {
+        if (!checklistDef?.sections) return { total: 0, answered: 0, percent: 0 };
 
         let total = 0;
         let answered = 0;
@@ -40,9 +40,7 @@ const StepChecklist = ({ draft, updateDraft, nextStep, readOnly = false }) => {
         });
 
         return { total, answered, percent: total > 0 ? Math.round((answered / total) * 100) : 0 };
-    };
-
-    const completion = calculateCompletion();
+    }, [checklistDef, responses]);
 
     if (isLoading) {
         return (

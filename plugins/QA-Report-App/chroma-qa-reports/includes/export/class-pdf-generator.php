@@ -26,17 +26,60 @@ class PDF_Generator
      */
     public function generate(Report $report, $include_comparison = true)
     {
-        // Check for TCPDF or DOMPDF
-        if (!class_exists('TCPDF') && !class_exists('Dompdf\\Dompdf')) {
-            // Generate HTML-based PDF using browser print
-            return $this->generate_html_pdf($report, $include_comparison);
+        // Safety check for library existence
+        $has_tcpdf = class_exists('TCPDF');
+        $has_dompdf = class_exists('Dompdf\\Dompdf');
+
+        if (!$this->has_libraries()) {
+            // Log the critical failure
+            \ChromaQA\Utils\Logger::error('PDF_Generator', 'generate', ['report_id' => $report->id], 'Missing PDF libraries (TCPDF/Dompdf)');
+
+            return new \WP_Error(
+                'pdf_library_missing',
+                sprintf(
+                    /* translators: %s: command to install dompdf */
+                    __('PDF generation failed: Required libraries (Dompdf or TCPDF) are not installed. Please run "%s" in your plugin directory or contact your administrator.', 'chroma-qa-reports'),
+                    'composer require dompdf/dompdf'
+                ),
+                ['status' => 500]
+            );
         }
 
-        if (class_exists('TCPDF')) {
-            return $this->generate_tcpdf($report, $include_comparison);
-        }
+        try {
+            if ($has_tcpdf) {
+                return $this->generate_tcpdf($report, $include_comparison);
+            }
 
-        return $this->generate_dompdf($report, $include_comparison);
+            return $this->generate_dompdf($report, $include_comparison);
+        } catch (\Exception $e) {
+            \ChromaQA\Utils\Logger::error('PDF_Generator', 'generate_catch', ['report_id' => $report->id], $e->getMessage());
+            return new \WP_Error('pdf_generation_error', $e->getMessage(), ['status' => 500]);
+        }
+    }
+
+    /**
+     * Check if any PDF libraries are available.
+     * 
+     * @return bool
+     */
+    public function has_libraries()
+    {
+        return class_exists('TCPDF') || class_exists('Dompdf\\Dompdf');
+    }
+
+    /**
+     * Get available PDF library names.
+     * 
+     * @return array
+     */
+    public function get_available_libraries()
+    {
+        $libs = [];
+        if (class_exists('TCPDF'))
+            $libs[] = 'TCPDF';
+        if (class_exists('Dompdf\\Dompdf'))
+            $libs[] = 'Dompdf';
+        return $libs;
     }
 
     /**
@@ -701,7 +744,8 @@ class PDF_Generator
             <div class="footer">
                 <p><?php echo esc_html($company_name); ?> Quality Assurance Report</p>
                 <p>Report ID: <?php echo esc_html($report->id); ?> | Generated:
-                    <?php echo esc_html(date_i18n('F j, Y \a\t g:i A')); ?></p>
+                    <?php echo esc_html(date_i18n('F j, Y \a\t g:i A')); ?>
+                </p>
             </div>
         </body>
 
@@ -728,7 +772,9 @@ class PDF_Generator
         $filename = 'report-' . $report->id . '-' . time() . '.html';
         $filepath = $temp_dir . '/' . $filename;
 
-        file_put_contents($filepath, $html);
+        if (FileSystem::put_contents($filepath, $html) === false) {
+            return new \WP_Error('file_write_error', 'Failed to write HTML to temp file.');
+        }
 
         return $filepath;
     }

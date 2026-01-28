@@ -25,24 +25,35 @@ const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
             </div>
 
             {/* Rating Controls */}
-            <div className={`grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 ${readOnly ? 'opacity-90' : ''}`}>
-                {ratings.map((rate) => (
-                    <button
-                        key={rate.value}
-                        onClick={() => !readOnly && onChange(item.id, { ...response, rating: rate.value })}
-                        disabled={readOnly}
-                        className={`
-                            px-3 py-2 rounded-md text-sm font-medium border transition-colors flex items-center justify-center gap-2
-                            ${currentRating === rate.value
-                                ? `${rate.color} ring-2 ring-offset-1 ring-cqa-primary`
-                                : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                            }
-                            ${readOnly ? 'cursor-default' : ''}
-                        `}
-                    >
-                        {rate.label}
-                    </button>
-                ))}
+            <div
+                className={`grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 ${readOnly ? 'opacity-90' : ''}`}
+                role="radiogroup"
+                aria-label={`Rating for ${item.label}`}
+            >
+                {ratings.map((rate) => {
+                    const isSelected = currentRating === rate.value;
+                    return (
+                        <button
+                            key={rate.value}
+                            type="button"
+                            role="radio"
+                            aria-checked={isSelected}
+                            tabIndex={isSelected ? 0 : -1} // Roving tabindex could be implemented, but simple toggle here
+                            onClick={() => !readOnly && onChange(item.id, { ...response, rating: rate.value })}
+                            disabled={readOnly}
+                            className={`
+                                px-3 py-2 rounded-md text-sm font-medium border transition-colors flex items-center justify-center gap-2
+                                ${isSelected
+                                    ? `${rate.color} ring-2 ring-offset-1 ring-cqa-primary`
+                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                                }
+                                ${readOnly ? 'cursor-default' : ''}
+                            `}
+                        >
+                            {rate.label}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Additional Inputs (Notes / Photos) */}

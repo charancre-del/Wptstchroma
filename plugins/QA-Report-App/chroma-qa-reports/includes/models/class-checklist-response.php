@@ -10,7 +10,8 @@ namespace ChromaQA\Models;
 /**
  * Represents a single checklist item response.
  */
-class Checklist_Response {
+class Checklist_Response
+{
 
     /**
      * Table name.
@@ -46,7 +47,8 @@ class Checklist_Response {
      *
      * @return string
      */
-    public static function get_table_name() {
+    public static function get_table_name()
+    {
         global $wpdb;
         return $wpdb->prefix . self::$table;
     }
@@ -57,7 +59,8 @@ class Checklist_Response {
      * @param int $report_id Report ID.
      * @return Checklist_Response[]
      */
-    public static function get_by_report( $report_id ) {
+    public static function get_by_report($report_id)
+    {
         global $wpdb;
         $table = self::get_table_name();
 
@@ -69,7 +72,7 @@ class Checklist_Response {
             \ARRAY_A
         );
 
-        return array_map( [ self::class, 'from_row' ], $rows );
+        return array_map([self::class, 'from_row'], $rows);
     }
 
     /**
@@ -78,15 +81,16 @@ class Checklist_Response {
      * @param int $report_id Report ID.
      * @return array Associative array keyed by section_key.
      */
-    public static function get_by_report_grouped( $report_id ) {
-        $responses = self::get_by_report( $report_id );
+    public static function get_by_report_grouped($report_id)
+    {
+        $responses = self::get_by_report($report_id);
         $grouped = [];
 
-        foreach ( $responses as $response ) {
-            if ( ! isset( $grouped[ $response->section_key ] ) ) {
-                $grouped[ $response->section_key ] = [];
+        foreach ($responses as $response) {
+            if (!isset($grouped[$response->section_key])) {
+                $grouped[$response->section_key] = [];
             }
-            $grouped[ $response->section_key ][ $response->item_key ] = $response;
+            $grouped[$response->section_key][$response->item_key] = $response;
         }
 
         return $grouped;
@@ -98,7 +102,8 @@ class Checklist_Response {
      * @param array $row Database row.
      * @return Checklist_Response
      */
-    public static function from_row( $row ) {
+    public static function from_row($row)
+    {
         $response = new self();
         $response->id = (int) $row['id'];
         $response->report_id = (int) $row['report_id'];
@@ -118,29 +123,30 @@ class Checklist_Response {
      *
      * @return bool|int
      */
-    public function save() {
+    public function save()
+    {
         global $wpdb;
         $table = self::get_table_name();
 
         $data = [
-            'report_id'       => $this->report_id,
-            'section_key'     => $this->section_key,
-            'item_key'        => $this->item_key,
-            'rating'          => $this->rating ?: self::RATING_NA,
-            'notes'           => $this->notes,
-            'evidence_type'   => $this->evidence_type ?: 'observation',
+            'report_id' => $this->report_id,
+            'section_key' => $this->section_key,
+            'item_key' => $this->item_key,
+            'rating' => $this->rating ?: self::RATING_NA,
+            'notes' => $this->notes,
+            'evidence_type' => $this->evidence_type ?: 'observation',
             'previous_rating' => $this->previous_rating,
-            'previous_notes'  => $this->previous_notes,
+            'previous_notes' => $this->previous_notes,
         ];
 
-        $format = [ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ];
+        $format = ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
 
-        if ( $this->id ) {
-            $result = $wpdb->update( $table, $data, [ 'id' => $this->id ], $format, [ '%d' ] );
+        if ($this->id) {
+            $result = $wpdb->update($table, $data, ['id' => $this->id], $format, ['%d']);
             return $result !== false ? $this->id : false;
         } else {
-            $result = $wpdb->insert( $table, $data, $format );
-            if ( $result ) {
+            $result = $wpdb->insert($table, $data, $format);
+            if ($result) {
                 $this->id = $wpdb->insert_id;
                 return $this->id;
             }
@@ -155,38 +161,58 @@ class Checklist_Response {
      * @param array $responses Array of response data.
      * @return bool
      */
-    public static function bulk_save( $report_id, $responses ) {
+    public static function bulk_save($report_id, $responses)
+    {
         global $wpdb;
         $table = self::get_table_name();
 
-        if ( empty( $responses ) ) {
+        if (empty($responses)) {
             return false;
         }
 
-        // Delete existing responses
-        $wpdb->delete( $table, [ 'report_id' => $report_id ], [ '%d' ] );
+        // Start transaction for atomicity
+        $wpdb->query('START TRANSACTION');
 
-        // Insert new responses
-        foreach ( $responses as $section_key => $items ) {
-            foreach ( $items as $item_key => $data ) {
-                $wpdb->insert(
-                    $table,
-                    [
-                        'report_id'       => $report_id,
-                        'section_key'     => $section_key,
-                        'item_key'        => $item_key,
-                        'rating'          => $data['rating'] ?? self::RATING_NA,
-                        'notes'           => $data['notes'] ?? '',
-                        'evidence_type'   => $data['evidence_type'] ?? 'observation',
-                        'previous_rating' => $data['previous_rating'] ?? '',
-                        'previous_notes'  => $data['previous_notes'] ?? '',
-                    ],
-                    [ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
-                );
+        try {
+            // Delete existing responses for this report
+            $deleted = $wpdb->delete($table, ['report_id' => $report_id], ['%d']);
+
+            if ($deleted === false) {
+                throw new \Exception('Failed to clear existing responses.');
             }
-        }
 
-        return true;
+            // Insert new responses
+            foreach ($responses as $section_key => $items) {
+                foreach ($items as $item_key => $data) {
+                    $insert_result = $wpdb->insert(
+                        $table,
+                        [
+                            'report_id' => $report_id,
+                            'section_key' => $section_key,
+                            'item_key' => $item_key,
+                            'rating' => $data['rating'] ?? self::RATING_NA,
+                            'notes' => $data['notes'] ?? '',
+                            'evidence_type' => $data['evidence_type'] ?? 'observation',
+                            'previous_rating' => $data['previous_rating'] ?? '',
+                            'previous_notes' => $data['previous_notes'] ?? '',
+                        ],
+                        ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
+                    );
+
+                    if ($insert_result === false) {
+                        throw new \Exception("Failed to insert response for {$section_key}/{$item_key}.");
+                    }
+                }
+            }
+
+            $wpdb->query('COMMIT');
+            return true;
+
+        } catch (\Exception $e) {
+            $wpdb->query('ROLLBACK');
+            error_log('Checklist_Response::bulk_save failure: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -194,14 +220,15 @@ class Checklist_Response {
      *
      * @return string
      */
-    public function get_rating_icon() {
+    public function get_rating_icon()
+    {
         $icons = [
-            self::RATING_YES       => '✅',
+            self::RATING_YES => '✅',
             self::RATING_SOMETIMES => '⚠️',
-            self::RATING_NO        => '❌',
-            self::RATING_NA        => '➖',
+            self::RATING_NO => '❌',
+            self::RATING_NA => '➖',
         ];
-        return $icons[ $this->rating ] ?? '➖';
+        return $icons[$this->rating] ?? '➖';
     }
 
     /**
@@ -209,7 +236,8 @@ class Checklist_Response {
      *
      * @return bool
      */
-    public function has_changed() {
+    public function has_changed()
+    {
         return $this->previous_rating && $this->previous_rating !== $this->rating;
     }
 
@@ -218,20 +246,21 @@ class Checklist_Response {
      *
      * @return bool
      */
-    public function is_improvement() {
-        if ( ! $this->has_changed() ) {
+    public function is_improvement()
+    {
+        if (!$this->has_changed()) {
             return false;
         }
 
         $rating_order = [
-            self::RATING_NO        => 0,
+            self::RATING_NO => 0,
             self::RATING_SOMETIMES => 1,
-            self::RATING_YES       => 2,
-            self::RATING_NA        => -1,
+            self::RATING_YES => 2,
+            self::RATING_NA => -1,
         ];
 
-        $prev = $rating_order[ $this->previous_rating ] ?? -1;
-        $curr = $rating_order[ $this->rating ] ?? -1;
+        $prev = $rating_order[$this->previous_rating] ?? -1;
+        $curr = $rating_order[$this->rating] ?? -1;
 
         return $curr > $prev;
     }

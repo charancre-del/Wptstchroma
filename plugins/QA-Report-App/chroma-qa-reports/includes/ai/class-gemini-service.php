@@ -25,7 +25,7 @@ class Gemini_Service
      */
     public static function get_api_key()
     {
-        return \get_option('cqa_gemini_api_key', '');
+        return \ChromaQA\Settings::get('gemini_api_key');
     }
 
     /**
@@ -78,7 +78,7 @@ class Gemini_Service
         ]);
 
         if (\is_wp_error($response)) {
-            \ChromaQA\Utils\Logger::error('Gemini', 'generate', $body, $response->get_error_message());
+            \ChromaQA\Utils\Logger::error('Gemini', 'generate', ['prompt_length' => strlen($prompt)], $response->get_error_message());
             return $response;
         }
 
@@ -87,17 +87,17 @@ class Gemini_Service
 
         if ($status_code !== 200) {
             $error_message = $body_res['error']['message'] ?? __('Unknown API error', 'chroma-qa-reports');
-            \ChromaQA\Utils\Logger::error('Gemini', 'generate', $body, $body_res);
+            \ChromaQA\Utils\Logger::error('Gemini', 'generate', ['prompt_length' => strlen($prompt), 'status' => $status_code], $body_res);
             return new \WP_Error('api_error', $error_message);
         }
 
         if (empty($body_res['candidates'][0]['content']['parts'][0]['text'])) {
-            \ChromaQA\Utils\Logger::error('Gemini', 'generate', $body, 'Empty response candidates');
+            \ChromaQA\Utils\Logger::error('Gemini', 'generate', ['prompt_length' => strlen($prompt)], 'Empty response candidates');
             return new \WP_Error('no_response', __('No response from Gemini.', 'chroma-qa-reports'));
         }
 
         $result_text = $body_res['candidates'][0]['content']['parts'][0]['text'];
-        \ChromaQA\Utils\Logger::info('Gemini', 'generate', $body, ['text_length' => strlen($result_text)]);
+        \ChromaQA\Utils\Logger::info('Gemini', 'generate', ['prompt_length' => strlen($prompt), 'response_length' => strlen($result_text)], 'Success');
 
         // Return array format for consistency
         return [
@@ -127,10 +127,10 @@ class Gemini_Service
         $text = is_array($response) ? ($response['text'] ?? '') : $response;
         $text = trim($text);
 
-        // 1. Strip Markdown Code Blocks explicitly
-        $text = preg_replace('/^```json\s*/i', '', $text);
-        $text = preg_replace('/^```\s*/', '', $text);
-        $text = preg_replace('/\s*```$/', '', $text);
+        // 1. Priority: Extract from Markdown Code Block (anywhere in text)
+        if (preg_match('/```(?:json)?\s*(.*?)\s*```/s', $text, $matches)) {
+            $text = $matches[1];
+        }
 
         // 2. Locate JSON object (find first { and last })
         $start = strpos($text, '{');

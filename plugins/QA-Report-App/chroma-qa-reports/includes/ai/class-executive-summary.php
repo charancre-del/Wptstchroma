@@ -14,7 +14,8 @@ use ChromaQA\Checklists\Checklist_Manager;
 /**
  * Generates AI-powered executive summaries for QA reports.
  */
-class Executive_Summary {
+class Executive_Summary
+{
 
     /**
      * Generate executive summary for a report.
@@ -22,32 +23,33 @@ class Executive_Summary {
      * @param Report $report The report to summarize.
      * @return array|WP_Error
      */
-    public function generate( Report $report ) {
-        if ( ! Gemini_Service::is_configured() ) {
-            return new \WP_Error( 'not_configured', __( 'AI features are not configured.', 'chroma-qa-reports' ) );
+    public function generate(Report $report)
+    {
+        if (!Gemini_Service::is_configured()) {
+            return new \WP_Error('not_configured', __('AI features are not configured.', 'chroma-qa-reports'));
         }
 
         $school = $report->get_school();
-        $responses = Checklist_Response::get_by_report_grouped( $report->id );
+        $responses = Checklist_Response::get_by_report_grouped($report->id);
         $previous_report = $report->get_previous_report();
-        $checklist = Checklist_Manager::get_checklist_for_type( $report->report_type );
-        $stats = Checklist_Manager::get_progress_stats( $report->id, $report->report_type );
+        $checklist = Checklist_Manager::get_checklist_for_type($report->report_type);
+        $stats = Checklist_Manager::get_progress_stats($report->id, $report->report_type);
 
         // Build the prompt
-        $prompt = $this->build_prompt( $school, $report, $responses, $previous_report, $checklist, $stats );
+        $prompt = $this->build_prompt($school, $report, $responses, $previous_report, $checklist, $stats);
 
         // Generate summary using Gemini
-        $result = Gemini_Service::generate_json( $prompt, [
+        $result = Gemini_Service::generate_json($prompt, [
             'temperature' => 0.3,
-            'maxTokens'   => 3000,
-        ] );
+            'maxTokens' => 3000,
+        ]);
 
-        if ( \is_wp_error( $result ) ) {
+        if (\is_wp_error($result)) {
             return $result;
         }
 
         // Save the summary to database
-        $this->save_summary( $report->id, $result );
+        $this->save_summary($report->id, $result);
 
         return $result;
     }
@@ -63,10 +65,11 @@ class Executive_Summary {
      * @param array  $stats Stats summary.
      * @return string
      */
-    private function build_prompt( $school, $report, $responses, $previous_report, $checklist, $stats ) {
+    private function build_prompt($school, $report, $responses, $previous_report, $checklist, $stats)
+    {
         $school_name = $school ? $school->name : 'Unknown School';
         $report_type = $report->get_type_label();
-        $date = \date_i18n( 'F j, Y', \strtotime( $report->inspection_date ) );
+        $date = \date_i18n('F j, Y', \strtotime($report->inspection_date));
 
         $prompt = "You are a Supportive QA Coach and Mentor for Chroma Early Learning Academy, a childcare organization. ";
         $prompt .= "Your goal is to provide constructive, encouraging feedback that empowers School Directors to achieve excellence. ";
@@ -86,19 +89,19 @@ class Executive_Summary {
 
         $prompt .= "## Checklist Responses\n\n";
 
-        foreach ( $checklist['sections'] as $section ) {
-            $section_responses = $responses[ $section['key'] ] ?? [];
-            
-            if ( empty( $section_responses ) ) {
+        foreach ($checklist['sections'] as $section) {
+            $section_responses = $responses[$section['key']] ?? [];
+
+            if (empty($section_responses)) {
                 continue;
             }
 
             $prompt .= "### {$section['name']}\n";
 
-            foreach ( $section['items'] as $item ) {
-                if ( isset( $section_responses[ $item['key'] ] ) ) {
-                    $response = $section_responses[ $item['key'] ];
-                    $rating = strtoupper( $response->rating );
+            foreach ($section['items'] as $item) {
+                if (isset($section_responses[$item['key']])) {
+                    $response = $section_responses[$item['key']];
+                    $rating = strtoupper($response->rating);
                     $notes = $response->notes ? " - Notes: {$response->notes}" : '';
                     $prompt .= "- [{$rating}] {$item['label']}{$notes}\n";
                 }
@@ -107,7 +110,7 @@ class Executive_Summary {
             $prompt .= "\n";
         }
 
-        if ( $previous_report ) {
+        if ($previous_report) {
             $prompt .= "## Comparison with Previous Report\n";
             $prompt .= "This report is being compared to a previous inspection from {$previous_report->inspection_date}.\n";
             $prompt .= "Highlight any improvements or regressions.\n\n";
@@ -118,12 +121,12 @@ class Executive_Summary {
         $prompt .= "{\n";
         $prompt .= '  "executive_summary": "A 2-3 paragraph professional and encouraging summary. Start by celebrating successes and strengths, then bridge into areas for partnership and growth...",';
         $prompt .= "\n";
-        $prompt .= '  "growth_opportunities": [';
+        $prompt .= '  "issues": [';
         $prompt .= "\n";
         $prompt .= '    { "severity": "high|medium|low", "section": "section name", "description": "specific area for improvement framed constructively" }';
         $prompt .= "\n";
         $prompt .= "  ],\n";
-        $prompt .= '  "support_and_growth_plan": [';
+        $prompt .= '  "poi": [';
         $prompt .= "\n";
         $prompt .= '    { "priority": "immediate|short_term|ongoing", "area": "section/area name", "action": "supportive coaching step or action", "timeline": "collaborative timeframe" }';
         $prompt .= "\n";
@@ -142,7 +145,7 @@ class Executive_Summary {
         $prompt .= "Focus on:\n";
         $prompt .= "1. Highlighting and celebrating positive observations and leadership strengths first.\n";
         $prompt .= "2. Framing critical safety and compliance as 'Critical Growth Areas' (mark as HIGH severity).\n";
-        $prompt .= "3. Providing specific, actionable coaching steps in the Support & Growth Plan.\n";
+        $prompt .= "3. Providing specific, actionable coaching steps in the POI (Plan of Improvement).\n";
         $prompt .= "4. Ensuring the overall tone is that of a partner invested in the school's success.\n";
         $prompt .= "5. Overall assessment and suggested rating based on the balanced view of the inspection.\n";
 
@@ -155,26 +158,47 @@ class Executive_Summary {
      * @param int   $report_id Report ID.
      * @param array $summary Summary data.
      */
-    public function save_summary( $report_id, $summary ) {
+    public function save_summary($report_id, $summary)
+    {
         global $wpdb;
         $table = $wpdb->prefix . 'cqa_ai_summaries';
 
-        // Delete existing summary if any
-        $wpdb->delete( $table, [ 'report_id' => $report_id ], [ '%d' ] );
+        // Start transaction for atomicity
+        $wpdb->query('START TRANSACTION');
 
-        // Insert new summary
-        $wpdb->insert(
-            $table,
-            [
-                'report_id'         => $report_id,
-                'executive_summary' => $summary['executive_summary'] ?? '',
-                'issues_json'       => \wp_json_encode( $summary['growth_opportunities'] ?? $summary['issues'] ?? [] ),
-                'poi_json'          => \wp_json_encode( $summary['support_and_growth_plan'] ?? $summary['plan_of_improvement'] ?? $summary['poi'] ?? [] ),
-                'comparison_json'   => \wp_json_encode( $summary['comparison'] ?? [] ),
-                'generated_at'      => \current_time( 'mysql' ),
-            ],
-            [ '%d', '%s', '%s', '%s', '%s', '%s' ]
-        );
+        try {
+            // Delete existing summary if any
+            $deleted = $wpdb->delete($table, ['report_id' => $report_id], ['%d']);
+
+            if ($deleted === false) {
+                throw new \Exception('Failed to clear existing summary.');
+            }
+
+            // Insert new summary
+            $inserted = $wpdb->insert(
+                $table,
+                [
+                    'report_id' => $report_id,
+                    'executive_summary' => $summary['executive_summary'] ?? '',
+                    'issues_json' => \wp_json_encode($summary['issues'] ?? $summary['growth_opportunities'] ?? []),
+                    'poi_json' => \wp_json_encode($summary['poi'] ?? $summary['support_and_growth_plan'] ?? $summary['plan_of_improvement'] ?? []),
+                    'comparison_json' => \wp_json_encode($summary['comparison'] ?? []),
+                    'generated_at' => \current_time('mysql'),
+                ],
+                ['%d', '%s', '%s', '%s', '%s', '%s']
+            );
+
+            if ($inserted === false) {
+                throw new \Exception('Failed to insert new summary.');
+            }
+
+            $wpdb->query('COMMIT');
+            return true;
+        } catch (\Exception $e) {
+            $wpdb->query('ROLLBACK');
+            error_log('Executive_Summary::save_summary failure: ' . $e->getMessage());
+            return false;
+        }
     }
 
     /**
@@ -186,26 +210,27 @@ class Executive_Summary {
      * @param string $rating Selected rating (no, sometimes).
      * @return array Suggestion data.
      */
-    public static function get_note_suggestion( $section_key, $item_key, $item_label, $rating ) {
+    public static function get_note_suggestion($section_key, $item_key, $item_label, $rating)
+    {
         // Common suggestions based on patterns
         $suggestions = self::get_predefined_suggestions();
 
         // Check for exact match
         $key = $section_key . '/' . $item_key;
-        if ( isset( $suggestions[ $key ] ) && isset( $suggestions[ $key ][ $rating ] ) ) {
+        if (isset($suggestions[$key]) && isset($suggestions[$key][$rating])) {
             return [
-                'suggestion' => $suggestions[ $key ][ $rating ],
-                'source'     => 'predefined',
+                'suggestion' => $suggestions[$key][$rating],
+                'source' => 'predefined',
             ];
         }
 
         // Try AI-powered suggestion
-        if ( Gemini_Service::is_configured() ) {
-            return self::generate_ai_suggestion( $item_label, $rating, $section_key );
+        if (Gemini_Service::is_configured()) {
+            return self::generate_ai_suggestion($item_label, $rating, $section_key);
         }
 
         // Fallback generic suggestions
-        return self::get_generic_suggestion( $item_label, $rating );
+        return self::get_generic_suggestion($item_label, $rating);
     }
 
     /**
@@ -213,7 +238,8 @@ class Executive_Summary {
      *
      * @return array Suggestions map.
      */
-    private static function get_predefined_suggestions() {
+    private static function get_predefined_suggestions()
+    {
         return [
             'health_safety/fire_extinguisher' => [
                 'no' => 'Fire extinguisher needs to be serviced/replaced. Schedule inspection by [DATE]. Ensure annual maintenance tag is current.',
@@ -266,26 +292,27 @@ class Executive_Summary {
      * @param string $section_key Section key.
      * @return array Suggestion.
      */
-    private static function generate_ai_suggestion( $item_label, $rating, $section_key ) {
+    private static function generate_ai_suggestion($item_label, $rating, $section_key)
+    {
         $prompt = sprintf(
             'You are a supportive QA Coach for a childcare facility. A checklist item "%s" in the "%s" section was marked as "%s". ' .
             'Generate a brief, professional, and encouraging coaching note (1-2 sentences) for the School Director. ' .
             'Explain the growth opportunity and recommend a helpful action step. ' .
             'The tone should be supportive, not punitive. Return only the note text, no other formatting.',
             $item_label,
-            str_replace( '_', ' ', $section_key ),
+            str_replace('_', ' ', $section_key),
             $rating === 'no' ? 'needs focus/No' : 'partially meeting standards/Sometimes'
         );
 
-        $result = Gemini_Service::generate( $prompt, [ 'temperature' => 0.3, 'maxTokens' => 200 ] );
+        $result = Gemini_Service::generate($prompt, ['temperature' => 0.3, 'maxTokens' => 200]);
 
-        if ( is_wp_error( $result ) ) {
-            return self::get_generic_suggestion( $item_label, $rating );
+        if (is_wp_error($result)) {
+            return self::get_generic_suggestion($item_label, $rating);
         }
 
         return [
-            'suggestion' => trim( $result['text'] ?? '' ),
-            'source'     => 'ai',
+            'suggestion' => trim($result['text'] ?? ''),
+            'source' => 'ai',
         ];
     }
 
@@ -296,16 +323,17 @@ class Executive_Summary {
      * @param string $rating Rating.
      * @return array Suggestion.
      */
-    private static function get_generic_suggestion( $item_label, $rating ) {
-        if ( $rating === 'no' ) {
+    private static function get_generic_suggestion($item_label, $rating)
+    {
+        if ($rating === 'no') {
             $template = 'Item "%s" is not meeting standards. Immediate action required to bring into compliance. Follow up within [X] days.';
         } else {
             $template = 'Item "%s" needs improvement. While partially meeting standards, additional attention is recommended.';
         }
 
         return [
-            'suggestion' => sprintf( $template, $item_label ),
-            'source'     => 'generic',
+            'suggestion' => sprintf($template, $item_label),
+            'source' => 'generic',
         ];
     }
 }

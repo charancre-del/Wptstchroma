@@ -8,12 +8,18 @@
 namespace ChromaQA\Admin;
 
 // Get current settings
+// Helper to mask secrets
+$mask_secret = function($val) {
+    return !empty($val) ? '********************' : '';
+};
+
 $google_client_id = get_option('cqa_google_client_id', '');
-$google_client_secret = get_option('cqa_google_client_secret', '');
-$gemini_api_key = get_option('cqa_gemini_api_key', '');
+$google_client_secret = $mask_secret(get_option('cqa_google_client_secret', ''));
+$gemini_api_key = $mask_secret(get_option('cqa_gemini_api_key', ''));
 $drive_root_folder = get_option('cqa_drive_root_folder', '');
 $company_name = get_option('cqa_company_name', 'Chroma Early Learning Academy');
-$google_maps_api_key = get_option('cqa_google_maps_api_key', '');
+$google_maps_api_key = $mask_secret(get_option('cqa_google_maps_api_key', ''));
+$google_developer_key = $mask_secret(get_option('cqa_google_developer_key', ''));
 ?>
 
 <div class="wrap cqa-wrap">
@@ -327,6 +333,69 @@ $google_maps_api_key = get_option('cqa_google_maps_api_key', '');
                                 </p>
                             </td>
                         </tr>
+                    </table>
+                </div>
+            </div>
+            <!-- System Status -->
+            <div class="cqa-card">
+                <div class="cqa-card-header">
+                    <h2>
+                        <span class="dashicons dashicons-performance"></span>
+                        <?php esc_html_e('System Status', 'chroma-qa-reports'); ?>
+                    </h2>
+                </div>
+                <div class="cqa-card-body">
+                    <p class="description">
+                        <?php esc_html_e('Technical requirements and environment status.', 'chroma-qa-reports'); ?>
+                    </p>
+                    <table class="wp-list-table widefat fixed striped" style="margin-top: 15px;">
+                        <thead>
+                            <tr>
+                                <th><?php esc_html_e('Requirement', 'chroma-qa-reports'); ?></th>
+                                <th><?php esc_html_e('Status', 'chroma-qa-reports'); ?></th>
+                                <th><?php esc_html_e('Details', 'chroma-qa-reports'); ?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong><?php esc_html_e('PDF Generation', 'chroma-qa-reports'); ?></strong></td>
+                                <td>
+                                    <?php
+                                    $pdf = new \ChromaQA\Export\PDF_Generator();
+                                    $available_libs = $pdf->get_available_libraries();
+                                    if (!empty($available_libs)):
+                                        ?>
+                                        <span class="cqa-status-badge success">
+                                            <span class="dashicons dashicons-yes-alt"></span>
+                                            <?php echo esc_html(implode(', ', $available_libs)); ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="cqa-status-badge error">
+                                            <span class="dashicons dashicons-no-alt"></span>
+                                            <?php esc_html_e('Missing', 'chroma-qa-reports'); ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if (empty($available_libs)): ?>
+                                        <code style="font-size: 11px;">composer require dompdf/dompdf</code>
+                                    <?php else: ?>
+                                        <?php esc_html_e('Ready for export.', 'chroma-qa-reports'); ?>
+                                    <?php endif; ?>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong><?php esc_html_e('PHP Version', 'chroma-qa-reports'); ?></strong></td>
+                                <td>
+                                    <?php if (version_compare(PHP_VERSION, '7.4', '>=')): ?>
+                                        <span class="cqa-status-badge success"><?php echo esc_html(PHP_VERSION); ?></span>
+                                    <?php else: ?>
+                                        <span class="cqa-status-badge error"><?php echo esc_html(PHP_VERSION); ?></span>
+                                    <?php endif; ?>
+                                </td>
+                                <td><?php esc_html_e('Min: 7.4', 'chroma-qa-reports'); ?></td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>

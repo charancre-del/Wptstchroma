@@ -192,11 +192,17 @@ export function StepReview({ onBack, isViewMode = false }) {
                         AI Summary Preview
                     </h3>
                     <div className="prose prose-sm max-w-none text-gray-700">
-                        {report.ai_summary.split('\n').slice(0, 3).map((p, i) => (
-                            <p key={i} className="mb-2">{p}</p>
-                        ))}
-                        {report.ai_summary.split('\n').length > 3 && (
-                            <p className="text-gray-500 italic">... and more</p>
+                        {report.ai_summary?.executive_summary ? (
+                            <>
+                                {report.ai_summary.executive_summary.split('\n').slice(0, 3).map((p, i) => (
+                                    <p key={i} className="mb-2">{p}</p>
+                                ))}
+                                {report.ai_summary.executive_summary.split('\n').length > 3 && (
+                                    <p className="text-gray-500 italic">... and more</p>
+                                )}
+                            </>
+                        ) : (
+                            <p className="text-gray-500 italic">No summary available.</p>
                         )}
                     </div>
                 </div>

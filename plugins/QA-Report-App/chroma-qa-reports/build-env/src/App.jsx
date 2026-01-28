@@ -15,6 +15,7 @@ import Dashboard from './pages/Dashboard';
 import SchoolsPage from './pages/Schools';
 import ReportsPage from './pages/Reports';
 import Settings from './pages/Settings';
+import ErrorBoundary from './components/common/ErrorBoundary';
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -41,22 +42,24 @@ const App = () => {
     }
 
     return (
-        <QueryClientProvider client={queryClient}>
-            <HashRouter>
-                <Routes>
-                    <Route path="/" element={<Shell />}>
-                        <Route index element={<Dashboard />} />
-                        <Route path="schools" element={<SchoolsPage />} />
-                        <Route path="reports" element={<ReportsPage />} />
-                        <Route path="reports/:id" element={<ReportWizard />} />
-                        <Route path="edit/:id" element={<ReportWizard />} />
-                        <Route path="create" element={<ReportWizard />} />
-                        <Route path="settings" element={<Settings />} />
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                    </Route>
-                </Routes>
-            </HashRouter>
-        </QueryClientProvider>
+        <ErrorBoundary>
+            <QueryClientProvider client={queryClient}>
+                <HashRouter>
+                    <Routes>
+                        <Route path="/" element={<Shell />}>
+                            <Route index element={<Dashboard />} />
+                            <Route path="schools" element={<SchoolsPage />} />
+                            <Route path="reports" element={<ReportsPage />} />
+                            <Route path="reports/:id" element={<ReportWizard />} />
+                            <Route path="edit/:id" element={<ReportWizard />} />
+                            <Route path="create" element={<ReportWizard />} />
+                            <Route path="settings" element={<Settings />} />
+                            <Route path="*" element={<Navigate to="/" replace />} />
+                        </Route>
+                    </Routes>
+                </HashRouter>
+            </QueryClientProvider>
+        </ErrorBoundary>
     );
 };
 
