@@ -678,21 +678,24 @@ document.addEventListener('DOMContentLoaded', function () {
    */
   const stickyCta = document.getElementById('sticky-cta');
   if (stickyCta) {
-    // Check if already scrolled on page load
-    if (window.scrollY > 300) {
-      stickyCta.classList.remove('translate-y-full');
-      stickyCta.classList.add('translate-y-0');
-    } else {
-      // Only add listener if not already past threshold
-      const showStickyCta = () => {
-        if (window.scrollY > 300) {
-          stickyCta.classList.remove('translate-y-full');
-          stickyCta.classList.add('translate-y-0');
-          // Remove listener after showing - no ongoing cost
-          window.removeEventListener('scroll', showStickyCta);
-        }
-      };
-      window.addEventListener('scroll', showStickyCta, { passive: true });
-    }
+    // Wrap initial check in RAF to prevent forced reflow (reading scrollY after style mutations)
+    requestAnimationFrame(() => {
+      // Check if already scrolled on page load
+      if (window.scrollY > 300) {
+        stickyCta.classList.remove('translate-y-full');
+        stickyCta.classList.add('translate-y-0');
+      } else {
+        // Only add listener if not already past threshold
+        const showStickyCta = () => {
+          if (window.scrollY > 300) {
+            stickyCta.classList.remove('translate-y-full');
+            stickyCta.classList.add('translate-y-0');
+            // Remove listener after showing - no ongoing cost
+            window.removeEventListener('scroll', showStickyCta);
+          }
+        };
+        window.addEventListener('scroll', showStickyCta, { passive: true });
+      }
+    });
   }
 });
