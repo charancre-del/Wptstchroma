@@ -15,7 +15,9 @@ import {
 import { toast } from 'sonner';
 
 export function StepAISummary() {
-    const { report, responses, setReport } = useReportWizardStore();
+    const report = useReportWizardStore(s => s.report);
+    const responses = useReportWizardStore(s => s.responses);
+    const setReport = useReportWizardStore(s => s.setReport);
     const generateSummary = useGenerateAISummary();
 
     const [isEditing, setIsEditing] = useState(false);

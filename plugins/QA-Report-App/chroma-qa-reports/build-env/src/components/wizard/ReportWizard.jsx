@@ -32,19 +32,19 @@ const ReportWizard = () => {
     // Detect View Mode
     const isViewMode = location.pathname.includes('/reports/') && !location.pathname.includes('/edit');
 
+    // Selectors (Atomic to prevent unnecessary re-renders and hook fluctuations)
+    const draft = useReportWizardStore(s => s.report);
+    const responses = useReportWizardStore(s => s.responses);
+    const photos = useReportWizardStore(s => s.photos);
+    const setDraft = useReportWizardStore(s => s.updateReportData);
+    const setResponses = useReportWizardStore(s => s.setResponses);
+    const setPhotos = useReportWizardStore(s => s.setPhotos);
+    const currentStep = useReportWizardStore(s => s.currentStep);
+    const setCurrentStep = useReportWizardStore(s => s.setStep);
+    const resetWizard = useReportWizardStore(s => s.reset);
+    const hasHydrated = useReportWizardStore(s => s.hasHydrated);
+
     const { addToast } = useUIStore();
-    const {
-        report: draft,
-        responses,
-        photos,
-        updateReportData: setDraft,
-        setResponses,
-        setPhotos,
-        currentStep,
-        setStep: setCurrentStep,
-        reset: resetWizard,
-        hasHydrated // QAR-080
-    } = useReportWizardStore();
 
     const [isDirty, setIsDirty] = useState(false);
 

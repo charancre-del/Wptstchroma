@@ -6,7 +6,8 @@ import { ListChecks, AlertTriangle } from 'lucide-react';
 import { useReportWizardStore } from '@stores/index';
 
 const StepChecklist = ({ draft, updateDraft, nextStep, readOnly = false }) => {
-    const { responses, setResponse } = useReportWizardStore();
+    const responses = useReportWizardStore(s => s.responses);
+    const setResponse = useReportWizardStore(s => s.setResponse);
 
     // Determine checklist type from draft or default to 'tier1'
     const checklistType = draft.report_type || 'tier1';

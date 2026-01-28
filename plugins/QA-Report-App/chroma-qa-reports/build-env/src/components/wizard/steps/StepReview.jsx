@@ -16,7 +16,9 @@ import {
 } from 'lucide-react';
 
 export function StepReview({ onBack, isViewMode = false }) {
-    const { report, responses, photos } = useReportWizardStore();
+    const report = useReportWizardStore(s => s.report);
+    const responses = useReportWizardStore(s => s.responses);
+    const photos = useReportWizardStore(s => s.photos);
     const [showFullDetails, setShowFullDetails] = useState(isViewMode);
     const { data: school } = useSchool(report?.school_id || 0);
 
