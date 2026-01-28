@@ -41,10 +41,14 @@ add_action('wp', function () {
     }
 }, 1);
 
-// Load Backend Components
+// Load Backend Components (Always for CPT registration and API)
 require_once CHROMA_PORTAL_PATH . 'includes/class-cpt-registrar.php';
-require_once CHROMA_PORTAL_PATH . 'includes/class-meta-boxes.php';
 require_once CHROMA_PORTAL_PATH . 'includes/class-api-routes.php';
+
+// Load Admin-only Components
+if (is_admin()) {
+    require_once CHROMA_PORTAL_PATH . 'includes/class-meta-boxes.php';
+}
 
 // Activation Hook
 register_activation_hook(__FILE__, function () {

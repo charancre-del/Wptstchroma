@@ -8,30 +8,23 @@
 
 get_header();
 
-// Get all location regions from taxonomy
-$all_regions = get_terms(array(
-	'taxonomy' => 'location_region',
-	'hide_empty' => true,
-));
+// Get Data Service
+$data_service = Chroma_Data_Service::get_instance();
 
-// Get all published locations
-$locations_query = new WP_Query(array(
-	'post_type' => 'location',
-	'posts_per_page' => -1,
-	'post_status' => 'publish',
-	'orderby' => 'title',
-	'order' => 'ASC',
-	'no_found_rows' => true,
-	'update_post_term_cache' => true,
-	'update_post_meta_cache' => true,
-));
+// Get all location regions from memory
+$all_regions = $data_service->get_regions();
 
-// Helper function to get region color from term meta
-function chroma_get_region_color_from_term($term_id)
+// Get all locations from memory
+$locations = $data_service->get_locations();
+$locations_count = count($locations);
+
+// Helper function to get region color from memory
+function chroma_get_region_color_mem($term_id)
 {
-	$color_bg = get_term_meta($term_id, 'region_color_bg', true);
-	$color_text = get_term_meta($term_id, 'region_color_text', true);
-	$color_border = get_term_meta($term_id, 'region_color_border', true);
+	$data_service = Chroma_Data_Service::get_instance();
+	$color_bg = $data_service->get_term_meta($term_id, 'region_color_bg');
+	$color_text = $data_service->get_term_meta($term_id, 'region_color_text');
+	$color_border = $data_service->get_term_meta($term_id, 'region_color_border');
 
 	// Fallback to default green if no colors set
 	return array(
@@ -53,7 +46,7 @@ function chroma_get_region_color_from_term($term_id)
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
 			<div
 				class="inline-flex items-center gap-2 bg-white border border-chroma-green/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-green shadow-sm mb-6 fade-in-up">
-				<i class="fa-solid fa-map-pin"></i> <?php echo $locations_query->found_posts; ?>+ Campuses
+				<i class="fa-solid fa-map-pin"></i> <?php echo esc_html($locations_count); ?>+ Campuses
 			</div>
 
 			<h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6 fade-in-up"
@@ -78,9 +71,9 @@ function chroma_get_region_color_from_term($term_id)
 						class="filter-btn active whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-ink text-white shadow-md transition-all">
 						<?php echo esc_html(get_theme_mod('chroma_locations_label', 'All Locations')); ?>
 					</button>
-					<?php if (!empty($all_regions) && !is_wp_error($all_regions)): ?>
+					<?php if (!empty($all_regions)): ?>
 						<?php foreach ($all_regions as $region_term):
-							$colors = chroma_get_region_color_from_term($region_term->term_id);
+							$colors = chroma_get_region_color_mem($region_term->term_id);
 							?>
 							<button onclick="filterLocations('<?php echo esc_attr($region_term->slug); ?>')"
 								class="filter-btn whitespace-nowrap px-6 py-4 rounded-full text-xs font-bold uppercase tracking-wider bg-white text-brand-ink/80 hover:bg-<?php echo esc_attr($colors['bg']); ?> hover:text-<?php echo esc_attr($colors['text']); ?> border border-transparent hover:border-<?php echo esc_attr($colors['border']); ?>/20 transition-all">
@@ -115,50 +108,45 @@ function chroma_get_region_color_from_term($term_id)
 			<!-- Locations Container -->
 			<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8" id="locations-grid">
 				<?php
-				if ($locations_query->have_posts()):
-					while ($locations_query->have_posts()):
-						$locations_query->the_post();
-						$location_id = get_the_ID();
-						$location_fields = chroma_get_location_fields($location_id);
-						$location_name = get_the_title();
+				if (!empty($locations)):
+					foreach ($locations as $location):
+						$location_id = $location->ID;
+						$location_name = $location->post_title;
 
-						// Get location meta
-						$city = $location_fields['city'];
-						$state = $location_fields['state'];
-						$zip = $location_fields['zip'];
-						$address = chroma_location_address_line($location_id);
-						$phone = $location_fields['phone'];
-						$lat = $location_fields['latitude'];
-						$lng = $location_fields['longitude'];
+						// Get location meta fields from memory
+						$city = $data_service->get_meta($location_id, 'location_city');
+						$state = $data_service->get_meta($location_id, 'location_state', 'GA');
+						$zip = $data_service->get_meta($location_id, 'location_zip');
+						$address = $data_service->get_meta($location_id, 'location_address');
+						$phone = $data_service->get_meta($location_id, 'location_phone');
+						$lat = $data_service->get_meta($location_id, 'location_latitude');
+						$lng = $data_service->get_meta($location_id, 'location_longitude');
 
-						// Get region from taxonomy
+						// Handle Region (Still taxonomy, but we could cache this too in the pre-warm)
 						$location_regions = wp_get_post_terms($location_id, 'location_region');
 						$region_term = !empty($location_regions) && !is_wp_error($location_regions) ? $location_regions[0] : null;
 
-						// Get region name and slug for display and filtering
 						$region_name = $region_term ? $region_term->name : 'Metro Atlanta';
 						$region_slug = $region_term ? $region_term->slug : 'uncategorized';
 
-						// Get colors for this region from term meta
+						// Get colors for this region from memory
 						$colors = $region_term
-							? chroma_get_region_color_from_term($region_term->term_id)
+							? chroma_get_region_color_mem($region_term->term_id)
 							: array('bg' => 'chroma-greenLight', 'text' => 'chroma-green', 'border' => 'chroma-green');
 
-						// Check for special badges
-						$is_featured = get_post_meta($location_id, 'location_featured', true);
-						$is_new = get_post_meta($location_id, 'location_new', true);
-						$is_enrolling = get_post_meta($location_id, 'location_enrolling', true);
-						$is_open = true; // Can add logic for operating hours
-				
-						// Get age ranges/programs
-						$ages_served = get_post_meta($location_id, 'location_ages_served', true) ?: 'Infant - 12y';
-						$special_programs_raw = get_post_meta($location_id, 'location_special_programs', true);
+						// Check for special badges from memory
+						$is_featured = $data_service->get_meta($location_id, 'location_featured');
+						$is_new = $data_service->get_meta($location_id, 'location_new');
+						$is_enrolling = $data_service->get_meta($location_id, 'location_enrolling');
+						$is_open = true;
+
+						$ages_served = $data_service->get_meta($location_id, 'location_ages_served') ?: 'Infant - 12y';
+						$special_programs_raw = $data_service->get_meta($location_id, 'location_special_programs');
 
 						if ($special_programs_raw) {
-							// Explode comma-separated string
 							$special_programs = array_map('trim', explode(',', $special_programs_raw));
 						} else {
-							$special_programs = array('GA Pre-K'); // Default fallback
+							$special_programs = array('GA Pre-K');
 						}
 						?>
 
@@ -218,8 +206,7 @@ function chroma_get_region_color_from_term($term_id)
 							</div>
 						</div>
 
-					<?php endwhile;
-					wp_reset_postdata();
+					<?php endforeach;
 				endif;
 				?>
 			</div>
@@ -252,7 +239,7 @@ function chroma_get_region_color_from_term($term_id)
 								style="animation-delay: 0.5s;"></div>
 						</div>
 						<p class="absolute bottom-4 text-xs font-bold tracking-widest uppercase text-white/60">
-							<?php echo $locations_query->found_posts; ?>+ Locations in Metro Atlanta
+							<?php echo (int) $locations_count; ?>+ Locations in Metro Atlanta
 						</p>
 					</div>
 				</div>

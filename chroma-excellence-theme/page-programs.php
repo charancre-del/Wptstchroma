@@ -8,17 +8,11 @@
 
 get_header();
 
-// Get all programs
-$programs_query = chroma_cached_query(
-    array(
-        'post_type'      => 'program',
-        'posts_per_page' => -1,
-        'orderby'        => 'menu_order',
-        'order'          => 'ASC',
-    ),
-    'programs_page',
-    7 * DAY_IN_SECONDS
-);
+// Get Data Service
+$data_service = Chroma_Data_Service::get_instance();
+
+// Get all programs from memory
+$programs = $data_service->get_programs();
 ?>
 
 <main>
@@ -45,26 +39,26 @@ $programs_query = chroma_cached_query(
     <!-- Programs Grid -->
     <section id="all-programs" class="py-20 bg-brand-cream">
         <div class="max-w-7xl mx-auto px-4 lg:px-6">
-            <?php if ($programs_query->have_posts()): ?>
+            <?php if (!empty($programs)): ?>
                 <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     <?php
                     $delay_class = '';
                     $delay_counter = 0;
-                    while ($programs_query->have_posts()):
-                        $programs_query->the_post();
+                    foreach ($programs as $program):
+                        $program_id = $program->ID;
 
-                        // Get program meta
-                        $age_range = chroma_get_translated_meta(get_the_ID(), 'program_age_range');
-                        $features = chroma_get_translated_meta(get_the_ID(), 'program_features');
-                        $cta_text = chroma_get_translated_meta(get_the_ID(), 'program_cta_text') ?: __('Schedule Tour', 'chroma-excellence');
-                        $cta_link = chroma_get_translated_meta(get_the_ID(), 'program_cta_link') ?: '#tour';
-                        $color_scheme = get_post_meta(get_the_ID(), 'program_color_scheme', true) ?: 'red';
+                        // Get program meta from memory
+                        $age_range = $data_service->get_translated_meta($program_id, 'program_age_range');
+                        $features = $data_service->get_translated_meta($program_id, 'program_features');
+                        $cta_text = $data_service->get_translated_meta($program_id, 'program_cta_text') ?: __('Schedule Tour', 'chroma-excellence');
+                        $cta_link = $data_service->get_translated_meta($program_id, 'program_cta_link') ?: '#tour';
+                        $color_scheme = $data_service->get_meta($program_id, 'program_color_scheme', 'red');
 
                         // Parse features into array
                         $features_array = $features ? array_filter(array_map('trim', explode("\n", $features))) : array();
 
                         // Get featured image
-                        $thumbnail_url = get_the_post_thumbnail_url(get_the_ID(), 'large');
+                        $thumbnail_url = get_the_post_thumbnail_url($program_id, 'large');
                         if (!$thumbnail_url) {
                             $thumbnail_url = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=600&auto=format&fit=crop';
                         }
@@ -89,18 +83,20 @@ $programs_query = chroma_cached_query(
                         <!-- Program Card -->
                         <div
                             class="relative group bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition-all hover:-translate-y-1 flex flex-col h-full fade-in-up <?php echo esc_attr($delay_class); ?>">
-                            <a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0" aria-label="View details for <?php the_title_attribute(); ?>"></a>
+                            <a href="<?php echo get_permalink($program_id); ?>" class="absolute inset-0 z-0"
+                                aria-label="View details for <?php echo esc_attr($program->post_title); ?>"></a>
                             <div class="h-48 rounded-[2rem] overflow-hidden mb-6 relative">
                                 <div
                                     class="absolute inset-0 bg-<?php echo esc_attr($colors['light']); ?> group-hover:bg-transparent transition-colors duration-500 z-10">
                                 </div>
-                                <?php if (has_post_thumbnail()): ?>
-                                    <?php the_post_thumbnail('large', array(
+                                <?php if (has_post_thumbnail($program_id)): ?>
+                                    <?php echo get_the_post_thumbnail($program_id, 'large', array(
                                         'class' => 'w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700',
-                                        'alt' => get_the_title(),
+                                        'alt' => $program->post_title,
                                     )); ?>
                                 <?php else: ?>
-                                    <img src="<?php echo esc_url($thumbnail_url); ?>" alt="<?php echo esc_attr(get_the_title()); ?>"
+                                    <img src="<?php echo esc_url($thumbnail_url); ?>"
+                                        alt="<?php echo esc_attr($program->post_title); ?>"
                                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
                                 <?php endif; ?>
 
@@ -112,7 +108,8 @@ $programs_query = chroma_cached_query(
                                 <?php endif; ?>
                             </div>
 
-                            <h3 class="font-serif text-2xl font-bold text-brand-ink mb-2"><?php the_title(); ?></h3>
+                            <h3 class="font-serif text-2xl font-bold text-brand-ink mb-2">
+                                <?php echo esc_html($program->post_title); ?></h3>
 
                             <p class="text-sm text-brand-ink/90 mb-6 flex-grow">
                                 <?php echo has_excerpt() ? get_the_excerpt() : wp_trim_words(get_the_content(), 20); ?>
@@ -135,12 +132,13 @@ $programs_query = chroma_cached_query(
                             </a>
                         </div>
 
-                    <?php endwhile;
-                    wp_reset_postdata(); ?>
+                    <?php endforeach; ?>
                 </div>
             <?php else: ?>
                 <div class="text-center py-20">
-                    <p class="text-brand-ink/90 text-lg"><?php _e('No programs found. Please add programs from the WordPress admin.', 'chroma-excellence'); ?></p>
+                    <p class="text-brand-ink/90 text-lg">
+                        <?php _e('No programs found. Please add programs from the WordPress admin.', 'chroma-excellence'); ?>
+                    </p>
                 </div>
             <?php endif; ?>
         </div>
@@ -155,7 +153,8 @@ $programs_query = chroma_cached_query(
                     class="relative bg-chroma-blueDark text-white rounded-[3rem] p-10 lg:p-12 shadow-2xl overflow-hidden">
                     <div class="absolute top-0 right-0 p-12 opacity-10 text-9xl"><i
                             class="fa-brands fa-connectdevelop"></i></div>
-                    <h3 class="font-serif text-3xl font-bold mb-6 relative z-10"><?php _e('The Prismpath™ Model', 'chroma-excellence'); ?></h3>
+                    <h3 class="font-serif text-3xl font-bold mb-6 relative z-10">
+                        <?php _e('The Prismpath™ Model', 'chroma-excellence'); ?></h3>
                     <p class="text-white/80 text-lg leading-relaxed mb-8 relative z-10">
                         <?php _e('Just as a prism refracts light into a full spectrum of color, our proprietary curriculum refracts play into five key pillars of development.', 'chroma-excellence'); ?>
                     </p>
@@ -189,21 +188,26 @@ $programs_query = chroma_cached_query(
                 </div>
             </div>
             <div class="order-1 lg:order-2">
-                <span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Our Methodology', 'chroma-excellence'); ?></span>
-                <h2 class="text-3xl md:text-5xl font-serif font-bold text-brand-ink mb-6"><?php _e('More than just daycare.', 'chroma-excellence'); ?></h2>
+                <span
+                    class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Our Methodology', 'chroma-excellence'); ?></span>
+                <h2 class="text-3xl md:text-5xl font-serif font-bold text-brand-ink mb-6">
+                    <?php _e('More than just daycare.', 'chroma-excellence'); ?></h2>
                 <p class="text-brand-ink/80 text-lg leading-relaxed mb-8">
                     <?php _e('We believe that education isn\'t just about filling a bucket, but lighting a fire. Our curriculum ensures that by the time your child graduates from Chroma, they are not just "school ready"—they are life ready.', 'chroma-excellence'); ?>
                 </p>
                 <div class="grid grid-cols-2 gap-6">
                     <div class="bg-brand-cream p-6 rounded-2xl border border-brand-ink/5">
                         <div class="text-3xl mb-2">🧠</div>
-                        <h4 class="font-bold text-brand-ink mb-1"><?php _e('Cognitive Growth', 'chroma-excellence'); ?></h4>
-                        <p class="text-xs text-brand-ink/90"><?php _e('Critical thinking & problem solving.', 'chroma-excellence'); ?></p>
+                        <h4 class="font-bold text-brand-ink mb-1"><?php _e('Cognitive Growth', 'chroma-excellence'); ?>
+                        </h4>
+                        <p class="text-xs text-brand-ink/90">
+                            <?php _e('Critical thinking & problem solving.', 'chroma-excellence'); ?></p>
                     </div>
                     <div class="bg-brand-cream p-6 rounded-2xl border border-brand-ink/5">
                         <div class="text-3xl mb-2">❤️</div>
                         <h4 class="font-bold text-brand-ink mb-1"><?php _e('Emotional IQ', 'chroma-excellence'); ?></h4>
-                        <p class="text-xs text-brand-ink/90"><?php _e('Empathy, regulation & kindness.', 'chroma-excellence'); ?></p>
+                        <p class="text-xs text-brand-ink/90">
+                            <?php _e('Empathy, regulation & kindness.', 'chroma-excellence'); ?></p>
                     </div>
                 </div>
             </div>
@@ -213,8 +217,11 @@ $programs_query = chroma_cached_query(
     <!-- CTA Section -->
     <section class="py-20 bg-brand-cream">
         <div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">
-            <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-6"><?php _e('Ready to find your fit?', 'chroma-excellence'); ?></h2>
-            <p class="text-brand-ink/80 mb-10"><?php _e('Every campus offers tours so you can meet the teachers, see the classrooms, and experience the Chroma culture firsthand.', 'chroma-excellence'); ?></p>
+            <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-6">
+                <?php _e('Ready to find your fit?', 'chroma-excellence'); ?></h2>
+            <p class="text-brand-ink/80 mb-10">
+                <?php _e('Every campus offers tours so you can meet the teachers, see the classrooms, and experience the Chroma culture firsthand.', 'chroma-excellence'); ?>
+            </p>
             <div class="flex flex-wrap justify-center gap-4">
                 <a href="<?php echo esc_url(home_url('/locations/')); ?>"
                     class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors"><?php _e('Find a Location', 'chroma-excellence'); ?></a>
