@@ -24,6 +24,22 @@
 		type="font/woff2" crossorigin>
 
 	<?php
+	// Hero Image LCP Preload
+	if (is_front_page()) {
+		$chroma_hero_url = get_theme_mod('chroma_home_hero_image');
+		if (!$chroma_hero_url) {
+			$chroma_front_id = get_option('page_on_front');
+			if ($chroma_front_id && has_post_thumbnail($chroma_front_id)) {
+				$chroma_hero_url = get_the_post_thumbnail_url($chroma_front_id, 'hero-large');
+			}
+		}
+		if ($chroma_hero_url) {
+			echo '<link rel="preload" as="image" href="' . esc_url($chroma_hero_url) . '" fetchpriority="high">';
+		}
+	}
+	?>
+
+	<?php
 	$branding = Chroma_Branding_Engine::get_instance();
 	$favicon = $branding->get_setting('assets', 'favicon_url');
 	if ($favicon): ?>

@@ -113,8 +113,9 @@ const ReportWizard = () => {
         { id: 6, title: 'Review & Submit', component: StepReview },
     ];
 
-    const safeStep = Math.min(Math.max(currentStep, 1), steps.length);
-    const CurrentComponent = steps[safeStep - 1]?.component;
+    const safeStep = Math.min(Math.max(currentStep || 1, 1), steps.length);
+    const currentStepDef = steps[safeStep - 1];
+    const CurrentComponent = currentStepDef ? currentStepDef.component : null;
 
     useEffect(() => {
         if (currentStep !== safeStep) {
