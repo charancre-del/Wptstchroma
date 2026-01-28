@@ -110,8 +110,8 @@
 				?>
 				<img src="<?php echo esc_url($logo_url); ?>"
 					alt="<?php echo esc_attr__('Chroma Early Learning', 'chroma-excellence'); ?>"
-					width="<?php echo intval($logo_width_desktop); ?>"
-					height="<?php echo intval($logo_width_desktop); ?>" fetchpriority="high" loading="eager"
+					width="<?php echo intval($logo_width_mobile); ?>" height="<?php echo intval($logo_width_mobile); ?>"
+					fetchpriority="high" loading="eager"
 					class="chroma-logo transition-transform duration-300 group-hover:scale-105 no-lazy"
 					data-no-lazy="1" />
 

@@ -227,7 +227,6 @@ function chroma_resource_hints($urls, $relation_type)
                 $urls[] = 'https://services.leadconnectorhq.com';
                 $urls[] = 'https://images.leadconnectorhq.com';
                 $urls[] = 'https://stcdn.leadconnectorhq.com';
-                $urls[] = 'https://fonts.bunny.net';
         }
 
         if ('dns-prefetch' === $relation_type) {
@@ -243,7 +242,6 @@ function chroma_resource_hints($urls, $relation_type)
                 $urls[] = '//services.leadconnectorhq.com';
                 $urls[] = '//images.leadconnectorhq.com';
                 $urls[] = '//stcdn.leadconnectorhq.com';
-                $urls[] = '//fonts.bunny.net';
         }
 
         return array_unique($urls, SORT_REGULAR);
