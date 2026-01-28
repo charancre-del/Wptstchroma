@@ -63,8 +63,25 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             </div>
         </div>
 
-        <!-- Hero Image Container - inline min-height ensures dimensions before CSS loads -->
-        <div class="relative w-full h-[400px] sm:h-[420px] lg:h-[500px] isolate mt-8 sm:mt-0" style="min-height: 400px;">
+        <!-- Hero Image Container - Critical Hieght Lock to prevent CLS -->
+        <style>
+            .chroma-hero-lock {
+                height: 400px;
+            }
+
+            @media (min-width: 640px) {
+                .chroma-hero-lock {
+                    height: 420px;
+                }
+            }
+
+            @media (min-width: 1024px) {
+                .chroma-hero-lock {
+                    height: 500px;
+                }
+            }
+        </style>
+        <div class="chroma-hero-lock relative w-full isolate mt-8 sm:mt-0" style="contain: layout size;">
             <!-- Background Decorations -->
             <div
                 class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3 hidden sm:block">
@@ -74,19 +91,13 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             </div>
 
             <!-- Main Image Frame - uses bg-brand-cream as placeholder until image loads -->
-            <div
-                class="absolute inset-0 sm:inset-y-0 sm:left-12 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft z-0"
+            <div class="absolute inset-0 sm:inset-y-0 sm:left-12 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft z-0"
                 style="background: linear-gradient(135deg, #FFFCF8 0%, #E3E9EC 100%); contain: layout style paint;">
                 <?php if ($hero_image): ?>
                     <!-- Priority 1: Customizer hero image -->
-                    <img src="<?php echo esc_url($hero_image); ?>" 
-                        class="w-full h-full object-cover no-lazy" 
-                        alt="Chroma Classroom"
-                        width="800" height="600"
-                        fetchpriority="high" 
-                        decoding="sync"
-                        data-no-lazy="1"
-                        data-no-async="1" />
+                    <img src="<?php echo esc_url($hero_image); ?>" class="w-full h-full object-cover no-lazy"
+                        alt="Chroma Classroom" width="800" height="600" fetchpriority="high" decoding="sync"
+                        data-no-lazy="1" data-no-async="1" />
                 <?php elseif ($home_id && has_post_thumbnail($home_id)): ?>
                     <!-- Priority 2: Homepage featured image -->
                     <?php echo get_the_post_thumbnail($home_id, 'hero-large', array(
@@ -100,7 +111,8 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
                     )); ?>
                 <?php elseif (file_exists($hero_video_path)): ?>
                     <!-- Priority 3: Hero video file -->
-                    <video autoplay muted playsinline loop class="w-full h-full object-cover" width="800" height="600" preload="auto">
+                    <video autoplay muted playsinline loop class="w-full h-full object-cover" width="800" height="600"
+                        preload="auto">
                         <source src="<?php echo esc_url($hero_video_url); ?>" type="video/mp4" />
                     </video>
                 <?php else: ?>
@@ -123,8 +135,10 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
                     <i class="fa-solid fa-graduation-cap"></i>
                 </div>
                 <div>
-                    <p class="font-bold text-xs sm:text-sm text-brand-ink"><?php _e('Kindergarten Ready', 'chroma-excellence'); ?></p>
-                    <p class="text-[10px] sm:text-[11px] text-brand-ink"><?php _e('Comprehensive Prep', 'chroma-excellence'); ?></p>
+                    <p class="font-bold text-xs sm:text-sm text-brand-ink">
+                        <?php _e('Kindergarten Ready', 'chroma-excellence'); ?></p>
+                    <p class="text-[10px] sm:text-[11px] text-brand-ink">
+                        <?php _e('Comprehensive Prep', 'chroma-excellence'); ?></p>
                 </div>
             </div>
         </div>

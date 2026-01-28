@@ -80,8 +80,20 @@
     font-display: optional;
   }
 
+  /* Strategy 2: Font Metric Overrides for Outfit Fallback */
+  @font-face {
+    font-family: 'Outfit-Fallback';
+    src: local('Arial');
+    ascent-override: 95%;
+    descent-override: 20%;
+    size-adjust: 100%;
+    font-display: swap;
+  }
+
   html {
     overflow-x: hidden;
+    scrollbar-gutter: stable;
+    /* Strategy 3: Prevent scrollbar shift */
   }
 
   body {

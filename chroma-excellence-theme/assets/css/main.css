@@ -152,7 +152,7 @@ html,
   -moz-tab-size: 4; /* 3 */
   -o-tab-size: 4;
      tab-size: 4; /* 3 */
-  font-family: Outfit, system-ui, sans-serif; /* 4 */
+  font-family: Outfit, Outfit-Fallback, system-ui, sans-serif; /* 4 */
   font-feature-settings: normal; /* 5 */
   font-variation-settings: normal; /* 6 */
   -webkit-tap-highlight-color: transparent; /* 7 */
@@ -581,12 +581,25 @@ video {
     font-display: optional;
   }
 
+/* Strategy 2: Font Metric Overrides for Outfit Fallback */
+
+@font-face {
+    font-family: 'Outfit-Fallback';
+    src: local('Arial');
+    ascent-override: 95%;
+    descent-override: 20%;
+    size-adjust: 100%;
+    font-display: swap;
+  }
+
 html {
     overflow-x: hidden;
+    scrollbar-gutter: stable;
+    /* Strategy 3: Prevent scrollbar shift */
   }
 
 body {
-    font-family: Outfit, system-ui, sans-serif;
+    font-family: Outfit, Outfit-Fallback, system-ui, sans-serif;
     overflow-x: hidden;
   }
 
@@ -4329,7 +4342,7 @@ a:focus:not(:focus-visible),
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 .font-sans {
-  font-family: Outfit, system-ui, sans-serif;
+  font-family: Outfit, Outfit-Fallback, system-ui, sans-serif;
 }
 .font-serif {
   font-family: Playfair Display, ui-serif, Georgia, serif;
@@ -10057,10 +10070,6 @@ img.lazy-loaded {
 
   .sm\:h-12 {
     height: 3rem;
-  }
-
-  .sm\:h-\[420px\] {
-    height: 420px;
   }
 
   .sm\:w-12 {
