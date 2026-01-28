@@ -29,7 +29,7 @@ function chroma_should_load_maps()
  */
 function chroma_enqueue_assets()
 {
-        $script_dependencies = array('jquery');
+        $script_dependencies = array();
 
         // Font Awesome (Subset)
         $fa_path = CHROMA_THEME_DIR . '/assets/css/font-awesome-subset.css';
@@ -393,7 +393,7 @@ add_action('wp_enqueue_scripts', 'chroma_dequeue_cdn_styles', 100);
 function chroma_defer_scripts($tag, $handle, $src)
 {
         // List of scripts to NOT defer
-        $exclude = array('jquery-core', 'jquery');
+        $exclude = array();
 
         if (in_array($handle, $exclude) || is_admin()) {
                 return $tag;
