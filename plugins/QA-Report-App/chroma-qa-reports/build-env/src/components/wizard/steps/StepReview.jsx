@@ -18,7 +18,7 @@ import {
 export function StepReview({ onBack, isViewMode = false }) {
     const { report, responses, photos } = useReportWizardStore();
     const [showFullDetails, setShowFullDetails] = useState(isViewMode);
-    const { data: school } = useSchool(report?.school_id);
+    const { data: school } = useSchool(report?.school_id || 0);
 
     // Validation checks
     const validation = useMemo(() => {
