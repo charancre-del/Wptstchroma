@@ -6,7 +6,9 @@ import { Search, MapPin, Building2, Check, AlertCircle } from 'lucide-react';
 
 export function StepSchoolSelect({ onNext }) {
     const { data: schools, isLoading, error } = useSchools();
-    const { report, setReport } = useReportWizardStore();
+    // Use atomic selectors for stable re-renders
+    const report = useReportWizardStore(s => s.report);
+    const setReport = useReportWizardStore(s => s.setReport);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRegion, setSelectedRegion] = useState('');
 

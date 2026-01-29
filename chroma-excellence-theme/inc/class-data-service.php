@@ -106,9 +106,6 @@ class Chroma_Data_Service
             }
         }
 
-        // Store locations
-        $this->locations = $location_posts;
-
         error_log('Chroma Data Service: Pre-warmed ' . count($this->locations) . ' locations and ' . count($this->regions) . ' regions.');
     }
 
