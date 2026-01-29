@@ -77,6 +77,9 @@ const ReportWizard = () => {
 
     // Initialize from Params or Existing Report
     useEffect(() => {
+        // Debug logging to trace Edit mode data flow
+        console.log('[ReportWizard] Init Effect:', { id, existingReport, isViewMode, reportLoading });
+
         if (existingReport && id) {
             setDraft({
                 ...existingReport,
