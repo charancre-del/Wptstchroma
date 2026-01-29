@@ -324,12 +324,10 @@ function chroma_move_jquery_to_footer()
         wp_deregister_script('jquery-core');
         wp_deregister_script('jquery-migrate');
 
-        // Re-register jQuery in footer (but don't enqueue - let dependencies trigger it)
+        // Re-register jQuery in footer and enqueue it
+        // Note: Conditional loading was tried but broke font/logo loading
         wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), array(), null, true);
-        wp_register_script('jquery-core', includes_url('/js/jquery/jquery.min.js'), array(), null, true);
-
-        // Note: jQuery will only load if another script has it as a dependency
-        // The theme's main.js does NOT depend on jQuery, saving 30KB on most pages
+        wp_enqueue_script('jquery');
 }
 add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
 
