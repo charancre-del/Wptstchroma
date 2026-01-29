@@ -306,26 +306,30 @@ function chroma_async_styles($html, $handle, $href, $media)
 add_filter('style_loader_tag', 'chroma_async_styles', 10, 4);
 
 /**
- * Move jQuery to Footer for Performance (LCP)
+ * Move jQuery to Footer and Make Loading Conditional (LCP Optimization)
  * 
- * Deregisters core jQuery and re-registers it in the footer.
- * Considers admin bar and login status.
+ * LIGHTHOUSE FIX: Reduce unused JavaScript
+ * Only loads jQuery if another script explicitly depends on it.
+ * Deregisters core jQuery and re-registers in footer only when needed.
  */
 function chroma_move_jquery_to_footer()
 {
-        // Do not move if admin bar is showing (prevents breakage)
+        // Do not modify if admin or logged in (admin bar needs jQuery)
         if (is_admin() || is_user_logged_in()) {
                 return;
         }
 
+        // Deregister core jQuery (we'll conditionally re-add if needed)
         wp_deregister_script('jquery');
         wp_deregister_script('jquery-core');
         wp_deregister_script('jquery-migrate');
 
-        // Re-register jQuery in footer
-        // Uses includes_url() to maintain compatibility with WP versioning
-        wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), false, null, true);
-        wp_enqueue_script('jquery');
+        // Re-register jQuery in footer (but don't enqueue - let dependencies trigger it)
+        wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), array(), null, true);
+        wp_register_script('jquery-core', includes_url('/js/jquery/jquery.min.js'), array(), null, true);
+
+        // Note: jQuery will only load if another script has it as a dependency
+        // The theme's main.js does NOT depend on jQuery, saving 30KB on most pages
 }
 add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
 
