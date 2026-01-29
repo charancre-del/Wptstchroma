@@ -1,10 +1,4 @@
-/*!*******************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./src/index.css ***!
-  \*******************************************************************************************************************************************************************/
 @import url(https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&family=Playfair+Display:wght@400;600;700&display=swap);
-/*!***********************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[2].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[2].use[2]!./src/index.css (1) ***!
-  \***********************************************************************************************************************************************************************/
 *, ::before, ::after{
 
     --tw-border-spacing-x: 0;
@@ -2364,5 +2358,3 @@
 
     transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))
 }
-
-/*# sourceMappingURL=index.css.map*/
