@@ -329,18 +329,50 @@
         }
     };
 
+    /**
+     * Load Google Maps script dynamically
+     */
+    CQA.SchoolMap.loadGoogleMaps = function (callback) {
+        if (typeof google !== 'undefined' && google.maps) {
+            callback();
+            return;
+        }
+
+        var apiKey = cqaAdmin.googleMapsApiKey || ''; // Map key from localized data
+        if (!apiKey) {
+            console.error('Google Maps API Key not found');
+            CQA.SchoolMap.showErrorMessage();
+            return;
+        }
+
+        // Use standard script injection to avoid jQuery dependency issues during load
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://maps.googleapis.com/maps/api/js?key=' + apiKey + '&callback=CQA.SchoolMap.handleMapLoaded';
+        script.async = true;
+        script.defer = true;
+
+        // Store callback globally for the JSONP-style Map API callback
+        window.CQA.SchoolMap.onMapLoaded = callback;
+
+        document.head.appendChild(script);
+    };
+
+    /**
+     * Map API callback handler
+     */
+    CQA.SchoolMap.handleMapLoaded = function () {
+        if (window.CQA.SchoolMap.onMapLoaded) {
+            window.CQA.SchoolMap.onMapLoaded();
+        }
+    };
+
     // Initialize when map container exists
     $(document).ready(function () {
         if ($('#school-map').length) {
-            // Wait for Google Maps to load
-            if (typeof google !== 'undefined' && google.maps) {
+            CQA.SchoolMap.loadGoogleMaps(function () {
                 CQA.SchoolMap.init();
-            } else {
-                // Try again after a delay
-                setTimeout(function () {
-                    CQA.SchoolMap.init();
-                }, 1000);
-            }
+            });
         }
     });
 

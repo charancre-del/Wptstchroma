@@ -69,7 +69,7 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
         };
 
         fetchLatestReport();
-    }, [selectedSchool?.id]);
+    }, [selectedSchool?.id, updateDraft, draft.previous_report_id]);
 
     const handleSelectSchool = (school) => {
         setSelectedSchool(school);
@@ -136,7 +136,7 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
                                 >
                                     <div>
                                         <div className="font-medium text-gray-900">{school.name}</div>
-                                        <div className="text-xs text-gray-500">{school.region} • Tier {school.tier || 1}</div>
+                                        <div className="text-xs text-gray-500">{school.region} • Tier {school.tier !== undefined ? school.tier : 1}</div>
                                     </div>
                                     {draft.school_id === school.id && (
                                         <span className="text-cqa-primary font-bold text-sm">Selected</span>

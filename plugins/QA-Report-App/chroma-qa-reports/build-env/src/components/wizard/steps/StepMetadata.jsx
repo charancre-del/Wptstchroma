@@ -32,7 +32,8 @@ const StepMetadata = ({ draft, updateDraft }) => {
                     <input
                         type="date"
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none"
-                        value={draft.inspection_date}
+                        value={draft.inspection_date || ''}
+                        max={new Date().toISOString().split('T')[0]}
                         onChange={(e) => handleChange('inspection_date', e.target.value)}
                         required
                     />

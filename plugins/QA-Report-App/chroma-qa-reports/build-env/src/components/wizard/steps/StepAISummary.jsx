@@ -15,7 +15,9 @@ import {
 import { toast } from 'sonner';
 
 export function StepAISummary() {
-    const { report, responses, setReport } = useReportWizardStore();
+    const report = useReportWizardStore(s => s.report);
+    const responses = useReportWizardStore(s => s.responses);
+    const setReport = useReportWizardStore(s => s.setReport);
     const generateSummary = useGenerateAISummary();
 
     const [isEditing, setIsEditing] = useState(false);
@@ -33,9 +35,15 @@ export function StepAISummary() {
                 reportId: report.id,
                 checklistData: responses
             });
+
+            // Standardize result structure - expect an object with executive_summary
+            const summaryObj = typeof result.summary === 'string'
+                ? { executive_summary: result.summary }
+                : result.summary;
+
             setReport({
                 ...report,
-                ai_summary: result.summary,
+                ai_summary: summaryObj,
             });
             toast.success('AI Summary generated successfully!');
         } catch (error) {
@@ -45,14 +53,23 @@ export function StepAISummary() {
     };
 
     const handleEdit = () => {
-        setEditedSummary(report?.ai_summary || '');
+        const currentSummary = typeof report?.ai_summary === 'object'
+            ? report.ai_summary?.executive_summary
+            : report?.ai_summary;
+
+        setEditedSummary(currentSummary || '');
         setIsEditing(true);
     };
 
     const handleSaveEdit = () => {
+        const existingSummary = typeof report?.ai_summary === 'object' ? report.ai_summary : {};
+
         setReport({
             ...report,
-            ai_summary: editedSummary,
+            ai_summary: {
+                ...existingSummary,
+                executive_summary: editedSummary,
+            },
         });
         setIsEditing(false);
         toast.success('Summary updated');
@@ -64,8 +81,12 @@ export function StepAISummary() {
     };
 
     const handleCopy = async () => {
-        if (report?.ai_summary) {
-            await navigator.clipboard.writeText(report.ai_summary);
+        const textToCopy = typeof report?.ai_summary === 'object'
+            ? report.ai_summary?.executive_summary
+            : report?.ai_summary;
+
+        if (textToCopy) {
+            await navigator.clipboard.writeText(textToCopy);
             setCopied(true);
             setTimeout(() => setCopied(false), 2000);
             toast.success('Copied to clipboard');
@@ -207,7 +228,7 @@ export function StepAISummary() {
                             </div>
                         ) : (
                             <div className="prose prose-sm max-w-none">
-                                {report.ai_summary.split('\n').map((paragraph, idx) => (
+                                {(report.ai_summary?.executive_summary || report.ai_summary || '').split('\n').map((paragraph, idx) => (
                                     paragraph.trim() && (
                                         <p key={idx} className="text-gray-700 mb-4 last:mb-0">
                                             {paragraph}

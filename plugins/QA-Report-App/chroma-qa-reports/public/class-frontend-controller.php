@@ -346,7 +346,8 @@ class Frontend_Controller
         }
 
         if (class_exists('ChromaQA\Auth\Google_OAuth')) {
-            $user_id = \ChromaQA\Auth\Google_OAuth::handle_login($_GET['code']);
+            $state = isset($_GET['state']) ? sanitize_text_field($_GET['state']) : '';
+            $user_id = \ChromaQA\Auth\Google_OAuth::handle_login($_GET['code'], $state);
             if (!is_wp_error($user_id)) {
                 wp_safe_redirect(home_url('/qa-reports/'));
                 exit;

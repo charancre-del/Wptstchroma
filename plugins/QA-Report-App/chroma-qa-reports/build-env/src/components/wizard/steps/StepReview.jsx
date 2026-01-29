@@ -16,9 +16,11 @@ import {
 } from 'lucide-react';
 
 export function StepReview({ onBack, isViewMode = false }) {
-    const { report, responses, photos } = useReportWizardStore();
+    const report = useReportWizardStore(s => s.report);
+    const responses = useReportWizardStore(s => s.responses);
+    const photos = useReportWizardStore(s => s.photos);
     const [showFullDetails, setShowFullDetails] = useState(isViewMode);
-    const { data: school } = useSchool(report?.school_id);
+    const { data: school } = useSchool(report?.school_id || 0);
 
     // Validation checks
     const validation = useMemo(() => {
@@ -192,11 +194,17 @@ export function StepReview({ onBack, isViewMode = false }) {
                         AI Summary Preview
                     </h3>
                     <div className="prose prose-sm max-w-none text-gray-700">
-                        {report.ai_summary.split('\n').slice(0, 3).map((p, i) => (
-                            <p key={i} className="mb-2">{p}</p>
-                        ))}
-                        {report.ai_summary.split('\n').length > 3 && (
-                            <p className="text-gray-500 italic">... and more</p>
+                        {report.ai_summary?.executive_summary ? (
+                            <>
+                                {report.ai_summary.executive_summary.split('\n').slice(0, 3).map((p, i) => (
+                                    <p key={i} className="mb-2">{p}</p>
+                                ))}
+                                {report.ai_summary.executive_summary.split('\n').length > 3 && (
+                                    <p className="text-gray-500 italic">... and more</p>
+                                )}
+                            </>
+                        ) : (
+                            <p className="text-gray-500 italic">No summary available.</p>
                         )}
                     </div>
                 </div>

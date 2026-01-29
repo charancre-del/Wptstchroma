@@ -19,6 +19,41 @@ class Logger
      * @param mixed  $response Response data.
      * @param string $level    Log level (debug, info, warning, critical).
      */
+    /**
+     * Redact sensitive keys from data.
+     *
+     * @param mixed $data Data to redact.
+     * @return mixed Redacted data.
+     */
+    private static function redact_data($data)
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                if (preg_match('/(password|token|auth|authorization|secret|key|api|access_token|refresh_token|card|cvv)/i', (string) $key)) {
+                    $data[$key] = '***REDACTED***';
+                } else {
+                    $data[$key] = self::redact_data($value);
+                }
+            }
+        } elseif (is_object($data)) {
+            // Convert to array to avoid modifying original object reference or dealing with protected props
+            $data = json_decode(json_encode($data), true);
+            if (is_array($data)) {
+                $data = self::redact_data($data);
+            }
+        }
+        return $data;
+    }
+
+    /**
+     * Log an integration event.
+     * 
+     * @param string $service  Service name (e.g., 'GoogleDrive', 'Gemini').
+     * @param string $action   Action performed.
+     * @param mixed  $request  Request data.
+     * @param mixed  $response Response data.
+     * @param string $level    Log level (debug, info, warning, critical).
+     */
     public static function log($service, $action, $request, $response, $level = 'info')
     {
         $upload_dir = wp_upload_dir();
@@ -27,8 +62,8 @@ class Logger
         if (!file_exists($log_dir)) {
             wp_mkdir_p($log_dir);
             // Protect directory
-            file_put_contents($log_dir . '/index.php', '<?php // Silence');
-            file_put_contents($log_dir . '/.htaccess', 'deny from all');
+            FileSystem::put_contents($log_dir . '/index.php', '<?php // Silence');
+            FileSystem::put_contents($log_dir . '/.htaccess', 'deny from all');
         }
 
         $log_file = $log_dir . '/integration.log';
@@ -40,18 +75,17 @@ class Logger
             'service' => $service,
             'action' => $action,
             'user_id' => get_current_user_id(),
-            'request' => $request,
-            'response' => $response,
+            'request' => self::redact_data($request),
+            'response' => self::redact_data($response),
         ];
 
         error_log(
             sprintf("[CQA][%s][%s] %s: %s", strtoupper($level), $service, $action, json_encode($response))
         );
 
-        file_put_contents(
+        FileSystem::append(
             $log_file,
-            json_encode($entry) . PHP_EOL,
-            FILE_APPEND
+            json_encode($entry) . PHP_EOL
         );
     }
 
@@ -63,6 +97,11 @@ class Logger
     public static function info($service, $action, $request, $response)
     {
         self::log($service, $action, $request, $response, 'info');
+    }
+
+    public static function warn($service, $action, $request, $response)
+    {
+        self::log($service, $action, $request, $response, 'warning');
     }
 
     public static function error($service, $action, $request, $response)

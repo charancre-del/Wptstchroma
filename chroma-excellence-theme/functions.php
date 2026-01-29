@@ -129,13 +129,22 @@ add_action('trash_post', 'chroma_clear_query_cache');
 
 // Core setup and configuration
 require_once CHROMA_THEME_DIR . '/inc/setup.php';
-require_once CHROMA_THEME_DIR . '/inc/critical-css.php';
-require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
-require_once CHROMA_THEME_DIR . '/inc/program-settings.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
-require_once CHROMA_THEME_DIR . '/inc/admin/class-menu-sync.php';
-require_once CHROMA_THEME_DIR . '/inc/chroma-pdf-viewer.php';
-require_once CHROMA_THEME_DIR . '/inc/chroma-booking-modal.php';
+
+// Frontend-only includes
+if (!is_admin() && !wp_doing_cron()) {
+    require_once CHROMA_THEME_DIR . '/inc/critical-css.php';
+    require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
+    require_once CHROMA_THEME_DIR . '/inc/chroma-pdf-viewer.php';
+    require_once CHROMA_THEME_DIR . '/inc/chroma-booking-modal.php';
+}
+
+// Admin-only includes
+if (is_admin()) {
+    require_once CHROMA_THEME_DIR . '/inc/admin/class-menu-sync.php';
+}
+
+require_once CHROMA_THEME_DIR . '/inc/program-settings.php';
 
 // Custom Post Types
 require_once CHROMA_THEME_DIR . '/inc/cpt-programs.php';
@@ -145,6 +154,8 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-team-members.php';
 require_once CHROMA_THEME_DIR . '/inc/cpt-careers.php';
 // require_once CHROMA_THEME_DIR . '/inc/class-program-enhancements.php';
 require_once CHROMA_THEME_DIR . '/inc/class-amp-blog.php';
+require_once CHROMA_THEME_DIR . '/inc/class-data-service.php';
+require_once CHROMA_THEME_DIR . '/inc/class-branding-engine.php';
 
 // API Handlers
 

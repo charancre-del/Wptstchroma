@@ -150,14 +150,30 @@ class Report
         if ($search !== '') {
             $join = " LEFT JOIN {$schools_table} s ON r.school_id = s.id
                       LEFT JOIN {$users_table} u ON r.user_id = u.ID ";
+
             $search_like = '%' . $wpdb->esc_like($search) . '%';
-            $where[] = "(s.name LIKE %s OR u.display_name LIKE %s OR r.report_type LIKE %s OR r.inspection_date LIKE %s OR CAST(r.id AS CHAR) LIKE %s OR CAST(r.school_id AS CHAR) LIKE %s)";
-            $values[] = $search_like;
-            $values[] = $search_like;
-            $values[] = $search_like;
-            $values[] = $search_like;
-            $values[] = $search_like;
-            $values[] = $search_like;
+
+            // Base search conditions (string columns)
+            $conditions = [
+                's.name LIKE %s',
+                'u.display_name LIKE %s',
+                'r.report_type LIKE %s',
+                'r.inspection_date LIKE %s'
+            ];
+            $search_values = [$search_like, $search_like, $search_like, $search_like];
+
+            // Optimized ID search: Only search IDs if the input is numeric
+            // This avoids CAST(id AS CHAR) which kills index performance (QAR-035)
+            if (is_numeric($search)) {
+                $conditions[] = 'r.id = %d';
+                $search_values[] = $search;
+
+                $conditions[] = 'r.school_id = %d';
+                $search_values[] = $search;
+            }
+
+            $where[] = '(' . implode(' OR ', $conditions) . ')';
+            $values = array_merge($values, $search_values);
         }
 
         $allowed_orderby = [
@@ -352,8 +368,24 @@ class Report
             // Delete related photos
             $photos = $this->get_photos();
             foreach ($photos as $photo) {
-                // Delete from Cloud/Local if needed? 
-                // For now we delete record, cleanup script will handle cloud if orphan
+                // [FIX-303] Immediate orphan cleanup (QAR-011).
+                // Delete actual file from Google Drive/Local to prevent storage leaks.
+                if (!empty($photo->drive_file_id)) {
+                    // Check if it's a local attachment or Drive ID
+                    if (strpos($photo->drive_file_id, 'wp_') === 0) {
+                        wp_delete_attachment((int) substr($photo->drive_file_id, 3), true);
+                    } else {
+                        // It's a Google Drive ID
+                        try {
+                            \ChromaQA\Integrations\Google_Drive::delete_file($photo->drive_file_id);
+                        } catch (\Exception $d) {
+                            // Log but don't block deletion of report
+                            error_log("Failed to delete Drive file {$photo->drive_file_id}: " . $d->getMessage());
+                        }
+                    }
+                }
+
+                // Delete photo record
                 $photo->delete();
             }
 

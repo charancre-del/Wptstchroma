@@ -53,8 +53,12 @@ class Plugin
         $this->define_api_hooks();
         $this->define_cron_hooks();
         $this->init_enhancements();
-        $this->force_utc_database_session();
         $this->check_version();
+
+        // Manifest serving
+        add_filter('query_vars', [$this, 'add_query_vars']);
+        add_action('template_redirect', [$this, 'serve_manifest']);
+        add_action('init', [$this, 'add_manifest_rewrite']);
     }
 
     /**
@@ -72,6 +76,9 @@ class Plugin
      */
     private function load_dependencies()
     {
+        // Services
+        require_once CQA_PLUGIN_DIR . 'includes/services/class-cleanup-service.php';
+
         // Models
         require_once CQA_PLUGIN_DIR . 'includes/models/class-school.php';
         require_once CQA_PLUGIN_DIR . 'includes/models/class-report.php';
@@ -141,11 +148,22 @@ class Plugin
             require_once CQA_PLUGIN_DIR . 'public/class-frontend-controller.php';
         }
 
-        // Admin
-        require_once CQA_PLUGIN_DIR . 'admin/class-admin-menu.php';
+        // Admin (Conditional)
+        if (is_admin()) {
+            require_once CQA_PLUGIN_DIR . 'admin/class-admin-menu.php';
+        }
 
-        // API
-        require_once CQA_PLUGIN_DIR . 'includes/api/class-rest-controller.php';
+        // Settings
+        require_once CQA_PLUGIN_DIR . 'includes/class-settings.php';
+
+        // API (Conditional)
+        if (defined('REST_REQUEST') && REST_REQUEST) {
+            require_once CQA_PLUGIN_DIR . 'includes/api/class-rest-controller.php';
+        } elseif (is_admin()) {
+            // Also need API controller in admin for some shared logic? 
+            // Usually REST-related logic is only needed for REST, but admin might register routes.
+            require_once CQA_PLUGIN_DIR . 'includes/api/class-rest-controller.php';
+        }
     }
 
     /**
@@ -194,6 +212,7 @@ class Plugin
     private function define_cron_hooks()
     {
         add_action('cqa_cleanup_orphaned_media', [$this, 'cleanup_orphaned_media']);
+        add_action('cqa_daily_cleanup', ['ChromaQA\Services\Cleanup_Service', 'daily_cleanup']);
 
         if (!wp_next_scheduled('cqa_cleanup_orphaned_media')) {
             wp_schedule_event(time(), 'weekly', 'cqa_cleanup_orphaned_media');
@@ -224,15 +243,8 @@ class Plugin
     }
 
     /**
-     * Force UTC for database consistency.
+     * AI logic is now contained within services.
      */
-    private function force_utc_database_session()
-    {
-        add_action('init', function () {
-            global $wpdb;
-            $wpdb->query("SET time_zone = '+00:00'");
-        }, 1);
-    }
 
     /**
      * Initialize enhancement modules.
@@ -277,11 +289,45 @@ class Plugin
     }
 
     /**
+     * Register rewrite rules.
+     */
+    public function add_manifest_rewrite()
+    {
+        add_rewrite_rule('^qa-reports/manifest\.json', 'index.php?cqa_manifest=1', 'top');
+    }
+
+    /**
+     * Add query vars.
+     */
+    public function add_query_vars($vars)
+    {
+        $vars[] = 'cqa_manifest';
+        return $vars;
+    }
+
+    /**
+     * Serve manifest with correct headers.
+     */
+    public function serve_manifest()
+    {
+        if (get_query_var('cqa_manifest')) {
+            $manifest_path = CQA_PLUGIN_DIR . 'manifest.json';
+
+            if (file_exists($manifest_path)) {
+                header('Content-Type: application/manifest+json; charset=utf-8');
+                readfile($manifest_path);
+                exit;
+            }
+        }
+    }
+
+    /**
      * Add PWA manifest link to admin head.
      */
     public function add_pwa_manifest()
     {
-        $manifest_url = CQA_PLUGIN_URL . 'manifest.json';
+        // Use dynamic URL to ensure correct headers
+        $manifest_url = home_url('/qa-reports/manifest.json');
         echo '<link rel="manifest" href="' . esc_url($manifest_url) . '">';
         echo '<meta name="theme-color" content="#6366f1">';
         echo '<meta name="apple-mobile-web-app-capable" content="yes">';

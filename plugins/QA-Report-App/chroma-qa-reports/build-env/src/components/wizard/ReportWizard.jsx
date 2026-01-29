@@ -32,18 +32,19 @@ const ReportWizard = () => {
     // Detect View Mode
     const isViewMode = location.pathname.includes('/reports/') && !location.pathname.includes('/edit');
 
+    // Selectors (Atomic to prevent unnecessary re-renders and hook fluctuations)
+    const draft = useReportWizardStore(s => s.report);
+    const responses = useReportWizardStore(s => s.responses);
+    const photos = useReportWizardStore(s => s.photos);
+    const setDraft = useReportWizardStore(s => s.updateReportData);
+    const setResponses = useReportWizardStore(s => s.setResponses);
+    const setPhotos = useReportWizardStore(s => s.setPhotos);
+    const currentStep = useReportWizardStore(s => s.currentStep);
+    const setCurrentStep = useReportWizardStore(s => s.setStep);
+    const resetWizard = useReportWizardStore(s => s.reset);
+    const hasHydrated = useReportWizardStore(s => s.hasHydrated);
+
     const { addToast } = useUIStore();
-    const {
-        report: draft,
-        responses,
-        photos,
-        updateReportData: setDraft,
-        setResponses,
-        setPhotos,
-        currentStep,
-        setStep: setCurrentStep,
-        reset: resetWizard
-    } = useReportWizardStore();
 
     const [isDirty, setIsDirty] = useState(false);
 
@@ -112,8 +113,9 @@ const ReportWizard = () => {
         { id: 6, title: 'Review & Submit', component: StepReview },
     ];
 
-    const safeStep = Math.min(Math.max(currentStep, 1), steps.length);
-    const CurrentComponent = steps[safeStep - 1]?.component;
+    const safeStep = Math.min(Math.max(currentStep || 1, 1), steps.length);
+    const currentStepDef = steps[safeStep - 1];
+    const CurrentComponent = currentStepDef ? currentStepDef.component : null;
 
     useEffect(() => {
         if (currentStep !== safeStep) {
@@ -144,10 +146,10 @@ const ReportWizard = () => {
         }
     };
 
-    const updateDraft = (updates) => {
+    const updateDraft = React.useCallback((updates) => {
         setDraft(updates);
         setIsDirty(true);
-    };
+    }, [setDraft, setIsDirty]);
 
     // Use current ID from hook or param
     const reportState = draft;
@@ -212,12 +214,14 @@ const ReportWizard = () => {
         }
     };
 
-    // LOADING RENDER
-    if (id && reportLoading) {
+    // LOADING RENDER (Fetch or Hydration)
+    if ((id && reportLoading) || (!id && !hasHydrated)) {
         return (
-            <div className="flex flex-col items-center justify-center h-96">
+            <div className="flex flex-col items-center justify-center min-h-[50vh]">
                 <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-ink"></div>
-                <span className="mt-4 text-brand-ink/60 font-medium font-outfit">Loading Report Details...</span>
+                <span className="mt-4 text-brand-ink/60 font-medium font-outfit">
+                    {id ? 'Loading Report Details...' : 'Restoring Draft...'}
+                </span>
             </div>
         );
     }
@@ -225,7 +229,7 @@ const ReportWizard = () => {
     // ERROR RENDER
     if (id && isError) {
         return (
-            <div className="flex items-center justify-center h-96">
+            <div className="flex items-center justify-center min-h-[50vh]">
                 <div className="text-center p-8 bg-chroma-red/5 rounded-3xl border border-chroma-red/20 max-w-lg">
                     <h3 className="text-chroma-red font-bold text-xl mb-2 font-serif">Error Loading Report</h3>
                     <p className="text-brand-ink/70 mb-6 font-outfit">The requested report could not be found or you do not have permission to view it.</p>
@@ -241,7 +245,7 @@ const ReportWizard = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto bg-brand-cream/30 backdrop-blur-sm rounded-3xl shadow-sm border border-brand-ink/10 overflow-hidden min-h-[600px] flex flex-col font-outfit">
+        <div className="max-w-4xl mx-auto bg-brand-cream/30 backdrop-blur-sm rounded-3xl shadow-sm border border-brand-ink/10 overflow-hidden min-h-[60vh] md:min-h-[600px] flex flex-col font-outfit">
             {/* Wizard Header */}
             <div className="bg-brand-cream/50 px-8 py-6 border-b border-brand-ink/5 flex justify-between items-center">
                 <h2 className="text-2xl font-serif font-bold text-brand-ink">

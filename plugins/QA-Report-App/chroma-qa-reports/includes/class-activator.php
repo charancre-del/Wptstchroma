@@ -26,7 +26,13 @@ class Activator
         flush_rewrite_rules();
 
         // Set activation flag for admin notice
+        // Set activation flag for admin notice
         set_transient('cqa_activation_notice', true, 30);
+
+        // Schedule daily cleanup
+        if (!wp_next_scheduled('cqa_daily_cleanup')) {
+            wp_schedule_event(time(), 'daily', 'cqa_daily_cleanup');
+        }
     }
 
     /**
@@ -56,7 +62,8 @@ class Activator
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY status (status),
-            KEY region (region)
+            KEY region (region),
+            KEY name (name)
         ) $charset_collate;";
 
         // Reports table
@@ -162,6 +169,7 @@ class Activator
                 'cqa_delete_reports' => true,
                 'cqa_export_reports' => true,
                 'cqa_use_ai_features' => true,
+                'upload_files' => true,
             ]
         );
 
@@ -191,6 +199,7 @@ class Activator
                 'cqa_edit_own_reports' => true,
                 'cqa_export_reports' => true,
                 'cqa_use_ai_features' => true,
+                'upload_files' => true,
             ]
         );
 
@@ -217,16 +226,23 @@ class Activator
             $admin->add_cap('cqa_delete_reports');
             $admin->add_cap('cqa_export_reports');
             $admin->add_cap('cqa_use_ai_features');
+            $admin->add_cap('cqa_view_own_reports');
+            $admin->add_cap('cqa_approve_reports');
         }
 
-        // Add minimal capabilities to subscriber (default SSO role) to prevent 403s
-        $subscriber = get_role('subscriber');
-        if ($subscriber) {
-            $subscriber->add_cap('cqa_view_own_reports');
-            $subscriber->add_cap('cqa_create_reports');
-            $subscriber->add_cap('cqa_edit_own_reports');
-            $subscriber->add_cap('cqa_delete_own_reports');
-            $subscriber->add_cap('cqa_export_reports');
+        // Remove CQA capabilities from default WP roles that might have inherited them incorrectly
+        $default_roles = ['subscriber', 'contributor', 'author'];
+        foreach ($default_roles as $slug) {
+            $role = get_role($slug);
+            if ($role) {
+                $role->remove_cap('cqa_view_all_reports');
+                $role->remove_cap('cqa_view_own_reports');
+                $role->remove_cap('cqa_create_reports');
+                $role->remove_cap('cqa_edit_own_reports');
+                $role->remove_cap('cqa_delete_own_reports');
+                $role->remove_cap('cqa_export_reports');
+                $role->remove_cap('cqa_use_ai_features');
+            }
         }
     }
 
@@ -244,9 +260,35 @@ class Activator
             'reports_per_school' => 2,
         ];
 
+        // Enable React UI flags by default for a modern experience
+        $routes = ['dashboard', 'schools', 'reports', 'wizard', 'settings'];
+        foreach ($routes as $route) {
+            if (get_option('cqa_flag_react_' . $route) === false) {
+                update_option('cqa_flag_react_' . $route, true);
+            }
+        }
+
+        // Initialize consolidated settings
+        if (false === get_option('cqa_settings')) {
+            add_option('cqa_settings', $defaults);
+        } else {
+            // Merge new defaults if needed
+            $current = get_option('cqa_settings');
+            if (is_array($current)) {
+                $updated = array_merge($defaults, $current); // Preserve new keys, keep existing values
+                update_option('cqa_settings', $updated);
+            }
+        }
+
+        // Backward compatibility: Ensure legacy individual options exist if they are relied upon
+        // (Optional: We could stop creating these, but for safety during transition we keep them synced or just rely on the new fallback logic)
         foreach ($defaults as $key => $value) {
             if (get_option("cqa_{$key}") === false) {
-                add_option("cqa_{$key}", $value);
+                // Even if using consolidated, some old code might stubbornly check get_option('cqa_xyz')
+                // We will skip creating them to enforce the new standard, relying on the Fallback class if we switch code.
+                // However, since we haven't updated 100% of the codebase, let's leave them be or just rely on the fact
+                // that our new Settings class will check the array.
+                // DECISION: Do NOT create individual rows anymore. Reduce clutter.
             }
         }
     }

@@ -18,6 +18,7 @@ function chroma_print_critical_css()
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Light.woff2') format('woff2');
         }
+
         @font-face {
             font-family: 'Outfit';
             font-style: normal;
@@ -25,6 +26,7 @@ function chroma_print_critical_css()
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Regular.woff2') format('woff2');
         }
+
         @font-face {
             font-family: 'Outfit';
             font-style: normal;
@@ -32,6 +34,7 @@ function chroma_print_critical_css()
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Medium.woff2') format('woff2');
         }
+
         @font-face {
             font-family: 'Outfit';
             font-style: normal;
@@ -39,6 +42,7 @@ function chroma_print_critical_css()
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-SemiBold.woff2') format('woff2');
         }
+
         @font-face {
             font-family: 'Outfit';
             font-style: normal;
@@ -46,6 +50,7 @@ function chroma_print_critical_css()
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Bold.woff2') format('woff2');
         }
+
         @font-face {
             font-family: 'Playfair Display';
             font-style: normal;
@@ -53,6 +58,7 @@ function chroma_print_critical_css()
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-SemiBold.woff2') format('woff2');
         }
+
         @font-face {
             font-family: 'Playfair Display';
             font-style: normal;
@@ -60,6 +66,7 @@ function chroma_print_critical_css()
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-Bold.woff2') format('woff2');
         }
+
         @font-face {
             font-family: 'Playfair Display';
             font-style: normal;
@@ -85,31 +92,40 @@ function chroma_print_critical_css()
         body {
             margin: 0;
             line-height: inherit;
-           	/* Font Metric Overrides to prevent CLS */
-	@font-face {
-		font-family: 'Outfit-Fallback';
-		src: local('Arial');
-		ascent-override: 98%;
-		descent-override: 24%;
-		line-gap-override: 0%;
-		size-adjust: 100%;
-	}
-	@font-face {
-		font-family: 'Playfair-Fallback';
-		src: local('Georgia');
-		ascent-override: 95%;
-		descent-override: 20%;
-		line-gap-override: 0%;
-		size-adjust: 100%;
-	}
 
-	body {
-		font-family: Outfit, "Outfit-Fallback", system-ui, sans-serif;
-	}
+            /* Font Metric Overrides to prevent CLS */
+            @font-face {
+                font-family: 'Outfit-Fallback';
+                src: local('Arial');
+                ascent-override: 98%;
+                descent-override: 24%;
+                line-gap-override: 0%;
+                size-adjust: 100%;
+            }
 
-	h1, h2, h3, h4, h5, h6, .font-serif {
-		font-family: "Playfair Display", "Playfair-Fallback", serif;
-	}
+            @font-face {
+                font-family: 'Playfair-Fallback';
+                src: local('Georgia');
+                ascent-override: 95%;
+                descent-override: 20%;
+                line-gap-override: 0%;
+                size-adjust: 100%;
+            }
+
+            body {
+                font-family: var(--cqa-font-body);
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6,
+            .font-serif {
+                font-family: var(--cqa-font-heading);
+            }
+
             overflow-x: hidden
         }
 
@@ -157,7 +173,7 @@ function chroma_print_critical_css()
 
         /* Critical Colors */
         .bg-brand-cream {
-            background-color: rgb(255 252 248)
+            background-color: var(--cqa-bg)
         }
 
         .bg-white {
@@ -169,11 +185,11 @@ function chroma_print_critical_css()
         }
 
         .bg-brand-ink {
-            background-color: rgb(38 50 56)
+            background-color: var(--cqa-ink)
         }
 
         .text-brand-ink {
-            color: rgb(38 50 56)
+            color: var(--cqa-ink)
         }
 
         .text-white {
@@ -181,11 +197,11 @@ function chroma_print_critical_css()
         }
 
         .text-chroma-blue {
-            color: rgb(74 108 124)
+            color: var(--cqa-primary)
         }
 
         .bg-chroma-blue {
-            background-color: rgb(74 108 124)
+            background-color: var(--cqa-primary)
         }
 
         .bg-chroma-green {
@@ -193,7 +209,7 @@ function chroma_print_critical_css()
         }
 
         .border-chroma-blue\/10 {
-            border-color: rgba(74, 108, 124, .1)
+            border-color: rgba(var(--cqa-primary-rgb), .1)
         }
 
         /* Critical Header */
@@ -316,7 +332,7 @@ function chroma_print_critical_css()
             .lg\:pt-24 {
                 padding-top: 6rem
             }
-        
+
             .lg\:block {
                 display: block
             }
@@ -329,6 +345,7 @@ function chroma_print_critical_css()
                 display: none
             }
         }
+
         .font-bold {
             font-weight: 700
         }
@@ -428,7 +445,7 @@ function chroma_print_critical_css()
             .lg\:pt-24 {
                 padding-top: 6rem
             }
-        
+
             .lg\:block {
                 display: block
             }
@@ -494,13 +511,16 @@ function chroma_print_critical_css()
             .sm\:mt-0 {
                 margin-top: 0
             }
+
             .sm\:inset-y-0 {
                 top: 0;
                 bottom: 0
             }
+
             .sm\:left-12 {
                 left: 3rem
             }
+
             .sm\:right-0 {
                 right: 0
             }
@@ -510,6 +530,7 @@ function chroma_print_critical_css()
             .lg\:grid-cols-2 {
                 grid-template-columns: repeat(2, minmax(0, 1fr))
             }
+
             .lg\:left-16 {
                 left: 4rem
             }
@@ -530,7 +551,7 @@ function chroma_print_critical_css()
         .right-0 {
             right: 0
         }
-        
+
         .rounded-full {
             border-radius: 9999px
         }
@@ -613,9 +634,11 @@ function chroma_print_critical_css()
         }
 
         /* Critical Icons (Prevent CLS) */
-        .fa-solid, .fas {
+        .fa-solid,
+        .fas {
             display: inline-block;
-            width: 1.25em; /* Default width for standard icons */
+            width: 1.25em;
+            /* Default width for standard icons */
             height: 1em;
             overflow: visible;
             vertical-align: -0.125em;

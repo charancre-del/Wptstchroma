@@ -163,13 +163,9 @@ class Admin_Menu
             CQA_VERSION
         );
 
-        // Google Fonts
-        wp_enqueue_style(
-            'cqa-google-fonts',
-            'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-            [],
-            null
-        );
+        // Google Fonts - REMOVED for GDPR/Performance (QAR-038)
+        // Using system font stack in CSS instead.
+        // wp_enqueue_style('cqa-google-fonts', ...);
     }
 
     /**
@@ -288,25 +284,13 @@ class Admin_Menu
 
         // Phase 15: School map on dashboard
         if (strpos($hook, self::MENU_SLUG) !== false && strpos($hook, 'create') === false) {
-            // Google Maps API (only if key configured)
-            $maps_key = get_option('cqa_google_maps_api_key', '');
-            if ($maps_key) {
-                wp_enqueue_script(
-                    'google-maps',
-                    'https://maps.googleapis.com/maps/api/js?key=' . esc_attr($maps_key),
-                    [],
-                    null,
-                    true
-                );
-
-                wp_enqueue_script(
-                    'cqa-school-map',
-                    CQA_PLUGIN_URL . 'admin/js/school-map.js',
-                    ['jquery', 'google-maps', 'cqa-admin-scripts'],
-                    CQA_VERSION,
-                    true
-                );
-            }
+            wp_enqueue_script(
+                'cqa-school-map',
+                CQA_PLUGIN_URL . 'admin/js/school-map.js',
+                ['jquery', 'cqa-admin-scripts'],
+                CQA_VERSION,
+                true
+            );
         }
     }
 
@@ -601,6 +585,13 @@ class Admin_Menu
                     // Extract ID from URL like https://drive.google.com/drive/folders/1abc123...
                     if (preg_match('/folders\/([a-zA-Z0-9_-]+)/', $value, $matches)) {
                         $value = $matches[1];
+                    }
+                }
+
+                // Masking check: If value is all asterisks, do not update (keep existing)
+                if (in_array($field, ['google_client_secret', 'gemini_api_key', 'google_developer_key', 'google_maps_api_key'])) {
+                    if (preg_match('/^\*+$/', $value)) {
+                        continue;
                     }
                 }
 

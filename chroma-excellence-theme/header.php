@@ -8,19 +8,43 @@
 	<link rel="preload" as="font"
 		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Regular.woff2" type="font/woff2"
 		crossorigin>
-	<link rel="preload" as="font" href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-SemiBold.woff2"
-		type="font/woff2" crossorigin>
+	<link rel="preload" as="font"
+		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-SemiBold.woff2" type="font/woff2"
+		crossorigin>
 	<link rel="preload" as="font" href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Bold.woff2"
 		type="font/woff2" crossorigin>
 	<link rel="preload" as="font"
-		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-SemiBold.woff2" type="font/woff2"
-		crossorigin>
+		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-SemiBold.woff2"
+		type="font/woff2" crossorigin>
 	<link rel="preload" as="font"
 		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-Bold.woff2" type="font/woff2"
 		crossorigin>
 	<link rel="preload" as="font"
-		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-ExtraBold.woff2" type="font/woff2"
-		crossorigin>
+		href="<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-ExtraBold.woff2"
+		type="font/woff2" crossorigin>
+
+	<?php
+	// Hero Image LCP Preload
+	if (is_front_page()) {
+		$chroma_hero_url = get_theme_mod('chroma_home_hero_image');
+		if (!$chroma_hero_url) {
+			$chroma_front_id = get_option('page_on_front');
+			if ($chroma_front_id && has_post_thumbnail($chroma_front_id)) {
+				$chroma_hero_url = get_the_post_thumbnail_url($chroma_front_id, 'hero-large');
+			}
+		}
+		if ($chroma_hero_url) {
+			echo '<link rel="preload" as="image" href="' . esc_url($chroma_hero_url) . '" fetchpriority="high">';
+		}
+	}
+	?>
+
+	<?php
+	$branding = Chroma_Branding_Engine::get_instance();
+	$favicon = $branding->get_setting('assets', 'favicon_url');
+	if ($favicon): ?>
+		<link rel="icon" href="<?php echo esc_url($favicon); ?>" />
+	<?php endif; ?>
 
 	<!-- Tier 3: Instant Navigation (Speculation Rules API) -->
 	<script type="speculationrules">
@@ -80,11 +104,14 @@
 						}
 					}
 				</style>
-				<img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?>"
-					srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?> 1x,
-							<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp'); ?> 2x"
-					alt="<?php echo esc_attr__('Chroma Early Learning', 'chroma-excellence'); ?>" width="<?php echo intval($logo_width_desktop); ?>"
-					height="<?php echo intval($logo_width_desktop); ?>" fetchpriority="high" loading="eager"
+				<?php
+				$logo_url = Chroma_Branding_Engine::get_instance()->get_setting('assets', 'logo_url');
+				$logo_url = $logo_url ?: get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp';
+				?>
+				<img src="<?php echo esc_url($logo_url); ?>"
+					alt="<?php echo esc_attr__('Chroma Early Learning', 'chroma-excellence'); ?>"
+					width="<?php echo intval($logo_width_mobile); ?>" height="<?php echo intval($logo_width_mobile); ?>"
+					fetchpriority="high" loading="eager"
 					class="chroma-logo transition-transform duration-300 group-hover:scale-105 no-lazy"
 					data-no-lazy="1" />
 
@@ -96,11 +123,11 @@
 				?>
 				<div class="block leading-tight">
 					<span class="block font-sans text-xl lg:text-2xl font-bold text-brand-ink">
-						<?php echo esc_html( __($first_line, 'chroma-excellence') ); ?>
+						<?php echo esc_html(__($first_line, 'chroma-excellence')); ?>
 					</span>
 					<?php foreach ($lines as $line): ?>
 						<span class="block text-[10px] lg:text-xs font-bold tracking-[0.15em] text-chroma-blue uppercase">
-							<?php echo esc_html( __($line, 'chroma-excellence') ); ?>
+							<?php echo esc_html(__($line, 'chroma-excellence')); ?>
 						</span>
 					<?php endforeach; ?>
 				</div>
@@ -128,7 +155,8 @@
 			</nav>
 
 			<!-- Mobile Menu Toggle -->
-			<button data-mobile-nav-toggle class="lg:hidden text-brand-ink p-2" aria-label="<?php esc_attr_e('Toggle menu', 'chroma-excellence'); ?>">
+			<button data-mobile-nav-toggle class="lg:hidden text-brand-ink p-2"
+				aria-label="<?php esc_attr_e('Toggle menu', 'chroma-excellence'); ?>">
 				<i class="fa-solid fa-bars text-2xl"></i>
 			</button>
 		</div>
@@ -140,14 +168,14 @@
 		class="fixed inset-0 bg-white transform translate-x-full transition-transform duration-300 lg:hidden flex flex-col h-full w-full overflow-hidden"
 		style="z-index: 9999;">
 		<div class="flex items-center justify-between p-4 border-b border-brand-ink/5">
-			<div class="flex items-center gap-3"> <img
-					src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_40x40.webp'); ?>"
-					srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_40x40.webp'); ?> 1x,
-				<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?>
-				2x" alt="Chroma Early Learning" width="40" height="40" class="h-10 w-auto" />
-				<span class="font-serif text-lg font-bold text-brand-ink"><?php _e('Menu', 'chroma-excellence'); ?></span>
+			<div class="flex items-center gap-3">
+				<img src="<?php echo esc_url($logo_url); ?>" alt="Chroma Early Learning" width="40" height="40"
+					class="h-10 w-auto" />
+				<span
+					class="font-serif text-lg font-bold text-brand-ink"><?php _e('Menu', 'chroma-excellence'); ?></span>
 			</div>
-			<button data-mobile-nav-toggle class="text-3xl text-brand-ink" aria-label="<?php esc_attr_e('Close menu', 'chroma-excellence'); ?>">&times;</button>
+			<button data-mobile-nav-toggle class="text-3xl text-brand-ink"
+				aria-label="<?php esc_attr_e('Close menu', 'chroma-excellence'); ?>">&times;</button>
 		</div>
 
 		<nav class="flex-1 px-6 py-6 overflow-y-auto">
@@ -168,7 +196,7 @@
 	</div>
 
 	<main id="main-content" class="pt-20 lg:pt-24">
-		<?php 
+		<?php
 		// Disabled to prevent duplication with external plugins
 		// do_action('chroma_breadcrumbs'); 
 		?>

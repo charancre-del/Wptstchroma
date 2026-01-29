@@ -86,6 +86,7 @@ export const useReportWizardStore = create(
             // Wizard state
             currentStep: 1,
             isSubmitting: false,
+            hasHydrated: false, // QAR-080: Hydration Sync
 
             // Report data
             report: {
@@ -103,6 +104,7 @@ export const useReportWizardStore = create(
             photos: [],
 
             // Actions
+            setHasHydrated: (hasHydrated) => set({ hasHydrated }),
             setStep: (step) => set({ currentStep: step }),
             nextStep: () => set((state) => ({ currentStep: state.currentStep + 1 })),
             prevStep: () => set((state) => ({ currentStep: Math.max(1, state.currentStep - 1) })),
@@ -180,6 +182,9 @@ export const useReportWizardStore = create(
                 responses: state.responses,
                 photos: state.photos,
             }),
+            onRehydrateStorage: () => (state) => {
+                state.setHasHydrated(true);
+            },
         }
     )
 );

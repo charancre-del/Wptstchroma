@@ -189,11 +189,22 @@ class School
         $search = trim($args['search']);
         if ($search !== '') {
             $search_like = '%' . $wpdb->esc_like($search) . '%';
-            $where[] = '(s.name LIKE %s OR s.location LIKE %s OR s.region LIKE %s OR CAST(s.id AS CHAR) LIKE %s)';
-            $values[] = $search_like;
-            $values[] = $search_like;
-            $values[] = $search_like;
-            $values[] = $search_like;
+
+            $conditions = [
+                's.name LIKE %s',
+                's.location LIKE %s',
+                's.region LIKE %s'
+            ];
+            $search_values = [$search_like, $search_like, $search_like];
+
+            // Optimize ID search (QAR-035)
+            if (is_numeric($search)) {
+                $conditions[] = 's.id = %d';
+                $search_values[] = $search;
+            }
+
+            $where[] = '(' . implode(' OR ', $conditions) . ')';
+            $values = array_merge($values, $search_values);
         }
 
         $join_parts = [];
@@ -244,9 +255,14 @@ class School
 
         $join = implode(' ', $join_parts);
         $select_clause = implode(', ', $select_fields);
-        $sql = "SELECT {$select_clause} FROM {$table} s {$join} {$where_clause} ORDER BY {$orderby} LIMIT %d OFFSET %d";
-        $values[] = $args['limit'];
-        $values[] = $args['offset'];
+
+        $sql = "SELECT {$select_clause} FROM {$table} s {$join} {$where_clause} ORDER BY {$orderby}";
+
+        if ($args['limit'] != -1) {
+            $sql .= " LIMIT %d OFFSET %d";
+            $values[] = $args['limit'];
+            $values[] = $args['offset'];
+        }
 
         $rows = $wpdb->get_results(
             $wpdb->prepare($sql, $values),

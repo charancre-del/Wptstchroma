@@ -150,6 +150,13 @@ class REST_Controller
             'permission_callback' => [$this, 'check_create_reports_permission'],
         ]);
 
+        // PWA Manifest
+        \register_rest_route(self::NAMESPACE , '/manifest', [
+            'methods' => 'GET',
+            'callback' => [$this, 'get_manifest'],
+            'permission_callback' => '__return_true', // Public
+        ]);
+
         // Upload Report Photos (New)
         \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/photos', [
             'methods' => 'POST',
@@ -357,8 +364,8 @@ class REST_Controller
 
     public function check_settings_permission()
     {
-        // Allow anyone who can create reports to also configure the app (for now)
-        return \current_user_can('cqa_create_reports') || \current_user_can('manage_options');
+        // Enforce strict access for settings (API keys, etc.)
+        return \current_user_can('cqa_manage_settings') || \current_user_can('manage_options');
     }
 
     // ===== CURRENT USER ENDPOINT =====
@@ -402,8 +409,11 @@ class REST_Controller
         // Check Google connection status
         $google_connected = (bool) \get_user_meta($user->ID, 'cqa_google_access_token', true);
 
-        // Calculate approximate nonce expiry (WP nonces last ~24h, we estimate 12h to be safe)
-        $nonce_expires_at = time() + (12 * HOUR_IN_SECONDS);
+        // Calculate actual nonce expiry
+        // WordPress nonces are valid for two 12-hour "ticks".
+        // A nonce generated in tick T is valid during T and T+1.
+        // It expires exactly at the start of tick T+2.
+        $nonce_expires_at = (\wp_nonce_tick() + 1) * 43200;
 
         $response = [
             'success' => true,
@@ -810,20 +820,39 @@ class REST_Controller
 
     public function create_report(WP_REST_Request $request)
     {
+        // Rate Limit: 30 per minute
+        $limit_check = $this->check_rate_limit('create_report', 30, 60);
+        if (\is_wp_error($limit_check)) {
+            return $limit_check;
+        }
+
         // Initialize Report
         $report = new Report();
         $school_id = (int) $request->get_param('school_id');
 
-        // Robust recovery if param is missing from standard getters but exists in payload
         if (empty($school_id)) {
             $params = $request->get_params();
             $school_id = isset($params['school_id']) ? (int) $params['school_id'] : 0;
         }
 
+        // [FIX-205] Validate School Existence & Status
+        $school = School::find($school_id);
+        if (!$school) {
+            return new WP_Error('invalid_school', __('Invalid school ID.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+        if ($school->status !== 'active') {
+            return new WP_Error('inactive_school', __('Cannot create reports for inactive schools.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
         $report->school_id = $school_id;
         $report->user_id = \get_current_user_id();
         $report->report_type = \sanitize_text_field($request->get_param('report_type'));
-        $report->inspection_date = \sanitize_text_field($request->get_param('inspection_date'));
+        $inspection_date = \sanitize_text_field($request->get_param('inspection_date'));
+        $date_check = $this->validate_inspection_date($inspection_date);
+        if (\is_wp_error($date_check)) {
+            return $date_check;
+        }
+        $report->inspection_date = $inspection_date;
         $report->previous_report_id = intval($request->get_param('previous_report_id')) ?: null;
 
         // Auto-link previous report if not provided
@@ -928,12 +957,22 @@ class REST_Controller
         if ($request->has_param('school_id')) {
             $school_id = (int) $request->get_param('school_id');
             if ($school_id > 0) {
+                // [FIX-205] Validate School
+                $school = School::find($school_id);
+                if (!$school) {
+                    return new WP_Error('invalid_school', __('Invalid school ID.', 'chroma-qa-reports'), ['status' => 400]);
+                }
                 $report->school_id = $school_id;
             }
         }
 
         if ($request->has_param('inspection_date')) {
-            $report->inspection_date = \sanitize_text_field($request->get_param('inspection_date'));
+            $inspection_date = \sanitize_text_field($request->get_param('inspection_date'));
+            $date_check = $this->validate_inspection_date($inspection_date);
+            if (\is_wp_error($date_check)) {
+                return $date_check;
+            }
+            $report->inspection_date = $inspection_date;
         }
         if ($request->has_param('previous_report_id')) {
             $report->previous_report_id = intval($request->get_param('previous_report_id')) ?: null;
@@ -1076,6 +1115,12 @@ class REST_Controller
 
     public function generate_ai_summary(WP_REST_Request $request)
     {
+        // Rate Limit: 10 per minute
+        $limit_check = $this->check_rate_limit('ai_summary', 10, 60);
+        if (\is_wp_error($limit_check)) {
+            return $limit_check;
+        }
+
         $report = Report::find($request['id']);
 
         if (!$report) {
@@ -1095,6 +1140,12 @@ class REST_Controller
 
     public function parse_document(WP_REST_Request $request)
     {
+        // Rate Limit: 20 per minute
+        $limit_check = $this->check_rate_limit('parse_document', 20, 60);
+        if (\is_wp_error($limit_check)) {
+            return $limit_check;
+        }
+
         $files = $request->get_file_params();
 
         if (empty($files['document'])) {
@@ -1117,6 +1168,12 @@ class REST_Controller
 
     public function upload_report_photos(WP_REST_Request $request)
     {
+        // Rate Limit: 100 per minute (high volume allowed for bulk upload)
+        $limit_check = $this->check_rate_limit('upload_photos', 100, 60);
+        if (\is_wp_error($limit_check)) {
+            return $limit_check;
+        }
+
         $report_id = $request['id'];
         $files = $request->get_file_params();
 
@@ -1137,6 +1194,10 @@ class REST_Controller
         require_once(ABSPATH . 'wp-admin/includes/image.php');
         require_once(ABSPATH . 'wp-admin/includes/file.php');
         require_once(ABSPATH . 'wp-admin/includes/media.php');
+
+        // Get school folder ID
+        $school = $report->get_school();
+        $folder_id = $school ? $school->drive_folder_id : null;
 
         $uploaded_photos = [];
         $photos = $files['photos'];
@@ -1182,16 +1243,36 @@ class REST_Controller
                     $attach_data = wp_generate_attachment_metadata($attach_id, $movefile['file']);
                     wp_update_attachment_metadata($attach_id, $attach_data);
 
+                    // Try Google Drive Upload
+                    $drive_file_id = 'wp_' . $attach_id;
+                    if (\get_option('cqa_google_client_id')) {
+                        $drive_result = Google_Drive::upload_file($movefile['file'], basename($movefile['file']), $folder_id);
+                        if (!\is_wp_error($drive_result) && isset($drive_result['id'])) {
+                            $drive_file_id = $drive_result['id'];
+
+                            // [FIX-303] Cleanup local file if successfully uploaded to Drive to save server space?
+                            // Actually, WP Media Library needs the file for thumbnails. 
+                            // So we keep it in WP but record the Drive ID as the authority.
+                        }
+                    }
+
                     // Create Photo Record
                     $photo = new \ChromaQA\Models\Photo();
                     $photo->report_id = $report_id;
-                    $photo->section_key = $request['section_key'] ?: 'general'; // Default to general
-                    $photo->drive_file_id = 'wp_' . $attach_id; // Prefix to distinguish from Drive ID
+                    $photo->section_key = $request['section_key'] ?: 'general';
+                    $photo->drive_file_id = $drive_file_id;
                     $photo->filename = basename($movefile['file']);
                     $photo->caption = sanitize_text_field($request['caption'] ?: '');
                     $photo->save();
 
-                    $uploaded_photos[] = $photo;
+                    $uploaded_photos[] = [
+                        'id' => $photo->id,
+                        'section_key' => $photo->section_key,
+                        'filename' => $photo->filename,
+                        'caption' => $photo->caption,
+                        'thumbnail_url' => $photo->get_thumbnail_url(),
+                        'view_url' => $photo->get_view_url(),
+                    ];
                 }
             }
         }
@@ -1355,28 +1436,46 @@ class REST_Controller
         $new_photos = $request->get_param('new_photos');
 
         if (empty($new_photos) || !is_array($new_photos)) {
-            return;
+            // Check item_photos even if new_photos is empty
+            $item_photos = $request->get_param('item_photos');
+            if (empty($item_photos)) {
+                return;
+            }
         }
 
         $report = Report::find($report_id);
-        if (!$report)
+        if (!$report) {
             return;
+        }
+
+        // Get the folder ID from the school
+        $school = $report->get_school();
+        $folder_id = $school ? $school->drive_folder_id : null;
 
         // Consolidate photo processing using memory-efficient method
         $new_photos_captions = $request->get_param('new_photos_captions') ?: [];
         $new_photos_sections = $request->get_param('new_photos_sections') ?: [];
 
-        if (!empty($new_photos)) {
+        if (!empty($new_photos) && is_array($new_photos)) {
+            // [FIX-301] Disable Base64 uploads to prevent memory exhaustion (QAR-018).
+            // Frontend now uses /reports/{id}/photos multipart endpoint.
+            \ChromaQA\Utils\Logger::warn('Legacy', 'Base64 upload attempt blocked', ['count' => count($new_photos)], 'Client should use multipart upload endpoint.');
+
+            /* Legacy Base64 Logic - Disabled
             foreach ($new_photos as $index => $data_url) {
                 $section = !empty($new_photos_sections[$index]) ? $new_photos_sections[$index] : 'general';
                 $caption = !empty($new_photos_captions[$index]) ? $new_photos_captions[$index] : '';
                 $this->process_single_photo($data_url, $report_id, $folder_id, $section, $caption);
             }
+            */
         }
 
         // Handle Item-Specific Photos
-        $item_photos = $request->get_param('item_photos');
         if (!empty($item_photos) && is_array($item_photos)) {
+            // [FIX-301] Disable Base64 uploads (QAR-018)
+            \ChromaQA\Utils\Logger::warn('Legacy', 'Base64 item photos blocked', [], 'Client should use multipart upload endpoint.');
+
+            /* Legacy Base64 Logic - Disabled
             $item_captions = $request->get_param('item_photos_captions') ?: [];
             foreach ($item_photos as $section_key => $items) {
                 foreach ($items as $item_key => $photos) {
@@ -1389,6 +1488,7 @@ class REST_Controller
                     }
                 }
             }
+            */
         }
     }
 
@@ -1567,6 +1667,7 @@ class REST_Controller
             'status_label' => $report->get_status_label(),
             'created_at' => $report->created_at,
             'updated_at' => $report->updated_at,
+            'version_id' => $report->version_id,
             'school_name' => $report->get_school() ? $report->get_school()->name : 'Unknown School',
             'is_mine' => ($report->user_id == \get_current_user_id()),
         ];
@@ -1638,4 +1739,114 @@ class REST_Controller
         return new WP_REST_Response($parsed_data, 200);
     }
 
-} // End Class
+    /**
+     * Validate inspection date.
+     * Ensure YYYY-MM-DD format and no future dates.
+     *
+     * @param string $date Date string.
+     * @return bool|WP_Error
+     */
+    private function validate_inspection_date($date)
+    {
+        if (empty($date)) {
+            // Check if it's optional? Using create_report it seems required or at least processed.
+            // If empty string passed to createFromFormat it might fail or return false.
+            // Let's assume strictness.
+            return new WP_Error('invalid_date', __('Inspection date is required.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
+        $d = \DateTime::createFromFormat('Y-m-d', $date);
+        if (!$d || $d->format('Y-m-d') !== $date) {
+            return new WP_Error('invalid_date_format', __('Invalid date format. Use YYYY-MM-DD.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
+        // Use WP local time for "today" comparison to align with user's timezone expectations
+        $today = \wp_date('Y-m-d');
+        if ($date > $today) {
+            return new WP_Error('future_date', __('Inspection date cannot be in the future.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
+        return true;
+    }
+
+    /**
+     * Check rate limit for the current user/IP.
+     *
+     * @param string $action Action name.
+     * @param int    $limit  Max requests.
+     * @param int    $window Time window in seconds.
+     * @return bool|WP_Error True if allowed, WP_Error if exceeded.
+     */
+    private function check_rate_limit($action, $limit = 60, $window = 60)
+    {
+        $user_id = \get_current_user_id();
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        $key = 'cqa_rl_' . $action . '_' . ($user_id ? $user_id : $ip);
+
+        $data = \get_transient($key);
+
+        if (!$data) {
+            $data = ['count' => 1, 'expiry' => time() + $window];
+            \set_transient($key, $data, $window);
+        } else {
+            if ($data['count'] >= $limit) {
+                return new \WP_Error('rate_limit_exceeded', \__('Too many requests. Please slow down.', 'chroma-qa-reports'), ['status' => 429]);
+            }
+            $data['count']++;
+            // Calculate remaining time
+            $remaining = $data['expiry'] - time();
+            if ($remaining < 0)
+                $remaining = 0;
+            \set_transient($key, $data, $remaining);
+        }
+
+        return true;
+    }
+
+    /**
+     * Get dynamic PWA manifest.
+     *
+     * @return \WP_REST_Response
+     */
+    public function get_manifest()
+    {
+        $plugin_url = CQA_PLUGIN_URL;
+        $admin_url = admin_url('admin.php?page=chroma-qa-reports');
+
+        $manifest = [
+            'name' => 'Chroma QA Reports',
+            'short_name' => 'QA Reports',
+            'description' => 'Quality Assurance Report Management System for Chroma Early Learning Academy',
+            'start_url' => $admin_url,
+            'display' => 'standalone',
+            'background_color' => '#ffffff',
+            'theme_color' => '#6366f1',
+            'orientation' => 'portrait-primary',
+            'icons' => [
+                ['src' => $plugin_url . 'assets/images/icon-72.png', 'sizes' => '72x72', 'type' => 'image/png'],
+                ['src' => $plugin_url . 'assets/images/icon-96.png', 'sizes' => '96x96', 'type' => 'image/png'],
+                ['src' => $plugin_url . 'assets/images/icon-128.png', 'sizes' => '128x128', 'type' => 'image/png'],
+                ['src' => $plugin_url . 'assets/images/icon-144.png', 'sizes' => '144x144', 'type' => 'image/png', 'purpose' => 'any maskable'],
+                ['src' => $plugin_url . 'assets/images/icon-152.png', 'sizes' => '152x152', 'type' => 'image/png'],
+                ['src' => $plugin_url . 'assets/images/icon-192.png', 'sizes' => '192x192', 'type' => 'image/png'],
+                ['src' => $plugin_url . 'assets/images/icon-384.png', 'sizes' => '384x384', 'type' => 'image/png'],
+                ['src' => $plugin_url . 'assets/images/icon-512.png', 'sizes' => '512x512', 'type' => 'image/png'],
+            ],
+            'shortcuts' => [
+                [
+                    'name' => 'Create Report',
+                    'short_name' => 'New Report',
+                    'url' => admin_url('admin.php?page=chroma-qa-reports-create'),
+                    'icons' => [['src' => $plugin_url . 'assets/images/icon-new.png', 'sizes' => '96x96']]
+                ],
+                [
+                    'name' => 'View Schools',
+                    'short_name' => 'Schools',
+                    'url' => admin_url('admin.php?page=chroma-qa-reports-schools')
+                ]
+            ]
+        ];
+
+        return new \WP_REST_Response($manifest, 200, ['Content-Type' => 'application/manifest+json']);
+    }
+}

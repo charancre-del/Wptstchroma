@@ -1,0 +1,19 @@
+{
+    "brand": {
+        "name": "Chroma Early Learning Academy",
+        "primary": "#3b82f6",
+        "secondary": "#ef4444",
+        "accent": "#f59e0b",
+        "ink": "#1e293b",
+        "background": "#f8fafc",
+        "radius": "2rem"
+    },
+    "fonts": {
+        "heading": "Outfit, serif",
+        "body": "Inter, sans-serif"
+    },
+    "assets": {
+        "logo_url": "/wp-content/themes/chroma-excellence-theme/assets/images/logo.svg",
+        "favicon_url": "/wp-content/themes/chroma-excellence-theme/assets/images/favicon.png"
+    }
+}
