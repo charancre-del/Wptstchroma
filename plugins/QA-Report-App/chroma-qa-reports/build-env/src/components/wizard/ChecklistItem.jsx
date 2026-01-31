@@ -2,6 +2,9 @@ import React from 'react';
 import { Star, MessageSquare, Camera } from 'lucide-react';
 
 const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
+    // Consistent with ChecklistSection: use item.key if available, fallback to item.id
+    const itemKey = item.key || item.id;
+
     // Rating Options - Values MUST match backend Checklist_Response constants
     const ratings = [
         { value: 'yes', label: 'Exceeds/Meets', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
@@ -39,7 +42,7 @@ const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
                             role="radio"
                             aria-checked={isSelected}
                             tabIndex={isSelected ? 0 : -1} // Roving tabindex could be implemented, but simple toggle here
-                            onClick={() => !readOnly && onChange(item.id, { ...response, rating: rate.value })}
+                            onClick={() => !readOnly && onChange(itemKey, { ...response, rating: rate.value })}
                             disabled={readOnly}
                             className={`
                                 px-3 py-2 rounded-md text-sm font-medium border transition-colors flex items-center justify-center gap-2
@@ -66,7 +69,7 @@ const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
                         placeholder={readOnly ? "" : "Add notes..."}
                         value={currentNotes}
                         readOnly={readOnly}
-                        onChange={(e) => !readOnly && onChange(item.id, { ...response, notes: e.target.value })}
+                        onChange={(e) => !readOnly && onChange(itemKey, { ...response, notes: e.target.value })}
                     />
                 </div>
 
