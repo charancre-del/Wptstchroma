@@ -26,7 +26,14 @@ class Executive_Summary
     public function generate(Report $report)
     {
         if (!Gemini_Service::is_configured()) {
-            return new \WP_Error('not_configured', __('AI features are not configured.', 'chroma-qa-reports'));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('[CQA DEBUG] AI Summary failed: Gemini Service is not configured.');
+            }
+            return new \WP_Error(
+                'not_configured',
+                __('AI features are not configured. Please enter your Gemini API key in Settings.', 'chroma-qa-reports'),
+                ['status' => 400]
+            );
         }
 
         $school = $report->get_school();

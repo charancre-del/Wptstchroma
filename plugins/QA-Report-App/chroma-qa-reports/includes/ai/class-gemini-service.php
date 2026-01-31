@@ -25,7 +25,13 @@ class Gemini_Service
      */
     public static function get_api_key()
     {
-        return \ChromaQA\Settings::get('gemini_api_key');
+        $key = \ChromaQA\Settings::get('gemini_api_key');
+
+        if (defined('WP_DEBUG') && WP_DEBUG && empty($key)) {
+            error_log('[CQA DEBUG] Gemini_Service::get_api_key - API key is empty.');
+        }
+
+        return $key;
     }
 
     /**
@@ -47,8 +53,9 @@ class Gemini_Service
      */
     public static function generate($prompt, $options = [])
     {
-        if (!self::is_configured()) {
-            return new \WP_Error('not_configured', __('Gemini API key not configured.', 'chroma-qa-reports'));
+        $api_key = self::get_api_key();
+        if (empty($api_key)) {
+            return new \WP_Error('not_configured', __('Gemini API key is not configured.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
         $url = self::API_URL . '?key=' . self::get_api_key();

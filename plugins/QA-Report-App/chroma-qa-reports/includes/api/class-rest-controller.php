@@ -1132,6 +1132,11 @@ class REST_Controller
         $result = $ai->generate($report);
 
         if (\is_wp_error($result)) {
+            // Ensure status code is present to avoid 500 error
+            $data = $result->get_error_data();
+            if (!isset($data['status'])) {
+                $result->add_data(['status' => 400]);
+            }
             return $result;
         }
 
@@ -1348,26 +1353,34 @@ class REST_Controller
     public function update_settings(WP_REST_Request $request)
     {
         $params = $request->get_params();
+        $fields = [
+            'google_client_id',
+            'google_client_secret',
+            'google_developer_key',
+            'gemini_api_key',
+            'enable_ai',
+        ];
 
-        if (isset($params['google_client_id'])) {
-            \update_option('cqa_google_client_id', \sanitize_text_field($params['google_client_id']));
-        }
-        if (isset($params['google_client_secret'])) {
-            \update_option('cqa_google_client_secret', \sanitize_text_field($params['google_client_secret']));
-        }
-        if (isset($params['google_developer_key'])) {
-            \update_option('cqa_google_developer_key', \sanitize_text_field($params['google_developer_key']));
-        }
-        if (isset($params['gemini_api_key'])) {
-            \update_option('cqa_gemini_api_key', \sanitize_text_field($params['gemini_api_key']));
-            if (class_exists('\ChromaQA\Settings')) {
-                \ChromaQA\Settings::update('gemini_api_key', \sanitize_text_field($params['gemini_api_key']));
-            }
-        }
-        if (isset($params['enable_ai'])) {
-            \update_option('cqa_enable_ai', \sanitize_text_field($params['enable_ai']));
-            if (class_exists('\ChromaQA\Settings')) {
-                \ChromaQA\Settings::update('enable_ai', \sanitize_text_field($params['enable_ai']));
+        foreach ($fields as $field) {
+            if (isset($params[$field])) {
+                $value = \sanitize_text_field($params[$field]);
+
+                // Masking protection: If value is all asterisks or dots, do not overwrite existing
+                if (in_array($field, ['google_client_secret', 'gemini_api_key', 'google_developer_key'])) {
+                    if (preg_match('/^[\*•]+$/u', $value)) {
+                        continue;
+                    }
+                }
+
+                \update_option('cqa_' . $field, $value);
+
+                if (class_exists('\\ChromaQA\\Settings')) {
+                    \ChromaQA\Settings::update($field, $value);
+                }
+
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log("[CQA DEBUG] Setting updated via REST: {$field}");
+                }
             }
         }
 
