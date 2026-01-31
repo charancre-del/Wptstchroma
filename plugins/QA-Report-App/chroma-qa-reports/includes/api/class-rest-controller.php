@@ -1397,39 +1397,11 @@ class REST_Controller
         exit;
     }
 
-    /**
-     * Generate AI Executive Summary.
-     *
-     * @param WP_REST_Request $request Request object.
-     * @return WP_REST_Response|WP_Error
-     */
-    public function generate_ai_summary(WP_REST_Request $request)
-    {
-        $report_id = $request['id'];
-        $report = Report::find($report_id);
-
-        if (!$report) {
-            return new \WP_Error('not_found', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
-        }
-
-        if (!Gemini_Service::is_configured()) {
-            return new \WP_Error('not_configured', __('AI features are not configured. Please check settings.', 'chroma-qa-reports'), ['status' => 400]);
-        }
-
-        // Initialize AI Generator
-        $generator = new \ChromaQA\AI\Executive_Summary();
-
-        // Generate summary (this reads responses from DB)
-        $result = $generator->generate($report);
-
-        if (\is_wp_error($result)) {
-            return $result;
-        }
-
-        return new WP_REST_Response($result, 200);
-    }
 
     // ===== HELPERS =====
+
+
+
 
     /**
      * Process report photos (upload to Drive or fallback to Local).
