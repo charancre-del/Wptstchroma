@@ -6,8 +6,8 @@ import { Search, Building, Link as LinkIcon, AlertCircle, FileText } from 'lucid
 const StepSchool = ({ draft, updateDraft, nextStep }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSchool, setSelectedSchool] = useState(null);
-    const [latestReport, setLatestReport] = useState(null);
-    const [isFetchingLatest, setIsFetchingLatest] = useState(false);
+    const [allReports, setAllReports] = useState([]);
+    const [isFetchingReports, setIsFetchingReports] = useState(false);
 
     // Fetch Schools (Paginated/Search)
     const { data: schoolsData, isLoading: isLoadingSchools } = useQuery({
@@ -25,50 +25,41 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
         }
     }, [draft.school_id, schoolsData]);
 
-    // AUDIT FINDING #2: Explicitly fetch latest approved report
-    // Triggered immediately when a school is selected
+    // Fetch ALL reports for the selected school (not just approved)
     useEffect(() => {
-        const fetchLatestReport = async () => {
+        const fetchReportsForSchool = async () => {
             if (!selectedSchool) {
-                setLatestReport(null);
+                setAllReports([]);
                 return;
             }
 
-            setIsFetchingLatest(true);
+            setIsFetchingReports(true);
             try {
-                // Query: school_id=X, status=approved, limit=1, desc sort
+                // Query: All reports for this school, sorted by date desc
                 const response = await apiFetch(
-                    `reports?school_id=${selectedSchool.id}&status=approved&per_page=1&page=1&orderby=inspection_date&order=desc`
+                    `reports?school_id=${selectedSchool.id}&per_page=20&page=1&orderby=inspection_date&order=desc`
                 );
 
-                // Check if response is array or data envelope
                 const reports = Array.isArray(response) ? response : (response.data || []);
+                setAllReports(reports);
 
-                if (reports.length > 0) {
+                // Auto-suggest the most recent report if not already set
+                if (reports.length > 0 && draft.previous_report_id !== 0 && !draft.previous_report_id) {
                     const latest = reports[0];
-                    setLatestReport(latest);
-
-                    // Auto-suggest link if not already set (Default Behavior)
-                    // If user manually set previous_report_id to 0 (No Link), respect it.
-                    if (draft.previous_report_id !== 0 && (!draft.previous_report_id || draft.previous_report_id !== latest.id)) {
-                        updateDraft({
-                            previous_report_id: latest.id,
-                            previous_report_date: latest.inspection_date
-                        });
-                    }
-                } else {
-                    setLatestReport(null);
-                    updateDraft({ previous_report_id: 0, previous_report_date: null });
+                    updateDraft({
+                        previous_report_id: latest.id,
+                        previous_report_date: latest.inspection_date
+                    });
                 }
             } catch (error) {
-                console.error('Failed to fetch latest report', error);
-                setLatestReport(null);
+                console.error('Failed to fetch reports for school', error);
+                setAllReports([]);
             } finally {
-                setIsFetchingLatest(false);
+                setIsFetchingReports(false);
             }
         };
 
-        fetchLatestReport();
+        fetchReportsForSchool();
     }, [selectedSchool?.id, updateDraft, draft.previous_report_id]);
 
     const handleSelectSchool = (school) => {
@@ -81,18 +72,37 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
         });
     };
 
-    const handleLinkOptionChange = (option) => { // 'link' or 'none'
-        if (option === 'link' && latestReport) {
+    const handleLinkOptionChange = (reportId) => {
+        const selectedReport = allReports.find(r => r.id === reportId);
+        if (selectedReport) {
             updateDraft({
-                previous_report_id: latestReport.id,
-                previous_report_date: latestReport.inspection_date
-            });
-        } else {
-            updateDraft({
-                previous_report_id: 0, // SENTINEL VALUE: Explicitly No Link
-                previous_report_date: null
+                previous_report_id: selectedReport.id,
+                previous_report_date: selectedReport.inspection_date
             });
         }
+    };
+
+    const handleNoLink = () => {
+        updateDraft({
+            previous_report_id: 0, // SENTINEL VALUE: Explicitly No Link
+            previous_report_date: null
+        });
+    };
+
+    const handleContinue = () => {
+        if (draft.school_id) {
+            nextStep();
+        }
+    };
+
+    // Helper to get status badge
+    const getStatusBadge = (status) => {
+        const styles = {
+            approved: 'bg-green-100 text-green-800',
+            submitted: 'bg-blue-100 text-blue-800',
+            draft: 'bg-yellow-100 text-yellow-800',
+        };
+        return styles[status] || 'bg-gray-100 text-gray-800';
     };
 
     return (
@@ -150,7 +160,7 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
                 </div>
             </div>
 
-            {/* Linking Section (Audit Finding) */}
+            {/* Linking Section - Shows ALL reports */}
             {selectedSchool && (
                 <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 animate-fade-in">
                     <h3 className="text-md font-medium text-blue-900 mb-3 flex items-center gap-2">
@@ -158,41 +168,65 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
                         Report Linking
                     </h3>
 
-                    {isFetchingLatest ? (
+                    {isFetchingReports ? (
                         <div className="flex items-center gap-2 text-blue-700 text-sm">
                             <span className="spinner w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
                             Checking for previous reports...
                         </div>
-                    ) : latestReport ? (
+                    ) : allReports.length > 0 ? (
                         <div className="space-y-3">
                             <p className="text-sm text-blue-800">
-                                We found a previous approved report for <strong>{selectedSchool.name}</strong> from <strong>{latestReport.inspection_date}</strong>.
+                                Found <strong>{allReports.length}</strong> previous report(s) for <strong>{selectedSchool.name}</strong>. Select one to compare:
                             </p>
 
-                            <div className="flex flex-col gap-2">
-                                <label className="flex items-center gap-3 p-3 bg-white rounded-md border border-blue-200 cursor-pointer hover:border-blue-400 transition-colors">
-                                    <input
-                                        type="radio"
-                                        name="report_link"
-                                        checked={draft.previous_report_id === latestReport.id}
-                                        onChange={() => handleLinkOptionChange('link')}
-                                        className="text-cqa-primary focus:ring-cqa-primary"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="font-medium text-gray-900">Compare with Previous Report</div>
-                                        <div className="text-xs text-gray-500">
-                                            This will show "Improved/Regressed" indicators in the PDF.
+                            <div className="flex flex-col gap-2 max-h-48 overflow-y-auto">
+                                {allReports.map((report) => (
+                                    <label
+                                        key={report.id}
+                                        className={`
+                                            flex items-center gap-3 p-3 bg-white rounded-md border cursor-pointer transition-colors
+                                            ${draft.previous_report_id === report.id
+                                                ? 'border-cqa-primary ring-2 ring-cqa-primary/20'
+                                                : 'border-blue-200 hover:border-blue-400'}
+                                        `}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="report_link"
+                                            checked={draft.previous_report_id === report.id}
+                                            onChange={() => handleLinkOptionChange(report.id)}
+                                            className="text-cqa-primary focus:ring-cqa-primary"
+                                        />
+                                        <div className="flex-1">
+                                            <div className="font-medium text-gray-900 flex items-center gap-2">
+                                                <FileText size={14} />
+                                                {report.inspection_date}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {report.report_type || 'Standard'} Report
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">ID: {latestReport.id}</div>
-                                </label>
+                                        <span className={`px-2 py-0.5 rounded text-xs font-medium capitalize ${getStatusBadge(report.status)}`}>
+                                            {report.status}
+                                        </span>
+                                        <div className="bg-gray-100 px-2 py-1 rounded text-xs font-mono text-gray-600">
+                                            ID: {report.id}
+                                        </div>
+                                    </label>
+                                ))}
 
-                                <label className="flex items-center gap-3 p-3 bg-white rounded-md border border-blue-200 cursor-pointer hover:border-blue-400 transition-colors">
+                                {/* No Link Option */}
+                                <label className={`
+                                    flex items-center gap-3 p-3 bg-white rounded-md border cursor-pointer transition-colors
+                                    ${draft.previous_report_id === 0
+                                        ? 'border-cqa-primary ring-2 ring-cqa-primary/20'
+                                        : 'border-blue-200 hover:border-blue-400'}
+                                `}>
                                     <input
                                         type="radio"
                                         name="report_link"
                                         checked={draft.previous_report_id === 0}
-                                        onChange={() => handleLinkOptionChange('none')}
+                                        onChange={handleNoLink}
                                         className="text-cqa-primary focus:ring-cqa-primary"
                                     />
                                     <div className="flex-1">
@@ -207,9 +241,21 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
                     ) : (
                         <div className="flex items-center gap-2 text-blue-800 bg-white p-3 rounded-md border border-blue-100">
                             <AlertCircle size={18} className="text-blue-500" />
-                            <span className="text-sm">No previous approved reports found. This will be a fresh report.</span>
+                            <span className="text-sm">No previous reports found. This will be a fresh report.</span>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Continue Button */}
+            {selectedSchool && (
+                <div className="flex justify-end pt-4">
+                    <button
+                        onClick={handleContinue}
+                        className="px-6 py-2.5 bg-cqa-primary text-white rounded-lg font-medium hover:bg-cqa-primary/90 transition-colors shadow-sm"
+                    >
+                        Continue to Next Step
+                    </button>
                 </div>
             )}
         </div>
