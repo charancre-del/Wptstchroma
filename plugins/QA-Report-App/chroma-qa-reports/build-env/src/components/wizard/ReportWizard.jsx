@@ -41,8 +41,12 @@ const ReportWizard = () => {
     const setPhotos = useReportWizardStore(s => s.setPhotos);
     const currentStep = useReportWizardStore(s => s.currentStep);
     const setCurrentStep = useReportWizardStore(s => s.setStep);
+    const storeNextStep = useReportWizardStore(s => s.nextStep);
+    const storePrevStep = useReportWizardStore(s => s.prevStep);
     const resetWizard = useReportWizardStore(s => s.reset);
     const hasHydrated = useReportWizardStore(s => s.hasHydrated);
+
+    console.log('[ReportWizard] Render State:', { currentStep, hasHydrated, id });
 
     const { addToast } = useUIStore();
 
@@ -116,18 +120,24 @@ const ReportWizard = () => {
         { id: 6, title: 'Review & Submit', component: StepReview },
     ];
 
-    const safeStep = Math.min(Math.max(currentStep || 1, 1), steps.length);
+    // Ensure state is correctly interpreted
+    const stepNumber = parseInt(currentStep, 10) || 1;
+    const safeStep = Math.min(Math.max(stepNumber, 1), steps.length);
     const currentStepDef = steps[safeStep - 1];
     const CurrentComponent = currentStepDef ? currentStepDef.component : null;
 
+    console.log('[ReportWizard] Layout Sync:', { currentStep, stepNumber, safeStep, hasComponent: !!CurrentComponent });
+
     useEffect(() => {
-        if (currentStep !== safeStep) {
+        if (hasHydrated && currentStep !== safeStep) {
+            console.log('[ReportWizard] Correcting step mismatch:', { currentStep, safeStep });
             setCurrentStep(safeStep);
         }
-    }, [currentStep, safeStep, setCurrentStep]);
+    }, [currentStep, safeStep, setCurrentStep, hasHydrated]);
 
     // Navigation Handlers
     const nextStep = () => {
+        console.log('[ReportWizard] nextStep triggered', { currentStep, school_id: draft.school_id });
         // AUDIT GUARDRAIL: Strict Payload Check
         if (currentStep === 1 && (!draft.school_id || draft.school_id === 0)) {
             addToast({ type: 'error', message: 'Please select a school to continue.' });
@@ -135,15 +145,16 @@ const ReportWizard = () => {
         }
 
         if (currentStep < steps.length) {
-            setCurrentStep(prev => prev + 1);
+            console.log('[ReportWizard] Calling storeNextStep');
+            storeNextStep();
         }
     };
 
     const prevStep = () => {
         if (currentStep > 1) {
-            setCurrentStep(prev => prev - 1);
+            storePrevStep();
         } else {
-            if (confirm('Exit wizard? Unsaved changes will be lost (v1 drafts coming soon).')) {
+            if (confirm('Exit wizard? Unsaved changes will be lost.')) {
                 navigate('/');
             }
         }

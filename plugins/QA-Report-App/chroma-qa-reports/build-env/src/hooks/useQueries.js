@@ -96,6 +96,7 @@ export function useReport(id) {
         queryKey: queryKeys.reports.detail(id),
         queryFn: () => apiClient.get(`/reports/${id}`),
         enabled: !!id,
+        staleTime: 60 * 1000, // 1 minute stale time to prevent unnecessary re-fetches during wizard steps
     });
 }
 

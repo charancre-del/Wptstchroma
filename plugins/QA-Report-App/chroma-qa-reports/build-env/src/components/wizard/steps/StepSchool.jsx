@@ -40,7 +40,10 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
                     `reports?school_id=${selectedSchool.id}&per_page=20&page=1&orderby=inspection_date&order=desc`
                 );
 
-                const reports = Array.isArray(response) ? response : (response.data || []);
+                const rawReports = Array.isArray(response) ? response : (response.data || []);
+
+                // QAR-FIX: Filter out the current report from comparison options
+                const reports = rawReports.filter(r => parseInt(r.id) !== parseInt(draft.id));
                 setAllReports(reports);
 
                 // Auto-suggest the most recent report if not already set
@@ -90,8 +93,11 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
     };
 
     const handleContinue = () => {
-        if (draft.school_id) {
+        console.log('[StepSchool] handleContinue clicked', { school_id: draft.school_id, hasNextStep: !!nextStep });
+        if (draft.school_id && nextStep) {
             nextStep();
+        } else {
+            console.warn('[StepSchool] Cannot continue:', { school_id: draft.school_id, hasNextStep: !!nextStep });
         }
     };
 
