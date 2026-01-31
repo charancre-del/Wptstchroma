@@ -1114,6 +1114,63 @@
                     html += '</ul>';
                 }
 
+                // Plan of Improvement - detailed action plan
+                if (response.plan_of_improvement && Array.isArray(response.plan_of_improvement)) {
+                    html += '<h4>📋 Plan of Improvement</h4>';
+                    html += '<div class="cqa-poi-list">';
+                    response.plan_of_improvement.forEach((poi, idx) => {
+                        html += '<div class="cqa-poi-item">';
+                        html += '<h5>Priority ' + (poi.priority || (idx + 1)) + ': ' + this.escapeHtml(poi.area) + '</h5>';
+                        if (poi.current_status) {
+                            html += '<p><strong>Current Status:</strong> ' + this.escapeHtml(poi.current_status) + '</p>';
+                        }
+                        if (poi.action_steps && Array.isArray(poi.action_steps)) {
+                            html += '<p><strong>Action Steps:</strong></p><ol class="cqa-action-steps">';
+                            poi.action_steps.forEach(step => {
+                                html += '<li>' + this.escapeHtml(step) + '</li>';
+                            });
+                            html += '</ol>';
+                        }
+                        if (poi.timeline) {
+                            html += '<p><strong>Timeline:</strong> ' + this.escapeHtml(poi.timeline) + '</p>';
+                        }
+                        if (poi.success_criteria) {
+                            html += '<p><strong>Success Criteria:</strong> ' + this.escapeHtml(poi.success_criteria) + '</p>';
+                        }
+                        if (poi.support_offered) {
+                            html += '<p><strong>Support Available:</strong> ' + this.escapeHtml(poi.support_offered) + '</p>';
+                        }
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+
+                // Legacy POI format support
+                if (response.poi && Array.isArray(response.poi) && !response.plan_of_improvement) {
+                    html += '<h4>📋 Plan of Improvement</h4><ul class="cqa-poi">';
+                    response.poi.forEach(poi => {
+                        html += '<li><strong>[' + (poi.priority || 'Action') + ']</strong> ' + this.escapeHtml(poi.area || poi.action) + ' - ' + this.escapeHtml(poi.timeline || '') + '</li>';
+                    });
+                    html += '</ul>';
+                }
+
+                // Areas of Concern
+                if (response.areas_of_concern && Array.isArray(response.areas_of_concern)) {
+                    html += '<h4>⚠️ Areas of Concern</h4>';
+                    html += '<div class="cqa-concerns-list">';
+                    response.areas_of_concern.forEach(concern => {
+                        const severity = concern.severity || 'medium';
+                        html += '<div class="cqa-concern-item severity-' + severity + '">';
+                        html += '<span class="cqa-severity-badge">' + severity.toUpperCase() + '</span> ';
+                        html += '<strong>' + this.escapeHtml(concern.section || '') + '</strong>';
+                        if (concern.item) html += ' - ' + this.escapeHtml(concern.item);
+                        if (concern.observation) html += '<p>' + this.escapeHtml(concern.observation) + '</p>';
+                        if (concern.coaching_note) html += '<p class="coaching-note">💡 ' + this.escapeHtml(concern.coaching_note) + '</p>';
+                        html += '</div>';
+                    });
+                    html += '</div>';
+                }
+
                 html += '</div>';
 
                 // Inject into page

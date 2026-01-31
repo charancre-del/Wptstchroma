@@ -41,14 +41,15 @@ class Executive_Summary
         $previous_report = $report->get_previous_report();
         $checklist = Checklist_Manager::get_checklist_for_type($report->report_type);
         $stats = Checklist_Manager::get_progress_stats($report->id, $report->report_type);
+        $photos = $report->get_photos();
 
         // Build the prompt
-        $prompt = $this->build_prompt($school, $report, $responses, $previous_report, $checklist, $stats);
+        $prompt = $this->build_prompt($school, $report, $responses, $previous_report, $checklist, $stats, $photos);
 
-        // Generate summary using Gemini
+        // Generate summary using Gemini - increased tokens for longer, more detailed output
         $result = Gemini_Service::generate_json($prompt, [
-            'temperature' => 0.3,
-            'maxTokens' => 3000,
+            'temperature' => 0.4,
+            'maxTokens' => 6000,
         ]);
 
         if (\is_wp_error($result)) {
@@ -70,9 +71,10 @@ class Executive_Summary
      * @param Report|null $previous_report Previous report for comparison.
      * @param array  $checklist Checklist definition.
      * @param array  $stats Stats summary.
+     * @param array  $photos Photo objects with captions.
      * @return string
      */
-    private function build_prompt($school, $report, $responses, $previous_report, $checklist, $stats)
+    private function build_prompt($school, $report, $responses, $previous_report, $checklist, $stats, $photos = [])
     {
         $school_name = $school ? $school->name : 'Unknown School';
         $report_type = $report->get_type_label();
@@ -117,44 +119,67 @@ class Executive_Summary
             $prompt .= "\n";
         }
 
+        // Add photo comments if any
+        if (!empty($photos)) {
+            $prompt .= "## Photo Evidence & Comments\n";
+            foreach ($photos as $photo) {
+                $caption = $photo->caption ?? '';
+                $section = $photo->section_key ?? 'general';
+                if (!empty($caption)) {
+                    $prompt .= "- [{$section}] {$caption}\n";
+                }
+            }
+            $prompt .= "\n";
+        }
+
         if ($previous_report) {
             $prompt .= "## Comparison with Previous Report\n";
             $prompt .= "This report is being compared to a previous inspection from {$previous_report->inspection_date}.\n";
             $prompt .= "Highlight any improvements or regressions.\n\n";
         }
 
-        $prompt = "## Instructions\n";
-        $prompt .= "Generate a structured JSON response with the following format:\n";
+        $prompt .= "## Instructions\n";
+        $prompt .= "Generate a structured JSON response with the following format. BE THOROUGH AND DETAILED:\n";
         $prompt .= "{\n";
-        $prompt .= '  "executive_summary": "A 2-3 paragraph professional and encouraging summary. Start by celebrating successes and strengths, then bridge into areas for partnership and growth...",';
+        $prompt .= '  "executive_summary": "A comprehensive 4-6 paragraph professional summary. Start by celebrating specific successes and naming staff members when noted. Then provide detailed analysis of compliance status. Finally, bridge into growth areas with supportive coaching language. Be specific about observations from the checklist and photos.",';
         $prompt .= "\n";
-        $prompt .= '  "issues": [';
+        $prompt .= '  "strengths": ["List 5-10 specific strengths observed, referencing actual checklist items"],';
         $prompt .= "\n";
-        $prompt .= '    { "severity": "high|medium|low", "section": "section name", "description": "specific area for improvement framed constructively" }';
+        $prompt .= '  "areas_of_concern": [';
+        $prompt .= "\n";
+        $prompt .= '    { "severity": "high|medium|low", "section": "section name", "item": "specific item", "observation": "what was observed", "coaching_note": "supportive improvement guidance" }';
         $prompt .= "\n";
         $prompt .= "  ],\n";
-        $prompt .= '  "poi": [';
+        $prompt .= '  "plan_of_improvement": [';
         $prompt .= "\n";
-        $prompt .= '    { "priority": "immediate|short_term|ongoing", "area": "section/area name", "action": "supportive coaching step or action", "timeline": "collaborative timeframe" }';
+        $prompt .= '    { "priority": 1, "area": "specific section/area", "current_status": "what needs improvement based on checklist response and notes", "action_steps": ["step 1", "step 2", "step 3"], "timeline": "specific timeframe (e.g., Within 7 days, By next visit)", "success_criteria": "how we will know this is resolved", "support_offered": "resources or help available" }';
         $prompt .= "\n";
         $prompt .= "  ],\n";
         $prompt .= '  "comparison": {';
         $prompt .= "\n";
-        $prompt .= '    "celebrations": ["list of improved items or sustained excellence"],';
+        $prompt .= '    "celebrations": ["list of improved items or sustained excellence since last visit"],';
         $prompt .= "\n";
-        $prompt .= '    "focus_areas": ["list of items needing further focus"]';
+        $prompt .= '    "regressions": ["items that have declined since last visit, if any"],';
+        $prompt .= "\n";
+        $prompt .= '    "focus_areas": ["recurring items needing continued focus"]';
         $prompt .= "\n";
         $prompt .= "  },\n";
-        $prompt .= '  "suggested_rating": "exceeds|meets|needs_improvement"';
+        $prompt .= '  "suggested_rating": "exceeds|meets|needs_improvement",';
+        $prompt .= "\n";
+        $prompt .= '  "key_findings": ["3-5 most important takeaways from this inspection"],';
+        $prompt .= "\n";
+        $prompt .= '  "recommendations": ["3-5 specific recommendations for the Director"]';
         $prompt .= "\n";
         $prompt .= "}\n\n";
 
-        $prompt .= "Focus on:\n";
-        $prompt .= "1. Highlighting and celebrating positive observations and leadership strengths first.\n";
-        $prompt .= "2. Framing critical safety and compliance as 'Critical Growth Areas' (mark as HIGH severity).\n";
-        $prompt .= "3. Providing specific, actionable coaching steps in the POI (Plan of Improvement).\n";
-        $prompt .= "4. Ensuring the overall tone is that of a partner invested in the school's success.\n";
-        $prompt .= "5. Overall assessment and suggested rating based on the balanced view of the inspection.\n";
+        $prompt .= "IMPORTANT GUIDELINES:\n";
+        $prompt .= "1. Be THOROUGH - this is an official document. Reference specific checklist items by name.\n";
+        $prompt .= "2. Celebrate wins FIRST - name specific successes before any criticism.\n";
+        $prompt .= "3. For safety/health issues marked NO, these are HIGH severity and need immediate POI items.\n";
+        $prompt .= "4. The Plan of Improvement must be ACTIONABLE with specific steps, not vague suggestions.\n";
+        $prompt .= "5. Include photo evidence observations in your analysis when relevant.\n";
+        $prompt .= "6. Maintain a supportive, coaching tone throughout - we are partners in success.\n";
+        $prompt .= "7. Each POI item should have 2-4 concrete action steps.\n";
 
         return $prompt;
     }
