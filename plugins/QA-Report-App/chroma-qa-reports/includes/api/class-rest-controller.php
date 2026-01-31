@@ -1904,14 +1904,8 @@ class REST_Controller
     {
         $api_key = $request->get_param('api_key');
 
-        // If api_key is provided in request, use it. Otherwise Gemini_Service uses DB.
-        if (!empty($api_key)) {
-            // Temporarily override or pass to list_models
-            // We'll update list_models to accept an optional key
-            $models = \ChromaQA\AI\Gemini_Service::list_models($api_key);
-        } else {
-            $models = \ChromaQA\AI\Gemini_Service::list_models();
-        }
+        // Force refresh to update cache when manually fetching
+        $models = \ChromaQA\AI\Gemini_Service::list_models($api_key, true);
 
         if (\is_wp_error($models)) {
             return $models;

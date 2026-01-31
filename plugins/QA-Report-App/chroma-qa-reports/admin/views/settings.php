@@ -9,7 +9,7 @@ namespace ChromaQA\Admin;
 
 // Get current settings
 // Helper to mask secrets
-$mask_secret = function($val) {
+$mask_secret = function ($val) {
     return !empty($val) ? '********************' : '';
 };
 
@@ -216,7 +216,29 @@ $google_developer_key = $mask_secret(get_option('cqa_google_developer_key', ''))
                             <td>
                                 <div style="display: flex; align-items: center; gap: 10px;">
                                     <select id="cqa_gemini_model" name="cqa_gemini_model" class="regular-text">
-                                        <option value="<?php echo esc_attr($gemini_model); ?>"><?php echo esc_html($gemini_model); ?></option>
+                                        <?php
+                                        // Use full namespace for Gemini Service
+                                        $cached_models = \ChromaQA\AI\Gemini_Service::get_cached_models();
+
+                                        // Always include current model if not in list (or if list empty)
+                                        $found_current = false;
+
+                                        if (!empty($cached_models)) {
+                                            foreach ($cached_models as $model) {
+                                                $selected = ($model['name'] === $gemini_model);
+                                                if ($selected)
+                                                    $found_current = true;
+                                                echo '<option value="' . esc_attr($model['name']) . '" ' . selected($gemini_model, $model['name'], false) . '>' . esc_html($model['displayName']) . '</option>';
+                                            }
+                                        }
+
+                                        // Fallback option if cache is empty or current selection weird
+                                        if (!$found_current && !empty($gemini_model)) {
+                                            echo '<option value="' . esc_attr($gemini_model) . '" selected>' . esc_html($gemini_model) . '</option>';
+                                        } elseif (empty($cached_models)) {
+                                            echo '<option value="gemini-1.5-flash">Gemini 1.5 Flash (Default)</option>';
+                                        }
+                                        ?>
                                     </select>
                                     <button type="button" class="button button-secondary" id="cqa-fetch-models-btn">
                                         <span class="dashicons dashicons-update"></span>
@@ -293,13 +315,17 @@ $google_developer_key = $mask_secret(get_option('cqa_google_developer_key', ''))
                                     <td>
                                         <select name="cqa_flag_<?php echo esc_html($flag); ?>_audience" style="width:100%;">
                                             <option value="admins" <?php selected($audience, 'admins'); ?>>
-                                                <?php esc_html_e('Admins Only', 'chroma-qa-reports'); ?></option>
+                                                <?php esc_html_e('Admins Only', 'chroma-qa-reports'); ?>
+                                            </option>
                                             <option value="canary" <?php selected($audience, 'canary'); ?>>
-                                                <?php esc_html_e('Canary List', 'chroma-qa-reports'); ?></option>
+                                                <?php esc_html_e('Canary List', 'chroma-qa-reports'); ?>
+                                            </option>
                                             <option value="qa_officers" <?php selected($audience, 'qa_officers'); ?>>
-                                                <?php esc_html_e('QA Officers', 'chroma-qa-reports'); ?></option>
+                                                <?php esc_html_e('QA Officers', 'chroma-qa-reports'); ?>
+                                            </option>
                                             <option value="all" <?php selected($audience, 'all'); ?>>
-                                                <?php esc_html_e('All Users', 'chroma-qa-reports'); ?></option>
+                                                <?php esc_html_e('All Users', 'chroma-qa-reports'); ?>
+                                            </option>
                                         </select>
 
                                         <div class="cqa-canary-input"

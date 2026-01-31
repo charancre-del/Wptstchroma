@@ -68,7 +68,12 @@ class Gemini_Service
             return new \WP_Error('not_configured', __('Gemini API key is not configured.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
-        $url = self::API_BASE_URL . self::get_model() . ':generateContent?key=' . self::get_api_key();
+        $model = self::get_model();
+        if (defined('CQA_DEBUG') && CQA_DEBUG) {
+            error_log('[CQA DEBUG] Gemini Generate: Using model: ' . $model);
+        }
+
+        $url = self::API_BASE_URL . $model . ':generateContent?key=' . self::get_api_key();
 
         $body = [
             'contents' => [
@@ -209,8 +214,33 @@ class Gemini_Service
      *
      * @return array|\WP_Error
      */
-    public static function list_models($api_key = null)
+    /**
+     * Get cached models without API call.
+     *
+     * @return array
+     */
+    public static function get_cached_models()
     {
+        return get_transient('cqa_gemini_models_list') ?: [];
+    }
+
+    /**
+     * List available models from Gemini API.
+     *
+     * @param string $api_key Optional API key.
+     * @param bool   $force_refresh Whether to ignore cache.
+     * @return array|\WP_Error
+     */
+    public static function list_models($api_key = null, $force_refresh = false)
+    {
+        // Return cached if available and not forcing refresh
+        if (!$force_refresh) {
+            $cached = get_transient('cqa_gemini_models_list');
+            if ($cached !== false) {
+                return $cached;
+            }
+        }
+
         if (empty($api_key)) {
             $api_key = self::get_api_key();
         }
@@ -262,11 +292,8 @@ class Gemini_Service
             }
         }
 
-        // Fallback: If no models found with filter, return some common ones? 
-        // No, better to show the user what's available.
-        if (empty($models) && !empty($data['models'])) {
-            error_log('CQA Gemini: No generateContent models found, raw models count: ' . count($data['models']));
-        }
+        // Cache for 7 days
+        set_transient('cqa_gemini_models_list', $models, 7 * DAY_IN_SECONDS);
 
         return $models;
     }

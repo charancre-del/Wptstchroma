@@ -565,6 +565,7 @@ class Admin_Menu
             'sso_domain',
             'sso_default_role',
             'gemini_api_key',
+            'gemini_model',
             'drive_root_folder',
             'company_name',
             'google_maps_api_key',
