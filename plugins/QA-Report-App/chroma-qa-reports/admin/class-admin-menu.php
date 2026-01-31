@@ -596,6 +596,11 @@ class Admin_Menu
                 }
 
                 update_option("cqa_{$field}", $value);
+
+                // Sync with new Settings store (Phase 16)
+                if (class_exists('\ChromaQA\Settings')) {
+                    \ChromaQA\Settings::update($field, $value);
+                }
             }
         }
 
