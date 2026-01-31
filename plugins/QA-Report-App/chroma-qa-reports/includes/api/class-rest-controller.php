@@ -1322,13 +1322,26 @@ class REST_Controller
 
     public function get_settings(WP_REST_Request $request)
     {
-        $settings = [
-            'google_client_id' => \get_option('cqa_google_client_id'),
-            'google_client_secret' => \get_option('cqa_google_client_secret'),
-            'google_developer_key' => \get_option('cqa_google_developer_key'),
-            'gemini_api_key' => \get_option('cqa_gemini_api_key'),
-            'enable_ai' => \get_option('cqa_enable_ai', 'yes'),
-        ];
+        // Use Settings class if available for robust retrieval
+        if (class_exists('\\ChromaQA\\Settings')) {
+            $settings = [
+                'google_client_id' => \ChromaQA\Settings::get('google_client_id', \get_option('cqa_google_client_id')),
+                'google_client_secret' => \ChromaQA\Settings::get('google_client_secret', \get_option('cqa_google_client_secret')),
+                'google_developer_key' => \ChromaQA\Settings::get('google_developer_key', \get_option('cqa_google_developer_key')),
+                'gemini_api_key' => \ChromaQA\Settings::get('gemini_api_key', \get_option('cqa_gemini_api_key')),
+                'enable_ai' => \ChromaQA\Settings::get('enable_ai', \get_option('cqa_enable_ai', 'yes')),
+            ];
+        } else {
+            // Fallback to legacy options
+            $settings = [
+                'google_client_id' => \get_option('cqa_google_client_id'),
+                'google_client_secret' => \get_option('cqa_google_client_secret'),
+                'google_developer_key' => \get_option('cqa_google_developer_key'),
+                'gemini_api_key' => \get_option('cqa_gemini_api_key'),
+                'enable_ai' => \get_option('cqa_enable_ai', 'yes'),
+            ];
+        }
+
         return new WP_REST_Response($settings, 200);
     }
 
