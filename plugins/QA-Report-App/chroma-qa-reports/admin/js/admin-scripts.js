@@ -241,7 +241,14 @@
             CQA.loading.show($btn);
             $btn.text('Fetching...');
 
-            CQA.api.get('settings/available-models')
+            var apiKey = $('#cqa_gemini_api_key').val();
+            // If it's the masked value, don't send it (backend will use DB)
+            var query = {};
+            if (apiKey && !apiKey.includes('****') && !apiKey.includes('••••')) {
+                query.api_key = apiKey;
+            }
+
+            CQA.api.get('settings/available-models', query)
                 .done(function (models) {
                     $select.empty();
 

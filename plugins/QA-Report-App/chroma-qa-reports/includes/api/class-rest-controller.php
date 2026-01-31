@@ -1894,4 +1894,29 @@ class REST_Controller
 
         return new \WP_REST_Response($manifest, 200, ['Content-Type' => 'application/manifest+json']);
     }
+
+    /**
+     * Get available Gemini models.
+     *
+     * @return WP_REST_Response|WP_Error
+     */
+    public function get_available_models(\WP_REST_Request $request)
+    {
+        $api_key = $request->get_param('api_key');
+
+        // If api_key is provided in request, use it. Otherwise Gemini_Service uses DB.
+        if (!empty($api_key)) {
+            // Temporarily override or pass to list_models
+            // We'll update list_models to accept an optional key
+            $models = \ChromaQA\AI\Gemini_Service::list_models($api_key);
+        } else {
+            $models = \ChromaQA\AI\Gemini_Service::list_models();
+        }
+
+        if (\is_wp_error($models)) {
+            return $models;
+        }
+
+        return new \WP_REST_Response($models, 200);
+    }
 }

@@ -203,4 +203,71 @@ class Gemini_Service
 
         return self::generate_json($prompt, ['maxTokens' => 4000]);
     }
+
+    /**
+     * List available models from Gemini API.
+     *
+     * @return array|\WP_Error
+     */
+    public static function list_models($api_key = null)
+    {
+        if (empty($api_key)) {
+            $api_key = self::get_api_key();
+        }
+
+        if (empty($api_key)) {
+            return new \WP_Error('missing_api_key', __('Gemini API key is not configured.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
+        // Try v1beta first as it's the most common for Generative Language
+        $url = "https://generativelanguage.googleapis.com/v1beta/models?key=" . $api_key;
+
+        $response = \wp_remote_get($url, [
+            'timeout' => 20,
+            'sslverify' => false, // Some servers have issues with certificate verification
+        ]);
+
+        if (\is_wp_error($response)) {
+            return new \WP_Error('http_error', 'HTTP Request Failed: ' . $response->get_error_message());
+        }
+
+        $code = \wp_remote_retrieve_response_code($response);
+        $body = \wp_remote_retrieve_body($response);
+        $data = json_decode($body, true);
+
+        if ($code !== 200) {
+            $message = $data['error']['message'] ?? 'Unknown Error';
+            return new \WP_Error('api_error', 'Gemini API Status ' . $code . ': ' . $message, ['status' => $code]);
+        }
+
+        if (empty($data['models'])) {
+            return [];
+        }
+
+        // Filter for models that support generateContent
+        $models = [];
+        foreach ($data['models'] as $m) {
+            $methods = $m['supportedGenerationMethods'] ?? [];
+            if (in_array('generateContent', $methods)) {
+                // Remove the "models/" prefix from the name for storage
+                $name = str_replace('models/', '', $m['name']);
+
+                // Prioritize newer models or specific ones if needed, 
+                // but for now just return all that support text generation.
+                $models[] = [
+                    'name' => $name,
+                    'displayName' => $m['displayName'] ?? $name,
+                    'description' => $m['description'] ?? '',
+                ];
+            }
+        }
+
+        // Fallback: If no models found with filter, return some common ones? 
+        // No, better to show the user what's available.
+        if (empty($models) && !empty($data['models'])) {
+            error_log('CQA Gemini: No generateContent models found, raw models count: ' . count($data['models']));
+        }
+
+        return $models;
+    }
 }

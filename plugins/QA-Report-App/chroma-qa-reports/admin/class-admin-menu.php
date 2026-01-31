@@ -632,4 +632,16 @@ class Admin_Menu
             'success'
         );
     }
+
+    /**
+     * Add PWA manifest to admin head.
+     */
+    public function add_manifest_link()
+    {
+        // Only output on plugin pages
+        if (isset($_GET['page']) && strpos($_GET['page'], self::MENU_SLUG) !== false) {
+            echo '<link rel="manifest" href="' . esc_url(CQA_PLUGIN_URL . 'manifest.json') . '">' . "\n";
+            echo '<meta name="theme-color" content="#6366f1">' . "\n";
+        }
+    }
 }
