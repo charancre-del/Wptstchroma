@@ -93,7 +93,18 @@ export function StepAISummary() {
         }
     };
 
-    const hasResponses = Object.keys(responses).length > 0;
+    // Count total checklist items (not just sections)
+    const responseCount = React.useMemo(() => {
+        let total = 0;
+        Object.values(responses || {}).forEach(section => {
+            if (typeof section === 'object' && section !== null) {
+                total += Object.keys(section).length;
+            }
+        });
+        return total;
+    }, [responses]);
+
+    const hasResponses = responseCount > 0;
     const hasSummary = !!report?.ai_summary;
 
     return (
@@ -135,7 +146,7 @@ export function StepAISummary() {
                                 Ready to Generate Summary
                             </h3>
                             <p className="text-gray-600 mb-6">
-                                {Object.keys(responses).length} checklist items completed
+                                {responseCount} checklist items completed
                             </p>
                             <button
                                 onClick={handleGenerate}
