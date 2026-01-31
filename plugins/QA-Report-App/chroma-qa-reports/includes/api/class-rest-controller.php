@@ -81,6 +81,12 @@ class REST_Controller
             ],
         ]);
 
+        \register_rest_route(self::NAMESPACE , '/settings/available-models', [
+            'methods' => \WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_available_models'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
         // Reports
         \register_rest_route(self::NAMESPACE , '/reports', [
             [
@@ -1334,6 +1340,7 @@ class REST_Controller
                 'google_client_secret' => \ChromaQA\Settings::get('google_client_secret', \get_option('cqa_google_client_secret')),
                 'google_developer_key' => \ChromaQA\Settings::get('google_developer_key', \get_option('cqa_google_developer_key')),
                 'gemini_api_key' => \ChromaQA\Settings::get('gemini_api_key', \get_option('cqa_gemini_api_key')),
+                'gemini_model' => \ChromaQA\Settings::get('gemini_model', \get_option('cqa_gemini_model', 'gemini-1.5-flash')),
                 'enable_ai' => \ChromaQA\Settings::get('enable_ai', \get_option('cqa_enable_ai', 'yes')),
             ];
         } else {
@@ -1343,6 +1350,7 @@ class REST_Controller
                 'google_client_secret' => \get_option('cqa_google_client_secret'),
                 'google_developer_key' => \get_option('cqa_google_developer_key'),
                 'gemini_api_key' => \get_option('cqa_gemini_api_key'),
+                'gemini_model' => \get_option('cqa_gemini_model', 'gemini-1.5-flash'),
                 'enable_ai' => \get_option('cqa_enable_ai', 'yes'),
             ];
         }
@@ -1358,6 +1366,7 @@ class REST_Controller
             'google_client_secret',
             'google_developer_key',
             'gemini_api_key',
+            'gemini_model',
             'enable_ai',
         ];
 

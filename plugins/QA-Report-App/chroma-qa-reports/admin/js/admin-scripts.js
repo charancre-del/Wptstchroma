@@ -227,6 +227,52 @@
                     $canaryInput.slideUp();
                 }
             });
+
+            // Fetch AI Models
+            $('#cqa-fetch-models-btn').on('click', this.handleFetchModels.bind(this));
+        },
+
+        handleFetchModels: function (e) {
+            e.preventDefault();
+            var $btn = $(e.currentTarget);
+            var $select = $('#cqa_gemini_model');
+            var originalValue = $select.val();
+
+            CQA.loading.show($btn);
+            $btn.text('Fetching...');
+
+            CQA.api.get('settings/available-models')
+                .done(function (models) {
+                    $select.empty();
+
+                    if (models && models.length > 0) {
+                        $.each(models, function (i, model) {
+                            var $option = $('<option></option>')
+                                .val(model.name)
+                                .text(model.displayName + ' (' + model.name + ')');
+
+                            if (model.name === originalValue) {
+                                $option.prop('selected', true);
+                            }
+
+                            $select.append($option);
+                        });
+                        CQA.notify.success('Models fetched successfully.');
+                    } else {
+                        CQA.notify.warning('No compatible models found.');
+                    }
+                })
+                .fail(function (xhr) {
+                    var message = 'Failed to fetch models.';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        message += ' ' + xhr.responseJSON.message;
+                    }
+                    CQA.notify.error(message);
+                })
+                .always(function () {
+                    CQA.loading.hide($btn);
+                    $btn.html('<span class="dashicons dashicons-update"></span> Fetch Models');
+                });
         },
 
         loadGooglePicker: function () {

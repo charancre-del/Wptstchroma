@@ -14,9 +14,9 @@ class Gemini_Service
 {
 
     /**
-     * API endpoint.
+     * API Base URL.
      */
-    const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent';
+    const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
 
     /**
      * Get the API key.
@@ -32,6 +32,16 @@ class Gemini_Service
         }
 
         return $key;
+    }
+
+    /**
+     * Get the configured model.
+     *
+     * @return string
+     */
+    public static function get_model()
+    {
+        return \ChromaQA\Settings::get('gemini_model', 'gemini-1.5-flash');
     }
 
     /**
@@ -58,7 +68,7 @@ class Gemini_Service
             return new \WP_Error('not_configured', __('Gemini API key is not configured.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
-        $url = self::API_URL . '?key=' . self::get_api_key();
+        $url = self::API_BASE_URL . self::get_model() . ':generateContent?key=' . self::get_api_key();
 
         $body = [
             'contents' => [

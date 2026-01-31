@@ -16,6 +16,7 @@ $mask_secret = function($val) {
 $google_client_id = get_option('cqa_google_client_id', '');
 $google_client_secret = $mask_secret(get_option('cqa_google_client_secret', ''));
 $gemini_api_key = $mask_secret(get_option('cqa_gemini_api_key', ''));
+$gemini_model = get_option('cqa_gemini_model', 'gemini-1.5-flash');
 $drive_root_folder = get_option('cqa_drive_root_folder', '');
 $company_name = get_option('cqa_company_name', 'Chroma Early Learning Academy');
 $google_maps_api_key = $mask_secret(get_option('cqa_google_maps_api_key', ''));
@@ -205,6 +206,26 @@ $google_developer_key = $mask_secret(get_option('cqa_google_developer_key', ''))
                             <td>
                                 <input type="password" id="cqa_gemini_api_key" name="cqa_gemini_api_key"
                                     value="<?php echo esc_attr($gemini_api_key); ?>" class="regular-text">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th scope="row">
+                                <label
+                                    for="cqa_gemini_model"><?php esc_html_e('Gemini Model', 'chroma-qa-reports'); ?></label>
+                            </th>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <select id="cqa_gemini_model" name="cqa_gemini_model" class="regular-text">
+                                        <option value="<?php echo esc_attr($gemini_model); ?>"><?php echo esc_html($gemini_model); ?></option>
+                                    </select>
+                                    <button type="button" class="button button-secondary" id="cqa-fetch-models-btn">
+                                        <span class="dashicons dashicons-update"></span>
+                                        <?php esc_html_e('Fetch Models', 'chroma-qa-reports'); ?>
+                                    </button>
+                                </div>
+                                <p class="description">
+                                    <?php esc_html_e('Select the model to use for AI features. Click "Fetch Models" to update the list.', 'chroma-qa-reports'); ?>
+                                </p>
                             </td>
                         </tr>
                     </table>
