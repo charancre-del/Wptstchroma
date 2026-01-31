@@ -1041,6 +1041,126 @@
                     $btn.prop('disabled', false).html(originalText);
                 });
             },
+
+            /**
+             * Render the AI-generated summary in the UI
+             * @param {Object} response - The AI summary response from the API
+             */
+            renderAISummary: function (response) {
+                const self = this;
+
+                // Find the summary container
+                let $container = $('#cqa-ai-summary-content');
+                if ($container.length === 0) {
+                    // Try alternate selector
+                    $container = $('.cqa-ai-summary-container');
+                }
+
+                if ($container.length === 0) {
+                    // Create container if it doesn't exist
+                    const $summaryStep = $('#cqa-step-summary, .cqa-step[data-step="4"], .cqa-summary-step');
+                    if ($summaryStep.length) {
+                        $summaryStep.find('.cqa-generate-summary-area').after(
+                            '<div id="cqa-ai-summary-content" class="cqa-ai-summary-content"></div>'
+                        );
+                        $container = $('#cqa-ai-summary-content');
+                    }
+                }
+
+                if (!response) {
+                    self.showToast('warning', 'No Summary', 'AI did not return a summary.');
+                    return;
+                }
+
+                // Build summary HTML
+                let html = '<div class="cqa-ai-summary-result">';
+                html += '<h3>📝 AI Executive Summary</h3>';
+
+                // Handle different response formats
+                if (response.summary || response.executive_summary) {
+                    const summary = response.summary || response.executive_summary;
+                    html += '<div class="cqa-summary-text">' + this.formatSummaryText(summary) + '</div>';
+                }
+
+                if (response.key_findings && Array.isArray(response.key_findings)) {
+                    html += '<h4>🔍 Key Findings</h4><ul class="cqa-key-findings">';
+                    response.key_findings.forEach(finding => {
+                        html += '<li>' + this.escapeHtml(finding) + '</li>';
+                    });
+                    html += '</ul>';
+                }
+
+                if (response.recommendations && Array.isArray(response.recommendations)) {
+                    html += '<h4>💡 Recommendations</h4><ul class="cqa-recommendations">';
+                    response.recommendations.forEach(rec => {
+                        html += '<li>' + this.escapeHtml(rec) + '</li>';
+                    });
+                    html += '</ul>';
+                }
+
+                if (response.areas_of_concern && Array.isArray(response.areas_of_concern)) {
+                    html += '<h4>⚠️ Areas of Concern</h4><ul class="cqa-concerns">';
+                    response.areas_of_concern.forEach(concern => {
+                        html += '<li>' + this.escapeHtml(concern) + '</li>';
+                    });
+                    html += '</ul>';
+                }
+
+                if (response.strengths && Array.isArray(response.strengths)) {
+                    html += '<h4>✅ Strengths</h4><ul class="cqa-strengths">';
+                    response.strengths.forEach(strength => {
+                        html += '<li>' + this.escapeHtml(strength) + '</li>';
+                    });
+                    html += '</ul>';
+                }
+
+                html += '</div>';
+
+                // Inject into page
+                if ($container.length) {
+                    $container.html(html).show();
+                } else {
+                    // Fallback: inject after the generate button
+                    $('#cqa-generate-summary').after('<div class="cqa-ai-summary-content">' + html + '</div>');
+                }
+
+                // Show success toast
+                this.showToast('success', 'Summary Generated', 'AI summary has been generated successfully!');
+
+                // Update review step if it exists
+                this.updateAISummaryInReview(response);
+            },
+
+            /**
+             * Format summary text with basic markdown-like styling
+             */
+            formatSummaryText: function (text) {
+                if (!text) return '';
+                // Basic formatting: convert newlines to breaks
+                return text.replace(/\n/g, '<br>');
+            },
+
+            /**
+             * Escape HTML to prevent XSS
+             */
+            escapeHtml: function (text) {
+                if (!text) return '';
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            },
+
+            /**
+             * Update AI Summary status in the Review & Submit step
+             */
+            updateAISummaryInReview: function (response) {
+                const $reviewAI = $('#cqa-review-ai-status, .cqa-ai-summary-status');
+                if ($reviewAI.length && response) {
+                    $reviewAI.removeClass('not-generated').addClass('generated');
+                    $reviewAI.html('<span class="dashicons dashicons-yes-alt"></span> AI Summary Generated');
+                }
+            },
+
             saveDraft: function (e) {
                 e.preventDefault();
                 const $btn = $(e.currentTarget);
