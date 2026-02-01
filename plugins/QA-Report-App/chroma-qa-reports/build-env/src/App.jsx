@@ -47,6 +47,7 @@ const App = () => {
             <QueryClientProvider client={queryClient}>
                 <HashRouter>
                     <Routes>
+                        <Route path="print/:id" element={<PrintReport />} />
                         <Route path="/" element={<Shell />}>
                             <Route index element={<Dashboard />} />
                             <Route path="schools" element={<SchoolsPage />} />
@@ -54,7 +55,6 @@ const App = () => {
                             <Route path="reports/:id" element={<ReportWizard />} />
                             <Route path="edit/:id" element={<ReportWizard />} />
                             <Route path="create" element={<ReportWizard />} />
-                            <Route path="print/:id" element={<PrintReport />} />
                             <Route path="settings" element={<Settings />} />
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Route>
