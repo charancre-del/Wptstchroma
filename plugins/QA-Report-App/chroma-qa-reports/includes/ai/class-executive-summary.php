@@ -126,19 +126,27 @@ class Executive_Summary
         $prompt = $context['base_prompt'];
 
         $prompt .= "## Instructions\n";
-        $prompt .= "Generate a focused JSON response for the PLAN OF IMPROVEMENT only.\n";
-        $prompt .= "Focus on actionable items based on areas that need work (SOMETIMES or NO ratings).\n\n";
+        $prompt .= "Generate a focused, highly detailed JSON response for the PLAN OF IMPROVEMENT only.\n";
+        $prompt .= "Focus exclusively on items with 'SOMETIMES' or 'NO' ratings. Be specific to the inspection observations.\n\n";
+
         $prompt .= "{\n";
         $prompt .= '  "plan_of_improvement": [';
         $prompt .= "\n";
-        $prompt .= '    { "priority": 1, "area": "specific section/area", "current_status": "what needs improvement", "action_steps": ["step 1", "step 2", "step 3"], "timeline": "specific timeframe (e.g., Within 7 days)", "success_criteria": "how we will know this is resolved", "support_offered": "resources or help available" }';
-        $prompt .= "\n";
+        $prompt .= '    { ';
+        $prompt .= '"priority": 1, '; // Priority 1 = Critical/Safety, 2 = Important, 3 = Improvement
+        $prompt .= '"area": "Specific Item or Category Name", ';
+        $prompt .= '"current_status": "Detailed explanation of what was observed (e.g., \"Found expired milk in the fridge and missing temperature logs for the last 3 days\")", ';
+        $prompt .= '"action_steps": ["Specific step 1", "Specific step 2", "Specific step 3"], ';
+        $prompt .= '"timeline": "Within 24 hours|Within 7 days|By next visit", ';
+        $prompt .= '"success_criteria": "Clear measurement of success", ';
+        $prompt .= '"support_offered": "Specific resources or training provided" ';
+        $prompt .= "}\n";
         $prompt .= "  ],\n";
 
         if ($previous_report) {
             $prompt .= '  "comparison": {';
             $prompt .= "\n";
-            $prompt .= '    "celebrations": ["list of improved items since last visit"],';
+            $prompt .= '    "celebrations": ["1-3 items improved since last visit"],';
             $prompt .= "\n";
             $prompt .= '    "regressions": ["items that have declined, if any"],';
             $prompt .= "\n";
@@ -147,19 +155,20 @@ class Executive_Summary
             $prompt .= "  },\n";
         }
 
-        $prompt .= '  "recommendations": ["3-5 specific recommendations for the Director"]';
+        $prompt .= '  "recommendations": ["3-5 high-level strategic recommendations for the Director"]';
         $prompt .= "\n";
         $prompt .= "}\n\n";
 
-        $prompt .= "IMPORTANT:\n";
-        $prompt .= "1. Each POI item must have 2-4 concrete, actionable steps.\n";
-        $prompt .= "2. Safety/health issues (NO ratings) are HIGH priority and need immediate action.\n";
-        $prompt .= "3. Timelines should be realistic and specific.\n";
-        $prompt .= "4. Maintain a supportive, coaching tone - we are partners in success.\n";
+        $prompt .= "CRITICAL REQUIREMENTS:\n";
+        $prompt .= "1. 'current_status' MUST describe the specific observation from the notes/checklist.\n";
+        $prompt .= "2. 'action_steps' MUST be a list of 2-4 concrete, numbered steps the director should take.\n";
+        $prompt .= "3. DO NOT use vague categories like 'Safety Protocols' alone; use specific areas like 'Medication Storage' or 'Staff Files'.\n";
+        $prompt .= "4. PRIORITIZE safety and health issues (NO ratings) as Priority 1.\n";
+        $prompt .= "5. Maintain a supportive, coaching tone - use 'we' and 'our' where appropriate.\n";
 
         return Gemini_Service::generate_json($prompt, [
             'temperature' => 0.4,
-            'maxTokens' => 5000,  // POI needs more tokens for action steps, timelines, etc.
+            'maxTokens' => 5000,
         ]);
     }
 

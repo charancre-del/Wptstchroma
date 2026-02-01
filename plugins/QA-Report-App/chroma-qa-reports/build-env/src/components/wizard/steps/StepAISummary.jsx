@@ -277,9 +277,10 @@ export function StepAISummary() {
                                     <div className="flex items-center gap-3">
                                         <span className={cn(
                                             'px-2.5 py-1 text-xs font-bold rounded-full',
-                                            poi.priority === 1 ? 'bg-red-100 text-red-700' :
-                                                poi.priority === 2 ? 'bg-amber-100 text-amber-700' :
-                                                    'bg-green-100 text-green-700'
+                                            (poi.priority === 1 || String(poi.priority).toLowerCase() === 'immediate') ? 'bg-red-100 text-red-700' :
+                                                (poi.priority === 2 || String(poi.priority).toLowerCase() === 'high') ? 'bg-orange-100 text-orange-700' :
+                                                    (poi.priority === 3 || String(poi.priority).toLowerCase() === 'medium') ? 'bg-amber-100 text-amber-700' :
+                                                        'bg-green-100 text-green-700'
                                         )}>
                                             Priority {poi.priority || index + 1}
                                         </span>
@@ -294,15 +295,18 @@ export function StepAISummary() {
 
                                 {/* Current Status */}
                                 {poi.current_status && (
-                                    <p className="text-sm text-gray-600 mb-3 italic">
-                                        "{poi.current_status}"
-                                    </p>
+                                    <div className="mb-3 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                                        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-1">Current Status</p>
+                                        <p className="text-sm text-gray-700 italic">
+                                            "{poi.current_status}"
+                                        </p>
+                                    </div>
                                 )}
 
                                 {/* Action Steps */}
                                 {poi.action_steps && poi.action_steps.length > 0 && (
                                     <div className="mb-3">
-                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Action Steps</p>
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Required Action Steps</p>
                                         <ul className="space-y-1.5">
                                             {poi.action_steps.map((step, stepIdx) => (
                                                 <li key={stepIdx} className="flex items-start gap-2 text-sm text-gray-700">

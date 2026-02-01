@@ -188,25 +188,62 @@ export function StepReview({ onBack, isViewMode = false }) {
 
             {/* AI Summary Preview */}
             {report?.ai_summary && (
-                <div className="bg-white rounded-xl border border-gray-200 p-6">
-                    <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary-500" />
-                        AI Summary Preview
-                    </h3>
-                    <div className="prose prose-sm max-w-none text-gray-700">
-                        {report.ai_summary?.executive_summary ? (
-                            <>
-                                {report.ai_summary.executive_summary.split('\n').slice(0, 3).map((p, i) => (
-                                    <p key={i} className="mb-2">{p}</p>
-                                ))}
-                                {report.ai_summary.executive_summary.split('\n').length > 3 && (
-                                    <p className="text-gray-500 italic">... and more</p>
-                                )}
-                            </>
-                        ) : (
-                            <p className="text-gray-500 italic">No summary available.</p>
-                        )}
+                <div className="space-y-4">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6">
+                        <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-primary-500" />
+                            AI Summary Preview
+                        </h3>
+                        <div className="prose prose-sm max-w-none text-gray-700">
+                            {report.ai_summary?.executive_summary ? (
+                                <>
+                                    {report.ai_summary.executive_summary.split('\n').slice(0, 3).map((p, i) => (
+                                        <p key={i} className="mb-2">{p}</p>
+                                    ))}
+                                    {report.ai_summary.executive_summary.split('\n').length > 3 && (
+                                        <p className="text-gray-500 italic">... and more</p>
+                                    )}
+                                </>
+                            ) : (
+                                <p className="text-gray-500 italic">No summary available.</p>
+                            )}
+                        </div>
                     </div>
+
+                    {/* Plan of Improvement Preview */}
+                    {report.ai_summary?.plan_of_improvement && report.ai_summary.plan_of_improvement.length > 0 && (
+                        <div className="bg-white rounded-xl border border-gray-200 p-6">
+                            <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                                <ClipboardList className="w-5 h-5 text-amber-500" />
+                                Plan of Improvement Preview
+                            </h3>
+                            <div className="space-y-3">
+                                {report.ai_summary.plan_of_improvement.slice(0, 2).map((poi, idx) => (
+                                    <div key={idx} className="bg-amber-50/50 rounded-lg p-3 border border-amber-100">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className={cn(
+                                                "text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase",
+                                                poi.priority === 1 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
+                                            )}>
+                                                P{poi.priority || idx + 1}
+                                            </span>
+                                            <span className="font-medium text-sm text-gray-900">{poi.area}</span>
+                                        </div>
+                                        {poi.action_steps && poi.action_steps.length > 0 && (
+                                            <p className="text-xs text-gray-600 line-clamp-1">
+                                                Step 1: {poi.action_steps[0]}
+                                            </p>
+                                        )}
+                                    </div>
+                                ))}
+                                {report.ai_summary.plan_of_improvement.length > 2 && (
+                                    <p className="text-xs text-gray-500 italic px-1">
+                                        + {report.ai_summary.plan_of_improvement.length - 2} more improvement areas
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
