@@ -123,15 +123,20 @@ if ($export_pdf) {
             <?php endif; ?>
 
             <a href="<?php echo esc_url(admin_url('admin.php?page=chroma-qa-reports-view&id=' . $report_id . '&export=pdf')); ?>"
-                class="button button-primary">
+                class="button button-primary cqa-hide-print">
                 <span class="dashicons dashicons-pdf"></span>
                 <?php esc_html_e('Export PDF', 'chroma-qa-reports'); ?>
             </a>
+
+            <button type="button" class="button button-secondary no-print" onclick="window.print();">
+                <span class="dashicons dashicons-printer"></span>
+                <?php esc_html_e('Print / Save PDF', 'chroma-qa-reports'); ?>
+            </button>
         </div>
     </div>
 
     <!-- Report Stats -->
-    <div class="cqa-stats-grid" style="margin-bottom: 20px;">
+    <div class="cqa-stats-grid cqa-hide-print" style="margin-bottom: 20px;">
         <div class="cqa-stat-card">
             <div class="cqa-stat-icon reports">
                 <span class="dashicons dashicons-yes-alt"></span>
@@ -523,6 +528,93 @@ if ($export_pdf) {
     @media (max-width: 1024px) {
         .cqa-view-grid {
             grid-template-columns: 1fr;
+        }
+    }
+
+    @media print {
+
+        /* Hide Admin UI */
+        #adminmenumain,
+        #wpadminbar,
+        #adminmenuwrap,
+        #wpfooter,
+        .notice,
+        .switch-mode {
+            display: none !important;
+        }
+
+        html {
+            margin-top: 0 !important;
+        }
+
+        /* Hide Plugin UI Actions */
+        .cqa-header-actions,
+        .cqa-hide-print,
+        .no-print {
+            display: none !important;
+        }
+
+        /* Full Width Report */
+        #wpcontent,
+        #wpbody-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+
+        .cqa-wrap {
+            margin: 0 !important;
+            padding: 20px !important;
+            background: white !important;
+            max-width: 100% !important;
+        }
+
+        /* Layout Adjustments */
+        .cqa-view-grid {
+            display: block !important;
+        }
+
+        .cqa-sidebar {
+            display: none !important;
+            /* Optionally hide sidebar content or move to bottom if critical */
+        }
+
+        /* Clean up Cards for Print */
+        .cqa-card {
+            border: none !important;
+            box-shadow: none !important;
+            margin-bottom: 30px !important;
+        }
+
+        .cqa-card-header {
+            border-bottom: 2px solid #000 !important;
+            padding-left: 0 !important;
+        }
+
+        /* Typography */
+        body {
+            font-size: 12pt;
+            color: #000;
+        }
+
+        h1,
+        h2,
+        h3 {
+            color: #000 !important;
+        }
+
+        /* Links */
+        a {
+            text-decoration: none !important;
+            color: #000 !important;
+        }
+
+        /* Page Breaks */
+        .cqa-section-card {
+            page-break-inside: avoid;
+        }
+
+        .cqa-checklist-table tr {
+            page-break-inside: avoid;
         }
     }
 </style>

@@ -81,6 +81,17 @@ class PDF_Generator
 
         // Check for Dompdf - with fallback
         if (!class_exists('Dompdf\\Dompdf')) {
+            // Debugging
+            if (defined('CQA_DEBUG') && CQA_DEBUG) {
+                error_log('[CQA PDF] Dompdf not found initially.');
+                if (defined('CQA_PLUGIN_DIR')) {
+                    error_log('[CQA PDF] CQA_PLUGIN_DIR: ' . CQA_PLUGIN_DIR);
+                    error_log('[CQA PDF] Vendor exists? ' . (file_exists(CQA_PLUGIN_DIR . 'vendor/autoload.php') ? 'Yes' : 'No'));
+                } else {
+                    error_log('[CQA PDF] CQA_PLUGIN_DIR not defined.');
+                }
+            }
+
             // Try to find autoloader in standard location
             // CQA_PLUGIN_DIR is defined in main plugin file
             if (defined('CQA_PLUGIN_DIR') && file_exists(CQA_PLUGIN_DIR . 'vendor/autoload.php')) {
@@ -93,6 +104,13 @@ class PDF_Generator
 
         if (class_exists('Dompdf\\Dompdf')) {
             $libs[] = 'Dompdf';
+            if (defined('CQA_DEBUG') && CQA_DEBUG) {
+                error_log('[CQA PDF] Dompdf loaded successfully after check.');
+            }
+        } else {
+            if (defined('CQA_DEBUG') && CQA_DEBUG) {
+                error_log('[CQA PDF] Dompdf STILL missing after fallback.');
+            }
         }
 
         return $libs;
