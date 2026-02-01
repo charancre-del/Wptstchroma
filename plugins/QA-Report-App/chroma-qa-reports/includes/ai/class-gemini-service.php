@@ -154,41 +154,103 @@ class Gemini_Service
         // Add JSON instruction to prompt
         $json_prompt = $prompt . "\n\nRespond ONLY with valid JSON. Do not include any other text or markdown formatting. Ensure all strings are properly escaped.";
 
-        $response = self::generate($json_prompt, $options);
+        // Retry configuration
+        $max_retries = 2;
+        $base_tokens = $options['maxTokens'] ?? 4000;
 
-        if (\is_wp_error($response)) {
-            return $response;
-        }
+        for ($attempt = 0; $attempt <= $max_retries; $attempt++) {
+            // Increase tokens on retries
+            $options['maxTokens'] = $base_tokens + ($attempt * 1000);
 
-        // Extract text from array response
-        $text = is_array($response) ? ($response['text'] ?? '') : $response;
-        $text = trim($text);
+            $response = self::generate($json_prompt, $options);
 
-        // 1. Priority: Extract from Markdown Code Block (anywhere in text)
-        if (preg_match('/```(?:json)?\s*(.*?)\s*```/s', $text, $matches)) {
-            $text = $matches[1];
-        }
+            if (\is_wp_error($response)) {
+                // If it's not a token error, return immediately
+                if ($attempt === $max_retries) {
+                    return $response;
+                }
+                continue;
+            }
 
-        // 2. Locate JSON object (find first { and last })
-        $start = strpos($text, '{');
-        $end = strrpos($text, '}');
+            // Extract text from array response
+            $text = is_array($response) ? ($response['text'] ?? '') : $response;
+            $text = trim($text);
 
-        if ($start !== false && $end !== false && $end > $start) {
-            $text = substr($text, $start, $end - $start + 1);
-        }
+            // 1. Priority: Extract from Markdown Code Block (anywhere in text)
+            if (preg_match('/```(?:json)?\s*(.*?)\s*```/s', $text, $matches)) {
+                $text = $matches[1];
+            }
 
-        // 3. Attempt Decode
-        $data = json_decode($text, true);
+            // 2. Locate JSON object (find first { and last })
+            $start = strpos($text, '{');
+            $end = strrpos($text, '}');
 
-        // 4. Fallback: Try cleaning control characters if decode failed
-        if (json_last_error() !== JSON_ERROR_NONE) {
+            if ($start !== false && $end !== false && $end > $start) {
+                $text = substr($text, $start, $end - $start + 1);
+            } elseif ($start !== false) {
+                // JSON was truncated - try to repair
+                $text = substr($text, $start);
+                $text = self::repair_truncated_json($text);
+            }
+
+            // 3. Attempt Decode
+            $data = json_decode($text, true);
+
+            // 4. If decode succeeded, return
+            if (json_last_error() === JSON_ERROR_NONE) {
+                return $data;
+            }
+
+            // 5. On JSON error, log and retry if attempts remaining
+            if ($attempt < $max_retries) {
+                error_log("[CQA] JSON decode failed (attempt " . ($attempt + 1) . "), retrying with more tokens: " . json_last_error_msg());
+                continue;
+            }
+
+            // Final attempt failed
             error_log('CQA Gemini JSON Error: ' . json_last_error_msg());
-            // Log a snippet for safety
             error_log('CQA Gemini Failed Text: ' . substr($text, 0, 500) . '...');
-            return new \WP_Error('json_parse_error', '[DEBUG-NEW-SERVICE] JSON Error: ' . json_last_error_msg() . ' | Content: ' . substr($text, 0, 200));
+            return new \WP_Error('json_parse_error', 'JSON Error: ' . json_last_error_msg() . ' | Content: ' . substr($text, 0, 200));
         }
 
-        return $data;
+        return new \WP_Error('max_retries', __('Failed to get valid JSON after multiple attempts.', 'chroma-qa-reports'));
+    }
+
+    /**
+     * Attempt to repair truncated JSON by closing brackets.
+     *
+     * @param string $json Truncated JSON string.
+     * @return string Potentially repaired JSON.
+     */
+    private static function repair_truncated_json($json)
+    {
+        // Remove trailing incomplete string (common truncation point)
+        $json = preg_replace('/"[^"]*$/', '""', $json);
+
+        // Count opening and closing brackets
+        $open_braces = substr_count($json, '{');
+        $close_braces = substr_count($json, '}');
+        $open_brackets = substr_count($json, '[');
+        $close_brackets = substr_count($json, ']');
+
+        // Close any unclosed arrays first (they're usually nested)
+        while ($close_brackets < $open_brackets) {
+            $json .= ']';
+            $close_brackets++;
+        }
+
+        // Close any unclosed objects
+        while ($close_braces < $open_braces) {
+            $json .= '}';
+            $close_braces++;
+        }
+
+        // Clean up common trailing issues
+        $json = preg_replace('/,\s*([}\]])/', '$1', $json); // Remove trailing commas
+
+        error_log('[CQA] Attempted JSON repair: added ' . ($close_braces - substr_count($json, '}') + ($open_braces - $close_braces)) . ' closing braces');
+
+        return $json;
     }
 
     /**

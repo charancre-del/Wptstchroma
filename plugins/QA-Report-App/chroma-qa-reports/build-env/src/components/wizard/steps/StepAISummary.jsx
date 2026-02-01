@@ -36,10 +36,24 @@ export function StepAISummary() {
                 checklistData: responses
             });
 
-            // Standardize result structure - expect an object with executive_summary
-            const summaryObj = typeof result.summary === 'string'
-                ? { executive_summary: result.summary }
-                : result.summary;
+            // Handle both response formats:
+            // 1. { summary: { executive_summary: ..., plan_of_improvement: [...] } }
+            // 2. { executive_summary: ..., plan_of_improvement: [...] } (direct format)
+            let summaryObj;
+            if (result?.summary) {
+                // Backend wrapped the response in a 'summary' key
+                summaryObj = typeof result.summary === 'string'
+                    ? { executive_summary: result.summary }
+                    : result.summary;
+            } else if (result?.executive_summary) {
+                // Direct format - use result as-is
+                summaryObj = result;
+            } else {
+                // Fallback - treat result as summary
+                summaryObj = typeof result === 'string'
+                    ? { executive_summary: result }
+                    : result;
+            }
 
             setReport({
                 ...report,
@@ -48,7 +62,7 @@ export function StepAISummary() {
             toast.success('AI Summary generated successfully!');
         } catch (error) {
             console.error('AI Summary error:', error);
-            toast.error('Failed to generate summary. Please try again.');
+            toast.error(error?.message || 'Failed to generate summary. Please try again.');
         }
     };
 

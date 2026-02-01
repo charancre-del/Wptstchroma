@@ -1146,7 +1146,11 @@ class REST_Controller
             return $result;
         }
 
-        return new WP_REST_Response($result, 200);
+        // Wrap in 'summary' key for frontend compatibility
+        return new WP_REST_Response([
+            'summary' => $result,
+            'saved' => true,
+        ], 200);
     }
 
     public function parse_document(WP_REST_Request $request)
