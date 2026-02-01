@@ -14,6 +14,7 @@ import ReportWizard from './components/wizard/ReportWizard';
 import Dashboard from './pages/Dashboard';
 import SchoolsPage from './pages/Schools';
 import ReportsPage from './pages/Reports';
+import PrintReport from './pages/PrintReport';
 import Settings from './pages/Settings';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
