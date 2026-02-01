@@ -16,6 +16,11 @@ $compare_mode = isset($_GET['compare']) && $_GET['compare'];
 $export_pdf = isset($_GET['export']) && $_GET['export'] === 'pdf';
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : '';
 
+// Security: Check if user can view reports at all
+if (!current_user_can('cqa_view_own_reports') && !current_user_can('cqa_view_all_reports')) {
+    wp_die(__('You do not have permission to view reporting data.', 'chroma-qa-reports'));
+}
+
 if (!$report_id) {
     wp_die(__('Report not found.', 'chroma-qa-reports'));
 }

@@ -121,7 +121,7 @@ class Admin_Menu
             null, // Hidden
             __('View Report', 'chroma-qa-reports'),
             __('View Report', 'chroma-qa-reports'),
-            'cqa_view_own_reports',
+            'read', // Allow any logged in user with report access (view file handles specific security)
             self::MENU_SLUG . '-view',
             [$this, 'render_view_report']
         );
@@ -353,7 +353,7 @@ class Admin_Menu
             'cqa-react-app',
             CQA_PLUGIN_URL . 'build/index.js',
             array_merge(['cqa-runtime-guard'], $assets['dependencies']),
-            $assets['version'],
+            $assets['version'] . '.' . time(), // Append timestamp to force refresh on staging
             true
         );
 
