@@ -1072,60 +1072,50 @@
                     return;
                 }
 
-                // Build summary HTML
-                let html = '<div class="cqa-ai-summary-result">';
-                html += '<h3>📝 AI Executive Summary</h3>';
+                // Show the result container
+                $('#ai-result').show();
 
-                // Handle different response formats
-                if (response.summary || response.executive_summary) {
-                    const summary = response.summary || response.executive_summary;
-                    html += '<div class="cqa-summary-text">' + this.formatSummaryText(summary) + '</div>';
+                // 1. Executive Summary
+                const summaryText = response.summary || response.executive_summary || '';
+                if (summaryText) {
+                    $('#executive-summary').html(this.formatSummaryText(summaryText));
                 }
 
-                if (response.key_findings && Array.isArray(response.key_findings)) {
-                    html += '<h4>🔍 Key Findings</h4><ul class="cqa-key-findings">';
-                    response.key_findings.forEach(finding => {
-                        html += '<li>' + this.escapeHtml(finding) + '</li>';
-                    });
-                    html += '</ul>';
-                }
-
-                if (response.recommendations && Array.isArray(response.recommendations)) {
-                    html += '<h4>💡 Recommendations</h4><ul class="cqa-recommendations">';
-                    response.recommendations.forEach(rec => {
-                        html += '<li>' + this.escapeHtml(rec) + '</li>';
-                    });
-                    html += '</ul>';
-                }
-
+                // 2. Identified Issues (Concerns)
+                let issuesHtml = '';
+                // Handle areas_of_concern
                 if (response.areas_of_concern && Array.isArray(response.areas_of_concern)) {
-                    html += '<h4>⚠️ Areas of Concern</h4><ul class="cqa-concerns">';
+                    issuesHtml += '<div class="cqa-concerns-list">';
                     response.areas_of_concern.forEach(concern => {
-                        html += '<li>' + this.escapeHtml(concern) + '</li>';
+                        const severity = concern.severity || 'medium';
+                        issuesHtml += '<div class="cqa-concern-item severity-' + severity + '">';
+                        issuesHtml += '<span class="cqa-severity-badge">' + severity.toUpperCase() + '</span> ';
+                        issuesHtml += '<strong>' + this.escapeHtml(concern.section || '') + '</strong>';
+                        if (concern.item) issuesHtml += ' - ' + this.escapeHtml(concern.item);
+                        if (concern.observation) issuesHtml += '<p>' + this.escapeHtml(concern.observation) + '</p>';
+                        if (concern.coaching_note) issuesHtml += '<p class="coaching-note">💡 ' + this.escapeHtml(concern.coaching_note) + '</p>';
+                        issuesHtml += '</div>';
                     });
-                    html += '</ul>';
+                    issuesHtml += '</div>';
                 }
-
-                if (response.strengths && Array.isArray(response.strengths)) {
-                    html += '<h4>✅ Strengths</h4><ul class="cqa-strengths">';
-                    response.strengths.forEach(strength => {
-                        html += '<li>' + this.escapeHtml(strength) + '</li>';
-                    });
-                    html += '</ul>';
+                // Fallback issues/recommendations (legacy support if needed)
+                if (response.issues && Array.isArray(response.issues)) {
+                    // Add legacy issues handling here if response.issues is still a thing
+                    // For now, assuming areas_of_concern is the primary source
                 }
+                $('#issues-list').html(issuesHtml);
 
-                // Plan of Improvement - detailed action plan
+                // 3. Plan of Improvement
+                let poiHtml = '';
                 if (response.plan_of_improvement && Array.isArray(response.plan_of_improvement)) {
-                    html += '<h4>📋 Plan of Improvement</h4>';
-                    html += '<div class="cqa-poi-list">';
+                    poiHtml += '<div class="cqa-poi-list">';
                     response.plan_of_improvement.forEach((poi, idx) => {
-                        html += '<div class="cqa-poi-item">';
-                        html += '<h5>Priority ' + (poi.priority || (idx + 1)) + ': ' + this.escapeHtml(poi.area) + '</h5>';
-                        if (poi.current_status) {
-                            html += '<p><strong>Current Status:</strong> ' + this.escapeHtml(poi.current_status) + '</p>';
-                        }
+                        poiHtml += '<div class="cqa-poi-box cqa-card" style="padding:15px; margin-bottom:15px; border-left:4px solid var(--cqa-primary);">';
+                        poiHtml += '<h4>Priority ' + (poi.priority || (idx + 1)) + ': ' + this.escapeHtml(poi.area) + '</h4>';
+
+                        if (poi.current_status) poiHtml += '<p><strong>Status:</strong> ' + this.escapeHtml(poi.current_status) + '</p>';
+
                         if (poi.action_steps && Array.isArray(poi.action_steps)) {
-                            html += '<p><strong>Action Steps:</strong></p><ol class="cqa-action-steps">';
                             poi.action_steps.forEach(step => {
                                 html += '<li>' + this.escapeHtml(step) + '</li>';
                             });
@@ -1520,6 +1510,34 @@
                     }
                 });
                 return o;
+            },
+
+            /**
+             * Load existing AI summary if available.
+             */
+            loadExistingAISummary: function (reportId) {
+                const self = this;
+                $.ajax({
+                    url: cqaFrontend.restUrl + 'reports/' + reportId,
+                    method: 'GET',
+                    beforeSend: function (xhr) {
+                        xhr.setRequestHeader('X-WP-Nonce', cqaFrontend.nonce);
+                    }
+                }).done(function (report) {
+                    if (report && report.ai_summary) {
+                        // Use renderAISummary to display the saved summary
+                        self.renderAISummary(report.ai_summary);
+
+                        // Show actions
+                        $('.cqa-ai-actions').hide();
+                        $('#ai-result').show();
+
+                        // Add some actions like "Regenerate"
+                        $('#cqa-generate-summary').text('Regenerate Summary').parent().show();
+                    }
+                }).fail(function () {
+                    // console.log('No existing summary or failed to load');
+                });
             },
 
             initAutosave: function () {

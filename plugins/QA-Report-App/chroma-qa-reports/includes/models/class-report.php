@@ -459,6 +459,40 @@ class Report
     }
 
     /**
+     * Get AI Summary for this report.
+     *
+     * @return array|null
+     */
+    public function get_ai_summary()
+    {
+        global $wpdb;
+        $table = $wpdb->prefix . 'cqa_ai_summaries';
+
+        $row = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$table} WHERE report_id = %d", $this->id),
+            \ARRAY_A
+        );
+
+        if (!$row) {
+            return null;
+        }
+
+        // Decode JSON fields
+        $row['issues'] = json_decode($row['issues_json'], true) ?: [];
+        $row['poi'] = json_decode($row['poi_json'], true) ?: [];
+        $row['comparison'] = json_decode($row['comparison_json'], true) ?: [];
+
+        // Map POI to plan_of_improvement if needed for frontend consistency
+        if (!isset($row['plan_of_improvement']) && isset($row['poi'])) {
+            // If structure matches new format, map it. For now, just pass as is.
+            // Ideally we should unify this, but frontend handles both.
+            $row['plan_of_improvement'] = $row['poi'];
+        }
+
+        return $row;
+    }
+
+    /**
      * Get the AI summary for this report.
      *
      * @return array|null
