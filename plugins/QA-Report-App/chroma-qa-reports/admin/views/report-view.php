@@ -57,6 +57,8 @@ if ($export_pdf) {
     wp_redirect($pdf_url);
     exit;
 }
+
+$auto_print = isset($_GET['print']) && $_GET['print'] == '1';
 ?>
 
 <div class="wrap cqa-wrap">
@@ -443,7 +445,9 @@ if ($export_pdf) {
 </div>
 
 <style>
-    .print-only { display: none; }
+    .print-only {
+        display: none;
+    }
 
     .cqa-view-grid {
         display: grid;
@@ -575,45 +579,161 @@ if ($export_pdf) {
             grid-template-columns: 1fr;
         }
     }
-    
+
     @media print {
+
         /* Layout */
-        .print-only { display: block !important; }
-        .no-print, .cqa-hide-print, .cqa-header-actions, #adminmenumain, #wpadminbar, #adminmenuwrap, #wpfooter, .notice {
+        .print-only {
+            display: block !important;
+        }
+
+        .no-print,
+        .cqa-hide-print,
+        .cqa-header-actions,
+        #adminmenumain,
+        #wpadminbar,
+        #adminmenuwrap,
+        #wpfooter,
+        .notice {
             display: none !important;
         }
-        
-        html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
-        #wpcontent, #wpbody-content { margin-left: 0 !important; padding: 0 !important; }
-        
-        .cqa-wrap { margin: 0 !important; padding: 20mm !important; max-width: 100% !important; }
-        .cqa-view-grid { display: block !important; }
-        
+
+        html,
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important;
+        }
+
+        #wpcontent,
+        #wpbody-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
+
+        .cqa-wrap {
+            margin: 0 !important;
+            padding: 20mm !important;
+            max-width: 100% !important;
+        }
+
+        .cqa-view-grid {
+            display: block !important;
+        }
+
         /* Typography */
-        body { font-size: 11pt; line-height: 1.5; color: #000; }
-        .cqa-title { font-size: 24pt; margin-bottom: 5mm; }
-        .cqa-subtitle { font-size: 14pt; color: #555; border-bottom: 2px solid #000; padding-bottom: 5mm; margin-bottom: 10mm; }
-        
+        body {
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #000;
+        }
+
+        .cqa-title {
+            font-size: 24pt;
+            margin-bottom: 5mm;
+        }
+
+        .cqa-subtitle {
+            font-size: 14pt;
+            color: #555;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5mm;
+            margin-bottom: 10mm;
+        }
+
         /* Sections */
-        .cqa-card { border: none !important; box-shadow: none !important; margin-bottom: 10mm !important; page-break-inside: avoid; }
-        .cqa-card-header { border-bottom: 1pt solid #ccc !important; padding: 0 0 2mm 0 !important; margin-bottom: 3mm !important; }
-        .cqa-card-header h2 { font-size: 16pt !important; margin: 0 !important; }
-        
+        .cqa-card {
+            border: none !important;
+            box-shadow: none !important;
+            margin-bottom: 10mm !important;
+            page-break-inside: avoid;
+        }
+
+        .cqa-card-header {
+            border-bottom: 1pt solid #ccc !important;
+            padding: 0 0 2mm 0 !important;
+            margin-bottom: 3mm !important;
+        }
+
+        .cqa-card-header h2 {
+            font-size: 16pt !important;
+            margin: 0 !important;
+        }
+
         /* Tables */
-        .cqa-checklist-table th { background: #eee !important; color: #000 !important; -webkit-print-color-adjust: exact; }
-        .cqa-checklist-table td, .cqa-checklist-table th { border: 0.5pt solid #ccc !important; padding: 3mm !important; }
-        .rating-row.rating-no { background: #fff !important; font-weight: bold; color: #c00 !important; }
-        .rating-row.rating-sometimes { background: #fff !important; font-weight: bold; color: #960 !important; }
+        .cqa-checklist-table th {
+            background: #eee !important;
+            color: #000 !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        .cqa-checklist-table td,
+        .cqa-checklist-table th {
+            border: 0.5pt solid #ccc !important;
+            padding: 3mm !important;
+        }
+
+        .rating-row.rating-no {
+            background: #fff !important;
+            font-weight: bold;
+            color: #c00 !important;
+        }
+
+        .rating-row.rating-sometimes {
+            background: #fff !important;
+            font-weight: bold;
+            color: #960 !important;
+        }
 
         /* Print Specific Grid */
-        .print-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
-        .print-photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-top: 5mm; }
-        .cqa-photo-item { break-inside: avoid; margin-bottom: 5mm; }
-        .cqa-photo-item img { width: 100%; border: 1pt solid #ccc; }
-        .photo-caption { font-size: 9pt; color: #666; margin-top: 1mm; }
+        .print-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5mm;
+        }
+
+        .print-photo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5mm;
+            margin-top: 5mm;
+        }
+
+        .cqa-photo-item {
+            break-inside: avoid;
+            margin-bottom: 5mm;
+        }
+
+        .cqa-photo-item img {
+            width: 100%;
+            border: 1pt solid #ccc;
+        }
+
+        .photo-caption {
+            font-size: 9pt;
+            color: #666;
+            margin-top: 1mm;
+        }
 
         /* General */
-        .dashicons { display: none !important; }
-        .cqa-badge { border: 1pt solid #ccc !important; background: #fff !important; color: #000 !important; }
+        .dashicons {
+            display: none !important;
+        }
+
+        .cqa-badge {
+            border: 1pt solid #ccc !important;
+            background: #fff !important;
+            color: #000 !important;
+        }
     }
 </style>
+
+<?php if ($auto_print): ?>
+    <script type="text/javascript">
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                window.print();
+            }, 500);
+        });
+    </script>
+<?php endif; ?>

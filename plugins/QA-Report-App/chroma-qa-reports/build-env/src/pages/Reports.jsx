@@ -28,6 +28,7 @@ import {
     CheckCircle,
     Eye,
     Download,
+    Printer,
     MoreHorizontal,
 } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
@@ -188,11 +189,13 @@ export function ReportsPage() {
                             {row.original.status !== 'draft' && (
                                 <DropdownMenu.Item asChild>
                                     <a
-                                        href={`${window.cqaData.restUrl}reports/${row.original.id}/pdf?format=download`}
+                                        href={`${window.cqaData.adminUrl}?page=chroma-qa-reports-view&id=${row.original.id}&print=1`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
                                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"
                                     >
-                                        <Download className="w-4 h-4 text-brand-ink/40" />
-                                        Download PDF
+                                        <Printer className="w-4 h-4 text-brand-ink/40" />
+                                        Print / Save PDF
                                     </a>
                                 </DropdownMenu.Item>
                             )}
