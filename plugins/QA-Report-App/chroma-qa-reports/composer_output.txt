@@ -1,0 +1,32 @@
+php : Installing dependencies from lock file 
+(including require-dev)
+At line:1 char:1
++ php composer.phar install 2>&1 | Out-File -Encoding 
+ascii composer_ou ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Installin 
+   g depe...ng require-dev):String) [], RemoteExcepti  
+  on
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+Verifying lock file contents can be installed on 
+current platform.
+Your lock file does not contain a compatible set of 
+packages. Please run composer update.
+
+  Problem 1
+    - doctrine/instantiator is locked to version 2.1.0 
+and an update of this package was not requested.
+    - doctrine/instantiator 2.1.0 requires php ^8.4 -> 
+your php version (8.2.30) does not satisfy that 
+requirement.
+  Problem 2
+    - phpunit/phpunit is locked to version 9.6.34 and 
+an update of this package was not requested.
+    - doctrine/instantiator 2.1.0 requires php ^8.4 -> 
+your php version (8.2.30) does not satisfy that 
+requirement.
+    - phpunit/phpunit 9.6.34 requires 
+doctrine/instantiator ^1.5.0 || ^2 -> satisfiable by 
+doctrine/instantiator[2.1.0].
+

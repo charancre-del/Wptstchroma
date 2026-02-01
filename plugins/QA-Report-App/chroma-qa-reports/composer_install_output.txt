@@ -1,0 +1,13 @@
+php : Invalid argument thecodingmachine/safe. Use 
+"composer require thecodingmachine/safe" instead to 
+add packages to your composer.json.
+At line:1 char:1
++ php composer.phar install --no-dev 
+--ignore-platform-reqs thecodingma ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Invalid a 
+   rgumen... composer.json.:String) [], RemoteExcepti  
+  on
+    + FullyQualifiedErrorId : NativeCommandError
+ 

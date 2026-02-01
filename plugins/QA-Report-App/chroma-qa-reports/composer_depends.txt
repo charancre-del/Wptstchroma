@@ -1,0 +1,18 @@
+php : 
+At line:1 char:1
++ php composer.phar depends thecodingmachine/safe 2>&1 
+| Out-File -Enco ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String)  
+   [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+In BaseDependencyCommand.php line 102:
+                                                       
+  Could not find package "thecodingmachine/safe" in y  
+  our project                                          
+                                                       
+
+depends [-r|--recursive] [-t|--tree] [--locked] [--] 
+<package>
+
