@@ -75,10 +75,26 @@ class PDF_Generator
     public function get_available_libraries()
     {
         $libs = [];
-        if (class_exists('TCPDF'))
+        if (class_exists('TCPDF')) {
             $libs[] = 'TCPDF';
-        if (class_exists('Dompdf\\Dompdf'))
+        }
+
+        // Check for Dompdf - with fallback
+        if (!class_exists('Dompdf\\Dompdf')) {
+            // Try to find autoloader in standard location
+            // CQA_PLUGIN_DIR is defined in main plugin file
+            if (defined('CQA_PLUGIN_DIR') && file_exists(CQA_PLUGIN_DIR . 'vendor/autoload.php')) {
+                require_once CQA_PLUGIN_DIR . 'vendor/autoload.php';
+            } elseif (file_exists(dirname(dirname(__DIR__)) . '/vendor/autoload.php')) {
+                // Fallback relative path check
+                require_once dirname(dirname(__DIR__)) . '/vendor/autoload.php';
+            }
+        }
+
+        if (class_exists('Dompdf\\Dompdf')) {
             $libs[] = 'Dompdf';
+        }
+
         return $libs;
     }
 

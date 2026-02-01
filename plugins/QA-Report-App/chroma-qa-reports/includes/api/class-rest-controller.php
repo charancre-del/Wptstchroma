@@ -137,10 +137,7 @@ class REST_Controller
         \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/pdf', [
             'methods' => WP_REST_Server::READABLE,
             'callback' => [$this, 'generate_report_pdf'],
-            'permission_callback' => function ($request) {
-                // Allow direct browser download if user is logged in
-                return is_user_logged_in() && current_user_can('cqa_export_reports');
-            },
+            'permission_callback' => [$this, 'check_export_permission'],
         ]);
 
         // AI endpoints
