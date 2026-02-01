@@ -72,7 +72,7 @@ const StepChecklist = ({ draft, updateDraft, nextStep, readOnly = false }) => {
         <div className="space-y-6">
 
             {/* Header / Stats */}
-            <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between sticky top-0 z-20">
+            <div className="bg-white/95 backdrop-blur-sm p-4 rounded-lg border border-gray-200 shadow-sm flex items-center justify-between sticky top-8 z-20">
                 <div>
                     <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
                         <ListChecks className="text-cqa-primary" />

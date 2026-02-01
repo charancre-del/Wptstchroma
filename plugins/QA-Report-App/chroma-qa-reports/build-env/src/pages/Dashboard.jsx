@@ -29,7 +29,7 @@ export function Dashboard() {
     const recentReports = Array.isArray(reports) ? reports : (reports?.data || []);
 
     return (
-        <div className="space-y-8">
+        <div className="p-6 w-full mx-auto">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
@@ -46,7 +46,7 @@ export function Dashboard() {
             </div>
 
             {/* Stat Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 h-60">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard
                     icon={School}
                     label="Total Schools"
@@ -78,7 +78,7 @@ export function Dashboard() {
             </div>
 
             {/* Main Content Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[500px]">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-[500px]">
                 {/* Left Column: Compliance Chart (2/3) */}
                 <div className="lg:col-span-2 h-full">
                     <ComplianceChart stats={stats} isLoading={statsLoading} />

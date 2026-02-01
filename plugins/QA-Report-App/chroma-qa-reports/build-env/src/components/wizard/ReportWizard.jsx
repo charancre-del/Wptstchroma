@@ -270,7 +270,7 @@ const ReportWizard = () => {
     }
 
     return (
-        <div className="max-w-4xl mx-auto bg-brand-cream/30 backdrop-blur-sm rounded-3xl shadow-sm border border-brand-ink/10 overflow-hidden min-h-[60vh] md:min-h-[600px] flex flex-col font-outfit">
+        <div className="w-full bg-brand-cream/30 backdrop-blur-sm rounded-3xl shadow-sm border border-brand-ink/10 overflow-hidden min-h-[60vh] md:min-h-[600px] flex flex-col font-outfit">
             {/* Wizard Header */}
             <div className="bg-brand-cream/50 px-8 py-6 border-b border-brand-ink/5 flex justify-between items-center">
                 <h2 className="text-2xl font-serif font-bold text-brand-ink">

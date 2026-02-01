@@ -3,3 +3,25 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+
+    /* Force WordPress admin content area to be full width */
+    #wpbody-content {
+        padding-bottom: 0 !important;
+        float: none !important;
+    }
+
+    #wpbody-content>.wrap {
+        margin: 0 !important;
+        max-width: none !important;
+        padding: 0 !important;
+    }
+
+    .cqa-react-wrap {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+    }
+}

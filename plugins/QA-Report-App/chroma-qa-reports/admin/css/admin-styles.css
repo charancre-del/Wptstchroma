@@ -39,10 +39,34 @@
 .cqa-wrap {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     padding: 20px;
-    max-width: 1400px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
-.cqa-wrap * {
+/* WP Admin Overrides for Full Width Integration */
+.cqa-react-wrap {
+    margin: 0 !important;
+    max-width: none !important;
+    padding: 0 !important;
+}
+
+#wpbody-content .cqa-react-wrap {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+#wpbody-content .cqa-react-wrap .wrap {
+    margin: 0 !important;
+    max-width: none !important;
+}
+
+#cqa-react-app {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.cqa-react-wrap * {
     box-sizing: border-box;
 }
 

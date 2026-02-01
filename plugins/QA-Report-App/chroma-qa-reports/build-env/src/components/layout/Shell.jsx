@@ -37,17 +37,19 @@ const Shell = () => {
     }
 
     return (
-        <div className="flex h-screen bg-brand-cream overflow-hidden font-sans text-brand-ink">
+        <div className="flex min-h-[calc(100vh-32px)] bg-brand-cream font-sans text-brand-ink">
             <ConflictModal />
             <SessionExpiredModal />
 
             {/* Sidebar Container */}
-            <div className="flex-shrink-0 z-20 h-full">
-                <Sidebar isOpen={isSidebarOpen} />
+            <div className="flex-shrink-0 z-20">
+                <div className="sticky top-8 h-[calc(100vh-32px)]">
+                    <Sidebar isOpen={isSidebarOpen} />
+                </div>
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 overflow-auto relative flex flex-col scroll-smooth">
+            <main className="flex-1 relative flex flex-col">
                 <OfflineBanner />
                 <div className="w-full p-4 md:p-8">
                     <Outlet />
