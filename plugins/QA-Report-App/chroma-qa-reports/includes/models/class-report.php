@@ -21,6 +21,38 @@ class Report
     private static $table = 'cqa_reports';
 
     /**
+     * Get AI Summary for this report.
+     *
+     * @return array|null
+     */
+    public function get_ai_summary()
+    {
+        global $wpdb;
+        $table = $wpdb->prefix . 'cqa_ai_summaries';
+
+        $row = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$table} WHERE report_id = %d", $this->id),
+            'ARRAY_A'
+        );
+
+        if (!$row) {
+            return null;
+        }
+
+        // Decode JSON fields
+        $row['issues'] = json_decode($row['issues_json'], true) ?: [];
+        $row['poi'] = json_decode($row['poi_json'], true) ?: [];
+        $row['comparison'] = json_decode($row['comparison_json'], true) ?: [];
+
+        // Map POI to plan_of_improvement if needed for frontend consistency
+        if (!isset($row['plan_of_improvement']) && isset($row['poi'])) {
+            $row['plan_of_improvement'] = $row['poi'];
+        }
+
+        return $row;
+    }
+
+    /**
      * Report type constants.
      */
     const TYPE_NEW_ACQUISITION = 'new_acquisition';
@@ -89,7 +121,7 @@ class Report
 
         $row = $wpdb->get_row(
             $wpdb->prepare("SELECT * FROM {$table} WHERE id = %d", $id),
-            \ARRAY_A
+            'ARRAY_A'
         );
 
         return $row ? self::from_row($row) : null;
@@ -120,7 +152,7 @@ class Report
             'offset' => 0,
         ];
 
-        $args = wp_parse_args($args, $defaults);
+        $args = \wp_parse_args($args, $defaults);
 
         $where = [];
         $values = [];
@@ -163,7 +195,6 @@ class Report
             $search_values = [$search_like, $search_like, $search_like, $search_like];
 
             // Optimized ID search: Only search IDs if the input is numeric
-            // This avoids CAST(id AS CHAR) which kills index performance (QAR-035)
             if (is_numeric($search)) {
                 $conditions[] = 'r.id = %d';
                 $search_values[] = $search;
@@ -195,10 +226,9 @@ class Report
         $where_clause = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
         $order = strtoupper($args['order']) === 'ASC' ? 'ASC' : 'DESC';
         $orderby_key = $allowed_orderby[$args['orderby']] ?? 'r.inspection_date';
-        $orderby = sanitize_sql_orderby("{$orderby_key} {$order}");
-        if (empty($orderby)) {
-            $orderby = 'r.inspection_date DESC';
-        }
+
+        // Manual sanitization instead of non-existent sanitize_sql_orderby
+        $orderby = $orderby_key . ' ' . $order;
 
         $sql = "SELECT r.* FROM {$table} r {$join} {$where_clause} ORDER BY {$orderby} LIMIT %d OFFSET %d";
         $values[] = $args['limit'];
@@ -206,7 +236,7 @@ class Report
 
         $rows = $wpdb->get_results(
             $wpdb->prepare($sql, $values),
-            \ARRAY_A
+            'ARRAY_A'
         );
 
         return array_map([self::class, 'from_row'], $rows);
@@ -368,18 +398,15 @@ class Report
             // Delete related photos
             $photos = $this->get_photos();
             foreach ($photos as $photo) {
-                // [FIX-303] Immediate orphan cleanup (QAR-011).
-                // Delete actual file from Google Drive/Local to prevent storage leaks.
                 if (!empty($photo->drive_file_id)) {
                     // Check if it's a local attachment or Drive ID
                     if (strpos($photo->drive_file_id, 'wp_') === 0) {
-                        wp_delete_attachment((int) substr($photo->drive_file_id, 3), true);
+                        \wp_delete_attachment((int) substr($photo->drive_file_id, 3), true);
                     } else {
                         // It's a Google Drive ID
                         try {
                             \ChromaQA\Integrations\Google_Drive::delete_file($photo->drive_file_id);
                         } catch (\Exception $d) {
-                            // Log but don't block deletion of report
                             error_log("Failed to delete Drive file {$photo->drive_file_id}: " . $d->getMessage());
                         }
                     }
@@ -458,67 +485,7 @@ class Report
         return Photo::get_by_report($this->id);
     }
 
-    /**
-     * Get AI Summary for this report.
-     *
-     * @return array|null
-     */
-    public function get_ai_summary()
-    {
-        global $wpdb;
-        $table = $wpdb->prefix . 'cqa_ai_summaries';
 
-        $row = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM {$table} WHERE report_id = %d", $this->id),
-            \ARRAY_A
-        );
-
-        if (!$row) {
-            return null;
-        }
-
-        // Decode JSON fields
-        $row['issues'] = json_decode($row['issues_json'], true) ?: [];
-        $row['poi'] = json_decode($row['poi_json'], true) ?: [];
-        $row['comparison'] = json_decode($row['comparison_json'], true) ?: [];
-
-        // Map POI to plan_of_improvement if needed for frontend consistency
-        if (!isset($row['plan_of_improvement']) && isset($row['poi'])) {
-            // If structure matches new format, map it. For now, just pass as is.
-            // Ideally we should unify this, but frontend handles both.
-            $row['plan_of_improvement'] = $row['poi'];
-        }
-
-        return $row;
-    }
-
-    /**
-     * Get the AI summary for this report.
-     *
-     * @return array|null
-     */
-    public function get_ai_summary()
-    {
-        global $wpdb;
-        $table = $wpdb->prefix . 'cqa_ai_summaries';
-
-        $row = $wpdb->get_row(
-            $wpdb->prepare("SELECT * FROM {$table} WHERE report_id = %d", $this->id),
-            \ARRAY_A
-        );
-
-        if (!$row) {
-            return null;
-        }
-
-        return [
-            'executive_summary' => $row['executive_summary'],
-            'issues' => json_decode($row['issues_json'] ?: '[]', true),
-            'poi' => json_decode($row['poi_json'] ?: '[]', true),
-            'comparison' => json_decode($row['comparison_json'] ?: '[]', true),
-            'generated_at' => $row['generated_at'],
-        ];
-    }
 
     /**
      * Get report type label.
