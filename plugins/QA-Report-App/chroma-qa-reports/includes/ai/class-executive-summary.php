@@ -16,7 +16,6 @@ use ChromaQA\Checklists\Checklist_Manager;
  */
 class Executive_Summary
 {
-
     /**
      * Generate executive summary for a report.
      *
@@ -43,27 +42,129 @@ class Executive_Summary
         $stats = Checklist_Manager::get_progress_stats($report->id, $report->report_type);
         $photos = $report->get_photos();
 
-        // Build the prompt
-        $prompt = $this->build_prompt($school, $report, $responses, $previous_report, $checklist, $stats, $photos);
+        // Build context data once (shared between both prompts)
+        $context = $this->build_context($school, $report, $responses, $previous_report, $checklist, $stats, $photos);
 
-        // Generate summary using Gemini - increased tokens for longer, more detailed output
-        $result = Gemini_Service::generate_json($prompt, [
-            'temperature' => 0.4,
-            'maxTokens' => 6000,
-        ]);
+        // Call 1: Generate Executive Summary (narrative + analysis)
+        $executive_result = $this->generate_executive_part($context, $previous_report);
 
-        if (\is_wp_error($result)) {
-            return $result;
+        // Call 2: Generate Plan of Improvement (action items)
+        $poi_result = $this->generate_poi_part($context, $previous_report);
+
+        // Handle errors
+        $errors = [];
+        if (\is_wp_error($executive_result)) {
+            $errors[] = 'Executive: ' . $executive_result->get_error_message();
+        }
+        if (\is_wp_error($poi_result)) {
+            $errors[] = 'POI: ' . $poi_result->get_error_message();
         }
 
-        // Save the summary to database
+        // If both failed, return error
+        if (count($errors) === 2) {
+            return new \WP_Error('ai_generation_failed', implode(' | ', $errors));
+        }
+
+        // Merge results (use empty arrays for failed parts)
+        $result = array_merge(
+            is_array($executive_result) ? $executive_result : [],
+            is_array($poi_result) ? $poi_result : []
+        );
+
+        // Save the merged summary to database
         $this->save_summary($report->id, $result);
 
         return $result;
     }
 
     /**
-     * Build the AI prompt.
+     * Generate the executive summary part (narrative + analysis).
+     *
+     * @param array $context Shared context data.
+     * @param Report|null $previous_report Previous report for comparison.
+     * @return array|WP_Error
+     */
+    private function generate_executive_part($context, $previous_report)
+    {
+        $prompt = $context['base_prompt'];
+
+        $prompt .= "## Instructions\n";
+        $prompt .= "Generate a focused JSON response for the EXECUTIVE SUMMARY portion only.\n\n";
+        $prompt .= "{\n";
+        $prompt .= '  "executive_summary": "A comprehensive 3-4 paragraph professional summary. Start by celebrating specific successes. Then provide analysis of compliance status. Finally, bridge into growth areas with supportive coaching language.",';
+        $prompt .= "\n";
+        $prompt .= '  "strengths": ["List 5-8 specific strengths observed, referencing actual checklist items"],';
+        $prompt .= "\n";
+        $prompt .= '  "areas_of_concern": [';
+        $prompt .= "\n";
+        $prompt .= '    { "severity": "high|medium|low", "section": "section name", "item": "specific item", "observation": "what was observed", "coaching_note": "supportive improvement guidance" }';
+        $prompt .= "\n";
+        $prompt .= "  ],\n";
+        $prompt .= '  "suggested_rating": "exceeds|meets|needs_improvement",';
+        $prompt .= "\n";
+        $prompt .= '  "key_findings": ["3-5 most important takeaways"]';
+        $prompt .= "\n";
+        $prompt .= "}\n\n";
+
+        $prompt .= "IMPORTANT: Be thorough but focused. Reference specific checklist items. Celebrate wins first.\n";
+
+        return Gemini_Service::generate_json($prompt, [
+            'temperature' => 0.4,
+            'maxTokens' => 3000,  // Executive summary is narrative, needs less tokens
+        ]);
+    }
+
+    /**
+     * Generate the Plan of Improvement part (action items).
+     *
+     * @param array $context Shared context data.
+     * @param Report|null $previous_report Previous report for comparison.
+     * @return array|WP_Error
+     */
+    private function generate_poi_part($context, $previous_report)
+    {
+        $prompt = $context['base_prompt'];
+
+        $prompt .= "## Instructions\n";
+        $prompt .= "Generate a focused JSON response for the PLAN OF IMPROVEMENT only.\n";
+        $prompt .= "Focus on actionable items based on areas that need work (SOMETIMES or NO ratings).\n\n";
+        $prompt .= "{\n";
+        $prompt .= '  "plan_of_improvement": [';
+        $prompt .= "\n";
+        $prompt .= '    { "priority": 1, "area": "specific section/area", "current_status": "what needs improvement", "action_steps": ["step 1", "step 2", "step 3"], "timeline": "specific timeframe (e.g., Within 7 days)", "success_criteria": "how we will know this is resolved", "support_offered": "resources or help available" }';
+        $prompt .= "\n";
+        $prompt .= "  ],\n";
+
+        if ($previous_report) {
+            $prompt .= '  "comparison": {';
+            $prompt .= "\n";
+            $prompt .= '    "celebrations": ["list of improved items since last visit"],';
+            $prompt .= "\n";
+            $prompt .= '    "regressions": ["items that have declined, if any"],';
+            $prompt .= "\n";
+            $prompt .= '    "focus_areas": ["recurring items needing continued focus"]';
+            $prompt .= "\n";
+            $prompt .= "  },\n";
+        }
+
+        $prompt .= '  "recommendations": ["3-5 specific recommendations for the Director"]';
+        $prompt .= "\n";
+        $prompt .= "}\n\n";
+
+        $prompt .= "IMPORTANT:\n";
+        $prompt .= "1. Each POI item must have 2-4 concrete, actionable steps.\n";
+        $prompt .= "2. Safety/health issues (NO ratings) are HIGH priority and need immediate action.\n";
+        $prompt .= "3. Timelines should be realistic and specific.\n";
+        $prompt .= "4. Maintain a supportive, coaching tone - we are partners in success.\n";
+
+        return Gemini_Service::generate_json($prompt, [
+            'temperature' => 0.4,
+            'maxTokens' => 5000,  // POI needs more tokens for action steps, timelines, etc.
+        ]);
+    }
+
+    /**
+     * Build the shared context for both prompts.
      *
      * @param object $school School object.
      * @param Report $report Report object.
@@ -72,17 +173,16 @@ class Executive_Summary
      * @param array  $checklist Checklist definition.
      * @param array  $stats Stats summary.
      * @param array  $photos Photo objects with captions.
-     * @return string
+     * @return array Context with base_prompt.
      */
-    private function build_prompt($school, $report, $responses, $previous_report, $checklist, $stats, $photos = [])
+    private function build_context($school, $report, $responses, $previous_report, $checklist, $stats, $photos = [])
     {
         $school_name = $school ? $school->name : 'Unknown School';
         $report_type = $report->get_type_label();
         $date = \date_i18n('F j, Y', \strtotime($report->inspection_date));
 
         $prompt = "You are a Supportive QA Coach and Mentor for Chroma Early Learning Academy, a childcare organization. ";
-        $prompt .= "Your goal is to provide constructive, encouraging feedback that empowers School Directors to achieve excellence. ";
-        $prompt .= "Analyze the single following QA inspection report and generate a professional, supportive executive summary.\n\n";
+        $prompt .= "Your goal is to provide constructive, encouraging feedback that empowers School Directors.\n\n";
 
         $prompt .= "## Report Information\n";
         $prompt .= "- School: {$school_name}\n";
@@ -134,55 +234,33 @@ class Executive_Summary
 
         if ($previous_report) {
             $prompt .= "## Comparison with Previous Report\n";
-            $prompt .= "This report is being compared to a previous inspection from {$previous_report->inspection_date}.\n";
-            $prompt .= "Highlight any improvements or regressions.\n\n";
+            $prompt .= "This report is compared to a previous inspection from {$previous_report->inspection_date}.\n\n";
         }
 
-        $prompt .= "## Instructions\n";
-        $prompt .= "Generate a structured JSON response with the following format. BE THOROUGH AND DETAILED:\n";
-        $prompt .= "{\n";
-        $prompt .= '  "executive_summary": "A comprehensive 4-6 paragraph professional summary. Start by celebrating specific successes and naming staff members when noted. Then provide detailed analysis of compliance status. Finally, bridge into growth areas with supportive coaching language. Be specific about observations from the checklist and photos.",';
-        $prompt .= "\n";
-        $prompt .= '  "strengths": ["List 5-10 specific strengths observed, referencing actual checklist items"],';
-        $prompt .= "\n";
-        $prompt .= '  "areas_of_concern": [';
-        $prompt .= "\n";
-        $prompt .= '    { "severity": "high|medium|low", "section": "section name", "item": "specific item", "observation": "what was observed", "coaching_note": "supportive improvement guidance" }';
-        $prompt .= "\n";
-        $prompt .= "  ],\n";
-        $prompt .= '  "plan_of_improvement": [';
-        $prompt .= "\n";
-        $prompt .= '    { "priority": 1, "area": "specific section/area", "current_status": "what needs improvement based on checklist response and notes", "action_steps": ["step 1", "step 2", "step 3"], "timeline": "specific timeframe (e.g., Within 7 days, By next visit)", "success_criteria": "how we will know this is resolved", "support_offered": "resources or help available" }';
-        $prompt .= "\n";
-        $prompt .= "  ],\n";
-        $prompt .= '  "comparison": {';
-        $prompt .= "\n";
-        $prompt .= '    "celebrations": ["list of improved items or sustained excellence since last visit"],';
-        $prompt .= "\n";
-        $prompt .= '    "regressions": ["items that have declined since last visit, if any"],';
-        $prompt .= "\n";
-        $prompt .= '    "focus_areas": ["recurring items needing continued focus"]';
-        $prompt .= "\n";
-        $prompt .= "  },\n";
-        $prompt .= '  "suggested_rating": "exceeds|meets|needs_improvement",';
-        $prompt .= "\n";
-        $prompt .= '  "key_findings": ["3-5 most important takeaways from this inspection"],';
-        $prompt .= "\n";
-        $prompt .= '  "recommendations": ["3-5 specific recommendations for the Director"]';
-        $prompt .= "\n";
-        $prompt .= "}\n\n";
-
-        $prompt .= "IMPORTANT GUIDELINES:\n";
-        $prompt .= "1. Be THOROUGH - this is an official document. Reference specific checklist items by name.\n";
-        $prompt .= "2. Celebrate wins FIRST - name specific successes before any criticism.\n";
-        $prompt .= "3. For safety/health issues marked NO, these are HIGH severity and need immediate POI items.\n";
-        $prompt .= "4. The Plan of Improvement must be ACTIONABLE with specific steps, not vague suggestions.\n";
-        $prompt .= "5. Include photo evidence observations in your analysis when relevant.\n";
-        $prompt .= "6. Maintain a supportive, coaching tone throughout - we are partners in success.\n";
-        $prompt .= "7. Each POI item should have 2-4 concrete action steps.\n";
-
-        return $prompt;
+        return [
+            'base_prompt' => $prompt,
+        ];
     }
+
+    /**
+     * Build the AI prompt (legacy - kept for compatibility).
+     *
+     * @param object $school School object.
+     * @param Report $report Report object.
+     * @param array  $responses Checklist responses.
+     * @param Report|null $previous_report Previous report for comparison.
+     * @param array  $checklist Checklist definition.
+     * @param array  $stats Stats summary.
+     * @param array  $photos Photo objects with captions.
+     * @param bool   $concise Whether to request a more concise response.
+     * @return string
+     */
+    private function build_prompt($school, $report, $responses, $previous_report, $checklist, $stats, $photos = [], $concise = false)
+    {
+        $context = $this->build_context($school, $report, $responses, $previous_report, $checklist, $stats, $photos);
+        return $context['base_prompt'];
+    }
+
 
     /**
      * Save the summary to database.

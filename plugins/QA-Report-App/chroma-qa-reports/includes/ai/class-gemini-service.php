@@ -119,7 +119,22 @@ class Gemini_Service
         }
 
         $result_text = $body_res['candidates'][0]['content']['parts'][0]['text'];
-        \ChromaQA\Utils\Logger::info('Gemini', 'generate', ['prompt_length' => strlen($prompt), 'response_length' => strlen($result_text)], 'Success');
+
+        // Check if response was truncated
+        $finish_reason = $body_res['candidates'][0]['finishReason'] ?? 'UNKNOWN';
+        if ($finish_reason === 'MAX_TOKENS') {
+            \ChromaQA\Utils\Logger::warning('Gemini', 'generate', [
+                'prompt_length' => strlen($prompt),
+                'response_length' => strlen($result_text),
+                'finish_reason' => $finish_reason
+            ], 'Response truncated due to MAX_TOKENS limit');
+        }
+
+        \ChromaQA\Utils\Logger::info('Gemini', 'generate', [
+            'prompt_length' => strlen($prompt),
+            'response_length' => strlen($result_text),
+            'finish_reason' => $finish_reason
+        ], 'Success');
 
         // Return array format for consistency
         return [

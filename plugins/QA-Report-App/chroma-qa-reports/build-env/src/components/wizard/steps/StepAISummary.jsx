@@ -252,6 +252,117 @@ export function StepAISummary() {
                 </div>
             )}
 
+            {/* Plan of Improvement Section */}
+            {hasSummary && report.ai_summary?.plan_of_improvement && report.ai_summary.plan_of_improvement.length > 0 && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    {/* POI Header */}
+                    <div className="px-6 py-4 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-gray-200 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                            <span className="font-semibold text-gray-900">Plan of Improvement</span>
+                            <span className="ml-2 px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                                {report.ai_summary.plan_of_improvement.length} items
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* POI Content */}
+                    <div className="divide-y divide-gray-100">
+                        {report.ai_summary.plan_of_improvement.map((poi, index) => (
+                            <div key={index} className="p-6">
+                                {/* Priority Badge & Area */}
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className="flex items-center gap-3">
+                                        <span className={cn(
+                                            'px-2.5 py-1 text-xs font-bold rounded-full',
+                                            poi.priority === 1 ? 'bg-red-100 text-red-700' :
+                                                poi.priority === 2 ? 'bg-amber-100 text-amber-700' :
+                                                    'bg-green-100 text-green-700'
+                                        )}>
+                                            Priority {poi.priority || index + 1}
+                                        </span>
+                                        <h4 className="font-semibold text-gray-900">{poi.area}</h4>
+                                    </div>
+                                    {poi.timeline && (
+                                        <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                            {poi.timeline}
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Current Status */}
+                                {poi.current_status && (
+                                    <p className="text-sm text-gray-600 mb-3 italic">
+                                        "{poi.current_status}"
+                                    </p>
+                                )}
+
+                                {/* Action Steps */}
+                                {poi.action_steps && poi.action_steps.length > 0 && (
+                                    <div className="mb-3">
+                                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Action Steps</p>
+                                        <ul className="space-y-1.5">
+                                            {poi.action_steps.map((step, stepIdx) => (
+                                                <li key={stepIdx} className="flex items-start gap-2 text-sm text-gray-700">
+                                                    <span className="w-5 h-5 flex-shrink-0 flex items-center justify-center bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
+                                                        {stepIdx + 1}
+                                                    </span>
+                                                    <span>{step}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {/* Success Criteria & Support */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-3 border-t border-gray-100">
+                                    {poi.success_criteria && (
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Success Criteria</p>
+                                            <p className="text-sm text-gray-700">{poi.success_criteria}</p>
+                                        </div>
+                                    )}
+                                    {poi.support_offered && (
+                                        <div>
+                                            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">Support Available</p>
+                                            <p className="text-sm text-gray-700">{poi.support_offered}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Recommendations Section */}
+            {hasSummary && report.ai_summary?.recommendations && report.ai_summary.recommendations.length > 0 && (
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                    <div className="px-6 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200">
+                        <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            <span className="font-semibold text-gray-900">Recommendations</span>
+                        </div>
+                    </div>
+                    <div className="p-6">
+                        <ul className="space-y-3">
+                            {report.ai_summary.recommendations.map((rec, idx) => (
+                                <li key={idx} className="flex items-start gap-3">
+                                    <span className="w-6 h-6 flex-shrink-0 flex items-center justify-center bg-emerald-100 text-emerald-700 rounded-full text-sm font-medium">
+                                        {idx + 1}
+                                    </span>
+                                    <span className="text-gray-700">{rec}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            )}
+
             {/* Error State */}
             {generateSummary.isError && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
