@@ -114,6 +114,8 @@ const SchoolsList = () => {
         // Client-side filtering simulation not needed since we fetch filtered data
     });
 
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
     return (
         <div className="space-y-6 animate-fade-in">
             {/* Header */}
@@ -121,10 +123,21 @@ const SchoolsList = () => {
                 <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
                     <Building className="text-cqa-primary" /> Schools
                 </h1>
-                <Link to="/create" className="bg-cqa-primary text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition font-medium">
-                    Create Report
-                </Link>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setIsAddModalOpen(true)}
+                        className="bg-white border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition font-medium flex items-center gap-2"
+                    >
+                        <Building size={16} /> Add School
+                    </button>
+                    <Link to="/create" className="bg-cqa-primary text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition font-medium">
+                        Create Report
+                    </Link>
+                </div>
             </div>
+
+            {/* Add School Modal */}
+            <AddSchoolModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
 
             {/* Toolbar */}
             <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 flex justify-between gap-4">

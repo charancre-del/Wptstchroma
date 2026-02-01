@@ -263,13 +263,20 @@ export function StepReview({ onBack, isViewMode = false }) {
                 </div>
             )}
 
-            {/* Notes */}
-            {report?.closing_notes && (
-                <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
-                    <h3 className="font-medium text-gray-700 mb-2">Closing Notes</h3>
-                    <p className="text-gray-600">{report.closing_notes}</p>
-                </div>
-            )}
+            {/* Closing Notes */}
+            <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
+                <h3 className="font-medium text-gray-700 mb-2">Closing Notes</h3>
+                {!isViewMode ? (
+                    <textarea
+                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none min-h-[120px] resize-y bg-white text-gray-800"
+                        placeholder="General observations, overall summary, or final remarks for this visit..."
+                        value={report.closing_notes || ''}
+                        onChange={(e) => useReportWizardStore.getState().updateReportData({ closing_notes: e.target.value })}
+                    />
+                ) : (
+                    <p className="text-gray-600 whitespace-pre-wrap">{report.closing_notes || 'No closing notes provided.'}</p>
+                )}
+            </div>
 
             {/* Full Details Toggle */}
             <div className="pt-4 border-t border-brand-ink/5">

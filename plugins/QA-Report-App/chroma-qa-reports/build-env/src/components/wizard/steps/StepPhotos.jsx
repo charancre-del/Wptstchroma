@@ -35,13 +35,15 @@ const StepPhotos = ({ draft, updateDraft }) => {
 
     const handleUpload = React.useCallback(async (newFiles) => {
         setUploading(true);
-        const reportId = draft.id;
-
-        if (!reportId) {
-            addToast({ type: 'error', message: 'Please save the draft before uploading photos.' });
+        if (!draft || !draft.id) {
+            console.error('[StepPhotos] Missing draft ID', draft);
+            addToast({ type: 'error', message: 'Error: Report ID missing. Please save draft first.' });
             setUploading(false);
             return;
         }
+
+        const reportId = draft.id;
+        console.log('[StepPhotos] Uploading to report:', reportId);
 
         const formData = new FormData();
         newFiles.forEach((fileObj) => {

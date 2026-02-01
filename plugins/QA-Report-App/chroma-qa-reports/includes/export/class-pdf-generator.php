@@ -730,15 +730,7 @@ class PDF_Generator
                 </div>
             <?php endif; ?>
 
-            <!-- Closing Notes -->
-            <?php if ($report->closing_notes): ?>
-                <div class="section">
-                    <h2>Closing Notes & Observations</h2>
-                    <div style="padding: 15px; background: #f9f9f9; border: 1px solid #ddd; border-radius: 4px;">
-                        <?php echo wp_kses_post(nl2br($report->closing_notes)); ?>
-                    </div>
-                </div>
-            <?php endif; ?>
+
 
             <!-- Footer -->
             <div class="footer">
