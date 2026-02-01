@@ -116,19 +116,13 @@ if ($export_pdf) {
 
             <?php if ($report->status === Report::STATUS_DRAFT): ?>
                 <a href="<?php echo esc_url(admin_url('admin.php?page=chroma-qa-reports-create&id=' . $report_id)); ?>"
-                    class="button button-secondary">
+                    class="button button-secondary no-print">
                     <span class="dashicons dashicons-edit"></span>
                     <?php esc_html_e('Edit Report', 'chroma-qa-reports'); ?>
                 </a>
             <?php endif; ?>
 
-            <a href="<?php echo esc_url(admin_url('admin.php?page=chroma-qa-reports-view&id=' . $report_id . '&export=pdf')); ?>"
-                class="button button-primary cqa-hide-print">
-                <span class="dashicons dashicons-pdf"></span>
-                <?php esc_html_e('Export PDF', 'chroma-qa-reports'); ?>
-            </a>
-
-            <button type="button" class="button button-secondary no-print" onclick="window.print();">
+            <button type="button" class="button button-primary no-print" onclick="window.print();">
                 <span class="dashicons dashicons-printer"></span>
                 <?php esc_html_e('Print / Save PDF', 'chroma-qa-reports'); ?>
             </button>
@@ -335,6 +329,55 @@ if ($export_pdf) {
                     </div>
                 </div>
             <?php endif; ?>
+
+            <!-- Report Info (Visible only in Print) -->
+            <div class="cqa-card print-only">
+                <div class="cqa-card-header">
+                    <h2><?php esc_html_e('Report Information', 'chroma-qa-reports'); ?></h2>
+                </div>
+                <div class="cqa-card-body">
+                    <dl class="cqa-info-list print-info-grid">
+                        <div>
+                            <dt><?php esc_html_e('School', 'chroma-qa-reports'); ?></dt>
+                            <dd><?php echo esc_html($school ? $school->name : 'Unknown'); ?></dd>
+                        </div>
+                        <div>
+                            <dt><?php esc_html_e('Type', 'chroma-qa-reports'); ?></dt>
+                            <dd><?php echo esc_html($report->get_type_label()); ?></dd>
+                        </div>
+                        <div>
+                            <dt><?php esc_html_e('Inspection Date', 'chroma-qa-reports'); ?></dt>
+                            <dd><?php echo esc_html(date_i18n(get_option('date_format'), strtotime($report->inspection_date))); ?>
+                            </dd>
+                        </div>
+                        <div>
+                            <dt><?php esc_html_e('Status', 'chroma-qa-reports'); ?></dt>
+                            <dd><?php echo esc_html($report->get_status_label()); ?></dd>
+                        </div>
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Photos (Visible only in Print) -->
+            <?php if (!empty($photos)): ?>
+                <div class="cqa-card print-only">
+                    <div class="cqa-card-header">
+                        <h2><?php esc_html_e('Report Photos', 'chroma-qa-reports'); ?></h2>
+                    </div>
+                    <div class="cqa-card-body">
+                        <div class="cqa-photo-grid print-photo-grid">
+                            <?php foreach ($photos as $photo): ?>
+                                <div class="cqa-photo-item">
+                                    <img src="<?php echo esc_url($photo->get_thumbnail_url(300)); ?>" alt="">
+                                    <?php if ($photo->caption): ?>
+                                        <p class="photo-caption"><?php echo esc_html($photo->caption); ?></p>
+                                    <?php endif; ?>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- Sidebar -->
@@ -400,6 +443,8 @@ if ($export_pdf) {
 </div>
 
 <style>
+    .print-only { display: none; }
+
     .cqa-view-grid {
         display: grid;
         grid-template-columns: 1fr 320px;
@@ -530,91 +575,45 @@ if ($export_pdf) {
             grid-template-columns: 1fr;
         }
     }
-
+    
     @media print {
-
-        /* Hide Admin UI */
-        #adminmenumain,
-        #wpadminbar,
-        #adminmenuwrap,
-        #wpfooter,
-        .notice,
-        .switch-mode {
+        /* Layout */
+        .print-only { display: block !important; }
+        .no-print, .cqa-hide-print, .cqa-header-actions, #adminmenumain, #wpadminbar, #adminmenuwrap, #wpfooter, .notice {
             display: none !important;
         }
-
-        html {
-            margin-top: 0 !important;
-        }
-
-        /* Hide Plugin UI Actions */
-        .cqa-header-actions,
-        .cqa-hide-print,
-        .no-print {
-            display: none !important;
-        }
-
-        /* Full Width Report */
-        #wpcontent,
-        #wpbody-content {
-            margin-left: 0 !important;
-            padding: 0 !important;
-        }
-
-        .cqa-wrap {
-            margin: 0 !important;
-            padding: 20px !important;
-            background: white !important;
-            max-width: 100% !important;
-        }
-
-        /* Layout Adjustments */
-        .cqa-view-grid {
-            display: block !important;
-        }
-
-        .cqa-sidebar {
-            display: none !important;
-            /* Optionally hide sidebar content or move to bottom if critical */
-        }
-
-        /* Clean up Cards for Print */
-        .cqa-card {
-            border: none !important;
-            box-shadow: none !important;
-            margin-bottom: 30px !important;
-        }
-
-        .cqa-card-header {
-            border-bottom: 2px solid #000 !important;
-            padding-left: 0 !important;
-        }
-
+        
+        html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+        #wpcontent, #wpbody-content { margin-left: 0 !important; padding: 0 !important; }
+        
+        .cqa-wrap { margin: 0 !important; padding: 20mm !important; max-width: 100% !important; }
+        .cqa-view-grid { display: block !important; }
+        
         /* Typography */
-        body {
-            font-size: 12pt;
-            color: #000;
-        }
+        body { font-size: 11pt; line-height: 1.5; color: #000; }
+        .cqa-title { font-size: 24pt; margin-bottom: 5mm; }
+        .cqa-subtitle { font-size: 14pt; color: #555; border-bottom: 2px solid #000; padding-bottom: 5mm; margin-bottom: 10mm; }
+        
+        /* Sections */
+        .cqa-card { border: none !important; box-shadow: none !important; margin-bottom: 10mm !important; page-break-inside: avoid; }
+        .cqa-card-header { border-bottom: 1pt solid #ccc !important; padding: 0 0 2mm 0 !important; margin-bottom: 3mm !important; }
+        .cqa-card-header h2 { font-size: 16pt !important; margin: 0 !important; }
+        
+        /* Tables */
+        .cqa-checklist-table th { background: #eee !important; color: #000 !important; -webkit-print-color-adjust: exact; }
+        .cqa-checklist-table td, .cqa-checklist-table th { border: 0.5pt solid #ccc !important; padding: 3mm !important; }
+        .rating-row.rating-no { background: #fff !important; font-weight: bold; color: #c00 !important; }
+        .rating-row.rating-sometimes { background: #fff !important; font-weight: bold; color: #960 !important; }
 
-        h1,
-        h2,
-        h3 {
-            color: #000 !important;
-        }
+        /* Print Specific Grid */
+        .print-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
+        .print-photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; margin-top: 5mm; }
+        .cqa-photo-item { break-inside: avoid; margin-bottom: 5mm; }
+        .cqa-photo-item img { width: 100%; border: 1pt solid #ccc; }
+        .photo-caption { font-size: 9pt; color: #666; margin-top: 1mm; }
 
-        /* Links */
-        a {
-            text-decoration: none !important;
-            color: #000 !important;
-        }
-
-        /* Page Breaks */
-        .cqa-section-card {
-            page-break-inside: avoid;
-        }
-
-        .cqa-checklist-table tr {
-            page-break-inside: avoid;
-        }
+        /* General */
+        .dashicons { display: none !important; }
+        .cqa-badge { border: 1pt solid #ccc !important; background: #fff !important; color: #000 !important; }
     }
 </style>
