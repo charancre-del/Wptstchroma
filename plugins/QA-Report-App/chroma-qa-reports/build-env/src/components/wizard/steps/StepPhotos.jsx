@@ -1,32 +1,11 @@
 import React, { useState } from 'react';
-import PhotoUploader from '@components/common/upload/PhotoUploader';
 import apiFetch from '@api/client';
 import useUIStore from '@stores/useUIStore';
-import { Trash2, Image as ImageIcon, CloudOff } from 'lucide-react';
+import { Camera, FileImage, Trash2, Tag, MessageSquare, AlertCircle } from 'lucide-react';
+import PhotoUploader from '../../common/upload/PhotoUploader';
+import PhotoThumbnail from '../../common/PhotoThumbnail';
 
-const PhotoThumbnail = ({ photo }) => {
-    const [error, setError] = useState(false);
-
-    if (error) {
-        return (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-50 text-gray-400 p-4 text-center">
-                <CloudOff size={24} className="mb-2" />
-                <span className="text-[10px] leading-tight">Media Missing from Cloud</span>
-            </div>
-        );
-    }
-
-    return (
-        <img
-            src={photo.thumbnail_url || photo.preview || photo.url}
-            alt={photo.filename || photo.name || 'Evidence'}
-            className="w-full h-full object-cover"
-            onError={() => setError(true)}
-        />
-    );
-};
-
-const StepPhotos = ({ draft, updateDraft }) => {
+const StepPhotos = ({ draft, updateDraft, readOnly = false }) => {
     const { addToast } = useUIStore();
     const [uploading, setUploading] = useState(false);
 
@@ -107,18 +86,11 @@ const StepPhotos = ({ draft, updateDraft }) => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {photos.map((photo) => (
                     <div key={photo.id} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
-                        <PhotoThumbnail photo={photo} />
-
-                        {/* Overlay Actions */}
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <button
-                                onClick={() => handleDelete(photo.id)}
-                                className="p-2 bg-red-600 text-white rounded-full hover:bg-red-700 transition-colors"
-                                title="Delete Photo"
-                            >
-                                <Trash2 size={16} />
-                            </button>
-                        </div>
+                        <PhotoThumbnail
+                            photo={photo}
+                            onDelete={handleDelete}
+                            readOnly={readOnly}
+                        />
                     </div>
                 ))}
             </div>

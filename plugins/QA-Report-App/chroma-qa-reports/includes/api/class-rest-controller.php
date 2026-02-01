@@ -1273,6 +1273,7 @@ class REST_Controller
                     $photo = new \ChromaQA\Models\Photo();
                     $photo->report_id = $report_id;
                     $photo->section_key = $request['section_key'] ?: 'general';
+                    $photo->item_key = $request['item_key'] ?: '';
                     $photo->drive_file_id = $drive_file_id;
                     $photo->filename = basename($movefile['file']);
                     $photo->caption = sanitize_text_field($request['caption'] ?: '');

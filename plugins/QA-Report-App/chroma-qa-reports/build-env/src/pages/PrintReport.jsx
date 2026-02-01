@@ -21,7 +21,15 @@ const PrintReport = () => {
     const [isReady, setIsReady] = useState(false);
 
     // Filter valid photos
-    const photos = report?.photos || [];
+    const allPhotos = report?.photos || [];
+    const generalPhotos = allPhotos.filter(p => !p.item_key);
+    const photosByItem = allPhotos.reduce((acc, p) => {
+        if (p.item_key) {
+            if (!acc[p.item_key]) acc[p.item_key] = [];
+            acc[p.item_key].push(p);
+        }
+        return acc;
+    }, {});
 
     // Organize checklist by section
     const checklist = report?.responses || {};
@@ -76,7 +84,7 @@ const PrintReport = () => {
                         <div className="inline-flex items-center gap-2 bg-brand-cream/50 px-4 py-2 rounded-lg border border-brand-ink/5 mb-2">
                             <span className="text-sm font-medium text-gray-500 uppercase tracking-wide">Status</span>
                             <span className={`font-bold ${report.status === 'approved' ? 'text-green-700' :
-                                    report.status === 'submitted' ? 'text-blue-700' : 'text-amber-700'
+                                report.status === 'submitted' ? 'text-blue-700' : 'text-amber-700'
                                 }`}>
                                 {report.status ? report.status.charAt(0).toUpperCase() + report.status.slice(1) : 'Draft'}
                             </span>
@@ -166,9 +174,27 @@ const PrintReport = () => {
                                                     {response.rating}
                                                 </span>
                                             </div>
-                                            {(response.notes || response.rating !== 'yes') && (
+                                            {(response.notes || response.rating !== 'yes' || photosByItem[itemKey]) && (
                                                 <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded mt-1">
-                                                    {response.notes ? response.notes : 'No notes provided.'}
+                                                    {response.notes ? (
+                                                        <div className="mb-2">{response.notes}</div>
+                                                    ) : (
+                                                        response.rating !== 'yes' && <div className="mb-2 italic">No notes provided.</div>
+                                                    )}
+
+                                                    {photosByItem[itemKey] && (
+                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                            {photosByItem[itemKey].map((photo, i) => (
+                                                                <div key={i} className="w-20 h-20 rounded border border-gray-200 overflow-hidden">
+                                                                    <img
+                                                                        src={photo.thumbnail_url || photo.url}
+                                                                        className="w-full h-full object-cover"
+                                                                        alt=""
+                                                                    />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                         </div>
@@ -180,15 +206,15 @@ const PrintReport = () => {
                 </div>
 
                 {/* Photos Appendix */}
-                {photos.length > 0 && (
+                {generalPhotos.length > 0 && (
                     <div className="break-before-page">
                         <h2 className="text-xl font-bold text-brand-ink border-l-4 border-brand-secondary pl-3 mb-6 flex items-center gap-2">
                             <Camera className="w-5 h-5 text-gray-400" />
-                            Report Photos
+                            General Photos
                         </h2>
 
                         <div className="grid grid-cols-2 gap-6">
-                            {photos.map((photo, index) => (
+                            {generalPhotos.map((photo, index) => (
                                 <div key={index} className="break-inside-avoid border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
                                     <div className="aspect-video bg-gray-100 relative overflow-hidden text-center flex items-center justify-center">
                                         {/* Use thumbnail URL if available, fallback to full */}

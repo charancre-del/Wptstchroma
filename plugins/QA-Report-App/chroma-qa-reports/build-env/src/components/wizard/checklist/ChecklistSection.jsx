@@ -34,6 +34,7 @@ const ChecklistSection = ({ section, responses, onResponseChange, readOnly = fal
                         <ChecklistItem
                             key={itemKey}
                             item={item}
+                            sectionKey={section.key}
                             response={responses[itemKey] || {}}
                             readOnly={readOnly}
                             onChange={(itemId, response) => onResponseChange(itemId, response, section.key)}

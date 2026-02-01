@@ -48,6 +48,15 @@ $school = $report->get_school();
 $previous_report = $report->get_previous_report();
 $responses = Checklist_Response::get_by_report_grouped($report_id);
 $photos = $report->get_photos();
+$item_photos = [];
+$general_photos = [];
+foreach ($photos as $photo) {
+    if (!empty($photo->item_key)) {
+        $item_photos[$photo->item_key][] = $photo;
+    } else {
+        $general_photos[] = $photo;
+    }
+}
 $ai_summary = $report->get_ai_summary();
 $checklist = Checklist_Manager::get_checklist_for_type($report->report_type);
 $stats = Checklist_Manager::get_progress_stats($report_id, $report->report_type);
@@ -271,19 +280,23 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
                         <table class="cqa-checklist-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 50%;"><?php esc_html_e('Item', 'chroma-qa-reports'); ?></th>
+                                    <th style="width: 40%;"><?php esc_html_e('Item', 'chroma-qa-reports'); ?></th>
                                     <th><?php esc_html_e('Rating', 'chroma-qa-reports'); ?></th>
                                     <?php if ($compare_mode && $previous_report): ?>
                                         <th><?php esc_html_e('Previous', 'chroma-qa-reports'); ?></th>
                                     <?php endif; ?>
-                                    <th><?php esc_html_e('Notes', 'chroma-qa-reports'); ?></th>
+                                    <th><?php esc_html_e('Notes & Evidence', 'chroma-qa-reports'); ?></th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($section['items'] as $item):
-                                    $response = $section_responses[$item['key']] ?? null;
+                                    $itemKey = $item['key'];
+                                    $response = $section_responses[$itemKey] ?? null;
                                     $rating = $response ? $response->rating : 'na';
                                     $notes = $response ? $response->notes : '';
+                                    $evidence = $item_photos[$itemKey] ?? [];
+                                    $has_photos = !empty($evidence);
+                                    $show_notes = ($response && (!empty($response->notes) || $response->rating !== 'yes' || $has_photos));
                                     ?>
                                     <tr class="rating-row rating-<?php echo esc_attr($rating); ?>">
                                         <td><?php echo esc_html($item['label']); ?></td>
@@ -312,8 +325,21 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
                                         <?php endif; ?>
                                         <td>
                                             <?php if ($notes): ?>
-                                                <span class="cqa-note-text"><?php echo esc_html($notes); ?></span>
-                                            <?php else: ?>
+                                                <div class="cqa-note-text" style="margin-bottom: 8px;"><?php echo esc_html($notes); ?></div>
+                                            <?php endif; ?>
+                                            
+                                            <?php if (!empty($evidence)): ?>
+                                                <div class="cqa-item-evidence">
+                                                    <?php foreach ($evidence as $photo): ?>
+                                                        <a href="<?php echo esc_url($photo->get_view_url()); ?>" target="_blank" class="cqa-item-photo no-print">
+                                                            <img src="<?php echo esc_url($photo->get_thumbnail_url(150)); ?>" alt="">
+                                                        </a>
+                                                        <div class="print-only cqa-item-photo-print">
+                                                            <img src="<?php echo esc_url($photo->get_thumbnail_url(300)); ?>" alt="">
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            <?php elseif (!$notes): ?>
                                                 <span class="cqa-text-muted">—</span>
                                             <?php endif; ?>
                                         </td>
@@ -366,14 +392,16 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
             </div>
 
             <!-- Photos (Visible only in Print) -->
-            <?php if (!empty($photos)): ?>
+            <?php if (!empty($general_photos)): ?>
                 <div class="cqa-card print-only">
                     <div class="cqa-card-header">
-                        <h2><?php esc_html_e('Report Photos', 'chroma-qa-reports'); ?></h2>
+                        <h2 class="cqa-card-title">
+                            <?php esc_html_e('General Photos', 'chroma-qa-reports'); ?>
+                        </h2>
                     </div>
                     <div class="cqa-card-body">
                         <div class="cqa-photo-grid print-photo-grid">
-                            <?php foreach ($photos as $photo): ?>
+                            <?php foreach ($general_photos as $photo): ?>
                                 <div class="cqa-photo-item">
                                     <img src="<?php echo esc_url($photo->get_thumbnail_url(300)); ?>" alt="">
                                     <?php if ($photo->caption): ?>
@@ -421,14 +449,14 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
             </div>
 
             <!-- Photos -->
-            <?php if (!empty($photos)): ?>
+            <?php if (!empty($general_photos)): ?>
                 <div class="cqa-card">
                     <div class="cqa-card-header">
-                        <h2><?php esc_html_e('Photos', 'chroma-qa-reports'); ?> (<?php echo count($photos); ?>)</h2>
+                        <h2><?php esc_html_e('General Photos', 'chroma-qa-reports'); ?> (<?php echo count($general_photos); ?>)</h2>
                     </div>
                     <div class="cqa-card-body">
                         <div class="cqa-photo-grid">
-                            <?php foreach (array_slice($photos, 0, 6) as $photo): ?>
+                            <?php foreach (array_slice($general_photos, 0, 6) as $photo): ?>
                                 <a href="<?php echo esc_url($photo->get_view_url()); ?>" target="_blank"
                                     class="cqa-photo-thumb">
                                     <img src="<?php echo esc_url($photo->get_thumbnail_url(150)); ?>"
@@ -436,10 +464,10 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
                                 </a>
                             <?php endforeach; ?>
                         </div>
-                        <?php if (count($photos) > 6): ?>
+                        <?php if (count($general_photos) > 6): ?>
                             <p style="text-align: center; margin-top: 12px;">
                                 <a
-                                    href="#"><?php printf(esc_html__('View all %d photos', 'chroma-qa-reports'), count($photos)); ?></a>
+                                    href="#"><?php printf(esc_html__('View all %d photos', 'chroma-qa-reports'), count($general_photos)); ?></a>
                             </p>
                         <?php endif; ?>
                     </div>
@@ -578,7 +606,54 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
     .cqa-text-muted {
         color: var(--cqa-gray-400);
     }
-
+ 
+    .cqa-item-evidence {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+ 
+    .cqa-item-photo {
+        display: block;
+        width: 60px;
+        height: 60px;
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid var(--cqa-gray-200);
+        transition: transform 0.2s;
+    }
+ 
+    .cqa-item-photo:hover {
+        transform: scale(1.1);
+        z-index: 10;
+        border-color: var(--cqa-primary);
+    }
+ 
+    .cqa-item-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+ 
+    .cqa-item-photo-print {
+        display: none;
+    }
+ 
+    @media print {
+        .cqa-item-photo-print {
+            display: block;
+            width: 80px;
+            height: 80px;
+            margin: 2px;
+        }
+        .cqa-item-photo-print img {
+            width: 100%;
+            height: 100%;
+            border: 0.5pt solid #ccc;
+        }
+    }
+ 
     @media (max-width: 1024px) {
         .cqa-view-grid {
             grid-template-columns: 1fr;
