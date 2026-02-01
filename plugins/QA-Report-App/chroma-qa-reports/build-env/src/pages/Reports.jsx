@@ -189,7 +189,7 @@ export function ReportsPage() {
                             {row.original.status !== 'draft' && (
                                 <DropdownMenu.Item asChild>
                                     <a
-                                        href={`${window.cqaData.adminUrl}?page=chroma-qa-reports-view&id=${row.original.id}&print=1`}
+                                        href={`#/print/${row.original.id}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"

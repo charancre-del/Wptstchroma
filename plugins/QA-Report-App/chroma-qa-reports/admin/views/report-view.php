@@ -203,8 +203,8 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
                 <div class="cqa-card">
                     <div class="cqa-card-header">
                         <h2>
-                            <span class="dashicons dashicons-superhero-alt"></span>
-                            <?php esc_html_e('AI Executive Summary', 'chroma-qa-reports'); ?>
+                            <span class="dashicons dashicons-text-page"></span>
+                            <?php esc_html_e('Summary', 'chroma-qa-reports'); ?>
                         </h2>
                     </div>
                     <div class="cqa-card-body">
