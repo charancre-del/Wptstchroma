@@ -14,6 +14,7 @@ use ChromaQA\Checklists\Checklist_Manager;
 $report_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $compare_mode = isset($_GET['compare']) && $_GET['compare'];
 $export_pdf = isset($_GET['export']) && $_GET['export'] === 'pdf';
+$action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : '';
 
 if (!$report_id) {
     wp_die(__('Report not found.', 'chroma-qa-reports'));
@@ -22,6 +23,20 @@ if (!$report_id) {
 $report = Report::find($report_id);
 if (!$report) {
     wp_die(__('Report not found.', 'chroma-qa-reports'));
+}
+
+// Handle status change actions
+$status_message = '';
+if ($action && wp_verify_nonce($_GET['_wpnonce'] ?? '', 'cqa_report_action')) {
+    if ($action === 'approve' && current_user_can('cqa_approve_reports')) {
+        $report->status = Report::STATUS_APPROVED;
+        $report->save();
+        $status_message = __('Report approved successfully!', 'chroma-qa-reports');
+    } elseif ($action === 'revert_draft' && current_user_can('cqa_edit_reports')) {
+        $report->status = Report::STATUS_DRAFT;
+        $report->save();
+        $status_message = __('Report reverted to draft.', 'chroma-qa-reports');
+    }
 }
 
 $school = $report->get_school();
@@ -45,6 +60,12 @@ if ($export_pdf) {
 ?>
 
 <div class="wrap cqa-wrap">
+    <?php if ($status_message): ?>
+        <div class="notice notice-success is-dismissible">
+            <p><?php echo esc_html($status_message); ?></p>
+        </div>
+    <?php endif; ?>
+
     <div class="cqa-header">
         <div class="cqa-header-content">
             <h1 class="cqa-title">
@@ -54,6 +75,9 @@ if ($export_pdf) {
             <p class="cqa-subtitle">
                 <?php echo esc_html($report->get_type_label()); ?> •
                 <?php echo esc_html(date_i18n(get_option('date_format'), strtotime($report->inspection_date))); ?>
+                <span class="cqa-badge status-<?php echo esc_attr($report->status); ?>" style="margin-left: 10px;">
+                    <?php echo esc_html($report->get_status_label()); ?>
+                </span>
             </p>
         </div>
         <div class="cqa-header-actions">
@@ -67,6 +91,37 @@ if ($export_pdf) {
                     <?php esc_html_e('Compare', 'chroma-qa-reports'); ?>
                 </a>
             <?php endif; ?>
+
+            <?php // Status Action Buttons ?>
+            <?php if ($report->status === Report::STATUS_SUBMITTED && current_user_can('cqa_approve_reports')): ?>
+                <a href="<?php echo esc_url(wp_nonce_url(
+                    admin_url('admin.php?page=chroma-qa-reports-view&id=' . $report_id . '&action=approve'),
+                    'cqa_report_action'
+                )); ?>" class="button button-primary" style="background: #22c55e; border-color: #16a34a;">
+                    <span class="dashicons dashicons-yes"></span>
+                    <?php esc_html_e('Approve Report', 'chroma-qa-reports'); ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if ($report->status === Report::STATUS_APPROVED && current_user_can('cqa_approve_reports')): ?>
+                <a href="<?php echo esc_url(wp_nonce_url(
+                    admin_url('admin.php?page=chroma-qa-reports-view&id=' . $report_id . '&action=revert_draft'),
+                    'cqa_report_action'
+                )); ?>" class="button"
+                    onclick="return confirm('<?php esc_attr_e('Are you sure you want to revert this report to draft?', 'chroma-qa-reports'); ?>');">
+                    <span class="dashicons dashicons-undo"></span>
+                    <?php esc_html_e('Revert to Draft', 'chroma-qa-reports'); ?>
+                </a>
+            <?php endif; ?>
+
+            <?php if ($report->status === Report::STATUS_DRAFT): ?>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=chroma-qa-reports-create&id=' . $report_id)); ?>"
+                    class="button button-secondary">
+                    <span class="dashicons dashicons-edit"></span>
+                    <?php esc_html_e('Edit Report', 'chroma-qa-reports'); ?>
+                </a>
+            <?php endif; ?>
+
             <a href="<?php echo esc_url(admin_url('admin.php?page=chroma-qa-reports-view&id=' . $report_id . '&export=pdf')); ?>"
                 class="button button-primary">
                 <span class="dashicons dashicons-pdf"></span>

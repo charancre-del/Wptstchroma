@@ -161,6 +161,21 @@ export function useSubmitReport() {
 }
 
 /**
+ * Approve a report
+ */
+export function useApproveReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id) => apiClient.put(`/reports/${id}`, { status: 'approved' }),
+        onSuccess: (_, id) => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(id) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
+        },
+    });
+}
+
+/**
  * Upload photos to a report
  */
 export function useUploadPhotos() {

@@ -994,7 +994,7 @@ class REST_Controller
 
             // Permission check for approval
             if ($new_status === 'approved' && $report->status !== 'approved') {
-                if (!current_user_can('cqa_edit_all_reports')) {
+                if (!current_user_can('cqa_approve_reports')) {
                     return new WP_Error('forbidden', __('You do not have permission to approve reports.', 'chroma-qa-reports'), ['status' => 403]);
                 }
             }

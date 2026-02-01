@@ -218,29 +218,45 @@ export function StepReview({ onBack, isViewMode = false }) {
                                 Plan of Improvement Preview
                             </h3>
                             <div className="space-y-3">
-                                {report.ai_summary.plan_of_improvement.slice(0, 2).map((poi, idx) => (
-                                    <div key={idx} className="bg-amber-50/50 rounded-lg p-3 border border-amber-100">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className={cn(
-                                                "text-[10px] font-bold px-1.5 py-0.5 rounded-full uppercase",
-                                                poi.priority === 1 ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
-                                            )}>
-                                                P{poi.priority || idx + 1}
-                                            </span>
-                                            <span className="font-medium text-sm text-gray-900">{poi.area}</span>
+                                {report.ai_summary.plan_of_improvement.map((poi, idx) => (
+                                    <div key={idx} className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm">
+                                        <div className="flex items-start justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className={cn(
+                                                    "text-[10px] font-bold px-2 py-0.5 rounded-full uppercase",
+                                                    (poi.priority === 1 || String(poi.priority).toLowerCase() === 'immediate') ? "bg-red-100 text-red-700" :
+                                                        (poi.priority === 2 || String(poi.priority).toLowerCase() === 'high') ? "bg-orange-100 text-orange-700" :
+                                                            "bg-amber-100 text-amber-700"
+                                                )}>
+                                                    Priority {poi.priority || idx + 1}
+                                                </span>
+                                                <span className="font-semibold text-sm text-gray-900">{poi.area}</span>
+                                            </div>
+                                            {poi.timeline && (
+                                                <span className="text-[10px] text-gray-500 bg-gray-50 px-1.5 py-0.5 rounded">
+                                                    {poi.timeline}
+                                                </span>
+                                            )}
                                         </div>
-                                        {poi.action_steps && poi.action_steps.length > 0 && (
-                                            <p className="text-xs text-gray-600 line-clamp-1">
-                                                Step 1: {poi.action_steps[0]}
+
+                                        {poi.current_status && (
+                                            <p className="text-xs text-gray-500 italic mb-2 border-l-2 border-gray-100 pl-2">
+                                                "{poi.current_status}"
                                             </p>
+                                        )}
+
+                                        {poi.action_steps && poi.action_steps.length > 0 && (
+                                            <ul className="space-y-1">
+                                                {poi.action_steps.map((step, sIdx) => (
+                                                    <li key={sIdx} className="flex gap-2 text-[11px] text-gray-700">
+                                                        <span className="text-primary-500 font-bold">•</span>
+                                                        <span>{step}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
                                         )}
                                     </div>
                                 ))}
-                                {report.ai_summary.plan_of_improvement.length > 2 && (
-                                    <p className="text-xs text-gray-500 italic px-1">
-                                        + {report.ai_summary.plan_of_improvement.length - 2} more improvement areas
-                                    </p>
-                                )}
                             </div>
                         </div>
                     )}

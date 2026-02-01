@@ -169,6 +169,7 @@ class Activator
                 'cqa_delete_reports' => true,
                 'cqa_export_reports' => true,
                 'cqa_use_ai_features' => true,
+                'cqa_approve_reports' => true,
                 'upload_files' => true,
             ]
         );
@@ -185,6 +186,7 @@ class Activator
                 'cqa_edit_own_reports' => true,
                 'cqa_export_reports' => true,
                 'cqa_use_ai_features' => true,
+                'cqa_approve_reports' => true,
             ]
         );
 

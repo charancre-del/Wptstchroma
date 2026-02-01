@@ -8,7 +8,8 @@ import {
     useReport,
     useCreateReport,
     useUpdateReport,
-    useSubmitReport
+    useSubmitReport,
+    useApproveReport
 } from '@hooks/useQueries';
 import apiFetch from '../../api/client';
 
@@ -46,8 +47,7 @@ const ReportWizard = () => {
     const resetWizard = useReportWizardStore(s => s.reset);
     const hasHydrated = useReportWizardStore(s => s.hasHydrated);
 
-    console.log('[ReportWizard] Render State:', { currentStep, hasHydrated, id });
-
+    const { capabilities } = useAuthStore();
     const { addToast } = useUIStore();
 
     const [isDirty, setIsDirty] = useState(false);
@@ -59,8 +59,9 @@ const ReportWizard = () => {
     const createMutation = useCreateReport();
     const updateMutation = useUpdateReport();
     const submitMutation = useSubmitReport();
+    const approveMutation = useApproveReport();
 
-    const isSavingManual = createMutation.isPending || updateMutation.isPending || submitMutation.isPending;
+    const isSavingManual = createMutation.isPending || updateMutation.isPending || submitMutation.isPending || approveMutation.isPending;
 
     // Auto-Save Hook (Handles DB sync & Conflict Modal)
     // CRITICAL FIX: Must be called before early returns to satisfy Rules of Hooks (Error #310)
@@ -228,6 +229,16 @@ const ReportWizard = () => {
         }
     };
 
+    const handleApprove = async () => {
+        try {
+            await approveMutation.mutateAsync(id);
+            addToast({ type: 'success', message: 'Report approved successfully!' });
+            navigate('/reports');
+        } catch (error) {
+            addToast({ type: 'error', message: 'Failed to approve report.' });
+        }
+    };
+
     // LOADING RENDER (Fetch or Hydration)
     if ((id && reportLoading) || (!id && !hasHydrated)) {
         return (
@@ -327,12 +338,23 @@ const ReportWizard = () => {
                             Next Step
                         </button>
                     ) : (
-                        <button
-                            onClick={isViewMode ? () => navigate('/reports') : handleSubmit}
-                            className={`px-6 py-2.5 ${isViewMode ? 'bg-brand-ink' : 'bg-chroma-green'} hover:opacity-90 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg`}
-                        >
-                            {isViewMode ? 'Exit View' : 'Submit Report'}
-                        </button>
+                        <div className="flex gap-2">
+                            {isViewMode && existingReport?.status === 'submitted' && capabilities?.cqa_approve_reports && (
+                                <button
+                                    onClick={handleApprove}
+                                    className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                    disabled={approveMutation.isPending}
+                                >
+                                    {approveMutation.isPending ? 'Approving...' : 'Approve Report'}
+                                </button>
+                            )}
+                            <button
+                                onClick={isViewMode ? () => navigate('/reports') : handleSubmit}
+                                className={`px-6 py-2.5 ${isViewMode ? 'bg-brand-ink' : 'bg-chroma-green'} hover:opacity-90 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg`}
+                            >
+                                {isViewMode ? 'Exit View' : 'Submit Report'}
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
