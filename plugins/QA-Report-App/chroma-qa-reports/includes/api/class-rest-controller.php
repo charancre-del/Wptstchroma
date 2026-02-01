@@ -401,6 +401,7 @@ class REST_Controller
             'cqa_delete_own_reports',
             'cqa_export_reports',
             'cqa_use_ai_features',
+            'cqa_approve_reports',
             'cqa_manage_schools',
             'cqa_manage_settings',
         ];

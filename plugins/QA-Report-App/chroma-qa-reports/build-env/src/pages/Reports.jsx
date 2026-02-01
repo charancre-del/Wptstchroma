@@ -8,8 +8,10 @@ import {
     getSortedRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import { useReports } from '@hooks/useQueries';
+import { useReports, useApproveReport } from '@hooks/useQueries';
 import { formatDate, cn } from '@utils/helpers';
+import useAuthStore from '@stores/useAuthStore';
+import useUIStore from '@stores/useUIStore';
 import {
     Search,
     Plus,
@@ -68,6 +70,19 @@ export function ReportsPage() {
     }, [statusFilter, typeFilter, authorFilter, schoolFilter, setSearchParams]);
 
     const { data, isLoading, error } = useReports();
+    const { capabilities } = useAuthStore();
+    const { addToast } = useUIStore();
+    const approveMutation = useApproveReport();
+
+    const handleApprove = async (reportId) => {
+        try {
+            await approveMutation.mutateAsync(reportId);
+            addToast({ type: 'success', message: 'Report approved successfully' });
+        } catch (error) {
+            addToast({ type: 'error', message: error.message || 'Failed to approve report' });
+        }
+    };
+
     const reports = Array.isArray(data) ? data : (data?.data || []);
 
     // Apply filters
@@ -181,14 +196,23 @@ export function ReportsPage() {
                                     </a>
                                 </DropdownMenu.Item>
                             )}
+                            {row.original.status === 'submitted' && capabilities?.cqa_approve_reports && (
+                                <DropdownMenu.Item
+                                    onClick={() => handleApprove(row.original.id)}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50 cursor-pointer"
+                                >
+                                    <CheckCircle className="w-4 h-4 text-green-500" />
+                                    Approve Report
+                                </DropdownMenu.Item>
+                            )}
                             {row.original.status === 'draft' && (
                                 <DropdownMenu.Item asChild>
-                                <Link
-                                    to={`/edit/${row.original.id}`}
-                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"
-                                >
-                                    <FileText className="w-4 h-4 text-brand-ink/40" />
-                                    Continue Editing
+                                    <Link
+                                        to={`/edit/${row.original.id}`}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"
+                                    >
+                                        <FileText className="w-4 h-4 text-brand-ink/40" />
+                                        Continue Editing
                                     </Link>
                                 </DropdownMenu.Item>
                             )}

@@ -174,6 +174,11 @@ class Activator
             ]
         );
 
+        $sa = get_role('cqa_super_admin');
+        if ($sa) {
+            $sa->add_cap('cqa_approve_reports');
+        }
+
         // Regional Director
         add_role(
             'cqa_regional_director',
@@ -189,6 +194,11 @@ class Activator
                 'cqa_approve_reports' => true,
             ]
         );
+
+        $rd = get_role('cqa_regional_director');
+        if ($rd) {
+            $rd->add_cap('cqa_approve_reports');
+        }
 
         // QA Officer
         add_role(
