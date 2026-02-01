@@ -1,11 +1,13 @@
 import React from 'react';
-import { Star, MessageSquare, Camera } from 'lucide-react';
+import { MessageSquare, Camera } from 'lucide-react';
+import { useReportWizardStore } from '@stores/index';
 
 const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
+    const setStep = useReportWizardStore(s => s.setStep);
     // Consistent with ChecklistSection: use item.key if available, fallback to item.id
     const itemKey = item.key || item.id;
 
-    // Rating Options - Values MUST match backend Checklist_Response constants
+    // ... rest of logic remains ...
     const ratings = [
         { value: 'yes', label: 'Exceeds/Meets', color: 'bg-emerald-100 text-emerald-800 border-emerald-200' },
         { value: 'sometimes', label: 'Needs Improvement', color: 'bg-amber-100 text-amber-800 border-amber-200' },
@@ -16,8 +18,15 @@ const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
     const currentRating = response?.rating || '';
     const currentNotes = response?.notes || '';
 
+    const handleAddInfo = () => {
+        if (!readOnly) {
+            setStep(4); // Jump to Photos & Evidence
+        }
+    };
+
     return (
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-all duration-200">
+            {/* ... title section ... */}
             <div className="flex justify-between items-start mb-3">
                 <div className="flex-1">
                     <h4 className="text-md font-medium text-gray-900">{item.label}</h4>
@@ -28,6 +37,7 @@ const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
             </div>
 
             {/* Rating Controls */}
+            {/* ... rating loop ... */}
             <div
                 className={`grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 ${readOnly ? 'opacity-90' : ''}`}
                 role="radiogroup"
@@ -41,7 +51,7 @@ const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
                             type="button"
                             role="radio"
                             aria-checked={isSelected}
-                            tabIndex={isSelected ? 0 : -1} // Roving tabindex could be implemented, but simple toggle here
+                            tabIndex={isSelected ? 0 : -1}
                             onClick={() => !readOnly && onChange(itemKey, { ...response, rating: rate.value })}
                             disabled={readOnly}
                             className={`
@@ -65,9 +75,10 @@ const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
                 <div className="relative">
                     <MessageSquare size={16} className="absolute top-3 left-3 text-gray-400" />
                     <textarea
-                        className={`w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm outline-none transition-shadow min-h-[60px] ${readOnly ? 'bg-gray-50 text-gray-600 cursor-default' : 'focus:ring-1 focus:ring-cqa-primary focus:border-cqa-primary'}`}
+                        className={`w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm outline-none transition-shadow ${readOnly ? 'bg-gray-50 text-gray-600 cursor-default' : 'focus:ring-1 focus:ring-cqa-primary focus:border-cqa-primary'}`}
                         placeholder={readOnly ? "" : "Add notes..."}
                         value={currentNotes}
+                        rows={5}
                         readOnly={readOnly}
                         onChange={(e) => !readOnly && onChange(itemKey, { ...response, notes: e.target.value })}
                     />
@@ -75,8 +86,11 @@ const ChecklistItem = ({ item, response, onChange, readOnly = false }) => {
 
                 {!readOnly && (
                     <div className="flex justify-end">
-                        <button className="text-xs text-gray-500 hover:text-cqa-primary flex items-center gap-1 transition-colors">
-                            <Camera size={14} /> Add Info
+                        <button
+                            onClick={handleAddInfo}
+                            className="text-xs text-gray-500 hover:text-cqa-primary flex items-center gap-1 transition-colors group cursor-pointer"
+                        >
+                            <Camera size={14} className="group-hover:scale-110 transition-transform" /> Add Info
                         </button>
                     </div>
                 )}
