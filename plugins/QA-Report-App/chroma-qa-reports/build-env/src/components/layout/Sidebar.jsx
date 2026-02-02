@@ -19,21 +19,22 @@ const Sidebar = ({ isOpen }) => {
     const filteredItems = navItems.filter(item => !item.requiredCap || can(item.requiredCap));
 
     return (
-        <aside className={`flex flex-col h-full bg-white border-r border-brand-ink/5 shadow-sm transition-all duration-300 ${isOpen ? 'w-64' : 'w-20'}`}>
+        <aside className={`flex flex-col h-full bg-white border-r border-brand-ink/5 shadow-sm transition-all duration-500 ease-in-out ${isOpen ? 'w-64' : 'w-16'}`}>
             {/* Header */}
-            <div className="h-20 flex items-center justify-between px-6 border-b border-brand-ink/5">
+            <div className={`h-20 flex items-center justify-between px-4 border-b border-brand-ink/5 transition-all duration-300 ${!isOpen && 'px-3'}`}>
                 {isOpen ? (
-                    <div className="flex flex-col">
+                    <div className="flex flex-col animate-in fade-in slide-in-from-left-2 duration-300">
                         <span className="font-serif font-bold text-xl text-brand-ink">Chroma<span className="text-chroma-blue">QA</span></span>
                         <span className="text-[10px] text-brand-ink/40 uppercase font-bold tracking-widest">Reports</span>
                     </div>
                 ) : (
-                    <div className="w-8 h-8 rounded-full bg-chroma-blue flex items-center justify-center text-white font-serif font-bold">C</div>
+                    <div className="w-10 h-10 rounded-xl bg-chroma-blue shadow-lg shadow-chroma-blue/20 flex items-center justify-center text-white font-serif font-bold animate-in zoom-in duration-300">C</div>
                 )}
 
                 <button
                     onClick={toggleSidebar}
-                    className="p-1.5 rounded-full hover:bg-brand-cream text-brand-ink/40 hover:text-brand-ink transition-colors"
+                    className={`p-2 rounded-xl hover:bg-brand-cream text-brand-ink/40 hover:text-brand-ink transition-all duration-300 ${!isOpen && 'ml-2'}`}
+                    title={isOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
                 >
                     {isOpen ? <ChevronLeft size={18} /> : <Menu size={18} />}
                 </button>
@@ -46,16 +47,16 @@ const Sidebar = ({ isOpen }) => {
                         key={item.path}
                         to={item.path}
                         className={({ isActive }) => `
-                            flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group
+                            flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 group
                             ${isActive
-                                ? 'bg-chroma-blue/10 text-chroma-blue font-bold shadow-sm'
+                                ? 'bg-chroma-blue text-white font-bold shadow-lg shadow-chroma-blue/25 translate-x-1'
                                 : 'text-brand-ink/60 hover:bg-brand-cream hover:text-brand-ink font-medium'}
-                            ${!isOpen && 'justify-center px-2'}
+                            ${!isOpen && 'justify-center px-1 mx-2'}
                         `}
                         title={!isOpen ? item.label : undefined}
                     >
-                        <item.icon size={22} strokeWidth={2} className={`transition-transform duration-200 ${!isOpen ? 'group-hover:scale-110' : ''}`} />
-                        <span className={`whitespace-nowrap overflow-hidden transition-all duration-200 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0'}`}>
+                        <item.icon size={22} strokeWidth={2} className={`transition-all duration-300 ${!isOpen ? 'group-hover:scale-110' : ''} ${isActive && !isOpen ? 'scale-110' : ''}`} />
+                        <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 pointer-events-none'}`}>
                             {item.label}
                         </span>
                     </NavLink>

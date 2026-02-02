@@ -49,9 +49,9 @@ const Shell = () => {
             </div>
 
             {/* Main Content */}
-            <main className="flex-1 relative flex flex-col">
+            <main className="flex-1 relative flex flex-col min-w-0">
                 <OfflineBanner />
-                <div className="w-full p-4 md:p-8">
+                <div className="w-full p-4 md:p-6">
                     <Outlet />
                 </div>
             </main>

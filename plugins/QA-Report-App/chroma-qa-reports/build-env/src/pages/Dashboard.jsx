@@ -29,7 +29,7 @@ export function Dashboard() {
     const recentReports = Array.isArray(reports) ? reports : (reports?.data || []);
 
     return (
-        <div className="p-6 w-full mx-auto">
+        <div className="p-6 w-full">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
