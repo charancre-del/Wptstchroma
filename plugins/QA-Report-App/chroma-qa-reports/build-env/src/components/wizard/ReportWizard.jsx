@@ -9,7 +9,8 @@ import {
     useCreateReport,
     useUpdateReport,
     useSubmitReport,
-    useApproveReport
+    useApproveReport,
+    useRevertToDraft
 } from '@hooks/useQueries';
 import apiFetch from '../../api/client';
 
@@ -60,8 +61,9 @@ const ReportWizard = () => {
     const updateMutation = useUpdateReport();
     const submitMutation = useSubmitReport();
     const approveMutation = useApproveReport();
+    const revertMutation = useRevertToDraft();
 
-    const isSavingManual = createMutation.isPending || updateMutation.isPending || submitMutation.isPending || approveMutation.isPending;
+    const isSavingManual = createMutation.isPending || updateMutation.isPending || submitMutation.isPending || approveMutation.isPending || revertMutation.isPending;
 
     // Auto-Save Hook (Handles DB sync & Conflict Modal)
     // CRITICAL FIX: Must be called before early returns to satisfy Rules of Hooks (Error #310)
@@ -241,6 +243,17 @@ const ReportWizard = () => {
         }
     };
 
+    const handleRevert = async () => {
+        if (!confirm('Are you sure you want to revert this approved report to draft? This will allow editing again.')) return;
+        try {
+            await revertMutation.mutateAsync(id);
+            addToast({ type: 'success', message: 'Report reverted to draft status.' });
+            navigate(`/edit/${id}`); // Transition to edit mode immediately
+        } catch (error) {
+            addToast({ type: 'error', message: 'Failed to revert report to draft.' });
+        }
+    };
+
     // LOADING RENDER (Fetch or Hydration)
     if ((id && reportLoading) || (!id && !hasHydrated)) {
         return (
@@ -342,6 +355,14 @@ const ReportWizard = () => {
                         </button>
                     ) : (
                         <div className="flex gap-2">
+                            {isViewMode && existingReport?.status === 'submitted' && (
+                                <button
+                                    onClick={() => navigate(`/edit/${id}`)}
+                                    className="px-6 py-2.5 bg-brand-ink/10 hover:bg-brand-ink/20 text-brand-ink rounded-2xl font-bold text-sm transition-all flex items-center gap-2"
+                                >
+                                    Edit Report
+                                </button>
+                            )}
                             {isViewMode && existingReport?.status === 'submitted' && capabilities?.cqa_approve_reports && (
                                 <button
                                     onClick={handleApprove}
@@ -349,6 +370,15 @@ const ReportWizard = () => {
                                     disabled={approveMutation.isPending}
                                 >
                                     {approveMutation.isPending ? 'Approving...' : 'Approve Report'}
+                                </button>
+                            )}
+                            {isViewMode && existingReport?.status === 'approved' && capabilities?.cqa_approve_reports && (
+                                <button
+                                    onClick={handleRevert}
+                                    className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                    disabled={revertMutation.isPending}
+                                >
+                                    {revertMutation.isPending ? 'Reverting...' : 'Revert to Draft'}
                                 </button>
                             )}
                             <button
