@@ -99,8 +99,9 @@ const ReportWizard = () => {
                 setPhotos(existingReport.photos);
             }
 
-            // If viewing a completed report or explicitly in view mode, jump to Review/Summary
-            if (isViewMode || ['submitted', 'approved'].includes(existingReport.status)) {
+            // If explicitly in view mode or report is approved, jump to Review/Summary
+            // [STATUS-MANAGEMENT] Submitted reports are now editable in Edit mode
+            if (isViewMode || existingReport.status === 'approved') {
                 setCurrentStep(6);
             }
         } else {
@@ -168,6 +169,7 @@ const ReportWizard = () => {
 
     // Use current ID from hook or param
     const reportState = draft;
+    const effectivelyReadOnly = isViewMode || reportState.status === 'approved';
 
     const handleSave = async () => {
         try {
@@ -297,6 +299,7 @@ const ReportWizard = () => {
                         updateDraft={updateDraft}
                         nextStep={nextStep}
                         isViewMode={isViewMode}
+                        readOnly={effectivelyReadOnly}
                     />
                 ) : (
                     <div className="p-8 text-center text-red-500">
@@ -315,7 +318,7 @@ const ReportWizard = () => {
                 </button>
 
                 <div className="flex gap-3">
-                    {!isViewMode && (
+                    {!effectivelyReadOnly && (
                         <button
                             onClick={handleSave}
                             className="px-6 py-2.5 border border-chroma-blue/30 text-chroma-blue rounded-2xl font-bold text-sm hover:bg-chroma-blue/10 transition-all flex items-center gap-2"
@@ -352,7 +355,7 @@ const ReportWizard = () => {
                                 onClick={isViewMode ? () => navigate('/reports') : handleSubmit}
                                 className={`px-6 py-2.5 ${isViewMode ? 'bg-brand-ink' : 'bg-chroma-green'} hover:opacity-90 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg`}
                             >
-                                {isViewMode ? 'Exit View' : 'Submit Report'}
+                                {effectivelyReadOnly ? 'Exit View' : 'Submit Report'}
                             </button>
                         </div>
                     )}

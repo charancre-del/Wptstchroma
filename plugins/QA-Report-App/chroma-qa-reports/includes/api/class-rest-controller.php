@@ -333,13 +333,24 @@ class REST_Controller
 
     public function check_edit_reports_permission($request)
     {
+        $id = (int) $request['id'];
+        $report = Report::find($id);
+
+        if (!$report) {
+            return true; // Let the handler return 404
+        }
+
+        // Approved reports can only be edited or unapproved by users with 'cqa_approve_reports'
+        if ($report->status === 'approved' && !\current_user_can('cqa_approve_reports')) {
+            return false;
+        }
+
         if (\current_user_can('cqa_edit_all_reports')) {
             return true;
         }
 
         if (\current_user_can('cqa_edit_own_reports')) {
-            $report = Report::find($request['id']);
-            return $report && $report->user_id === \get_current_user_id();
+            return $report->user_id === \get_current_user_id();
         }
 
         return false;

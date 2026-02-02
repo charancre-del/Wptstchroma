@@ -8,7 +8,7 @@ import {
     getSortedRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import { useReports, useApproveReport } from '@hooks/useQueries';
+import { useReports, useApproveReport, useRevertToDraft } from '@hooks/useQueries';
 import { formatDate, cn } from '@utils/helpers';
 import useAuthStore from '@stores/useAuthStore';
 import useUIStore from '@stores/useUIStore';
@@ -74,6 +74,7 @@ export function ReportsPage() {
     const { capabilities } = useAuthStore();
     const { addToast } = useUIStore();
     const approveMutation = useApproveReport();
+    const revertMutation = useRevertToDraft();
 
     const handleApprove = async (reportId) => {
         try {
@@ -81,6 +82,18 @@ export function ReportsPage() {
             addToast({ type: 'success', message: 'Report approved successfully' });
         } catch (error) {
             addToast({ type: 'error', message: error.message || 'Failed to approve report' });
+        }
+    };
+
+    const handleRevert = async (reportId) => {
+        if (!confirm('Are you sure you want to revert this report to draft? It will be removed from approved status and become editable again.')) {
+            return;
+        }
+        try {
+            await revertMutation.mutateAsync(reportId);
+            addToast({ type: 'success', message: 'Report reverted to draft successfully' });
+        } catch (error) {
+            addToast({ type: 'error', message: error.message || 'Failed to revert report' });
         }
     };
 
@@ -206,6 +219,26 @@ export function ReportsPage() {
                                 >
                                     <CheckCircle className="w-4 h-4 text-green-500" />
                                     Approve Report
+                                </DropdownMenu.Item>
+                            )}
+                            {row.original.status === 'submitted' && (
+                                <DropdownMenu.Item asChild>
+                                    <Link
+                                        to={`/edit/${row.original.id}`}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"
+                                    >
+                                        <FileText className="w-4 h-4 text-brand-ink/40" />
+                                        Edit Report
+                                    </Link>
+                                </DropdownMenu.Item>
+                            )}
+                            {row.original.status === 'approved' && capabilities?.cqa_approve_reports && (
+                                <DropdownMenu.Item
+                                    onClick={() => handleRevert(row.original.id)}
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 cursor-pointer"
+                                >
+                                    <Clock className="w-4 h-4 text-amber-500" />
+                                    Revert to Draft
                                 </DropdownMenu.Item>
                             )}
                             {row.original.status === 'draft' && (

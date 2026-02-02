@@ -176,6 +176,21 @@ export function useApproveReport() {
 }
 
 /**
+ * Revert a report to draft status (Unapprove)
+ */
+export function useRevertToDraft() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id) => apiClient.put(`/reports/${id}`, { status: 'draft' }),
+        onSuccess: (_, id) => {
+            queryClient.invalidateQueries({ queryKey: queryKeys.reports.detail(id) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
+        },
+    });
+}
+
+/**
  * Upload photos to a report
  */
 export function useUploadPhotos() {

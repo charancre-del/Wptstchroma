@@ -1,9 +1,10 @@
 import React from 'react';
 import { Calendar, FileType, FileText, AlertTriangle } from 'lucide-react';
 
-const StepMetadata = ({ draft, updateDraft }) => {
+const StepMetadata = ({ draft, updateDraft, readOnly = false }) => {
 
     const handleChange = (field, value) => {
+        if (readOnly) return;
         updateDraft({ [field]: value });
     };
 
@@ -20,11 +21,12 @@ const StepMetadata = ({ draft, updateDraft }) => {
                     </label>
                     <input
                         type="date"
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none"
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none disabled:bg-gray-50 disabled:text-gray-500"
                         value={draft.inspection_date || ''}
                         max={new Date().toISOString().split('T')[0]}
                         onChange={(e) => handleChange('inspection_date', e.target.value)}
                         required
+                        disabled={readOnly}
                     />
                 </div>
 
@@ -34,9 +36,10 @@ const StepMetadata = ({ draft, updateDraft }) => {
                         <FileType size={16} /> Report Type
                     </label>
                     <select
-                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none bg-white"
+                        className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none bg-white disabled:bg-gray-50 disabled:text-gray-500"
                         value={draft.report_type}
                         onChange={(e) => handleChange('report_type', e.target.value)}
+                        disabled={readOnly}
                     >
                         <option value="tier1">Tier 1 (Standard)</option>
                         <option value="tier1_tier2">Tier 1 + Tier 2 (Comprehensive)</option>

@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-export function StepAISummary() {
+export function StepAISummary({ readOnly = false }) {
     const report = useReportWizardStore(s => s.report);
     const responses = useReportWizardStore(s => s.responses);
     const setReport = useReportWizardStore(s => s.setReport);
@@ -164,7 +164,7 @@ export function StepAISummary() {
                             </p>
                             <button
                                 onClick={handleGenerate}
-                                disabled={generateSummary.isPending}
+                                disabled={generateSummary.isPending || readOnly}
                                 className="btn btn-primary flex items-center gap-2 mx-auto"
                             >
                                 {generateSummary.isPending ? (
@@ -206,7 +206,7 @@ export function StepAISummary() {
                             >
                                 {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
                             </button>
-                            {!isEditing && (
+                            {!isEditing && !readOnly && (
                                 <button
                                     onClick={handleEdit}
                                     className="p-2 text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-lg transition-colors"
@@ -215,14 +215,16 @@ export function StepAISummary() {
                                     <Edit3 className="w-4 h-4" />
                                 </button>
                             )}
-                            <button
-                                onClick={handleGenerate}
-                                disabled={generateSummary.isPending}
-                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-lg transition-colors"
-                                title="Regenerate"
-                            >
-                                <RefreshCw className={cn('w-4 h-4', generateSummary.isPending && 'animate-spin')} />
-                            </button>
+                            {!readOnly && (
+                                <button
+                                    onClick={handleGenerate}
+                                    disabled={generateSummary.isPending}
+                                    className="p-2 text-gray-500 hover:text-gray-700 hover:bg-white/50 rounded-lg transition-colors"
+                                    title="Regenerate"
+                                >
+                                    <RefreshCw className={cn('w-4 h-4', generateSummary.isPending && 'animate-spin')} />
+                                </button>
+                            )}
                         </div>
                     </div>
 

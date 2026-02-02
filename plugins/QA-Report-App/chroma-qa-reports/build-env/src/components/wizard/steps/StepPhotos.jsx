@@ -76,11 +76,13 @@ const StepPhotos = ({ draft, updateDraft, readOnly = false }) => {
                 {uploading && <span className="text-sm font-normal text-cqa-primary animate-pulse">(Uploading...)</span>}
             </h3>
 
-            <div className={`transition-opacity ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                    <PhotoUploader onUpload={handleUpload} />
+            {!readOnly && (
+                <div className={`transition-opacity ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                        <PhotoUploader onUpload={handleUpload} />
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Gallery Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

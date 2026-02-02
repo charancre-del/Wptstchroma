@@ -266,7 +266,7 @@ export function StepReview({ onBack, isViewMode = false }) {
             {/* Closing Notes */}
             <div className="bg-gray-50 rounded-xl border border-gray-200 p-4">
                 <h3 className="font-medium text-gray-700 mb-2">Closing Notes</h3>
-                {!isViewMode ? (
+                {!readOnly ? (
                     <textarea
                         className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-brand-primary outline-none min-h-[120px] resize-y bg-white text-gray-800"
                         placeholder="General observations, overall summary, or final remarks for this visit..."

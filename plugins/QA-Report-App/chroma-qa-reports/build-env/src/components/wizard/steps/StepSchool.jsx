@@ -120,24 +120,38 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
                 </h3>
 
                 {/* Search Input */}
-                <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search schools..."
-                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none transition-shadow"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
+                {!readOnly && (
+                    <div className="relative mb-4">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search schools..."
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none transition-shadow"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                )}
 
                 {/* School List */}
                 <div className="border border-gray-200 rounded-md max-h-60 overflow-y-auto divide-y divide-gray-100">
                     {(() => {
                         const schools = Array.isArray(schoolsData) ? schoolsData : (schoolsData?.data || []);
 
-                        if (isLoadingSchools) {
+                        if (isLoadingSchools && !readOnly) {
                             return <div className="p-4 text-center text-gray-500">Loading schools...</div>;
+                        }
+
+                        if (readOnly && selectedSchool) {
+                            return (
+                                <div className="p-3 bg-indigo-50 border-l-4 border-cqa-primary flex justify-between items-center">
+                                    <div>
+                                        <div className="font-medium text-gray-900">{selectedSchool.name}</div>
+                                        <div className="text-xs text-gray-500">{selectedSchool.region} • Tier {selectedSchool.tier !== undefined ? selectedSchool.tier : 1}</div>
+                                    </div>
+                                    <span className="text-cqa-primary font-bold text-sm">Selected</span>
+                                </div>
+                            );
                         }
 
                         if (schools.length > 0) {
@@ -174,7 +188,12 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
                         Report Linking
                     </h3>
 
-                    {isFetchingReports ? (
+                    {readOnly ? (
+                        <div className="bg-white p-3 rounded-md border border-blue-100 flex items-center gap-2">
+                            <FileText size={14} className="text-blue-600" />
+                            <span className="text-sm text-blue-800">Linked to report from {draft.previous_report_date || 'N/A'}</span>
+                        </div>
+                    ) : isFetchingReports ? (
                         <div className="flex items-center gap-2 text-blue-700 text-sm">
                             <span className="spinner w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></span>
                             Checking for previous reports...
@@ -254,7 +273,7 @@ const StepSchool = ({ draft, updateDraft, nextStep }) => {
             )}
 
             {/* Continue Button */}
-            {selectedSchool && (
+            {selectedSchool && !readOnly && (
                 <div className="flex justify-end pt-4">
                     <button
                         onClick={handleContinue}
