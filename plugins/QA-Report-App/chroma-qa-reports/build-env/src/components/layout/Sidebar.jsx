@@ -55,10 +55,14 @@ const Sidebar = ({ isOpen }) => {
                         `}
                         title={!isOpen ? item.label : undefined}
                     >
-                        <item.icon size={22} strokeWidth={2} className={`transition-all duration-300 ${!isOpen ? 'group-hover:scale-110' : ''} ${isActive && !isOpen ? 'scale-110' : ''}`} />
-                        <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 pointer-events-none'}`}>
-                            {item.label}
-                        </span>
+                        {({ isActive }) => (
+                            <>
+                                <item.icon size={22} strokeWidth={2} className={`transition-all duration-300 ${!isOpen ? 'group-hover:scale-110' : ''} ${isActive && !isOpen ? 'scale-110' : ''}`} />
+                                <span className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${isOpen ? 'opacity-100 w-auto' : 'opacity-0 w-0 pointer-events-none'}`}>
+                                    {item.label}
+                                </span>
+                            </>
+                        )}
                     </NavLink>
                 ))}
             </nav>
