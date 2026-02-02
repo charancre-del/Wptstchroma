@@ -18,7 +18,9 @@
         padding: 0 !important;
     }
 
-    .cqa-react-wrap {
+    .cqa-react-wrap,
+    #cqa-react-app,
+    #cqa-react-app main {
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;

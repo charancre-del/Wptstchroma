@@ -113,6 +113,15 @@
         padding-bottom: 0 !important;
         float: none !important;
     }
+
+.cqa-react-wrap,
+    #cqa-react-app,
+    #cqa-react-app main {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+    }
 .container{
         width: 100%;
 }
