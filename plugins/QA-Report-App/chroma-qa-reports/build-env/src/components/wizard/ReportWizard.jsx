@@ -331,6 +331,17 @@ const ReportWizard = () => {
                 </button>
 
                 <div className="flex gap-3">
+                    {id && (
+                        <a
+                            href={`#/print/${id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-6 py-2.5 border border-brand-ink/10 rounded-2xl text-brand-ink hover:bg-brand-ink/5 font-bold text-sm transition-all flex items-center gap-2"
+                        >
+                            <Printer className="w-4 h-4 text-brand-ink/40" />
+                            Print Report
+                        </a>
+                    )}
                     {!effectivelyReadOnly && (
                         <button
                             onClick={handleSave}

@@ -199,19 +199,17 @@ export function ReportsPage() {
                                     View Report
                                 </Link>
                             </DropdownMenu.Item>
-                            {row.original.status !== 'draft' && (
-                                <DropdownMenu.Item asChild>
-                                    <a
-                                        href={`#/print/${row.original.id}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"
-                                    >
-                                        <Printer className="w-4 h-4 text-brand-ink/40" />
-                                        Print / Save PDF
-                                    </a>
-                                </DropdownMenu.Item>
-                            )}
+                            <DropdownMenu.Item asChild>
+                                <a
+                                    href={`#/print/${row.original.id}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-brand-ink hover:bg-brand-cream/50 cursor-pointer"
+                                >
+                                    <Printer className="w-4 h-4 text-brand-ink/40" />
+                                    Print / Save PDF
+                                </a>
+                            </DropdownMenu.Item>
                             {row.original.status === 'submitted' && capabilities?.cqa_approve_reports && (
                                 <DropdownMenu.Item
                                     onClick={() => handleApprove(row.original.id)}
