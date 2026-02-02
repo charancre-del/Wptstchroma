@@ -12,6 +12,7 @@ import {
     useApproveReport,
     useRevertToDraft
 } from '@hooks/useQueries';
+import { Eye, Printer } from 'lucide-react';
 import apiFetch from '../../api/client';
 
 // Steps
