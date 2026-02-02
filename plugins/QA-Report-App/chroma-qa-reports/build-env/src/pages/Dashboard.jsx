@@ -12,7 +12,8 @@ import {
     CheckCircle,
     AlertTriangle,
     BarChart3,
-    ArrowRight
+    ArrowRight,
+    Printer
 } from 'lucide-react';
 
 export function Dashboard() {
@@ -149,9 +150,24 @@ export function Dashboard() {
                                             </span>
                                         )}
 
-                                        <Link to={`/reports/${report.id}`} className="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink/40 hover:text-chroma-blue hover:border-chroma-blue transition-all">
-                                            <ArrowRight size={18} />
-                                        </Link>
+                                        <div className="flex items-center gap-2">
+                                            <a
+                                                href={`#/print/${report.id}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink/40 hover:text-chroma-blue hover:border-chroma-blue transition-all"
+                                                title="Print / Save PDF"
+                                            >
+                                                <Printer size={16} />
+                                            </a>
+                                            <Link
+                                                to={`/reports/${report.id}`}
+                                                className="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink/40 hover:text-chroma-blue hover:border-chroma-blue transition-all"
+                                                title="View Report"
+                                            >
+                                                <ArrowRight size={18} />
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

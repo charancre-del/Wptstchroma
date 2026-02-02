@@ -130,7 +130,7 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
                 </a>
             <?php endif; ?>
 
-            <?php if ($report->status === Report::STATUS_DRAFT): ?>
+            <?php if ($report->status === Report::STATUS_DRAFT || $report->status === Report::STATUS_SUBMITTED): ?>
                 <a href="<?php echo esc_url(admin_url('admin.php?page=chroma-qa-reports-create&id=' . $report_id)); ?>"
                     class="button button-secondary no-print">
                     <span class="dashicons dashicons-edit"></span>
