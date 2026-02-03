@@ -353,7 +353,16 @@ class REST_Controller
             return $report->user_id === \get_current_user_id();
         }
 
-        return false;
+        return new \WP_Error(
+            'cqa_permission_denied',
+            sprintf(
+                'Permission denied. User ID: %d. Report User ID: %d. Has Manage Options: %d.',
+                \get_current_user_id(),
+                $report->user_id,
+                \current_user_can('manage_options') ? 1 : 0
+            ),
+            ['status' => 403]
+        );
     }
 
     public function check_delete_reports_permission()
