@@ -15,7 +15,7 @@ import {
     AlertTriangle,
 } from 'lucide-react';
 
-export function StepReview({ onBack, isViewMode = false }) {
+export function StepReview({ onBack, isViewMode = false, readOnly = false }) {
     const report = useReportWizardStore(s => s.report);
     const responses = useReportWizardStore(s => s.responses);
     const photos = useReportWizardStore(s => s.photos);

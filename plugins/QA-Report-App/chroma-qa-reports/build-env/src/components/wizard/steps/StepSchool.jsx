@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import apiFetch from '@api/client';
 import { Search, Building, Link as LinkIcon, AlertCircle, FileText } from 'lucide-react';
 
-const StepSchool = ({ draft, updateDraft, nextStep }) => {
+const StepSchool = ({ draft, updateDraft, nextStep, readOnly = false }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedSchool, setSelectedSchool] = useState(null);
     const [allReports, setAllReports] = useState([]);
