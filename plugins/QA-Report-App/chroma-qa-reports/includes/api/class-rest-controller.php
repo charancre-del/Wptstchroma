@@ -345,7 +345,7 @@ class REST_Controller
             return false;
         }
 
-        if (\current_user_can('cqa_edit_all_reports')) {
+        if (\current_user_can('cqa_edit_all_reports') || \current_user_can('manage_options')) {
             return true;
         }
 

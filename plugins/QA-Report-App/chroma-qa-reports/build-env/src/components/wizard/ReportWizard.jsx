@@ -299,10 +299,7 @@ const ReportWizard = () => {
 
             {/* Progress Bar */}
             <div className="w-full bg-brand-ink/5 h-1.5">
-                <div
-                    className="bg-brand-secondary h-1.5 transition-all duration-300 ease-in-out"
-                    style={{ width: `${(safeStep / steps.length) * 100}%` }}
-                ></div>
+                <div className="bg-cqa-brand-secondary h-1.5 transition-all duration-300 ease-in-out" style={{ width: `${(safeStep / steps.length) * 100}%` }}></div>
             </div>
 
             {/* Step Content */}
