@@ -22,7 +22,8 @@ const ChecklistItem = ({ item, sectionKey, response, onChange, readOnly = false 
         [allPhotos, item.key, item.id]
     );
 
-    const { id: itemKey, label, description, weight } = item;
+    const itemKey = item.key || item.id;
+    const { label, description, weight } = item;
     const { rating = 'na', notes = '' } = response;
     const [currentNotes, setCurrentNotes] = useState(notes);
 
