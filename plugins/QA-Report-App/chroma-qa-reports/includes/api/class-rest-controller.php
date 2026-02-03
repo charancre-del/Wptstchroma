@@ -333,34 +333,37 @@ class REST_Controller
 
     public function check_edit_reports_permission($request)
     {
-        $id = (int) $request['id'];
-        $report = Report::find($id);
-
-        if (!$report) {
-            return true; // Let the handler return 404
-        }
-
-        // Approved reports can only be edited or unapproved by users with 'cqa_approve_reports'
-        if ($report->status === 'approved' && !\current_user_can('cqa_approve_reports')) {
-            return false;
-        }
-
-        if (\current_user_can('cqa_edit_all_reports') || \current_user_can('manage_options')) {
+        // 1. Grant full access to Super Admins (manage_options)
+        if (\current_user_can('manage_options')) {
             return true;
         }
 
-        if (\current_user_can('cqa_edit_own_reports')) {
-            return $report->user_id === \get_current_user_id();
+        $id = (int) $request['id'];
+        $report_model = new \ChromaQA\Models\Report();
+        $report = $report_model->get($id);
+
+        if (!$report) {
+            return new \WP_Error('cqa_report_not_found', 'Report not found', ['status' => 404]);
+        }
+
+        // 2. Report Status Check (Approved reports are locked)
+        if ($report->status === 'approved' && !\current_user_can('cqa_approve_reports')) {
+            return new \WP_Error(
+                'cqa_permission_denied_approved',
+                'Cannot edit approved report without approval permissions.',
+                ['status' => 403]
+            );
+        }
+
+        // 3. Allow any logged in user to edit (as requested)
+        // This replaces strict capability checks to unblock users.
+        if (\is_user_logged_in()) {
+            return true;
         }
 
         return new \WP_Error(
             'cqa_permission_denied',
-            sprintf(
-                'Permission denied. User ID: %d. Report User ID: %d. Has Manage Options: %d.',
-                \get_current_user_id(),
-                $report->user_id,
-                \current_user_can('manage_options') ? 1 : 0
-            ),
+            'Permission denied. You must be logged in to edit reports.',
             ['status' => 403]
         );
     }
