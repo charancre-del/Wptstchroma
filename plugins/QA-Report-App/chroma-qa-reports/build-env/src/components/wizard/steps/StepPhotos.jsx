@@ -5,12 +5,12 @@ import { Camera, FileImage, Trash2, Tag, MessageSquare, AlertCircle } from 'luci
 import PhotoUploader from '../../common/upload/PhotoUploader';
 import PhotoThumbnail from '../../common/PhotoThumbnail';
 
-const StepPhotos = ({ draft, updateDraft, readOnly = false }) => {
+const StepPhotos = ({ draft, updateDraft, readOnly = false, photos = [], setPhotos }) => {
     const { addToast } = useUIStore();
     const [uploading, setUploading] = useState(false);
 
-    // AUDIT FIX: Use draft.photos (Single Source of Truth)
-    const photos = draft.photos || [];
+    // Use photos prop from parent store
+    const currentPhotos = photos || [];
 
     const handleUpload = React.useCallback(async (newFiles) => {
         setUploading(true);
@@ -35,10 +35,18 @@ const StepPhotos = ({ draft, updateDraft, readOnly = false }) => {
                 body: formData
             });
 
-            if (response.success && response.data) {
-                const newPhotos = response.data;
-                // Update Global Store directly
-                updateDraft({ photos: [...photos, ...newPhotos] });
+            if (response.success) {
+                // If API returns unified structure, data is in response.data
+                const newPhotos = response.data || [];
+
+                // Update Global Store directly via setPhotos
+                if (setPhotos) {
+                    setPhotos([...currentPhotos, ...newPhotos]);
+                } else {
+                    // Fallback if setPhotos not passed (legacy)
+                    updateDraft({ photos: [...currentPhotos, ...newPhotos] });
+                }
+
                 addToast({ type: 'success', message: `${newFiles.length} photos uploaded.` });
             } else {
                 throw new Error('Upload failed');
@@ -57,8 +65,13 @@ const StepPhotos = ({ draft, updateDraft, readOnly = false }) => {
 
         try {
             // Optimistic Update
-            const updatedPhotos = photos.filter(p => p.id !== photoId);
-            updateDraft({ photos: updatedPhotos });
+            const updatedPhotos = currentPhotos.filter(p => p.id !== photoId);
+
+            if (setPhotos) {
+                setPhotos(updatedPhotos);
+            } else {
+                updateDraft({ photos: updatedPhotos });
+            }
 
             // API Call
             await apiFetch(`reports/${draft.id}/photos/${photoId}`, { method: 'DELETE' });
@@ -86,7 +99,7 @@ const StepPhotos = ({ draft, updateDraft, readOnly = false }) => {
 
             {/* Gallery Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {photos.map((photo) => (
+                {currentPhotos.map((photo) => (
                     <div key={photo.id} className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
                         <PhotoThumbnail
                             photo={photo}
