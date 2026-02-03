@@ -5,7 +5,7 @@ const ChecklistSection = ({ section, responses, onResponseChange, readOnly = fal
 
     // Calculate progress for this section
     const totalItems = section.items.length;
-    const answeredItems = section.items.filter(item => responses[item.id]?.rating).length;
+    const answeredItems = section.items.filter(item => responses[item.key || item.id]?.rating).length;
     const progress = Math.round((answeredItems / totalItems) * 100);
 
     return (
@@ -14,7 +14,7 @@ const ChecklistSection = ({ section, responses, onResponseChange, readOnly = fal
             <div className="flex items-center justify-between mb-4 sticky top-0 bg-brand-cream/90 backdrop-blur z-10 p-3 rounded-xl border border-brand-ink/10 shadow-sm">
                 <h3 className="text-sm font-black text-brand-ink uppercase tracking-widest flex items-center gap-2">
                     <span className="w-1.5 h-6 bg-brand-secondary rounded-full"></span>
-                    {section.title}
+                    {section.name || section.title}
                 </h3>
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end">

@@ -1293,6 +1293,7 @@ class REST_Controller
                     $uploaded_photos[] = [
                         'id' => $photo->id,
                         'section_key' => $photo->section_key,
+                        'item_key' => $photo->item_key,
                         'filename' => $photo->filename,
                         'caption' => $photo->caption,
                         'thumbnail_url' => $photo->get_thumbnail_url(),
@@ -1302,7 +1303,7 @@ class REST_Controller
             }
         }
 
-        return new WP_REST_Response(['success' => true, 'photos' => $uploaded_photos], 200);
+        return new WP_REST_Response(['success' => true, 'data' => $uploaded_photos], 200);
     }
 
     public function update_photo(WP_REST_Request $request)

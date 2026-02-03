@@ -47,9 +47,10 @@ const ChecklistItem = ({ item, sectionKey, response, onChange, readOnly = false 
                 body: formData
             });
 
-            if (res.success && res.photos) {
+            if (res.success && (res.data || res.photos)) {
                 // Update global store with new photos
-                updateDraft({ photos: [...allPhotos, ...res.photos] });
+                const newPhotos = res.data || res.photos;
+                updateDraft({ photos: [...allPhotos, ...newPhotos] });
                 addToast({ type: 'success', message: 'Photo uploaded' });
             }
         } catch (error) {
