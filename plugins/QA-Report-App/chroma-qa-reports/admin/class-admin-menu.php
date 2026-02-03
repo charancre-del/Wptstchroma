@@ -313,13 +313,20 @@ class Admin_Menu
      */
     public function enqueue_react_app($hook)
     {
-        // Only load on main QA Reports page when React is enabled
-        if ($hook !== 'toplevel_page_' . self::MENU_SLUG) {
+        // Only load on our plugin pages
+        if (strpos($hook, self::MENU_SLUG) === false) {
             return;
         }
 
-        // Check if any React feature is enabled
-        if (!$this->is_react_enabled('dashboard')) {
+        // Check if any React feature is enabled for this user
+        $is_any_react_enabled =
+            $this->is_react_enabled('dashboard') ||
+            $this->is_react_enabled('schools') ||
+            $this->is_react_enabled('reports') ||
+            $this->is_react_enabled('wizard') ||
+            $this->is_react_enabled('settings');
+
+        if (!$is_any_react_enabled) {
             return;
         }
 
@@ -481,6 +488,11 @@ class Admin_Menu
      */
     public function render_schools()
     {
+        if ($this->is_react_enabled('schools')) {
+            echo '<script>window.location.hash = "#/schools";</script>';
+            $this->render_react_app();
+            return;
+        }
         include CQA_PLUGIN_DIR . 'admin/views/schools-list.php';
     }
 
@@ -489,6 +501,12 @@ class Admin_Menu
      */
     public function render_school_edit()
     {
+        if ($this->is_react_enabled('schools')) {
+            $school_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            echo '<script>window.location.hash = "#/schools/' . $school_id . '";</script>';
+            $this->render_react_app();
+            return;
+        }
         include CQA_PLUGIN_DIR . 'admin/views/school-edit.php';
     }
 
@@ -497,6 +515,11 @@ class Admin_Menu
      */
     public function render_reports()
     {
+        if ($this->is_react_enabled('reports')) {
+            echo '<script>window.location.hash = "#/reports";</script>';
+            $this->render_react_app();
+            return;
+        }
         include CQA_PLUGIN_DIR . 'admin/views/reports-list.php';
     }
 
@@ -505,6 +528,13 @@ class Admin_Menu
      */
     public function render_create_report()
     {
+        if ($this->is_react_enabled('wizard')) {
+            $report_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+            $route = $report_id ? "#/edit/{$report_id}" : "#/create";
+            echo '<script>window.location.hash = "' . $route . '";</script>';
+            $this->render_react_app();
+            return;
+        }
         include CQA_PLUGIN_DIR . 'admin/views/report-create.php';
     }
 
@@ -545,6 +575,12 @@ class Admin_Menu
      */
     public function render_settings()
     {
+        if ($this->is_react_enabled('settings')) {
+            echo '<script>window.location.hash = "#/settings";</script>';
+            $this->render_react_app();
+            return;
+        }
+
         // Handle form submission
         if (isset($_POST['cqa_settings_nonce']) && wp_verify_nonce($_POST['cqa_settings_nonce'], 'cqa_save_settings')) {
             $this->save_settings();

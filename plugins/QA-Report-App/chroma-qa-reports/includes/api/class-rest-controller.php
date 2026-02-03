@@ -1101,6 +1101,19 @@ class REST_Controller
     {
         $type = $request['type'];
         $checklist = Checklist_Manager::get_checklist_for_type($type);
+
+        // Ensure compatibility between new (name) and old (title) property names
+        if (isset($checklist['sections']) && is_array($checklist['sections'])) {
+            foreach ($checklist['sections'] as &$section) {
+                if (!isset($section['title']) && isset($section['name'])) {
+                    $section['title'] = $section['name'];
+                }
+                if (!isset($section['name']) && isset($section['title'])) {
+                    $section['name'] = $section['title'];
+                }
+            }
+        }
+
         return new WP_REST_Response($checklist, 200);
     }
 
@@ -1290,7 +1303,7 @@ class REST_Controller
                     $photo->caption = sanitize_text_field($request['caption'] ?: '');
                     $photo->save();
 
-                    $uploaded_photos[] = [
+                    $photo_data = [
                         'id' => $photo->id,
                         'section_key' => $photo->section_key,
                         'item_key' => $photo->item_key,
@@ -1299,11 +1312,24 @@ class REST_Controller
                         'thumbnail_url' => $photo->get_thumbnail_url(),
                         'view_url' => $photo->get_view_url(),
                     ];
+                    $uploaded_photos[] = $photo_data;
                 }
             }
         }
 
-        return new WP_REST_Response(['success' => true, 'data' => $uploaded_photos], 200);
+        // Return unified response
+        $response_data = [
+            'success' => true,
+            'data' => $uploaded_photos, // For new React app
+            'photos' => $uploaded_photos, // For older React app versions
+        ];
+
+        // For Legacy jQuery uploader (which uploads one by one and expects response.id)
+        if (count($uploaded_photos) === 1) {
+            $response_data = array_merge($response_data, $uploaded_photos[0]);
+        }
+
+        return new WP_REST_Response($response_data, 200);
     }
 
     public function update_photo(WP_REST_Request $request)

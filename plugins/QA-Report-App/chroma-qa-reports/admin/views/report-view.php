@@ -16,7 +16,15 @@ $compare_mode = isset($_GET['compare']) && $_GET['compare'];
 $export_pdf = isset($_GET['export']) && $_GET['export'] === 'pdf';
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : '';
 
-// Security: Check if user can view reports at all
+// Check if React UI is enabled for reports
+$admin_menu = new \ChromaQA\Admin\Admin_Menu();
+if ($admin_menu->is_react_enabled('reports')) {
+    echo '<script>window.location.hash = "#/reports/' . $report_id . '";</script>';
+    $admin_menu->render_react_app();
+    return;
+}
+
+// Security: Check if user has permission to view this report
 if (!current_user_can('cqa_view_own_reports') && !current_user_can('cqa_view_all_reports')) {
     wp_die(__('You do not have permission to view reporting data.', 'chroma-qa-reports'));
 }
