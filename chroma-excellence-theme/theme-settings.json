@@ -9,11 +9,11 @@
         "radius": "2rem"
     },
     "fonts": {
-        "heading": "Outfit, serif",
-        "body": "Inter, sans-serif"
+        "heading": "Playfair Display, serif",
+        "body": "Outfit, sans-serif"
     },
     "assets": {
-        "logo_url": "/wp-content/themes/chroma-excellence-theme/assets/images/logo.svg",
+        "logo_url": "/wp-content/themes/chroma-excellence-theme/assets/images/logo_chromacropped_70x70.webp",
         "favicon_url": "/wp-content/themes/chroma-excellence-theme/assets/images/favicon.png"
     }
 }

@@ -92,41 +92,37 @@ function chroma_print_critical_css()
         body {
             margin: 0;
             line-height: inherit;
-
-            /* Font Metric Overrides to prevent CLS */
-            @font-face {
-                font-family: 'Outfit-Fallback';
-                src: local('Arial');
-                ascent-override: 98%;
-                descent-override: 24%;
-                line-gap-override: 0%;
-                size-adjust: 100%;
-            }
-
-            @font-face {
-                font-family: 'Playfair-Fallback';
-                src: local('Georgia');
-                ascent-override: 95%;
-                descent-override: 20%;
-                line-gap-override: 0%;
-                size-adjust: 100%;
-            }
-
-            body {
-                font-family: var(--cqa-font-body);
-            }
-
-            h1,
-            h2,
-            h3,
-            h4,
-            h5,
-            h6,
-            .font-serif {
-                font-family: var(--cqa-font-heading);
-            }
-
+            font-family: var(--cqa-font-body, Outfit, system-ui, sans-serif);
             overflow-x: hidden
+        }
+
+        /* Font Metric Overrides to prevent CLS */
+        @font-face {
+            font-family: 'Outfit-Fallback';
+            src: local('Arial');
+            ascent-override: 98%;
+            descent-override: 24%;
+            line-gap-override: 0%;
+            size-adjust: 100%;
+        }
+
+        @font-face {
+            font-family: 'Playfair-Fallback';
+            src: local('Georgia');
+            ascent-override: 95%;
+            descent-override: 20%;
+            line-gap-override: 0%;
+            size-adjust: 100%;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6,
+        .font-serif {
+            font-family: var(--cqa-font-heading, 'Playfair Display', serif);
         }
 
         /* Critical Layout */
