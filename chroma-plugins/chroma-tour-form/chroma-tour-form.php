@@ -105,7 +105,7 @@ function chroma_tour_form_shortcode()
         data-delay="<?php echo esc_attr($lazy_delay); ?>">
         <!-- GHL Iframe - Official Embed -->
         <div class="chroma-ghl-iframe-container" style="min-height: <?php echo esc_attr($form_height); ?>px;">
-            <iframe src="<?php echo esc_url($form_url); ?>"
+            <iframe data-src="<?php echo esc_url($form_url); ?>"
                 style="width:100%;height:100%;border:none;border-radius:3px;min-height:<?php echo esc_attr($form_height); ?>px;"
                 id="inline-<?php echo esc_attr($form_id); ?>" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
                 data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
@@ -143,6 +143,11 @@ function chroma_tour_form_shortcode()
                 function loadGHLScript() {
                     if (loaded) return;
                     loaded = true;
+
+                    // Activate iframe — fetch content only now
+                    document.querySelectorAll('.chroma-tour-form-wrapper iframe[data-src]').forEach(function(iframe) {
+                        iframe.src = iframe.dataset.src;
+                    });
 
                     var script = document.createElement('script');
                     script.src = 'https://link.msgsndr.com/js/form_embed.js';

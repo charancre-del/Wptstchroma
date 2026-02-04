@@ -380,9 +380,9 @@ function chroma_career_form_shortcode()
     <div class="chroma-career-form-wrapper" data-lazy="<?php echo $lazy_load ? 'true' : 'false'; ?>"
         data-delay="<?php echo esc_attr($lazy_delay); ?>">
         <div class="chroma-ghl-iframe-container" style="min-height: <?php echo esc_attr($form_height); ?>px;">
-            <iframe src="<?php echo esc_url($form_url); ?>"
+            <iframe data-src="<?php echo esc_url($form_url); ?>"
                 style="width:100%;height:100%;border:none;border-radius:3px;min-height:<?php echo esc_attr($form_height); ?>px;"
-                id="inline-<?php echo esc_attr($form_id); ?>" loading="<?php echo esc_attr($loading_attr); ?>"
+                id="inline-<?php echo esc_attr($form_id); ?>"
                 data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow" data-trigger-value=""
                 data-activation-type="alwaysActivated" data-activation-value="" data-deactivation-type="neverDeactivate"
                 data-deactivation-value="" data-form-name="<?php echo esc_attr($form_name); ?>"
@@ -420,6 +420,11 @@ function chroma_career_form_shortcode()
                 function loadGHLScript() {
                     if (loaded) return;
                     loaded = true;
+
+                    // Activate iframe — fetch content only now
+                    document.querySelectorAll('.chroma-career-form-wrapper iframe[data-src]').forEach(function(iframe) {
+                        iframe.src = iframe.dataset.src;
+                    });
 
                     var script = document.createElement('script');
                     script.src = 'https://link.msgsndr.com/js/form_embed.js';
