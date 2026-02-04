@@ -11,7 +11,8 @@ const Sidebar = ({ activeTab, setActiveTab, isAdmin, isCollapsed, onToggle }) =>
         { id: 'events', label: 'School Events', icon: '🗓️' },
         { id: 'news', label: 'News & Updates', icon: '📣' },
         { id: 'resources', label: 'Resources', icon: '📖' },
-        { id: 'policies', label: 'Policies & Procedures', icon: '📋' }
+        { id: 'policies', label: 'Policies & Procedures', icon: '📋' },
+        { id: 'feedback', label: 'Feedback', icon: '💭' }
     ];
 
     return (

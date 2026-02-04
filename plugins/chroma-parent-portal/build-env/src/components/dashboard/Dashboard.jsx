@@ -8,6 +8,7 @@ import MealPlansSection from './MealPlansSection';
 import PDFCard from '../common/PDFCard';
 import OrganizationGroup from '../common/OrganizationGroup';
 import PDFViewerModal from '../common/PDFViewerModal';
+import FeedbackSection from './FeedbackSection';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const Dashboard = () => {
@@ -237,6 +238,10 @@ const Dashboard = () => {
                         </div>
                     </div>
                 );
+
+
+            case 'feedback':
+                return <FeedbackSection />;
 
             default:
                 return <DashboardGrid data={data} refreshData={fetchData} onDocumentClick={handleView} />;
