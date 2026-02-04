@@ -380,7 +380,7 @@
           lazyObserver.unobserve(el);
         }
       });
-    }, { rootMargin: '300px' });
+    }, { rootMargin: '100px' });
 
     // Identify and Observe components
     document.querySelectorAll('[data-program-wizard]').forEach(el => { el.dataset.lazyComponent = 'wizard'; lazyObserver.observe(el); });

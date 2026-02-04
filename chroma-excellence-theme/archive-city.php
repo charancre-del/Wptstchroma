@@ -245,10 +245,8 @@ if (!function_exists('chroma_get_city_image_html')) {
         cards.forEach(card => {
             if (county === 'all' || card.dataset.county === county) {
                 card.style.display = 'block';
-                // Trigger animation reflow
                 card.classList.remove('animate-fade-in-up');
-                void card.offsetWidth;
-                card.classList.add('animate-fade-in-up');
+                requestAnimationFrame(() => { card.classList.add('animate-fade-in-up'); });
                 visibleCount++;
             } else {
                 card.style.display = 'none';

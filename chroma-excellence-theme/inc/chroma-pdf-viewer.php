@@ -19,6 +19,9 @@ function chroma_pdf_shortcode($atts) {
 
     if (empty($args['url'])) return '';
 
+    // Enqueue viewer on first shortcode use (fallback if has_shortcode check missed it)
+    chroma_enqueue_pdf_assets();
+
     $unique_id = uniqid('pdf_');
 
     // Default cover if none provided
@@ -67,27 +70,37 @@ function chroma_pdf_shortcode($atts) {
 }
 add_shortcode('chroma_pdf', 'chroma_pdf_shortcode');
 
-// hooks moved outside to ensure they run even if shortcode isn't used (e.g. manual triggers)
+// Register script early; enqueue only when the shortcode is present on the page
+add_action('wp_enqueue_scripts', 'chroma_register_pdf_assets');
 add_action('wp_footer', 'chroma_render_pdf_modal');
-add_action('wp_enqueue_scripts', 'chroma_enqueue_pdf_assets');
 
-// Enqueue Assets
-function chroma_enqueue_pdf_assets() {
+function chroma_register_pdf_assets() {
     wp_register_script('chroma-pdf-viewer', get_template_directory_uri() . '/assets/js/chroma-pdf-viewer.js', array(), '1.0.0', true);
-    
-    // Config for JS
+
+    // Eagerly enqueue if the current post content contains the shortcode
+    global $post;
+    if ($post && has_shortcode($post->post_content, 'chroma_pdf')) {
+        chroma_enqueue_pdf_assets();
+    }
+}
+
+// Enqueue + localize assets (idempotent — safe to call multiple times)
+function chroma_enqueue_pdf_assets() {
+    if (wp_script_is('chroma-pdf-viewer', 'enqueued')) {
+        return;
+    }
+
     $config = array(
         'pdfJsUrl' => get_template_directory_uri() . '/assets/js/pdf/pdf.min.js',
         'pdfWorkerUrl' => get_template_directory_uri() . '/assets/js/pdf/pdf.worker.min.js'
     );
     wp_localize_script('chroma-pdf-viewer', 'chromaPdfConfig', $config);
-    
     wp_enqueue_script('chroma-pdf-viewer');
 }
 
-// Render Global Modal (Once)
+// Render Global Modal (Once, only on pages that actually use the PDF viewer)
 function chroma_render_pdf_modal() {
-    // Only render once
+    if (!wp_script_is('chroma-pdf-viewer', 'enqueued')) return;
     if (defined('CHROMA_PDF_MODAL_RENDERED')) return;
     define('CHROMA_PDF_MODAL_RENDERED', true);
     ?>

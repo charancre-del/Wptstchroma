@@ -144,11 +144,6 @@ function chroma_tour_form_shortcode()
                     if (loaded) return;
                     loaded = true;
 
-                    // Cleanup fallback listeners
-                    window.removeEventListener('scroll', loadGHLScript);
-                    window.removeEventListener('mousemove', loadGHLScript);
-                    window.removeEventListener('touchstart', loadGHLScript);
-
                     var script = document.createElement('script');
                     script.src = 'https://link.msgsndr.com/js/form_embed.js';
                     script.async = true;
@@ -175,15 +170,7 @@ function chroma_tour_form_shortcode()
                     });
                 }
 
-                // 3. Fallback: Load on ANY user interaction (Ensures it works even if scroll/delay misses)
-                window.addEventListener('scroll', loadGHLScript, { passive: true });
-                window.addEventListener('mousemove', loadGHLScript, { passive: true });
-                window.addEventListener('touchstart', loadGHLScript, { passive: true });
-
-                // 4. Immediate load if DOM already ready (Handles race conditions with defer)
-                if (document.readyState === 'complete') {
-                    // Keep delay/intersection logic, but check if we're already visible
-                }
+                // Timer + IntersectionObserver cover all load scenarios
             })();
         </script>
     <?php else: ?>
