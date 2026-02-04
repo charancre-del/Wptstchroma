@@ -54,15 +54,25 @@ class Chroma_Portal_Meta_Boxes
 
     public function enqueue_admin_scripts($hook)
     {
-        global $post;
-        if (!$post || !in_array($post->post_type, ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_home_activity'])) {
+        $screen = get_current_screen();
+        if (!$screen) {
             return;
         }
+
+        // Only load on screens where we actually use the PDF box
+        $allowed_screens = ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_home_activity'];
+        if (!in_array($screen->id, $allowed_screens) && !in_array($screen->post_type, $allowed_screens)) {
+            return;
+        }
+
         wp_enqueue_media();
     }
 
     public function render_pdf_box($post)
     {
+        if (!$post || !isset($post->ID)) {
+            return;
+        }
         $file_id = get_post_meta($post->ID, '_cp_pdf_file_id', true);
         $file_url = $file_id ? wp_get_attachment_url($file_id) : '';
 
@@ -133,6 +143,9 @@ class Chroma_Portal_Meta_Boxes
 
     public function render_priority_box($post)
     {
+        if (!$post || !isset($post->ID)) {
+            return;
+        }
         $val = get_post_meta($post->ID, '_cp_priority', true);
         ?>
         <select name="chroma_portal_priority">
@@ -144,6 +157,9 @@ class Chroma_Portal_Meta_Boxes
 
     public function render_event_date_box($post)
     {
+        if (!$post || !isset($post->ID)) {
+            return;
+        }
         $val = get_post_meta($post->ID, '_cp_event_date', true);
         wp_nonce_field('chroma_portal_save_meta', 'chroma_portal_meta_nonce');
         ?>

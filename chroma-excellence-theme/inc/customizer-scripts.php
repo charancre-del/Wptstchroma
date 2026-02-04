@@ -90,35 +90,15 @@ add_action('wp_head', 'chroma_output_header_scripts', 1);
  * Output Footer Scripts
  * Processed to lazy-load heavy third-party widgets
  */
+/**
+ * Optimize and Output Customizer Footer Scripts
+ */
 function chroma_output_footer_scripts()
 {
     $scripts = get_theme_mod('chroma_footer_scripts');
     if ($scripts) {
-        // Performance: Lazy-load LeadConnector if present
-        if (strpos($scripts, 'widgets.leadconnectorhq.com') !== false) {
-            $scripts = "
-                <script>
-                (function() {
-                    var loadLC = function() {
-                        window.removeEventListener('scroll', loadLC);
-                        window.removeEventListener('mousemove', loadLC);
-                        window.removeEventListener('touchstart', loadLC);
-                        var div = document.createElement('div');
-                        div.innerHTML = " . json_encode($scripts) . ";
-                        var scripts = div.querySelectorAll('script');
-                        scripts.forEach(function(s) {
-                            var ns = document.createElement('script');
-                            if (s.src) ns.src = s.src;
-                            if (s.innerHTML) ns.innerHTML = s.innerHTML;
-                            document.body.appendChild(ns);
-                        });
-                    };
-                    window.addEventListener('scroll', loadLC, {passive:true});
-                    window.addEventListener('mousemove', loadLC, {passive:true});
-                    window.addEventListener('touchstart', loadLC, {passive:true});
-                })();
-                </script>";
-        }
+        // Advanced: Generic Lazy-Load for Third Parties (TBT/LCP Optimization)
+        $scripts = chroma_optimize_third_party_scripts($scripts);
 
         echo "<!-- Global Footer Scripts (Optimized) -->\n";
         echo $scripts . "\n";
@@ -126,3 +106,88 @@ function chroma_output_footer_scripts()
     }
 }
 add_action('wp_footer', 'chroma_output_footer_scripts', 99);
+
+/**
+ * Advanced Script Optimizer
+ * Wraps heavy third-party snippets (GHL, FB, Google, Clarity) in an interaction-only loader.
+ * Replaces the brittle "immediate-load" pattern with "Load-on-Intent".
+ */
+function chroma_optimize_third_party_scripts($html)
+{
+    if (is_admin())
+        return $html;
+
+    $targets = [
+        'widgets.leadconnectorhq.com',
+        'clarity.ms',
+        'googletagmanager.com',
+        'gtag(',
+        'connect.facebook.net',
+        'fbevents.js',
+        'recaptcha'
+    ];
+
+    $found = false;
+    foreach ($targets as $target) {
+        if (strpos($html, $target) !== false) {
+            $found = true;
+            break;
+        }
+    }
+
+    if (!$found)
+        return $html;
+
+    // Convert raw scripts into an interaction-triggered injection
+    // This wipes out TBT from heavy third-parties during initial load
+    $encoded_scripts = json_encode($html);
+
+    return "
+    <script id='chroma-lazy-loader-wrapper'>
+    (function() {
+        var scriptsLoaded = false;
+        var loadScripts = function() {
+            if (scriptsLoaded) return;
+            scriptsLoaded = true;
+            
+            // Remove listeners
+            ['scroll', 'mousemove', 'touchstart', 'keydown'].forEach(function(ev) {
+                window.removeEventListener(ev, loadScripts);
+            });
+
+            console.log('[Chroma] Loading deferred third-party scripts...');
+            
+            var container = document.createElement('div');
+            container.innerHTML = {$encoded_scripts};
+            var scripts = container.querySelectorAll('script');
+            
+            scripts.forEach(function(oldScript) {
+                var newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(function(attr) {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                } else {
+                    newScript.innerHTML = oldScript.innerHTML;
+                }
+                document.body.appendChild(newScript);
+            });
+        };
+
+        // Trigger on interaction
+        ['scroll', 'mousemove', 'touchstart', 'keydown'].forEach(function(ev) {
+            window.addEventListener(ev, loadScripts, {passive: true});
+        });
+
+        // Fallback: Default to idle load after 4.5s if no interaction
+        if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(function() {
+                setTimeout(loadScripts, 3500);
+            }, {timeout: 5000});
+        } else {
+            setTimeout(loadScripts, 4500);
+        }
+    })();
+    </script>";
+}

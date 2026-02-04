@@ -143,8 +143,13 @@ class Admin_Menu
      */
     public function enqueue_styles($hook)
     {
-        // Only load on our pages
-        if (strpos($hook, self::MENU_SLUG) === false) {
+        // Only load on our specific plugin pages
+        if (strpos($hook, self::MENU_SLUG) === false && strpos($hook, 'chroma_school') === false) {
+            return;
+        }
+
+        $screen = get_current_screen();
+        if (!$screen || strpos($screen->id, self::MENU_SLUG) === false) {
             return;
         }
 
@@ -175,7 +180,8 @@ class Admin_Menu
      */
     public function enqueue_scripts($hook)
     {
-        if (strpos($hook, self::MENU_SLUG) === false) {
+        $screen = get_current_screen();
+        if (!$screen || strpos($screen->id, self::MENU_SLUG) === false) {
             return;
         }
 
@@ -313,8 +319,8 @@ class Admin_Menu
      */
     public function enqueue_react_app($hook)
     {
-        // Only load on our plugin pages
-        if (strpos($hook, self::MENU_SLUG) === false) {
+        $screen = get_current_screen();
+        if (!$screen || strpos($screen->id, self::MENU_SLUG) === false) {
             return;
         }
 
