@@ -209,6 +209,10 @@
       script.src = `${window.chromaData.themeUrl}/assets/js/chart.min.js`;
       script.async = true;
       script.onload = createChart;
+      script.onerror = () => {
+        console.error('Failed to load Chart.js');
+        if (container) container.innerHTML = '<div class="text-center p-4 text-chroma-red">Chart failed to load.</div>';
+      };
       document.body.appendChild(script);
     }
 
@@ -380,7 +384,7 @@
           lazyObserver.unobserve(el);
         }
       });
-    }, { rootMargin: '100px' });
+    });
 
     // Identify and Observe components
     document.querySelectorAll('[data-program-wizard]').forEach(el => { el.dataset.lazyComponent = 'wizard'; lazyObserver.observe(el); });
