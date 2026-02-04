@@ -239,12 +239,12 @@ const Dashboard = () => {
                         <div className="section-header" style={{ marginBottom: '20px' }}>
                             <h2>Resources</h2>
                         </div>
-                        <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
-                            {data.resources.map(item => (
-                                <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={fetchData} />
-                            ))}
-                            {data.resources.length === 0 && <p>No resources found.</p>}
-                        </div>
+                        <LessonPlanSection
+                            items={data.resources}
+                            type="resource"
+                            onView={handleView}
+                            onDelete={fetchData}
+                        />
                     </div>
                 );
             case 'policies':
@@ -253,12 +253,12 @@ const Dashboard = () => {
                         <div className="section-header" style={{ marginBottom: '20px' }}>
                             <h2>Policies & Procedures</h2>
                         </div>
-                        <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px' }}>
-                            {data.forms.map(item => (
-                                <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={fetchData} />
-                            ))}
-                            {data.forms.length === 0 && <p>No policy documents available.</p>}
-                        </div>
+                        <LessonPlanSection
+                            items={data.forms}
+                            type="policy"
+                            onView={handleView}
+                            onDelete={fetchData}
+                        />
                     </div>
                 );
 

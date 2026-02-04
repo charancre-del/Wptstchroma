@@ -50,7 +50,7 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
             </motion.div>
 
             {/* Main Sections */}
-            <div className="grid-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '30px' }}>
+            <div className="grid-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '30px' }}>
 
                 {/* Lesson Plans */}
                 <motion.div variants={itemVariants} className="glass-card section-card">

@@ -136,8 +136,8 @@ const LessonPlanSection = ({ items, type, onView, onDelete, showClassroomFilter 
                         }}
                     >
                         <span style={{ fontSize: '1rem', fontWeight: '700', color: '#263238', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <span style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#9d8253', color: 'white', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontSize: '0.8rem' }}>
-                                {mIndex + 1}
+                            <span style={{ width: '24px', height: '24px', borderRadius: '6px', background: '#9d8253', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
+                                📁
                             </span>
                             {monthName}
                         </span>
