@@ -32,12 +32,50 @@ $js_config = [
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=Playfair+Display:wght@600;700;800&display=swap"
-        rel="stylesheet">
+    <style>
+        /* Local Font Load for standalone TV Dashboard */
+        @font-face {
+            font-family: 'Outfit';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Outfit';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Outfit';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Bold.woff2') format('woff2');
+            font-weight: 700;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Playfair Display';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/PlayfairDisplay-SemiBold.woff2') format('woff2');
+            font-weight: 600;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Playfair Display';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/PlayfairDisplay-Bold.woff2') format('woff2');
+            font-weight: 700;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Playfair Display';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/PlayfairDisplay-ExtraBold.woff2') format('woff2');
+            font-weight: 800;
+            font-display: swap;
+        }
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <!-- PDF.js for Newsletter Rendering -->

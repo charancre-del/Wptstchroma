@@ -82,13 +82,6 @@ add_action('wp_enqueue_scripts', function () {
 
     $asset_file = include $asset_file_path;
 
-    // Load Google Fonts properly (fixes @import error in CSS)
-    wp_enqueue_style(
-        'chroma-portal-google-fonts',
-        'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap',
-        [],
-        null
-    );
 
     wp_enqueue_script(
         'chroma-portal-app',
@@ -101,7 +94,7 @@ add_action('wp_enqueue_scripts', function () {
     wp_enqueue_style(
         'chroma-portal-styles',
         CHROMA_PORTAL_URL . 'build/index.css',
-        ['chroma-portal-google-fonts'], // Add dependency on Google Fonts
+        [], // Remove dependency on Google Fonts
         $asset_file['version'] . '-' . time() // Add timestamp to force cache clear
     );
 

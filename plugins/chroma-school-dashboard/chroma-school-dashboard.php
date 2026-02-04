@@ -36,7 +36,7 @@ function chroma_school_dashboard_init()
     }
 
     // Portal logic only on dashboard pages or specific requests
-    if (is_admin() || !is_admin() && (isset($_GET['page']) && strpos($_GET['page'], 'chroma-') !== false || is_singular('school'))) {
+    if (is_admin() || !is_admin() && !is_front_page() && (isset($_GET['page']) && strpos($_GET['page'], 'chroma-') !== false || is_singular('chroma_school'))) {
         new Chroma_School_Template_Loader();
         new Chroma_School_Portal_Loader();
     }

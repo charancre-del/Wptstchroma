@@ -44,9 +44,43 @@ wp_enqueue_style('wp-mediaelement');
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
-    <link
-        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap"
-        rel="stylesheet">
+    <style>
+        /* Local Font Load for standalone Portal */
+        @font-face {
+            font-family: 'Outfit';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Regular.woff2') format('woff2');
+            font-weight: 400;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Outfit';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Medium.woff2') format('woff2');
+            font-weight: 500;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Outfit';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Bold.woff2') format('woff2');
+            font-weight: 700;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Playfair Display';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/PlayfairDisplay-SemiBold.woff2') format('woff2');
+            font-weight: 600;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Playfair Display';
+            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/PlayfairDisplay-Bold.woff2') format('woff2');
+            font-weight: 700;
+            font-display: swap;
+        }
+    </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>

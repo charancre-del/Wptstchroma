@@ -92,7 +92,7 @@ function chroma_print_critical_css()
         body {
             margin: 0;
             line-height: inherit;
-            font-family: var(--cqa-font-body, Outfit, system-ui, sans-serif);
+            font-family: var(--cqa-font-body, Outfit, 'Outfit-Fallback', system-ui, sans-serif);
             overflow-x: hidden
         }
 
@@ -115,6 +115,24 @@ function chroma_print_critical_css()
             size-adjust: 100%;
         }
 
+        /* Lock Hero Heights early to prevent 0.3+ CLS shift */
+        .chroma-hero-lock {
+            height: 400px;
+            contain: layout size;
+        }
+
+        @media (min-width: 640px) {
+            .chroma-hero-lock {
+                height: 420px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .chroma-hero-lock {
+                height: 500px;
+            }
+        }
+
         h1,
         h2,
         h3,
@@ -122,7 +140,7 @@ function chroma_print_critical_css()
         h5,
         h6,
         .font-serif {
-            font-family: var(--cqa-font-heading, 'Playfair Display', serif);
+            font-family: var(--cqa-font-heading, 'Playfair Display', 'Playfair-Fallback', serif);
         }
 
         /* Critical Layout */

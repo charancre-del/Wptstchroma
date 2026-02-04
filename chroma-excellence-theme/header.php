@@ -103,6 +103,12 @@
 								px;
 						}
 					}
+
+					/* Prevent CLS for logo by enforcing aspect ratio */
+					.chroma-logo {
+						aspect-ratio: 1 / 1;
+						object-fit: contain;
+					}
 				</style>
 				<?php
 				$logo_url = Chroma_Branding_Engine::get_instance()->get_setting('assets', 'logo_url');

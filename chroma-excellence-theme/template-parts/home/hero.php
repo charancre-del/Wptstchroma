@@ -63,24 +63,6 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             </div>
         </div>
 
-        <!-- Hero Image Container - Critical Hieght Lock to prevent CLS -->
-        <style>
-            .chroma-hero-lock {
-                height: 400px;
-            }
-
-            @media (min-width: 640px) {
-                .chroma-hero-lock {
-                    height: 420px;
-                }
-            }
-
-            @media (min-width: 1024px) {
-                .chroma-hero-lock {
-                    height: 500px;
-                }
-            }
-        </style>
         <div class="chroma-hero-lock relative w-full isolate mt-8 sm:mt-0" style="contain: layout size;">
             <!-- Background Decorations -->
             <div
@@ -136,9 +118,11 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
                 </div>
                 <div>
                     <p class="font-bold text-xs sm:text-sm text-brand-ink">
-                        <?php _e('Kindergarten Ready', 'chroma-excellence'); ?></p>
+                        <?php _e('Kindergarten Ready', 'chroma-excellence'); ?>
+                    </p>
                     <p class="text-[10px] sm:text-[11px] text-brand-ink">
-                        <?php _e('Comprehensive Prep', 'chroma-excellence'); ?></p>
+                        <?php _e('Comprehensive Prep', 'chroma-excellence'); ?>
+                    </p>
                 </div>
             </div>
         </div>
