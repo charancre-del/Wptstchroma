@@ -12,14 +12,14 @@ get_header();
 // Optimized: Pre-cache meta, skip term cache, collect counties during display
 $cities_query = chroma_cached_query(
     [
-        'post_type'              => 'city',
-        'posts_per_page'         => -1,
-        'post_status'            => 'publish',
-        'orderby'                => 'title',
-        'order'                  => 'ASC',
+        'post_type' => 'city',
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+        'orderby' => 'title',
+        'order' => 'ASC',
         'update_post_meta_cache' => true,
         'update_post_term_cache' => false,
-        'no_found_rows'          => true,
+        'no_found_rows' => true,
     ],
     'cities_archive',
     7 * DAY_IN_SECONDS
@@ -90,7 +90,8 @@ if (!function_exists('chroma_get_city_image_html')) {
         <div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
             <div
                 class="inline-flex items-center gap-2 bg-white border border-chroma-blue/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-blue shadow-sm mb-6 fade-in-up">
-                <i class="fa-solid fa-city"></i> <?php echo $cities_query->found_posts; ?> <?php _e('Communities', 'chroma-excellence'); ?>
+                <i class="fa-solid fa-city"></i> <?php echo $cities_query->found_posts; ?>
+                <?php _e('Communities', 'chroma-excellence'); ?>
             </div>
 
             <h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6 fade-in-up"
@@ -107,7 +108,8 @@ if (!function_exists('chroma_get_city_image_html')) {
                 style="animation-delay: 0.3s;">
                 <div class="relative flex-grow max-w-md">
                     <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-brand-ink"></i>
-                    <input type="text" id="city-search" placeholder="<?php esc_attr_e('Search for your city...', 'chroma-excellence'); ?>"
+                    <input type="text" id="city-search"
+                        placeholder="<?php esc_attr_e('Search for your city...', 'chroma-excellence'); ?>"
                         class="w-full pl-12 pr-4 py-3 rounded-full focus:outline-none text-brand-ink bg-white" />
                 </div>
                 <div
@@ -197,12 +199,14 @@ if (!function_exists('chroma_get_city_image_html')) {
                     <?php endwhile; ?>
                     <?php wp_reset_postdata(); ?>
                 <?php else: ?>
-                    <p class="col-span-full text-center text-xl text-brand-ink/60"><?php _e('No communities found.', 'chroma-excellence'); ?></p>
+                    <p class="col-span-full text-center text-xl text-brand-ink/60">
+                        <?php _e('No communities found.', 'chroma-excellence'); ?></p>
                 <?php endif; ?>
 
                 <!-- No Results Msg -->
                 <div id="no-results" class="hidden col-span-full text-center py-12">
-                    <p class="text-xl text-brand-ink/60"><?php _e('No cities match your search.', 'chroma-excellence'); ?></p>
+                    <p class="text-xl text-brand-ink/60">
+                        <?php _e('No cities match your search.', 'chroma-excellence'); ?></p>
                 </div>
 
             </div>
@@ -212,8 +216,11 @@ if (!function_exists('chroma_get_city_image_html')) {
     <!-- CTA -->
     <section class="bg-chroma-blueDark py-16 text-white text-center">
         <div class="max-w-4xl mx-auto px-4">
-            <h2 class="font-serif text-3xl font-bold mb-4"><?php _e('Don\'t see your city?', 'chroma-excellence'); ?></h2>
-            <p class="text-white/80 mb-8 max-w-2xl mx-auto"><?php _e('We are constantly expanding. Contact our enrollment team to find the nearest campus to you.', 'chroma-excellence'); ?></p>
+            <h2 class="font-serif text-3xl font-bold mb-4"><?php _e('Don\'t see your city?', 'chroma-excellence'); ?>
+            </h2>
+            <p class="text-white/80 mb-8 max-w-2xl mx-auto">
+                <?php _e('We are constantly expanding. Contact our enrollment team to find the nearest campus to you.', 'chroma-excellence'); ?>
+            </p>
             <a href="<?php echo esc_url(chroma_get_page_link('contact')); ?>"
                 class="inline-block bg-chroma-yellow text-brand-ink font-bold rounded-full px-8 py-4 uppercase tracking-widest text-xs hover:bg-white transition-colors">
                 <?php _e('Contact Us', 'chroma-excellence'); ?>
@@ -242,15 +249,22 @@ if (!function_exists('chroma_get_city_image_html')) {
             }
         });
 
+        const visibleCards = [];
         cards.forEach(card => {
             if (county === 'all' || card.dataset.county === county) {
                 card.style.display = 'block';
+                // Reset animation state
                 card.classList.remove('animate-fade-in-up');
-                requestAnimationFrame(() => { card.classList.add('animate-fade-in-up'); });
+                visibleCards.push(card);
                 visibleCount++;
             } else {
                 card.style.display = 'none';
             }
+        });
+
+        // Batch Re-trigger animations in the next frame to avoid layout thrashing loop
+        requestAnimationFrame(() => {
+            visibleCards.forEach(card => card.classList.add('animate-fade-in-up'));
         });
 
         if (noResults) noResults.style.display = visibleCount === 0 ? 'block' : 'none';

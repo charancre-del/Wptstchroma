@@ -214,32 +214,62 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.style.overflow = '';
     }
 
-    // Event Listeners
+    // Event Listeners (UI Controls - safe to leave always on as they are specific IDs)
     if (prevBtn) prevBtn.addEventListener('click', onPrevPage);
     if (nextBtn) nextBtn.addEventListener('click', onNextPage);
     if (closeBtn) closeBtn.addEventListener('click', closeViewer);
     if (backdrop) backdrop.addEventListener('click', closeViewer);
 
-    // Keyboard support
-    document.addEventListener('keydown', function (e) {
+    // Keyboard support - Lazy Loaded
+    function onKeyDown(e) {
         if (modal.classList.contains('hidden')) return;
         if (e.key === 'Escape') closeViewer();
         if (e.key === 'ArrowLeft') onPrevPage();
         if (e.key === 'ArrowRight') onNextPage();
-    });
+    }
 
-    // Handle Window Resize (Debounced re-render)
+    // Window Resize - Lazy Loaded with Debounce
     let resizeTimeout;
-    window.addEventListener('resize', function () {
+    function onResize() {
         if (modal.classList.contains('hidden') || !viewerState.pdfDoc) return;
-
         clearTimeout(resizeTimeout);
         resizeTimeout = setTimeout(function () {
             renderPage(viewerState.pageNum);
         }, 200);
-    });
+    }
 
     window.chromaOpenPdf = openViewer;
+
+    // Attach keyboard/resize only when needed
+    const originalOpenViewer = openViewer;
+    function openViewerWrapper(url, title) {
+        document.addEventListener('keydown', onKeyDown);
+        window.addEventListener('resize', onResize);
+        originalOpenViewer(url, title);
+    }
+    // Overwrite internal reference if needed, but since we export strict function:
+    // We need to update the close function to remove them.
+
+    // Redefine closeViewer to clean up
+    const originalCloseViewer = closeViewer;
+    function closeViewerWrapper() {
+        document.removeEventListener('keydown', onKeyDown);
+        window.removeEventListener('resize', onResize);
+        originalCloseViewer();
+    }
+
+    // Wire up wrappers
+    if (closeBtn) {
+        closeBtn.removeEventListener('click', closeViewer);
+        closeBtn.addEventListener('click', closeViewerWrapper);
+    }
+    if (backdrop) {
+        backdrop.removeEventListener('click', closeViewer);
+        backdrop.addEventListener('click', closeViewerWrapper);
+    }
+
+    // Override public API
+    window.chromaOpenPdf = openViewerWrapper;
 
     function attachTriggers() {
         document.addEventListener('click', function (e) {
@@ -248,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
                 const url = trigger.getAttribute('data-pdf-url');
                 const title = trigger.getAttribute('data-pdf-title');
-                if (url) openViewer(url, title);
+                if (url) openViewerWrapper(url, title);
             }
         });
     }
