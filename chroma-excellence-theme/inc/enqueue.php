@@ -327,7 +327,7 @@ function chroma_move_jquery_to_footer()
         // Re-register jQuery in footer and enqueue it
         // Note: Conditional loading was tried but broke font/logo loading
         wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), array(), null, true);
-        wp_enqueue_script('jquery');
+        // wp_enqueue_script('jquery'); // Removed to reduce TBT; re-enable if plugins break 
 }
 add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
 
@@ -388,24 +388,32 @@ function chroma_dequeue_cdn_styles()
 add_action('wp_enqueue_scripts', 'chroma_dequeue_cdn_styles', 100);
 
 /**
- * Add defer attribute to enqueued scripts for performance
+ * Add performance attributes to enqueued scripts
  */
-function chroma_defer_scripts($tag, $handle, $src)
+function chroma_optimize_script_tags($tag, $handle, $src)
 {
-        // List of scripts to NOT defer
-        $exclude = array();
+        // 1. Scripts to NOT defer
+        $exclude_defer = array();
 
-        if (in_array($handle, $exclude) || is_admin()) {
+        // 2. Scripts for Low Priority (Non-Critical)
+        $low_priority = array('chroma-map-facade', 'leadconnector-widget', 'lc-widget');
+
+        if (is_admin()) {
                 return $tag;
         }
 
-        // Add defer if not already present
-        if (strpos($tag, 'defer') === false) {
+        // Add defer if not already present (excluding exclusions)
+        if (!in_array($handle, $exclude_defer) && strpos($tag, 'defer') === false) {
                 $tag = str_replace(' src', ' defer src', $tag);
+        }
+
+        // Add low fetchpriority to non-critical scripts
+        if (in_array($handle, $low_priority)) {
+                $tag = str_replace('<script', '<script fetchpriority="low"', $tag);
         }
 
         return $tag;
 }
-add_filter('script_loader_tag', 'chroma_defer_scripts', 10, 3);
+add_filter('script_loader_tag', 'chroma_optimize_script_tags', 10, 3);
 
 
