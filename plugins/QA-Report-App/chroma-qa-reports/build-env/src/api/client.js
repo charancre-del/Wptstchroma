@@ -64,6 +64,7 @@ export const apiFetch = async (endpoint, options = {}) => {
         const response = await fetch(url, {
             ...options,
             headers,
+            credentials: 'same-origin',
             body: isFormData ? options.body : JSON.stringify(options.body),
         });
 
