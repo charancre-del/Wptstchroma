@@ -375,7 +375,5 @@ $locations_query = chroma_cached_query(
 	});
 </script>
 
-</script>
-
 <?php
 get_footer();
