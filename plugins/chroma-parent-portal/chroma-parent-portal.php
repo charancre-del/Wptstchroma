@@ -25,7 +25,7 @@ add_action('wp_head', function () {
 // Disable Theme Customizer Scripts and Booking Modals on Portal Page
 add_action('wp', function () {
     global $post;
-    $is_portal = is_page('parent-portal') || ($post && has_shortcode($post->post_content, 'chroma_parent_portal'));
+    $is_portal = !is_front_page() && (is_page('parent-portal') || ($post && has_shortcode($post->post_content, 'chroma_parent_portal')));
 
     if ($is_portal) {
         // 1. Remove Hooked Actions
@@ -68,8 +68,8 @@ register_activation_hook(__FILE__, function () {
 add_action('wp_enqueue_scripts', function () {
     $post = get_post();
     // Broaden check: If it's the specific page OR has shortcode
-    $is_portal_page = is_page('parent-portal');
-    $has_shortcode = $post && has_shortcode($post->post_content, 'chroma_parent_portal');
+    $is_portal_page = !is_front_page() && is_page('parent-portal');
+    $has_shortcode = !is_front_page() && $post && has_shortcode($post->post_content, 'chroma_parent_portal');
 
     if (!$is_portal_page && !$has_shortcode) {
         return;
@@ -108,7 +108,7 @@ add_action('wp_enqueue_scripts', function () {
 
 // Add Body Class for Full App Mode
 add_filter('body_class', function ($classes) {
-    if (is_page('parent-portal')) {
+    if (!is_front_page() && is_page('parent-portal')) {
         $classes[] = 'portal-is-active';
     }
     return $classes;
