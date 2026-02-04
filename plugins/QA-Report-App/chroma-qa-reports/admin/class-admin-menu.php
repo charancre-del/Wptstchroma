@@ -308,8 +308,12 @@ class Admin_Menu
      */
     public function is_react_enabled($route = 'dashboard')
     {
-        $flag_name = 'cqa_flag_react_' . $route;
-        return (bool) get_option($flag_name, false);
+        // Force certain routes to PHP while we finalize the React migration
+        if (in_array($route, ['settings', 'reports', 'dashboard', 'schools', 'wizard'])) {
+            return false;
+        }
+
+        return \ChromaQA\Feature_Flags::is_enabled('react_' . $route);
     }
 
     /**

@@ -19,10 +19,10 @@ class Feature_Flags
      * Flag definitions with defaults and initial audience.
      */
     const FLAGS = [
-        'react_dashboard' => ['default' => true, 'audience' => 'admins'],
-        'react_wizard' => ['default' => true, 'audience' => 'admins'],
-        'react_schools' => ['default' => true, 'audience' => 'admins'],
-        'react_reports' => ['default' => true, 'audience' => 'admins'],
+        'react_dashboard' => ['default' => false, 'audience' => 'admins'],
+        'react_wizard' => ['default' => false, 'audience' => 'admins'],
+        'react_schools' => ['default' => false, 'audience' => 'admins'],
+        'react_reports' => ['default' => false, 'audience' => 'admins'],
         'react_settings' => ['default' => false, 'audience' => 'admins'],
         'sw_enabled' => ['default' => false, 'audience' => 'admins'],
     ];
