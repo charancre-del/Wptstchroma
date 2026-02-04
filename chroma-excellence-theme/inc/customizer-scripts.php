@@ -124,7 +124,9 @@ function chroma_optimize_third_party_scripts($html)
         'gtag(',
         'connect.facebook.net',
         'fbevents.js',
-        'recaptcha'
+        'recaptcha',
+        'searchatlas',
+        'otto-pixel'
     ];
 
     $found = false;
