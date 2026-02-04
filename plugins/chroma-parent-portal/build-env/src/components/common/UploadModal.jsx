@@ -139,7 +139,7 @@ const UploadModal = ({ isOpen, onClose, type, onSuccess }) => {
     };
 
     const getGroupOptions = () => {
-        if (type === 'cp_lesson_plan') return months;
+        if (type === 'cp_lesson_plan' || type === 'cp_home_activity') return months;
         if (type === 'cp_meal_plan') return quarters;
         return categories;
     };

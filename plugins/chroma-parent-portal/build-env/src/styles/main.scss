@@ -523,3 +523,17 @@ body.portal-is-active {
         color: $text-secondary;
     }
 }
+
+.document-row-hover {
+    transition: all 0.2s ease !important;
+
+    &:hover {
+        background-color: rgba(157, 130, 83, 0.05) !important;
+        padding-left: 20px !important;
+        border-radius: 8px;
+    }
+
+    &:active {
+        transform: scale(0.995);
+    }
+}

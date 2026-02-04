@@ -61,6 +61,15 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
                     <LessonPlanSection items={data.lesson_plans} type="lesson" onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
+                {/* Home Activities */}
+                <motion.div variants={itemVariants} className="glass-card section-card">
+                    <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                        <h3>Home Activities</h3>
+                        {data.is_admin && <button onClick={() => handleUploadClick('cp_home_activity')} className="add-btn">+ Add New</button>}
+                    </div>
+                    <LessonPlanSection items={data.home_activities} type="activity" onView={handleView} onDelete={refreshData} />
+                </motion.div>
+
                 {/* Meal Plans */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
@@ -78,12 +87,7 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
                         <h3>Resources</h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_resource')} className="add-btn">+ Add</button>}
                     </div>
-                    <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
-                        {data.resources.slice(0, 4).map(item => (
-                            <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={refreshData} />
-                        ))}
-                        {data.resources.length === 0 && <p style={{ fontStyle: 'italic', color: '#999' }}>No resources.</p>}
-                    </div>
+                    <LessonPlanSection items={data.resources} type="resource" onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
                 {/* Policies Card */}
@@ -92,12 +96,7 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
                         <h3>Policies & Procedures</h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_form')} className="add-btn">+ Add</button>}
                     </div>
-                    <div className="downloads-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '12px' }}>
-                        {data.forms.slice(0, 4).map(item => (
-                            <PDFCard key={item.id} item={item} showThumb={false} onClick={handleView} onDelete={refreshData} />
-                        ))}
-                        {data.forms.length === 0 && <p style={{ fontStyle: 'italic', color: '#999' }}>No policy documents.</p>}
-                    </div>
+                    <LessonPlanSection items={data.forms} type="policy" onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
                 {/* Events Section */}

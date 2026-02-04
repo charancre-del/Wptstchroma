@@ -161,21 +161,20 @@ class Chroma_Portal_Bulk_Importer
                     'category' => $parts[1]
                 ];
             }
-            // Logic 2: /lessons/{year}/{classroom}/{filename}.pdf OR /lessons/{year}/{filename}.pdf
-            elseif ($parts[0] === 'lessons' && count($parts) >= 3) {
-                // If parts[2] exists and isn't a PDF, it's likely a classroom folder
-                $classroom = (count($parts) >= 4) ? $parts[2] : '';
+            // Logic 2: /lessons/{year}/{month}/{classroom}/{filename}.pdf
+            elseif ($parts[0] === 'lessons' && count($parts) >= 4) {
                 $files[] = [
                     'abs_path' => $path->getPathname(),
                     'filename' => $path->getFilename(),
                     'type' => 'cp_lesson_plan',
                     'year' => $parts[1],
-                    'month' => 'February', // Per user request
-                    'classroom' => $classroom,
+                    'month' => $parts[2],
+                    // If count is 5, classroom is parts[3]. If 4, classroom is empty.
+                    'classroom' => (count($parts) >= 5) ? $parts[3] : '',
                     'category' => ''
                 ];
             }
-            // Logic 3: /home-activities/{year}/{month}/{filename}.pdf
+            // Logic 3: /home-activities/{year}/{month}/{classroom}/{filename}.pdf
             elseif ($parts[0] === 'home-activities' && count($parts) >= 4) {
                 $files[] = [
                     'abs_path' => $path->getPathname(),
@@ -183,7 +182,8 @@ class Chroma_Portal_Bulk_Importer
                     'type' => 'cp_home_activity',
                     'year' => $parts[1],
                     'month' => $parts[2],
-                    'classroom' => '',
+                    // If count is 5, classroom is parts[3]. If 4, classroom is empty.
+                    'classroom' => (count($parts) >= 5) ? $parts[3] : '',
                     'category' => ''
                 ];
             }
