@@ -17,7 +17,7 @@ class Chroma_Portal_CPT_Registrar
 		add_action('init', [$this, 'register_taxonomies']);
 
 		// Admin Columns adjustments (Dynamic for all CP types)
-		foreach (['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement'] as $post_type) {
+		foreach (['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_home_activity'] as $post_type) {
 			add_filter("manage_{$post_type}_posts_columns", [$this, 'add_admin_columns']);
 			add_action("manage_{$post_type}_posts_custom_column", [$this, 'render_admin_columns'], 10, 2);
 			add_filter("manage_edit-{$post_type}_sortable_columns", [$this, 'sortable_columns']);
@@ -125,12 +125,26 @@ class Chroma_Portal_CPT_Registrar
 			'supports' => ['title'], // Title = "Smith Family"
 			'menu_icon' => 'dashicons-groups',
 		]);
+
+		// Home Activities
+		register_post_type('cp_home_activity', [
+			'labels' => [
+				'name' => 'Home Activities',
+				'singular_name' => 'Home Activity',
+				'menu_name' => 'Portal: Home Act.',
+			],
+			'public' => false,
+			'show_ui' => true,
+			'show_in_rest' => true,
+			'supports' => ['title'],
+			'menu_icon' => 'dashicons-format-aside',
+		]);
 	}
 
 	public function register_taxonomies()
 	{
 		// Shared School (Tag-like but hierarchical for consistency)
-		register_taxonomy('portal_school', ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event'], [
+		register_taxonomy('portal_school', ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event', 'cp_home_activity'], [
 			'labels' => ['name' => 'Schools', 'singular_name' => 'School'],
 			'public' => false,
 			'show_ui' => true,
@@ -140,7 +154,7 @@ class Chroma_Portal_CPT_Registrar
 		]);
 
 		// Shared Year
-		register_taxonomy('portal_year', ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event'], [
+		register_taxonomy('portal_year', ['cp_lesson_plan', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_announcement', 'cp_event', 'cp_home_activity'], [
 			'labels' => ['name' => 'Years', 'singular_name' => 'Year'],
 			'public' => false,
 			'show_ui' => true,
@@ -150,7 +164,7 @@ class Chroma_Portal_CPT_Registrar
 		]);
 
 		// Month
-		register_taxonomy('portal_month', ['cp_lesson_plan', 'cp_announcement', 'cp_event'], [
+		register_taxonomy('portal_month', ['cp_lesson_plan', 'cp_announcement', 'cp_event', 'cp_home_activity'], [
 			'labels' => ['name' => 'Months', 'singular_name' => 'Month'],
 			'public' => false,
 			'show_ui' => true,
@@ -172,6 +186,16 @@ class Chroma_Portal_CPT_Registrar
 		// Category (for Resources/Forms)
 		register_taxonomy('portal_category', ['cp_resource', 'cp_form'], [
 			'labels' => ['name' => 'Categories', 'singular_name' => 'Category'],
+			'public' => false,
+			'show_ui' => true,
+			'show_in_rest' => true,
+			'hierarchical' => true,
+			'show_admin_column' => true,
+		]);
+
+		// Classroom (for Lessons & Home Activities)
+		register_taxonomy('portal_classroom', ['cp_lesson_plan', 'cp_home_activity'], [
+			'labels' => ['name' => 'Classrooms', 'singular_name' => 'Classroom'],
 			'public' => false,
 			'show_ui' => true,
 			'show_in_rest' => true,

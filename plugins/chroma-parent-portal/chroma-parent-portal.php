@@ -48,6 +48,7 @@ require_once CHROMA_PORTAL_PATH . 'includes/class-api-routes.php';
 // Load Admin-only Components
 if (is_admin()) {
     require_once CHROMA_PORTAL_PATH . 'includes/class-meta-boxes.php';
+    require_once CHROMA_PORTAL_PATH . 'includes/class-bulk-importer.php';
 }
 
 // Activation Hook

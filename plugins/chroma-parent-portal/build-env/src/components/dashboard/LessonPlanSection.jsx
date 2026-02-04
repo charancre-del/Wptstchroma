@@ -2,17 +2,36 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import PDFCard from '../common/PDFCard';
 
-const LessonPlanSection = ({ items, type, onView, onDelete }) => {
+const LessonPlanSection = ({ items, type, onView, onDelete, showClassroomFilter = false }) => {
+    const [selectedClassroom, setSelectedClassroom] = useState('all');
+
+    const classrooms = useMemo(() => {
+        const set = new Set();
+        items.forEach(item => {
+            if (item.classrooms && Array.isArray(item.classrooms)) {
+                item.classrooms.forEach(c => set.add(c));
+            }
+        });
+        return Array.from(set).sort();
+    }, [items]);
+
+    const filteredItems = useMemo(() => {
+        if (selectedClassroom === 'all') return items;
+        return items.filter(item =>
+            item.classrooms && item.classrooms.includes(selectedClassroom)
+        );
+    }, [items, selectedClassroom]);
+
     // Group items by 'group' (which contains Month Name or Quarter)
     const groupedItems = useMemo(() => {
         const groups = {};
-        items.forEach(item => {
+        filteredItems.forEach(item => {
             const groupName = item.group || 'General';
             if (!groups[groupName]) groups[groupName] = [];
             groups[groupName].push(item);
         });
         return groups;
-    }, [items]);
+    }, [filteredItems]);
 
     const groupNames = useMemo(() => Object.keys(groupedItems), [groupedItems]);
 
@@ -29,6 +48,31 @@ const LessonPlanSection = ({ items, type, onView, onDelete }) => {
 
     return (
         <div className="expandable-section">
+            {showClassroomFilter && classrooms.length > 0 && (
+                <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '15px' }}>
+                    <label htmlFor="classroom-select" style={{ fontWeight: '600', color: '#263238' }}>Filter by Classroom:</label>
+                    <select
+                        id="classroom-select"
+                        value={selectedClassroom}
+                        onChange={(e) => setSelectedClassroom(e.target.value)}
+                        style={{
+                            padding: '8px 15px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(0,0,0,0.1)',
+                            background: 'white',
+                            color: '#263238',
+                            fontSize: '0.9rem',
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <option value="all">All Classrooms</option>
+                        {classrooms.map(c => (
+                            <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1).replace('-', ' ')}</option>
+                        ))}
+                    </select>
+                </div>
+            )}
+
             {groupNames.map((name, index) => (
                 <div key={name} style={{ marginBottom: '15px' }}>
                     <button

@@ -165,6 +165,7 @@ class Chroma_Portal_API_Routes
             'is_admin' => $is_admin,
             'announcements' => $this->fetch_posts('cp_announcement', $year),
             'lesson_plans' => $this->fetch_posts('cp_lesson_plan', $year),
+            'home_activities' => $this->fetch_posts('cp_home_activity', $year),
             'meal_plans' => $this->fetch_posts('cp_meal_plan', $year),
             'resources' => $this->fetch_posts('cp_resource', $year),
             'forms' => $this->fetch_posts('cp_form', $year),
@@ -485,6 +486,7 @@ class Chroma_Portal_API_Routes
                     'content' => $p->post_content,
                     'pdf_url' => $file_url,
                     'pdf_id' => $file_id,
+                    'classrooms' => wp_get_object_terms($p->ID, 'portal_classroom', ['fields' => 'slugs']),
                     'group' => $term_name,
                     'school' => $school_name,
                     'priority' => get_post_meta($p->ID, '_cp_priority', true),
@@ -519,8 +521,6 @@ class Chroma_Portal_API_Routes
         if (!Chroma_Portal_Auth::validate_token($token)) {
             return new WP_Error('rest_forbidden', 'Invalid Token', ['status' => 403]);
         }
-
-        return true;
 
         return true;
     }

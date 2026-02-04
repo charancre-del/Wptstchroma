@@ -67,6 +67,7 @@ const Dashboard = () => {
                 is_admin: json.is_admin || false,
                 announcements: json.announcements || [],
                 lesson_plans: json.lesson_plans || [],
+                home_activities: json.home_activities || [],
                 meal_plans: json.meal_plans || [],
                 resources: json.resources || [],
                 forms: json.forms || [],
@@ -82,6 +83,7 @@ const Dashboard = () => {
                 is_admin: false,
                 announcements: [],
                 lesson_plans: [],
+                home_activities: [],
                 meal_plans: [],
                 resources: [],
                 forms: [],
@@ -170,7 +172,28 @@ const Dashboard = () => {
                         <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                             <h2>Lesson Plans Library</h2>
                         </div>
-                        <LessonPlanSection items={data.lesson_plans} type="lesson" onView={handleView} onDelete={fetchData} />
+                        <LessonPlanSection
+                            items={data.lesson_plans}
+                            type="lesson"
+                            onView={handleView}
+                            onDelete={fetchData}
+                            showClassroomFilter={true}
+                        />
+                    </div>
+                );
+            case 'home_activities':
+                return (
+                    <div className="view-container">
+                        <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                            <h2>Home Activities</h2>
+                        </div>
+                        <LessonPlanSection
+                            items={data.home_activities}
+                            type="activity"
+                            onView={handleView}
+                            onDelete={fetchData}
+                            showClassroomFilter={true}
+                        />
                     </div>
                 );
             case 'meals':

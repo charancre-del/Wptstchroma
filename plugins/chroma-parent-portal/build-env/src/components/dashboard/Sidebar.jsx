@@ -7,6 +7,7 @@ const Sidebar = ({ activeTab, setActiveTab, isAdmin, isCollapsed, onToggle }) =>
     const menuItems = [
         { id: 'overview', label: 'Dashboard', icon: '🏠' },
         { id: 'lessons', label: 'Lesson Plans', icon: '📚' },
+        { id: 'home_activities', label: 'Home Activities', icon: '🎨' },
         { id: 'meals', label: 'Meal Plans', icon: '🍱' },
         { id: 'events', label: 'School Events', icon: '🗓️' },
         { id: 'news', label: 'News & Updates', icon: '📣' },
