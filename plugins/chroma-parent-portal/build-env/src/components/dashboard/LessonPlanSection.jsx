@@ -1,3 +1,6 @@
+import React, { useState, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
 const LessonPlanSection = ({ items, type, onView, onDelete, showClassroomFilter = false }) => {
     // Nested grouping: Month -> Classroom -> [Items]
     const groupedItems = useMemo(() => {
