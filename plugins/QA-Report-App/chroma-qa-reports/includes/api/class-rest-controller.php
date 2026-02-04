@@ -1236,7 +1236,7 @@ class REST_Controller
         }
 
         // Check permissions
-        if (!\current_user_can('cqa_edit_reports')) {
+        if (!\is_user_logged_in()) {
             return new WP_Error('forbidden', __('Permission denied.', 'chroma-qa-reports'), ['status' => 403]);
         }
 
