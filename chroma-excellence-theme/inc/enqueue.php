@@ -42,9 +42,16 @@ function chroma_enqueue_assets()
                 'all'
         );
 
-        // Chart.js is now lazy loaded in main.js
+        // Chart.js - Enqueued normally but deferred to ensure reliability
         if (is_front_page()) {
-                // Chart.js removed from initial load - saved ~200KB
+                wp_enqueue_script(
+                        'chroma-chart-js',
+                        CHROMA_THEME_URI . '/assets/js/chart.min.js',
+                        array(),
+                        '4.4.0',
+                        true
+                );
+                $script_dependencies[] = 'chroma-chart-js';
         }
 
         // Compiled Tailwind CSS.

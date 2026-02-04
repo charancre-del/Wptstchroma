@@ -205,15 +205,16 @@
     if (window.Chart) {
       createChart();
     } else {
-      const script = document.createElement('script');
-      script.src = `${window.chromaData.themeUrl}/assets/js/chart.min.js`;
-      script.async = true;
-      script.onload = createChart;
-      script.onerror = () => {
-        console.error('Failed to load Chart.js');
-        if (container) container.innerHTML = '<div class="text-center p-4 text-chroma-red">Chart failed to load.</div>';
-      };
-      document.body.appendChild(script);
+      // Fallback: Poll for Chart if deferred script hasn't executed yet
+      const checkChart = setInterval(() => {
+        if (window.Chart) {
+          clearInterval(checkChart);
+          createChart();
+        }
+      }, 100);
+
+      // Safety timeout to stop polling
+      setTimeout(() => clearInterval(checkChart), 5000);
     }
 
     curriculumButtons.forEach(btn => {
