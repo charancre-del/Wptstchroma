@@ -205,13 +205,11 @@
     if (window.Chart) {
       createChart();
     } else {
-      runIdle(() => {
-        const script = document.createElement('script');
-        script.src = `${window.chromaData.themeUrl}/assets/js/chart.min.js`;
-        script.async = true;
-        script.onload = createChart;
-        document.body.appendChild(script);
-      });
+      const script = document.createElement('script');
+      script.src = `${window.chromaData.themeUrl}/assets/js/chart.min.js`;
+      script.async = true;
+      script.onload = createChart;
+      document.body.appendChild(script);
     }
 
     curriculumButtons.forEach(btn => {
