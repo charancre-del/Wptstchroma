@@ -222,11 +222,18 @@ function chroma_resource_hints($urls, $relation_type)
                         $urls[] = 'https://unpkg.com';
                 }
 
-                // Preconnect to external origins identified in audit
-                $urls[] = 'https://widgets.leadconnectorhq.com';
-                $urls[] = 'https://services.leadconnectorhq.com';
-                $urls[] = 'https://images.leadconnectorhq.com';
-                $urls[] = 'https://stcdn.leadconnectorhq.com';
+                // LeadConnector origins — only on pages that actually embed a GHL form
+                global $post;
+                if ($post && (
+                    has_shortcode($post->post_content, 'chroma_tour_form') ||
+                    has_shortcode($post->post_content, 'chroma_contact_form') ||
+                    has_shortcode($post->post_content, 'chroma_career_form')
+                )) {
+                    $urls[] = 'https://widgets.leadconnectorhq.com';
+                    $urls[] = 'https://services.leadconnectorhq.com';
+                    $urls[] = 'https://images.leadconnectorhq.com';
+                    $urls[] = 'https://stcdn.leadconnectorhq.com';
+                }
         }
 
         if ('dns-prefetch' === $relation_type) {
@@ -238,10 +245,17 @@ function chroma_resource_hints($urls, $relation_type)
                 if (chroma_should_load_maps()) {
                         $urls[] = '//unpkg.com';
                 }
-                $urls[] = '//widgets.leadconnectorhq.com';
-                $urls[] = '//services.leadconnectorhq.com';
-                $urls[] = '//images.leadconnectorhq.com';
-                $urls[] = '//stcdn.leadconnectorhq.com';
+                global $post;
+                if ($post && (
+                    has_shortcode($post->post_content, 'chroma_tour_form') ||
+                    has_shortcode($post->post_content, 'chroma_contact_form') ||
+                    has_shortcode($post->post_content, 'chroma_career_form')
+                )) {
+                    $urls[] = '//widgets.leadconnectorhq.com';
+                    $urls[] = '//services.leadconnectorhq.com';
+                    $urls[] = '//images.leadconnectorhq.com';
+                    $urls[] = '//stcdn.leadconnectorhq.com';
+                }
         }
 
         return array_unique($urls, SORT_REGULAR);

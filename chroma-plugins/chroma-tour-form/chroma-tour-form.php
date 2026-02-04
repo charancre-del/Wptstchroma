@@ -155,8 +155,19 @@ function chroma_tour_form_shortcode()
                     document.body.appendChild(script);
                 }
 
-                // 1. Load after configured delay
-                var timer = delay > 0 ? setTimeout(loadGHLScript, delay) : null;
+                // 1. After configured delay, hand off to an idle slot so the
+                //    heavy reCAPTCHA + stcdn parse doesn't hit a busy frame
+                var timer = null;
+                if (delay > 0) {
+                    timer = setTimeout(function () {
+                        if (loaded) return;
+                        if (window.requestIdleCallback) {
+                            requestIdleCallback(loadGHLScript, { timeout: 3000 });
+                        } else {
+                            loadGHLScript();
+                        }
+                    }, delay);
+                }
 
                 // 2. Load when form is scrolled into view (IntersectionObserver)
                 if ('IntersectionObserver' in window) {

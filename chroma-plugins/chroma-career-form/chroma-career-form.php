@@ -432,8 +432,19 @@ function chroma_career_form_shortcode()
                     document.body.appendChild(script);
                 }
 
-                // Load after configured delay OR when form is scrolled into view
-                var timer = delay > 0 ? setTimeout(loadGHLScript, delay) : null;
+                // After configured delay, hand off to an idle slot so the
+                // heavy reCAPTCHA + stcdn parse doesn't hit a busy frame
+                var timer = null;
+                if (delay > 0) {
+                    timer = setTimeout(function () {
+                        if (loaded) return;
+                        if (window.requestIdleCallback) {
+                            requestIdleCallback(loadGHLScript, { timeout: 3000 });
+                        } else {
+                            loadGHLScript();
+                        }
+                    }, delay);
+                }
 
                 // IntersectionObserver to load when visible
                 if ('IntersectionObserver' in window && container) {

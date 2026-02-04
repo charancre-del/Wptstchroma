@@ -205,11 +205,13 @@
     if (window.Chart) {
       createChart();
     } else {
-      const script = document.createElement('script');
-      script.src = `${window.chromaData.themeUrl}/assets/js/chart.min.js`;
-      script.async = true;
-      script.onload = createChart;
-      document.body.appendChild(script);
+      runIdle(() => {
+        const script = document.createElement('script');
+        script.src = `${window.chromaData.themeUrl}/assets/js/chart.min.js`;
+        script.async = true;
+        script.onload = createChart;
+        document.body.appendChild(script);
+      });
     }
 
     curriculumButtons.forEach(btn => {
@@ -394,15 +396,15 @@
     runIdle(() => {
       initStickyCta();
 
-      // Smooth Scroll
-      document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-          const target = document.querySelector(this.getAttribute('href'));
-          if (target) {
-            e.preventDefault();
-            target.scrollIntoView({ behavior: 'smooth' });
-          }
-        });
+      // Smooth Scroll (delegated — single listener, zero per-anchor closures)
+      document.addEventListener('click', function (e) {
+        const anchor = e.target.closest('a[href^="#"]');
+        if (!anchor) return;
+        const target = document.querySelector(anchor.getAttribute('href'));
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
       });
 
       // Reveal Color Animation (already observer based in logic)
