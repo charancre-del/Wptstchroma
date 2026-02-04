@@ -193,3 +193,42 @@ function chroma_optimize_third_party_scripts($html)
     })();
     </script>";
 }
+
+/**
+ * Global Script Interceptor
+ * Intercepts enqueued scripts from plugins/theme and applies the lazy-load engine.
+ */
+function chroma_optimize_script_tag($tag, $handle, $src)
+{
+    if (is_admin()) {
+        return $tag;
+    }
+
+    $targets = [
+        'widgets.leadconnectorhq.com',
+        'clarity.ms',
+        'googletagmanager.com',
+        'gtag(',
+        'connect.facebook.net',
+        'fbevents.js',
+        'recaptcha',
+        'searchatlas',
+        'otto-pixel'
+    ];
+
+    $is_target = false;
+    foreach ($targets as $target) {
+        if (strpos($tag, $target) !== false || (is_string($src) && strpos($src, $target) !== false)) {
+            $is_target = true;
+            break;
+        }
+    }
+
+    if (!$is_target) {
+        return $tag;
+    }
+
+    // Transform the script tag into an interaction-triggered injection
+    return chroma_optimize_third_party_scripts($tag);
+}
+add_filter('script_loader_tag', 'chroma_optimize_script_tag', 99, 3);

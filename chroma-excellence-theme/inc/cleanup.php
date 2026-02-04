@@ -91,7 +91,7 @@ function chroma_disable_emojis()
         add_filter('tiny_mce_plugins', 'chroma_disable_emojis_tinymce');
         add_filter('wp_resource_hints', 'chroma_disable_emojis_dns_prefetch', 10, 2);
 }
-// add_action('init', 'chroma_disable_emojis');
+add_action('init', 'chroma_disable_emojis');
 
 /**
  * Filter out the emoji plugin from TinyMCE.
