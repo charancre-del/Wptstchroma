@@ -389,7 +389,16 @@
 
     // Identify and Observe components
     document.querySelectorAll('[data-program-wizard]').forEach(el => { el.dataset.lazyComponent = 'wizard'; lazyObserver.observe(el); });
-    document.querySelectorAll('[data-curriculum-chart]').forEach(el => { el.dataset.lazyComponent = 'chart'; lazyObserver.observe(el); });
+
+    // Fix: Observe the parent container for the chart so initCurriculumChart can find siblings
+    document.querySelectorAll('[data-curriculum-chart]').forEach(el => {
+      const container = el.closest('section') || el.closest('.grid') || el.parentElement;
+      if (container) {
+        container.dataset.lazyComponent = 'chart';
+        lazyObserver.observe(container);
+      }
+    });
+
     document.querySelectorAll('[data-schedule]').forEach(el => { el.dataset.lazyComponent = 'schedule'; lazyObserver.observe(el); });
     document.querySelectorAll('[data-reviews-carousel]').forEach(el => { el.dataset.lazyComponent = 'reviews'; lazyObserver.observe(el); });
     document.querySelectorAll('[data-location-carousel]').forEach(el => { el.dataset.lazyComponent = 'location-carousel'; lazyObserver.observe(el); });
