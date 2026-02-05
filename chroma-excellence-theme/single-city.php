@@ -89,7 +89,8 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                 <?php printf(__('Chroma Locations Serving %s', 'chroma-excellence'), esc_html($city)); ?>
             </h2>
             <p class="text-brand-ink/60 mt-3">
-                <?php _e('Select the campus closest to your home or work.', 'chroma-excellence'); ?></p>
+                <?php _e('Select the campus closest to your home or work.', 'chroma-excellence'); ?>
+            </p>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -97,12 +98,12 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
             if (!empty($location_ids) && is_array($location_ids)):
                 $locations_query = new WP_Query([
                     'post_type' => 'location',
-                    'post__in' => $location_ids,
+                    'post__in' => array_slice((array) $location_ids, 0, 50),
                     'orderby' => 'post__in',
-                    'posts_per_page' => -1,
+                    'posts_per_page' => 50,
                     'no_found_rows' => true,
                     'update_post_meta_cache' => true,
-                    'update_post_term_cache' => false, // No terms used in the loop
+                    'update_post_term_cache' => false,
                 ]);
 
                 if ($locations_query->have_posts()):
@@ -208,7 +209,8 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                 <?php printf(__('Programs Available in %s', 'chroma-excellence'), esc_html($city)); ?>
             </h2>
             <p class="text-brand-ink/60 mt-3">
-                <?php _e('World-class curriculum served locally.', 'chroma-excellence'); ?></p>
+                <?php _e('World-class curriculum served locally.', 'chroma-excellence'); ?>
+            </p>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">

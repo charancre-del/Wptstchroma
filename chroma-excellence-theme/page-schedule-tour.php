@@ -10,97 +10,101 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Fetch all locations
-$locations_query = new WP_Query(array(
-    'post_type' => 'location',
-    'posts_per_page' => -1,
-    'post_status' => 'publish',
-    'orderby' => 'title',
-    'order' => 'ASC',
-));
+// 1. Check Cache first
+$regions_token = chroma_get_last_changed('locations');
+$cache_key = 'tour_regions_index:' . $regions_token;
+$regions = wp_cache_get($cache_key, 'chroma');
 
-// Buckets for regions
-$regions = array(
-    'gwinnett' => array(
-        'title' => 'Gwinnett County',
-        'icon' => '<i class="fa-solid fa-tree"></i>',
-        'color' => 'chroma-green',
-        'bg' => 'bg-brand-cream',
-        'text' => 'text-white', // Button text
-        'posts' => array(),
-    ),
-    'cobb' => array(
-        'title' => 'Cobb County',
-        'icon' => '<i class="fa-solid fa-city"></i>',
-        'color' => 'chroma-red',
-        'bg' => 'bg-white',
-        'text' => 'text-white',
-        'posts' => array(),
-    ),
-    'north-metro' => array(
-        'title' => 'North Metro',
-        'icon' => '<i class="fa-solid fa-mountain"></i>',
-        'color' => 'chroma-blue',
-        'bg' => 'bg-brand-cream',
-        'text' => 'text-white',
-        'posts' => array(),
-    ),
-    'south-metro' => array(
-        'title' => 'South Metro',
-        'icon' => '<i class="fa-solid fa-sun"></i>',
-        'color' => 'chroma-yellow',
-        'bg' => 'bg-white',
-        'text' => 'text-brand-ink', // Special case as per design
-        'posts' => array(),
-    ),
-);
+if (false === $regions) {
+    // 2. Fetch with Cap & Optimization
+    $locations_query = new WP_Query(array(
+        'post_type' => 'location',
+        'posts_per_page' => 50, // Strict cap as per audit
+        'post_status' => 'publish',
+        'orderby' => 'title',
+        'order' => 'ASC',
+        'no_found_rows' => true,
+        'update_post_meta_cache' => true,
+        'update_post_term_cache' => true,
+    ));
 
-// Fallback bucket
-$other_regions = array();
+    // Buckets for regions
+    $regions = array(
+        'gwinnett' => array(
+            'title' => 'Gwinnett County',
+            'icon' => '<i class="fa-solid fa-tree"></i>',
+            'color' => 'chroma-green',
+            'bg' => 'bg-brand-cream',
+            'text' => 'text-white', // Button text
+            'posts' => array(),
+        ),
+        'cobb' => array(
+            'title' => 'Cobb County',
+            'icon' => '<i class="fa-solid fa-city"></i>',
+            'color' => 'chroma-red',
+            'bg' => 'bg-white',
+            'text' => 'text-white',
+            'posts' => array(),
+        ),
+        'north-metro' => array(
+            'title' => 'North Metro',
+            'icon' => '<i class="fa-solid fa-mountain"></i>',
+            'color' => 'chroma-blue',
+            'bg' => 'bg-brand-cream',
+            'text' => 'text-white',
+            'posts' => array(),
+        ),
+        'south-metro' => array(
+            'title' => 'South Metro',
+            'icon' => '<i class="fa-solid fa-sun"></i>',
+            'color' => 'chroma-yellow',
+            'bg' => 'bg-white',
+            'text' => 'text-brand-ink', // Special case as per design
+            'posts' => array(),
+        ),
+    );
 
-if ($locations_query->have_posts()) {
-    while ($locations_query->have_posts()) {
-        $locations_query->the_post();
-        $id = get_the_ID();
-        $terms = get_the_terms($id, 'location_region');
-        $first_term = ($terms && !is_wp_error($terms)) ? $terms[0] : null;
+    if ($locations_query->have_posts()) {
+        while ($locations_query->have_posts()) {
+            $locations_query->the_post();
+            $id = get_the_ID();
+            $terms = get_the_terms($id, 'location_region');
+            $first_term = ($terms && !is_wp_error($terms)) ? $terms[0] : null;
 
-        $post_data = array(
-            'title' => get_the_title(),
-            'permalink' => get_permalink(),
-            'thumb' => get_the_post_thumbnail_url($id, 'large') ?: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?q=80&w=600&auto=format&fit=crop', // Fallback
-            'address' => get_post_meta($id, 'location_address', true),
-            'city' => get_post_meta($id, 'location_city', true),
-            'booking' => get_post_meta($id, 'location_tour_booking_link', true),
-        );
+            $post_data = array(
+                'title' => get_the_title(),
+                'permalink' => get_permalink(),
+                'thumb' => get_the_post_thumbnail_url($id, 'large') ?: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?q=80&w=600&auto=format&fit=crop', // Fallback
+                'address' => get_post_meta($id, 'location_address', true),
+                'city' => get_post_meta($id, 'location_city', true),
+                'booking' => get_post_meta($id, 'location_tour_booking_link', true),
+            );
 
-        // Determine bucket
-        $bucket_found = false;
-        if ($first_term) {
-            $slug = $first_term->slug;
-            // Simple matching logic
-            if (strpos($slug, 'gwinnett') !== false) {
-                $regions['gwinnett']['posts'][] = $post_data;
-                $bucket_found = true;
-            } elseif (strpos($slug, 'cobb') !== false) {
-                $regions['cobb']['posts'][] = $post_data;
-                $bucket_found = true;
-            } elseif (strpos($slug, 'north') !== false) {
-                $regions['north-metro']['posts'][] = $post_data;
-                $bucket_found = true;
-            } elseif (strpos($slug, 'south') !== false) {
-                $regions['south-metro']['posts'][] = $post_data;
-                $bucket_found = true;
+            // Determine bucket
+            $bucket_found = false;
+            if ($first_term) {
+                $slug = $first_term->slug;
+                // Simple matching logic
+                if (strpos($slug, 'gwinnett') !== false) {
+                    $regions['gwinnett']['posts'][] = $post_data;
+                    $bucket_found = true;
+                } elseif (strpos($slug, 'cobb') !== false) {
+                    $regions['cobb']['posts'][] = $post_data;
+                    $bucket_found = true;
+                } elseif (strpos($slug, 'north') !== false) {
+                    $regions['north-metro']['posts'][] = $post_data;
+                    $bucket_found = true;
+                } elseif (strpos($slug, 'south') !== false) {
+                    $regions['south-metro']['posts'][] = $post_data;
+                    $bucket_found = true;
+                }
             }
         }
-
-        if (!$bucket_found) {
-            // Add to Gwinnett as fallback if logical (or create 'other')?
-            // The user HTML implies strictly these 4. Let's put in 'other' just in case.
-            $other_regions[] = $post_data;
-        }
+        wp_reset_postdata();
     }
-    wp_reset_postdata();
+
+    // Cache the processed regions
+    wp_cache_set($cache_key, $regions, 'chroma', HOUR_IN_SECONDS);
 }
 get_header();
 ?>

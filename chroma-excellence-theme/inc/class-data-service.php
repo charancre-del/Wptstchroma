@@ -14,23 +14,11 @@ if (!defined('ABSPATH'))
 class Chroma_Data_Service
 {
 
-    /**
-     * Singleton instance
-     */
     private static $instance = null;
+    private $cached_locations = null;
+    private $cached_programs = null;
+    private $cached_regions = null;
 
-    /**
-     * Data storage
-     */
-    private $locations = [];
-    private $programs = [];
-    private $regions = [];
-    private $meta_cache = [];
-    private $term_meta_cache = [];
-
-    /**
-     * Get singleton instance
-     */
     public static function get_instance()
     {
         if (null === self::$instance) {
@@ -39,148 +27,169 @@ class Chroma_Data_Service
         return self::$instance;
     }
 
-    /**
-     * Constructor - protected to enforce singleton
-     */
     protected function __construct()
     {
-        // We'll hook into 'init' or 'wp' depending on when we need the data
-        add_action('wp', [$this, 'pre_warm'], 5);
+        // NO GLOBAL HOOKS - Service is now lazy-loaded on demand
     }
 
     /**
-     * Pre-warm the data cache with a single optimized query
+     * Get all Locations (Lazy Loaded & Cached)
      */
-    public function pre_warm()
+    public function get_locations()
     {
-        // Skip for admin/ajax to keep it light where not needed
-        if (is_admin() || wp_doing_ajax() || wp_doing_cron()) {
-            return;
+        if ($this->cached_locations !== null) {
+            return $this->cached_locations;
         }
 
-        global $wpdb;
+        $token = chroma_get_last_changed('locations');
+        $cache_key = 'locations_index:' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
 
-        // 1. Fetch Locations & Programs IDs
-        $location_ids = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'location' AND post_status = 'publish'");
-        $program_ids = $wpdb->get_col("SELECT ID FROM {$wpdb->posts} WHERE post_type = 'program' AND post_status = 'publish'");
-        $all_ids = array_merge($location_ids, $program_ids);
-
-        if (empty($all_ids))
-            return;
-
-        // 2. Optimized Meta Fetching: ALL meta for all IDs
-        $meta_rows = $wpdb->get_results("
-            SELECT post_id, meta_key, meta_value 
-            FROM {$wpdb->postmeta} 
-            WHERE post_id IN (" . implode(',', array_map('intval', $all_ids)) . ")
-        ");
-
-        // Organise meta into our cache
-        foreach ($meta_rows as $row) {
-            $this->meta_cache[$row->post_id][$row->meta_key] = maybe_unserialize($row->meta_value);
+        if (false !== $cached) {
+            $this->cached_locations = $cached;
+            return $cached;
         }
 
-        // 3. Store the objects statically for order preservation
-        $this->locations = get_posts(['post_type' => 'location', 'posts_per_page' => -1, 'post_status' => 'publish', 'orderby' => 'title', 'order' => 'ASC']);
-        $this->programs = get_posts(['post_type' => 'program', 'posts_per_page' => -1, 'post_status' => 'publish', 'orderby' => 'menu_order', 'order' => 'ASC']);
+        // Stampede protection
+        if (!chroma_acquire_lock($cache_key)) {
+            // If locked, fallback to stale transient if exists, or just do the query if critical
+            $stale = get_transient('chroma_stale_locations');
+            return $stale ?: $this->fetch_and_cache_locations($cache_key);
+        }
 
-        // 3. Fetch Regions (Taxonomy)
+        $data = $this->fetch_and_cache_locations($cache_key);
+        chroma_release_lock($cache_key);
+
+        return $data;
+    }
+
+    private function fetch_and_cache_locations($cache_key)
+    {
+        $locations = get_posts([
+            'post_type' => 'location',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'orderby' => 'title',
+            'order' => 'ASC',
+            'no_found_rows' => true,
+            'update_post_meta_cache' => true,
+        ]);
+
+        wp_cache_set($cache_key, $locations, 'chroma', HOUR_IN_SECONDS);
+        set_transient('chroma_stale_locations', $locations, DAY_IN_SECONDS);
+
+        $this->cached_locations = $locations;
+        return $locations;
+    }
+
+    /**
+     * Get all Programs (Lazy Loaded & Cached)
+     */
+    public function get_programs()
+    {
+        if ($this->cached_programs !== null) {
+            return $this->cached_programs;
+        }
+
+        $token = chroma_get_last_changed('programs');
+        $cache_key = 'programs_index:' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
+
+        if (false !== $cached) {
+            $this->cached_programs = $cached;
+            return $cached;
+        }
+
+        if (!chroma_acquire_lock($cache_key)) {
+            $stale = get_transient('chroma_stale_programs');
+            return $stale ?: $this->fetch_and_cache_programs($cache_key);
+        }
+
+        $data = $this->fetch_and_cache_programs($cache_key);
+        chroma_release_lock($cache_key);
+
+        return $data;
+    }
+
+    private function fetch_and_cache_programs($cache_key)
+    {
+        $programs = get_posts([
+            'post_type' => 'program',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'orderby' => 'menu_order',
+            'order' => 'ASC',
+            'no_found_rows' => true,
+            'update_post_meta_cache' => true,
+        ]);
+
+        wp_cache_set($cache_key, $programs, 'chroma', HOUR_IN_SECONDS);
+        set_transient('chroma_stale_programs', $programs, DAY_IN_SECONDS);
+
+        $this->cached_programs = $programs;
+        return $programs;
+    }
+
+    /**
+     * Get specific meta from a post, using cache-primed data if available
+     */
+    public function get_meta($post_id, $key = '', $default = '')
+    {
+        // Core get_post_meta is already reasonably optimized if update_post_meta_cache was used
+        // But for consistency with the audit's "No pre-warm" goal, we rely on core caching
+        return get_post_meta($post_id, $key, true) ?: $default;
+    }
+
+    /**
+     * Get all regions (Lazy Loaded & Cached)
+     */
+    public function get_regions()
+    {
+        if ($this->cached_regions !== null) {
+            return $this->cached_regions;
+        }
+
+        $cache_key = 'regions_index:' . chroma_get_last_changed('regions');
+        $cached = wp_cache_get($cache_key, 'chroma');
+
+        if (false !== $cached) {
+            $this->cached_regions = $cached;
+            return $cached;
+        }
+
         $regions = get_terms([
             'taxonomy' => 'location_region',
             'hide_empty' => true,
         ]);
 
-        if (!empty($regions) && !is_wp_error($regions)) {
-            $this->regions = $regions;
-            $term_ids = wp_list_pluck($regions, 'term_id');
+        wp_cache_set($cache_key, $regions, 'chroma', HOUR_IN_SECONDS);
+        $this->cached_regions = $regions;
 
-            // 4. Fetch Term Meta in one hit
-            $term_meta_rows = $wpdb->get_results("
-                SELECT term_id, meta_key, meta_value 
-                FROM {$wpdb->termmeta} 
-                WHERE term_id IN (" . implode(',', array_map('intval', $term_ids)) . ")
-            ");
-
-            foreach ($term_meta_rows as $row) {
-                $this->term_meta_cache[$row->term_id][$row->meta_key] = maybe_unserialize($row->meta_value);
-            }
-        }
-
-        error_log('Chroma Data Service: Pre-warmed ' . count($this->locations) . ' locations and ' . count($this->regions) . ' regions.');
-    }
-
-    /**
-     * Get all regions
-     */
-    public function get_regions()
-    {
-        return $this->regions;
-    }
-
-    /**
-     * Get term meta from memory
-     */
-    public function get_term_meta($term_id, $key = '', $default = '')
-    {
-        if (!isset($this->term_meta_cache[$term_id])) {
-            return get_term_meta($term_id, $key, true) ?: $default;
-        }
-
-        if (empty($key)) {
-            return $this->term_meta_cache[$term_id];
-        }
-
-        return isset($this->term_meta_cache[$term_id][$key]) ? $this->term_meta_cache[$term_id][$key] : $default;
-    }
-
-    /**
-     * Get all programs
-     */
-    public function get_programs()
-    {
-        return $this->programs;
-    }
-
-    /**
-     * Get all locations from memory
-     */
-    public function get_locations()
-    {
-        return $this->locations;
-    }
-
-    /**
-     * Get specific location meta from memory
-     */
-    public function get_meta($post_id, $key = '', $default = '')
-    {
-        if (!isset($this->meta_cache[$post_id])) {
-            // Fallback to native if not cached (safety)
-            return get_post_meta($post_id, $key, true) ?: $default;
-        }
-
-        if (empty($key)) {
-            return $this->meta_cache[$post_id];
-        }
-
-        return isset($this->meta_cache[$post_id][$key]) ? $this->meta_cache[$post_id][$key] : $default;
-    }
-
-    /**
-     * Helper to get translated meta (Proxy for existing logic)
-     */
-    public function get_translated_meta($post_id, $key, $default = '')
-    {
-        $val = $this->get_meta($post_id, $key, $default);
-
-        // If we have translation helpers loaded, we can apply them here
-        if (function_exists('chroma_translate_value')) {
-            return chroma_translate_value($val, $key);
-        }
-
-        return $val;
+        return $regions;
     }
 }
+
+/**
+ * CACHE INVALIDATION HOOKS
+ */
+add_action('save_post_location', function () {
+    chroma_invalidate_cache_group('locations');
+});
+add_action('save_post_program', function () {
+    chroma_invalidate_cache_group('programs');
+});
+add_action('edited_location_region', function () {
+    chroma_invalidate_cache_group('regions');
+});
+add_action('created_location_region', function () {
+    chroma_invalidate_cache_group('regions');
+});
+add_action('delete_location_region', function () {
+    chroma_invalidate_cache_group('regions');
+});
+add_action('save_post_chroma_school', function () {
+    chroma_invalidate_cache_group('schools');
+});
 
 // Initialise the service
 Chroma_Data_Service::get_instance();

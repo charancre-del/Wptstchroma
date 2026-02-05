@@ -41,6 +41,21 @@ add_action('wp', function () {
     }
 }, 1);
 
+/**
+ * Cache Invalidation for Parent Portal (P0-4)
+ */
+add_action('save_post', function ($post_id) {
+    if (wp_is_post_revision($post_id)) {
+        return;
+    }
+    $types = ['cp_announcement', 'cp_lesson_plan', 'cp_home_activity', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_event'];
+    if (in_array(get_post_type($post_id), $types)) {
+        if (function_exists('chroma_invalidate_cache_group')) {
+            chroma_invalidate_cache_group('portal_dashboard');
+        }
+    }
+});
+
 // Load Backend Components (Always for CPT registration and API)
 require_once CHROMA_PORTAL_PATH . 'includes/class-cpt-registrar.php';
 require_once CHROMA_PORTAL_PATH . 'includes/class-api-routes.php';

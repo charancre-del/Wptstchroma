@@ -137,7 +137,7 @@ function chroma_home_stats()
 {
         $post_id = chroma_get_home_page_id();
         $stats_json = chroma_get_translated_meta($post_id, 'home_stats_json', true);
-        
+
         $stats = array();
         if ($stats_json) {
                 $decoded = json_decode($stats_json, true);
@@ -145,7 +145,7 @@ function chroma_home_stats()
                         $stats = $decoded;
                 }
         }
-        
+
         if (empty($stats)) {
                 $stats = chroma_home_get_theme_mod_json('chroma_home_stats_json', chroma_home_default_stats());
         }
@@ -200,7 +200,7 @@ function chroma_home_prismpath_panels()
                         $cards = $decoded;
                 }
         }
-        
+
         if (empty($cards)) {
                 $cards = chroma_home_get_theme_mod_json('chroma_home_prismpath_cards_json', $defaults['cards']);
         }
@@ -482,62 +482,57 @@ function chroma_home_default_schedule_tracks()
  */
 function chroma_home_program_wizard_options()
 {
-        // Query all published programs
+        $token = chroma_get_last_changed('programs');
+        $cache_key = 'home_wizard_options:' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
+
+        if (false !== $cached) {
+                return $cached;
+        }
+
         $programs = new WP_Query(array(
                 'post_type' => 'program',
-                'posts_per_page' => -1,
+                'posts_per_page' => 50, // Strict cap
                 'orderby' => 'menu_order',
                 'order' => 'ASC',
                 'post_status' => 'publish',
+                'no_found_rows' => true,
+                'update_post_meta_cache' => true,
         ));
 
         if (!$programs->have_posts()) {
-                // Fallback to theme mod options if no programs exist
                 $options = chroma_home_get_theme_mod_json('chroma_home_program_wizard_json', chroma_home_default_program_wizard_options());
                 $program_url = chroma_get_program_archive_url();
 
-                return array_map(
-                        function ($item) use ($program_url) {
-                                $key = sanitize_title($item['key'] ?? '');
-                                $anchor_slug = chroma_program_anchor_for_key($key);
-                                $link_target = $anchor_slug ?: $key;
+                $processed = array_map(function ($item) use ($program_url) {
+                        $key = sanitize_title($item['key'] ?? '');
+                        $anchor_slug = chroma_program_anchor_for_key($key);
+                        $link_target = $anchor_slug ?: $key;
+                        return array(
+                                'key' => $key,
+                                'emoji' => sanitize_text_field($item['emoji'] ?? ''),
+                                'label' => sanitize_text_field($item['label'] ?? ''),
+                                'description' => sanitize_textarea_field($item['description'] ?? ''),
+                                'link' => chroma_get_localized_url(esc_url_raw($program_url . '#' . $link_target)),
+                        );
+                }, $options);
 
-                                return array(
-                                        'key' => $key,
-                                        'emoji' => sanitize_text_field($item['emoji'] ?? ''),
-                                        'label' => sanitize_text_field($item['label'] ?? ''),
-                                        'description' => sanitize_textarea_field($item['description'] ?? ''),
-                                        'link' => chroma_get_localized_url(esc_url_raw($program_url . '#' . $link_target)),
-                                );
-                        },
-                        $options
-                );
+                wp_cache_set($cache_key, $processed, 'chroma', DAY_IN_SECONDS);
+                return $processed;
         }
 
-        // Build options from program posts
         $options = array();
         while ($programs->have_posts()) {
                 $programs->the_post();
                 $post_id = get_the_ID();
-
-                // Get program meta
                 $icon = chroma_get_translated_meta($post_id, 'program_icon', true) ?: '📚';
                 $age_range = chroma_get_translated_meta($post_id, 'program_age_range', true) ?: '';
                 $excerpt = get_the_excerpt() ?: '';
-                // Use post_name (slug) as the unique key to prevent collisions from cloned meta values
                 $anchor_slug = get_post_field('post_name', $post_id);
-
-                // Get image with fallback
-                $image_url = get_the_post_thumbnail_url($post_id, 'large');
-                if (!$image_url) {
-                        $image_url = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop';
-                }
-
-                // Build label with line break for display
+                $image_url = get_the_post_thumbnail_url($post_id, 'large') ?: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop';
                 $label = get_the_title();
                 if ($age_range) {
-                        $clean_range = trim($age_range, '() ');
-                        $label .= ' (' . $clean_range . ')';
+                        $label .= ' (' . trim($age_range, '() ') . ')';
                 }
 
                 $options[] = array(
@@ -546,12 +541,12 @@ function chroma_home_program_wizard_options()
                         'label' => $label,
                         'description' => $excerpt,
                         'link' => chroma_get_localized_url(get_permalink($post_id)),
-                        'image' => $image_url, // Added image URL
+                        'image' => $image_url,
                 );
         }
-
         wp_reset_postdata();
 
+        wp_cache_set($cache_key, $options, 'chroma', DAY_IN_SECONDS);
         return $options;
 }
 
@@ -592,13 +587,22 @@ function chroma_home_curriculum_profiles()
  */
 function chroma_home_schedule_tracks()
 {
-        // Query all published programs with schedule data
+        $token = chroma_get_last_changed('programs');
+        $cache_key = 'home_schedule_tracks:' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
+
+        if (false !== $cached) {
+                return $cached;
+        }
+
         $programs = new WP_Query(array(
                 'post_type' => 'program',
-                'posts_per_page' => -1,
+                'posts_per_page' => 50,
                 'orderby' => 'menu_order',
                 'order' => 'ASC',
                 'post_status' => 'publish',
+                'no_found_rows' => true,
+                'update_post_meta_cache' => true,
                 'meta_query' => array(
                         array(
                                 'key' => 'program_schedule_items',
@@ -609,94 +613,69 @@ function chroma_home_schedule_tracks()
         ));
 
         if (!$programs->have_posts()) {
-                // Fallback to theme mod/defaults if no programs have schedule data
                 $tracks = chroma_home_get_theme_mod_json('chroma_home_schedule_tracks_json', chroma_home_default_schedule_tracks());
-
-                return array_map(
-                        function ($track) {
-                                $steps = array_map(
-                                        function ($step) {
-                                                return array(
-                                                        'time' => sanitize_text_field($step['time'] ?? ''),
-                                                        'title' => sanitize_text_field($step['title'] ?? ''),
-                                                        'copy' => sanitize_textarea_field($step['copy'] ?? ''),
-                                                );
-                                        },
-                                        $track['steps'] ?? array()
-                                );
-
+                $processed = array_map(function ($track) {
+                        $steps = array_map(function ($step) {
                                 return array(
-                                        'key' => sanitize_title($track['key'] ?? ''),
-                                        'label' => sanitize_text_field($track['label'] ?? ''),
-                                        'title' => sanitize_text_field($track['title'] ?? ''),
-                                        'description' => sanitize_textarea_field($track['description'] ?? ''),
-                                        'color' => sanitize_text_field($track['color'] ?? ''),
-                                        'background' => sanitize_text_field($track['background'] ?? ''),
-                                        'image' => esc_url_raw($track['image'] ?? ''),
-                                        'steps' => $steps,
+                                        'time' => sanitize_text_field($step['time'] ?? ''),
+                                        'title' => sanitize_text_field($step['title'] ?? ''),
+                                        'copy' => sanitize_textarea_field($step['copy'] ?? ''),
                                 );
-                        },
-                        $tracks
-                );
+                        }, $track['steps'] ?? array());
+
+                        return array(
+                                'key' => sanitize_title($track['key'] ?? ''),
+                                'label' => sanitize_text_field($track['label'] ?? ''),
+                                'title' => sanitize_text_field($track['title'] ?? ''),
+                                'description' => sanitize_textarea_field($track['description'] ?? ''),
+                                'color' => sanitize_text_field($track['color'] ?? ''),
+                                'background' => sanitize_text_field($track['background'] ?? ''),
+                                'image' => esc_url_raw($track['image'] ?? ''),
+                                'steps' => $steps,
+                        );
+                }, $tracks);
+
+                wp_cache_set($cache_key, $processed, 'chroma', DAY_IN_SECONDS);
+                return $processed;
         }
 
-        // Build tracks from program posts
         $tracks = array();
         $used_keys = array();
-
         while ($programs->have_posts()) {
                 $programs->the_post();
                 $post_id = get_the_ID();
-
-                // Get program meta
-                // Use post_name (slug) as the unique key to prevent collisions from cloned meta values
                 $anchor_slug = get_post_field('post_name', $post_id);
-
-                // Ensure unique key
                 $key = $anchor_slug;
-                if (isset($used_keys[$key])) {
+                if (isset($used_keys[$key]))
                         $key .= '-' . $post_id;
-                }
                 $used_keys[$key] = true;
 
                 $schedule_title = chroma_get_translated_meta($post_id, 'program_schedule_title', true);
                 $schedule_items = chroma_get_translated_meta($post_id, 'program_schedule_items', true);
                 $color_scheme = get_post_meta($post_id, 'program_color_scheme', true) ?: 'blue';
-
-                // Get program title and excerpt for label and description
                 $program_title = get_the_title();
                 $description = get_the_excerpt() ?: '';
 
-                // Parse schedule items (format: Badge|Title|Description, one per line)
                 $steps = array();
                 if (!empty($schedule_items)) {
                         $lines = explode("\n", $schedule_items);
                         foreach ($lines as $line) {
-                                $line = trim($line);
-                                if (empty($line)) {
-                                        continue;
-                                }
-
-                                $parts = explode('|', $line);
-                                if (count($parts) >= 3) {
-                                        $steps[] = array(
-                                                'time' => sanitize_text_field(trim($parts[0])),
-                                                'title' => sanitize_text_field(trim($parts[1])),
-                                                'copy' => sanitize_textarea_field(trim($parts[2])),
-                                        );
+                                if ($parts = explode('|', trim($line))) {
+                                        if (count($parts) >= 3) {
+                                                $steps[] = array(
+                                                        'time' => sanitize_text_field(trim($parts[0])),
+                                                        'title' => sanitize_text_field(trim($parts[1])),
+                                                        'copy' => sanitize_textarea_field(trim($parts[2])),
+                                                );
+                                        }
                                 }
                         }
                 }
 
-                // Skip if no valid steps
-                if (empty($steps)) {
+                if (empty($steps))
                         continue;
-                }
 
-                // Get featured image URL
                 $image_url = get_the_post_thumbnail_url($post_id, 'large');
-
-                // Map color scheme to Tailwind classes
                 $color_map = array(
                         'red' => array('color' => 'chroma-red', 'background' => 'bg-chroma-redLight'),
                         'blue' => array('color' => 'chroma-blue', 'background' => 'bg-chroma-blueLight'),
@@ -704,7 +683,6 @@ function chroma_home_schedule_tracks()
                         'blueDark' => array('color' => 'chroma-blueDark', 'background' => 'bg-chroma-blueDark/10'),
                         'green' => array('color' => 'chroma-green', 'background' => 'bg-chroma-greenLight'),
                 );
-
                 $colors = $color_map[$color_scheme] ?? $color_map['blue'];
 
                 $tracks[] = array(
@@ -718,9 +696,9 @@ function chroma_home_schedule_tracks()
                         'steps' => $steps,
                 );
         }
-
         wp_reset_postdata();
 
+        wp_cache_set($cache_key, $tracks, 'chroma', DAY_IN_SECONDS);
         return $tracks;
 }
 
@@ -734,7 +712,7 @@ function chroma_home_faq_items()
 {
         $post_id = chroma_get_home_page_id();
         $items_json = chroma_get_translated_meta($post_id, 'home_faq_items_json', true);
-        
+
         $items = array();
         if ($items_json) {
                 $decoded = json_decode($items_json, true);
@@ -777,197 +755,83 @@ function chroma_home_faq()
 
 function chroma_home_locations_preview()
 {
-        static $cached;
+        $token = chroma_get_last_changed('locations');
+        $cache_key = 'home_locations_preview:' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
 
-        if (isset($cached)) {
+        if (false !== $cached) {
                 return $cached;
         }
 
         $post_id = chroma_get_home_page_id();
-        $meta_heading = chroma_get_translated_meta($post_id, 'home_locations_heading', true);
-        $meta_subheading = chroma_get_translated_meta($post_id, 'home_locations_subheading', true);
-        $meta_cta_label = chroma_get_translated_meta($post_id, 'home_locations_cta_label', true);
-
-        $heading = sanitize_text_field($meta_heading ?: chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
-        $subheading = sanitize_text_field($meta_subheading ?: chroma_get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.'));
-        $cta_label = sanitize_text_field($meta_cta_label ?: chroma_get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
+        $heading = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_heading', true) ?: chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
+        $subheading = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_subheading', true) ?: chroma_get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work.'));
+        $cta_label = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_cta_label', true) ?: chroma_get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
         $cta_link = chroma_get_localized_url(esc_url_raw(chroma_get_theme_mod('chroma_home_locations_cta_link', '/locations/')));
-        $taxonomy = 'location_region';
-        $fallback = (object) array(
-                'name' => __('Other Areas', 'chroma-excellence'),
-                'slug' => 'other-areas',
-        );
 
-        $locations = get_posts(
-                array(
-                        'post_type' => 'location',
-                        'post_status' => 'publish',
-                        'posts_per_page' => -1,
-                        'orderby' => 'title',
-                        'order' => 'ASC',
-                        'suppress_filters' => true,
-                )
-        );
+        $locations = get_posts(array(
+                'post_type' => 'location',
+                'post_status' => 'publish',
+                'posts_per_page' => 100, // Reasonable cap
+                'orderby' => 'title',
+                'order' => 'ASC',
+                'update_post_meta_cache' => true,
+                'no_found_rows' => true,
+        ));
 
         $map_points = array();
         $featured = array();
         $grouped = array();
+        $taxonomy = 'location_region';
+        $fallback = (object) array('name' => __('Other Areas', 'chroma-excellence'), 'slug' => 'other-areas');
 
         foreach ($locations as $location) {
-                $post_id = $location->ID;
-                $title = get_the_title($post_id);
-                $permalink = get_permalink($post_id);
-
-                $fields = chroma_get_location_fields($post_id);
-                $city = $fields['city'];
-                $state = $fields['state'];
-                $phone = $fields['phone'];
-                $address = $fields['address'];
-
-                $lat = $fields['latitude'];
-                $lng = $fields['longitude'];
-
-                if ($lat && $lng) {
-                        $map_points[] = array(
-                                'id' => $post_id,
-                                'name' => $title,
-                                'lat' => (float) $lat,
-                                'lng' => (float) $lng,
-                                'url' => $permalink,
-                                'city' => $city,
-                                'state' => $state,
-                        );
-                }
+                $loc_id = $location->ID;
+                $title = get_the_title($loc_id);
+                $permalink = get_permalink($loc_id);
+                $fields = chroma_get_location_fields($loc_id);
 
                 $location_data = array(
                         'title' => $title,
-                        'city' => $city,
-                        'state' => $state,
-                        'address' => $address,
-                        'phone' => $phone,
+                        'city' => $fields['city'],
+                        'state' => $fields['state'],
+                        'address' => $fields['address'],
+                        'phone' => $fields['phone'],
                         'url' => $permalink,
                 );
 
-                $featured[] = $location_data;
-
-                $terms = get_the_terms($post_id, $taxonomy);
-                if (empty($terms) || is_wp_error($terms)) {
-                        $terms = array($fallback);
+                if ($fields['latitude'] && $fields['longitude']) {
+                        $map_points[] = array(
+                                'id' => $loc_id,
+                                'name' => $title,
+                                'lat' => (float) $fields['latitude'],
+                                'lng' => (float) $fields['longitude'],
+                                'url' => $permalink,
+                                'city' => $fields['city'],
+                                'state' => $fields['state']
+                        );
                 }
 
+                $featured[] = $location_data;
+                $terms = get_the_terms($loc_id, $taxonomy) ?: array($fallback);
                 foreach ($terms as $term) {
-                        $group_key = $term->slug ? sanitize_title($term->slug) : sanitize_title($term->name);
-
+                        $group_key = sanitize_title($term->slug ?: $term->name);
                         if (!isset($grouped[$group_key])) {
-                                $grouped[$group_key] = array(
-                                        'label' => $term->name,
-                                        'slug' => $term->slug ?: $group_key,
-                                        'term_id' => $term->term_id ?? 0,
-                                        'locations' => array(),
-                                );
+                                $grouped[$group_key] = array('label' => $term->name, 'slug' => $term->slug ?: $group_key, 'term_id' => $term->term_id ?? 0, 'locations' => array());
                         }
-
                         $grouped[$group_key]['locations'][] = $location_data;
                 }
         }
 
-        // If no dynamic locations exist, retain the previous static defaults.
-        if (empty($featured)) {
-                $map_points = array(
-                        array(
-                                'id' => 1,
-                                'name' => 'Marietta – East',
-                                'lat' => 33.975,
-                                'lng' => -84.507,
-                                'url' => '/locations/marietta-east',
-                                'city' => 'Marietta',
-                                'state' => 'GA',
-                        ),
-                        array(
-                                'id' => 2,
-                                'name' => 'Austell – Tramore',
-                                'lat' => 33.815,
-                                'lng' => -84.63,
-                                'url' => '/locations/austell-tramore',
-                                'city' => 'Austell',
-                                'state' => 'GA',
-                        ),
-                        array(
-                                'id' => 3,
-                                'name' => 'Lawrenceville',
-                                'lat' => 33.956,
-                                'lng' => -83.99,
-                                'url' => '/locations/lawrenceville',
-                                'city' => 'Lawrenceville',
-                                'state' => 'GA',
-                        ),
-                        array(
-                                'id' => 4,
-                                'name' => 'Johns Creek',
-                                'lat' => 34.028,
-                                'lng' => -84.198,
-                                'url' => '/locations/johns-creek',
-                                'city' => 'Johns Creek',
-                                'state' => 'GA',
-                        ),
-                );
-
-                $featured = array(
-                        array(
-                                'title' => 'Marietta – East',
-                                'city' => 'Marietta',
-                                'state' => 'GA',
-                                'address' => '2499 Shallowford Rd',
-                                'phone' => '(770) 555-1201',
-                                'url' => '/locations/marietta-east',
-                        ),
-                        array(
-                                'title' => 'Austell – Tramore',
-                                'city' => 'Austell',
-                                'state' => 'GA',
-                                'address' => '2081 Mesa Valley Rd',
-                                'phone' => '(770) 555-4432',
-                                'url' => '/locations/austell-tramore',
-                        ),
-                        array(
-                                'title' => 'Lawrenceville',
-                                'city' => 'Lawrenceville',
-                                'state' => 'GA',
-                                'address' => '3650 Club Dr NW',
-                                'phone' => '(770) 555-8890',
-                                'url' => '/locations/lawrenceville',
-                        ),
-                );
-
-                $grouped = array(
-                        'metro-atlanta' => array(
-                                'label' => 'Metro Atlanta',
-                                'slug' => 'metro-atlanta',
-                                'locations' => $featured,
-                        ),
-                );
-        }
-
+        // Sort and finalize
         foreach ($grouped as &$group) {
-                usort(
-                        $group['locations'],
-                        function ($a, $b) {
-                                return strnatcasecmp($a['title'], $b['title']);
-                        }
-                );
+                usort($group['locations'], function ($a, $b) {
+                        return strnatcasecmp($a['title'], $b['title']); });
         }
-        unset($group);
+        uasort($grouped, function ($a, $b) {
+                return strnatcasecmp($a['label'], $b['label']); });
 
-        if (!empty($grouped)) {
-                uasort(
-                        $grouped,
-                        function ($a, $b) {
-                                return strnatcasecmp($a['label'], $b['label']);
-                        }
-                );
-        }
-
-        $cached = array(
+        $result = array(
                 'heading' => $heading,
                 'subheading' => $subheading,
                 'cta_label' => $cta_label,
@@ -978,7 +842,8 @@ function chroma_home_locations_preview()
                 'taxonomy_key' => $taxonomy,
         );
 
-        return $cached;
+        wp_cache_set($cache_key, $result, 'chroma', DAY_IN_SECONDS);
+        return $result;
 }
 
 /**

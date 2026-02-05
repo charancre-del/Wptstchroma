@@ -160,6 +160,15 @@ class Chroma_Portal_API_Routes
 
         $is_admin = current_user_can('edit_posts');
 
+        // P0-4: Object Cache with versioned token
+        $token = chroma_get_last_changed('portal_dashboard');
+        $cache_key = 'portal_dash_' . $year . '_' . ($is_admin ? 'adm' : 'usr') . ':' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
+
+        if (false !== $cached) {
+            return rest_ensure_response($cached);
+        }
+
         // Fetch all categories
         $data = [
             'is_admin' => $is_admin,
@@ -171,6 +180,8 @@ class Chroma_Portal_API_Routes
             'forms' => $this->fetch_posts('cp_form', $year),
             'events' => $this->fetch_posts('cp_event', $year),
         ];
+
+        wp_cache_set($cache_key, $data, 'chroma', HOUR_IN_SECONDS);
 
         return rest_ensure_response($data);
     }
@@ -434,7 +445,7 @@ class Chroma_Portal_API_Routes
             if (!empty($term_ids)) {
                 $args = [
                     'post_type' => $type,
-                    'posts_per_page' => -1,
+                    'posts_per_page' => 100, // P0-4: Hard cap
                     'post_status' => 'publish',
                     'tax_query' => [
                         [
@@ -444,7 +455,10 @@ class Chroma_Portal_API_Routes
                             'operator' => 'IN'
                         ]
                     ],
-                    'suppress_filters' => true
+                    'suppress_filters' => true,
+                    'no_found_rows' => true,
+                    'update_post_meta_cache' => true, // P1: Prefetch
+                    'update_post_term_cache' => true, // P1: Prefetch
                 ];
                 $posts = get_posts($args);
             }
@@ -453,9 +467,12 @@ class Chroma_Portal_API_Routes
             if (empty($posts) && !empty($term_ids)) {
                 $candidates = get_posts([
                     'post_type' => $type,
-                    'posts_per_page' => -1,
+                    'posts_per_page' => 100, // P0-4: Hard cap
                     'post_status' => 'publish',
-                    'suppress_filters' => true
+                    'suppress_filters' => true,
+                    'no_found_rows' => true,
+                    'update_post_meta_cache' => true,
+                    'update_post_term_cache' => true,
                 ]);
 
                 foreach ($candidates as $cand) {

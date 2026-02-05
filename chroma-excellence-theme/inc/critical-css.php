@@ -14,25 +14,9 @@ function chroma_print_critical_css()
         @font-face {
             font-family: 'Outfit';
             font-style: normal;
-            font-weight: 300;
-            font-display: swap;
-            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Light.woff2') format('woff2');
-        }
-
-        @font-face {
-            font-family: 'Outfit';
-            font-style: normal;
             font-weight: 400;
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Regular.woff2') format('woff2');
-        }
-
-        @font-face {
-            font-family: 'Outfit';
-            font-style: normal;
-            font-weight: 500;
-            font-display: swap;
-            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/Outfit-Medium.woff2') format('woff2');
         }
 
         @font-face {
@@ -65,14 +49,6 @@ function chroma_print_critical_css()
             font-weight: 700;
             font-display: swap;
             src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-Bold.woff2') format('woff2');
-        }
-
-        @font-face {
-            font-family: 'Playfair Display';
-            font-style: normal;
-            font-weight: 800;
-            font-display: swap;
-            src: url('<?php echo get_template_directory_uri(); ?>/assets/webfonts/PlayfairDisplay-ExtraBold.woff2') format('woff2');
         }
 
         /* Critical Reset & Base */
@@ -481,10 +457,6 @@ function chroma_print_critical_css()
         @media(min-width:768px) {
             .md\:grid-cols-12 {
                 grid-template-columns: repeat(12, minmax(0, 1fr))
-            }
-
-            .md\:grid-rows-2 {
-                grid-template-rows: repeat(2, minmax(0, 1fr))
             }
 
             .md\:col-span-3 {

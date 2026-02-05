@@ -36,51 +36,14 @@ class Chroma_Portal_Auth
             // Generate Session Token
             $token = bin2hex(random_bytes(32));
 
-            // Store Token - Use DIRECT DATABASE QUERY to bypass ALL caching
-            $option_key = 'chroma_portal_session_' . $token;
-            $expiry = time() + (24 * HOUR_IN_SECONDS);
-
+            // P0-5: Use Transients for session management (reliable & cached)
             $session_data = [
                 'family_id' => $family_id,
-                'expires' => $expiry
+                'family_name' => $family_name,
             ];
 
-            $serialized_data = maybe_serialize($session_data);
-
-            $existing = $wpdb->get_var($wpdb->prepare(
-                "SELECT option_id FROM {$wpdb->options} WHERE option_name = %s",
-                $option_key
-            ));
-
-            if ($existing) {
-                $wpdb->update(
-                    $wpdb->options,
-                    ['option_value' => $serialized_data],
-                    ['option_name' => $option_key],
-                    ['%s'],
-                    ['%s']
-                );
-            } else {
-                $wpdb->insert(
-                    $wpdb->options,
-                    [
-                        'option_name' => $option_key,
-                        'option_value' => $serialized_data,
-                        'autoload' => 'no'
-                    ],
-                    ['%s', '%s', '%s']
-                );
-            }
-
-            // Verification
-            $verify_data = $wpdb->get_var($wpdb->prepare(
-                "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
-                $option_key
-            ));
-
-            if (!$verify_data) {
-                throw new Exception('Failed to verify session storage in database.');
-            }
+            // 24-hour expiration
+            set_transient('chroma_portal_sess_' . $token, $session_data, 24 * HOUR_IN_SECONDS);
 
             return [
                 'token' => $token,
@@ -95,39 +58,17 @@ class Chroma_Portal_Auth
 
     public static function validate_token($token)
     {
-        global $wpdb;
-
         if (empty($token)) {
             return false;
         }
 
-        $option_key = 'chroma_portal_session_' . $token;
+        // P0-5: Validate via transient (standard WP pattern)
+        $session_data = get_transient('chroma_portal_sess_' . $token);
 
-        // Direct database query - bypasses ALL caching
-        $option_value = $wpdb->get_var($wpdb->prepare(
-            "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
-            $option_key
-        ));
-
-        if (!$option_value) {
+        if (!$session_data || !isset($session_data['family_id'])) {
             return false;
         }
 
-        // Unserialize the data
-        $session_data = maybe_unserialize($option_value);
-
-        if (!$session_data || !isset($session_data['family_id']) || !isset($session_data['expires'])) {
-            return false;
-        }
-
-        // Check if expired
-        if ($session_data['expires'] < time()) {
-            // Clean up expired session with direct query
-            $wpdb->delete($wpdb->options, ['option_name' => $option_key], ['%s']);
-            return false;
-        }
-
-        $family_id = $session_data['family_id'];
-        return $family_id;
+        return $session_data['family_id'];
     }
 }

@@ -52,6 +52,29 @@ function chroma_register_program_cpt()
 add_action('init', 'chroma_register_program_cpt', 0);
 
 /**
+ * Register Program-Location Relationship Taxonomy
+ * Optimized for high-performance relationship queries vs REGEXP meta queries
+ */
+function chroma_register_program_location_taxonomy()
+{
+	register_taxonomy(
+		'program_location',
+		array('program'),
+		array(
+			'hierarchical' => false,
+			'public' => false,
+			'show_ui' => false, // Managed via meta box
+			'show_admin_column' => false,
+			'show_in_nav_menus' => false,
+			'show_tagcloud' => false,
+			'rewrite' => false,
+			'query_var' => false,
+		)
+	);
+}
+add_action('init', 'chroma_register_program_location_taxonomy', 0);
+
+/**
  * Add admin columns for Programs
  */
 function chroma_program_admin_columns($columns)
@@ -449,7 +472,12 @@ function chroma_program_locations_meta_box_save($post_id)
 		? array_map('intval', $_POST['program_locations'])
 		: array();
 
+	// Legacy meta support (consider decommissioning after migration)
 	update_post_meta($post_id, 'program_locations', $selected_locations);
+
+	// High-performance taxonomy sync
+	// We use the location ID as the slug/name for the term
+	wp_set_object_terms($post_id, $selected_locations, 'program_location');
 }
 add_action('save_post_program', 'chroma_program_locations_meta_box_save');
 

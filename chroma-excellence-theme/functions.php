@@ -31,8 +31,82 @@ define('CHROMA_THEME_DIR', get_template_directory());
 define('CHROMA_THEME_URI', get_template_directory_uri());
 
 /**
+ * CORE PERFORMANCE HELPERS
+ */
+
+/**
+ * Feature flag checker
+ * Allows safe-first rollout of risky performance changes
+ */
+function chroma_perf_enabled($flag)
+{
+    // Enable by default on staging/dev via WP_DEBUG
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        return true;
+    }
+    $flags = get_option('chroma_perf_flags', []);
+    return in_array($flag, (array) $flags);
+}
+
+/**
+ * Get versioned cache token (last_changed)
+ * Follows core WP pattern for object cache invalidation
+ */
+function chroma_get_last_changed($group)
+{
+    $last_changed = wp_cache_get($group . '_last_changed', 'chroma');
+    if (!$last_changed) {
+        // Fallback to transient if object cache is not persistent
+        $last_changed = get_transient('chroma_last_changed_' . $group);
+        if (!$last_changed) {
+            $last_changed = microtime();
+            set_transient('chroma_last_changed_' . $group, $last_changed, YEAR_IN_SECONDS);
+        }
+        wp_cache_set($group . '_last_changed', $last_changed, 'chroma');
+    }
+    return $last_changed;
+}
+
+/**
+ * Increment last_changed token to invalidate group cache
+ */
+function chroma_invalidate_cache_group($group)
+{
+    $new_time = microtime();
+    wp_cache_set($group . '_last_changed', $new_time, 'chroma');
+    set_transient('chroma_last_changed_' . $group, $new_time, YEAR_IN_SECONDS);
+}
+
+/**
+ * Simple lock to prevent cache stampede
+ */
+function chroma_acquire_lock($key, $ttl = 15)
+{
+    return wp_cache_add($key . '_lock', 1, 'chroma', $ttl);
+}
+
+function chroma_release_lock($key)
+{
+    wp_cache_delete($key . '_lock', 'chroma');
+}
+
+/**
+ * Admin Performance: Prefetch Meta for Lists (P1)
+ */
+add_action('pre_get_posts', function ($query) {
+    if (!is_admin() || !$query->is_main_query()) {
+        return;
+    }
+
+    $post_type = $_GET['post_type'] ?? '';
+    if (in_array($post_type, ['location', 'chroma_lead_log'])) {
+        $query->set('update_post_meta_cache', true);
+        $query->set('update_post_term_cache', true);
+    }
+});
+
+/**
  * Plugin Polyfills
- * Prevent theme crash if Chroma SEO Pro plugin is disabled
  */
 if (!function_exists('chroma_url')) {
     function chroma_url($path = '')
@@ -156,6 +230,7 @@ require_once CHROMA_THEME_DIR . '/inc/cpt-careers.php';
 require_once CHROMA_THEME_DIR . '/inc/class-amp-blog.php';
 require_once CHROMA_THEME_DIR . '/inc/class-data-service.php';
 require_once CHROMA_THEME_DIR . '/inc/class-branding-engine.php';
+require_once CHROMA_THEME_DIR . '/inc/performance-optimizations.php';
 
 // API Handlers
 
@@ -197,28 +272,26 @@ require_once CHROMA_THEME_DIR . '/inc/acf-homepage.php';
 
 require_once CHROMA_THEME_DIR . '/inc/cleanup.php';
 
-// SEO and Internationalization
-// require_once CHROMA_THEME_DIR . '/inc/seo-engine.php';
-require_once CHROMA_THEME_DIR . '/inc/city-slug-logic.php';
-// require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
-require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
-
-// LLM SEO / Citation Module (Legacy - Disabled to prevent conflict with Advanced SEO/LLM)
-// require_once CHROMA_THEME_DIR . '/inc/llm-seo/bootstrap.php';
-
-// Advanced SEO/LLM Module - MOVED TO PLUGIN
-// require_once CHROMA_THEME_DIR . '/inc/advanced-seo-llm/bootstrap.php';
-
-// SEO Automations (Internal Linking, Geo SEO, etc.) - MOVED TO PLUGIN
-// require_once CHROMA_THEME_DIR . '/inc/seo-automations/bootstrap.php';
-
 // Spanish Variant Generator
 require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
 
-
-
 require_once CHROMA_THEME_DIR . '/inc/security.php';
 require_once CHROMA_THEME_DIR . '/inc/force-trailing-slashes.php';
+
+/**
+ * Optimize WordPress Heartbeat API
+ * Reduces server load by increasing the heartbeat interval and disabling it on non-essential pages.
+ */
+function chroma_optimize_heartbeat($settings)
+{
+    // Check if we are on a post edit screen
+    $screen = get_current_screen();
+    if ($screen && $screen->base !== 'post') {
+        $settings['interval'] = 60; // Increase interval to 60s for non-editor screens
+    }
+    return $settings;
+}
+add_filter('heartbeat_settings', 'chroma_optimize_heartbeat');
 
 /**
  * Remove Legacy JavaScript & Styles
@@ -251,7 +324,13 @@ function chroma_remove_block_library_css()
         // Remove global styles (theme.json generated)
         wp_dequeue_style('global-styles');
         wp_dequeue_style('wp-block-navigation');
+        wp_dequeue_style('经典主题样式'); // Classic Theme Styles
         wp_dequeue_style('classic-theme-styles');
+
+        // Remove Dashicons for non-logged-in users
+        if (!is_user_logged_in()) {
+            wp_dequeue_style('dashicons');
+        }
     }
 }
 add_action('wp_enqueue_scripts', 'chroma_remove_block_library_css', 100);

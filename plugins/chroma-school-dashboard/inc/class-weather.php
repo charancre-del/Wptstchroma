@@ -16,7 +16,7 @@ class Chroma_Weather_Provider
 
         // Fetch from Open-Meteo
         $url = "https://api.open-meteo.com/v1/forecast?latitude={$lat}&longitude={$lon}&current=temperature_2m,weather_code,is_day&temperature_unit=fahrenheit&timezone=auto";
-        
+
         // Add timeout to prevent blocking (default is 5s, we want fail-fast)
         $response = wp_remote_get($url, ['timeout' => 2]);
 
@@ -34,7 +34,7 @@ class Chroma_Weather_Provider
                 'is_day' => $data['current']['is_day'],
                 'description' => self::get_weather_desc($data['current']['weather_code'])
             ];
-            set_transient($cache_key, $weather, 15 * MINUTE_IN_SECONDS);
+            set_transient($cache_key, $weather, HOUR_IN_SECONDS);
             return $weather;
         }
 

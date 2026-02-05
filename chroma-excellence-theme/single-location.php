@@ -66,23 +66,38 @@ while (have_posts()):
 	$seo_content_title = chroma_get_translated_meta($location_id, 'location_seo_content_title');
 	$seo_content_text = chroma_get_translated_meta($location_id, 'location_seo_content_text');
 
-	// Get programs at this location
-	$programs_query = new WP_Query(array(
+	// Get programs at this location (P0-3: REGEXP to Taxonomy Refactor)
+	$use_tax_query = chroma_perf_enabled('regexp_tax_migration');
+	$programs_args = array(
 		'post_type' => 'program',
-		'posts_per_page' => -1,
+		'posts_per_page' => 50, // Added cap for performance
 		'orderby' => 'menu_order',
 		'order' => 'ASC',
 		'no_found_rows' => true,
 		'update_post_meta_cache' => true,
 		'update_post_term_cache' => false,
-		'meta_query' => array(
+	);
+
+	if ($use_tax_query) {
+		$programs_args['tax_query'] = array(
+			array(
+				'taxonomy' => 'chroma_program_location',
+				'field' => 'slug',
+				'terms' => (string) $location_id,
+			),
+		);
+	} else {
+		// Legacy expensive query - retained for compatibility until migration complete
+		$programs_args['meta_query'] = array(
 			array(
 				'key' => 'program_locations',
 				'value' => '(^|;)i:' . intval($location_id) . ';',
 				'compare' => 'REGEXP',
 			),
-		),
-	));
+		);
+	}
+
+	$programs_query = new WP_Query($programs_args);
 
 	// Get Region Colors
 	$location_regions = wp_get_post_terms($location_id, 'location_region');
@@ -294,7 +309,8 @@ while (have_posts()):
 					<span
 						class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Campus Features', 'chroma-excellence'); ?></span>
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
-						<?php _e('Designed for discovery.', 'chroma-excellence'); ?></h2>
+						<?php _e('Designed for discovery.', 'chroma-excellence'); ?>
+					</h2>
 					<p class="text-brand-ink/90">
 						<?php printf(__('Every corner of our %s campus is intentional—from the soft lighting in our infant suites to the collaborative stations in our Pre-K classrooms.', 'chroma-excellence'), esc_html($city)); ?>
 					</p>
@@ -309,7 +325,8 @@ while (have_posts()):
 							<i class="fa-solid fa-shield-halved"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('Secure Access', 'chroma-excellence'); ?></h3>
+							<?php _e('Secure Access', 'chroma-excellence'); ?>
+						</h3>
 						<p class="text-sm text-brand-ink/90 leading-relaxed">
 							<?php _e('Keypad entry, 24/7 video monitoring, and a staffed front desk ensure your child is always safe.', 'chroma-excellence'); ?>
 						</p>
@@ -323,7 +340,8 @@ while (have_posts()):
 							<i class="fa-solid fa-tree"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('Nature Playground', 'chroma-excellence'); ?></h3>
+							<?php _e('Nature Playground', 'chroma-excellence'); ?>
+						</h3>
 						<p class="text-sm text-brand-ink/80 leading-relaxed">
 							<?php _e('Our oversized, shaded outdoor space features gardening beds, trike paths, and natural sensory zones.', 'chroma-excellence'); ?>
 						</p>
@@ -337,7 +355,8 @@ while (have_posts()):
 							<i class="fa-solid fa-flask"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('STEM Atelier', 'chroma-excellence'); ?></h3>
+							<?php _e('STEM Atelier', 'chroma-excellence'); ?>
+						</h3>
 						<p class="text-sm text-brand-ink/80 leading-relaxed">
 							<?php _e('A dedicated studio for science experiments, light table exploration, and early engineering projects.', 'chroma-excellence'); ?>
 						</p>
@@ -351,7 +370,8 @@ while (have_posts()):
 							<i class="fa-solid fa-graduation-cap"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('GA Lottery Pre-K', 'chroma-excellence'); ?></h3>
+							<?php _e('GA Lottery Pre-K', 'chroma-excellence'); ?>
+						</h3>
 						<p class="text-sm text-brand-ink/80 leading-relaxed">
 							<?php _e('We are a proud partner of the Georgia Pre-K Program, offering tuition-free education for 4-year-olds.', 'chroma-excellence'); ?>
 						</p>
@@ -412,7 +432,8 @@ while (have_posts()):
 						<span
 							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Explore Our Campus', 'chroma-excellence'); ?></span>
 						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
-							<?php _e('Take a Virtual Tour', 'chroma-excellence'); ?></h2>
+							<?php _e('Take a Virtual Tour', 'chroma-excellence'); ?>
+						</h2>
 						<p class="text-brand-ink/80 max-w-2xl mx-auto">
 							<?php printf(__('Walk through our %s campus from the comfort of your home. Explore our classrooms, outdoor play areas, and learning spaces.', 'chroma-excellence'), esc_html($city)); ?>
 						</p>
@@ -528,7 +549,8 @@ while (have_posts()):
 				<span
 					class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Family Stories', 'chroma-excellence'); ?></span>
 				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-8">
-					<?php _e('Why Families Love Us', 'chroma-excellence'); ?></h2>
+					<?php _e('Why Families Love Us', 'chroma-excellence'); ?>
+				</h2>
 				<blockquote class="text-2xl md:text-3xl font-serif italic text-brand-ink/80 leading-relaxed mb-8">
 					"<?php echo esc_html($hero_review_text ?: __("We absolutely love Chroma! The teachers are so caring and my child has learned so much.", 'chroma-excellence')); ?>"
 				</blockquote>
@@ -669,7 +691,8 @@ while (have_posts()):
 										<h3 class="font-bold text-brand-ink"><?php _e('School Pickups', 'chroma-excellence'); ?>
 										</h3>
 										<p class="text-sm text-brand-ink/80">
-											<?php _e('We provide pickup service to:', 'chroma-excellence'); ?></p>
+											<?php _e('We provide pickup service to:', 'chroma-excellence'); ?>
+										</p>
 										<ul class="text-sm text-brand-ink/80 mt-2 space-y-1">
 											<?php foreach ($schools as $school): ?>
 												<li class="flex items-start gap-2">
@@ -715,7 +738,8 @@ while (have_posts()):
 				<div id="tour"
 					class="bg-brand-cream p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-<?php echo esc_attr($region_colors['border']); ?>/10 h-fit sticky top-28">
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-2">
-						<?php _e('Request a Tour', 'chroma-excellence'); ?></h3>
+						<?php _e('Request a Tour', 'chroma-excellence'); ?>
+					</h3>
 					<p class="text-sm text-brand-ink/90 mb-6">
 						<?php _e("Fill out the form below and we'll contact you to confirm a time.", 'chroma-excellence'); ?>
 					</p>
@@ -785,7 +809,8 @@ endwhile;
 		<div
 			class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
 			<h3 class="font-serif text-xl font-bold text-brand-ink">
-				<?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
+				<?php _e('Schedule Your Visit', 'chroma-excellence'); ?>
+			</h3>
 			<div class="flex items-center gap-4">
 				<a href="#" id="chroma-tour-external" target="_blank"
 					class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">

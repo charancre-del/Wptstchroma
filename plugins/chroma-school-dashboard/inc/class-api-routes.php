@@ -40,27 +40,61 @@ class Chroma_School_API_Routes
             'callback' => [$this, 'get_weather_proxy'],
             'permission_callback' => '__return_true'
         ]);
+
+        // Global CORS for this namespace
+        add_filter('rest_pre_serve_request', [$this, 'handle_cors_pre_serve'], 10, 4);
     }
 
     /**
-     * Proxy Weather Request (to avoid revealing tokens if we had them, and use server cache)
+     * Handle CORS for non-permission gated routes like login (P0-5)
      */
-    public function get_weather_proxy($request)
+    public function handle_cors_pre_serve($served, $result, $request, $server)
     {
-        $lat = $request->get_param('lat');
-        $lon = $request->get_param('lon');
+        if (strpos($request->get_route(), '/chroma/v1/') !== false) {
+            header("Access-Control-Allow-Origin: *");
+            header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE, PATCH");
+            header("Access-Control-Allow-Headers: Authorization, Content-Type, X-WP-Nonce");
 
-        if (!$lat || !$lon) {
-            return new WP_Error('missing_params', 'Lat/Lon required', ['status' => 400]);
+            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+                status_header(200);
+                exit;
+            }
         }
+        return $served;
+    }
 
-        $weather = Chroma_Weather_Provider::get_weather($lat, $lon);
-        return rest_ensure_response($weather ?: ['error' => 'Weather unavailable']);
+    /**
+     * Helper to get cache token (P0-4)
+     */
+    private function get_cache_token($group)
+    {
+        if (function_exists('chroma_get_last_changed')) {
+            return chroma_get_last_changed($group);
+        }
+        return 'v1'; // Fallback
     }
 
     public function get_tv_data($request)
     {
         $slug = $request['slug'];
+
+        // P0-4: Object cache with transient fallback for TV data
+        $token = $this->get_cache_token('schools');
+        $cache_key = 'school_tv_data_' . $slug . ':' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
+
+        if (false === $cached) {
+            $cached = get_transient('chroma_persistent_tv_' . $slug);
+            // Verify token matches if persistent (simple versioning)
+            if ($cached && isset($cached['_token']) && $cached['_token'] !== $token) {
+                $cached = false;
+            }
+        }
+
+        if (false !== $cached) {
+            return rest_ensure_response($cached);
+        }
+
         $posts = get_posts([
             'name' => $slug,
             'post_type' => 'chroma_school',
@@ -116,6 +150,11 @@ class Chroma_School_API_Routes
             'alert' => get_option('chroma_global_alert', [])
         ];
 
+        $data['_token'] = $token;
+
+        wp_cache_set($cache_key, $data, 'chroma', HOUR_IN_SECONDS);
+        set_transient('chroma_persistent_tv_' . $slug, $data, DAY_IN_SECONDS);
+
         return rest_ensure_response($data);
     }
 
@@ -168,6 +207,24 @@ class Chroma_School_API_Routes
         $found_school = !empty($schools) ? $schools[0] : null;
 
         // 2b. Legacy Fallback: If not found, try O(N) loop for migration
+        // 2. Find associated school
+        $found_school = null;
+
+        // P0-5: Optimized Meta Lookup
+        $schools = get_posts([
+            'post_type' => 'chroma_school',
+            'meta_key' => '_chroma_school_director_email',
+            'meta_value' => $email,
+            'posts_per_page' => 1,
+            'no_found_rows' => true,
+            'fields' => 'ids',
+        ]);
+
+        if (!empty($schools)) {
+            $found_school = get_post($schools[0]);
+        }
+
+        // Fallback: Legacy O(N) Scan (Migration Path)
         if (!$found_school) {
             $all_schools = get_posts(['post_type' => 'chroma_school', 'posts_per_page' => -1]);
             foreach ($all_schools as $s) {
@@ -176,7 +233,8 @@ class Chroma_School_API_Routes
 
                 if (strtolower($stored_email) === strtolower($email)) {
                     $found_school = $s;
-                    update_post_meta($s->ID, '_chroma_school_director_email', $conf['director_email']);
+                    // Seed the optimized key for next time
+                    update_post_meta($s->ID, '_chroma_school_director_email', $email);
                     break;
                 }
             }
@@ -214,6 +272,22 @@ class Chroma_School_API_Routes
         if (!$school_id)
             return new WP_Error('unauthorized', 'Invalid session', ['status' => 401]);
 
+        // P0-4: Cache Director Portal Data with transient fallback
+        $token = $this->get_cache_token('schools');
+        $cache_key = 'director_school_data_' . $school_id . ':' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
+
+        if (false === $cached) {
+            $cached = get_transient('chroma_persistent_director_' . $school_id);
+            if ($cached && isset($cached['_token']) && $cached['_token'] !== $token) {
+                $cached = false;
+            }
+        }
+
+        if (false !== $cached) {
+            return rest_ensure_response($cached);
+        }
+
         // Reuse get data logic but without the HTTP request overhead
         $post = get_post($school_id);
 
@@ -237,12 +311,18 @@ class Chroma_School_API_Routes
             $content[$key] = get_post_meta($school_id, '_chroma_school_' . $key, true);
         }
 
-        return rest_ensure_response([
+        $data = [
             'id' => $school_id,
             'title' => $post->post_title,
             'slug' => $post->post_name,
-            'content' => $content
-        ]);
+            'content' => $content,
+            '_token' => $token
+        ];
+
+        wp_cache_set($cache_key, $data, 'chroma', HOUR_IN_SECONDS);
+        set_transient('chroma_persistent_director_' . $school_id, $data, DAY_IN_SECONDS);
+
+        return rest_ensure_response($data);
     }
 
     /**
@@ -301,6 +381,11 @@ class Chroma_School_API_Routes
         // Add a global 'last updated' flag for cache busting
         update_post_meta($school_id, '_chroma_school_last_updated', time());
 
+        // P0-4: Invalidate schools cache group
+        if (function_exists('chroma_invalidate_cache_group')) {
+            chroma_invalidate_cache_group('schools');
+        }
+
         return rest_ensure_response(['success' => true]);
     }
 
@@ -310,14 +395,7 @@ class Chroma_School_API_Routes
      */
     public function check_director_permission($request)
     {
-        // Handle Preflight / CORS for local dev or cross-domain
-        header("Access-Control-Allow-Origin: *");
-        header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE, PATCH");
-        header("Access-Control-Allow-Headers: Authorization, Content-Type");
-
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            return true;
-        }
+        // CORS handled by handle_cors_pre_serve filter
 
         $auth_header = $request->get_header('Authorization');
 
