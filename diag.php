@@ -1,8 +1,28 @@
 <?php
-require_once 'wp-load.php';
-echo "react_settings_flag: " . (get_option('cqa_flag_react_settings') ? 'true' : 'false') . "\n";
-echo "react_settings_default: " . (\ChromaQA\Feature_Flags::FLAGS['react_settings']['default'] ? 'true' : 'false') . "\n";
-echo "page_on_front: " . get_option('page_on_front') . "\n";
-echo "is_front_page: " . (is_front_page() ? 'true' : 'false') . "\n";
-echo "is_home: " . (is_home() ? 'true' : 'false') . "\n";
-@unlink(__FILE__);
+define('WP_USE_THEMES', false);
+require_once 'c:/Users/chara/Documents/wptheme/Wptstchroma/wp-load.php';
+
+echo "--- Portal Year Terms ---\n";
+$terms = get_terms(['taxonomy' => 'portal_year', 'hide_empty' => false]);
+if (is_wp_error($terms)) {
+    echo "Error: " . $terms->get_error_message() . "\n";
+} else {
+    foreach ($terms as $t) {
+        echo "Term: {$t->name} (ID: {$t->term_id})\n";
+    }
+}
+
+$types = ['cp_announcement', 'cp_lesson_plan', 'cp_home_activity', 'cp_meal_plan', 'cp_resource', 'cp_form', 'cp_event'];
+foreach ($types as $type) {
+    echo "\n--- $type Count ---\n";
+    $count = wp_count_posts($type);
+    echo "Publish: " . ($count->publish ?? 0) . "\n";
+
+    $latest = get_posts(['post_type' => $type, 'posts_per_page' => 1]);
+    if (!empty($latest)) {
+        echo "Latest: {$latest[0]->post_title} (ID: {$latest[0]->ID})\n";
+        $pts = wp_get_post_terms($latest[0]->ID, 'portal_year');
+        foreach ($pts as $t)
+            echo "  - Year: {$t->name}\n";
+    }
+}

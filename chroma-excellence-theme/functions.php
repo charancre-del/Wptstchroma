@@ -272,6 +272,9 @@ require_once CHROMA_THEME_DIR . '/inc/acf-homepage.php';
 
 require_once CHROMA_THEME_DIR . '/inc/cleanup.php';
 
+require_once CHROMA_THEME_DIR . '/inc/city-slug-logic.php';
+require_once CHROMA_THEME_DIR . '/inc/monthly-seo-cron.php';
+
 // Spanish Variant Generator
 require_once CHROMA_THEME_DIR . '/inc/spanish-variant-generator.php';
 
@@ -284,7 +287,15 @@ require_once CHROMA_THEME_DIR . '/inc/force-trailing-slashes.php';
  */
 function chroma_optimize_heartbeat($settings)
 {
-    // Check if we are on a post edit screen
+    // Heartbeat is only used in admin/editor contexts
+    if (!is_admin()) {
+        return $settings;
+    }
+
+    if (!function_exists('get_current_screen')) {
+        return $settings;
+    }
+
     $screen = get_current_screen();
     if ($screen && $screen->base !== 'post') {
         $settings['interval'] = 60; // Increase interval to 60s for non-editor screens
