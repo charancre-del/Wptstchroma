@@ -25,20 +25,17 @@ require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-media-permissions.php';
 // Initialize
 function chroma_school_dashboard_init()
 {
-    // Post types and API routes must always register
+    // Post types, API routes, and Loaders must always register globally
+    // for rewrite rules and virtual routes to function.
     new Chroma_School_Post_Type();
     new Chroma_School_API_Routes();
+    new Chroma_School_Template_Loader();
+    new Chroma_School_Portal_Loader();
 
     // Heavy UI and Admin logic only loads when needed
     if (is_admin()) {
         new Chroma_School_Admin_Settings();
         new Chroma_Media_Permissions();
-    }
-
-    // Portal logic only on dashboard pages or specific requests
-    if (is_admin() || !is_admin() && !is_front_page() && (isset($_GET['page']) && strpos($_GET['page'], 'chroma-') !== false || is_singular('chroma_school'))) {
-        new Chroma_School_Template_Loader();
-        new Chroma_School_Portal_Loader();
     }
 }
 add_action('init', 'chroma_school_dashboard_init');

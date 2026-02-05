@@ -467,7 +467,7 @@ class Chroma_Portal_API_Routes
             if (empty($posts) && !empty($term_ids)) {
                 $candidates = get_posts([
                     'post_type' => $type,
-                    'posts_per_page' => 100, // P0-4: Hard cap
+                    'posts_per_page' => 1000, // P0-4: Increased fallback scan for robustness
                     'post_status' => 'publish',
                     'suppress_filters' => true,
                     'no_found_rows' => true,

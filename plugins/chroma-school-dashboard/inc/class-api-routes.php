@@ -206,22 +206,21 @@ class Chroma_School_API_Routes
 
         $found_school = !empty($schools) ? $schools[0] : null;
 
-        // 2b. Legacy Fallback: If not found, try O(N) loop for migration
-        // 2. Find associated school
-        $found_school = null;
+        // 2b. Legacy Fallback: If not found via meta_query, try O(N) loop for migration
+        if (!$found_school) {
+            // P0-5: Optimized Direct Meta Lookup
+            $schools = get_posts([
+                'post_type' => 'chroma_school',
+                'meta_key' => '_chroma_school_director_email',
+                'meta_value' => $email,
+                'posts_per_page' => 1,
+                'no_found_rows' => true,
+                'fields' => 'ids',
+            ]);
 
-        // P0-5: Optimized Meta Lookup
-        $schools = get_posts([
-            'post_type' => 'chroma_school',
-            'meta_key' => '_chroma_school_director_email',
-            'meta_value' => $email,
-            'posts_per_page' => 1,
-            'no_found_rows' => true,
-            'fields' => 'ids',
-        ]);
-
-        if (!empty($schools)) {
-            $found_school = get_post($schools[0]);
+            if (!empty($schools)) {
+                $found_school = get_post($schools[0]);
+            }
         }
 
         // Fallback: Legacy O(N) Scan (Migration Path)

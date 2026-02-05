@@ -13,10 +13,14 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Enable error reporting for development (Remedy Step: Quality Hardening)
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED);
+/**
+ * PRODUCTION HARDENING: Disable error display to prevent JSON corruption in REST API.
+ * Errors should be logged to debug.log, not the screen.
+ */
+if (!defined('CHROMA_DEBUG') || !CHROMA_DEBUG) {
+    @ini_set('display_errors', '0');
+    @ini_set('display_startup_errors', '0');
+}
 
 /**
  * Increase Memory Limit for SEO Engine
@@ -59,12 +63,12 @@ function chroma_get_last_changed($group)
         // Fallback to transient if object cache is not persistent
         $last_changed = get_transient('chroma_last_changed_' . $group);
         if (!$last_changed) {
-            $last_changed = microtime();
+            $last_changed = microtime(true); // Use float version for stability (no spaces)
             set_transient('chroma_last_changed_' . $group, $last_changed, YEAR_IN_SECONDS);
         }
         wp_cache_set($group . '_last_changed', $last_changed, 'chroma');
     }
-    return $last_changed;
+    return (string) $last_changed;
 }
 
 /**
