@@ -205,16 +205,22 @@
     if (window.Chart) {
       createChart();
     } else {
-      // Fallback: Poll for Chart if deferred script hasn't executed yet
-      const checkChart = setInterval(() => {
-        if (window.Chart) {
-          clearInterval(checkChart);
-          createChart();
-        }
-      }, 100);
-
-      // Safety timeout to stop polling
-      setTimeout(() => clearInterval(checkChart), 5000);
+      // Lazy Load Chart.js
+      if (!document.getElementById('chroma-lazy-chart')) {
+        const script = document.createElement('script');
+        script.id = 'chroma-lazy-chart';
+        script.src = `${window.chromaData.themeUrl}/assets/js/chart.min.js`;
+        script.onload = createChart;
+        document.body.appendChild(script);
+      } else {
+        // Script already injecting, wait for it
+        const checkChart = setInterval(() => {
+          if (window.Chart) {
+            clearInterval(checkChart);
+            createChart();
+          }
+        }, 100);
+      }
     }
 
     curriculumButtons.forEach(btn => {

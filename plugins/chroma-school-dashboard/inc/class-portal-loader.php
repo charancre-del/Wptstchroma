@@ -7,6 +7,7 @@ class Chroma_School_Portal_Loader
         add_action('init', [$this, 'add_rewrite_rules']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_filter('template_include', [$this, 'load_portal_template']);
+        add_action('wp_enqueue_scripts', [$this, 'enqueue_portal_assets']);
     }
 
     public function add_rewrite_rules()
@@ -45,5 +46,34 @@ class Chroma_School_Portal_Loader
             exit;
         }
         return $template;
+    }
+
+    public function enqueue_portal_assets()
+    {
+        if (get_query_var('chroma_view') !== 'portal') {
+            return;
+        }
+
+        $css_url = CHROMA_SCHOOL_DB_URL . 'assets/dist/portal.css';
+        $js_url = CHROMA_SCHOOL_DB_URL . 'assets/dist/portal.js';
+
+        // Load fonts pre-emptively
+        wp_enqueue_style('chroma-fonts', 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap', [], null);
+
+        // Portal CSS
+        wp_enqueue_style('chroma-portal-css', $css_url, [], CHROMA_SCHOOL_VERSION);
+
+        // React + ReactDOM (Core WP handles)
+        wp_enqueue_script('react');
+        wp_enqueue_script('react-dom');
+
+        // Compiled Portal JS
+        wp_enqueue_script('chroma-portal-js', $js_url, ['react', 'react-dom'], CHROMA_SCHOOL_VERSION, true);
+
+        // Pass config to JS
+        wp_localize_script('chroma-portal-js', 'chromaPortalConfig', [
+            'apiUrl' => get_rest_url(),
+            'googleClientId' => trim(get_option('chroma_google_client_id', '')),
+        ]);
     }
 }

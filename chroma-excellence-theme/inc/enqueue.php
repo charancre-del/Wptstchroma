@@ -42,17 +42,8 @@ function chroma_enqueue_assets()
                 'all'
         );
 
-        // Chart.js - Enqueued normally but deferred to ensure reliability
-        if (is_front_page()) {
-                wp_enqueue_script(
-                        'chroma-chart-js',
-                        CHROMA_THEME_URI . '/assets/js/chart.min.js',
-                        array(),
-                        '4.4.0',
-                        true
-                );
-                $script_dependencies[] = 'chroma-chart-js';
-        }
+        // Chart.js - Removed global enqueue. Lazy loaded in main.js
+        // via IntersectionObserver when #curriculum section is visible.
 
         // Compiled Tailwind CSS.
         $css_path = CHROMA_THEME_DIR . '/assets/css/main.css';

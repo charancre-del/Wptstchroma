@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import Sidebar from './Sidebar';
 import Header from './Header';
-import DashboardGrid from './DashboardGrid';
-import LessonPlanSection from './LessonPlanSection';
-import MealPlansSection from './MealPlansSection';
-import PDFCard from '../common/PDFCard';
-import OrganizationGroup from '../common/OrganizationGroup';
-import PDFViewerModal from '../common/PDFViewerModal';
-import FeedbackSection from './FeedbackSection';
 import { AnimatePresence, motion } from 'framer-motion';
+
+// Lazy Load Heavy Components
+const Sidebar = lazy(() => import('./Sidebar'));
+const DashboardGrid = lazy(() => import('./DashboardGrid'));
+const LessonPlanSection = lazy(() => import('./LessonPlanSection'));
+const MealPlansSection = lazy(() => import('./MealPlansSection'));
+const OrganizationGroup = lazy(() => import('../common/OrganizationGroup'));
+const PDFViewerModal = lazy(() => import('../common/PDFViewerModal'));
+const FeedbackSection = lazy(() => import('./FeedbackSection'));
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -165,6 +166,18 @@ const Dashboard = () => {
     const renderView = () => {
         if (loading) return <div style={{ textAlign: 'center', padding: '100px' }}>Loading Portal Data...</div>;
 
+        return (
+            <Suspense fallback={
+                <div className="flex h-64 w-full items-center justify-center text-chroma-blue">
+                    <i className="fa-solid fa-circle-notch fa-spin text-3xl"></i>
+                </div>
+            }>
+                {renderContent()}
+            </Suspense>
+        );
+    };
+
+    const renderContent = () => {
         switch (activeTab) {
             case 'lessons':
                 return (
@@ -273,13 +286,15 @@ const Dashboard = () => {
 
     return (
         <div className={`glass-app-shell ${isSidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-            <Sidebar
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                isAdmin={data?.is_admin}
-                isCollapsed={isSidebarCollapsed}
-                onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-            />
+            <Suspense fallback={null}>
+                <Sidebar
+                    activeTab={activeTab}
+                    setActiveTab={setActiveTab}
+                    isAdmin={data?.is_admin}
+                    isCollapsed={isSidebarCollapsed}
+                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                />
+            </Suspense>
 
             <main className="portal-main">
                 <div className="main-viewport">
@@ -301,10 +316,12 @@ const Dashboard = () => {
 
             <AnimatePresence>
                 {selectedFile && (
-                    <PDFViewerModal
-                        file={selectedFile}
-                        onClose={() => setSelectedFile(null)}
-                    />
+                    <Suspense fallback={null}>
+                        <PDFViewerModal
+                            file={selectedFile}
+                            onClose={() => setSelectedFile(null)}
+                        />
+                    </Suspense>
                 )}
             </AnimatePresence>
         </div>

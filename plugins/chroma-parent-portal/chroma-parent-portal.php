@@ -102,7 +102,7 @@ add_action('wp_enqueue_scripts', function () {
         'chroma-portal-app',
         CHROMA_PORTAL_URL . 'build/index.js',
         $asset_file['dependencies'],
-        $asset_file['version'] . '-' . time(), // Add timestamp to force cache clear
+        $asset_file['version'], // Use build hash for versioning
         true
     );
 
@@ -110,7 +110,7 @@ add_action('wp_enqueue_scripts', function () {
         'chroma-portal-styles',
         CHROMA_PORTAL_URL . 'build/index.css',
         [], // Remove dependency on Google Fonts
-        $asset_file['version'] . '-' . time() // Add timestamp to force cache clear
+        $asset_file['version'] // Use build hash for versioning
     );
 
     wp_localize_script('chroma-portal-app', 'chromaPortalSettings', [

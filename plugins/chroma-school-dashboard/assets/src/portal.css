@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    body {
+        @apply bg-brand-cream text-brand-ink;
+    }
+}
+
+.shim-fade {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.shadow-soft {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-card {
+    box-shadow: 0 20px 50px rgba(38, 50, 56, 0.05);
+}
+
+/* Hide WP Admin Bar and any theme elements injected by wp_head() */
+#wpadminbar,
+.site-header,
+.site-footer,
+.wp-block-template-part {
+    display: none !important;
+}
+
+html {
+    margin-top: 0 !important;
+}
