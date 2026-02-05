@@ -312,8 +312,11 @@ add_filter('style_loader_tag', 'chroma_async_styles', 10, 4);
  */
 function chroma_move_jquery_to_footer()
 {
-        // Do not modify if admin or logged in (admin bar needs jQuery)
-        if (is_admin() || is_user_logged_in()) {
+        // Do not modify if admin, logged in, or login page
+        if (
+                is_admin() || is_user_logged_in() ||
+                (isset($_SERVER['REQUEST_URI']) && (strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false || strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false))
+        ) {
                 return;
         }
 
@@ -325,7 +328,7 @@ function chroma_move_jquery_to_footer()
         // Re-register jQuery in footer and enqueue it
         // Note: Conditional loading was tried but broke font/logo loading
         wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), array(), null, true);
-        // wp_enqueue_script('jquery'); // Removed to reduce TBT; re-enable if plugins break 
+        wp_enqueue_script('jquery');
 }
 add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
 
