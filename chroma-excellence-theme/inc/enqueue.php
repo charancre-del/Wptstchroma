@@ -312,16 +312,7 @@ add_filter('style_loader_tag', 'chroma_async_styles', 10, 4);
  */
 function chroma_move_jquery_to_footer()
 {
-        // Do not modify if admin, logged in, or login page
-        if (
-                is_admin() || is_user_logged_in() ||
-                (isset($_SERVER['REQUEST_URI']) && (strpos($_SERVER['REQUEST_URI'], '/wp-admin/') !== false || strpos($_SERVER['REQUEST_URI'], 'wp-login.php') !== false))
-        ) {
-                return;
-        }
 
-        // Deregister core jQuery (we'll conditionally re-add if needed)
-        wp_deregister_script('jquery');
         wp_deregister_script('jquery-core');
         wp_deregister_script('jquery-migrate');
 
@@ -330,7 +321,10 @@ function chroma_move_jquery_to_footer()
         wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), array(), null, true);
         wp_enqueue_script('jquery');
 }
-add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
+
+if (!is_admin()) {
+        add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
+}
 
 /**
  * Dequeue Dashicons for non-logged in users to improve performance
