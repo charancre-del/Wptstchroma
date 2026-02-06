@@ -120,8 +120,13 @@
                 const $form = $('#cqa-login-form');
                 const $error = $('#cqa-login-error');
 
+                if ($form.length) {
+                    console.log('CQA: Login form initialized');
+                }
+
                 $form.on('submit', function (e) {
                     e.preventDefault();
+                    console.log('CQA: Login form submitted');
 
                     const $btn = $form.find('button[type="submit"]');
 
@@ -129,6 +134,8 @@
                     $btn.find('.cqa-btn-text').hide();
                     $btn.find('.cqa-btn-loading').show();
                     $error.hide();
+
+                    console.log('CQA: Sending AJAX request to', cqaFrontend.ajaxUrl);
 
                     $.ajax({
                         url: cqaFrontend.ajaxUrl,
@@ -141,6 +148,7 @@
                             nonce: $('input[name="nonce"]').val()
                         },
                         success: function (response) {
+                            console.log('CQA: AJAX Success', response);
                             if (response.success) {
                                 window.location.href = response.data.redirect;
                             } else {
@@ -150,7 +158,8 @@
                                 $btn.find('.cqa-btn-loading').hide();
                             }
                         },
-                        error: function () {
+                        error: function (xhr, status, error) {
+                            console.error('CQA: AJAX Error', { status, error, response: xhr.responseText });
                             $error.text(cqaFrontend.strings.error).show();
                             $btn.prop('disabled', false);
                             $btn.find('.cqa-btn-text').show();

@@ -280,7 +280,7 @@ const Dashboard = () => {
                 return <FeedbackSection />;
 
             default:
-                return <DashboardGrid data={data} refreshData={fetchData} onDocumentClick={handleView} />;
+                return <DashboardGrid data={data} refreshData={fetchData} onDocumentClick={handleView} onTabChange={setActiveTab} />;
         }
     };
 

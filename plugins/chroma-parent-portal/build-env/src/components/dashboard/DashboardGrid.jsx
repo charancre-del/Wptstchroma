@@ -8,7 +8,7 @@ import PDFCard from '../common/PDFCard';
 import UploadModal from '../common/UploadModal';
 import PDFViewerModal from '../common/PDFViewerModal';
 
-const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
+const DashboardGrid = ({ data, refreshData, onDocumentClick, onTabChange }) => {
     const { user } = useAuth();
     const [showUpload, setShowUpload] = useState(false);
     const [uploadType, setUploadType] = useState('cp_lesson_plan');
@@ -52,28 +52,31 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
             {/* Main Sections */}
             <div className="grid-container" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '30px' }}>
 
-                {/* Lesson Plans */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3>Lesson Plans</h3>
+                        <h3 onClick={() => onTabChange('lessons')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            Lesson Plans <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>→</span>
+                        </h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_lesson_plan')} className="add-btn">+ Add New</button>}
                     </div>
                     <LessonPlanSection items={data.lesson_plans} type="lesson" onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
-                {/* Home Activities */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3>Home Activities</h3>
+                        <h3 onClick={() => onTabChange('home_activities')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            Home Activities <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>→</span>
+                        </h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_home_activity')} className="add-btn">+ Add New</button>}
                     </div>
                     <LessonPlanSection items={data.home_activities} type="activity" onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
-                {/* Meal Plans */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3>Meal Plans</h3>
+                        <h3 onClick={() => onTabChange('meals')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            Meal Plans <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>→</span>
+                        </h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_meal_plan')} className="add-btn">+ Add New</button>}
                     </div>
                     <MealPlansSection items={data.meal_plans} onView={handleView} onDelete={refreshData} />
@@ -81,28 +84,31 @@ const DashboardGrid = ({ data, refreshData, onDocumentClick }) => {
 
 
 
-                {/* Resources Card */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3>Resources</h3>
+                        <h3 onClick={() => onTabChange('resources')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            Resources <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>→</span>
+                        </h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_resource')} className="add-btn">+ Add</button>}
                     </div>
                     <LessonPlanSection items={data.resources} type="resource" onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
-                {/* Policies Card */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3>Policies & Procedures</h3>
+                        <h3 onClick={() => onTabChange('policies')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            Policies & Procedures <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>→</span>
+                        </h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_form')} className="add-btn">+ Add</button>}
                     </div>
                     <LessonPlanSection items={data.forms} type="policy" onView={handleView} onDelete={refreshData} />
                 </motion.div>
 
-                {/* Events Section */}
                 <motion.div variants={itemVariants} className="glass-card section-card">
                     <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                        <h3>School Events</h3>
+                        <h3 onClick={() => onTabChange('events')} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            School Events <span style={{ fontSize: '0.8rem', opacity: 0.5 }}>→</span>
+                        </h3>
                         {data.is_admin && <button onClick={() => handleUploadClick('cp_event')} className="add-btn">+ Add Event</button>}
                     </div>
                     <div className="event-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '15px' }}>

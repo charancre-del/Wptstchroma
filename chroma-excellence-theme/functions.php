@@ -615,3 +615,25 @@ add_action('wp_footer', function () {
     echo "Peak Memory: $memory MB\n";
     echo "-->\n";
 }, 999);
+
+/**
+ * Register [chroma_contact_form] shortcode
+ */
+function chroma_register_contact_form_shortcode()
+{
+    add_shortcode('chroma_contact_form', 'chroma_render_contact_form');
+}
+add_action('init', 'chroma_register_contact_form_shortcode');
+
+/**
+ * Render Contact Form
+ */
+/**
+ * Render Contact Form (AJAX Enhanced)
+ * Used in page-contact.php via [chroma_contact_form] shortcode.
+ * RESTORED: Now uses the Chroma Tour Form plugin for GHL integration.
+ */
+function chroma_render_contact_form()
+{
+    return do_shortcode('[chroma_tour_form]');
+}

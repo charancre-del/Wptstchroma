@@ -119,11 +119,27 @@ class Frontend_Controller
             return;
         }
 
+        // Prevent Caching for all QA pages
+        nocache_headers();
+
         // Check authentication for protected pages
         $public_pages = ['login', 'oauth_callback'];
         if (!in_array($page, $public_pages) && !is_user_logged_in()) {
             wp_redirect(home_url('/qa-reports/login/'));
             exit;
+        }
+
+        // Failsafe: If user is administrator, ensure they have CQA caps
+        if (current_user_can('manage_options')) {
+            $user = wp_get_current_user();
+            if (
+                !user_can($user, 'cqa_create_reports') ||
+                !user_can($user, 'cqa_view_all_reports') ||
+                !user_can($user, 'cqa_view_own_reports')
+            ) {
+                require_once CQA_PLUGIN_DIR . 'includes/class-activator.php';
+                \ChromaQA\Activator::add_caps(); // Use fully qualified name if namespace is different
+            }
         }
 
         // Check capabilities for protected pages
@@ -132,7 +148,11 @@ class Frontend_Controller
             && !current_user_can('cqa_view_all_reports')
             && !current_user_can('cqa_view_own_reports')
         ) { // Ensure basic view cap is checked
-            wp_die(__('You do not have permission to access QA Reports.', 'chroma-qa-reports'));
+            if (is_user_logged_in()) {
+                wp_die(__('You do not have permission to access QA Reports. Please contact your administrator.', 'chroma-qa-reports'), __('Access Denied', 'chroma-qa-reports'), ['response' => 403]);
+            }
+            wp_redirect(home_url('/qa-reports/login/'));
+            exit;
         }
 
         // Load the appropriate template
@@ -295,11 +315,18 @@ class Frontend_Controller
      */
     public static function ajax_login()
     {
-        check_ajax_referer('cqa_frontend_login', 'nonce');
+        error_log('CQA DEBUG: ajax_login called');
 
-        $username = sanitize_user($_POST['username'] ?? '');
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'cqa_frontend_login')) {
+            error_log('CQA DEBUG: nonce verification failed');
+            wp_send_json_error(['message' => __('Security check failed. Please refresh the page.', 'chroma-qa-reports')]);
+        }
+
+        $username = sanitize_text_field($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
         $remember = !empty($_POST['remember']);
+
+        error_log('CQA DEBUG: Attempting login for user: ' . $username);
 
         if (empty($username) || empty($password)) {
             wp_send_json_error(['message' => __('Please enter username and password.', 'chroma-qa-reports')]);
@@ -312,8 +339,11 @@ class Frontend_Controller
         ]);
 
         if (is_wp_error($user)) {
+            error_log('CQA DEBUG: wp_signon failed: ' . $user->get_error_message());
             wp_send_json_error(['message' => __('Invalid username or password.', 'chroma-qa-reports')]);
         }
+
+        error_log('CQA DEBUG: wp_signon success for user ID: ' . $user->ID);
 
         // Check if user has QA capabilities
         if (
@@ -321,9 +351,12 @@ class Frontend_Controller
             && !user_can($user, 'cqa_view_all_reports')
             && !user_can($user, 'cqa_view_own_reports')
         ) {
+            error_log('CQA DEBUG: User lacks QA capabilities. Logging out.');
             wp_logout();
             wp_send_json_error(['message' => __('You do not have access to QA Reports.', 'chroma-qa-reports')]);
         }
+
+        error_log('CQA DEBUG: Login finalized, sending redirect.');
 
         wp_send_json_success([
             'redirect' => home_url('/qa-reports/'),
