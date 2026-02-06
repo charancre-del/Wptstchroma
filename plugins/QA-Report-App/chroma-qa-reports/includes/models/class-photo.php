@@ -34,6 +34,7 @@ class Photo
     public $has_markup;
     public $sort_order;
     public $created_at;
+    public $deleted_at;
 
     /**
      * Get table name.
@@ -71,20 +72,49 @@ class Photo
      * @param int $report_id Report ID.
      * @return Photo[]
      */
-    public static function get_by_report($report_id)
+    public static function get_by_report($report_id, $include_deleted = false)
     {
         global $wpdb;
         $table = self::get_table_name();
 
+        $deleted_clause = $include_deleted ? '' : 'AND deleted_at IS NULL';
         $rows = $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM {$table} WHERE report_id = %d ORDER BY section_key, sort_order",
+                "SELECT * FROM {$table} WHERE report_id = %d {$deleted_clause} ORDER BY section_key, sort_order",
                 $report_id
             ),
             \ARRAY_A
         );
 
         return array_map([self::class, 'from_row'], $rows);
+    }
+
+    /**
+     * Get photos as array for snapshot storage.
+     *
+     * @param int $report_id Report ID.
+     * @return array
+     */
+    public static function get_by_report_array($report_id)
+    {
+        $photos = self::get_by_report($report_id);
+        $result = [];
+
+        foreach ($photos as $photo) {
+            $result[] = [
+                'id' => $photo->id,
+                'section_key' => $photo->section_key,
+                'item_key' => $photo->item_key,
+                'location_tag' => $photo->location_tag,
+                'drive_file_id' => $photo->drive_file_id,
+                'filename' => $photo->filename,
+                'caption' => $photo->caption,
+                'has_markup' => $photo->has_markup,
+                'sort_order' => $photo->sort_order,
+            ];
+        }
+
+        return $result;
     }
 
     /**
@@ -129,6 +159,7 @@ class Photo
         $photo->has_markup = (bool) $row['has_markup'];
         $photo->sort_order = (int) $row['sort_order'];
         $photo->created_at = $row['created_at'];
+        $photo->deleted_at = $row['deleted_at'] ?? null;
         return $photo;
     }
 
@@ -224,6 +255,66 @@ class Photo
         }
 
         return $wpdb->delete(self::get_table_name(), ['id' => $this->id], ['%d']) !== false;
+    }
+
+    /**
+     * Soft delete the photo (mark as deleted without removing files).
+     *
+     * @return bool
+     */
+    public function soft_delete()
+    {
+        if (!$this->id) {
+            return false;
+        }
+
+        global $wpdb;
+        $table = self::get_table_name();
+
+        $result = $wpdb->update(
+            $table,
+            ['deleted_at' => \current_time('mysql')],
+            ['id' => $this->id],
+            ['%s'],
+            ['%d']
+        );
+
+        if ($result !== false) {
+            $this->deleted_at = \current_time('mysql');
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Restore a soft-deleted photo.
+     *
+     * @return bool
+     */
+    public function restore()
+    {
+        if (!$this->id) {
+            return false;
+        }
+
+        global $wpdb;
+        $table = self::get_table_name();
+
+        $result = $wpdb->update(
+            $table,
+            ['deleted_at' => null],
+            ['id' => $this->id],
+            [null],
+            ['%d']
+        );
+
+        if ($result !== false) {
+            $this->deleted_at = null;
+            return true;
+        }
+
+        return false;
     }
 
     /**

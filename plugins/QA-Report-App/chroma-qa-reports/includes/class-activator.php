@@ -138,12 +138,35 @@ class Activator
             UNIQUE KEY report_id (report_id)
         ) $charset_collate;";
 
+        // Report Snapshots table (versioning)
+        $sql_snapshots = "CREATE TABLE {$prefix}report_snapshots (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            report_id BIGINT(20) UNSIGNED NOT NULL,
+            version_number INT UNSIGNED NOT NULL,
+            snapshot_data LONGTEXT NOT NULL,
+            change_summary VARCHAR(255) DEFAULT '',
+            user_id BIGINT(20) UNSIGNED NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY report_id (report_id),
+            KEY version_number (version_number),
+            KEY report_version (report_id, version_number)
+        ) $charset_collate;";
+
         // Run table creation
         dbDelta($sql_schools);
         dbDelta($sql_reports);
         dbDelta($sql_responses);
         dbDelta($sql_photos);
         dbDelta($sql_ai_summaries);
+        dbDelta($sql_snapshots);
+
+        // Add deleted_at column to photos for soft-delete (if not exists)
+        $photos_table = $prefix . 'photos';
+        $column_exists = $wpdb->get_var("SHOW COLUMNS FROM {$photos_table} LIKE 'deleted_at'");
+        if (!$column_exists) {
+            $wpdb->query("ALTER TABLE {$photos_table} ADD COLUMN deleted_at DATETIME DEFAULT NULL");
+        }
 
         // Store DB version
         update_option('cqa_db_version', CQA_VERSION);

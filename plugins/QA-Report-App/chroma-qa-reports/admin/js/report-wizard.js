@@ -23,7 +23,7 @@
         isSaving: false,
         photos: [],
         schoolOptions: [], // QAR-048 Cache
-        schoolOptions: [], // QAR-048 Cache
+        isHydrating: false, // [P1 FIX] Track hydration state
 
         /**
          * Initialize the wizard
@@ -35,6 +35,12 @@
             this.initAutosave();
             this.initPhotoUploader();
             this.cacheSchoolOptions(); // QAR-048
+
+            // [FIX] Load saved responses if editing
+            if (this.reportId) {
+                this.isHydrating = true;
+                this.loadSavedResponses();
+            }
         },
 
         /**
@@ -456,6 +462,12 @@
         nextStep: function () {
             if (this.currentStep >= this.totalSteps) return;
 
+            // [P1 FIX] Block navigation while hydrating saved responses
+            if (this.isHydrating) {
+                CQA.notify.info('Loading saved data, please wait...');
+                return;
+            }
+
             // Validate current step
             if (!this.validateStep(this.currentStep)) {
                 return;
@@ -586,6 +598,11 @@
          * Collect checklist responses
          */
         collectChecklistResponses: function () {
+            // [FIX] Safety check: If DOM is empty (Step 2 not visited), return existing data
+            if ($('.cqa-checklist-item').length === 0) {
+                return this.reportData.responses || null; // Return null to avoid overwriting with {}
+            }
+
             var responses = {};
 
             $('.cqa-checklist-item').each(function () {
@@ -606,6 +623,23 @@
             });
 
             return responses;
+        },
+
+        /**
+         * [FIX] Load saved responses from server
+         */
+        loadSavedResponses: function () {
+            var self = this;
+            if (!this.reportId) return;
+
+            CQA.api.get('reports/' + this.reportId + '/responses').done(function (responses) {
+                if (responses) {
+                    if (!self.reportData.responses) self.reportData.responses = {};
+                    self.reportData.responses = responses;
+                }
+            }).always(function () {
+                self.isHydrating = false;
+            });
         },
 
         /**
@@ -676,16 +710,38 @@
         renderChecklistItem: function (sectionKey, item) {
             var name = 'responses[' + sectionKey + '][' + item.key + ']';
 
+            // [FIX] Get saved value
+            var savedRating = 'na';
+            var savedNotes = '';
+
+            if (this.reportData.responses &&
+                this.reportData.responses[sectionKey] &&
+                this.reportData.responses[sectionKey][item.key]) {
+                var saved = this.reportData.responses[sectionKey][item.key];
+                savedRating = saved.rating || 'na';
+                savedNotes = saved.notes || '';
+            }
+
             var html = '<div class="cqa-checklist-item" data-section="' + sectionKey + '" data-item="' + item.key + '">';
             html += '<div class="item-label">' + item.label + '</div>';
             html += '<div class="item-rating">';
-            html += '<label class="rating-option"><input type="radio" name="' + name + '[rating]" value="yes"> <span class="rating-yes">✓ Yes</span></label>';
-            html += '<label class="rating-option"><input type="radio" name="' + name + '[rating]" value="sometimes"> <span class="rating-sometimes">~ Sometimes</span></label>';
-            html += '<label class="rating-option"><input type="radio" name="' + name + '[rating]" value="no"> <span class="rating-no">✗ No</span></label>';
-            html += '<label class="rating-option"><input type="radio" name="' + name + '[rating]" value="na" checked> <span class="rating-na">— N/A</span></label>';
+
+            var ratings = ['yes', 'sometimes', 'no', 'na'];
+            var labels = {
+                'yes': '✓ Yes',
+                'sometimes': '~ Sometimes',
+                'no': '✗ No',
+                'na': '— N/A'
+            };
+
+            ratings.forEach(function (r) {
+                var checked = (r === savedRating) ? 'checked' : '';
+                html += '<label class="rating-option"><input type="radio" name="' + name + '[rating]" value="' + r + '" ' + checked + '> <span class="rating-' + r + '">' + labels[r] + '</span></label>';
+            });
+
             html += '</div>';
             html += '<div class="item-notes">';
-            html += '<textarea name="' + name + '[notes]" placeholder="Notes (optional)"></textarea>';
+            html += '<textarea name="' + name + '[notes]" placeholder="Notes (optional)">' + savedNotes + '</textarea>';
             html += '</div>';
             html += '</div>';
 

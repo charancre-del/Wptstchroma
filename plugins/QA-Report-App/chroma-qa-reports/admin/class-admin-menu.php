@@ -298,6 +298,17 @@ class Admin_Menu
                 true
             );
         }
+
+        // Version History for report view page
+        if (strpos($hook, 'view') !== false) {
+            wp_enqueue_script(
+                'cqa-version-history',
+                CQA_PLUGIN_URL . 'admin/js/version-history.js',
+                ['jquery', 'cqa-admin-scripts'],
+                CQA_VERSION,
+                true
+            );
+        }
     }
 
     /**

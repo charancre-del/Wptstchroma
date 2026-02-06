@@ -227,6 +227,25 @@ class REST_Controller
             'callback' => [$this, 'get_system_status'],
             'permission_callback' => [$this, 'check_manage_options_permission'],
         ]);
+
+        // Report Versions (Versioning System)
+        \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/versions', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_report_versions'],
+            'permission_callback' => [$this, 'check_read_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/versions/(?P<version>\d+)', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_report_version'],
+            'permission_callback' => [$this, 'check_read_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/restore/(?P<version>\d+)', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'restore_report_version'],
+            'permission_callback' => [$this, 'check_edit_reports_permission'],
+        ]);
     }
 
     /**
@@ -1965,5 +1984,87 @@ class REST_Controller
         }
 
         return new \WP_REST_Response($models, 200);
+    }
+
+    /**
+     * Get all versions for a report.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function get_report_versions($request)
+    {
+        $report_id = (int) $request['id'];
+
+        $report = Report::find($report_id);
+        if (!$report) {
+            return new \WP_Error('not_found', 'Report not found', ['status' => 404]);
+        }
+
+        $versions = \ChromaQA\Models\Report_Snapshot::get_versions($report_id);
+
+        return new \WP_REST_Response([
+            'report_id' => $report_id,
+            'current_version' => $report->version_id,
+            'versions' => $versions,
+        ]);
+    }
+
+    /**
+     * Get a specific version snapshot.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function get_report_version($request)
+    {
+        $report_id = (int) $request['id'];
+        $version = (int) $request['version'];
+
+        $report = Report::find($report_id);
+        if (!$report) {
+            return new \WP_Error('not_found', 'Report not found', ['status' => 404]);
+        }
+
+        $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, $version);
+        if (!$snapshot) {
+            return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
+        }
+
+        return new \WP_REST_Response($snapshot);
+    }
+
+    /**
+     * Restore a report to a previous version.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function restore_report_version($request)
+    {
+        $report_id = (int) $request['id'];
+        $version = (int) $request['version'];
+
+        $report = Report::find($report_id);
+        if (!$report) {
+            return new \WP_Error('not_found', 'Report not found', ['status' => 404]);
+        }
+
+        $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, $version);
+        if (!$snapshot) {
+            return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
+        }
+
+        $success = \ChromaQA\Models\Report_Snapshot::restore($report_id, $version);
+
+        if (!$success) {
+            return new \WP_Error('restore_failed', 'Failed to restore version', ['status' => 500]);
+        }
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'message' => "Report restored to version {$version}",
+            'new_version' => \ChromaQA\Models\Report_Snapshot::get_latest_version($report_id),
+        ]);
     }
 }

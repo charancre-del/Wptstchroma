@@ -332,12 +332,18 @@ class Report
     /**
      * Save the report.
      *
+     * @param string $change_summary Optional description of what changed.
      * @return bool|int
      */
-    public function save()
+    public function save($change_summary = '')
     {
         global $wpdb;
         $table = self::get_table_name();
+
+        // Create snapshot before updating existing report
+        if ($this->id) {
+            Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report updated');
+        }
 
         $data = [
             'school_id' => $this->school_id,

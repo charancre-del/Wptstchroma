@@ -97,6 +97,33 @@ class Checklist_Response
     }
 
     /**
+     * Get responses as nested array for snapshot storage.
+     *
+     * @param int $report_id Report ID.
+     * @return array Nested array suitable for JSON storage.
+     */
+    public static function get_by_report_array($report_id)
+    {
+        $responses = self::get_by_report($report_id);
+        $result = [];
+
+        foreach ($responses as $response) {
+            if (!isset($result[$response->section_key])) {
+                $result[$response->section_key] = [];
+            }
+            $result[$response->section_key][$response->item_key] = [
+                'rating' => $response->rating,
+                'notes' => $response->notes,
+                'evidence_type' => $response->evidence_type,
+                'previous_rating' => $response->previous_rating,
+                'previous_notes' => $response->previous_notes,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * Create from database row.
      *
      * @param array $row Database row.
@@ -157,11 +184,12 @@ class Checklist_Response
     /**
      * Bulk save responses for a report.
      *
-     * @param int   $report_id Report ID.
-     * @param array $responses Array of response data.
+     * @param int   $report_id    Report ID.
+     * @param array $responses    Array of response data.
+     * @param bool  $force_replace If true, delete all existing responses first (full replace mode).
      * @return bool
      */
-    public static function bulk_save($report_id, $responses)
+    public static function bulk_save($report_id, $responses, $force_replace = false)
     {
         global $wpdb;
         $table = self::get_table_name();
@@ -174,33 +202,45 @@ class Checklist_Response
         $wpdb->query('START TRANSACTION');
 
         try {
-            // Delete existing responses for this report
-            $deleted = $wpdb->delete($table, ['report_id' => $report_id], ['%d']);
-
-            if ($deleted === false) {
-                throw new \Exception('Failed to clear existing responses.');
+            // Force replace mode: delete all existing responses first
+            if ($force_replace) {
+                $wpdb->delete($table, ['report_id' => $report_id], ['%d']);
             }
 
-            // Insert new responses
+            // [P2 FIX] Use UPSERT pattern instead of DELETE-INSERT
+            // This prevents data wipe if empty/partial data is sent
             foreach ($responses as $section_key => $items) {
                 foreach ($items as $item_key => $data) {
-                    $insert_result = $wpdb->insert(
-                        $table,
-                        [
-                            'report_id' => $report_id,
-                            'section_key' => $section_key,
-                            'item_key' => $item_key,
-                            'rating' => $data['rating'] ?? self::RATING_NA,
-                            'notes' => $data['notes'] ?? '',
-                            'evidence_type' => $data['evidence_type'] ?? 'observation',
-                            'previous_rating' => $data['previous_rating'] ?? '',
-                            'previous_notes' => $data['previous_notes'] ?? '',
-                        ],
-                        ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s']
-                    );
+                    // Check if response already exists
+                    $existing_id = $wpdb->get_var($wpdb->prepare(
+                        "SELECT id FROM {$table} WHERE report_id = %d AND section_key = %s AND item_key = %s",
+                        $report_id,
+                        $section_key,
+                        $item_key
+                    ));
 
-                    if ($insert_result === false) {
-                        throw new \Exception("Failed to insert response for {$section_key}/{$item_key}.");
+                    $record = [
+                        'report_id' => $report_id,
+                        'section_key' => \sanitize_text_field($section_key),
+                        'item_key' => \sanitize_text_field($item_key),
+                        'rating' => \sanitize_text_field($data['rating'] ?? self::RATING_NA),
+                        'notes' => \sanitize_textarea_field($data['notes'] ?? ''),
+                        'evidence_type' => \sanitize_text_field($data['evidence_type'] ?? 'observation'),
+                        'previous_rating' => \sanitize_text_field($data['previous_rating'] ?? ''),
+                        'previous_notes' => \sanitize_textarea_field($data['previous_notes'] ?? ''),
+                    ];
+                    $format = ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
+
+                    if ($existing_id) {
+                        // UPDATE existing record
+                        $result = $wpdb->update($table, $record, ['id' => $existing_id], $format, ['%d']);
+                    } else {
+                        // INSERT new record
+                        $result = $wpdb->insert($table, $record, $format);
+                    }
+
+                    if ($result === false) {
+                        throw new \Exception("Failed to save response for {$section_key}/{$item_key}.");
                     }
                 }
             }

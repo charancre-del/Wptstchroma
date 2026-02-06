@@ -38,6 +38,9 @@ add_action('wp', function () {
         add_filter('theme_mod_chroma_header_scripts', '__return_empty_string', 999);
         add_filter('theme_mod_chroma_footer_scripts', '__return_empty_string', 999);
         add_filter('theme_mod_chroma_custom_scripts', '__return_empty_string', 999);
+
+        // 3. Prevent Caching (Fix "Cookie Check Failed" stale nonce issue)
+        nocache_headers();
     }
 }, 1);
 

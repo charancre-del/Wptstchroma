@@ -75,37 +75,58 @@ const LoginScreen = () => {
                     <p style={{ color: '#64748b', fontWeight: '500' }}>Enter your security PIN to access resources</p>
                 </div>
 
-                <div className="pin-display">
-                    {[...Array(4)].map((_, i) => (
-                        <div key={i} className={`digit ${pin.length > i ? 'active' : ''}`}></div>
-                    ))}
-                </div>
-
                 {error && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ color: '#ef4444', marginBottom: '20px', fontWeight: '600' }}>{error}</motion.div>}
 
-                <div className="pin-grid">
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
-                        <button key={num} onClick={() => handleNumClick(num)}>{num}</button>
-                    ))}
-                    <button onClick={handleClear} className="clear">C</button>
-                    <button onClick={() => handleNumClick(0)}>0</button>
-                    <button onClick={handleBackspace}>←</button>
-                </div>
+                <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+                    <div className="input-group" style={{ marginBottom: '30px' }}>
+                        <input
+                            type="password"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            autoComplete="current-password"
+                            placeholder="Enter PIN"
+                            value={pin}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                setPin(val);
+                                setError('');
+                            }}
+                            autoFocus
+                            style={{
+                                width: '100%',
+                                padding: '15px 20px',
+                                fontSize: '24px',
+                                textAlign: 'center',
+                                border: '2px solid #e2e8f0',
+                                borderRadius: '15px',
+                                background: '#f8fafc',
+                                color: '#1e293b',
+                                letterSpacing: '0.5em',
+                                outline: 'none'
+                            }}
+                        />
+                    </div>
 
-                <button
-                    onClick={handleSubmit}
-                    className="portal-btn"
-                    style={{
-                        marginTop: '40px',
-                        width: '100%',
-                        padding: '16px',
-                        fontSize: '1.1rem',
-                        background: 'linear-gradient(135deg, #6366f1, #0ea5e9)'
-                    }}
-                    disabled={isSubmitting}
-                >
-                    {isSubmitting ? 'Verifying...' : 'Access Portal'}
-                </button>
+                    <button
+                        type="submit"
+                        className="portal-btn"
+                        style={{
+                            width: '100%',
+                            padding: '16px',
+                            fontSize: '1.1rem',
+                            fontWeight: '600',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '15px',
+                            cursor: 'pointer',
+                            background: 'linear-gradient(135deg, #6366f1, #0ea5e9)',
+                            opacity: isSubmitting ? 0.7 : 1
+                        }}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? 'Verifying...' : 'Access Portal'}
+                    </button>
+                </form>
             </div>
         </div>
     );

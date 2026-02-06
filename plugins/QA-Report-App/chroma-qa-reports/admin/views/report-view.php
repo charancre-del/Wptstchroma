@@ -481,9 +481,23 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
                     </div>
                 </div>
             <?php endif; ?>
+
+            <!-- Version History -->
+            <div class="cqa-card no-print" id="cqa-version-history">
+                <div class="cqa-card-header">
+                    <h2>
+                        <span class="dashicons dashicons-backup"></span>
+                        <?php esc_html_e('Version History', 'chroma-qa-reports'); ?>
+                    </h2>
+                </div>
+                <div class="cqa-card-body cqa-version-list">
+                    <p class="cqa-version-loading"><?php esc_html_e('Loading versions...', 'chroma-qa-reports'); ?></p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
 
 <style>
     .print-only {
@@ -661,12 +675,306 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
             border: 0.5pt solid #ccc;
         }
     }
+
+    /* Version History Styles */
+    .cqa-versions {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .cqa-version-item {
+        padding: 12px;
+        border-bottom: 1px solid var(--cqa-gray-100, #f3f4f6);
+        position: relative;
+    }
+    
+    .cqa-version-item:last-child {
+        border-bottom: none;
+    }
+    
+    .cqa-version-item.current {
+        background: linear-gradient(135deg, #eff6ff, #dbeafe);
+        border-radius: var(--cqa-radius-sm, 8px);
+        border-bottom: none;
+        margin-bottom: 8px;
+    }
+    
+    .cqa-version-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 4px;
+    }
+    
+    .cqa-version-header strong {
+        color: var(--cqa-primary, #6366f1);
+        font-size: 14px;
+    }
+    
+    .cqa-version-time {
+        font-size: 11px;
+        color: var(--cqa-gray-500, #6b7280);
+    }
+    
+    .cqa-version-meta {
+        font-size: 12px;
+        color: var(--cqa-gray-600, #4b5563);
+        margin-bottom: 6px;
+    }
+    
+    .cqa-version-user {
+        display: block;
+        font-size: 11px;
+        color: var(--cqa-gray-400, #9ca3af);
+        margin-top: 2px;
+    }
+    
+    .cqa-btn-restore {
+        background: transparent;
+        border: 1px solid var(--cqa-primary, #6366f1);
+        color: var(--cqa-primary, #6366f1);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .cqa-btn-restore:hover {
+        background: var(--cqa-primary, #6366f1);
+        color: white;
+    }
+    
+    .cqa-btn-restore:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .cqa-current-tag {
+        display: inline-block;
+        background: var(--cqa-primary, #6366f1);
+        color: white;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 600;
+    }
+    
+    .cqa-version-loading,
+    .cqa-empty,
+    .cqa-error {
+        font-size: 13px;
+        color: var(--cqa-gray-500, #6b7280);
+        text-align: center;
+        padding: 16px 0;
+    }
+    
+    .cqa-error {
+        color: #dc2626;
+    }
+    
+    .cqa-versions-more {
+        font-size: 11px;
+        color: var(--cqa-gray-500, #6b7280);
+        text-align: center;
+        margin: 8px 0 0;
+    }
+
+    .cqa-version-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 8px;
+    }
+    
+    .cqa-btn-compare {
+        background: transparent;
+        border: 1px solid var(--cqa-gray-300, #d1d5db);
+        color: var(--cqa-gray-600, #4b5563);
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .cqa-btn-compare:hover {
+        background: var(--cqa-gray-100, #f3f4f6);
+        border-color: var(--cqa-gray-400, #9ca3af);
+    }
+
+    /* Comparison Modal */
+    .cqa-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .cqa-compare-modal-content {
+        background: white;
+        width: 90%;
+        max-width: 800px;
+        max-height: 80vh;
+        border-radius: 12px;
+        box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .cqa-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--cqa-gray-200, #e5e7eb);
+    }
+    
+    .cqa-modal-header h3 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--cqa-gray-900, #111827);
+    }
+    
+    .cqa-modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: var(--cqa-gray-400, #9ca3af);
+        line-height: 1;
+    }
+    
+    .cqa-modal-close:hover {
+        color: var(--cqa-gray-600, #4b5563);
+    }
+    
+    .cqa-modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    
+    .cqa-compare-header-bar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding: 12px;
+        background: var(--cqa-gray-50, #f9fafb);
+        border-radius: 8px;
+    }
+    
+    .cqa-compare-label {
+        padding: 4px 12px;
+        border-radius: 4px;
+        font-weight: 600;
+        font-size: 13px;
+    }
+    
+    .cqa-compare-label.old {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    
+    .cqa-compare-label.current {
+        background: #dcfce7;
+        color: #166534;
+    }
+    
+    .cqa-compare-arrow {
+        color: var(--cqa-gray-400);
+        font-size: 18px;
+    }
+    
+    .cqa-compare-section {
+        margin-bottom: 20px;
+    }
+    
+    .cqa-compare-section h4 {
+        margin: 0 0 10px;
+        font-size: 14px;
+        color: var(--cqa-gray-700, #374151);
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--cqa-gray-100, #f3f4f6);
+    }
+    
+    .cqa-change-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .cqa-change-list li {
+        padding: 8px 0;
+        border-bottom: 1px solid var(--cqa-gray-50, #f9fafb);
+        font-size: 13px;
+    }
+    
+    .cqa-change-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .cqa-old-value {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 2px 6px;
+        border-radius: 3px;
+        text-decoration: line-through;
+    }
+    
+    .cqa-new-value {
+        background: #dcfce7;
+        color: #166534;
+        padding: 2px 6px;
+        border-radius: 3px;
+    }
+    
+    .cqa-change-arrow {
+        color: var(--cqa-gray-400);
+        margin: 0 6px;
+    }
+    
+    .cqa-change-added {
+        color: #166534;
+        font-weight: 500;
+    }
+    
+    .cqa-change-removed {
+        color: #991b1b;
+        font-weight: 500;
+    }
+    
+    .cqa-no-changes {
+        text-align: center;
+        color: var(--cqa-gray-500);
+        padding: 20px;
+    }
+    
+    .cqa-more-changes {
+        color: var(--cqa-gray-500);
+        font-style: italic;
+    }
+    
+    .cqa-loading {
+        text-align: center;
+        color: var(--cqa-gray-500);
+    }
  
     @media (max-width: 1024px) {
         .cqa-view-grid {
             grid-template-columns: 1fr;
         }
     }
+
+
 
     @media print {
 
