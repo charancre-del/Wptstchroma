@@ -107,6 +107,3 @@ function run_chroma_qa_reports()
 // Start the plugin
 // Start the plugin
 add_action('plugins_loaded', __NAMESPACE__ . '\\run_chroma_qa_reports');
-
-// Start the plugin
-add_action('plugins_loaded', __NAMESPACE__ . '\\run_chroma_qa_reports');

@@ -132,11 +132,13 @@ class Frontend_Controller
         error_log("CQA DEBUG: " . trim($log_entry));
 
         if (!in_array($page, $public_pages) && !$is_logged_in) {
-            $log_entry = date('Y-m-d H:i:s') . " - Redirecting to login (User not logged in)\n";
-            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-            error_log("CQA DEBUG: " . trim($log_entry));
-            wp_redirect(home_url('/qa-reports/login/'));
-            exit;
+            $debug_info = "CQA DEBUG: Access Denied. Redirection prevented for debugging.<br>";
+            $debug_info .= "Target Page: $page<br>";
+            $debug_info .= "Logged In: " . ($is_logged_in ? 'Yes' : 'NO') . "<br>";
+            $debug_info .= "User ID: " . get_current_user_id() . "<br>";
+            $debug_info .= "Headers Sent: " . (headers_sent() ? 'YES' : 'NO') . "<br>";
+            $debug_info .= "Cookies: " . print_r($_COOKIE, true) . "<br>";
+            wp_die($debug_info, "CQA Debug Mode", ['response' => 200]);
         }
 
         // Failsafe: If user is administrator, ensure they have CQA caps
@@ -347,6 +349,16 @@ class Frontend_Controller
         if (empty($username) || empty($password)) {
             wp_send_json_error(['message' => __('Please enter username and password.', 'chroma-qa-reports')]);
         }
+
+        // Check if headers are already sent
+        if (headers_sent($filename, $linenum)) {
+            $log_entry = date('Y-m-d H:i:s') . " - ERROR: Headers already sent in $filename on line $linenum\n";
+            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
+            error_log("CQA DEBUG: Headers already sent in $filename:$linenum");
+        }
+
+        $log_entry = date('Y-m-d H:i:s') . " - Login Attempt - SSL: " . (is_ssl() ? 'Yes' : 'No') . "\n";
+        file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
 
         $user = wp_signon([
             'user_login' => $username,
