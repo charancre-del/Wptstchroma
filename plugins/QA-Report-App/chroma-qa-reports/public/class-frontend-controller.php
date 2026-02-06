@@ -165,6 +165,17 @@ class Frontend_Controller
             exit;
         }
 
+        // Handle login form POST submission directly (not via AJAX).
+        // This ensures the Set-Cookie header and the redirect are in the same HTTP
+        // response, which reliably establishes the session. AJAX-based login via
+        // admin-ajax.php sets cookies in the XHR response, but browsers may not
+        // persist them for the subsequent page navigation.
+        if ($page === 'login' && 'POST' === $_SERVER['REQUEST_METHOD'] && !empty($_POST['username'])) {
+            self::handle_login_post();
+            // handle_login_post() always exits; this is a safety fallback
+            exit;
+        }
+
         // Redirect logged-in users away from login page ONLY if they have CQA access.
         // This prevents a redirect loop when a user is logged into WordPress but lacks
         // CQA capabilities: login.php would redirect to /qa-reports/, which redirects
@@ -339,22 +350,67 @@ class Frontend_Controller
     }
 
     /**
-     * AJAX login handler.
+     * Handle login form POST submission (non-AJAX).
+     *
+     * Processes credentials and sets the auth cookie in the same response as the
+     * redirect, which is more reliable than AJAX-based cookie setting.
+     */
+    private static function handle_login_post()
+    {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'cqa_frontend_login')) {
+            wp_redirect(home_url('/qa-reports/login/?error=security&message=' . urlencode('Security check failed. Please try again.')));
+            exit;
+        }
+
+        $username = sanitize_text_field($_POST['username']);
+        $password = $_POST['password'] ?? '';
+        $remember = !empty($_POST['remember']);
+
+        if (empty($username) || empty($password)) {
+            wp_redirect(home_url('/qa-reports/login/?error=missing&message=' . urlencode('Please enter username and password.')));
+            exit;
+        }
+
+        $user = wp_authenticate($username, $password);
+
+        if (is_wp_error($user)) {
+            wp_redirect(home_url('/qa-reports/login/?error=invalid&message=' . urlencode('Invalid username or password.')));
+            exit;
+        }
+
+        // Check CQA capabilities (administrators always get access)
+        if (
+            !user_can($user, 'manage_options')
+            && !user_can($user, 'cqa_create_reports')
+            && !user_can($user, 'cqa_view_all_reports')
+            && !user_can($user, 'cqa_view_own_reports')
+        ) {
+            wp_redirect(home_url('/qa-reports/login/?error=no_access&message=' . urlencode('You do not have access to QA Reports.')));
+            exit;
+        }
+
+        // Set auth cookie and redirect in the same response
+        wp_clear_auth_cookie();
+        wp_set_current_user($user->ID);
+        wp_set_auth_cookie($user->ID, $remember);
+        do_action('wp_login', $user->user_login, $user);
+
+        wp_safe_redirect(home_url('/qa-reports/'));
+        exit;
+    }
+
+    /**
+     * AJAX login handler (kept as fallback).
      */
     public static function ajax_login()
     {
-        error_log('CQA DEBUG: ajax_login called');
-
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'cqa_frontend_login')) {
-            error_log('CQA DEBUG: nonce verification failed');
             wp_send_json_error(['message' => __('Security check failed. Please refresh the page.', 'chroma-qa-reports')]);
         }
 
         $username = sanitize_text_field($_POST['username'] ?? '');
         $password = $_POST['password'] ?? '';
         $remember = !empty($_POST['remember']);
-
-        error_log('CQA DEBUG: Attempting login for user: ' . $username);
 
         if (empty($username) || empty($password)) {
             wp_send_json_error(['message' => __('Please enter username and password.', 'chroma-qa-reports')]);
@@ -367,15 +423,8 @@ class Frontend_Controller
         ]);
 
         if (is_wp_error($user)) {
-            $log_entry = date('Y-m-d H:i:s') . " - Login Failed: " . $user->get_error_message() . "\n";
-            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-            error_log('CQA DEBUG: wp_signon failed: ' . $user->get_error_message());
             wp_send_json_error(['message' => __('Invalid username or password.', 'chroma-qa-reports')]);
         }
-
-        $log_entry = date('Y-m-d H:i:s') . " - Login Success for User ID: " . $user->ID . "\n";
-        file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-        error_log('CQA DEBUG: wp_signon success for user ID: ' . $user->ID);
 
         // Check if user has QA capabilities (Administrators always get access)
         if (
@@ -384,12 +433,9 @@ class Frontend_Controller
             && !user_can($user, 'cqa_view_all_reports')
             && !user_can($user, 'cqa_view_own_reports')
         ) {
-            error_log('CQA DEBUG: User lacks QA capabilities. Logging out.');
             wp_logout();
             wp_send_json_error(['message' => __('You do not have access to QA Reports.', 'chroma-qa-reports')]);
         }
-
-        error_log('CQA DEBUG: Login finalized, sending redirect.');
 
         wp_send_json_success([
             'redirect' => home_url('/qa-reports/'),
