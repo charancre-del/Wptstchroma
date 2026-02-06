@@ -333,10 +333,13 @@ class Frontend_Controller
      */
     public static function ajax_login()
     {
-        error_log('CQA DEBUG: ajax_login called');
+        // Start output buffering to catch any premature output
+        ob_start();
+
+        // error_log('CQA DEBUG: ajax_login called');
 
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'cqa_frontend_login')) {
-            error_log('CQA DEBUG: nonce verification failed');
+            ob_end_clean(); // Discard any output
             wp_send_json_error(['message' => __('Security check failed. Please refresh the page.', 'chroma-qa-reports')]);
         }
 
@@ -344,21 +347,13 @@ class Frontend_Controller
         $password = $_POST['password'] ?? '';
         $remember = !empty($_POST['remember']);
 
-        error_log('CQA DEBUG: Attempting login for user: ' . $username);
-
         if (empty($username) || empty($password)) {
+            ob_end_clean();
             wp_send_json_error(['message' => __('Please enter username and password.', 'chroma-qa-reports')]);
         }
 
-        // Check if headers are already sent
-        if (headers_sent($filename, $linenum)) {
-            $log_entry = date('Y-m-d H:i:s') . " - ERROR: Headers already sent in $filename on line $linenum\n";
-            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-            error_log("CQA DEBUG: Headers already sent in $filename:$linenum");
-        }
-
-        $log_entry = date('Y-m-d H:i:s') . " - Login Attempt - SSL: " . (is_ssl() ? 'Yes' : 'No') . "\n";
-        file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
+        // Clean the buffer before signon to ensure headers can be sent
+        ob_end_clean();
 
         $user = wp_signon([
             'user_login' => $username,
@@ -367,15 +362,9 @@ class Frontend_Controller
         ]);
 
         if (is_wp_error($user)) {
-            $log_entry = date('Y-m-d H:i:s') . " - Login Failed: " . $user->get_error_message() . "\n";
-            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-            error_log('CQA DEBUG: wp_signon failed: ' . $user->get_error_message());
+            // error_log('CQA DEBUG: wp_signon failed: ' . $user->get_error_message());
             wp_send_json_error(['message' => __('Invalid username or password.', 'chroma-qa-reports')]);
         }
-
-        $log_entry = date('Y-m-d H:i:s') . " - Login Success for User ID: " . $user->ID . "\n";
-        file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-        error_log('CQA DEBUG: wp_signon success for user ID: ' . $user->ID);
 
         // Check if user has QA capabilities (Administrators always get access)
         if (
@@ -384,12 +373,9 @@ class Frontend_Controller
             && !user_can($user, 'cqa_view_all_reports')
             && !user_can($user, 'cqa_view_own_reports')
         ) {
-            error_log('CQA DEBUG: User lacks QA capabilities. Logging out.');
             wp_logout();
             wp_send_json_error(['message' => __('You do not have access to QA Reports.', 'chroma-qa-reports')]);
         }
-
-        error_log('CQA DEBUG: Login finalized, sending redirect.');
 
         wp_send_json_success([
             'redirect' => home_url('/qa-reports/'),
