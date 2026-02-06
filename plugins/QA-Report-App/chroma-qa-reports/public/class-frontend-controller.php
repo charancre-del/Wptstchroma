@@ -126,35 +126,22 @@ class Frontend_Controller
         $public_pages = ['login', 'oauth_callback'];
 
         $is_logged_in = is_user_logged_in();
-        $user_id = get_current_user_id();
-        $log_entry = date('Y-m-d H:i:s') . " - handle_routes - Page: $page, Logged In: " . ($is_logged_in ? 'Yes' : 'No') . ", User ID: $user_id\n";
-        file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-        error_log("CQA DEBUG: " . trim($log_entry));
 
         if (!in_array($page, $public_pages) && !$is_logged_in) {
-            $log_entry = date('Y-m-d H:i:s') . " - Redirecting to login (User not logged in)\n";
-            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-            error_log("CQA DEBUG: " . trim($log_entry));
             wp_redirect(home_url('/qa-reports/login/'));
             exit;
         }
 
         // Failsafe: If user is administrator, ensure they have CQA caps
         if (current_user_can('manage_options')) {
-            $log_entry = date('Y-m-d H:i:s') . " - User is admin, checking/granting caps\n";
-            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-            error_log("CQA DEBUG: " . trim($log_entry));
-
             $user = wp_get_current_user();
             if (
                 !user_can($user, 'cqa_create_reports') ||
                 !user_can($user, 'cqa_view_all_reports') ||
                 !user_can($user, 'cqa_view_own_reports')
             ) {
-                $log_entry = date('Y-m-d H:i:s') . " - Granting missing caps to admin via Activator::create_roles\n";
-                file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
                 require_once CQA_PLUGIN_DIR . 'includes/class-activator.php';
-                \ChromaQA\Activator::create_roles(); // Correct method name
+                \ChromaQA\Activator::create_roles();
             }
         }
 
@@ -169,6 +156,31 @@ class Frontend_Controller
             }
             wp_redirect(home_url('/qa-reports/login/'));
             exit;
+        }
+
+        // Handle OAuth callback before template loading to ensure redirects work
+        // (load_template outputs HTML via header.php, which prevents wp_redirect from working)
+        if ($page === 'oauth_callback') {
+            self::oauth_callback();
+            exit;
+        }
+
+        // Redirect logged-in users away from login page ONLY if they have CQA access.
+        // This prevents a redirect loop when a user is logged into WordPress but lacks
+        // CQA capabilities: login.php would redirect to /qa-reports/, which redirects
+        // back to /qa-reports/login/, creating an infinite loop.
+        if ($page === 'login' && $is_logged_in) {
+            $has_cqa_access = current_user_can('manage_options')
+                || current_user_can('cqa_create_reports')
+                || current_user_can('cqa_view_all_reports')
+                || current_user_can('cqa_view_own_reports');
+
+            if ($has_cqa_access) {
+                wp_redirect(home_url('/qa-reports/'));
+                exit;
+            }
+            // User is logged in but lacks CQA capabilities - fall through to show
+            // the login page with an appropriate message so they can switch accounts.
         }
 
         // Load the appropriate template
