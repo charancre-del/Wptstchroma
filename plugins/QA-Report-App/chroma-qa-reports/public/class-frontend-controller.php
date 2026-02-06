@@ -116,45 +116,34 @@ class Frontend_Controller
         }
 
         if (empty($page)) {
+            ob_end_clean(); // Clean buffer if no page is handled
             return;
         }
 
         // Prevent Caching for all QA pages
         nocache_headers();
 
+
         // Check authentication for protected pages
         $public_pages = ['login', 'oauth_callback'];
 
         $is_logged_in = is_user_logged_in();
         $user_id = get_current_user_id();
-        $log_entry = date('Y-m-d H:i:s') . " - handle_routes - Page: $page, Logged In: " . ($is_logged_in ? 'Yes' : 'No') . ", User ID: $user_id\n";
-        file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-        error_log("CQA DEBUG: " . trim($log_entry));
 
         if (!in_array($page, $public_pages) && !$is_logged_in) {
-            $debug_info = "CQA DEBUG: Access Denied. Redirection prevented for debugging.<br>";
-            $debug_info .= "Target Page: $page<br>";
-            $debug_info .= "Logged In: " . ($is_logged_in ? 'Yes' : 'NO') . "<br>";
-            $debug_info .= "User ID: " . get_current_user_id() . "<br>";
-            $debug_info .= "Headers Sent: " . (headers_sent() ? 'YES' : 'NO') . "<br>";
-            $debug_info .= "Cookies: " . print_r($_COOKIE, true) . "<br>";
-            wp_die($debug_info, "CQA Debug Mode", ['response' => 200]);
+            ob_end_clean(); // Clean buffer before redirect
+            wp_redirect(home_url('/qa-reports/login/'));
+            exit;
         }
 
         // Failsafe: If user is administrator, ensure they have CQA caps
         if (current_user_can('manage_options')) {
-            $log_entry = date('Y-m-d H:i:s') . " - User is admin, checking/granting caps\n";
-            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
-            error_log("CQA DEBUG: " . trim($log_entry));
-
             $user = wp_get_current_user();
             if (
                 !user_can($user, 'cqa_create_reports') ||
                 !user_can($user, 'cqa_view_all_reports') ||
                 !user_can($user, 'cqa_view_own_reports')
             ) {
-                $log_entry = date('Y-m-d H:i:s') . " - Granting missing caps to admin via Activator::create_roles\n";
-                file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
                 require_once CQA_PLUGIN_DIR . 'includes/class-activator.php';
                 \ChromaQA\Activator::create_roles(); // Correct method name
             }
@@ -333,9 +322,7 @@ class Frontend_Controller
      */
     public static function ajax_login()
     {
-        // Start output buffering to catch any premature output
         ob_start();
-
         // error_log('CQA DEBUG: ajax_login called');
 
         if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'cqa_frontend_login')) {
@@ -352,8 +339,7 @@ class Frontend_Controller
             wp_send_json_error(['message' => __('Please enter username and password.', 'chroma-qa-reports')]);
         }
 
-        // Clean the buffer before signon to ensure headers can be sent
-        ob_end_clean();
+        ob_end_clean(); // Clean buffer for headers
 
         $user = wp_signon([
             'user_login' => $username,

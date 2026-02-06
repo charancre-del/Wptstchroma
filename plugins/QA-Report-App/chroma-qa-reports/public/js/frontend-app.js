@@ -150,7 +150,11 @@
                         success: function (response) {
                             console.log('CQA: AJAX Success', response);
                             if (response.success) {
-                                window.location.href = response.data.redirect;
+                                if (window.location.href.includes('qa-reports') && !window.location.href.includes('login')) {
+                                    window.location.reload(true);
+                                } else {
+                                    window.location.href = response.data.redirect;
+                                }
                             } else {
                                 $error.text(response.data.message).show();
                                 $btn.prop('disabled', false);
