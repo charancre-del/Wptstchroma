@@ -124,19 +124,35 @@ class Frontend_Controller
 
         // Check authentication for protected pages
         $public_pages = ['login', 'oauth_callback'];
-        if (!in_array($page, $public_pages) && !is_user_logged_in()) {
+
+        $is_logged_in = is_user_logged_in();
+        $user_id = get_current_user_id();
+        $log_entry = date('Y-m-d H:i:s') . " - handle_routes - Page: $page, Logged In: " . ($is_logged_in ? 'Yes' : 'No') . ", User ID: $user_id\n";
+        file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
+        error_log("CQA DEBUG: " . trim($log_entry));
+
+        if (!in_array($page, $public_pages) && !$is_logged_in) {
+            $log_entry = date('Y-m-d H:i:s') . " - Redirecting to login (User not logged in)\n";
+            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
+            error_log("CQA DEBUG: " . trim($log_entry));
             wp_redirect(home_url('/qa-reports/login/'));
             exit;
         }
 
         // Failsafe: If user is administrator, ensure they have CQA caps
         if (current_user_can('manage_options')) {
+            $log_entry = date('Y-m-d H:i:s') . " - User is admin, checking/granting caps\n";
+            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
+            error_log("CQA DEBUG: " . trim($log_entry));
+
             $user = wp_get_current_user();
             if (
                 !user_can($user, 'cqa_create_reports') ||
                 !user_can($user, 'cqa_view_all_reports') ||
                 !user_can($user, 'cqa_view_own_reports')
             ) {
+                $log_entry = date('Y-m-d H:i:s') . " - Granting missing caps to admin via Activator::create_roles\n";
+                file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
                 require_once CQA_PLUGIN_DIR . 'includes/class-activator.php';
                 \ChromaQA\Activator::create_roles(); // Correct method name
             }
@@ -339,10 +355,14 @@ class Frontend_Controller
         ]);
 
         if (is_wp_error($user)) {
+            $log_entry = date('Y-m-d H:i:s') . " - Login Failed: " . $user->get_error_message() . "\n";
+            file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
             error_log('CQA DEBUG: wp_signon failed: ' . $user->get_error_message());
             wp_send_json_error(['message' => __('Invalid username or password.', 'chroma-qa-reports')]);
         }
 
+        $log_entry = date('Y-m-d H:i:s') . " - Login Success for User ID: " . $user->ID . "\n";
+        file_put_contents(CQA_PLUGIN_DIR . 'cqa-debug.log', $log_entry, FILE_APPEND);
         error_log('CQA DEBUG: wp_signon success for user ID: ' . $user->ID);
 
         // Check if user has QA capabilities (Administrators always get access)
