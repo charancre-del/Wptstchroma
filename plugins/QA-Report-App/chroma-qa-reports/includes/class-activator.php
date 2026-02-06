@@ -175,7 +175,7 @@ class Activator
     /**
      * Create custom user roles and capabilities.
      */
-    private static function create_roles()
+    public static function create_roles()
     {
         // QA Super Admin
         add_role(
