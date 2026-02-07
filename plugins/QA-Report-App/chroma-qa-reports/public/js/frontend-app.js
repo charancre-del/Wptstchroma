@@ -118,58 +118,16 @@
 
             initLogin: function () {
                 const $form = $('#cqa-login-form');
-                const $error = $('#cqa-login-error');
 
-                if ($form.length) {
-                    console.log('CQA: Login form initialized');
-                }
-
-                $form.on('submit', function (e) {
-                    e.preventDefault();
-                    console.log('CQA: Login form submitted');
-
-                    const $btn = $form.find('button[type="submit"]');
-
+                // Submit the form normally (server-side POST handles auth cookie + redirect).
+                // This ensures the Set-Cookie and Location headers are in the same response,
+                // which is more reliable than AJAX-based cookie setting.
+                $form.on('submit', function () {
+                    var $btn = $form.find('button[type="submit"]');
                     $btn.prop('disabled', true);
                     $btn.find('.cqa-btn-text').hide();
                     $btn.find('.cqa-btn-loading').show();
-                    $error.hide();
-
-                    console.log('CQA: Sending AJAX request to', cqaFrontend.ajaxUrl);
-
-                    $.ajax({
-                        url: cqaFrontend.ajaxUrl,
-                        method: 'POST',
-                        data: {
-                            action: 'cqa_frontend_login',
-                            username: $('#username').val(),
-                            password: $('#password').val(),
-                            remember: $('input[name="remember"]').is(':checked') ? 1 : 0,
-                            nonce: $('input[name="nonce"]').val()
-                        },
-                        success: function (response) {
-                            console.log('CQA: AJAX Success', response);
-                            if (response.success) {
-                                if (window.location.href.includes('qa-reports') && !window.location.href.includes('login')) {
-                                    window.location.reload(true);
-                                } else {
-                                    window.location.href = response.data.redirect;
-                                }
-                            } else {
-                                $error.text(response.data.message).show();
-                                $btn.prop('disabled', false);
-                                $btn.find('.cqa-btn-text').show();
-                                $btn.find('.cqa-btn-loading').hide();
-                            }
-                        },
-                        error: function (xhr, status, error) {
-                            console.error('CQA: AJAX Error', { status, error, response: xhr.responseText });
-                            $error.text(cqaFrontend.strings.error).show();
-                            $btn.prop('disabled', false);
-                            $btn.find('.cqa-btn-text').show();
-                            $btn.find('.cqa-btn-loading').hide();
-                        }
-                    });
+                    // Allow the form to submit normally (no e.preventDefault)
                 });
             },
 

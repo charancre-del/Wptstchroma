@@ -5,10 +5,10 @@
  * @package ChromaQAReports
  */
 
-if ( is_user_logged_in() ) {
-    wp_redirect( home_url( '/qa-reports/' ) );
-    exit;
-}
+// Note: The redirect for logged-in users WITH CQA capabilities is handled
+// in handle_routes() before any HTML output, to avoid redirect loops.
+// If we reach here and the user is logged in, they lack CQA capabilities.
+$cqa_user_logged_in_no_access = is_user_logged_in();
 ?>
 
 <div class="cqa-login-container">
@@ -18,6 +18,18 @@ if ( is_user_logged_in() ) {
             <h1>QA Reports</h1>
             <p>Sign in to continue</p>
         </div>
+
+        <?php if ( $cqa_user_logged_in_no_access ) : ?>
+            <div class="cqa-notice cqa-notice-error">
+                <p>
+                    <strong><?php esc_html_e( 'Access Denied', 'chroma-qa-reports' ); ?>:</strong>
+                    <?php esc_html_e( 'Your current account does not have permission to access QA Reports. Please sign in with an authorized account or contact your administrator.', 'chroma-qa-reports' ); ?>
+                </p>
+                <p style="margin-top: 8px;">
+                    <a href="<?php echo esc_url( wp_logout_url( home_url( '/qa-reports/login/' ) ) ); ?>" class="cqa-btn cqa-btn-sm"><?php esc_html_e( 'Sign out and try another account', 'chroma-qa-reports' ); ?></a>
+                </p>
+            </div>
+        <?php endif; ?>
 
         <?php if ( ! empty( $_GET['error'] ) ) : ?>
             <div class="cqa-notice cqa-notice-error">
