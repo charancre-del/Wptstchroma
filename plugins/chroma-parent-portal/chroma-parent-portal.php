@@ -45,6 +45,42 @@ add_action('wp', function () {
 }, 1);
 
 /**
+ * Ignore stale wp_rest nonces for public/token parent-portal routes.
+ *
+ * These routes do not rely on cookie authentication, but stale cached nonces
+ * can trigger WordPress "Cookie check failed" errors before route callbacks run.
+ */
+add_filter('rest_authentication_errors', function ($result) {
+    if (!is_wp_error($result) || 'rest_cookie_invalid_nonce' !== $result->get_error_code()) {
+        return $result;
+    }
+
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
+    if (false === strpos($request_uri, '/wp-json/chroma-portal/v1/')) {
+        return $result;
+    }
+
+    $is_login_route = false !== strpos($request_uri, '/wp-json/chroma-portal/v1/login');
+    $is_token_route = (
+        (
+            false !== strpos($request_uri, '/wp-json/chroma-portal/v1/content/dashboard')
+            || false !== strpos($request_uri, '/wp-json/chroma-portal/v1/years')
+            || false !== strpos($request_uri, '/wp-json/chroma-portal/v1/taxonomy/')
+        )
+        && !empty($_SERVER['HTTP_X_PORTAL_TOKEN'])
+    );
+
+    if ($is_login_route || $is_token_route) {
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('Chroma Parent Portal: bypassed stale rest nonce for token/public route.');
+        }
+        return null;
+    }
+
+    return $result;
+}, 20);
+
+/**
  * Cache Invalidation for Parent Portal (P0-4)
  */
 add_action('save_post', function ($post_id) {
@@ -114,6 +150,14 @@ add_action('wp_enqueue_scripts', function () {
         CHROMA_PORTAL_URL . 'build/index.css',
         [], // Remove dependency on Google Fonts
         $asset_file['version'] // Use build hash for versioning
+    );
+
+    wp_enqueue_script(
+        'chroma-portal-login-enhancements',
+        CHROMA_PORTAL_URL . 'assets/login-enhancements.js',
+        ['chroma-portal-app'],
+        CHROMA_PORTAL_VERSION,
+        true
     );
 
     wp_localize_script('chroma-portal-app', 'chromaPortalSettings', [

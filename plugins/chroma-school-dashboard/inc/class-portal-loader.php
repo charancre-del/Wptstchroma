@@ -56,19 +56,23 @@ class Chroma_School_Portal_Loader
 
         $css_url = CHROMA_SCHOOL_DB_URL . 'assets/dist/portal.css';
         $js_url = CHROMA_SCHOOL_DB_URL . 'assets/dist/portal.js';
+        $css_path = CHROMA_SCHOOL_DB_PATH . 'assets/dist/portal.css';
+        $js_path = CHROMA_SCHOOL_DB_PATH . 'assets/dist/portal.js';
+        $css_version = file_exists($css_path) ? (string) filemtime($css_path) : CHROMA_SCHOOL_VERSION;
+        $js_version = file_exists($js_path) ? (string) filemtime($js_path) : CHROMA_SCHOOL_VERSION;
 
         // Load fonts pre-emptively
         wp_enqueue_style('chroma-fonts', 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap', [], null);
 
         // Portal CSS
-        wp_enqueue_style('chroma-portal-css', $css_url, [], CHROMA_SCHOOL_VERSION);
+        wp_enqueue_style('chroma-portal-css', $css_url, [], $css_version);
 
         // React + ReactDOM (Core WP handles)
         wp_enqueue_script('react');
         wp_enqueue_script('react-dom');
 
         // Compiled Portal JS
-        wp_enqueue_script('chroma-portal-js', $js_url, ['react', 'react-dom'], CHROMA_SCHOOL_VERSION, true);
+        wp_enqueue_script('chroma-portal-js', $js_url, ['react', 'react-dom'], $js_version, true);
 
         // Pass config to JS
         wp_localize_script('chroma-portal-js', 'chromaPortalConfig', [

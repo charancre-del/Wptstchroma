@@ -24,6 +24,16 @@
         photos: [],
         schoolOptions: [], // QAR-048 Cache
         isHydrating: false, // [P1 FIX] Track hydration state
+        reportPayloadKeys: [
+            'school_id',
+            'report_type',
+            'inspection_date',
+            'previous_report_id',
+            'overall_rating',
+            'closing_notes',
+            'responses',
+            'status'
+        ],
 
         /**
          * Initialize the wizard
@@ -165,13 +175,7 @@
             this.isSaving = true;
             this.updateAutosaveStatus('saving');
 
-            // Collect all data
-            this.collectStepData(1);
-            this.collectStepData(2);
-            this.collectStepData(5);
-
-            var data = this.reportData;
-            data.status = 'draft';
+            var data = this.buildReportPayload('draft');
 
             var endpoint = this.reportId ? 'reports/' + this.reportId : 'reports';
             var method = this.reportId ? 'put' : 'post';
@@ -179,11 +183,7 @@
             CQA.api[method](endpoint, data).done(function (report) {
                 self.reportId = report.id;
                 $('#report_id').val(report.id);
-
-                // Save responses
-                if (data.responses && Object.keys(data.responses).length > 0) {
-                    CQA.api.post('reports/' + report.id + '/responses', { responses: data.responses });
-                }
+                self.syncResponsesFromServer(report.id);
 
                 self.isDirty = false;
                 self.updateAutosaveStatus('saved');
@@ -223,6 +223,75 @@
 
             $status.removeClass('saving saved unsaved error').addClass(statusClass);
             $status.find('.status-text').text(statusText);
+        },
+
+        /**
+         * Build canonical payload sent to REST API.
+         */
+        buildReportPayload: function (status) {
+            this.collectStepData(1);
+            this.collectStepData(2);
+            this.collectStepData(5);
+
+            var payload = {
+                school_id: parseInt(this.reportData.school_id, 10) || 0,
+                report_type: this.reportData.report_type || '',
+                inspection_date: this.reportData.inspection_date || '',
+                previous_report_id: this.reportData.previous_report_id || null,
+                overall_rating: this.reportData.overall_rating || '',
+                closing_notes: this.reportData.closing_notes || '',
+                status: status || 'draft'
+            };
+
+            if (
+                this.reportData.responses
+                && typeof this.reportData.responses === 'object'
+                && Object.keys(this.reportData.responses).length > 0
+            ) {
+                payload.responses = this.reportData.responses;
+            }
+
+            if (cqaAdmin.debug) {
+                this.logPayloadDebug(payload);
+            }
+
+            return payload;
+        },
+
+        /**
+         * Debug payload wiring in dev mode.
+         */
+        logPayloadDebug: function (payload) {
+            var keys = Object.keys(payload);
+            var unknown = keys.filter(function (key) {
+                return Wizard.reportPayloadKeys.indexOf(key) === -1;
+            });
+            var responseSections = payload.responses ? Object.keys(payload.responses).length : 0;
+            // eslint-disable-next-line no-console
+            console.debug('[CQA Wizard] Save payload', {
+                keys: keys,
+                unknownKeys: unknown,
+                responseSections: responseSections
+            });
+        },
+
+        /**
+         * Refresh local response snapshot after save.
+         */
+        syncResponsesFromServer: function (reportId) {
+            var self = this;
+            if (!reportId) return;
+
+            CQA.api.get('reports/' + reportId + '/responses').done(function (responses) {
+                if (responses && typeof responses === 'object') {
+                    self.reportData.responses = responses;
+                }
+            }).fail(function () {
+                if (cqaAdmin.debug) {
+                    // eslint-disable-next-line no-console
+                    console.warn('[CQA Wizard] Failed to refresh responses snapshot.');
+                }
+            });
         },
 
         /**
@@ -873,13 +942,7 @@
         saveDraft: function (callback) {
             var self = this;
 
-            // Collect all data
-            this.collectStepData(1);
-            this.collectStepData(2);
-            this.collectStepData(5);
-
-            var data = this.reportData;
-            data.status = 'draft';
+            var data = this.buildReportPayload('draft');
 
             var $btn = $('#save-draft');
             CQA.loading.show($btn);
@@ -890,11 +953,7 @@
             CQA.api[method](endpoint, data).done(function (report) {
                 self.reportId = report.id;
                 $('#report_id').val(report.id);
-
-                // Save responses
-                if (data.responses) {
-                    CQA.api.post('reports/' + report.id + '/responses', { responses: data.responses });
-                }
+                self.syncResponsesFromServer(report.id);
 
                 self.isDirty = false;
                 self.updateAutosaveStatus('saved');
@@ -923,11 +982,7 @@
                 return;
             }
 
-            // Collect all data
-            this.collectStepData(5);
-
-            var data = this.reportData;
-            data.status = 'submitted';
+            var data = this.buildReportPayload('submitted');
 
             var $btn = $('#submit-report');
             CQA.loading.show($btn);
@@ -937,11 +992,7 @@
 
             CQA.api[method](endpoint, data).done(function (report) {
                 self.reportId = report.id;
-
-                // Save responses
-                if (data.responses) {
-                    CQA.api.post('reports/' + report.id + '/responses', { responses: data.responses });
-                }
+                self.syncResponsesFromServer(report.id);
 
                 self.isDirty = false;
                 CQA.notify.success('Report submitted successfully!');

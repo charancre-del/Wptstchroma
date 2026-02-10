@@ -102,6 +102,7 @@ function chroma_tour_form_shortcode()
     ob_start();
     ?>
     <div class="chroma-tour-form-wrapper" data-lazy="<?php echo $lazy_load ? 'true' : 'false'; ?>"
+        data-chroma-ghl-container="1"
         data-delay="<?php echo esc_attr($lazy_delay); ?>">
         <!-- GHL Iframe - Official Embed -->
         <div class="chroma-ghl-iframe-container" style="min-height: <?php echo esc_attr($form_height); ?>px;">
@@ -133,54 +134,120 @@ function chroma_tour_form_shortcode()
             display: block;
         }
     </style>
+    <script>
+        (function () {
+            var GLOBAL_KEY = '__chromaGhlIntentLoader';
+            var loader = window[GLOBAL_KEY];
 
-    <?php if ($lazy_load): ?>
-        <script>
-            (function () {
-                var loaded = false;
-                var delay = <?php echo intval($lazy_delay); ?>;
+            if (!loader) {
+                loader = {
+                    scriptLoaded: false,
+                    observed: new Set(),
+                    activated: new Set(),
+                    observer: null,
+                    fallbackBound: false,
 
-                function loadGHLScript() {
-                    if (loaded) return;
-                    loaded = true;
+                    ensureScript: function () {
+                        if (this.scriptLoaded) {
+                            return;
+                        }
+                        this.scriptLoaded = true;
+                        var script = document.createElement('script');
+                        script.src = 'https://link.msgsndr.com/js/form_embed.js';
+                        script.async = true;
+                        document.body.appendChild(script);
+                    },
 
-                    // Activate iframe — fetch content only now
-                    document.querySelectorAll('.chroma-tour-form-wrapper iframe[data-src]').forEach(function(iframe) {
-                        iframe.src = iframe.dataset.src;
-                    });
+                    activateContainer: function (container) {
+                        if (!container || this.activated.has(container)) {
+                            return;
+                        }
 
-                    var script = document.createElement('script');
-                    script.src = 'https://link.msgsndr.com/js/form_embed.js';
-                    script.async = true;
-                    document.body.appendChild(script);
-                }
+                        this.activated.add(container);
 
-                // 1. Load after configured delay
-                var timer = delay > 0 ? setTimeout(loadGHLScript, delay) : null;
+                        var iframe = container.querySelector('iframe[data-src]');
+                        if (iframe && !iframe.src) {
+                            iframe.src = iframe.getAttribute('data-src');
+                        }
 
-                // 2. Load when form is scrolled into view (IntersectionObserver)
-                if ('IntersectionObserver' in window) {
-                    var observer = new IntersectionObserver(function (entries) {
-                        entries.forEach(function (entry) {
-                            if (entry.isIntersecting) {
-                                if (timer) clearTimeout(timer);
-                                loadGHLScript();
-                                observer.unobserve(entry.target);
+                        this.ensureScript();
+                    },
+
+                    bindIntentHandlers: function (container) {
+                        var self = this;
+                        var trigger = function () {
+                            self.activateContainer(container);
+                        };
+
+                        container.addEventListener('click', trigger, { passive: true });
+                        container.addEventListener('focusin', trigger);
+                        container.addEventListener('keydown', trigger);
+                    },
+
+                    maybeActivateVisible: function () {
+                        var self = this;
+                        this.observed.forEach(function (container) {
+                            if (self.activated.has(container)) {
+                                return;
+                            }
+
+                            var rect = container.getBoundingClientRect();
+                            if (rect.top <= (window.innerHeight + 200) && rect.bottom >= -200) {
+                                self.activateContainer(container);
                             }
                         });
-                    }, { rootMargin: '200px' });
+                    },
 
-                    document.querySelectorAll('.chroma-tour-form-wrapper').forEach(function (container) {
-                        observer.observe(container);
-                    });
-                }
+                    registerContainer: function (container) {
+                        var self = this;
+                        if (!container || this.observed.has(container)) {
+                            return;
+                        }
 
-                // Timer + IntersectionObserver cover all load scenarios
-            })();
-        </script>
-    <?php else: ?>
-        <script src="https://link.msgsndr.com/js/form_embed.js"></script>
-    <?php endif; ?>
+                        this.observed.add(container);
+                        this.bindIntentHandlers(container);
+
+                        if ('IntersectionObserver' in window) {
+                            if (!this.observer) {
+                                this.observer = new IntersectionObserver(function (entries) {
+                                    entries.forEach(function (entry) {
+                                        if (entry.isIntersecting) {
+                                            self.activateContainer(entry.target);
+                                            if (self.observer) {
+                                                self.observer.unobserve(entry.target);
+                                            }
+                                        }
+                                    });
+                                }, { rootMargin: '200px' });
+                            }
+
+                            this.observer.observe(container);
+                        } else if (!this.fallbackBound) {
+                            this.fallbackBound = true;
+                            var checkVisibility = function () {
+                                self.maybeActivateVisible();
+                            };
+                            window.addEventListener('scroll', checkVisibility, { passive: true });
+                            window.addEventListener('resize', checkVisibility);
+                            checkVisibility();
+                        }
+                    },
+
+                    registerAll: function () {
+                        var containers = document.querySelectorAll('[data-chroma-ghl-container]');
+                        for (var i = 0; i < containers.length; i++) {
+                            this.registerContainer(containers[i]);
+                        }
+                    }
+                };
+
+                window[GLOBAL_KEY] = loader;
+            }
+
+            loader.registerAll();
+        })();
+    </script>
+
     <?php
     return ob_get_clean();
 }

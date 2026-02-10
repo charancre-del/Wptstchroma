@@ -399,6 +399,9 @@
 .min-h-\[40px\]{
         min-height: 40px;
 }
+.min-h-\[45vh\]{
+        min-height: 45vh;
+}
 .min-h-\[500px\]{
         min-height: 500px;
 }

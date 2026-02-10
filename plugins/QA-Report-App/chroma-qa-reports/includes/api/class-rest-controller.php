@@ -328,6 +328,38 @@ class REST_Controller
         return $data;
     }
 
+    /**
+     * Log unexpected payload keys in debug mode for wiring diagnostics.
+     *
+     * @param WP_REST_Request $request      Request object.
+     * @param array           $allowed_keys Canonical payload keys.
+     * @param string          $context      Logging context label.
+     * @return void
+     */
+    private function log_unexpected_payload_keys($request, $allowed_keys, $context)
+    {
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            return;
+        }
+
+        $payload = $request->get_json_params();
+        if (!is_array($payload)) {
+            $payload = $request->get_params();
+        }
+
+        if (!is_array($payload)) {
+            return;
+        }
+
+        $unexpected = array_diff(array_keys($payload), $allowed_keys);
+        if (empty($unexpected)) {
+            return;
+        }
+
+        $keys = array_map('sanitize_key', $unexpected);
+        error_log('[CQA REST Debug] ' . $context . ' unexpected payload keys: ' . implode(',', $keys));
+    }
+
     // ===== PERMISSION CALLBACKS =====
 
     public function check_authenticated_permission()
@@ -866,6 +898,12 @@ class REST_Controller
 
     public function create_report(WP_REST_Request $request)
     {
+        $this->log_unexpected_payload_keys(
+            $request,
+            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'photos', 'drive_files'],
+            'create_report'
+        );
+
         // Rate Limit: 30 per minute
         $limit_check = $this->check_rate_limit('create_report', 30, 60);
         if (\is_wp_error($limit_check)) {
@@ -942,6 +980,12 @@ class REST_Controller
 
     public function update_report(WP_REST_Request $request)
     {
+        $this->log_unexpected_payload_keys(
+            $request,
+            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'summary_poi', 'version_id'],
+            'update_report'
+        );
+
         $report = Report::find($request['id']);
 
         if (!$report) {
@@ -1117,13 +1161,26 @@ class REST_Controller
         $report_id = $request['id'];
         $responses = $request->get_param('responses');
 
+        $this->log_unexpected_payload_keys($request, ['responses'], 'save_report_responses');
+
+        $report = Report::find($report_id);
+        if (!$report) {
+            return new WP_Error('not_found', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
+        }
+
         if (!is_array($responses)) {
             return new WP_Error('invalid_data', \__('Invalid responses data.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
-        Checklist_Response::bulk_save($report_id, $responses);
+        $saved = Checklist_Response::bulk_save($report_id, $responses);
+        if (!$saved) {
+            return new WP_Error('save_failed', __('Failed to save responses.', 'chroma-qa-reports'), ['status' => 500]);
+        }
 
-        return new WP_REST_Response(['success' => true], 200);
+        return new WP_REST_Response([
+            'success' => true,
+            'responses' => Checklist_Response::get_by_report_grouped($report_id),
+        ], 200);
     }
 
     // ===== CHECKLISTS =====

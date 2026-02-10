@@ -29,9 +29,6 @@ $js_config = [
     <meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
         /* Local Font Load for standalone TV Dashboard */
         @font-face {
@@ -76,46 +73,7 @@ $js_config = [
             font-display: swap;
         }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- PDF.js for Newsletter Rendering -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    </script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'system-ui', 'sans-serif'],
-                        serif: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
-                    },
-                    colors: {
-                        brand: { ink: '#263238', cream: '#FFFCF8' },
-                        chroma: {
-                            red: '#D67D6B', redLight: '#F4E5E2',
-                            blue: '#4A6C7C', blueDark: '#2F4858', blueLight: '#E3E9EC',
-                            green: '#8DA399', greenLight: '#E3EBE8',
-                            yellow: '#E6BE75', yellowLight: '#FDF6E3'
-                        }
-                    },
-                    borderRadius: { '3xl': '1.75rem', '4xl': '2.5rem' },
-                    boxShadow: {
-                        soft: '0 20px 40px -10px rgba(74, 108, 124, 0.08)',
-                        card: '0 10px 30px -5px rgba(0, 0, 0, 0.04)'
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                    },
-                    keyframes: {
-                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } }
-                    }
-                }
-            }
-        }
-    </script>
+    <?php wp_print_styles(['chroma-tv-dashboard-css', 'chroma-tv-font-awesome']); ?>
 
     <style>
         body {
@@ -366,11 +324,7 @@ $js_config = [
     <script>
         window.ChromaConfig = <?php echo json_encode($js_config); ?>;
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-    </script>
-    <script src="<?php echo CHROMA_SCHOOL_DB_URL . 'assets/js/tv-dashboard.js?v=1.0'; ?>"></script>
+    <?php wp_print_scripts(['chroma-tv-pdfjs', 'chroma-tv-dashboard-js']); ?>
 </body>
 
 </html>

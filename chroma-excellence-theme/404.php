@@ -56,17 +56,6 @@ if (!is_admin()) {
   <meta charset="<?php bloginfo('charset'); ?>" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { sans: ['Outfit'], serif: ['Playfair Display'] },
-          colors: { brand: { ink: '#263238', cream: '#FFFCF8' }, chroma: { blue: '#4A6C7C', yellow: '#E6BE75' } }
-        }
-      }
-    }
-  </script>
   <style>
     body {
       font-family: 'Outfit', sans-serif;

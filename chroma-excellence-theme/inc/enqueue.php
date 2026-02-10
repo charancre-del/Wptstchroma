@@ -10,10 +10,38 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Detect app-like routes that should not load marketing globals.
+ *
+ * @return bool
+ */
+function chroma_is_app_shell_route()
+{
+        $chroma_view = (string) get_query_var('chroma_view');
+        if ($chroma_view === 'portal' || $chroma_view === 'tv') {
+                return true;
+        }
+
+        if ((string) get_query_var('cqa_page') !== '') {
+                return true;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
+        if ($request_uri === '') {
+                return false;
+        }
+
+        return (strpos($request_uri, '/portal') === 0 || strpos($request_uri, '/qa-reports') === 0);
+}
+
+/**
  * Determine whether map assets should be enqueued.
  */
 function chroma_should_load_maps()
 {
+        if (chroma_is_app_shell_route()) {
+                return false;
+        }
+
         $should_load_maps = is_post_type_archive('location') || is_singular('location') || is_page('locations');
 
         if (is_front_page() && function_exists('chroma_home_locations_preview')) {
@@ -30,6 +58,7 @@ function chroma_should_load_maps()
 function chroma_enqueue_assets()
 {
         $script_dependencies = array();
+        $skip_global_scripts = chroma_is_app_shell_route();
 
         // Font Awesome (Subset)
         $fa_path = CHROMA_THEME_DIR . '/assets/css/font-awesome-subset.css';
@@ -163,43 +192,45 @@ function chroma_enqueue_assets()
         $js_path = CHROMA_THEME_DIR . '/assets/js/main.js';
         $js_version = file_exists($js_path) ? filemtime($js_path) : CHROMA_VERSION;
 
-        wp_enqueue_script(
-                'chroma-main-js',
-                CHROMA_THEME_URI . '/assets/js/main.js',
-                $script_dependencies,
-                $js_version,
-                true
-        );
-
-        // Defer re-enabled for FCP optimization
-        wp_script_add_data('chroma-main-js', 'defer', true);
-
-        // Map Facade (Lazy Load Leaflet).
-        $should_load_maps = chroma_should_load_maps();
-
-        if ($should_load_maps) {
+        if (!$skip_global_scripts) {
                 wp_enqueue_script(
-                        'chroma-map-facade',
-                        CHROMA_THEME_URI . '/assets/js/map-facade.js',
-                        array('chroma-main-js'), // Depend on main to ensure chromaData is available
+                        'chroma-main-js',
+                        CHROMA_THEME_URI . '/assets/js/main.js',
+                        $script_dependencies,
                         $js_version,
                         true
                 );
-                wp_script_add_data('chroma-map-facade', 'defer', true);
-        }
 
-        // Localize script for AJAX and dynamic data.
-        wp_localize_script(
-                'chroma-main-js',
-                'chromaData',
-                array(
-                        'ajaxUrl' => admin_url('admin-ajax.php'),
-                        'nonce' => wp_create_nonce('chroma_nonce'),
-                        'themeUrl' => CHROMA_THEME_URI,
-                        'homeUrl' => home_url(),
-                        'viewCampus' => __('View campus', 'chroma-excellence'),
-                )
-        );
+                // Defer re-enabled for FCP optimization
+                wp_script_add_data('chroma-main-js', 'defer', true);
+
+                // Map Facade (Lazy Load Leaflet).
+                $should_load_maps = chroma_should_load_maps();
+
+                if ($should_load_maps) {
+                        wp_enqueue_script(
+                                'chroma-map-facade',
+                                CHROMA_THEME_URI . '/assets/js/map-facade.js',
+                                array('chroma-main-js'), // Depend on main to ensure chromaData is available
+                                $js_version,
+                                true
+                        );
+                        wp_script_add_data('chroma-map-facade', 'defer', true);
+                }
+
+                // Localize script for AJAX and dynamic data.
+                wp_localize_script(
+                        'chroma-main-js',
+                        'chromaData',
+                        array(
+                                'ajaxUrl' => admin_url('admin-ajax.php'),
+                                'nonce' => wp_create_nonce('chroma_nonce'),
+                                'themeUrl' => CHROMA_THEME_URI,
+                                'homeUrl' => home_url(),
+                                'viewCampus' => __('View campus', 'chroma-excellence'),
+                        )
+                );
+        }
 }
 add_action('wp_enqueue_scripts', 'chroma_enqueue_assets');
 
@@ -312,19 +343,23 @@ add_filter('style_loader_tag', 'chroma_async_styles', 10, 4);
  */
 function chroma_move_jquery_to_footer()
 {
+        if (is_admin()) {
+                return;
+        }
+
+        // Keep app routes lean and avoid overriding plugin-owned script bootstraps.
+        if (chroma_is_app_shell_route()) {
+                return;
+        }
 
         wp_deregister_script('jquery-core');
         wp_deregister_script('jquery-migrate');
 
-        // Re-register jQuery in footer and enqueue it
-        // Note: Conditional loading was tried but broke font/logo loading
-        wp_register_script('jquery', includes_url('/js/jquery/jquery.min.js'), array(), null, true);
-        wp_enqueue_script('jquery');
+        // Register jQuery in footer. It is loaded only if another script depends on it.
+        wp_register_script('jquery', includes_url('js/jquery/jquery.min.js'), array(), null, true);
 }
 
-if (!is_admin()) {
-        add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
-}
+add_action('wp_enqueue_scripts', 'chroma_move_jquery_to_footer', 1);
 
 /**
  * Dequeue Dashicons for non-logged in users to improve performance
@@ -387,8 +422,19 @@ add_action('wp_enqueue_scripts', 'chroma_dequeue_cdn_styles', 100);
  */
 function chroma_optimize_script_tags($tag, $handle, $src)
 {
-        // 1. Scripts to NOT defer
-        $exclude_defer = array();
+        // Strict allowlist so only known-safe handles receive defer/async.
+        $defer_allowlist = array(
+                'chroma-main-js',
+                'chroma-map-facade',
+                'chroma-tv-pdfjs',
+                'chroma-tv-dashboard-js',
+                'chroma-portal-js',
+                'cqa-frontend',
+                'cqa-runtime-guard',
+                'cqa-react-app',
+        );
+
+        $async_allowlist = array();
 
         // 2. Scripts for Low Priority (Non-Critical)
         $low_priority = array('chroma-map-facade', 'leadconnector-widget', 'lc-widget');
@@ -397,13 +443,16 @@ function chroma_optimize_script_tags($tag, $handle, $src)
                 return $tag;
         }
 
-        // Add defer if not already present (excluding exclusions)
-        if (!in_array($handle, $exclude_defer) && strpos($tag, 'defer') === false) {
+        if (in_array($handle, $async_allowlist, true) && strpos($tag, 'async') === false) {
+                $tag = str_replace(' src', ' async src', $tag);
+        }
+
+        if (in_array($handle, $defer_allowlist, true) && strpos($tag, 'defer') === false && strpos($tag, 'async') === false) {
                 $tag = str_replace(' src', ' defer src', $tag);
         }
 
         // Add low fetchpriority to non-critical scripts
-        if (in_array($handle, $low_priority)) {
+        if (in_array($handle, $low_priority, true)) {
                 $tag = str_replace('<script', '<script fetchpriority="low"', $tag);
         }
 

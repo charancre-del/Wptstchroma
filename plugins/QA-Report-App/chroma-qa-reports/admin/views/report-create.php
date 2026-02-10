@@ -652,4 +652,96 @@ $schools = School::all(['status' => 'active', 'limit' => -1]);
             grid-template-columns: 1fr;
         }
     }
+
+    @media (max-width: 768px) {
+        .cqa-wizard-steps {
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 12px;
+        }
+
+        .cqa-step {
+            flex: 1 1 calc(50% - 10px);
+            justify-content: center;
+            padding: 8px 10px;
+        }
+
+        .step-label {
+            font-size: 12px;
+        }
+
+        .cqa-wizard-nav {
+            flex-wrap: wrap;
+            justify-content: space-between;
+            position: sticky;
+            bottom: 0;
+            z-index: 20;
+            gap: 10px;
+            padding: 12px;
+        }
+
+        .cqa-wizard-nav .button {
+            flex: 1 1 calc(50% - 10px);
+            min-height: 44px;
+            white-space: normal;
+        }
+
+        .cqa-wizard-progress {
+            width: 100%;
+            text-align: center;
+            order: 1;
+        }
+
+        #prev-step {
+            order: 2;
+        }
+
+        #next-step {
+            order: 3;
+        }
+
+        #save-draft {
+            order: 4;
+        }
+
+        #submit-report {
+            order: 5;
+        }
+
+        .form-table th,
+        .form-table td {
+            display: block;
+            width: 100%;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .form-table th {
+            padding-bottom: 6px;
+        }
+
+        .cqa-rating-options {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .cqa-section-content {
+            padding: 14px;
+            overflow-x: hidden;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .cqa-step {
+            flex: 1 1 100%;
+        }
+
+        .step-label {
+            font-size: 11px;
+        }
+
+        .cqa-upload-drop {
+            padding: 20px;
+        }
+    }
 </style>
