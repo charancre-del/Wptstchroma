@@ -33,6 +33,7 @@ const PrintReport = () => {
 
     // Organize checklist by section
     const checklist = report?.responses || {};
+    const poiItems = report?.ai_summary?.plan_of_improvement || report?.ai_summary?.poi || [];
 
     // Auto-trigger print when data is loaded
     useEffect(() => {
@@ -204,6 +205,55 @@ const PrintReport = () => {
                         );
                     })}
                 </div>
+
+                {/* Plan of Improvement */}
+                {poiItems.length > 0 && (
+                    <div className="mb-10 break-inside-avoid">
+                        <h2 className="text-xl font-bold text-brand-ink border-l-4 border-brand-secondary pl-3 mb-4 flex items-center gap-2">
+                            <AlertTriangle className="w-5 h-5 text-gray-400" />
+                            Plan of Improvement
+                        </h2>
+                        <div className="space-y-3">
+                            {poiItems.map((item, index) => {
+                                const action = typeof item === 'string'
+                                    ? item
+                                    : (item.action || item.recommendation || item.text || '');
+                                const area = typeof item === 'object' && item
+                                    ? (item.area || item.section || '')
+                                    : '';
+                                const priority = typeof item === 'object' && item
+                                    ? (item.priority || '')
+                                    : '';
+                                const timeline = typeof item === 'object' && item
+                                    ? (item.timeline || '')
+                                    : '';
+
+                                if (!action && !area) {
+                                    return null;
+                                }
+
+                                return (
+                                    <div key={index} className="border border-amber-200 bg-amber-50/40 rounded-lg p-4">
+                                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                                            {priority && (
+                                                <span className="text-xs font-bold uppercase tracking-wide bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                                                    Priority {priority}
+                                                </span>
+                                            )}
+                                            {area && (
+                                                <span className="text-sm font-semibold text-gray-800">{area}</span>
+                                            )}
+                                            {timeline && (
+                                                <span className="text-xs text-gray-600 ml-auto">{timeline}</span>
+                                            )}
+                                        </div>
+                                        {action && <p className="text-sm text-gray-800 leading-relaxed">{action}</p>}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
 
                 {/* Photos Appendix */}
                 {generalPhotos.length > 0 && (

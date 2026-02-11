@@ -267,6 +267,9 @@
 .ml-2{
         margin-right: 0.5rem;
 }
+.ml-auto{
+        margin-right: auto;
+}
 .mr-4{
         margin-left: 1rem;
 }
@@ -858,6 +861,9 @@
 .bg-amber-50{
         --tw-bg-opacity: 1;
         background-color: rgb(255 251 235 / var(--tw-bg-opacity, 1));
+}
+.bg-amber-50\/40{
+        background-color: rgb(255 251 235 / 0.4);
 }
 .bg-amber-500{
         --tw-bg-opacity: 1;
