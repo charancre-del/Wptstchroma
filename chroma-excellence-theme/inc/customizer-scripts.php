@@ -75,10 +75,98 @@ function chroma_sanitize_scripts($input)
 /**
  * Output Header Scripts
  */
+function chroma_third_party_targets()
+{
+    return array(
+        'widgets.leadconnectorhq.com',
+        'clarity.ms',
+        'googletagmanager.com',
+        'gtag(',
+        'connect.facebook.net',
+        'fbevents.js',
+        'recaptcha',
+        'searchatlas',
+        'otto-pixel',
+    );
+}
+
+/**
+ * Check whether a script block includes one of the known third-party targets.
+ */
+function chroma_contains_third_party_target($content)
+{
+    foreach (chroma_third_party_targets() as $target) {
+        if (strpos($content, $target) !== false) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Dedupe duplicate script tags across header/footer customizer fields.
+ */
+function chroma_dedupe_customizer_scripts($html)
+{
+    if (!is_string($html) || trim($html) === '') {
+        return $html;
+    }
+
+    static $seen = array(
+        'external' => array(),
+        'inline' => array(),
+    );
+
+    $site_host = (string) wp_parse_url(home_url(), PHP_URL_HOST);
+
+    return preg_replace_callback('/<script\b[^>]*>.*?<\/script>/is', function ($matches) use (&$seen, $site_host) {
+        $script_tag = $matches[0];
+
+        if (preg_match('/\bsrc\s*=\s*(["\'])(.*?)\1/i', $script_tag, $src_match)) {
+            $src = html_entity_decode(trim($src_match[2]), ENT_QUOTES);
+            $host = (string) wp_parse_url($src, PHP_URL_HOST);
+
+            // De-duplicate external scripts only; keep first-party script tags untouched.
+            if ($host !== '' && strcasecmp($host, $site_host) !== 0) {
+                $path = (string) wp_parse_url($src, PHP_URL_PATH);
+                $query = (string) wp_parse_url($src, PHP_URL_QUERY);
+                $key = strtolower($host . $path . ($query !== '' ? '?' . $query : ''));
+
+                if (isset($seen['external'][$key])) {
+                    return '';
+                }
+
+                $seen['external'][$key] = true;
+            }
+
+            return $script_tag;
+        }
+
+        $inline = preg_replace('/^<script\b[^>]*>|<\/script>$/i', '', $script_tag);
+        if (!chroma_contains_third_party_target($inline)) {
+            return $script_tag;
+        }
+
+        $signature = md5(strtolower(preg_replace('/\s+/', ' ', trim($inline))));
+        if (isset($seen['inline'][$signature])) {
+            return '';
+        }
+
+        $seen['inline'][$signature] = true;
+        return $script_tag;
+    }, $html);
+}
+
 function chroma_output_header_scripts()
 {
     $scripts = get_theme_mod('chroma_header_scripts');
     if ($scripts) {
+        $scripts = chroma_dedupe_customizer_scripts($scripts);
+        if (trim($scripts) === '') {
+            return;
+        }
+
         echo "<!-- Global Header Scripts -->\n";
         echo $scripts . "\n";
         echo "<!-- End Global Header Scripts -->\n";
@@ -97,6 +185,11 @@ function chroma_output_footer_scripts()
 {
     $scripts = get_theme_mod('chroma_footer_scripts');
     if ($scripts) {
+        $scripts = chroma_dedupe_customizer_scripts($scripts);
+        if (trim($scripts) === '') {
+            return;
+        }
+
         // Advanced: Generic Lazy-Load for Third Parties (TBT/LCP Optimization)
         $scripts = chroma_optimize_third_party_scripts($scripts);
 
@@ -114,56 +207,76 @@ add_action('wp_footer', 'chroma_output_footer_scripts', 99);
  */
 function chroma_optimize_third_party_scripts($html)
 {
-    if (is_admin())
+    if (is_admin()) {
         return $html;
-
-    $targets = [
-        'widgets.leadconnectorhq.com',
-        'clarity.ms',
-        'googletagmanager.com',
-        'gtag(',
-        'connect.facebook.net',
-        'fbevents.js',
-        'recaptcha',
-        'searchatlas',
-        'otto-pixel'
-    ];
-
-    $found = false;
-    foreach ($targets as $target) {
-        if (strpos($html, $target) !== false) {
-            $found = true;
-            break;
-        }
     }
 
-    if (!$found)
+    if (!chroma_contains_third_party_target($html)) {
         return $html;
+    }
 
     // Convert raw scripts into an interaction-triggered injection
     // This wipes out TBT from heavy third-parties during initial load
-    $encoded_scripts = json_encode($html);
+    $encoded_scripts = wp_json_encode($html);
+    if (!$encoded_scripts) {
+        return $html;
+    }
 
     return "
     <script id='chroma-lazy-loader-wrapper'>
     (function() {
+        if (window.__chromaThirdPartyLazyInit) return;
+        window.__chromaThirdPartyLazyInit = true;
+
+        var loadedSrc = window.__chromaThirdPartyLoadedSrc || (window.__chromaThirdPartyLoadedSrc = {});
+        var loadedInline = window.__chromaThirdPartyLoadedInline || (window.__chromaThirdPartyLoadedInline = {});
         var scriptsLoaded = false;
+
+        var normalize = function(input) {
+            return (input || '').toString().replace(/^https?:/, '').trim();
+        };
+
+        var hasScript = function(src) {
+            var scripts = document.getElementsByTagName('script');
+            for (var i = 0; i < scripts.length; i++) {
+                if (scripts[i].src === src) return true;
+            }
+            return false;
+        };
+
+        var detachListeners = function() {
+            ['click', 'touchstart', 'keydown', 'focusin'].forEach(function(ev) {
+                window.removeEventListener(ev, loadScripts, true);
+            });
+            window.removeEventListener('scroll', onScroll);
+        };
+
         var loadScripts = function() {
             if (scriptsLoaded) return;
             scriptsLoaded = true;
-            
-            // Remove listeners
-            ['scroll', 'mousemove', 'touchstart', 'keydown'].forEach(function(ev) {
-                window.removeEventListener(ev, loadScripts);
-            });
-
-            console.log('[Chroma] Loading deferred third-party scripts...');
+            detachListeners();
             
             var container = document.createElement('div');
             container.innerHTML = {$encoded_scripts};
             var scripts = container.querySelectorAll('script');
             
             scripts.forEach(function(oldScript) {
+                if (oldScript.src) {
+                    var src = oldScript.src;
+                    var srcKey = normalize(src);
+                    if (!srcKey || loadedSrc[srcKey] || hasScript(src)) {
+                        return;
+                    }
+                    loadedSrc[srcKey] = true;
+                } else {
+                    var inlineText = (oldScript.textContent || '').replace(/\\s+/g, ' ').trim();
+                    var inlineKey = inlineText.slice(0, 500);
+                    if (!inlineKey || loadedInline[inlineKey]) {
+                        return;
+                    }
+                    loadedInline[inlineKey] = true;
+                }
+
                 var newScript = document.createElement('script');
                 Array.from(oldScript.attributes).forEach(function(attr) {
                     newScript.setAttribute(attr.name, attr.value);
@@ -177,58 +290,17 @@ function chroma_optimize_third_party_scripts($html)
             });
         };
 
-        // Trigger on interaction
-        ['scroll', 'mousemove', 'touchstart', 'keydown'].forEach(function(ev) {
-            window.addEventListener(ev, loadScripts, {passive: true});
-        });
+        var onScroll = function() {
+            if (window.scrollY > Math.max(240, window.innerHeight * 0.5)) {
+                loadScripts();
+            }
+        };
 
-        // Fallback: Default to idle load after 4.5s if no interaction
-        if ('requestIdleCallback' in window) {
-            window.requestIdleCallback(function() {
-                setTimeout(loadScripts, 3500);
-            }, {timeout: 5000});
-        } else {
-            setTimeout(loadScripts, 4500);
-        }
+        // Trigger on explicit user intent and meaningful scroll only.
+        ['click', 'touchstart', 'keydown', 'focusin'].forEach(function(ev) {
+            window.addEventListener(ev, loadScripts, true);
+        });
+        window.addEventListener('scroll', onScroll, { passive: true });
     })();
     </script>";
 }
-
-/**
- * Global Script Interceptor
- * Intercepts enqueued scripts from plugins/theme and applies the lazy-load engine.
- */
-function chroma_optimize_script_tag($tag, $handle, $src)
-{
-    if (is_admin()) {
-        return $tag;
-    }
-
-    $targets = [
-        'widgets.leadconnectorhq.com',
-        'clarity.ms',
-        'googletagmanager.com',
-        'gtag(',
-        'connect.facebook.net',
-        'fbevents.js',
-        'recaptcha',
-        'searchatlas',
-        'otto-pixel'
-    ];
-
-    $is_target = false;
-    foreach ($targets as $target) {
-        if (strpos($tag, $target) !== false || (is_string($src) && strpos($src, $target) !== false)) {
-            $is_target = true;
-            break;
-        }
-    }
-
-    if (!$is_target) {
-        return $tag;
-    }
-
-    // Transform the script tag into an interaction-triggered injection
-    return chroma_optimize_third_party_scripts($tag);
-}
-add_filter('script_loader_tag', 'chroma_optimize_script_tag', 99, 3);

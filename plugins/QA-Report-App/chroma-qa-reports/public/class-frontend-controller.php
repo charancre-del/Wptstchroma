@@ -293,6 +293,7 @@ class Frontend_Controller
 
             // React Styles
             wp_enqueue_style('cqa-react-app', CQA_PLUGIN_URL . 'build/index.css', [], $assets['version']);
+            wp_add_inline_style('cqa-react-app', self::get_local_font_face_css());
 
             // React Script
             wp_enqueue_script(
@@ -339,6 +340,29 @@ class Frontend_Controller
                 ],
             ]);
         }
+    }
+
+    /**
+     * Local font-face declarations used by QA React app styles.
+     *
+     * @return string
+     */
+    private static function get_local_font_face_css()
+    {
+        $outfit_regular = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Regular.woff2'));
+        $outfit_medium = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Medium.woff2'));
+        $outfit_bold = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Bold.woff2'));
+        $playfair_semibold = esc_url_raw(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-SemiBold.woff2'));
+        $playfair_bold = esc_url_raw(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-Bold.woff2'));
+
+        return "
+@font-face{font-family:'Outfit';src:url('{$outfit_regular}') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Outfit';src:url('{$outfit_medium}') format('woff2');font-weight:500;font-style:normal;font-display:swap;}
+@font-face{font-family:'Outfit';src:url('{$outfit_bold}') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Playfair Display';src:url('{$playfair_semibold}') format('woff2');font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:'Playfair Display';src:url('{$playfair_bold}') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'DM Serif Display';src:url('{$playfair_semibold}') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'DM Serif Display';src:url('{$playfair_bold}') format('woff2');font-weight:400;font-style:italic;font-display:swap;}";
     }
 
     /**

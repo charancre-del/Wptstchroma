@@ -315,21 +315,69 @@ add_action('admin_enqueue_scripts', 'chroma_enqueue_admin_assets');
 /**
  * Async load CSS for fonts only (not main CSS to prevent FOUC)
  */
+function chroma_is_layout_critical_route()
+{
+        if (is_front_page()) {
+                return true;
+        }
+
+        if (is_page(array('contact', 'careers', 'career', 'tour', 'schedule-a-tour'))) {
+                return true;
+        }
+
+        $post_id = get_queried_object_id();
+        if (!$post_id) {
+                return false;
+        }
+
+        $content = (string) get_post_field('post_content', $post_id);
+        if ($content === '') {
+                return false;
+        }
+
+        $layout_critical_shortcodes = array(
+                'chroma_contact_form',
+                'chroma_career_form',
+                'chroma_tour_form',
+                'contact-form-7',
+        );
+
+        foreach ($layout_critical_shortcodes as $shortcode) {
+                if (has_shortcode($content, $shortcode)) {
+                        return true;
+                }
+        }
+
+        return false;
+}
+
+/**
+ * Async load CSS for non-critical routes.
+ */
 function chroma_async_styles($html, $handle, $href, $media)
 {
-        // Defer Font Awesome AND Main CSS (Critical CSS inlined in header)
-        if (in_array($handle, array('chroma-font-awesome', 'chroma-main'))) {
-                // Add data-no-optimize to prevent LiteSpeed from combining/blocking this file
-                $html = str_replace('<link', '<link data-no-optimize="1"', $html);
-
-                // If media is 'all', swap to 'print' and add onload
-                $html = str_replace("media='all'", "media='print' onload=\"this.media='all'\"", $html);
-                // If media is already 'print' (rare but possible), ensure onload is present
-                $html = str_replace("media='print'", "media='print' onload=\"this.media='all'\"", $html);
-
-                // Add fallback for no-js
-                $html .= "<noscript><link rel='stylesheet' href='{$href}' media='all'></noscript>";
+        if (!in_array($handle, array('chroma-font-awesome', 'chroma-main'), true)) {
+                return $html;
         }
+
+        // Prevent downstream optimizers from recombining this tag.
+        $html = str_replace('<link', '<link data-no-optimize="1"', $html);
+
+        // Keep layout-critical routes synchronous for visual stability.
+        if ($handle === 'chroma-main' && chroma_is_layout_critical_route()) {
+                return $html;
+        }
+
+        // Swap to print+onload for non-critical routes.
+        $html = str_replace("media='all'", "media='print' onload=\"this.media='all'\"", $html);
+        $html = str_replace('media="all"', "media='print' onload=\"this.media='all'\"", $html);
+        $html = str_replace("media='print'", "media='print' onload=\"this.media='all'\"", $html);
+        $html = str_replace('media="print"', "media='print' onload=\"this.media='all'\"", $html);
+
+        if (strpos($html, '<noscript><link rel=') === false) {
+                $html .= "<noscript><link rel='stylesheet' href='" . esc_url($href) . "' media='all'></noscript>";
+        }
+
         return $html;
 }
 add_filter('style_loader_tag', 'chroma_async_styles', 10, 4);

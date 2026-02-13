@@ -192,7 +192,7 @@ function chroma_tour_form_shortcode()
                             }
 
                             var rect = container.getBoundingClientRect();
-                            if (rect.top <= (window.innerHeight + 200) && rect.bottom >= -200) {
+                            if (rect.top <= (window.innerHeight + 80) && rect.bottom >= -80) {
                                 self.activateContainer(container);
                             }
                         });
@@ -218,7 +218,7 @@ function chroma_tour_form_shortcode()
                                             }
                                         }
                                     });
-                                }, { rootMargin: '200px' });
+                                }, { rootMargin: '80px' });
                             }
 
                             this.observer.observe(container);
