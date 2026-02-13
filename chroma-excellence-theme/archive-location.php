@@ -26,10 +26,26 @@ $locations_query = chroma_cached_query(
 		'no_found_rows' => true,
 		'update_post_meta_cache' => true, // P1: Prefetch meta
 	),
-	'locations_archive',
+	'locations_archive_v2',
 	7 * DAY_IN_SECONDS
 );
-$locations_count = isset($locations_query->posts) ? count((array) $locations_query->posts) : 0;
+$published_locations = wp_count_posts('location');
+$locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
+
+// Guard against stale cached empty query objects.
+if (0 === (int) $locations_query->post_count && $locations_count > 0) {
+	$locations_query = new WP_Query(
+		array(
+			'post_type' => 'location',
+			'posts_per_page' => 100,
+			'post_status' => 'publish',
+			'orderby' => 'title',
+			'order' => 'ASC',
+			'no_found_rows' => true,
+			'update_post_meta_cache' => true,
+		)
+	);
+}
 
 
 ?>

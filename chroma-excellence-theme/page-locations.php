@@ -16,7 +16,23 @@ $all_regions = $data_service->get_regions();
 
 // Get all locations from memory
 $locations = $data_service->get_locations();
-$locations_count = count($locations);
+$published_locations = wp_count_posts('location');
+$locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
+
+// Guard against stale cached empty arrays from object/transient cache.
+if (empty($locations) && $locations_count > 0) {
+	$locations = get_posts(
+		array(
+			'post_type' => 'location',
+			'posts_per_page' => -1,
+			'post_status' => 'publish',
+			'orderby' => 'title',
+			'order' => 'ASC',
+			'no_found_rows' => true,
+			'update_post_meta_cache' => true,
+		)
+	);
+}
 
 // Helper function to get region color from memory
 function chroma_get_region_color_mem($term_id)
