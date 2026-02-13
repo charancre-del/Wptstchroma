@@ -1243,24 +1243,36 @@ class REST_Controller
             return new WP_Error('not_found', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
         }
 
-        // Use the AI Summary generator
-        $ai = new \ChromaQA\AI\Executive_Summary();
-        $result = $ai->generate($report);
+        try {
+            // Use the AI Summary generator
+            $ai = new \ChromaQA\AI\Executive_Summary();
+            $result = $ai->generate($report);
 
-        if (\is_wp_error($result)) {
-            // Ensure status code is present to avoid 500 error
-            $data = $result->get_error_data();
-            if (!isset($data['status'])) {
-                $result->add_data(['status' => 400]);
+            if (\is_wp_error($result)) {
+                // Ensure status code is present to avoid 500 error
+                $data = $result->get_error_data();
+                if (!isset($data['status'])) {
+                    $result->add_data(['status' => 400]);
+                }
+                return $result;
             }
-            return $result;
-        }
 
-        // Wrap in 'summary' key for frontend compatibility
-        return new WP_REST_Response([
-            'summary' => $result,
-            'saved' => true,
-        ], 200);
+            // Wrap in 'summary' key for frontend compatibility
+            return new WP_REST_Response([
+                'summary' => $result,
+                'saved' => true,
+            ], 200);
+        } catch (\Throwable $e) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('[CQA REST] generate_ai_summary fatal: ' . $e->getMessage());
+            }
+
+            return new WP_Error(
+                'ai_generation_exception',
+                __('AI summary generation failed unexpectedly. Please try again.', 'chroma-qa-reports'),
+                ['status' => 500]
+            );
+        }
     }
 
     public function parse_document(WP_REST_Request $request)
