@@ -15,6 +15,24 @@ import {
     AlertTriangle,
 } from 'lucide-react';
 
+const OVERALL_RATING_OPTIONS = [
+    {
+        value: 'exceeds',
+        label: 'Exceeds',
+        selectedClass: 'border-green-400 bg-green-50 text-green-800',
+    },
+    {
+        value: 'meets',
+        label: 'Meets',
+        selectedClass: 'border-blue-400 bg-blue-50 text-blue-800',
+    },
+    {
+        value: 'needs_improvement',
+        label: 'Needs Improvement',
+        selectedClass: 'border-red-400 bg-red-50 text-red-800',
+    },
+];
+
 export function StepReview({ onBack, isViewMode = false, readOnly = false }) {
     const report = useReportWizardStore(s => s.report);
     const responses = useReportWizardStore(s => s.responses);
@@ -83,6 +101,8 @@ export function StepReview({ onBack, isViewMode = false, readOnly = false }) {
 
         return { total, withNotes };
     }, [responses]);
+
+    const currentOverallRating = report?.overall_rating || 'pending';
 
     return (
         <div className="space-y-6 w-full">
@@ -184,6 +204,45 @@ export function StepReview({ onBack, isViewMode = false, readOnly = false }) {
                     value={report?.ai_summary ? 'Generated' : 'Not generated'}
                     status={report?.ai_summary ? 'complete' : 'warning'}
                 />
+            </div>
+
+            {/* Overall Rating Selection */}
+            <div className="bg-white rounded-xl border border-gray-200 p-4">
+                <h3 className="font-medium text-gray-700 mb-2">Overall Rating</h3>
+                {!readOnly ? (
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {OVERALL_RATING_OPTIONS.map((option) => {
+                                const isSelected = currentOverallRating === option.value;
+                                return (
+                                    <button
+                                        key={option.value}
+                                        type="button"
+                                        onClick={() => useReportWizardStore.getState().updateReportData({ overall_rating: option.value })}
+                                        className={cn(
+                                            'rounded-lg border px-3 py-2 text-sm font-semibold transition-colors',
+                                            isSelected
+                                                ? option.selectedClass
+                                                : 'border-gray-200 bg-white text-gray-700 hover:bg-gray-50'
+                                        )}
+                                        aria-pressed={isSelected}
+                                    >
+                                        {option.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {currentOverallRating === 'pending' && (
+                            <p className="mt-2 text-xs text-amber-700">
+                                Select a rating before submitting so the report does not remain pending.
+                            </p>
+                        )}
+                    </>
+                ) : (
+                    <p className="text-gray-600 capitalize">
+                        {String(currentOverallRating).replace('_', ' ')}
+                    </p>
+                )}
             </div>
 
             {/* AI Summary Preview */}

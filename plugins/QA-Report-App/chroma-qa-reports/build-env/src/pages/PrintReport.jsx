@@ -33,7 +33,8 @@ const PrintReport = () => {
 
     // Organize checklist by section
     const checklist = report?.responses || {};
-    const poiItems = report?.ai_summary?.plan_of_improvement || report?.ai_summary?.poi || [];
+    const poiItemsRaw = report?.ai_summary?.plan_of_improvement || report?.ai_summary?.poi || [];
+    const poiItems = Array.isArray(poiItemsRaw) ? poiItemsRaw : [];
 
     // Auto-trigger print when data is loaded
     useEffect(() => {
@@ -117,7 +118,7 @@ const PrintReport = () => {
                 </div>
 
                 {/* Summary Section */}
-                {(report.ai_summary || report.closing_notes) && (
+                {(report.ai_summary || report.closing_notes || poiItems.length > 0) && (
                     <div className="mb-10 break-inside-avoid">
                         <h2 className="text-xl font-bold text-brand-ink border-l-4 border-brand-secondary pl-3 mb-4 flex items-center gap-2">
                             <FileText className="w-5 h-5 text-gray-400" />
@@ -138,6 +139,75 @@ const PrintReport = () => {
                                 <p className="text-gray-600 italic border-l-2 border-gray-200 pl-4 py-1">
                                     "{report.closing_notes}"
                                 </p>
+                            </div>
+                        )}
+
+                        {/* Plan of Improvement (immediately below Closing Notes) */}
+                        {poiItems.length > 0 && (
+                            <div className="mt-6">
+                                <h3 className="text-sm font-bold text-gray-700 mb-3 uppercase tracking-wide flex items-center gap-2">
+                                    <AlertTriangle className="w-4 h-4 text-gray-500" />
+                                    Plan of Improvement
+                                </h3>
+                                <div className="space-y-3">
+                                    {poiItems.map((item, index) => {
+                                        const area = typeof item === 'object' && item
+                                            ? (item.area || item.section || '')
+                                            : '';
+                                        const priority = typeof item === 'object' && item
+                                            ? (item.priority || '')
+                                            : '';
+                                        const timeline = typeof item === 'object' && item
+                                            ? (item.timeline || '')
+                                            : '';
+                                        const currentStatus = typeof item === 'object' && item
+                                            ? (item.current_status || '')
+                                            : '';
+                                        const action = typeof item === 'string'
+                                            ? item
+                                            : (item.action || item.recommendation || item.text || '');
+                                        const actionSteps = Array.isArray(item?.action_steps) && item.action_steps.length > 0
+                                            ? item.action_steps
+                                            : (action ? [action] : []);
+
+                                        if (!area && !currentStatus && actionSteps.length === 0) {
+                                            return null;
+                                        }
+
+                                        return (
+                                            <div key={index} className="border border-amber-200 bg-amber-50/40 rounded-lg p-4 break-inside-avoid">
+                                                <div className="flex flex-wrap items-center gap-2 mb-2">
+                                                    <span className="text-xs font-bold uppercase tracking-wide bg-amber-100 text-amber-800 px-2 py-1 rounded">
+                                                        Priority {priority || index + 1}
+                                                    </span>
+                                                    {area && (
+                                                        <span className="text-sm font-semibold text-gray-900">{area}</span>
+                                                    )}
+                                                    {timeline && (
+                                                        <span className="text-xs text-gray-600 ml-auto">{timeline}</span>
+                                                    )}
+                                                </div>
+
+                                                {currentStatus && (
+                                                    <p className="text-sm text-gray-600 italic border-l-2 border-gray-200 pl-3 py-1 mb-3">
+                                                        "{currentStatus}"
+                                                    </p>
+                                                )}
+
+                                                {actionSteps.length > 0 && (
+                                                    <ul className="space-y-1.5">
+                                                        {actionSteps.map((step, stepIndex) => (
+                                                            <li key={stepIndex} className="flex items-start gap-2 text-sm text-gray-800 leading-relaxed">
+                                                                <span className="text-brand-ink/70 font-bold">{stepIndex + 1}.</span>
+                                                                <span>{step}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -205,55 +275,6 @@ const PrintReport = () => {
                         );
                     })}
                 </div>
-
-                {/* Plan of Improvement */}
-                {poiItems.length > 0 && (
-                    <div className="mb-10 break-inside-avoid">
-                        <h2 className="text-xl font-bold text-brand-ink border-l-4 border-brand-secondary pl-3 mb-4 flex items-center gap-2">
-                            <AlertTriangle className="w-5 h-5 text-gray-400" />
-                            Plan of Improvement
-                        </h2>
-                        <div className="space-y-3">
-                            {poiItems.map((item, index) => {
-                                const action = typeof item === 'string'
-                                    ? item
-                                    : (item.action || item.recommendation || item.text || '');
-                                const area = typeof item === 'object' && item
-                                    ? (item.area || item.section || '')
-                                    : '';
-                                const priority = typeof item === 'object' && item
-                                    ? (item.priority || '')
-                                    : '';
-                                const timeline = typeof item === 'object' && item
-                                    ? (item.timeline || '')
-                                    : '';
-
-                                if (!action && !area) {
-                                    return null;
-                                }
-
-                                return (
-                                    <div key={index} className="border border-amber-200 bg-amber-50/40 rounded-lg p-4">
-                                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                                            {priority && (
-                                                <span className="text-xs font-bold uppercase tracking-wide bg-amber-100 text-amber-800 px-2 py-1 rounded">
-                                                    Priority {priority}
-                                                </span>
-                                            )}
-                                            {area && (
-                                                <span className="text-sm font-semibold text-gray-800">{area}</span>
-                                            )}
-                                            {timeline && (
-                                                <span className="text-xs text-gray-600 ml-auto">{timeline}</span>
-                                            )}
-                                        </div>
-                                        {action && <p className="text-sm text-gray-800 leading-relaxed">{action}</p>}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
 
                 {/* Photos Appendix */}
                 {generalPhotos.length > 0 && (
