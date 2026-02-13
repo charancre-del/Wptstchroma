@@ -29,6 +29,7 @@ $locations_query = chroma_cached_query(
 	'locations_archive',
 	7 * DAY_IN_SECONDS
 );
+$locations_count = isset($locations_query->posts) ? count((array) $locations_query->posts) : 0;
 
 
 ?>
@@ -44,7 +45,7 @@ $locations_query = chroma_cached_query(
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
 			<div
 				class="inline-flex items-center gap-2 bg-white border border-chroma-green/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-green shadow-sm mb-6 fade-in-up">
-				<i class="fa-solid fa-map-pin"></i> <?php echo $locations_query->found_posts; ?>+
+				<i class="fa-solid fa-map-pin"></i> <?php echo esc_html($locations_count); ?>+
 				<?php _e('Campuses', 'chroma-excellence'); ?>
 			</div>
 
@@ -262,7 +263,7 @@ $locations_query = chroma_cached_query(
 								style="animation-delay: 0.5s;"></div>
 						</div>
 						<p class="absolute bottom-4 text-xs font-bold tracking-widest uppercase text-white/90">
-							<?php printf(esc_html__('%s+ Locations in Metro Atlanta', 'chroma-excellence'), $locations_query->found_posts); ?>
+							<?php printf(esc_html__('%s+ Locations in Metro Atlanta', 'chroma-excellence'), esc_html($locations_count)); ?>
 						</p>
 					</div>
 				</div>

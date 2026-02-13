@@ -53,6 +53,126 @@ function chroma_should_load_maps()
 }
 
 /**
+ * Read optional hashed asset manifest generated during build.
+ *
+ * @return array<string,string>
+ */
+function chroma_get_asset_manifest()
+{
+        static $manifest = null;
+        if (is_array($manifest)) {
+                return $manifest;
+        }
+
+        $manifest = array();
+        $manifest_path = CHROMA_THEME_DIR . '/assets/manifest.json';
+        if (!file_exists($manifest_path)) {
+                return $manifest;
+        }
+
+        $decoded = json_decode((string) file_get_contents($manifest_path), true);
+        if (is_array($decoded)) {
+                $manifest = $decoded;
+        }
+
+        return $manifest;
+}
+
+/**
+ * Resolve theme asset URL with hashed-filename support and cache-safe versioning.
+ *
+ * @param string $relative_path Path relative to theme root (e.g. assets/css/main.css).
+ * @return array{url:string,path:string,version:?string,immutable:bool}
+ */
+function chroma_get_theme_asset($relative_path)
+{
+        static $content_hash_cache = array();
+
+        $relative_path = ltrim((string) $relative_path, '/');
+        $manifest = chroma_get_asset_manifest();
+        $resolved_relative = isset($manifest[$relative_path]) ? ltrim((string) $manifest[$relative_path], '/') : $relative_path;
+
+        $disk_path = CHROMA_THEME_DIR . '/' . $resolved_relative;
+        if (!file_exists($disk_path)) {
+                $disk_path = CHROMA_THEME_DIR . '/' . $relative_path;
+                $resolved_relative = $relative_path;
+        }
+
+        $url = CHROMA_THEME_URI . '/' . $resolved_relative;
+        $immutable = ($resolved_relative !== $relative_path);
+
+        if ($immutable) {
+                return array(
+                        'url' => $url,
+                        'path' => $disk_path,
+                        'version' => null,
+                        'immutable' => true,
+                );
+        }
+
+        if (!isset($content_hash_cache[$disk_path])) {
+                $content_hash_cache[$disk_path] = file_exists($disk_path)
+                        ? substr(md5_file($disk_path), 0, 12)
+                        : (string) CHROMA_VERSION;
+        }
+
+        return array(
+                'url' => $url,
+                'path' => $disk_path,
+                'version' => (string) $content_hash_cache[$disk_path],
+                'immutable' => false,
+        );
+}
+
+/**
+ * Check whether current singular content has one of the provided shortcodes.
+ *
+ * @param string[] $shortcodes
+ */
+function chroma_page_has_shortcode(array $shortcodes)
+{
+        $post_id = get_queried_object_id();
+        if (!$post_id) {
+                return false;
+        }
+
+        $content = (string) get_post_field('post_content', $post_id);
+        if ($content === '') {
+                return false;
+        }
+
+        foreach ($shortcodes as $shortcode) {
+                if (has_shortcode($content, $shortcode)) {
+                        return true;
+                }
+        }
+
+        return false;
+}
+
+/**
+ * Determine if visual-effects bundle should load for current route.
+ */
+function chroma_should_load_effects_bundle()
+{
+        return is_front_page()
+                || is_page(array('about', 'locations', 'programs', 'schedule-tour', 'schedule-a-tour'))
+                || is_post_type_archive('location')
+                || is_post_type_archive('program')
+                || is_singular(array('location', 'program'))
+                || is_post_type_archive('city');
+}
+
+/**
+ * Determine if form-specific bundle should load for current route.
+ */
+function chroma_should_load_forms_bundle()
+{
+        return is_page(array('contact', 'careers', 'schedule-tour', 'schedule-a-tour'))
+                || chroma_page_has_shortcode(array('chroma_contact_form', 'chroma_career_form', 'chroma_tour_form', 'contact-form-7'));
+}
+
+/**
  * Enqueue theme styles and scripts
  */
 function chroma_enqueue_assets()
@@ -61,29 +181,27 @@ function chroma_enqueue_assets()
         $skip_global_scripts = chroma_is_app_shell_route();
 
         // Font Awesome (Subset)
-        $fa_path = CHROMA_THEME_DIR . '/assets/css/font-awesome-subset.css';
-        $fa_version = file_exists($fa_path) ? filemtime($fa_path) : '6.4.0';
+        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome-subset.css');
         wp_enqueue_style(
                 'chroma-font-awesome',
-                CHROMA_THEME_URI . '/assets/css/font-awesome-subset.css',
+                $fa_asset['url'],
                 array(),
-                $fa_version,
+                $fa_asset['version'],
                 'all'
         );
 
         // Chart.js - Removed global enqueue. Lazy loaded in main.js
         // via IntersectionObserver when #curriculum section is visible.
 
-        // Compiled Tailwind CSS.
-        $css_path = CHROMA_THEME_DIR . '/assets/css/main.css';
-        $css_version = file_exists($css_path) ? filemtime($css_path) : CHROMA_VERSION;
+        // Compiled core CSS.
+        $main_css_asset = chroma_get_theme_asset('assets/css/main.css');
 
         // Compiled Tailwind CSS - loads synchronously
         wp_enqueue_style(
                 'chroma-main',
-                CHROMA_THEME_URI . '/assets/css/main.css',
+                $main_css_asset['url'],
                 array(),
-                $css_version,
+                $main_css_asset['version'],
                 'all' // Load normally to prevent FOUC
         );
 
@@ -149,14 +267,6 @@ function chroma_enqueue_assets()
                         font-size: 16px !important; /* Prevent iOS zoom */
                 }
                 
-                /* Form Labels - Ensure visibility if hidden */
-                .chroma-tour-form label {
-                        display: block !important;
-                        color: #263238 !important; /* Brand Ink */
-                        opacity: 1 !important;
-                        margin-bottom: 0.5rem !important;
-                }
-
                         /* Force CTA Button Visibility */
                         header .container > a[href*='contact'] {
                                 display: flex !important;
@@ -166,38 +276,34 @@ function chroma_enqueue_assets()
                 /* Accessibility: Increase contrast for muted text */
                 .text-brand-ink\/60 { color: rgba(38, 50, 56, 0.9) !important; }
                 .text-brand-ink\/70 { color: rgba(38, 50, 56, 0.95) !important; }
-
-                /* Animations (Moved from templates for AMP compatibility) */
-                .fade-in-up {
-                    animation: fadeInUp 0.8s ease forwards;
-                    opacity: 0;
-                    transform: translateY(20px);
-                }
-                .delay-100 { animation-delay: 0.1s; }
-                .delay-200 { animation-delay: 0.2s; }
-                .delay-300 { animation-delay: 0.3s; }
-                @keyframes fadeInUp {
-                    to { opacity: 1; transform: translateY(0); }
-                }
-
-                /* Custom Scrollbar for Job Board */
-                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #334155; }
         ";
         wp_add_inline_style('chroma-main', $custom_css);
 
+        // Page-type bundles for low-use styles.
+        if (chroma_should_load_effects_bundle()) {
+                $effects_asset = chroma_get_theme_asset('assets/css/page-effects.css');
+                wp_enqueue_style('chroma-page-effects', $effects_asset['url'], array('chroma-main'), $effects_asset['version'], 'all');
+        }
+
+        if (chroma_should_load_forms_bundle()) {
+                $forms_asset = chroma_get_theme_asset('assets/css/page-forms.css');
+                wp_enqueue_style('chroma-page-forms', $forms_asset['url'], array('chroma-main'), $forms_asset['version'], 'all');
+        }
+
+        if (is_page('careers')) {
+                $careers_asset = chroma_get_theme_asset('assets/css/page-careers.css');
+                wp_enqueue_style('chroma-page-careers', $careers_asset['url'], array('chroma-main'), $careers_asset['version'], 'all');
+        }
+
         // Main JavaScript.
-        $js_path = CHROMA_THEME_DIR . '/assets/js/main.js';
-        $js_version = file_exists($js_path) ? filemtime($js_path) : CHROMA_VERSION;
+        $main_js_asset = chroma_get_theme_asset('assets/js/main.js');
 
         if (!$skip_global_scripts) {
                 wp_enqueue_script(
                         'chroma-main-js',
-                        CHROMA_THEME_URI . '/assets/js/main.js',
+                        $main_js_asset['url'],
                         $script_dependencies,
-                        $js_version,
+                        $main_js_asset['version'],
                         true
                 );
 
@@ -208,11 +314,12 @@ function chroma_enqueue_assets()
                 $should_load_maps = chroma_should_load_maps();
 
                 if ($should_load_maps) {
+                        $map_js_asset = chroma_get_theme_asset('assets/js/map-facade.js');
                         wp_enqueue_script(
                                 'chroma-map-facade',
-                                CHROMA_THEME_URI . '/assets/js/map-facade.js',
+                                $map_js_asset['url'],
                                 array('chroma-main-js'), // Depend on main to ensure chromaData is available
-                                $js_version,
+                                $map_js_asset['version'],
                                 true
                         );
                         wp_script_add_data('chroma-map-facade', 'defer', true);
@@ -288,27 +395,21 @@ function chroma_enqueue_admin_assets($hook)
         }
 
         // Font Awesome for icon previews in admin (using local version)
-        $fa_path = CHROMA_THEME_DIR . '/assets/css/font-awesome.css';
-        $fa_version = file_exists($fa_path) ? filemtime($fa_path) : '6.4.0';
+        $admin_fa_asset = chroma_get_theme_asset('assets/css/font-awesome.css');
 
         wp_enqueue_style(
                 'font-awesome-admin',
-                CHROMA_THEME_URI . '/assets/css/font-awesome.css',
+                $admin_fa_asset['url'],
                 array(),
-                $fa_version // Use same version as frontend for consistency
+                $admin_fa_asset['version'] // Use same version as frontend for consistency
         );
 
         // Media uploader
         wp_enqueue_media();
 
         // Custom admin script for media uploader
-        wp_enqueue_script(
-                'chroma-admin',
-                CHROMA_THEME_URI . '/assets/js/admin.js',
-                array('jquery'),
-                CHROMA_VERSION,
-                true
-        );
+        $admin_js_asset = chroma_get_theme_asset('assets/js/admin.js');
+        wp_enqueue_script('chroma-admin', $admin_js_asset['url'], array('jquery'), $admin_js_asset['version'], true);
 }
 add_action('admin_enqueue_scripts', 'chroma_enqueue_admin_assets');
 
@@ -424,11 +525,13 @@ function chroma_dequeue_dashicons()
  */
 function chroma_preload_main_css()
 {
-        $css_path = CHROMA_THEME_DIR . '/assets/css/main.css';
-        $css_version = file_exists($css_path) ? filemtime($css_path) : CHROMA_VERSION;
-        $css_url = CHROMA_THEME_URI . '/assets/css/main.css?ver=' . $css_version;
+        $main_css_asset = chroma_get_theme_asset('assets/css/main.css');
+        $href = $main_css_asset['url'];
+        if (!empty($main_css_asset['version'])) {
+                $href = add_query_arg('ver', rawurlencode((string) $main_css_asset['version']), $href);
+        }
 
-        echo '<link rel="preload" href="' . esc_url($css_url) . '" as="style">' . "\n";
+        echo '<link rel="preload" href="' . esc_url($href) . '" as="style">' . "\n";
 }
 add_action('wp_head', 'chroma_preload_main_css', 1);
 

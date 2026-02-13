@@ -152,19 +152,6 @@
  * Custom Utilities
  */
 @layer utilities {
-  .fade-in-up {
-    opacity: 0;
-    transform: translateY(24px);
-    animation: fadeInUp 1.1s ease forwards;
-  }
-
-  @keyframes fadeInUp {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   /* Lazy Loading Styles */
   img[data-lazy-src] {
     opacity: 0;
