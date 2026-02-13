@@ -348,39 +348,9 @@ add_action('wp_enqueue_scripts', 'chroma_enqueue_assets');
  */
 function chroma_resource_hints($urls, $relation_type)
 {
-        if ('preconnect' === $relation_type) {
-
-                if (is_front_page() || is_singular('program') || is_post_type_archive('program')) {
-                        $urls[] = 'https://cdn.jsdelivr.net';
-                }
-
-                if (chroma_should_load_maps()) {
-                        $urls[] = 'https://unpkg.com';
-                }
-
-                // Preconnect to external origins identified in audit
-                $urls[] = 'https://widgets.leadconnectorhq.com';
-                $urls[] = 'https://services.leadconnectorhq.com';
-                $urls[] = 'https://images.leadconnectorhq.com';
-                $urls[] = 'https://stcdn.leadconnectorhq.com';
-        }
-
-        if ('dns-prefetch' === $relation_type) {
-
-                if (is_front_page() || is_singular('program') || is_post_type_archive('program')) {
-                        $urls[] = '//cdn.jsdelivr.net';
-                }
-
-                if (chroma_should_load_maps()) {
-                        $urls[] = '//unpkg.com';
-                }
-                $urls[] = '//widgets.leadconnectorhq.com';
-                $urls[] = '//services.leadconnectorhq.com';
-                $urls[] = '//images.leadconnectorhq.com';
-                $urls[] = '//stcdn.leadconnectorhq.com';
-        }
-
-        return array_unique($urls, SORT_REGULAR);
+        // Keep this conservative: no broad global hints.
+        // Third-party form/map scripts are intent-loaded and should not force early connections.
+        return $urls;
 }
 add_filter('wp_resource_hints', 'chroma_resource_hints', 10, 2);
 
@@ -457,19 +427,20 @@ function chroma_is_layout_critical_route()
  */
 function chroma_async_styles($html, $handle, $href, $media)
 {
-        if (!in_array($handle, array('chroma-font-awesome', 'chroma-main'), true)) {
+        if (!in_array($handle, array('chroma-font-awesome', 'chroma-main', 'chroma-page-effects'), true)) {
                 return $html;
         }
 
         // Prevent downstream optimizers from recombining this tag.
         $html = str_replace('<link', '<link data-no-optimize="1"', $html);
 
-        // Keep layout-critical routes synchronous for visual stability.
+        // Keep core layout stylesheet synchronous for visual stability on critical routes.
         if ($handle === 'chroma-main' && chroma_is_layout_critical_route()) {
                 return $html;
         }
 
-        // Swap to print+onload for non-critical routes.
+        // Effects bundle is non-critical; always load asynchronously.
+        // Other handles continue to load async on non-critical routes.
         $html = str_replace("media='all'", "media='print' onload=\"this.media='all'\"", $html);
         $html = str_replace('media="all"', "media='print' onload=\"this.media='all'\"", $html);
         $html = str_replace("media='print'", "media='print' onload=\"this.media='all'\"", $html);
