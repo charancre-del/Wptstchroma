@@ -123,7 +123,7 @@ class Gemini_Service
         // Check if response was truncated
         $finish_reason = $body_res['candidates'][0]['finishReason'] ?? 'UNKNOWN';
         if ($finish_reason === 'MAX_TOKENS') {
-            \ChromaQA\Utils\Logger::warning('Gemini', 'generate', [
+            \ChromaQA\Utils\Logger::warn('Gemini', 'generate', [
                 'prompt_length' => strlen($prompt),
                 'response_length' => strlen($result_text),
                 'finish_reason' => $finish_reason
