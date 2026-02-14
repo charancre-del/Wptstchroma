@@ -210,30 +210,56 @@ class Checklist_Response
             // [P2 FIX] Use UPSERT pattern instead of DELETE-INSERT
             // This prevents data wipe if empty/partial data is sent
             foreach ($responses as $section_key => $items) {
+                if (!is_array($items)) {
+                    continue;
+                }
+
                 foreach ($items as $item_key => $data) {
-                    // Check if response already exists
-                    $existing_id = $wpdb->get_var($wpdb->prepare(
-                        "SELECT id FROM {$table} WHERE report_id = %d AND section_key = %s AND item_key = %s",
+                    if (!is_array($data)) {
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            error_log('Checklist_Response::bulk_save skipped non-array response item.');
+                        }
+                        continue;
+                    }
+
+                    $section_key = \sanitize_text_field($section_key);
+                    $item_key = \sanitize_text_field($item_key);
+
+                    // Pull existing row to preserve fields omitted by partial payloads.
+                    $existing = $wpdb->get_row($wpdb->prepare(
+                        "SELECT id, rating, notes, evidence_type, previous_rating, previous_notes
+                         FROM {$table}
+                         WHERE report_id = %d AND section_key = %s AND item_key = %s",
                         $report_id,
                         $section_key,
                         $item_key
-                    ));
+                    ), \ARRAY_A);
 
                     $record = [
                         'report_id' => $report_id,
-                        'section_key' => \sanitize_text_field($section_key),
-                        'item_key' => \sanitize_text_field($item_key),
-                        'rating' => \sanitize_text_field($data['rating'] ?? self::RATING_NA),
-                        'notes' => \sanitize_textarea_field($data['notes'] ?? ''),
-                        'evidence_type' => \sanitize_text_field($data['evidence_type'] ?? 'observation'),
-                        'previous_rating' => \sanitize_text_field($data['previous_rating'] ?? ''),
-                        'previous_notes' => \sanitize_textarea_field($data['previous_notes'] ?? ''),
+                        'section_key' => $section_key,
+                        'item_key' => $item_key,
+                        'rating' => array_key_exists('rating', $data)
+                            ? \sanitize_text_field($data['rating'])
+                            : ($existing['rating'] ?? self::RATING_NA),
+                        'notes' => array_key_exists('notes', $data)
+                            ? \sanitize_textarea_field($data['notes'])
+                            : ($existing['notes'] ?? ''),
+                        'evidence_type' => array_key_exists('evidence_type', $data)
+                            ? \sanitize_text_field($data['evidence_type'])
+                            : ($existing['evidence_type'] ?? 'observation'),
+                        'previous_rating' => array_key_exists('previous_rating', $data)
+                            ? \sanitize_text_field($data['previous_rating'])
+                            : ($existing['previous_rating'] ?? ''),
+                        'previous_notes' => array_key_exists('previous_notes', $data)
+                            ? \sanitize_textarea_field($data['previous_notes'])
+                            : ($existing['previous_notes'] ?? ''),
                     ];
                     $format = ['%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
 
-                    if ($existing_id) {
+                    if ($existing && !empty($existing['id'])) {
                         // UPDATE existing record
-                        $result = $wpdb->update($table, $record, ['id' => $existing_id], $format, ['%d']);
+                        $result = $wpdb->update($table, $record, ['id' => (int) $existing['id']], $format, ['%d']);
                     } else {
                         // INSERT new record
                         $result = $wpdb->insert($table, $record, $format);

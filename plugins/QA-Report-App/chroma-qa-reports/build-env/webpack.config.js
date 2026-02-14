@@ -9,6 +9,31 @@ module.exports = {
     output: {
         ...defaultConfig.output,
         path: path.resolve(__dirname, '../build'), // Output to parent plugin folder
+        chunkFilename: '[name].[contenthash:8].chunk.js',
+    },
+    optimization: {
+        ...defaultConfig.optimization,
+        splitChunks: {
+            ...(defaultConfig.optimization?.splitChunks || {}),
+            chunks: 'async',
+            cacheGroups: {
+                ...(defaultConfig.optimization?.splitChunks?.cacheGroups || {}),
+                reactVendor: {
+                    test: /[\\/]node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler)[\\/]/,
+                    name: 'cqa-react-vendor',
+                    chunks: 'async',
+                    priority: 40,
+                    reuseExistingChunk: true,
+                },
+                uiVendor: {
+                    test: /[\\/]node_modules[\\/](lucide-react|recharts|zustand|sonner|@tanstack|@radix-ui)[\\/]/,
+                    name: 'cqa-ui-vendor',
+                    chunks: 'async',
+                    priority: 30,
+                    reuseExistingChunk: true,
+                },
+            },
+        },
     },
     resolve: {
         ...defaultConfig.resolve,

@@ -84,6 +84,8 @@ function App() {
     const [saving, setSaving] = useState(false);
     const [toast, setToast] = useState(null);
     const [loginError, setLoginError] = useState(null);
+    const [gsiReady, setGsiReady] = useState(false);
+    const googleButtonRenderedRef = useRef(false);
 
     const [formState, setFormState] = useState({
         eomPhoto: '',
@@ -162,13 +164,92 @@ function App() {
     };
 
     useEffect(() => {
-        if (!user && !loading && window.google) {
-            try {
-                window.google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin });
-                window.google.accounts.id.renderButton(document.getElementById("googleBtn"), { theme: "outline", size: "large", width: 300 });
-            } catch (e) { }
+        if (user || loading || !GOOGLE_CLIENT_ID) {
+            return;
         }
-    }, [user, loading, loginError]);
+
+        const loadGsiScript = () => {
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+                setGsiReady(true);
+                return;
+            }
+
+            if (!window.__chromaGsiScriptPromise) {
+                window.__chromaGsiScriptPromise = new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = 'https://accounts.google.com/gsi/client';
+                    script.async = true;
+                    script.defer = true;
+                    script.onload = resolve;
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                });
+            }
+
+            window.__chromaGsiScriptPromise
+                .then(() => setGsiReady(true))
+                .catch(() => setLoginError('Could not load Google Sign-In. Please refresh and try again.'));
+        };
+
+        const target = document.getElementById('googleBtn');
+        if (!target) {
+            return;
+        }
+
+        let activated = false;
+        const activate = () => {
+            if (activated) {
+                return;
+            }
+            activated = true;
+            cleanup();
+            loadGsiScript();
+        };
+
+        const onInteraction = () => activate();
+        const interactionEvents = ['pointerdown', 'keydown', 'focusin', 'touchstart'];
+        interactionEvents.forEach((eventName) => {
+            target.addEventListener(eventName, onInteraction, { passive: true });
+        });
+
+        let observer = null;
+        if ('IntersectionObserver' in window) {
+            observer = new IntersectionObserver((entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) {
+                    activate();
+                }
+            }, { rootMargin: '150px' });
+            observer.observe(target);
+        } else {
+            // Fallback for older browsers: load when login UI is present.
+            activate();
+        }
+
+        const cleanup = () => {
+            interactionEvents.forEach((eventName) => {
+                target.removeEventListener(eventName, onInteraction);
+            });
+            if (observer) {
+                observer.disconnect();
+            }
+        };
+
+        return cleanup;
+    }, [user, loading]);
+
+    useEffect(() => {
+        if (user || loading || !gsiReady || googleButtonRenderedRef.current || !window.google) {
+            return;
+        }
+
+        try {
+            window.google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleLogin });
+            window.google.accounts.id.renderButton(document.getElementById('googleBtn'), { theme: 'outline', size: 'large', width: 300 });
+            googleButtonRenderedRef.current = true;
+        } catch (e) {
+            setLoginError('Google Sign-In could not be initialized.');
+        }
+    }, [user, loading, gsiReady, loginError]);
 
     const handleSave = async (e) => {
         e.preventDefault();

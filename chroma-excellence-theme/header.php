@@ -39,10 +39,6 @@
 	}
 	?>
 
-	<link rel="preconnect" href="https://fonts.googleapis.com">
-	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-	<link rel="preconnect" href="https://maps.googleapis.com">
-
 	<?php
 	$branding = Chroma_Branding_Engine::get_instance();
 	$favicon = $branding->get_setting('assets', 'favicon_url');

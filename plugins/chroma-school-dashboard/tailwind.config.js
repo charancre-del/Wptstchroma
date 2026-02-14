@@ -16,9 +16,14 @@ module.exports = {
                 },
                 chroma: {
                     red: '#D67D6B',
+                    redLight: '#F4E5E2',
                     blue: '#4A6C7C',
                     blueDark: '#2F4858',
-                    yellow: '#E6BE75'
+                    blueLight: '#E3E9EC',
+                    green: '#8DA399',
+                    greenLight: '#E3EBE8',
+                    yellow: '#E6BE75',
+                    yellowLight: '#FDF6E3'
                 }
             }
         }

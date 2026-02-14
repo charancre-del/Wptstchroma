@@ -328,6 +328,38 @@ class REST_Controller
         return $data;
     }
 
+    /**
+     * Log unexpected payload keys in debug mode for wiring diagnostics.
+     *
+     * @param WP_REST_Request $request      Request object.
+     * @param array           $allowed_keys Canonical payload keys.
+     * @param string          $context      Logging context label.
+     * @return void
+     */
+    private function log_unexpected_payload_keys($request, $allowed_keys, $context)
+    {
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            return;
+        }
+
+        $payload = $request->get_json_params();
+        if (!is_array($payload)) {
+            $payload = $request->get_params();
+        }
+
+        if (!is_array($payload)) {
+            return;
+        }
+
+        $unexpected = array_diff(array_keys($payload), $allowed_keys);
+        if (empty($unexpected)) {
+            return;
+        }
+
+        $keys = array_map('sanitize_key', $unexpected);
+        error_log('[CQA REST Debug] ' . $context . ' unexpected payload keys: ' . implode(',', $keys));
+    }
+
     // ===== PERMISSION CALLBACKS =====
 
     public function check_authenticated_permission()
@@ -866,6 +898,12 @@ class REST_Controller
 
     public function create_report(WP_REST_Request $request)
     {
+        $this->log_unexpected_payload_keys(
+            $request,
+            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'photos', 'drive_files'],
+            'create_report'
+        );
+
         // Rate Limit: 30 per minute
         $limit_check = $this->check_rate_limit('create_report', 30, 60);
         if (\is_wp_error($limit_check)) {
@@ -942,6 +980,12 @@ class REST_Controller
 
     public function update_report(WP_REST_Request $request)
     {
+        $this->log_unexpected_payload_keys(
+            $request,
+            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'summary_poi', 'version_id'],
+            'update_report'
+        );
+
         $report = Report::find($request['id']);
 
         if (!$report) {
@@ -1117,13 +1161,26 @@ class REST_Controller
         $report_id = $request['id'];
         $responses = $request->get_param('responses');
 
+        $this->log_unexpected_payload_keys($request, ['responses'], 'save_report_responses');
+
+        $report = Report::find($report_id);
+        if (!$report) {
+            return new WP_Error('not_found', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
+        }
+
         if (!is_array($responses)) {
             return new WP_Error('invalid_data', \__('Invalid responses data.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
-        Checklist_Response::bulk_save($report_id, $responses);
+        $saved = Checklist_Response::bulk_save($report_id, $responses);
+        if (!$saved) {
+            return new WP_Error('save_failed', __('Failed to save responses.', 'chroma-qa-reports'), ['status' => 500]);
+        }
 
-        return new WP_REST_Response(['success' => true], 200);
+        return new WP_REST_Response([
+            'success' => true,
+            'responses' => Checklist_Response::get_by_report_grouped($report_id),
+        ], 200);
     }
 
     // ===== CHECKLISTS =====
@@ -1186,24 +1243,36 @@ class REST_Controller
             return new WP_Error('not_found', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
         }
 
-        // Use the AI Summary generator
-        $ai = new \ChromaQA\AI\Executive_Summary();
-        $result = $ai->generate($report);
+        try {
+            // Use the AI Summary generator
+            $ai = new \ChromaQA\AI\Executive_Summary();
+            $result = $ai->generate($report);
 
-        if (\is_wp_error($result)) {
-            // Ensure status code is present to avoid 500 error
-            $data = $result->get_error_data();
-            if (!isset($data['status'])) {
-                $result->add_data(['status' => 400]);
+            if (\is_wp_error($result)) {
+                // Ensure status code is present to avoid 500 error
+                $data = $result->get_error_data();
+                if (!isset($data['status'])) {
+                    $result->add_data(['status' => 400]);
+                }
+                return $result;
             }
-            return $result;
-        }
 
-        // Wrap in 'summary' key for frontend compatibility
-        return new WP_REST_Response([
-            'summary' => $result,
-            'saved' => true,
-        ], 200);
+            // Wrap in 'summary' key for frontend compatibility
+            return new WP_REST_Response([
+                'summary' => $result,
+                'saved' => true,
+            ], 200);
+        } catch (\Throwable $e) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('[CQA REST] generate_ai_summary fatal: ' . $e->getMessage());
+            }
+
+            return new WP_Error(
+                'ai_generation_exception',
+                __('AI summary generation failed unexpectedly. Please try again.', 'chroma-qa-reports'),
+                ['status' => 500]
+            );
+        }
     }
 
     public function parse_document(WP_REST_Request $request)

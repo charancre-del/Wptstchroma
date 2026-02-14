@@ -137,4 +137,49 @@ class ChecklistResponseTest extends TestCase {
         $this->assertEquals(10, $response->report_id);
         $this->assertEquals('All up to date', $response->notes);
     }
+
+    /**
+     * Test bulk_save preserves existing fields when payload is partial.
+     */
+    public function test_bulk_save_preserves_existing_metadata_on_partial_payload() {
+        global $wpdb;
+
+        $wpdb->shouldReceive('query')->with('START TRANSACTION')->once()->andReturn(true);
+        $wpdb->shouldReceive('query')->with('COMMIT')->once()->andReturn(true);
+        $wpdb->shouldReceive('prepare')->andReturnUsing(function ($query) {
+            return $query;
+        });
+
+        $wpdb->shouldReceive('get_row')->once()->andReturn([
+            'id' => 17,
+            'rating' => 'yes',
+            'notes' => 'Old notes',
+            'evidence_type' => 'document',
+            'previous_rating' => 'sometimes',
+            'previous_notes' => 'Prior context',
+        ]);
+
+        $wpdb->shouldReceive('update')
+            ->once()
+            ->withArgs(function ($table, $record, $where) {
+                return $where['id'] === 17
+                    && $record['rating'] === 'no'
+                    && $record['notes'] === 'Updated notes'
+                    && $record['evidence_type'] === 'document'
+                    && $record['previous_rating'] === 'sometimes'
+                    && $record['previous_notes'] === 'Prior context';
+            })
+            ->andReturn(1);
+
+        $result = Checklist_Response::bulk_save(99, [
+            'admin' => [
+                'licensing' => [
+                    'rating' => 'no',
+                    'notes' => 'Updated notes',
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($result);
+    }
 }

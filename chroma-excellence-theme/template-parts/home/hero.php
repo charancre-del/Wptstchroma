@@ -63,7 +63,8 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             </div>
         </div>
 
-        <div class="chroma-hero-lock relative w-full isolate mt-8 sm:mt-0" style="contain: layout size;">
+        <div class="chroma-hero-lock relative w-full isolate mt-8 sm:mt-0"
+            style="min-height:clamp(400px,42vw,500px);aspect-ratio:4/3;">
             <!-- Background Decorations -->
             <div
                 class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3 hidden sm:block">
@@ -74,7 +75,7 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
 
             <!-- Main Image Frame - uses bg-brand-cream as placeholder until image loads -->
             <div class="absolute inset-0 sm:inset-y-0 sm:left-12 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft z-0"
-                style="background: linear-gradient(135deg, #FFFCF8 0%, #E3E9EC 100%); contain: layout style paint;">
+                style="background: linear-gradient(135deg, #FFFCF8 0%, #E3E9EC 100%);">
                 <?php if ($hero_image): ?>
                     <!-- Priority 1: Customizer hero image -->
                     <img src="<?php echo esc_url($hero_image); ?>" class="w-full h-full object-cover no-lazy"

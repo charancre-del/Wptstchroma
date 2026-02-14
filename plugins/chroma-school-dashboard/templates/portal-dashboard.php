@@ -62,8 +62,6 @@ wp_enqueue_style('wp-mediaelement');
     </style>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
     <?php wp_head(); ?>
 </head>
 

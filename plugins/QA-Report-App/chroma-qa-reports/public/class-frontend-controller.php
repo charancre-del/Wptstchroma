@@ -21,9 +21,12 @@ class Frontend_Controller
     public static function init()
     {
         add_action('init', [self::class, 'register_rewrites']);
-        error_log('CQA DEBUG: Frontend_Controller::init called');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('CQA DEBUG: Frontend_Controller::init called');
+        }
         add_filter('query_vars', [self::class, 'add_query_vars']);
         add_action('template_redirect', [self::class, 'handle_routes']);
+        add_filter('show_admin_bar', [self::class, 'maybe_hide_admin_bar_on_qa_portal']);
 
         // AJAX handlers
         add_action('wp_ajax_cqa_frontend_login', [self::class, 'ajax_login']);
@@ -83,7 +86,9 @@ class Frontend_Controller
      */
     public static function register_rewrites()
     {
-        error_log('CQA DEBUG: register_rewrites called');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('CQA DEBUG: register_rewrites called');
+        }
         // Login Route
         add_rewrite_rule('^qa-reports/login/?$', 'index.php?cqa_page=login', 'top');
 
@@ -100,9 +105,36 @@ class Frontend_Controller
      */
     public static function add_query_vars($vars)
     {
-        error_log('CQA DEBUG: add_query_vars called');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('CQA DEBUG: add_query_vars called');
+        }
         $vars[] = 'cqa_page';
         return $vars;
+    }
+
+    /**
+     * Hide WP Admin Bar on QA portal routes only.
+     *
+     * @param bool $show Whether to show admin bar.
+     * @return bool
+     */
+    public static function maybe_hide_admin_bar_on_qa_portal($show)
+    {
+        if (is_admin()) {
+            return $show;
+        }
+
+        $page = get_query_var('cqa_page');
+        if (!empty($page)) {
+            return false;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
+        if (is_string($request_uri) && strpos($request_uri, '/qa-reports') !== false) {
+            return false;
+        }
+
+        return $show;
     }
 
     /**
@@ -112,7 +144,9 @@ class Frontend_Controller
     {
         $page = get_query_var('cqa_page');
         if (!empty($page)) {
-            error_log('CQA DEBUG: handle_routes triggered for page: ' . $page);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('CQA DEBUG: handle_routes triggered for page: ' . $page);
+            }
         }
 
         if (empty($page)) {
@@ -259,6 +293,7 @@ class Frontend_Controller
 
             // React Styles
             wp_enqueue_style('cqa-react-app', CQA_PLUGIN_URL . 'build/index.css', [], $assets['version']);
+            wp_add_inline_style('cqa-react-app', self::get_local_font_face_css());
 
             // React Script
             wp_enqueue_script(
@@ -305,6 +340,29 @@ class Frontend_Controller
                 ],
             ]);
         }
+    }
+
+    /**
+     * Local font-face declarations used by QA React app styles.
+     *
+     * @return string
+     */
+    private static function get_local_font_face_css()
+    {
+        $outfit_regular = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Regular.woff2'));
+        $outfit_medium = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Medium.woff2'));
+        $outfit_bold = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Bold.woff2'));
+        $playfair_semibold = esc_url_raw(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-SemiBold.woff2'));
+        $playfair_bold = esc_url_raw(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-Bold.woff2'));
+
+        return "
+@font-face{font-family:'Outfit';src:url('{$outfit_regular}') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Outfit';src:url('{$outfit_medium}') format('woff2');font-weight:500;font-style:normal;font-display:swap;}
+@font-face{font-family:'Outfit';src:url('{$outfit_bold}') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Playfair Display';src:url('{$playfair_semibold}') format('woff2');font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:'Playfair Display';src:url('{$playfair_bold}') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'DM Serif Display';src:url('{$playfair_semibold}') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'DM Serif Display';src:url('{$playfair_bold}') format('woff2');font-weight:400;font-style:italic;font-display:swap;}";
     }
 
     /**

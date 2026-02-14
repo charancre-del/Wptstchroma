@@ -70,6 +70,13 @@ class Chroma_Portal_API_Routes
             'callback' => [$this, 'debug_system_check'],
             'permission_callback' => '__return_true'
         ]);
+
+        // Cookie Test (Debug only)
+        register_rest_route('chroma-portal/v1', '/cookie-test', [
+            'methods' => 'GET',
+            'callback' => [$this, 'debug_cookie_test'],
+            'permission_callback' => '__return_true'
+        ]);
     }
 
     public function debug_system_check($request)
@@ -129,6 +136,74 @@ class Chroma_Portal_API_Routes
             'posts_found_count' => count($posts_found),
             'sample_posts' => $posts_found
         ];
+    }
+
+    /**
+     * Debug-only cookie diagnostics endpoint.
+     *
+     * Usage:
+     * 1) GET /cookie-test?phase=set    -> sets test cookie
+     * 2) GET /cookie-test?phase=verify -> checks if browser returns it
+     */
+    public function debug_cookie_test($request)
+    {
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            return new WP_Error('forbidden', 'Cookie test is only available when WP_DEBUG is enabled.', ['status' => 403]);
+        }
+
+        $phase = sanitize_key($request->get_param('phase') ?: 'set');
+        $cookie_name = 'chroma_portal_cookie_test';
+        $cookie_path = defined('COOKIEPATH') && COOKIEPATH ? COOKIEPATH : '/';
+        $cookie_domain = defined('COOKIE_DOMAIN') ? COOKIE_DOMAIN : '';
+        $cookie_secure = is_ssl();
+        $cookie_samesite = 'Lax';
+        $cookie_value = isset($_COOKIE[$cookie_name]) ? sanitize_text_field(wp_unslash($_COOKIE[$cookie_name])) : '';
+
+        if ('set' === $phase || '' === $cookie_value) {
+            $token = wp_generate_password(20, false, false);
+            setcookie(
+                $cookie_name,
+                $token,
+                [
+                    'expires' => time() + 300,
+                    'path' => $cookie_path,
+                    'domain' => $cookie_domain,
+                    'secure' => $cookie_secure,
+                    'httponly' => true,
+                    'samesite' => $cookie_samesite,
+                ]
+            );
+
+            return rest_ensure_response([
+                'success' => true,
+                'phase' => 'set',
+                'has_cookie_on_request' => false,
+                'next_step' => 'Call this endpoint again with ?phase=verify to confirm browser sends cookie.',
+                'cookie_meta' => [
+                    'name' => $cookie_name,
+                    'path' => $cookie_path,
+                    'domain' => $cookie_domain,
+                    'secure' => $cookie_secure,
+                    'samesite' => $cookie_samesite,
+                ],
+            ]);
+        }
+
+        return rest_ensure_response([
+            'success' => true,
+            'phase' => 'verify',
+            'has_cookie_on_request' => '' !== $cookie_value,
+            'cookie_meta' => [
+                'name' => $cookie_name,
+                'path' => $cookie_path,
+                'domain' => $cookie_domain,
+                'secure' => $cookie_secure,
+                'samesite' => $cookie_samesite,
+            ],
+            'notes' => '' !== $cookie_value
+                ? 'Cookie returned successfully on follow-up request.'
+                : 'Cookie was not returned. Check HTTPS/secure flag, cookie domain/path, and cache/proxy behavior.',
+        ]);
     }
 
     // --- Callbacks ---

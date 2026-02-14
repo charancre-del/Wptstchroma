@@ -91,21 +91,21 @@ function chroma_print_critical_css()
             size-adjust: 100%;
         }
 
-        /* Lock Hero Heights early to prevent 0.3+ CLS shift */
+        /* Reserve hero space early to prevent large CLS before main CSS loads */
         .chroma-hero-lock {
-            height: 400px;
-            contain: layout size;
+            min-height: 400px;
+            aspect-ratio: 4 / 3;
         }
 
         @media (min-width: 640px) {
             .chroma-hero-lock {
-                height: 420px;
+                min-height: 420px;
             }
         }
 
         @media (min-width: 1024px) {
             .chroma-hero-lock {
-                height: 500px;
+                min-height: 500px;
             }
         }
 

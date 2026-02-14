@@ -378,6 +378,7 @@ function chroma_career_form_shortcode()
     ob_start();
     ?>
     <div class="chroma-career-form-wrapper" data-lazy="<?php echo $lazy_load ? 'true' : 'false'; ?>"
+        data-chroma-ghl-container="1"
         data-delay="<?php echo esc_attr($lazy_delay); ?>">
         <div class="chroma-ghl-iframe-container" style="min-height: <?php echo esc_attr($form_height); ?>px;">
             <iframe data-src="<?php echo esc_url($form_url); ?>"
@@ -409,48 +410,120 @@ function chroma_career_form_shortcode()
             display: block;
         }
     </style>
+    <script>
+        (function () {
+            var GLOBAL_KEY = '__chromaGhlIntentLoader';
+            var loader = window[GLOBAL_KEY];
 
-    <?php if ($lazy_load): ?>
-        <script>
-            (function () {
-                var loaded = false;
-                var container = document.querySelector('.chroma-career-form-wrapper');
-                var delay = <?php echo intval($lazy_delay); ?>;
+            if (!loader) {
+                loader = {
+                    scriptLoaded: false,
+                    observed: new Set(),
+                    activated: new Set(),
+                    observer: null,
+                    fallbackBound: false,
 
-                function loadGHLScript() {
-                    if (loaded) return;
-                    loaded = true;
-
-                    // Activate iframe — fetch content only now
-                    document.querySelectorAll('.chroma-career-form-wrapper iframe[data-src]').forEach(function(iframe) {
-                        iframe.src = iframe.dataset.src;
-                    });
-
-                    var script = document.createElement('script');
-                    script.src = 'https://link.msgsndr.com/js/form_embed.js';
-                    script.async = true;
-                    document.body.appendChild(script);
-                }
-
-                // Load after configured delay OR when form is scrolled into view
-                var timer = delay > 0 ? setTimeout(loadGHLScript, delay) : null;
-
-                // IntersectionObserver to load when visible
-                if ('IntersectionObserver' in window && container) {
-                    var observer = new IntersectionObserver(function (entries) {
-                        if (entries[0].isIntersecting) {
-                            if (timer) clearTimeout(timer);
-                            loadGHLScript();
-                            observer.disconnect();
+                    ensureScript: function () {
+                        if (this.scriptLoaded) {
+                            return;
                         }
-                    }, { rootMargin: '200px' });
-                    observer.observe(container);
-                }
-            })();
-        </script>
-    <?php else: ?>
-        <script src="https://link.msgsndr.com/js/form_embed.js"></script>
-    <?php endif; ?>
+                        this.scriptLoaded = true;
+                        var script = document.createElement('script');
+                        script.src = 'https://link.msgsndr.com/js/form_embed.js';
+                        script.async = true;
+                        document.body.appendChild(script);
+                    },
+
+                    activateContainer: function (container) {
+                        if (!container || this.activated.has(container)) {
+                            return;
+                        }
+
+                        this.activated.add(container);
+
+                        var iframe = container.querySelector('iframe[data-src]');
+                        if (iframe && !iframe.src) {
+                            iframe.src = iframe.getAttribute('data-src');
+                        }
+
+                        this.ensureScript();
+                    },
+
+                    bindIntentHandlers: function (container) {
+                        var self = this;
+                        var trigger = function () {
+                            self.activateContainer(container);
+                        };
+
+                        container.addEventListener('click', trigger, { passive: true });
+                        container.addEventListener('focusin', trigger);
+                        container.addEventListener('keydown', trigger);
+                    },
+
+                    maybeActivateVisible: function () {
+                        var self = this;
+                        this.observed.forEach(function (container) {
+                            if (self.activated.has(container)) {
+                                return;
+                            }
+
+                            var rect = container.getBoundingClientRect();
+                            if (rect.top <= (window.innerHeight + 80) && rect.bottom >= -80) {
+                                self.activateContainer(container);
+                            }
+                        });
+                    },
+
+                    registerContainer: function (container) {
+                        var self = this;
+                        if (!container || this.observed.has(container)) {
+                            return;
+                        }
+
+                        this.observed.add(container);
+                        this.bindIntentHandlers(container);
+
+                        if ('IntersectionObserver' in window) {
+                            if (!this.observer) {
+                                this.observer = new IntersectionObserver(function (entries) {
+                                    entries.forEach(function (entry) {
+                                        if (entry.isIntersecting) {
+                                            self.activateContainer(entry.target);
+                                            if (self.observer) {
+                                                self.observer.unobserve(entry.target);
+                                            }
+                                        }
+                                    });
+                                }, { rootMargin: '80px' });
+                            }
+
+                            this.observer.observe(container);
+                        } else if (!this.fallbackBound) {
+                            this.fallbackBound = true;
+                            var checkVisibility = function () {
+                                self.maybeActivateVisible();
+                            };
+                            window.addEventListener('scroll', checkVisibility, { passive: true });
+                            window.addEventListener('resize', checkVisibility);
+                            checkVisibility();
+                        }
+                    },
+
+                    registerAll: function () {
+                        var containers = document.querySelectorAll('[data-chroma-ghl-container]');
+                        for (var i = 0; i < containers.length; i++) {
+                            this.registerContainer(containers[i]);
+                        }
+                    }
+                };
+
+                window[GLOBAL_KEY] = loader;
+            }
+
+            loader.registerAll();
+        })();
+    </script>
+
     <?php
     return ob_get_clean();
 }

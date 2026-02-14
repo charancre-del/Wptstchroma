@@ -5,9 +5,10 @@
   "private": true,
   "scripts": {
     "dev:css": "postcss assets/css/input.css -o assets/css/main.css --watch",
-    "build:css": "NODE_ENV=production postcss assets/css/input.css -o assets/css/main.css",
+    "build:css": "node scripts/build-css.js",
+    "build:rev": "node scripts/rev-theme-assets.js",
     "dev": "npm run dev:css",
-    "build": "npm run build:css"
+    "build": "npm run build:css && npm run build:rev"
   },
   "keywords": [
     "wordpress",

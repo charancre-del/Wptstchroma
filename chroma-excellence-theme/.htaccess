@@ -20,3 +20,10 @@
     ExpiresDefault "access plus 2 days"
 </IfModule>
 # END Browser Caching
+
+# Immutable caching for revisioned first-party assets (name.hash.ext)
+<IfModule mod_headers.c>
+    <FilesMatch "\.[a-f0-9]{12}\.(css|js)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>

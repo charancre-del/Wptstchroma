@@ -56,24 +56,47 @@ class Chroma_School_Portal_Loader
 
         $css_url = CHROMA_SCHOOL_DB_URL . 'assets/dist/portal.css';
         $js_url = CHROMA_SCHOOL_DB_URL . 'assets/dist/portal.js';
-
-        // Load fonts pre-emptively
-        wp_enqueue_style('chroma-fonts', 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap', [], null);
+        $css_path = CHROMA_SCHOOL_DB_PATH . 'assets/dist/portal.css';
+        $js_path = CHROMA_SCHOOL_DB_PATH . 'assets/dist/portal.js';
+        $css_version = file_exists($css_path) ? (string) filemtime($css_path) : CHROMA_SCHOOL_VERSION;
+        $js_version = file_exists($js_path) ? (string) filemtime($js_path) : CHROMA_SCHOOL_VERSION;
 
         // Portal CSS
-        wp_enqueue_style('chroma-portal-css', $css_url, [], CHROMA_SCHOOL_VERSION);
+        wp_enqueue_style('chroma-portal-css', $css_url, [], $css_version);
+        wp_add_inline_style('chroma-portal-css', $this->get_local_font_face_css());
 
         // React + ReactDOM (Core WP handles)
         wp_enqueue_script('react');
         wp_enqueue_script('react-dom');
 
         // Compiled Portal JS
-        wp_enqueue_script('chroma-portal-js', $js_url, ['react', 'react-dom'], CHROMA_SCHOOL_VERSION, true);
+        wp_enqueue_script('chroma-portal-js', $js_url, ['react', 'react-dom'], $js_version, true);
 
         // Pass config to JS
         wp_localize_script('chroma-portal-js', 'chromaPortalConfig', [
             'apiUrl' => get_rest_url(),
             'googleClientId' => trim(get_option('chroma_google_client_id', '')),
         ]);
+    }
+
+    /**
+     * Local font-face declarations shared by portal styles.
+     *
+     * @return string
+     */
+    private function get_local_font_face_css()
+    {
+        $outfit_regular = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Regular.woff2'));
+        $outfit_medium = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Medium.woff2'));
+        $outfit_bold = esc_url_raw(get_theme_file_uri('/assets/webfonts/Outfit-Bold.woff2'));
+        $playfair_semibold = esc_url_raw(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-SemiBold.woff2'));
+        $playfair_bold = esc_url_raw(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-Bold.woff2'));
+
+        return "
+@font-face{font-family:'Outfit';src:url('{$outfit_regular}') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Outfit';src:url('{$outfit_medium}') format('woff2');font-weight:500;font-style:normal;font-display:swap;}
+@font-face{font-family:'Outfit';src:url('{$outfit_bold}') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
+@font-face{font-family:'Playfair Display';src:url('{$playfair_semibold}') format('woff2');font-weight:600;font-style:normal;font-display:swap;}
+@font-face{font-family:'Playfair Display';src:url('{$playfair_bold}') format('woff2');font-weight:700;font-style:normal;font-display:swap;}";
     }
 }

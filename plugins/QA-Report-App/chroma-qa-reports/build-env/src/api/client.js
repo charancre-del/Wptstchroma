@@ -68,14 +68,26 @@ export const apiFetch = async (endpoint, options = {}) => {
             body: isFormData ? options.body : JSON.stringify(options.body),
         });
 
-        // Parse JSON response
-        let data;
-        const contentType = response.headers.get('content-type');
-        if (contentType && contentType.indexOf('application/json') !== -1) {
-            data = await response.json();
-        } else {
-            // Handle empty responses (like 204)
-            data = {};
+        // Parse response safely (guard against empty/malformed JSON bodies)
+        let data = {};
+        const contentType = response.headers.get('content-type') || '';
+        const rawText = await response.text();
+
+        if (rawText) {
+            if (contentType.indexOf('application/json') !== -1) {
+                try {
+                    data = JSON.parse(rawText);
+                } catch (parseError) {
+                    throw new ApiError(
+                        `Invalid JSON response (status ${response.status})`,
+                        response.status,
+                        'invalid_json_response',
+                        { responseText: rawText.slice(0, 300) }
+                    );
+                }
+            } else {
+                data = { message: rawText };
+            }
         }
 
         // Handle Errors based on Status
