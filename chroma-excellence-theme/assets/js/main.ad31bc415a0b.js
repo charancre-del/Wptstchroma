@@ -55,7 +55,10 @@
    * Component: Accordions
    */
   const initAccordions = (container) => {
-    const accordions = container.querySelectorAll('[data-accordion]');
+    const accordions = container.matches('[data-accordion]')
+      ? [container]
+      : container.querySelectorAll('[data-accordion]');
+
     accordions.forEach((accordion) => {
       const triggers = accordion.querySelectorAll('[data-accordion-trigger]');
       triggers.forEach((trigger) => {
@@ -65,8 +68,26 @@
           if (!content) return;
 
           const isOpen = !content.classList.contains('hidden');
-          accordion.querySelectorAll('[data-accordion-content]').forEach(c => c.classList.add('hidden'));
-          if (!isOpen) content.classList.remove('hidden');
+          const group = accordion.closest('[data-accordion-group]') || container;
+
+          // Close all items in the same group.
+          group.querySelectorAll('[data-accordion]').forEach((item) => {
+            const itemTrigger = item.querySelector('[data-accordion-trigger]');
+            const itemContent = item.querySelector('[data-accordion-content]');
+            const itemIcon = item.querySelector('[data-accordion-icon]');
+
+            if (itemTrigger) itemTrigger.setAttribute('aria-expanded', 'false');
+            if (itemContent) itemContent.classList.add('hidden');
+            if (itemIcon) itemIcon.textContent = 'v';
+          });
+
+          // Open selected item.
+          if (!isOpen) {
+            content.classList.remove('hidden');
+            trigger.setAttribute('aria-expanded', 'true');
+            const icon = trigger.querySelector('[data-accordion-icon]');
+            if (icon) icon.textContent = '^';
+          }
         });
       });
     });
@@ -408,7 +429,7 @@
     document.querySelectorAll('[data-schedule]').forEach(el => { el.dataset.lazyComponent = 'schedule'; lazyObserver.observe(el); });
     document.querySelectorAll('[data-reviews-carousel]').forEach(el => { el.dataset.lazyComponent = 'reviews'; lazyObserver.observe(el); });
     document.querySelectorAll('[data-location-carousel]').forEach(el => { el.dataset.lazyComponent = 'location-carousel'; lazyObserver.observe(el); });
-    document.querySelectorAll('[data-accordion]').forEach(el => { el.dataset.lazyComponent = 'accordions'; lazyObserver.observe(el); });
+    document.querySelectorAll('[data-accordion-group]').forEach(el => { el.dataset.lazyComponent = 'accordions'; lazyObserver.observe(el); });
 
     // 3. Idle-load non-critical features
     runIdle(() => {

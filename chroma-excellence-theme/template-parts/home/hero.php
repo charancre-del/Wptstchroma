@@ -50,15 +50,15 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
                 </a>
             </div>
 
-            <div class="flex flex-wrap items-center gap-5 text-[12px] text-brand-ink">
-                <div class="flex items-center gap-2">
+            <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-5 text-[12px] text-brand-ink">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
                     <span class="text-chroma-yellow text-lg">★★★★★</span>
                     <span><?php _e('4.8 Average Parent Rating', 'chroma-excellence'); ?></span>
                 </div>
                 <div class="hidden sm:block w-[1px] h-5 bg-chroma-blue/20"></div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0">
                     <span class="w-2 h-2 rounded-full bg-chroma-green"></span>
-                    <span><?php _e('Licensed • Quality Rated • GA Pre-K Partner', 'chroma-excellence'); ?></span>
+                    <span class="leading-relaxed"><?php _e('Licensed • Quality Rated • GA Pre-K Partner', 'chroma-excellence'); ?></span>
                 </div>
             </div>
         </div>
@@ -129,3 +129,4 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
         </div>
     </div>
 </section>
+
