@@ -1106,20 +1106,60 @@ class REST_Controller
                 $ai = new \ChromaQA\AI\Executive_Summary();
                 $updated_summary = $existing_summary;
 
-                // Re-format the poi_json from the submitted data
+                // Re-format POI while preserving full structured fields.
                 $poi_list = [];
                 foreach ($summary_poi as $item) {
-                    if (empty($item['action']))
+                    if (!is_array($item)) {
                         continue;
+                    }
+
+                    $area = \sanitize_text_field((string) ($item['area'] ?? $item['section'] ?? ''));
+                    $current_status = \sanitize_textarea_field((string) ($item['current_status'] ?? $item['observation'] ?? ''));
+                    $timeline = \sanitize_text_field((string) ($item['timeline'] ?? ''));
+                    $success_criteria = \sanitize_textarea_field((string) ($item['success_criteria'] ?? ''));
+                    $support_offered = \sanitize_textarea_field((string) ($item['support_offered'] ?? ''));
+
+                    $priority_raw = $item['priority'] ?? 3;
+                    $priority = is_numeric($priority_raw) ? (int) $priority_raw : \sanitize_text_field((string) $priority_raw);
+
+                    $action_steps = [];
+                    if (!empty($item['action_steps']) && is_array($item['action_steps'])) {
+                        foreach ($item['action_steps'] as $step) {
+                            $step_text = \sanitize_textarea_field((string) $step);
+                            if ($step_text !== '') {
+                                $action_steps[] = $step_text;
+                            }
+                        }
+                    }
+
+                    $single_action = \sanitize_textarea_field((string) ($item['action'] ?? ''));
+                    if (empty($action_steps) && $single_action !== '') {
+                        $action_steps[] = $single_action;
+                    }
+
+                    if ($area === '' || empty($action_steps)) {
+                        continue;
+                    }
+
                     $poi_list[] = [
-                        'priority' => \sanitize_text_field($item['priority'] ?? 'ongoing'),
-                        'timeline' => \sanitize_text_field($item['timeline'] ?? ''),
-                        'action' => \sanitize_textarea_field($item['action']),
+                        'priority' => $priority,
+                        'area' => $area,
+                        'current_status' => $current_status,
+                        'action_steps' => $action_steps,
+                        'timeline' => $timeline,
+                        'success_criteria' => $success_criteria,
+                        'support_offered' => $support_offered,
+                        // Backward compatibility for older readers.
+                        'action' => $single_action !== '' ? $single_action : $action_steps[0],
                     ];
                 }
 
                 $updated_summary['plan_of_improvement'] = $poi_list;
                 $updated_summary['poi'] = $poi_list; // For backward compatibility in code
+
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log(sprintf('[CQA DEBUG] update_report summary_poi normalized items=%d report_id=%d', count($poi_list), (int) $report->id));
+                }
 
                 $ai->save_summary($report->id, $updated_summary);
             }
@@ -1249,12 +1289,32 @@ class REST_Controller
             $result = $ai->generate($report);
 
             if (\is_wp_error($result)) {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log(sprintf(
+                        '[CQA DEBUG] generate_ai_summary failed report_id=%d code=%s message=%s',
+                        (int) $report->id,
+                        (string) $result->get_error_code(),
+                        (string) $result->get_error_message()
+                    ));
+                }
                 // Ensure status code is present to avoid 500 error
                 $data = $result->get_error_data();
                 if (!isset($data['status'])) {
                     $result->add_data(['status' => 400]);
                 }
                 return $result;
+            }
+
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                $poi_items = [];
+                if (is_array($result)) {
+                    $poi_items = $result['plan_of_improvement'] ?? $result['poi'] ?? [];
+                }
+                error_log(sprintf(
+                    '[CQA DEBUG] generate_ai_summary success report_id=%d poi_items=%d',
+                    (int) $report->id,
+                    is_array($poi_items) ? count($poi_items) : 0
+                ));
             }
 
             // Wrap in 'summary' key for frontend compatibility
