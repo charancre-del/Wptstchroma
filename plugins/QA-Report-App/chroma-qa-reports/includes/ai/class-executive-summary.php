@@ -329,12 +329,32 @@ class Executive_Summary
         $skipped = 0;
 
         foreach ($items as $idx => $item) {
+            // Accept string POI entries from model fallbacks.
+            if (is_string($item)) {
+                $text_item = \sanitize_textarea_field($item);
+                if ($text_item === '') {
+                    $skipped++;
+                    continue;
+                }
+                $normalized[] = [
+                    'priority' => 3,
+                    'area' => 'General Improvement',
+                    'current_status' => '',
+                    'action_steps' => [$text_item],
+                    'timeline' => '',
+                    'success_criteria' => '',
+                    'support_offered' => '',
+                    'action' => $text_item,
+                ];
+                continue;
+            }
+
             if (!is_array($item)) {
                 $skipped++;
                 continue;
             }
 
-            $area = \sanitize_text_field((string) ($item['area'] ?? $item['section'] ?? ''));
+            $area = \sanitize_text_field((string) ($item['area'] ?? $item['section'] ?? $item['item'] ?? $item['title'] ?? $item['category'] ?? ''));
             $current_status = \sanitize_textarea_field((string) ($item['current_status'] ?? $item['observation'] ?? ''));
             $timeline = \sanitize_text_field((string) ($item['timeline'] ?? ''));
             $success_criteria = \sanitize_textarea_field((string) ($item['success_criteria'] ?? ''));
@@ -351,14 +371,53 @@ class Executive_Summary
                         $action_steps[] = $step_text;
                     }
                 }
+            } elseif (!empty($item['steps']) && is_array($item['steps'])) {
+                foreach ($item['steps'] as $step) {
+                    $step_text = \sanitize_textarea_field((string) $step);
+                    if ($step_text !== '') {
+                        $action_steps[] = $step_text;
+                    }
+                }
+            } elseif (!empty($item['recommendations']) && is_array($item['recommendations'])) {
+                foreach ($item['recommendations'] as $step) {
+                    $step_text = \sanitize_textarea_field((string) $step);
+                    if ($step_text !== '') {
+                        $action_steps[] = $step_text;
+                    }
+                }
             } elseif (!empty($item['action']) && is_string($item['action'])) {
                 $fallback_action = \sanitize_textarea_field($item['action']);
                 if ($fallback_action !== '') {
                     $action_steps[] = $fallback_action;
                 }
+            } elseif (!empty($item['recommendation']) && is_string($item['recommendation'])) {
+                $fallback_action = \sanitize_textarea_field($item['recommendation']);
+                if ($fallback_action !== '') {
+                    $action_steps[] = $fallback_action;
+                }
             }
 
-            if ($area === '' || empty($action_steps)) {
+            // Final fallback: if model gave useful narrative but no explicit steps, keep item.
+            if (empty($action_steps)) {
+                $fallback_step = '';
+                if ($current_status !== '') {
+                    $fallback_step = $current_status;
+                } elseif ($success_criteria !== '') {
+                    $fallback_step = $success_criteria;
+                } elseif ($support_offered !== '') {
+                    $fallback_step = $support_offered;
+                }
+
+                if ($fallback_step !== '') {
+                    $action_steps[] = $fallback_step;
+                }
+            }
+
+            if ($area === '') {
+                $area = 'General Improvement';
+            }
+
+            if (empty($action_steps)) {
                 $skipped++;
                 continue;
             }
