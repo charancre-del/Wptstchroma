@@ -31,8 +31,8 @@ export const AuthProvider = ({ children }) => {
             const res = await fetch(`${settings.root}chroma-portal/v1/login`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-WP-Nonce': settings.nonce
+                    // Public route: do not send wp_rest nonce (stale cached nonce can trigger cookie check errors)
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ pin })
             });
