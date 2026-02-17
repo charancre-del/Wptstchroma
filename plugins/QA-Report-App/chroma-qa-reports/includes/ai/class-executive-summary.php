@@ -55,7 +55,7 @@ class Executive_Summary
             return new \WP_Error(
                 'ai_executive_failed',
                 __('AI executive summary generation failed. Please try again.', 'chroma-qa-reports'),
-                ['status' => 502]
+                ['status' => 422]
             );
         }
 
@@ -64,7 +64,7 @@ class Executive_Summary
             return new \WP_Error(
                 'ai_executive_empty',
                 __('AI executive summary returned an empty response. Please try again.', 'chroma-qa-reports'),
-                ['status' => 502]
+                ['status' => 422]
             );
         }
 
@@ -75,7 +75,7 @@ class Executive_Summary
             return new \WP_Error(
                 'ai_poi_failed',
                 __('AI plan of improvement generation failed. Please try again.', 'chroma-qa-reports'),
-                ['status' => 502]
+                ['status' => 422]
             );
         }
 
@@ -93,7 +93,7 @@ class Executive_Summary
             return new \WP_Error(
                 'ai_poi_empty',
                 __('AI plan of improvement returned no items. Please try again.', 'chroma-qa-reports'),
-                ['status' => 502]
+                ['status' => 422]
             );
         }
 
