@@ -24,11 +24,11 @@ class Chroma_Schema_Bulk_Ops
     public function ajax_reset_schema() {
         check_ajax_referer('chroma_llm_nonce', 'nonce'); // Assuming nonce name from admin-llm.js
         
-        if (!current_user_can('edit_posts')) {
+        if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Unauthorized']);
         }
 
-        $post_ids = $_POST['post_ids'] ?? [];
+        $post_ids = isset($_POST['post_ids']) && is_array($_POST['post_ids']) ? array_map('absint', $_POST['post_ids']) : [];
         $reset_all = filter_var($_POST['reset_all'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $count = 0;
 
@@ -46,6 +46,9 @@ class Chroma_Schema_Bulk_Ops
             }
         } elseif (!empty($post_ids) && is_array($post_ids)) {
             foreach ($post_ids as $pid) {
+                if (!$pid || !chroma_seo_can_edit_post($pid)) {
+                    continue;
+                }
                 delete_post_meta($pid, '_chroma_schema_override');
                 $count++;
             }
@@ -70,11 +73,11 @@ class Chroma_Schema_Bulk_Ops
     public function ajax_reset_faq() {
         check_ajax_referer('chroma_llm_nonce', 'nonce');
         
-        if (!current_user_can('edit_posts')) {
+        if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Unauthorized']);
         }
 
-        $post_ids = $_POST['post_ids'] ?? [];
+        $post_ids = isset($_POST['post_ids']) && is_array($_POST['post_ids']) ? array_map('absint', $_POST['post_ids']) : [];
         $reset_all = filter_var($_POST['reset_all'] ?? false, FILTER_VALIDATE_BOOLEAN);
         $count = 0;
         
@@ -98,6 +101,9 @@ class Chroma_Schema_Bulk_Ops
             }
         } elseif (!empty($post_ids) && is_array($post_ids)) {
             foreach ($post_ids as $pid) {
+                if (!$pid || !chroma_seo_can_edit_post($pid)) {
+                    continue;
+                }
                 foreach($keys as $k) delete_post_meta($pid, $k);
                 $count++;
             }

@@ -154,6 +154,8 @@ class Chroma_LLM_Client
 
         <script>
             jQuery(document).ready(function ($) {
+                var chromaLlmNonce = '<?php echo esc_js(wp_create_nonce('chroma_seo_nonce')); ?>';
+
                 // Unbind previous events to prevent duplicates in case of AJAX reloads
                 $(document).off('click', '#chroma-save-llm');
                 $(document).off('click', '#chroma-test-llm');
@@ -168,7 +170,8 @@ class Chroma_LLM_Client
                         action: 'chroma_save_llm_settings',
                         api_key: $('#chroma_openai_api_key').val(),
                         model: $('#chroma_llm_model').val(),
-                        base_url: $('#chroma_llm_base_url').val()
+                        base_url: $('#chroma_llm_base_url').val(),
+                        nonce: chromaLlmNonce
                     }, function (response) {
                         btn.prop('disabled', false).text('Save Settings');
                         if (response.success) {
@@ -192,7 +195,8 @@ class Chroma_LLM_Client
                     status.text('').css('color', 'inherit');
 
                     $.post(ajaxurl, {
-                        action: 'chroma_test_llm_connection'
+                        action: 'chroma_test_llm_connection',
+                        nonce: chromaLlmNonce
                     }, function (response) {
                         btn.prop('disabled', false).text('Test Connection');
                         if (response.success) {
@@ -215,6 +219,8 @@ class Chroma_LLM_Client
      */
     public function ajax_save_settings()
     {
+        check_ajax_referer('chroma_seo_nonce', 'nonce');
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied']);
         }
@@ -251,6 +257,8 @@ class Chroma_LLM_Client
      */
     public function ajax_test_connection()
     {
+        check_ajax_referer('chroma_seo_nonce', 'nonce');
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied']);
         }
@@ -280,6 +288,8 @@ class Chroma_LLM_Client
      */
     public function ajax_generate_schema()
     {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
         if (!current_user_can('edit_posts')) {
             wp_send_json_error(['message' => 'Permission denied']);
         }
@@ -289,6 +299,10 @@ class Chroma_LLM_Client
 
         if (!$post_id || !$schema_type) {
             wp_send_json_error(['message' => 'Missing parameters']);
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
         }
 
         $result = $this->generate_schema_data($post_id, $schema_type);
@@ -678,6 +692,10 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => 'Post not found']);
         }
 
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
+
         $prompt = "Generate SEO metadata for the following content.\n";
         $prompt .= "Return ONLY valid JSON with two keys:\n";
         $prompt .= "- description: (string) A compelling meta description, max 160 chars.\n";
@@ -704,9 +722,7 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => $response->get_error_message()]);
         }
 
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        $content = $data['choices'][0]['message']['content'] ?? '';
+        $content = $response['choices'][0]['message']['content'] ?? '';
 
         // Extract JSON
         if (preg_match('/\{.*\}/s', $content, $matches)) {
@@ -734,6 +750,10 @@ class Chroma_LLM_Client
         $post_id = intval($_POST['post_id']);
         if (!$post_id) {
             wp_send_json_error(['message' => 'Missing Post ID']);
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
         }
 
         $result = $this->generate_llm_targeting_data($post_id);
@@ -974,7 +994,7 @@ class Chroma_LLM_Client
         // 1. Try to get the live page content (if published)
         $permalink = get_permalink($post_id);
         if ($permalink && get_post_status($post_id) === 'publish') {
-            $response = wp_remote_get($permalink, ['timeout' => 5, 'sslverify' => false]);
+            $response = wp_remote_get($permalink, ['timeout' => 5, 'sslverify' => true]);
             if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
                 $body = wp_remote_retrieve_body($response);
                 // Extract main content or body text
@@ -988,7 +1008,7 @@ class Chroma_LLM_Client
         $home_url = home_url('/');
         // Avoid fetching homepage if we just fetched it as the permalink
         if ($permalink !== $home_url) {
-            $response = wp_remote_get($home_url, ['timeout' => 5, 'sslverify' => false]);
+            $response = wp_remote_get($home_url, ['timeout' => 5, 'sslverify' => true]);
             if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
                 $body = wp_remote_retrieve_body($response);
                 $text = strip_tags($body);

@@ -42,7 +42,11 @@ function chroma_seo_init() {
     } catch (Throwable $e) {
         // Catch any PHP errors and show admin notice instead of crashing
         add_action('admin_notices', function() use ($e) {
-            echo '<div class="notice notice-error"><p><strong>Chroma SEO Pro Error:</strong> ' . esc_html($e->getMessage()) . ' in ' . esc_html($e->getFile()) . ' on line ' . esc_html($e->getLine()) . '</p></div>';
+            if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                error_log('[Chroma SEO Pro] Bootstrap error: ' . $e->getMessage() . ' in ' . $e->getFile() . ' on line ' . $e->getLine());
+            }
+
+            echo '<div class="notice notice-error"><p><strong>Chroma SEO Pro Error:</strong> Plugin bootstrap failed. Check debug log for details.</p></div>';
         });
         return;
     }

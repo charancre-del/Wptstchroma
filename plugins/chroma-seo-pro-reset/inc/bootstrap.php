@@ -49,6 +49,65 @@ if (!function_exists('chroma_debug_log')) {
 }
 
 /**
+ * Helper: Post-level capability check.
+ *
+ * @param int $post_id
+ * @return bool
+ */
+if (!function_exists('chroma_seo_can_edit_post')) {
+	function chroma_seo_can_edit_post($post_id) {
+		$post_id = absint($post_id);
+		return $post_id > 0 && current_user_can('edit_post', $post_id);
+	}
+}
+
+/**
+ * Helper: Validate outbound URLs for SSRF protection.
+ *
+ * @param string $url
+ * @param bool $allow_external
+ * @return string|false Normalized URL or false when blocked.
+ */
+if (!function_exists('chroma_seo_validate_remote_url')) {
+	function chroma_seo_validate_remote_url($url, $allow_external = false) {
+		$url = esc_url_raw($url, ['http', 'https']);
+		if (empty($url) || !wp_http_validate_url($url)) {
+			return false;
+		}
+
+		$host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+		if ($host === '' || in_array($host, ['localhost', '127.0.0.1', '::1'], true)) {
+			return false;
+		}
+
+		$resolved_ip = $host;
+		if (!filter_var($host, FILTER_VALIDATE_IP)) {
+			$resolved_ip = gethostbyname($host);
+		}
+
+		if (filter_var($resolved_ip, FILTER_VALIDATE_IP)) {
+			$is_public_ip = filter_var(
+				$resolved_ip,
+				FILTER_VALIDATE_IP,
+				FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE
+			);
+			if ($is_public_ip === false) {
+				return false;
+			}
+		}
+
+		if (!$allow_external) {
+			$site_host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+			if ($site_host !== '' && $host !== $site_host) {
+				return false;
+			}
+		}
+
+		return $url;
+	}
+}
+
+/**
  * Load Base Classes & Helpers
  */
 chroma_safe_require(__DIR__ . '/class-meta-box-base.php');

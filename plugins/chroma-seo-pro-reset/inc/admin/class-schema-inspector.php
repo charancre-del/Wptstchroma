@@ -15,8 +15,6 @@ class Chroma_Schema_Inspector
 {
     public function __construct()
     {
-        add_action('admin_bar_menu', [$this, 'add_admin_bar_menu'], 100);
-        add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('admin_enqueue_scripts', [$this, 'enqueue_scripts']);
         add_action('wp_ajax_chroma_validate_page_schema', [$this, 'ajax_validate_schema']);
         add_action('wp_ajax_chroma_fix_schema_with_ai', [$this, 'ajax_fix_schema']);
@@ -52,7 +50,11 @@ class Chroma_Schema_Inspector
      */
     public function enqueue_scripts()
     {
-        if (!current_user_can('edit_posts')) {
+        if (!is_admin() || !current_user_can('manage_options')) {
+            return;
+        }
+
+        if (!isset($_GET['page']) || sanitize_key($_GET['page']) !== 'chroma-seo-dashboard') {
             return;
         }
 

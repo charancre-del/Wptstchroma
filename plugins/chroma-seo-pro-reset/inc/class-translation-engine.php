@@ -39,6 +39,10 @@ class Chroma_Translation_Engine
         }
 
         $post_id = intval($_POST['post_id']);
+        if (!$post_id || !current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
+
         $post = get_post($post_id);
 
         if (!$post) {
@@ -51,7 +55,8 @@ class Chroma_Translation_Engine
             if ($error && ($error['type'] === E_ERROR || $error['type'] === E_PARSE || $error['type'] === E_COMPILE_ERROR)) {
                 // Clean any previous output
                 if (ob_get_length()) ob_clean();
-                wp_send_json_error(['message' => 'Fatal Error: ' . $error['message'] . ' in ' . $error['file'] . ':' . $error['line']]);
+                chroma_debug_log('Translate fatal: ' . $error['message'] . ' in ' . $error['file'] . ':' . $error['line']);
+                wp_send_json_error(['message' => 'A translation error occurred. Please try again.']);
             }
         });
 
@@ -176,9 +181,11 @@ class Chroma_Translation_Engine
             wp_send_json_success($translated);
 
         } catch (Exception $e) {
-            wp_send_json_error(['message' => 'Exception: ' . $e->getMessage()]);
+            chroma_debug_log('Translate exception: ' . $e->getMessage());
+            wp_send_json_error(['message' => 'Translation failed unexpectedly.']);
         } catch (Error $e) {
-            wp_send_json_error(['message' => 'Fatal Error: ' . $e->getMessage()]);
+            chroma_debug_log('Translate error: ' . $e->getMessage());
+            wp_send_json_error(['message' => 'Translation failed unexpectedly.']);
         }
     }
 

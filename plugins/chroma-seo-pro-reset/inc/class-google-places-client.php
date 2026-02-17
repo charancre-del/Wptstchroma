@@ -300,6 +300,10 @@ class Chroma_Google_Places_Client
         if (!$post_id) {
             wp_send_json_error(['message' => 'No post ID provided']);
         }
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
         
         $result = $this->sync_gmb_to_post($post_id);
         
@@ -318,10 +322,18 @@ class Chroma_Google_Places_Client
      */
     public function ajax_get_place_id() {
         check_ajax_referer('chroma_seo_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
         
         $post_id = intval($_POST['post_id'] ?? 0);
         if (!$post_id) {
             wp_send_json_error(['message' => 'No post ID']);
+        }
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
         }
         
         $place_id = $this->get_place_id($post_id);
