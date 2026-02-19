@@ -54,8 +54,8 @@ class Executive_Summary
         if (\is_wp_error($executive_result)) {
             return new \WP_Error(
                 'ai_executive_failed',
-                __('AI executive summary generation failed. Please try again.', 'chroma-qa-reports'),
-                ['status' => 422]
+                sprintf(__('AI executive summary generation failed: %s', 'chroma-qa-reports'), $executive_result->get_error_message()),
+                ['status' => 422, 'underlying_error' => $executive_result->get_error_code()]
             );
         }
 
@@ -74,8 +74,8 @@ class Executive_Summary
             }
             return new \WP_Error(
                 'ai_poi_failed',
-                __('AI plan of improvement generation failed. Please try again.', 'chroma-qa-reports'),
-                ['status' => 422]
+                sprintf(__('AI plan of improvement generation failed: %s', 'chroma-qa-reports'), $poi_result->get_error_message()),
+                ['status' => 422, 'underlying_error' => $poi_result->get_error_code()]
             );
         }
 
@@ -271,7 +271,6 @@ class Executive_Summary
             'properties' => [
                 'plan_of_improvement' => [
                     'type' => 'array',
-                    'minItems' => 1,
                     'items' => [
                         'type' => 'object',
                         'required' => ['area'],

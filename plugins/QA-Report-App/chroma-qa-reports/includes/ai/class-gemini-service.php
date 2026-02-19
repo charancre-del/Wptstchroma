@@ -116,7 +116,7 @@ class Gemini_Service
                 'Content-Type' => 'application/json',
             ],
             'body' => \wp_json_encode($body),
-            'timeout' => 60,
+            'timeout' => 120,
         ]);
 
         if (\is_wp_error($response)) {
@@ -246,6 +246,12 @@ class Gemini_Service
             } elseif ($start !== false) {
                 // JSON was truncated - try to repair
                 $text = substr($text, $start);
+
+                $finish_reason = is_array($response) ? ($response['finish_reason'] ?? '') : '';
+                if ($finish_reason === 'MAX_TOKENS' && defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('[CQA DEBUG] Gemini JSON truncated by MAX_TOKENS; attempting repair.');
+                }
+
                 $text = self::repair_truncated_json($text);
             }
 
@@ -512,7 +518,13 @@ class Gemini_Service
     private static function repair_truncated_json($json)
     {
         // Remove trailing incomplete string (common truncation point)
-        $json = preg_replace('/"[^"]*$/', '""', $json);
+        // If it ends with a dangling quote but not a closing quote
+        if (substr_count($json, '"') % 2 !== 0) {
+            $json = preg_replace('/"[^"]*$/', '""', $json);
+        }
+
+        // Remove trailing comma (common if truncated right after a field)
+        $json = preg_replace('/,\s*$/', '', $json);
 
         // Count opening and closing brackets
         $open_braces = substr_count($json, '{');
@@ -533,9 +545,11 @@ class Gemini_Service
         }
 
         // Clean up common trailing issues
-        $json = preg_replace('/,\s*([}\]])/', '$1', $json); // Remove trailing commas
+        $json = preg_replace('/,\s*([}\]])/', '$1', $json); // Remove trailing commas again just in case
 
-        error_log('[CQA] Attempted JSON repair: added ' . ($close_braces - substr_count($json, '}') + ($open_braces - $close_braces)) . ' closing braces');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[CQA] Attempted JSON repair: added ' . ($close_braces - substr_count($json, '}') + ($open_braces - $close_braces)) . ' closing braces');
+        }
 
         return $json;
     }
