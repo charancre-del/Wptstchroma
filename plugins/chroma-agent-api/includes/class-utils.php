@@ -113,6 +113,31 @@ class Utils
         return $value;
     }
 
+    /**
+     * Sanitize nested data while preserving original string keys (e.g. @context, @type).
+     */
+    public static function sanitize_mixed_for_storage_preserve_keys($value)
+    {
+        if (is_array($value)) {
+            $out = [];
+            foreach ($value as $k => $v) {
+                $safe_key = is_string($k) ? $k : $k;
+                $out[$safe_key] = self::sanitize_mixed_for_storage_preserve_keys($v);
+            }
+            return $out;
+        }
+
+        if (is_object($value)) {
+            return self::sanitize_mixed_for_storage_preserve_keys((array) $value);
+        }
+
+        if (is_string($value)) {
+            return wp_kses_post($value);
+        }
+
+        return $value;
+    }
+
     public static function normalize_scopes(array $scopes): array
     {
         $out = [];
@@ -165,48 +190,61 @@ class Utils
     public static function get_seo_option_allowlist(): array
     {
         $saved = get_option(self::OPTION_SEO_OPTION_ALLOWLIST, []);
-        if (!is_array($saved) || empty($saved)) {
-            $saved = [
-                'chroma_citation_facts',
-                'chroma_llm_brand_voice',
-                'chroma_llm_brand_context',
-                'chroma_seo_phone',
-                'chroma_seo_email',
-                'chroma_seo_phonetic_name',
-                'chroma_validator_batch_size',
-                'chroma_validator_request_delay',
-                'chroma_validator_timeout',
-                'chroma_validator_cache_ttl',
-                'chroma_validator_max_retries',
-                'chroma_validator_email_alerts',
-                'chroma_validator_post_types',
-                'chroma_careers_feed_url',
-                'chroma_combo_auto_publish',
-                'chroma_seo_manual_cities',
-            ];
+        $defaults = [
+            'chroma_citation_facts',
+            'chroma_llm_brand_voice',
+            'chroma_llm_brand_context',
+            'chroma_seo_phone',
+            'chroma_seo_email',
+            'chroma_seo_phonetic_name',
+            'chroma_validator_batch_size',
+            'chroma_validator_request_delay',
+            'chroma_validator_timeout',
+            'chroma_validator_cache_ttl',
+            'chroma_validator_max_retries',
+            'chroma_validator_email_alerts',
+            'chroma_validator_post_types',
+            'chroma_careers_feed_url',
+            'chroma_combo_auto_publish',
+            'chroma_seo_manual_cities',
+            'chroma_faq_schema_disabled',
+            'chroma_breadcrumbs_schema_disabled',
+        ];
+
+        if (!is_array($saved)) {
+            $saved = [];
         }
 
-        return self::normalize_allowlist($saved);
+        return self::normalize_allowlist(array_merge($defaults, $saved));
     }
 
     public static function get_seo_meta_allowlist(): array
     {
         $saved = get_option(self::OPTION_SEO_META_ALLOWLIST, []);
-        if (!is_array($saved) || empty($saved)) {
-            $saved = [
-                '_chroma_es_title',
-                '_chroma_es_content',
-                '_chroma_es_excerpt',
-                '_chroma_es_seo_title',
-                '_chroma_es_meta_description',
-                '_chroma_post_schemas',
-                '_chroma_schema_override',
-                '_chroma_schema_type',
-                'chroma_faq_items',
-            ];
+        $defaults = [
+            '_chroma_es_title',
+            '_chroma_es_content',
+            '_chroma_es_excerpt',
+            '_chroma_es_seo_title',
+            '_chroma_es_meta_description',
+            '_chroma_post_schemas',
+            '_chroma_schema_override',
+            '_chroma_schema_type',
+            '_chroma_schema_data',
+            '_chroma_schema_confidence',
+            '_chroma_needs_review',
+            '_chroma_review_reason',
+            '_chroma_schema_history',
+            '_chroma_schema_validation_status',
+            '_chroma_schema_errors',
+            'chroma_faq_items',
+        ];
+
+        if (!is_array($saved)) {
+            $saved = [];
         }
 
-        return self::normalize_allowlist($saved);
+        return self::normalize_allowlist(array_merge($defaults, $saved));
     }
 
     public static function normalize_allowlist(array $values): array

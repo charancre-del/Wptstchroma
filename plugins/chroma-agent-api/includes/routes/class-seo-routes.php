@@ -16,6 +16,30 @@ if (!defined('ABSPATH')) {
 class SEO_Routes
 {
     private const NS = 'chroma-agent/v1';
+    private const SCHEMA_META_KEYS = [
+        '_chroma_post_schemas',
+        '_chroma_schema_override',
+        '_chroma_schema_type',
+        '_chroma_schema_data',
+        '_chroma_schema_confidence',
+        '_chroma_needs_review',
+        '_chroma_review_reason',
+        '_chroma_schema_history',
+        '_chroma_schema_validation_status',
+        '_chroma_schema_errors',
+    ];
+    private const SCHEMA_ALIAS_MAP = [
+        'schemas' => '_chroma_post_schemas',
+        'schema_override' => '_chroma_schema_override',
+        'schema_type' => '_chroma_schema_type',
+        'schema_data' => '_chroma_schema_data',
+        'schema_confidence' => '_chroma_schema_confidence',
+        'needs_review' => '_chroma_needs_review',
+        'review_reason' => '_chroma_review_reason',
+        'schema_history' => '_chroma_schema_history',
+        'validation_status' => '_chroma_schema_validation_status',
+        'schema_errors' => '_chroma_schema_errors',
+    ];
 
     public static function register(): void
     {
@@ -41,6 +65,49 @@ class SEO_Routes
             [
                 'methods' => 'PATCH,POST',
                 'callback' => [__CLASS__, 'set_post_seo_meta'],
+                'permission_callback' => [__CLASS__, 'write_permission'],
+            ],
+        ]);
+
+        register_rest_route(self::NS, '/seo/schema/(?P<post_id>\d+)', [
+            [
+                'methods' => 'GET',
+                'callback' => [__CLASS__, 'get_post_schema'],
+                'permission_callback' => [__CLASS__, 'read_permission'],
+            ],
+            [
+                'methods' => 'PATCH,POST',
+                'callback' => [__CLASS__, 'set_post_schema'],
+                'permission_callback' => [__CLASS__, 'write_permission'],
+            ],
+        ]);
+
+        register_rest_route(self::NS, '/seo/schema', [
+            [
+                'methods' => 'GET',
+                'callback' => [__CLASS__, 'list_schema_posts'],
+                'permission_callback' => [__CLASS__, 'read_permission'],
+            ],
+        ]);
+
+        // Backwards-compatible aliases for earlier docs/clients.
+        register_rest_route(self::NS, '/schema/seo', [
+            [
+                'methods' => 'GET',
+                'callback' => [__CLASS__, 'list_schema_posts'],
+                'permission_callback' => [__CLASS__, 'read_permission'],
+            ],
+        ]);
+
+        register_rest_route(self::NS, '/schema/seo/(?P<post_id>\d+)', [
+            [
+                'methods' => 'GET',
+                'callback' => [__CLASS__, 'get_post_schema'],
+                'permission_callback' => [__CLASS__, 'read_permission'],
+            ],
+            [
+                'methods' => 'PATCH,POST',
+                'callback' => [__CLASS__, 'set_post_schema'],
                 'permission_callback' => [__CLASS__, 'write_permission'],
             ],
         ]);
@@ -203,7 +270,7 @@ class SEO_Routes
                 continue;
             }
 
-            $new = Utils::sanitize_mixed_for_storage($value);
+            $new = self::sanitize_meta_value_by_key($meta_key, $value);
             $after[$meta_key] = $new;
 
             if (!$dry_run) {
@@ -219,6 +286,207 @@ class SEO_Routes
             'method' => $request->get_method(),
             'route' => $request->get_route(),
             'target_type' => 'post_seo_meta',
+            'target_id' => (string) $post_id,
+            'dry_run' => $dry_run,
+            'before' => $before,
+            'after' => $after,
+            'diff' => $diff,
+            'status_code' => 200,
+        ]);
+
+        $live = [];
+        foreach (array_keys($after) as $meta_key) {
+            $live[$meta_key] = get_post_meta($post_id, $meta_key, true);
+        }
+
+        return rest_ensure_response([
+            'success' => true,
+            'dry_run' => $dry_run,
+            'post_id' => $post_id,
+            'blocked_keys' => $blocked,
+            'diff' => $diff,
+            'data' => $dry_run ? $after : $live,
+        ]);
+    }
+
+    public static function get_post_schema(WP_REST_Request $request)
+    {
+        $post_id = (int) $request['post_id'];
+        $post = get_post($post_id);
+
+        if (!$post) {
+            return new \WP_Error('caa_post_not_found', 'Post not found.', ['status' => 404]);
+        }
+
+        $data = self::get_schema_data_for_post($post_id);
+
+        return rest_ensure_response([
+            'success' => true,
+            'post_id' => $post_id,
+            'schema_keys' => self::SCHEMA_META_KEYS,
+            'data' => $data,
+        ]);
+    }
+
+    public static function list_schema_posts(WP_REST_Request $request)
+    {
+        $page = max(1, (int) $request->get_param('page'));
+        $per_page = (int) $request->get_param('per_page');
+        if ($per_page <= 0) {
+            $per_page = 20;
+        }
+        $per_page = min(100, $per_page);
+
+        $post_type = $request->get_param('post_type');
+        if (is_string($post_type) && strpos($post_type, ',') !== false) {
+            $post_type = array_filter(array_map('trim', explode(',', $post_type)));
+        }
+        if (empty($post_type)) {
+            $post_type = get_post_types(['public' => true], 'names');
+            unset($post_type['attachment']);
+            $post_type = array_values($post_type);
+        }
+
+        $needs_review_param = $request->get_param('needs_review');
+        $needs_review = null;
+        if ($needs_review_param !== null && $needs_review_param !== '') {
+            $needs_review = Utils::truthy($needs_review_param);
+        }
+
+        $has_schema_param = $request->get_param('has_schema');
+        $has_schema = true;
+        if ($has_schema_param !== null && $has_schema_param !== '') {
+            $has_schema = Utils::truthy($has_schema_param);
+        }
+
+        $meta_query = ['relation' => 'AND'];
+        if ($has_schema) {
+            $meta_query[] = [
+                'relation' => 'OR',
+                ['key' => '_chroma_post_schemas', 'compare' => 'EXISTS'],
+                ['key' => '_chroma_schema_override', 'compare' => 'EXISTS'],
+                ['key' => '_chroma_schema_data', 'compare' => 'EXISTS'],
+            ];
+        }
+
+        if ($needs_review === true) {
+            $meta_query[] = ['key' => '_chroma_needs_review', 'compare' => 'EXISTS'];
+        } elseif ($needs_review === false) {
+            $meta_query[] = ['key' => '_chroma_needs_review', 'compare' => 'NOT EXISTS'];
+        }
+
+        $args = [
+            'post_type' => $post_type,
+            'post_status' => ['publish', 'draft', 'pending', 'private'],
+            's' => sanitize_text_field((string) $request->get_param('search')),
+            'posts_per_page' => $per_page,
+            'paged' => $page,
+            'orderby' => 'modified',
+            'order' => 'DESC',
+            'no_found_rows' => false,
+        ];
+
+        if (count($meta_query) > 1) {
+            $args['meta_query'] = $meta_query;
+        }
+
+        $query = new \WP_Query($args);
+        $items = [];
+        $include_data = Utils::truthy($request->get_param('include_data'));
+
+        foreach ((array) $query->posts as $post) {
+            $schemas = get_post_meta($post->ID, '_chroma_post_schemas', true);
+            $schema_count = is_array($schemas) ? count($schemas) : 0;
+            $override = get_post_meta($post->ID, '_chroma_schema_override', true);
+            $needs_review_value = get_post_meta($post->ID, '_chroma_needs_review', true);
+
+            $item = [
+                'post_id' => (int) $post->ID,
+                'post_type' => (string) $post->post_type,
+                'post_status' => (string) $post->post_status,
+                'title' => get_the_title($post),
+                'slug' => (string) $post->post_name,
+                'permalink' => get_permalink($post),
+                'modified_gmt' => (string) $post->post_modified_gmt,
+                'schema_count' => $schema_count,
+                'has_schema_override' => !empty($override),
+                'needs_review' => Utils::truthy($needs_review_value),
+                'schema_validation_status' => get_post_meta($post->ID, '_chroma_schema_validation_status', true),
+            ];
+
+            if ($include_data) {
+                $item['schema'] = self::get_schema_data_for_post((int) $post->ID);
+            }
+
+            $items[] = $item;
+        }
+
+        return rest_ensure_response([
+            'success' => true,
+            'schema_keys' => self::SCHEMA_META_KEYS,
+            'data' => $items,
+            'pagination' => [
+                'page' => $page,
+                'per_page' => $per_page,
+                'total' => (int) $query->found_posts,
+                'total_pages' => (int) $query->max_num_pages,
+            ],
+        ]);
+    }
+
+    public static function set_post_schema(WP_REST_Request $request)
+    {
+        $post_id = (int) $request['post_id'];
+        $post = get_post($post_id);
+
+        if (!$post) {
+            return new \WP_Error('caa_post_not_found', 'Post not found.', ['status' => 404]);
+        }
+
+        $payload = self::payload($request);
+        $updates = isset($payload['updates']) && is_array($payload['updates']) ? $payload['updates'] : $payload;
+        $updates = self::normalize_schema_updates($updates);
+        $dry_run = Utils::truthy($payload['dry_run'] ?? false);
+        unset($updates['dry_run'], $updates['updates']);
+
+        $before = [];
+        $after = [];
+        $blocked = [];
+
+        foreach ((array) $updates as $key => $value) {
+            $meta_key = (string) $key;
+            if (!in_array($meta_key, self::SCHEMA_META_KEYS, true)) {
+                $blocked[] = $meta_key;
+                continue;
+            }
+
+            $old = get_post_meta($post_id, $meta_key, true);
+            $before[$meta_key] = $old;
+
+            if ($value === null) {
+                $after[$meta_key] = null;
+                if (!$dry_run) {
+                    delete_post_meta($post_id, $meta_key);
+                }
+                continue;
+            }
+
+            $new = self::sanitize_meta_value_by_key($meta_key, $value);
+            $after[$meta_key] = $new;
+
+            if (!$dry_run) {
+                update_post_meta($post_id, $meta_key, $new);
+            }
+        }
+
+        $diff = Diff::compare($before, $after);
+
+        Audit_Log::log_write([
+            'actor_key_id' => Auth::current_key_id(),
+            'scope' => 'write:seo',
+            'method' => $request->get_method(),
+            'route' => $request->get_route(),
+            'target_type' => 'post_schema_meta',
             'target_id' => (string) $post_id,
             'dry_run' => $dry_run,
             'before' => $before,
@@ -258,5 +526,51 @@ class SEO_Routes
             $data[$key] = get_option((string) $key, null);
         }
         return $data;
+    }
+
+    private static function sanitize_meta_value_by_key(string $meta_key, $value)
+    {
+        if (in_array($meta_key, ['_chroma_post_schemas', '_chroma_schema_data', '_chroma_schema_history', '_chroma_schema_errors'], true)) {
+            return Utils::sanitize_mixed_for_storage_preserve_keys($value);
+        }
+
+        if ($meta_key === '_chroma_needs_review') {
+            return Utils::truthy($value);
+        }
+
+        if ($meta_key === '_chroma_schema_confidence') {
+            return is_numeric($value) ? (float) $value : 0.0;
+        }
+
+        if (in_array($meta_key, ['_chroma_review_reason', '_chroma_schema_validation_status', '_chroma_schema_type'], true)) {
+            return sanitize_text_field((string) $value);
+        }
+
+        return Utils::sanitize_mixed_for_storage($value);
+    }
+
+    private static function get_schema_data_for_post(int $post_id): array
+    {
+        $data = [];
+        foreach (self::SCHEMA_META_KEYS as $meta_key) {
+            $data[$meta_key] = get_post_meta($post_id, $meta_key, true);
+        }
+        return $data;
+    }
+
+    private static function normalize_schema_updates($updates): array
+    {
+        if (!is_array($updates)) {
+            return [];
+        }
+
+        $normalized = $updates;
+        foreach (self::SCHEMA_ALIAS_MAP as $alias => $meta_key) {
+            if (array_key_exists($alias, $normalized) && !array_key_exists($meta_key, $normalized)) {
+                $normalized[$meta_key] = $normalized[$alias];
+            }
+        }
+
+        return $normalized;
     }
 }

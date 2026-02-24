@@ -38,6 +38,22 @@ class Chroma_Portal_Bulk_Uploader
             'chroma-portal-bulk-upload',
             [$this, 'render_page']
         );
+        add_submenu_page(
+            'edit.php?post_type=cp_lesson_plan',
+            'Bulk Upload',
+            'Bulk Upload',
+            'manage_options',
+            'chroma-portal-bulk-upload',
+            [$this, 'render_page']
+        );
+        add_submenu_page(
+            'edit.php?post_type=cp_home_activity',
+            'Bulk Upload',
+            'Bulk Upload',
+            'manage_options',
+            'chroma-portal-bulk-upload',
+            [$this, 'render_page']
+        );
     }
 
     public function render_page()
@@ -49,10 +65,22 @@ class Chroma_Portal_Bulk_Uploader
         $job_id = isset($_GET['job']) ? sanitize_key(wp_unslash($_GET['job'])) : '';
         $job = $job_id ? $this->get_job($job_id) : null;
         $notice = isset($_GET['bulk_notice']) ? sanitize_text_field(wp_unslash($_GET['bulk_notice'])) : '';
+        $scope = $this->get_scope_context();
+        if ($job && !empty($job['scope'])) {
+            $scope = sanitize_key((string) $job['scope']);
+        }
+        $allowed_for_scope = $this->get_allowed_types_for_scope($scope);
+        $default_post_type = '';
+        if ('cp_lesson_plan' === $scope) {
+            $default_post_type = 'cp_lesson_plan';
+        } elseif ('cp_home_activity' === $scope) {
+            $default_post_type = 'cp_home_activity';
+        }
         ?>
         <div class="wrap">
             <h1>Parent Portal Bulk Upload</h1>
             <p>Admin-only uploader for Parent Portal content. Upload a CSV and either a ZIP or multiple PDFs, then assign PDFs to rows.</p>
+            <p><strong>Scope:</strong> <?php echo esc_html($this->get_scope_label($scope)); ?> | <strong>Allowed post types:</strong> <?php echo esc_html(implode(', ', $allowed_for_scope)); ?></p>
 
             <?php if ($notice): ?>
                 <div class="notice notice-info is-dismissible"><p><?php echo esc_html($notice); ?></p></div>
@@ -65,6 +93,8 @@ class Chroma_Portal_Bulk_Uploader
                 <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" enctype="multipart/form-data">
                     <?php wp_nonce_field('chroma_portal_bulk_prepare', 'chroma_portal_bulk_prepare_nonce'); ?>
                     <input type="hidden" name="action" value="chroma_portal_bulk_prepare" />
+                    <input type="hidden" name="bulk_scope" value="<?php echo esc_attr($scope); ?>" />
+                    <input type="hidden" name="default_post_type" value="<?php echo esc_attr($default_post_type); ?>" />
                     <table class="form-table" role="presentation">
                         <tbody>
                         <tr>
@@ -299,6 +329,13 @@ class Chroma_Portal_Bulk_Uploader
         }
         check_admin_referer('chroma_portal_bulk_prepare', 'chroma_portal_bulk_prepare_nonce');
 
+        $scope = isset($_POST['bulk_scope']) ? sanitize_key(wp_unslash($_POST['bulk_scope'])) : 'all';
+        $allowed_for_scope = $this->get_allowed_types_for_scope($scope);
+        $default_post_type = isset($_POST['default_post_type']) ? sanitize_key(wp_unslash($_POST['default_post_type'])) : '';
+        if ($default_post_type && !in_array($default_post_type, $allowed_for_scope, true)) {
+            $default_post_type = '';
+        }
+
         if (empty($_FILES['chroma_bulk_csv']['name'])) {
             $this->redirect_with_notice('CSV file is required.');
         }
@@ -309,7 +346,7 @@ class Chroma_Portal_Bulk_Uploader
             $this->redirect_with_notice($csv_upload->get_error_message());
         }
 
-        $rows = $this->parse_csv($csv_upload['file']);
+        $rows = $this->parse_csv($csv_upload['file'], $default_post_type);
         if (empty($rows)) {
             $this->redirect_with_notice('No rows detected in CSV.');
         }
@@ -340,6 +377,8 @@ class Chroma_Portal_Bulk_Uploader
             'id' => $job_id,
             'rows' => $rows,
             'file_index' => $file_index,
+            'scope' => $scope,
+            'allowed_types' => $allowed_for_scope,
             'update_existing' => !empty($_POST['update_existing']),
             'cursor' => 0,
             'summary' => $this->empty_summary(),
@@ -530,7 +569,11 @@ class Chroma_Portal_Bulk_Uploader
         $post_type = sanitize_key($row['post_type']);
         $title = sanitize_text_field($row['title']);
 
-        if (!$post_type || !in_array($post_type, $this->allowed_types, true)) {
+        $allowed_types = isset($job['allowed_types']) && is_array($job['allowed_types'])
+            ? array_values($job['allowed_types'])
+            : $this->allowed_types;
+
+        if (!$post_type || !in_array($post_type, $allowed_types, true)) {
             return ['status' => 'failed', 'message' => 'Invalid post type'];
         }
         if (!$title) {
@@ -677,7 +720,7 @@ class Chroma_Portal_Bulk_Uploader
         return absint($attach_id);
     }
 
-    private function parse_csv($path)
+    private function parse_csv($path, $default_post_type = '')
     {
         $rows = [];
         $handle = fopen($path, 'r');
@@ -702,9 +745,14 @@ class Chroma_Portal_Bulk_Uploader
                 }
             }
 
+            $parsed_type = $this->map_post_type($this->first_non_empty($raw, ['post_type', 'type']));
+            if (!$parsed_type && $default_post_type) {
+                $parsed_type = $default_post_type;
+            }
+
             $row = [
                 '_row' => $line,
-                'post_type' => $this->map_post_type($this->first_non_empty($raw, ['post_type', 'type'])),
+                'post_type' => $parsed_type,
                 'title' => sanitize_text_field($this->first_non_empty($raw, ['title', 'post_title'])),
                 'file' => sanitize_file_name($this->first_non_empty($raw, ['file', 'filename', 'pdf', 'document'])),
                 'year' => sanitize_text_field($this->first_non_empty($raw, ['year'])),
@@ -1001,8 +1049,16 @@ class Chroma_Portal_Bulk_Uploader
 
     private function redirect_with_notice($message, $job_id = '')
     {
+        $scope = $this->get_scope_context();
+        $post_type = 'cp_family';
+        if ('cp_lesson_plan' === $scope) {
+            $post_type = 'cp_lesson_plan';
+        } elseif ('cp_home_activity' === $scope) {
+            $post_type = 'cp_home_activity';
+        }
+
         $args = [
-            'post_type' => 'cp_family',
+            'post_type' => $post_type,
             'page' => 'chroma-portal-bulk-upload',
             'bulk_notice' => $message,
         ];
@@ -1011,6 +1067,40 @@ class Chroma_Portal_Bulk_Uploader
         }
         wp_safe_redirect(add_query_arg($args, admin_url('edit.php')));
         exit;
+    }
+
+    private function get_scope_context()
+    {
+        $post_type = isset($_REQUEST['post_type']) ? sanitize_key(wp_unslash($_REQUEST['post_type'])) : '';
+        if ('cp_lesson_plan' === $post_type) {
+            return 'cp_lesson_plan';
+        }
+        if ('cp_home_activity' === $post_type) {
+            return 'cp_home_activity';
+        }
+        return 'all';
+    }
+
+    private function get_allowed_types_for_scope($scope)
+    {
+        if ('cp_lesson_plan' === $scope) {
+            return ['cp_lesson_plan', 'cp_home_activity'];
+        }
+        if ('cp_home_activity' === $scope) {
+            return ['cp_home_activity', 'cp_lesson_plan'];
+        }
+        return $this->allowed_types;
+    }
+
+    private function get_scope_label($scope)
+    {
+        if ('cp_lesson_plan' === $scope) {
+            return 'Lessons + Home Activities';
+        }
+        if ('cp_home_activity' === $scope) {
+            return 'Home Activities + Lessons';
+        }
+        return 'All Parent Portal Content Types';
     }
 }
 
