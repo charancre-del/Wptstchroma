@@ -14,6 +14,10 @@ class Bootstrap
 
         add_action('rest_api_init', [__CLASS__, 'register_routes']);
 
+        if (is_admin()) {
+            Admin::init();
+        }
+
         if (defined('WP_CLI') && WP_CLI) {
             CLI::register();
         }
@@ -43,6 +47,7 @@ class Bootstrap
         require_once CHROMA_AGENT_API_DIR . 'includes/class-audit-log.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-snapshot-store.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-cli.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/class-admin.php';
 
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-discovery-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-key-routes.php';

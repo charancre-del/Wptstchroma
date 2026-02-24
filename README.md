@@ -487,7 +487,13 @@ wp option update chroma_agent_api_enabled 0
 
 ### Bootstrap First API Key
 
-Use WP-CLI for initial key creation:
+You can create keys in the UI:
+
+1. Go to `Tools -> Chroma Agent API`
+2. Use **Create API Key**
+3. Copy the key shown in the one-time warning box
+
+Or use WP-CLI:
 
 ```bash
 wp chroma-agent key create --label="IDE Agent" --scopes="admin:keys,admin:audit,read:content,write:content,read:theme,write:theme,read:seo,write:seo,read:media,write:media" --rate=120
@@ -654,6 +660,9 @@ curl -sS "https://example.com/wp-json/chroma-agent/v1/seo/options" \
 ```
 
 ### Key Rotation and Revocation
+
+UI (recommended for admins):
+- `Tools -> Chroma Agent API` then use **Rotate** or **Revoke**
 
 Rotate:
 
