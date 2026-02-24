@@ -113,6 +113,7 @@ require_once CHROMA_PORTAL_PATH . 'includes/class-api-routes.php';
 if (is_admin()) {
     require_once CHROMA_PORTAL_PATH . 'includes/class-meta-boxes.php';
     require_once CHROMA_PORTAL_PATH . 'includes/class-bulk-importer.php';
+    require_once CHROMA_PORTAL_PATH . 'includes/class-bulk-uploader.php';
 }
 
 // Activation Hook
