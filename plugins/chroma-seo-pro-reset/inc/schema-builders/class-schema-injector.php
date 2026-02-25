@@ -935,6 +935,11 @@ class Chroma_Schema_Injector
                 }
             }
 
+            $schema_output = self::normalize_modular_schema_output($schema_type, $schema_output, $fields, $post_id);
+            if (!is_array($schema_output) || empty($schema_output)) {
+                continue;
+            }
+
             $graph[] = $schema_output;
         }
 
@@ -956,6 +961,304 @@ class Chroma_Schema_Injector
                 Chroma_Schema_Registry::register($final_schema, ['source' => 'schema-injector-modular-legacy']);
             }
         }
+    }
+
+    /**
+     * Normalize modular builder output into valid Schema.org structures.
+     * Keeps backward compatibility with legacy flat builder fields.
+     *
+     * @param string $schema_type
+     * @param array  $schema
+     * @param array  $raw_fields
+     * @param int    $post_id
+     * @return array|null
+     */
+    private static function normalize_modular_schema_output($schema_type, $schema, $raw_fields, $post_id)
+    {
+        if (!is_array($schema) || empty($schema_type)) {
+            return null;
+        }
+
+        // Convert CSV sameAs to array.
+        if (isset($schema['sameAs']) && is_string($schema['sameAs'])) {
+            $same_as = array_filter(array_map('trim', explode(',', $schema['sameAs'])));
+            $schema['sameAs'] = array_values($same_as);
+        }
+
+        // Ensure ItemList items are ListItem objects.
+        if ($schema_type === 'ItemList' && !empty($schema['itemListElement']) && is_array($schema['itemListElement'])) {
+            $items = [];
+            $pos = 1;
+            foreach ($schema['itemListElement'] as $item) {
+                if (is_array($item)) {
+                    if (empty($item['@type'])) {
+                        $item['@type'] = 'ListItem';
+                    }
+                    if (empty($item['position'])) {
+                        $item['position'] = $pos;
+                    }
+                    $items[] = $item;
+                }
+                $pos++;
+            }
+            $schema['itemListElement'] = $items;
+        }
+
+        // Ensure Offer objects include @type.
+        if (!empty($schema['offers']) && is_array($schema['offers'])) {
+            $offers = [];
+            foreach ($schema['offers'] as $offer) {
+                if (!is_array($offer)) {
+                    continue;
+                }
+                if (empty($offer['@type'])) {
+                    $offer['@type'] = 'Offer';
+                }
+                $offers[] = $offer;
+            }
+            $schema['offers'] = $offers;
+        }
+
+        if (in_array($schema_type, ['LocalBusiness', 'ChildCare', 'Preschool', 'EducationalOrganization'], true)) {
+            $schema = self::normalize_local_business_like_schema($schema, $raw_fields, $post_id);
+        }
+
+        if ($schema_type === 'Review') {
+            $schema = self::normalize_review_schema($schema, $post_id);
+        }
+
+        if ($schema_type === 'Service') {
+            $schema = self::normalize_service_schema($schema);
+        }
+
+        if ($schema_type === 'Event') {
+            $schema = self::normalize_event_schema($schema, $raw_fields, $post_id);
+            if ($schema === null) {
+                return null;
+            }
+        }
+
+        return $schema;
+    }
+
+    /**
+     * Normalize LocalBusiness/ChildCare address and geo structures.
+     *
+     * @param array $schema
+     * @param array $raw_fields
+     * @param int   $post_id
+     * @return array
+     */
+    private static function normalize_local_business_like_schema($schema, $raw_fields, $post_id)
+    {
+        $street = $schema['streetAddress'] ?? ($raw_fields['streetAddress'] ?? '');
+        $city = $schema['addressLocality'] ?? ($raw_fields['addressLocality'] ?? '');
+        $region = $schema['addressRegion'] ?? ($raw_fields['addressRegion'] ?? '');
+        $postal = $schema['postalCode'] ?? ($raw_fields['postalCode'] ?? '');
+
+        // Backfill from location post meta when available.
+        if (empty($city)) {
+            $city = get_post_meta($post_id, 'location_city', true);
+        }
+        if (empty($region)) {
+            $region = get_post_meta($post_id, 'location_state', true);
+        }
+        if (empty($postal)) {
+            $postal = get_post_meta($post_id, 'location_zip', true);
+        }
+        if (empty($street)) {
+            $street = get_post_meta($post_id, 'location_address', true);
+        }
+
+        if (isset($schema['address']) && is_string($schema['address']) && empty($street)) {
+            $street = $schema['address'];
+        }
+
+        $address = $schema['address'] ?? [];
+        if (is_string($address)) {
+            $address = ['streetAddress' => $address];
+        }
+        if (!is_array($address)) {
+            $address = [];
+        }
+
+        if (empty($address['@type'])) {
+            $address['@type'] = 'PostalAddress';
+        }
+        if (empty($address['streetAddress']) && !empty($street)) {
+            $address['streetAddress'] = $street;
+        }
+        if (empty($address['addressLocality']) && !empty($city)) {
+            $address['addressLocality'] = $city;
+        }
+        if (empty($address['addressRegion']) && !empty($region)) {
+            $address['addressRegion'] = $region;
+        }
+        if (empty($address['postalCode']) && !empty($postal)) {
+            $address['postalCode'] = $postal;
+        }
+        if (empty($address['addressCountry'])) {
+            $address['addressCountry'] = 'US';
+        }
+
+        $schema['address'] = $address;
+
+        // Remove legacy flat address keys after nesting.
+        unset($schema['streetAddress'], $schema['addressLocality'], $schema['addressRegion'], $schema['postalCode']);
+
+        // Convert legacy geo fields.
+        if (empty($schema['geo']) && (!empty($raw_fields['geo_lat']) || !empty($raw_fields['geo_lng']))) {
+            $lat = $raw_fields['geo_lat'] ?? '';
+            $lng = $raw_fields['geo_lng'] ?? '';
+            if ($lat !== '' && $lng !== '') {
+                $schema['geo'] = [
+                    '@type' => 'GeoCoordinates',
+                    'latitude' => floatval($lat),
+                    'longitude' => floatval($lng),
+                ];
+            }
+        }
+        unset($schema['geo_lat'], $schema['geo_lng']);
+
+        return $schema;
+    }
+
+    /**
+     * Normalize Review schema from legacy flat fields.
+     *
+     * @param array $schema
+     * @param int   $post_id
+     * @return array
+     */
+    private static function normalize_review_schema($schema, $post_id)
+    {
+        if (empty($schema['author']) && !empty($schema['author_name'])) {
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $schema['author_name'],
+            ];
+        }
+
+        if (empty($schema['itemReviewed']) && !empty($schema['itemReviewed_name'])) {
+            $item_type = 'Thing';
+            $post_type = get_post_type($post_id);
+            if ($post_type === 'location') {
+                $item_type = 'LocalBusiness';
+            } elseif ($post_type === 'program') {
+                $item_type = 'Service';
+            }
+
+            $schema['itemReviewed'] = [
+                '@type' => $item_type,
+                'name' => $schema['itemReviewed_name'],
+            ];
+        }
+
+        // Convert scalar reviewRating to Rating object.
+        if (isset($schema['reviewRating']) && !is_array($schema['reviewRating'])) {
+            $schema['reviewRating'] = [
+                '@type' => 'Rating',
+                'ratingValue' => $schema['reviewRating'],
+            ];
+            if (!empty($schema['bestRating'])) {
+                $schema['reviewRating']['bestRating'] = $schema['bestRating'];
+            }
+        }
+
+        unset($schema['author_name'], $schema['itemReviewed_name']);
+        return $schema;
+    }
+
+    /**
+     * Normalize Service provider structure from legacy provider_name.
+     *
+     * @param array $schema
+     * @return array
+     */
+    private static function normalize_service_schema($schema)
+    {
+        if (empty($schema['provider'])) {
+            $provider_name = '';
+            if (!empty($schema['provider_name'])) {
+                $provider_name = $schema['provider_name'];
+            } else {
+                $provider_name = get_bloginfo('name');
+            }
+
+            if (!empty($provider_name)) {
+                $schema['provider'] = [
+                    '@type' => 'Organization',
+                    'name' => $provider_name,
+                ];
+            }
+        }
+
+        unset($schema['provider_name']);
+        return $schema;
+    }
+
+    /**
+     * Normalize Event structure and suppress invalid empty event shells.
+     *
+     * @param array $schema
+     * @param array $raw_fields
+     * @param int   $post_id
+     * @return array|null
+     */
+    private static function normalize_event_schema($schema, $raw_fields, $post_id)
+    {
+        $location_name = $raw_fields['location_name'] ?? ($schema['location_name'] ?? '');
+        $location_addr = $raw_fields['location_address'] ?? ($schema['location_address'] ?? '');
+
+        if (empty($location_name) && get_post_type($post_id) === 'location') {
+            $location_name = get_the_title($post_id);
+        }
+        if (empty($location_addr) && get_post_type($post_id) === 'location') {
+            $location_addr = get_post_meta($post_id, 'location_address', true);
+        }
+
+        if (empty($schema['location']) && (!empty($location_name) || !empty($location_addr))) {
+            $schema['location'] = [
+                '@type' => 'Place',
+                'name' => $location_name,
+            ];
+            if (!empty($location_addr)) {
+                $schema['location']['address'] = [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => $location_addr,
+                ];
+            }
+        } elseif (isset($schema['location']) && is_string($schema['location']) && !empty($schema['location'])) {
+            $schema['location'] = [
+                '@type' => 'Place',
+                'name' => $schema['location'],
+            ];
+        }
+
+        if (!empty($schema['location']) && is_array($schema['location']) && !empty($schema['location']['address']) && is_string($schema['location']['address'])) {
+            $schema['location']['address'] = [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $schema['location']['address'],
+            ];
+        }
+
+        if (!empty($schema['startDate'])) {
+            if (empty($schema['eventAttendanceMode'])) {
+                $schema['eventAttendanceMode'] = 'https://schema.org/OfflineEventAttendanceMode';
+            }
+            if (empty($schema['eventStatus'])) {
+                $schema['eventStatus'] = 'https://schema.org/EventScheduled';
+            }
+        }
+
+        unset($schema['location_name'], $schema['location_address']);
+
+        // Do not output Event schema shells that cannot pass validation.
+        if (empty($schema['startDate']) || empty($schema['location'])) {
+            return null;
+        }
+
+        return $schema;
     }
 }
 
