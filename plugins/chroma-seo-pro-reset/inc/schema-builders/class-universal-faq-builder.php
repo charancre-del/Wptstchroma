@@ -42,6 +42,22 @@ class Chroma_Universal_FAQ_Builder
         }
 
         $post_id = get_the_ID();
+
+        // If a builder/API FAQ schema exists on this post, let modular schema output own FAQ.
+        $builder_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+        if (is_array($builder_schemas)) {
+            foreach ($builder_schemas as $schema_row) {
+                if (is_array($schema_row) && !empty($schema_row['type']) && $schema_row['type'] === 'FAQPage') {
+                    return;
+                }
+                if (is_array($schema_row) && !empty($schema_row['@type'])) {
+                    $row_type = is_array($schema_row['@type']) ? reset($schema_row['@type']) : $schema_row['@type'];
+                    if ($row_type === 'FAQPage') {
+                        return;
+                    }
+                }
+            }
+        }
         
         // Spanish Localization Support
         $is_spanish = false;

@@ -1809,7 +1809,10 @@ class Chroma_SEO_Dashboard
         $schemas = isset($_POST['schemas']) ? $_POST['schemas'] : [];
 
         chroma_debug_log(' SEO Save: Post ID = ' . $post_id);
-        chroma_debug_log(' SEO Save: Raw schemas received = ' . print_r($schemas, true));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $schema_count = is_array($schemas) ? count($schemas) : 0;
+            chroma_debug_log(' SEO Save: Schemas received count = ' . $schema_count);
+        }
 
         if (!$post_id) {
             chroma_debug_log(' SEO Save: Invalid post ID');
@@ -1856,7 +1859,9 @@ class Chroma_SEO_Dashboard
             }
         }
 
-        chroma_debug_log(' SEO Save: Cleaned schemas = ' . print_r($clean_schemas, true));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            chroma_debug_log(' SEO Save: Cleaned schemas count = ' . count($clean_schemas));
+        }
 
         $result = update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
         chroma_debug_log(' SEO Save: update_post_meta result = ' . ($result ? 'success/updated' : 'no change or failed'));
@@ -3945,6 +3950,30 @@ class Chroma_SEO_Dashboard
                 $geo = $schema['geo'];
                 $schema['geo_lat'] = $geo['latitude'] ?? ($schema['geo_lat'] ?? '');
                 $schema['geo_lng'] = $geo['longitude'] ?? ($schema['geo_lng'] ?? '');
+            }
+
+            // Convert FAQ mainEntity back to builder questions repeater when needed.
+            if ($type === 'FAQPage' && isset($schema['mainEntity']) && is_array($schema['mainEntity']) && !isset($schema['questions'])) {
+                $questions = [];
+                foreach ($schema['mainEntity'] as $entity) {
+                    if (!is_array($entity)) {
+                        continue;
+                    }
+                    $q = isset($entity['name']) ? sanitize_text_field($entity['name']) : '';
+                    $a = '';
+                    if (isset($entity['acceptedAnswer']) && is_array($entity['acceptedAnswer'])) {
+                        $a = isset($entity['acceptedAnswer']['text']) ? sanitize_textarea_field($entity['acceptedAnswer']['text']) : '';
+                    }
+                    if ($q !== '' && $a !== '') {
+                        $questions[] = [
+                            'question' => $q,
+                            'answer' => $a,
+                        ];
+                    }
+                }
+                if (!empty($questions)) {
+                    $schema['questions'] = $questions;
+                }
             }
 
             // Extract valid fields defined in our Builder for this type

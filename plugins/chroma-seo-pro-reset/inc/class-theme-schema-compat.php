@@ -513,8 +513,6 @@ function chroma_program_schema_pro()
     Chroma_Schema_Registry::register($schema, ['source' => 'theme-compat-program']);
 }
 }
-add_action('wp_head', 'chroma_program_schema');
-
 /**
  * Add FAQPage Schema to City Pages
  * Generates common FAQ questions about childcare in the specific city

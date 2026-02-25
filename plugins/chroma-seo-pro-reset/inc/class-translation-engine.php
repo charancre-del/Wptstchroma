@@ -400,7 +400,9 @@ class Chroma_Translation_Engine
         $translated = json_decode($content, true);
 
         if (!$translated) {
-            chroma_debug_log(' Translate: JSON Parse Failure. Raw Content: ' . substr($content, 0, 500));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                chroma_debug_log(' Translate: JSON Parse Failure. Response length: ' . strlen((string) $content));
+            }
             return ['_error' => 'Failed to parse translation JSON. The AI returned an invalid format.'];
         }
 

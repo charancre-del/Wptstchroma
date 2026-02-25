@@ -134,7 +134,7 @@ class Chroma_Schema_Injector
      */
     public static function get_organization_schema_data()
     {
-        return [
+        $data = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
             '@id' => home_url() . '#organization',
@@ -637,12 +637,13 @@ class Chroma_Schema_Injector
 
         $graph = [];
 
-        foreach ($schemas as $schema_data) {
-            if (empty($schema_data['type'])) {
+        foreach ($schemas as $schema_index => $schema_data) {
+            $prepared = self::prepare_modular_schema_input($schema_data);
+            if (empty($prepared['type'])) {
                 continue;
             }
 
-            $schema_type = sanitize_text_field($schema_data['type']);
+            $schema_type = $prepared['type'];
 
             // Global Suppression Check (e.g. for external AI schema)
             $override = get_post_meta($post_id, '_chroma_schema_override', true);
@@ -671,16 +672,17 @@ class Chroma_Schema_Injector
                 continue;
             }
 
-            $fields = isset($schema_data['data']) ? $schema_data['data'] : [];
+            $fields = $prepared['fields'];
+            $schema_id = !empty($prepared['id']) ? $prepared['id'] : self::build_deterministic_schema_id($post_id, $schema_type, (int) $schema_index);
 
             $schema_output = [
                 '@type' => $schema_type,
-                '@id' => get_permalink($post_id) . '#' . strtolower($schema_type) . '-' . uniqid()
+                '@id' => $schema_id
             ];
 
             // Add fields
             foreach ($fields as $key => $value) {
-                if (empty($value))
+                if (self::is_empty_schema_value($value))
                     continue;
 
                 // Basic sanitization, but allow some HTML if needed? 
@@ -701,19 +703,18 @@ class Chroma_Schema_Injector
                             }
                         }
                     } elseif ($schema_type === 'FAQPage' && $key === 'questions') {
-                        $schema_output['mainEntity'] = [];
-                        foreach ($value as $q) {
-                            $schema_output['mainEntity'][] = [
-                                '@type' => 'Question',
-                                'name' => isset($q['question']) ? $q['question'] : '',
-                                'acceptedAnswer' => [
-                                    '@type' => 'Answer',
-                                    'text' => isset($q['answer']) ? $q['answer'] : ''
-                                ]
-                            ];
+                        $entities = self::normalize_faq_questions($value);
+                        if (!empty($entities)) {
+                            if (empty($schema_output['mainEntity']) || !is_array($schema_output['mainEntity'])) {
+                                $schema_output['mainEntity'] = [];
+                            }
+                            $schema_output['mainEntity'] = array_merge($schema_output['mainEntity'], $entities);
                         }
-                        global $chroma_faq_output_done;
-                        $chroma_faq_output_done = true;
+                    } elseif ($schema_type === 'FAQPage' && $key === 'mainEntity') {
+                        $entities = self::normalize_faq_main_entity($value);
+                        if (!empty($entities)) {
+                            $schema_output['mainEntity'] = $entities;
+                        }
                     } elseif ($schema_type === 'HowTo' && $key === 'steps') {
                         $schema_output['step'] = [];
                         foreach ($value as $s) {
@@ -935,9 +936,37 @@ class Chroma_Schema_Injector
                 }
             }
 
+            if ($schema_type === 'FAQPage') {
+                if (empty($schema_output['mainEntity']) || !is_array($schema_output['mainEntity'])) {
+                    $schema_output['mainEntity'] = self::get_faq_entities_from_meta($post_id);
+                } else {
+                    $schema_output['mainEntity'] = self::normalize_faq_main_entity($schema_output['mainEntity']);
+                }
+
+                if (empty($schema_output['mainEntity'])) {
+                    continue;
+                }
+            }
+
             $schema_output = self::normalize_modular_schema_output($schema_type, $schema_output, $fields, $post_id);
             if (!is_array($schema_output) || empty($schema_output)) {
                 continue;
+            }
+
+            if (class_exists('Chroma_Schema_Validator')) {
+                Chroma_Schema_Validator::validate($schema_output, 'Modular schema');
+                $report = Chroma_Schema_Validator::get_report();
+                if (empty($report['valid'])) {
+                    if (defined('WP_DEBUG') && WP_DEBUG && function_exists('chroma_debug_log')) {
+                        chroma_debug_log('Modular schema blocked (' . $schema_type . '): ' . wp_json_encode($report['errors']));
+                    }
+                    continue;
+                }
+            }
+
+            if ($schema_type === 'FAQPage') {
+                global $chroma_faq_output_done;
+                $chroma_faq_output_done = true;
             }
 
             $graph[] = $schema_output;
@@ -961,6 +990,172 @@ class Chroma_Schema_Injector
                 Chroma_Schema_Registry::register($final_schema, ['source' => 'schema-injector-modular-legacy']);
             }
         }
+    }
+
+    /**
+     * Accept schema rows in both builder format and raw JSON-LD-like format.
+     *
+     * @param mixed $schema_data
+     * @return array{type:string,fields:array,id:string}
+     */
+    private static function prepare_modular_schema_input($schema_data)
+    {
+        if (!is_array($schema_data)) {
+            return ['type' => '', 'fields' => [], 'id' => ''];
+        }
+
+        // Native builder shape: ['type' => 'FAQPage', 'data' => [...]]
+        if (!empty($schema_data['type'])) {
+            $type = sanitize_text_field((string) $schema_data['type']);
+            $fields = isset($schema_data['data']) && is_array($schema_data['data']) ? $schema_data['data'] : [];
+            $id = isset($schema_data['@id']) ? sanitize_text_field((string) $schema_data['@id']) : '';
+            return ['type' => $type, 'fields' => $fields, 'id' => $id];
+        }
+
+        // Raw JSON-LD-like shape: ['@type' => 'FAQPage', 'mainEntity' => [...]]
+        if (empty($schema_data['@type'])) {
+            return ['type' => '', 'fields' => [], 'id' => ''];
+        }
+
+        $type = $schema_data['@type'];
+        if (is_array($type)) {
+            $type = reset($type);
+        }
+        $type = sanitize_text_field((string) $type);
+
+        $fields = $schema_data;
+        unset($fields['@type'], $fields['@context'], $fields['@id']);
+
+        $id = isset($schema_data['@id']) ? sanitize_text_field((string) $schema_data['@id']) : '';
+
+        return ['type' => $type, 'fields' => $fields, 'id' => $id];
+    }
+
+    /**
+     * Build stable schema IDs to avoid per-request random IDs.
+     *
+     * @param int    $post_id
+     * @param string $schema_type
+     * @param int    $schema_index
+     * @return string
+     */
+    private static function build_deterministic_schema_id($post_id, $schema_type, $schema_index)
+    {
+        $base = untrailingslashit(get_permalink($post_id));
+        $type_slug = sanitize_title($schema_type);
+        return $base . '#schema-' . $type_slug . '-' . intval($schema_index + 1);
+    }
+
+    /**
+     * Determine if a schema value should be treated as empty.
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    private static function is_empty_schema_value($value)
+    {
+        if ($value === null) {
+            return true;
+        }
+        if (is_string($value) && trim($value) === '') {
+            return true;
+        }
+        if (is_array($value) && empty($value)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Normalize FAQ question/answer rows to Question objects.
+     *
+     * @param array $rows
+     * @return array
+     */
+    private static function normalize_faq_questions($rows)
+    {
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $entities = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $question = isset($row['question']) ? trim(wp_strip_all_tags((string) $row['question'])) : '';
+            $answer = isset($row['answer']) ? trim(wp_kses_post((string) $row['answer'])) : '';
+            if ($question === '' || $answer === '') {
+                continue;
+            }
+            $entities[] = [
+                '@type' => 'Question',
+                'name' => $question,
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => $answer,
+                ],
+            ];
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Normalize mainEntity for FAQPage.
+     *
+     * @param mixed $main_entity
+     * @return array
+     */
+    private static function normalize_faq_main_entity($main_entity)
+    {
+        if (!is_array($main_entity)) {
+            return [];
+        }
+
+        $entities = [];
+        foreach ($main_entity as $entity) {
+            if (!is_array($entity)) {
+                continue;
+            }
+            $question = isset($entity['name']) ? trim(wp_strip_all_tags((string) $entity['name'])) : '';
+            $answer = '';
+            if (isset($entity['acceptedAnswer']) && is_array($entity['acceptedAnswer'])) {
+                $answer = isset($entity['acceptedAnswer']['text']) ? trim(wp_kses_post((string) $entity['acceptedAnswer']['text'])) : '';
+            }
+            if ($question === '' || $answer === '') {
+                continue;
+            }
+            $entities[] = [
+                '@type' => 'Question',
+                'name' => $question,
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => $answer,
+                ],
+            ];
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Fallback FAQ source from universal FAQ meta.
+     *
+     * @param int $post_id
+     * @return array
+     */
+    private static function get_faq_entities_from_meta($post_id)
+    {
+        $faqs = [];
+        if (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) {
+            $faqs = get_post_meta($post_id, '_chroma_es_chroma_faq_items', true);
+        }
+        if (empty($faqs) || !is_array($faqs)) {
+            $faqs = get_post_meta($post_id, 'chroma_faq_items', true);
+        }
+
+        return self::normalize_faq_questions(is_array($faqs) ? $faqs : []);
     }
 
     /**
