@@ -4410,7 +4410,7 @@ class Chroma_SEO_Dashboard
             <div style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
                 <h3>ðŸ›¡ï¸ About Automated Careers</h3>
                 <ul style="list-style: disc; margin-left: 20px;">
-                    <li><strong>Hourly Sync:</strong> The system automatically checks for new jobs every hour via WP-Cron.</li>
+                    <li><strong>Weekly Sync:</strong> The system automatically checks for new jobs once per week via WP-Cron.</li>
                     <li><strong>Auto-Pruning:</strong> Jobs removed from the external feed will be moved to the Trash in WordPress.</li>
                     <li><strong>Rich Snippets:</strong> Every synced job listing automatically includes validated <code>JobPosting</code> JSON-LD schema for Google.</li>
                 </ul>
