@@ -37,10 +37,15 @@ class Chroma_Event_Schema_Builder
                 'addressLocality' => get_post_meta($post_id, 'location_city', true),
                 'addressRegion' => get_post_meta($post_id, 'location_state', true),
                 'postalCode' => get_post_meta($post_id, 'location_zip', true),
+                'addressCountry' => 'US',
             ],
         ];
 
         foreach ($events as $event) {
+            if (empty($event['name']) || empty($event['start'])) {
+                continue;
+            }
+
             // Skip past events
             if (strtotime($event['start']) < time()) {
                 continue;
@@ -55,7 +60,7 @@ class Chroma_Event_Schema_Builder
                 'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
                 'eventStatus' => 'https://schema.org/EventScheduled',
                 'location' => $location_data,
-                'description' => $event['description'],
+                'description' => !empty($event['description']) ? $event['description'] : sprintf(__('Open house event at %s', 'chroma-excellence'), get_the_title($post_id)),
                 'offers' => [
                     '@type' => 'Offer',
                     'price' => '0',

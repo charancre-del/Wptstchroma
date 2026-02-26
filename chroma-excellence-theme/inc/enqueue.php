@@ -392,6 +392,11 @@ function chroma_is_layout_critical_route()
                 return true;
         }
 
+        // Blog single pages need stable, non-async layout CSS to avoid CLS.
+        if (is_singular('post')) {
+                return true;
+        }
+
         if (is_page(array('contact', 'careers', 'career', 'tour', 'schedule-a-tour'))) {
                 return true;
         }

@@ -1301,17 +1301,28 @@ class Chroma_Schema_Injector
         // Remove legacy flat address keys after nesting.
         unset($schema['streetAddress'], $schema['addressLocality'], $schema['addressRegion'], $schema['postalCode']);
 
-        // Convert legacy geo fields.
-        if (empty($schema['geo']) && (!empty($raw_fields['geo_lat']) || !empty($raw_fields['geo_lng']))) {
-            $lat = $raw_fields['geo_lat'] ?? '';
-            $lng = $raw_fields['geo_lng'] ?? '';
-            if ($lat !== '' && $lng !== '') {
-                $schema['geo'] = [
-                    '@type' => 'GeoCoordinates',
-                    'latitude' => floatval($lat),
-                    'longitude' => floatval($lng),
-                ];
-            }
+        // Convert legacy geo fields (builder + common location meta fallbacks).
+        $lat = $raw_fields['geo_lat'] ?? '';
+        $lng = $raw_fields['geo_lng'] ?? '';
+        if ($lat === '') {
+            $lat = get_post_meta($post_id, 'location_latitude', true);
+        }
+        if ($lng === '') {
+            $lng = get_post_meta($post_id, 'location_longitude', true);
+        }
+        if ($lat === '') {
+            $lat = get_post_meta($post_id, 'location_lat', true);
+        }
+        if ($lng === '') {
+            $lng = get_post_meta($post_id, 'location_lng', true);
+        }
+
+        if (empty($schema['geo']) && $lat !== '' && $lng !== '') {
+            $schema['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => floatval($lat),
+                'longitude' => floatval($lng),
+            ];
         }
         unset($schema['geo_lat'], $schema['geo_lng']);
 
@@ -1327,10 +1338,36 @@ class Chroma_Schema_Injector
      */
     private static function normalize_review_schema($schema, $post_id)
     {
+        if (!empty($schema['author']) && is_string($schema['author'])) {
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $schema['author'],
+            ];
+        }
+
         if (empty($schema['author']) && !empty($schema['author_name'])) {
             $schema['author'] = [
                 '@type' => 'Person',
                 'name' => $schema['author_name'],
+            ];
+        }
+
+        if (!empty($schema['author']) && is_array($schema['author']) && empty($schema['author']['@type']) && !empty($schema['author']['name'])) {
+            $schema['author']['@type'] = 'Person';
+        }
+
+        if (!empty($schema['itemReviewed']) && is_string($schema['itemReviewed'])) {
+            $item_type = 'Thing';
+            $post_type = get_post_type($post_id);
+            if ($post_type === 'location') {
+                $item_type = 'LocalBusiness';
+            } elseif ($post_type === 'program') {
+                $item_type = 'Service';
+            }
+
+            $schema['itemReviewed'] = [
+                '@type' => $item_type,
+                'name' => $schema['itemReviewed'],
             ];
         }
 
@@ -1346,6 +1383,13 @@ class Chroma_Schema_Injector
             $schema['itemReviewed'] = [
                 '@type' => $item_type,
                 'name' => $schema['itemReviewed_name'],
+            ];
+        }
+
+        if (empty($schema['itemReviewed']) && in_array(get_post_type($post_id), ['location', 'program'], true)) {
+            $schema['itemReviewed'] = [
+                '@type' => get_post_type($post_id) === 'location' ? 'LocalBusiness' : 'Service',
+                'name' => get_the_title($post_id),
             ];
         }
 
@@ -1372,6 +1416,13 @@ class Chroma_Schema_Injector
      */
     private static function normalize_service_schema($schema)
     {
+        if (!empty($schema['provider']) && is_string($schema['provider'])) {
+            $schema['provider'] = [
+                '@type' => 'Organization',
+                'name' => $schema['provider'],
+            ];
+        }
+
         if (empty($schema['provider'])) {
             $provider_name = '';
             if (!empty($schema['provider_name'])) {
@@ -1386,6 +1437,10 @@ class Chroma_Schema_Injector
                     'name' => $provider_name,
                 ];
             }
+        }
+
+        if (!empty($schema['provider']) && is_array($schema['provider']) && empty($schema['provider']['@type']) && !empty($schema['provider']['name'])) {
+            $schema['provider']['@type'] = 'Organization';
         }
 
         unset($schema['provider_name']);
@@ -1404,6 +1459,9 @@ class Chroma_Schema_Injector
     {
         $location_name = $raw_fields['location_name'] ?? ($schema['location_name'] ?? '');
         $location_addr = $raw_fields['location_address'] ?? ($schema['location_address'] ?? '');
+        $location_city = $raw_fields['location_city'] ?? '';
+        $location_region = $raw_fields['location_state'] ?? '';
+        $location_postal = $raw_fields['location_zip'] ?? '';
 
         if (empty($location_name) && get_post_type($post_id) === 'location') {
             $location_name = get_the_title($post_id);
@@ -1411,16 +1469,29 @@ class Chroma_Schema_Injector
         if (empty($location_addr) && get_post_type($post_id) === 'location') {
             $location_addr = get_post_meta($post_id, 'location_address', true);
         }
+        if (empty($location_city) && get_post_type($post_id) === 'location') {
+            $location_city = get_post_meta($post_id, 'location_city', true);
+        }
+        if (empty($location_region) && get_post_type($post_id) === 'location') {
+            $location_region = get_post_meta($post_id, 'location_state', true);
+        }
+        if (empty($location_postal) && get_post_type($post_id) === 'location') {
+            $location_postal = get_post_meta($post_id, 'location_zip', true);
+        }
 
         if (empty($schema['location']) && (!empty($location_name) || !empty($location_addr))) {
             $schema['location'] = [
                 '@type' => 'Place',
                 'name' => $location_name,
             ];
-            if (!empty($location_addr)) {
+            if (!empty($location_addr) || !empty($location_city) || !empty($location_region) || !empty($location_postal)) {
                 $schema['location']['address'] = [
                     '@type' => 'PostalAddress',
                     'streetAddress' => $location_addr,
+                    'addressLocality' => $location_city,
+                    'addressRegion' => $location_region,
+                    'postalCode' => $location_postal,
+                    'addressCountry' => 'US',
                 ];
             }
         } elseif (isset($schema['location']) && is_string($schema['location']) && !empty($schema['location'])) {
@@ -1434,7 +1505,20 @@ class Chroma_Schema_Injector
             $schema['location']['address'] = [
                 '@type' => 'PostalAddress',
                 'streetAddress' => $schema['location']['address'],
+                'addressLocality' => $location_city,
+                'addressRegion' => $location_region,
+                'postalCode' => $location_postal,
+                'addressCountry' => 'US',
             ];
+        }
+
+        if (!empty($schema['location']) && is_array($schema['location']) && !empty($schema['location']['address']) && is_array($schema['location']['address'])) {
+            if (empty($schema['location']['address']['@type'])) {
+                $schema['location']['address']['@type'] = 'PostalAddress';
+            }
+            if (empty($schema['location']['address']['addressCountry'])) {
+                $schema['location']['address']['addressCountry'] = 'US';
+            }
         }
 
         if (!empty($schema['startDate'])) {
