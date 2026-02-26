@@ -303,11 +303,13 @@ function chroma_advanced_seo_init()
 	if (class_exists('Chroma_Schema_Injector'))
 		add_action('wp_head', ['Chroma_Schema_Injector', 'output_person_schema']);
 	if (class_exists('Chroma_Schema_Injector'))
+		add_action('wp_head', ['Chroma_Schema_Injector', 'output_profile_page_schema']);
+	if (class_exists('Chroma_Schema_Injector'))
 		add_action('wp_head', ['Chroma_Schema_Injector', 'output_job_posting_schema']);
 	if (class_exists('Chroma_Schema_Injector'))
 		add_action('wp_head', ['Chroma_Schema_Injector', 'output_course_schema']);
-	if (class_exists('Chroma_Universal_FAQ_Builder'))
-		add_action('wp_head', ['Chroma_Universal_FAQ_Builder', 'output']);
+	// FAQ schema auto-injection intentionally disabled.
+	// FAQPage should only come from explicit modular/builder schema entries.
 	if (class_exists('Chroma_Page_Type_Builder'))
 		add_action('wp_head', ['Chroma_Page_Type_Builder', 'output']);
 	if (class_exists('Chroma_Schema_Injector'))

@@ -68,6 +68,8 @@ class Chroma_Schema_Injector
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Person',
+            '@id' => get_permalink($post_id) . '#director-profile',
+            'url' => get_permalink($post_id) . '#director-profile',
             'name' => $director_name,
             'jobTitle' => 'Center Director',
             'worksFor' => [
@@ -103,6 +105,115 @@ class Chroma_Schema_Injector
         $schema = self::get_person_schema_data(get_the_ID());
         if ($schema) {
             Chroma_Schema_Registry::register($schema, ['source' => 'schema-injector-person']);
+        }
+    }
+
+    /**
+     * Output ProfilePage schema for About and Location pages.
+     * - About page: one ProfilePage per team_member entry.
+     * - Location page: one ProfilePage for campus director.
+     */
+    public static function output_profile_page_schema()
+    {
+        if (!is_page() && !is_singular('location')) {
+            return;
+        }
+
+        $post_id = get_queried_object_id();
+        if (!$post_id) {
+            return;
+        }
+
+        // Respect manual overrides.
+        $override = get_post_meta($post_id, '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
+        if (is_singular('location')) {
+            $person = self::get_person_schema_data($post_id);
+            if (!$person) {
+                return;
+            }
+
+            $profile_schema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'ProfilePage',
+                '@id' => get_permalink($post_id) . '#director-profile-page',
+                'url' => get_permalink($post_id) . '#director-profile',
+                'name' => sprintf(__('Director Profile: %s', 'chroma-excellence'), $person['name']),
+                'isPartOf' => [
+                    '@type' => 'WebPage',
+                    '@id' => get_permalink($post_id),
+                ],
+                'mainEntity' => $person,
+            ];
+
+            Chroma_Schema_Registry::register($profile_schema, ['source' => 'schema-injector-location-profile']);
+            return;
+        }
+
+        // About page profile directory.
+        $slug = get_post_field('post_name', $post_id);
+        if (!in_array($slug, ['about', 'about-us', 'our-story'], true)) {
+            return;
+        }
+
+        $team_posts = get_posts([
+            'post_type'      => 'team_member',
+            'posts_per_page' => -1,
+            'orderby'        => 'menu_order',
+            'order'          => 'ASC',
+            'post_status'    => 'publish',
+        ]);
+
+        if (empty($team_posts)) {
+            return;
+        }
+
+        foreach ($team_posts as $team_post) {
+            $team_id = $team_post->ID;
+            $profile_url = get_permalink($post_id) . '#team-member-' . $team_id;
+            $job_title = get_post_meta($team_id, 'team_member_title', true);
+            $image_url = get_the_post_thumbnail_url($team_id, 'full');
+
+            $person = [
+                '@type' => 'Person',
+                '@id' => $profile_url,
+                'url' => $profile_url,
+                'name' => get_the_title($team_id),
+            ];
+
+            if (!empty($job_title)) {
+                $person['jobTitle'] = $job_title;
+            }
+
+            if (!empty($image_url)) {
+                $person['image'] = $image_url;
+            }
+
+            $bio = trim(wp_strip_all_tags((string) $team_post->post_content));
+            if ($bio !== '') {
+                $person['description'] = wp_trim_words($bio, 55);
+            }
+
+            $profile_schema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'ProfilePage',
+                '@id' => $profile_url . '-page',
+                'url' => $profile_url,
+                'name' => sprintf(__('%s Profile', 'chroma-excellence'), $person['name']),
+                'isPartOf' => [
+                    '@type' => 'WebPage',
+                    '@id' => get_permalink($post_id),
+                ],
+                'mainEntity' => $person,
+            ];
+
+            Chroma_Schema_Registry::register($profile_schema, [
+                'source' => 'schema-injector-about-profile',
+                'allow_duplicate' => true,
+            ]);
         }
     }
 
