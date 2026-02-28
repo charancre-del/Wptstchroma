@@ -6,7 +6,8 @@
 
 $is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
 $cache_key = 'chroma_home_stats_strip_' . ($is_es ? 'es' : 'en');
-$cached = get_transient($cache_key);
+$use_cache = !is_customize_preview();
+$cached = $use_cache ? get_transient($cache_key) : false;
 
 if ($cached !== false) {
     echo $cached;
@@ -40,6 +41,8 @@ ob_start();
 
 <?php
 $output = ob_get_clean();
-set_transient($cache_key, $output, DAY_IN_SECONDS);
+if ($use_cache) {
+    set_transient($cache_key, $output, DAY_IN_SECONDS);
+}
 echo $output;
 ?>
