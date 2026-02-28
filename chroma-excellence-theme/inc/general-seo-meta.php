@@ -63,7 +63,6 @@ function chroma_render_general_seo_meta_box($post)
             <?php _e('Comma-separated list. Leave empty to use auto-generated keywords.', 'chroma-excellence'); ?>
         </p>
     </div>
-    </div>
 
     <!-- AI Auto-Fill -->
     <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
@@ -79,38 +78,78 @@ function chroma_render_general_seo_meta_box($post)
     </div>
 
     <script>
-        jQuery(document).ready(function ($) {
-            $('#chroma-seo-autofill').on('click', function (e) {
-                e.preventDefault();
-                var btn = $(this);
-                var post_id = $('#post_ID').val();
+        document.addEventListener('DOMContentLoaded', function () {
+            var button = document.getElementById('chroma-seo-autofill');
+            var spinner = document.getElementById('chroma-seo-spinner');
+            var descriptionField = document.getElementById('meta_description');
+            var keywordsField = document.getElementById('meta_keywords');
+            var postIdField = document.getElementById('post_ID');
 
-                if (!confirm('<?php _e('This will overwrite existing SEO fields with AI-generated content. Continue?', 'chroma-excellence'); ?>')) {
+            if (!button || !spinner || !descriptionField || !keywordsField || !postIdField) {
+                return;
+            }
+
+            var flashField = function (field) {
+                field.style.backgroundColor = '#f0f6fc';
+                window.setTimeout(function () {
+                    field.style.backgroundColor = '#fff';
+                }, 1200);
+            };
+
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+
+                if (typeof ajaxurl === 'undefined') {
+                    window.alert('Admin AJAX URL is unavailable.');
                     return;
                 }
 
-                btn.prop('disabled', true);
-                $('#chroma-seo-spinner').addClass('is-active');
+                if (!window.confirm('<?php echo esc_js(__('This will overwrite existing SEO fields with AI-generated content. Continue?', 'chroma-excellence')); ?>')) {
+                    return;
+                }
 
-                $.post(ajaxurl, {
-                    action: 'chroma_generate_general_seo_meta',
-                    nonce: '<?php echo wp_create_nonce('chroma_seo_dashboard_nonce'); ?>', // Reusing dashboard nonce for simplicity
-                    post_id: post_id
-                }, function (response) {
-                    btn.prop('disabled', false);
-                    $('#chroma-seo-spinner').removeClass('is-active');
+                button.disabled = true;
+                spinner.classList.add('is-active');
 
-                    if (response.success) {
-                        $('#meta_description').val(response.data.description).css('background-color', '#f0f6fc').animate({ backgroundColor: '#fff' }, 2000);
-                        $('#meta_keywords').val(response.data.keywords).css('background-color', '#f0f6fc').animate({ backgroundColor: '#fff' }, 2000);
-                    } else {
-                        alert('Error: ' + (response.data.message || 'Unknown error'));
-                    }
-                }).fail(function () {
-                    btn.prop('disabled', false);
-                    $('#chroma-seo-spinner').removeClass('is-active');
-                    alert('Network error.');
-                });
+                var body = new URLSearchParams();
+                body.append('action', 'chroma_generate_general_seo_meta');
+                body.append('nonce', '<?php echo esc_js(wp_create_nonce('chroma_seo_dashboard_nonce')); ?>');
+                body.append('post_id', postIdField.value);
+
+                window.fetch(ajaxurl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                    },
+                    body: body.toString()
+                })
+                    .then(function (response) {
+                        return response.json();
+                    })
+                    .then(function (response) {
+                        button.disabled = false;
+                        spinner.classList.remove('is-active');
+
+                        if (response && response.success) {
+                            descriptionField.value = response.data.description || '';
+                            keywordsField.value = response.data.keywords || '';
+                            flashField(descriptionField);
+                            flashField(keywordsField);
+                            return;
+                        }
+
+                        var message = 'Unknown error';
+                        if (response && response.data && response.data.message) {
+                            message = response.data.message;
+                        }
+                        window.alert('Error: ' + message);
+                    })
+                    .catch(function () {
+                        button.disabled = false;
+                        spinner.classList.remove('is-active');
+                        window.alert('Network error.');
+                    });
             });
         });
     </script>
