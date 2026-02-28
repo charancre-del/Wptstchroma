@@ -208,11 +208,11 @@ add_action('trash_post', 'chroma_clear_query_cache');
 // Core setup and configuration
 require_once CHROMA_THEME_DIR . '/inc/setup.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
+require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
 
 // Frontend-only includes
 if (!is_admin() && !wp_doing_cron()) {
     require_once CHROMA_THEME_DIR . '/inc/critical-css.php';
-    require_once CHROMA_THEME_DIR . '/inc/enqueue.php';
     require_once CHROMA_THEME_DIR . '/inc/chroma-pdf-viewer.php';
     require_once CHROMA_THEME_DIR . '/inc/chroma-booking-modal.php';
 }

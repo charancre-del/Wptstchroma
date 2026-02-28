@@ -364,6 +364,9 @@ function chroma_enqueue_admin_assets($hook)
                 return;
         }
 
+        // Inline admin meta box scripts use jQuery before footer scripts render.
+        wp_enqueue_script('jquery');
+
         // Font Awesome for icon previews in admin (using local version)
         $admin_fa_asset = chroma_get_theme_asset('assets/css/font-awesome.css');
 
