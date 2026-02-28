@@ -192,7 +192,7 @@ class Chroma_Translation_Engine
     /**
      * Helper: Get meta keys based on template
      */
-    private static function get_keys_for_template($template)
+    public static function get_keys_for_template($template)
     {
         $keys = [];
         switch ($template) {

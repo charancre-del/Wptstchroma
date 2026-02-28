@@ -1,0 +1,16 @@
+_chroma_es_content
+_chroma_es_excerpt
+_chroma_es_meta_description
+_chroma_es_seo_title
+_chroma_es_title
+_chroma_needs_review
+_chroma_post_schemas
+_chroma_review_reason
+_chroma_schema_confidence
+_chroma_schema_data
+_chroma_schema_errors
+_chroma_schema_history
+_chroma_schema_override
+_chroma_schema_type
+_chroma_schema_validation_status
+chroma_faq_items
