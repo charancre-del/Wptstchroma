@@ -16,6 +16,70 @@ if (!defined('ABSPATH')) {
 class Content_Routes
 {
     private const NS = 'chroma-agent/v1';
+    private const META_WRITE_DENYLIST = [
+        '_chroma_post_schemas' => [
+            'reason' => 'Schema payloads are managed by the dedicated SEO schema route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/schema/{id}',
+        ],
+        '_chroma_schema_override' => [
+            'reason' => 'Schema override state is managed by the dedicated SEO schema route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/schema/{id}',
+        ],
+        '_chroma_schema_type' => [
+            'reason' => 'Schema type state is managed by the dedicated SEO schema route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/schema/{id}',
+        ],
+        '_chroma_schema_data' => [
+            'reason' => 'Schema data is managed by the dedicated SEO schema route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/schema/{id}',
+        ],
+        '_chroma_schema_confidence' => [
+            'reason' => 'Schema confidence is managed by the SEO metadata route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/meta/{id}',
+        ],
+        '_chroma_needs_review' => [
+            'reason' => 'Schema review flags are managed by the SEO metadata route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/meta/{id}',
+        ],
+        '_chroma_review_reason' => [
+            'reason' => 'Schema review flags are managed by the SEO metadata route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/meta/{id}',
+        ],
+        '_chroma_schema_history' => [
+            'reason' => 'Schema history is managed by the SEO metadata route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/meta/{id}',
+        ],
+        '_chroma_schema_validation_status' => [
+            'reason' => 'Schema validation metadata is managed by the SEO metadata route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/meta/{id}',
+        ],
+        '_chroma_schema_errors' => [
+            'reason' => 'Schema validation metadata is managed by the SEO metadata route.',
+            'preferred_route' => '/wp-json/chroma-agent/v1/seo/meta/{id}',
+        ],
+        '_chroma_webhook_sent' => [
+            'reason' => 'Webhook delivery flags are system-managed.',
+            'preferred_route' => '',
+        ],
+        'lead_payload' => [
+            'reason' => 'Lead payloads are system-managed by capture integrations.',
+            'preferred_route' => '',
+        ],
+    ];
+    private const META_WRITE_PREFIX_DENYLIST = [
+        '_cp_' => [
+            'reason' => 'Parent portal meta must be updated through the parent portal workflow.',
+            'preferred_route' => '/wp-json/chroma-portal/v1/*',
+        ],
+        '_chroma_school_' => [
+            'reason' => 'School dashboard meta must be updated through the school dashboard route.',
+            'preferred_route' => '/wp-json/chroma/v1/portal/school/{id}',
+        ],
+        'lead_' => [
+            'reason' => 'Lead fields are system-managed and not writable via content/{id}.',
+            'preferred_route' => '',
+        ],
+    ];
 
     public static function register(): void
     {
@@ -65,6 +129,49 @@ class Content_Routes
     public static function write_permission(WP_REST_Request $request)
     {
         return Auth::authorize($request, ['write:content']);
+    }
+
+    public static function describe_meta_write_policy(): array
+    {
+        $exact = [];
+        foreach (self::META_WRITE_DENYLIST as $meta_key => $policy) {
+            $exact[] = [
+                'meta_key' => $meta_key,
+                'reason' => (string) ($policy['reason'] ?? ''),
+                'preferred_route' => (string) ($policy['preferred_route'] ?? ''),
+            ];
+        }
+
+        $prefixes = [];
+        foreach (self::META_WRITE_PREFIX_DENYLIST as $prefix => $policy) {
+            $prefixes[] = [
+                'prefix' => $prefix,
+                'reason' => (string) ($policy['reason'] ?? ''),
+                'preferred_route' => (string) ($policy['preferred_route'] ?? ''),
+            ];
+        }
+
+        return [
+            'route' => '/wp-json/' . self::NS . '/content/{id}',
+            'enforcement' => 'denylist',
+            'applies_to' => ['POST /content', 'PATCH/POST/PUT /content/{id}'],
+            'blocked_exact' => $exact,
+            'blocked_prefixes' => $prefixes,
+        ];
+    }
+
+    public static function inspect_meta_write_policy(string $meta_key): array
+    {
+        $normalized = sanitize_key($meta_key);
+        $policy = $normalized !== '' ? self::get_meta_write_policy($normalized) : null;
+
+        return [
+            'requested_meta_key' => $meta_key,
+            'normalized_meta_key' => $normalized,
+            'blocked' => $policy !== null,
+            'reason' => (string) ($policy['reason'] ?? ''),
+            'preferred_route' => (string) ($policy['preferred_route'] ?? ''),
+        ];
     }
 
     public static function list_content(WP_REST_Request $request)
@@ -137,6 +244,7 @@ class Content_Routes
     {
         $params = self::get_payload($request);
         $dry_run = self::is_dry_run($params);
+        $strict_write = Utils::truthy($params['strict_write'] ?? false);
 
         $postarr = [
             'post_type' => sanitize_key((string) ($params['post_type'] ?? 'post')),
@@ -152,7 +260,12 @@ class Content_Routes
         }
 
         $meta = isset($params['meta']) && is_array($params['meta']) ? $params['meta'] : [];
+        [$meta, $write_policy_blocks] = self::partition_meta_by_policy($meta);
         $tax = isset($params['tax']) && is_array($params['tax']) ? $params['tax'] : [];
+
+        if (!$dry_run && !empty($write_policy_blocks)) {
+            return self::blocked_meta_response($write_policy_blocks);
+        }
 
         if ($dry_run) {
             $after = [
@@ -178,6 +291,7 @@ class Content_Routes
             return rest_ensure_response([
                 'success' => true,
                 'dry_run' => true,
+                'write_policy_blocks' => $write_policy_blocks,
                 'data' => $after,
             ]);
         }
@@ -187,9 +301,22 @@ class Content_Routes
             return $post_id;
         }
 
-        self::apply_meta_and_tax((int) $post_id, $meta, $tax);
+        $write_mismatches = self::apply_meta_and_tax((int) $post_id, $meta, $tax, true);
         $post = get_post((int) $post_id);
         $after = $post ? self::prepare_post_detail($post) : ['id' => (int) $post_id];
+
+        if ($strict_write && !empty($write_mismatches)) {
+            return new \WP_Error(
+                'caa_write_integrity_failed',
+                'One or more content writes were altered during persistence.',
+                [
+                    'status' => 409,
+                    'post_id' => (int) $post_id,
+                    'mismatches' => $write_mismatches,
+                    'data' => $after,
+                ]
+            );
+        }
 
         Audit_Log::log_write([
             'actor_key_id' => Auth::current_key_id(),
@@ -207,6 +334,8 @@ class Content_Routes
 
         return new \WP_REST_Response([
             'success' => true,
+            'write_policy_blocks' => [],
+            'write_mismatches' => $write_mismatches,
             'data' => $after,
         ], 201);
     }
@@ -222,6 +351,7 @@ class Content_Routes
 
         $params = self::get_payload($request);
         $dry_run = self::is_dry_run($params);
+        $strict_write = Utils::truthy($params['strict_write'] ?? false);
         $before = self::prepare_post_detail($post);
 
         $postarr = ['ID' => $id];
@@ -253,7 +383,12 @@ class Content_Routes
         }
 
         $meta = isset($params['meta']) && is_array($params['meta']) ? $params['meta'] : [];
+        [$meta, $write_policy_blocks] = self::partition_meta_by_policy($meta);
         $tax = isset($params['tax']) && is_array($params['tax']) ? $params['tax'] : [];
+
+        if (!$dry_run && !empty($write_policy_blocks)) {
+            return self::blocked_meta_response($write_policy_blocks);
+        }
 
         if ($dry_run) {
             $after = $before;
@@ -301,6 +436,7 @@ class Content_Routes
             return rest_ensure_response([
                 'success' => true,
                 'dry_run' => true,
+                'write_policy_blocks' => $write_policy_blocks,
                 'diff' => $diff,
                 'data' => $after,
             ]);
@@ -313,11 +449,24 @@ class Content_Routes
             }
         }
 
-        self::apply_meta_and_tax($id, $meta, $tax);
+        $write_mismatches = self::apply_meta_and_tax($id, $meta, $tax, true);
 
         $after_post = get_post($id);
         $after = $after_post ? self::prepare_post_detail($after_post) : ['id' => $id];
         $diff = Diff::compare($before, $after);
+
+        if ($strict_write && !empty($write_mismatches)) {
+            return new \WP_Error(
+                'caa_write_integrity_failed',
+                'One or more content writes were altered during persistence.',
+                [
+                    'status' => 409,
+                    'post_id' => $id,
+                    'mismatches' => $write_mismatches,
+                    'data' => $after,
+                ]
+            );
+        }
 
         Audit_Log::log_write([
             'actor_key_id' => Auth::current_key_id(),
@@ -335,6 +484,8 @@ class Content_Routes
 
         return rest_ensure_response([
             'success' => true,
+            'write_policy_blocks' => [],
+            'write_mismatches' => $write_mismatches,
             'diff' => $diff,
             'data' => $after,
         ]);
@@ -473,8 +624,10 @@ class Content_Routes
         ]);
     }
 
-    private static function apply_meta_and_tax(int $post_id, array $meta, array $tax): void
+    private static function apply_meta_and_tax(int $post_id, array $meta, array $tax, bool $verify = false): array
     {
+        $mismatches = [];
+
         foreach ($meta as $key => $value) {
             $safe_key = sanitize_key((string) $key);
             if ($safe_key === '') {
@@ -483,10 +636,27 @@ class Content_Routes
 
             if ($value === null) {
                 delete_post_meta($post_id, $safe_key);
+                if ($verify && metadata_exists('post', $post_id, $safe_key)) {
+                    $mismatches['meta'][$safe_key] = [
+                        'expected' => null,
+                        'actual' => get_post_meta($post_id, $safe_key, true),
+                    ];
+                }
                 continue;
             }
 
-            update_post_meta($post_id, $safe_key, Utils::sanitize_mixed_for_storage($value));
+            $expected = Utils::sanitize_mixed_for_storage($value);
+            update_post_meta($post_id, $safe_key, $expected);
+
+            if ($verify) {
+                $actual = get_post_meta($post_id, $safe_key, true);
+                if (!self::meta_values_equivalent($expected, $actual)) {
+                    $mismatches['meta'][$safe_key] = [
+                        'expected' => $expected,
+                        'actual' => $actual,
+                    ];
+                }
+            }
         }
 
         foreach ($tax as $taxonomy => $terms) {
@@ -508,8 +678,110 @@ class Content_Routes
                 }
             }
 
-            wp_set_object_terms($post_id, $clean_terms, $safe_tax, false);
+            $set_result = wp_set_object_terms($post_id, $clean_terms, $safe_tax, false);
+
+            if (!$verify || is_wp_error($set_result)) {
+                continue;
+            }
+
+            $actual_terms = wp_get_object_terms($post_id, $safe_tax, ['fields' => 'ids']);
+            if (is_wp_error($actual_terms)) {
+                continue;
+            }
+
+            $expected_ids = [];
+            foreach ((array) $set_result as $term_id) {
+                $expected_ids[] = (int) $term_id;
+            }
+            sort($expected_ids);
+
+            $actual_ids = [];
+            foreach ((array) $actual_terms as $term_id) {
+                $actual_ids[] = (int) $term_id;
+            }
+            sort($actual_ids);
+
+            if ($expected_ids !== $actual_ids) {
+                $mismatches['tax'][$safe_tax] = [
+                    'expected' => $expected_ids,
+                    'actual' => $actual_ids,
+                ];
+            }
         }
+
+        return $mismatches;
+    }
+
+    private static function meta_values_equivalent($expected, $actual): bool
+    {
+        return self::normalize_meta_value_for_compare($expected) == self::normalize_meta_value_for_compare($actual);
+    }
+
+    private static function partition_meta_by_policy(array $meta): array
+    {
+        $allowed = [];
+        $blocked = [];
+
+        foreach ($meta as $key => $value) {
+            $safe_key = sanitize_key((string) $key);
+            if ($safe_key === '') {
+                continue;
+            }
+
+            $policy = self::get_meta_write_policy($safe_key);
+            if ($policy !== null) {
+                $blocked[$safe_key] = $policy;
+                continue;
+            }
+
+            $allowed[$safe_key] = $value;
+        }
+
+        return [$allowed, $blocked];
+    }
+
+    private static function get_meta_write_policy(string $meta_key): ?array
+    {
+        if (isset(self::META_WRITE_DENYLIST[$meta_key])) {
+            return self::META_WRITE_DENYLIST[$meta_key];
+        }
+
+        foreach (self::META_WRITE_PREFIX_DENYLIST as $prefix => $policy) {
+            if ($prefix !== '' && strpos($meta_key, $prefix) === 0) {
+                return $policy;
+            }
+        }
+
+        return null;
+    }
+
+    private static function blocked_meta_response(array $blocked): \WP_Error
+    {
+        return new \WP_Error(
+            'caa_write_policy_blocked',
+            'One or more meta keys are restricted on /content. Use the dedicated route for those fields.',
+            [
+                'status' => 403,
+                'blocked_meta' => $blocked,
+            ]
+        );
+    }
+
+    private static function normalize_meta_value_for_compare($value)
+    {
+        if (is_object($value)) {
+            return self::normalize_meta_value_for_compare((array) $value);
+        }
+
+        if (is_array($value)) {
+            $out = [];
+            foreach ($value as $key => $item) {
+                $out[$key] = self::normalize_meta_value_for_compare($item);
+            }
+            return $out;
+        }
+
+        return $value;
     }
 
     private static function prepare_post_summary($post): array

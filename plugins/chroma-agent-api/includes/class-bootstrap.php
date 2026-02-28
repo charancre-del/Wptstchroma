@@ -11,6 +11,7 @@ class Bootstrap
     public static function init(): void
     {
         self::load_dependencies();
+        Routes\Geo_Routes::init();
 
         add_action('rest_api_init', [__CLASS__, 'register_routes']);
 
@@ -36,6 +37,7 @@ class Bootstrap
         Routes\SEO_Routes::register();
         Routes\Media_Routes::register();
         Routes\Audit_Routes::register();
+        Routes\Geo_Routes::register();
     }
 
     private static function load_dependencies(): void
@@ -56,5 +58,6 @@ class Bootstrap
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-seo-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-media-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-audit-routes.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-geo-routes.php';
     }
 }

@@ -27,6 +27,18 @@ class Discovery_Routes
             'callback' => [__CLASS__, 'resources'],
             'permission_callback' => [__CLASS__, 'allow_any_valid_key'],
         ]);
+
+        register_rest_route(self::NS, '/write-policy', [
+            'methods' => 'GET',
+            'callback' => [__CLASS__, 'write_policy'],
+            'permission_callback' => [__CLASS__, 'allow_any_valid_key'],
+        ]);
+
+        register_rest_route(self::NS, '/geo-contract', [
+            'methods' => 'GET',
+            'callback' => [__CLASS__, 'geo_contract'],
+            'permission_callback' => [__CLASS__, 'allow_any_valid_key'],
+        ]);
     }
 
     public static function allow_any_valid_key(WP_REST_Request $request)
@@ -60,6 +72,10 @@ class Discovery_Routes
                     'seo_options' => Utils::get_seo_option_allowlist(),
                     'seo_meta' => Utils::get_seo_meta_allowlist(),
                 ],
+                'introspection' => [
+                    'write_policy_route' => '/wp-json/' . self::NS . '/write-policy',
+                    'geo_contract_route' => '/wp-json/' . self::NS . '/geo-contract',
+                ],
                 'scopes' => Auth::current_key()['scopes'] ?? [],
             ],
         ]);
@@ -79,7 +95,32 @@ class Discovery_Routes
                 'theme_mod_allowlist' => Utils::get_theme_mod_allowlist(),
                 'seo_option_allowlist' => Utils::get_seo_option_allowlist(),
                 'seo_meta_allowlist' => Utils::get_seo_meta_allowlist(),
+                'content_meta_write_policy' => Content_Routes::describe_meta_write_policy(),
+                'geo_feed_contract' => Geo_Routes::describe_contract(),
             ],
+        ]);
+    }
+
+    public static function write_policy(WP_REST_Request $request)
+    {
+        $meta_key = (string) $request->get_param('meta_key');
+        $data = Content_Routes::describe_meta_write_policy();
+
+        if ($meta_key !== '') {
+            $data['inspection'] = Content_Routes::inspect_meta_write_policy($meta_key);
+        }
+
+        return rest_ensure_response([
+            'success' => true,
+            'data' => $data,
+        ]);
+    }
+
+    public static function geo_contract(WP_REST_Request $request)
+    {
+        return rest_ensure_response([
+            'success' => true,
+            'data' => Geo_Routes::describe_contract(),
         ]);
     }
 }

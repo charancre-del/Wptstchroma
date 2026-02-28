@@ -245,12 +245,14 @@ class SEO_Routes
         $payload = self::payload($request);
         $updates = isset($payload['updates']) && is_array($payload['updates']) ? $payload['updates'] : $payload;
         $dry_run = Utils::truthy($payload['dry_run'] ?? false);
-        unset($updates['dry_run'], $updates['updates']);
+        $strict_write = Utils::truthy($payload['strict_write'] ?? false);
+        unset($updates['dry_run'], $updates['strict_write'], $updates['updates']);
 
         $allowlist = Utils::get_seo_meta_allowlist();
         $before = [];
         $after = [];
         $blocked = [];
+        $write_mismatches = [];
 
         foreach ((array) $updates as $key => $value) {
             $meta_key = (string) $key;
@@ -274,7 +276,14 @@ class SEO_Routes
             $after[$meta_key] = $new;
 
             if (!$dry_run) {
-                update_post_meta($post_id, $meta_key, $new);
+                self::persist_meta_value($post_id, $meta_key, $new);
+                $saved = get_post_meta($post_id, $meta_key, true);
+                if (!self::meta_values_equivalent($new, $saved)) {
+                    $write_mismatches[$meta_key] = [
+                        'expected' => $new,
+                        'actual' => $saved,
+                    ];
+                }
             }
         }
 
@@ -299,11 +308,25 @@ class SEO_Routes
             $live[$meta_key] = get_post_meta($post_id, $meta_key, true);
         }
 
+        if (!$dry_run && $strict_write && !empty($write_mismatches)) {
+            return new \WP_Error(
+                'caa_write_integrity_failed',
+                'One or more meta writes were altered during persistence.',
+                [
+                    'status' => 409,
+                    'post_id' => $post_id,
+                    'mismatches' => $write_mismatches,
+                    'data' => $live,
+                ]
+            );
+        }
+
         return rest_ensure_response([
             'success' => true,
             'dry_run' => $dry_run,
             'post_id' => $post_id,
             'blocked_keys' => $blocked,
+            'write_mismatches' => $write_mismatches,
             'diff' => $diff,
             'data' => $dry_run ? $after : $live,
         ]);
@@ -447,11 +470,13 @@ class SEO_Routes
         $updates = isset($payload['updates']) && is_array($payload['updates']) ? $payload['updates'] : $payload;
         $updates = self::normalize_schema_updates($updates);
         $dry_run = Utils::truthy($payload['dry_run'] ?? false);
-        unset($updates['dry_run'], $updates['updates']);
+        $strict_write = Utils::truthy($payload['strict_write'] ?? false);
+        unset($updates['dry_run'], $updates['strict_write'], $updates['updates']);
 
         $before = [];
         $after = [];
         $blocked = [];
+        $write_mismatches = [];
 
         foreach ((array) $updates as $key => $value) {
             $meta_key = (string) $key;
@@ -475,7 +500,14 @@ class SEO_Routes
             $after[$meta_key] = $new;
 
             if (!$dry_run) {
-                update_post_meta($post_id, $meta_key, $new);
+                self::persist_meta_value($post_id, $meta_key, $new);
+                $saved = get_post_meta($post_id, $meta_key, true);
+                if (!self::meta_values_equivalent($new, $saved)) {
+                    $write_mismatches[$meta_key] = [
+                        'expected' => $new,
+                        'actual' => $saved,
+                    ];
+                }
             }
         }
 
@@ -500,11 +532,25 @@ class SEO_Routes
             $live[$meta_key] = get_post_meta($post_id, $meta_key, true);
         }
 
+        if (!$dry_run && $strict_write && !empty($write_mismatches)) {
+            return new \WP_Error(
+                'caa_write_integrity_failed',
+                'One or more schema writes were altered during persistence.',
+                [
+                    'status' => 409,
+                    'post_id' => $post_id,
+                    'mismatches' => $write_mismatches,
+                    'data' => $live,
+                ]
+            );
+        }
+
         return rest_ensure_response([
             'success' => true,
             'dry_run' => $dry_run,
             'post_id' => $post_id,
             'blocked_keys' => $blocked,
+            'write_mismatches' => $write_mismatches,
             'diff' => $diff,
             'data' => $dry_run ? $after : $live,
         ]);
@@ -530,7 +576,7 @@ class SEO_Routes
 
     private static function sanitize_meta_value_by_key(string $meta_key, $value)
     {
-        if (in_array($meta_key, ['_chroma_post_schemas', '_chroma_schema_data', '_chroma_schema_history', '_chroma_schema_errors'], true)) {
+        if (in_array($meta_key, ['_chroma_post_schemas', '_chroma_schema_data', '_chroma_schema_history', '_chroma_schema_errors', '_chroma_schema_override'], true)) {
             return Utils::sanitize_mixed_for_storage_preserve_keys($value);
         }
 
@@ -547,6 +593,59 @@ class SEO_Routes
         }
 
         return Utils::sanitize_mixed_for_storage($value);
+    }
+
+    private static function persist_meta_value(int $post_id, string $meta_key, $value): void
+    {
+        if (!self::should_bypass_meta_sanitizers($meta_key)) {
+            update_post_meta($post_id, $meta_key, $value);
+            return;
+        }
+
+        $filter = 'sanitize_post_meta_' . $meta_key;
+        $passthrough = static function ($sanitized) use ($value) {
+            return $value;
+        };
+
+        add_filter($filter, $passthrough, PHP_INT_MAX, 4);
+        try {
+            update_post_meta($post_id, $meta_key, $value);
+        } finally {
+            remove_filter($filter, $passthrough, PHP_INT_MAX);
+        }
+    }
+
+    private static function should_bypass_meta_sanitizers(string $meta_key): bool
+    {
+        return in_array($meta_key, [
+            '_chroma_post_schemas',
+            '_chroma_schema_data',
+            '_chroma_schema_history',
+            '_chroma_schema_errors',
+            '_chroma_schema_override',
+        ], true);
+    }
+
+    private static function meta_values_equivalent($expected, $actual): bool
+    {
+        return self::normalize_meta_value_for_compare($expected) == self::normalize_meta_value_for_compare($actual);
+    }
+
+    private static function normalize_meta_value_for_compare($value)
+    {
+        if (is_object($value)) {
+            return self::normalize_meta_value_for_compare((array) $value);
+        }
+
+        if (is_array($value)) {
+            $out = [];
+            foreach ($value as $key => $item) {
+                $out[$key] = self::normalize_meta_value_for_compare($item);
+            }
+            return $out;
+        }
+
+        return $value;
     }
 
     private static function get_schema_data_for_post(int $post_id): array
