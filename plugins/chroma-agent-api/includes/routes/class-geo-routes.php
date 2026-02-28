@@ -15,7 +15,7 @@ class Geo_Routes
     private const NS = 'chroma-agent/v1';
     private const CACHE_KEY = 'chroma_agent_geo_feed_v1';
     private const CACHE_TTL = 900;
-    private const CONTRACT_VERSION = '2026-02-28';
+    private const CONTRACT_VERSION = '2026-02-28.3';
     private const PUBLIC_META_DENYLIST = [
         '_chroma_post_schemas',
         '_chroma_needs_review',
@@ -110,6 +110,7 @@ class Geo_Routes
                 'source',
                 'summary',
                 'brand',
+                'curriculum',
                 'locations',
                 'programs',
                 'events',
@@ -121,6 +122,10 @@ class Geo_Routes
                     'site_url',
                     'contact',
                     'curriculum',
+                ],
+                'curriculum' => [
+                    'prismpath',
+                    'chroma_spectrum',
                 ],
                 'locations' => [
                     'id',
@@ -210,11 +215,18 @@ class Geo_Routes
                 'event_count' => count($events),
             ],
             'brand' => self::get_brand_payload(),
+            'curriculum' => self::get_curriculum_payload(),
             'locations' => $locations,
             'programs' => $programs,
             'events' => $events,
         ];
         $payload = self::compact_public_payload($payload);
+        $payload['brand'] = self::normalize_brand_contract($payload['brand'] ?? []);
+        $payload['curriculum'] = self::normalize_curriculum_contract($payload['curriculum'] ?? []);
+        $payload['locations'] = array_values(array_map(
+            [__CLASS__, 'normalize_location_contract'],
+            is_array($payload['locations'] ?? null) ? $payload['locations'] : []
+        ));
 
         set_transient(self::CACHE_KEY, $payload, self::CACHE_TTL);
 
@@ -359,8 +371,35 @@ class Geo_Routes
                 'email' => sanitize_email((string) get_option('chroma_seo_email', '')),
             ],
             'curriculum' => [
+                'frameworks' => [
+                    'Prismpath™',
+                    'Chroma Spectrum Curriculum',
+                ],
                 'brand_context' => self::normalize_text_block(get_option('chroma_llm_brand_context', '')),
                 'brand_voice' => self::normalize_text_block(get_option('chroma_llm_brand_voice', '')),
+            ],
+        ];
+    }
+
+    private static function get_curriculum_payload(): array
+    {
+        $brand_context = self::normalize_text_block(get_option('chroma_llm_brand_context', ''));
+        $brand_voice = self::normalize_text_block(get_option('chroma_llm_brand_voice', ''));
+
+        return [
+            'prismpath' => [
+                'name' => 'Prismpath™',
+                'category' => 'Proprietary learning model',
+                'description' => $brand_context !== ''
+                    ? $brand_context
+                    : 'Chroma’s proprietary learning model that structures early childhood development through a full-spectrum, play-based approach.',
+            ],
+            'chroma_spectrum' => [
+                'name' => 'Chroma Spectrum Curriculum',
+                'category' => 'Curriculum framework',
+                'description' => $brand_voice !== ''
+                    ? $brand_voice
+                    : 'Chroma’s branded curriculum framework used to align developmental goals, classroom experiences, and family-facing program positioning.',
             ],
         ];
     }
@@ -867,6 +906,172 @@ class Geo_Routes
         }
 
         return $value;
+    }
+
+    private static function normalize_brand_contract($brand): array
+    {
+        return self::apply_contract_schema($brand, [
+            'name' => null,
+            'description' => null,
+            'site_url' => null,
+            'contact' => [
+                'phone' => null,
+                'email' => null,
+            ],
+            'curriculum' => [
+                'frameworks' => [],
+                'brand_context' => null,
+                'brand_voice' => null,
+            ],
+        ]);
+    }
+
+    private static function normalize_curriculum_contract($curriculum): array
+    {
+        return self::apply_contract_schema($curriculum, [
+            'prismpath' => [
+                'name' => null,
+                'category' => null,
+                'description' => null,
+            ],
+            'chroma_spectrum' => [
+                'name' => null,
+                'category' => null,
+                'description' => null,
+            ],
+        ]);
+    }
+
+    private static function normalize_location_contract($location): array
+    {
+        return self::apply_contract_schema($location, [
+            'id' => null,
+            'campus_name' => null,
+            'slug' => null,
+            'url' => null,
+            'address' => [
+                'street' => null,
+                'city' => null,
+                'state' => null,
+                'postal_code' => null,
+                'country' => null,
+            ],
+            'phone_number' => null,
+            'email' => null,
+            'administrator_name' => null,
+            'programs_offered' => [],
+            'ages_accepted' => null,
+            'operating_hours' => null,
+            'facility_highlights' => [
+                'tagline' => null,
+                'description' => null,
+                'seo_title' => null,
+                'seo_text' => null,
+            ],
+            'service_areas' => [],
+            'coordinates' => [
+                'latitude' => null,
+                'longitude' => null,
+            ],
+            'media' => [
+                'video_tour_url' => null,
+                'video_thumbnail_url' => null,
+                'video_duration' => null,
+            ],
+            'availability' => [
+                'status' => null,
+                'spots_available' => null,
+            ],
+            'pricing' => [
+                'min' => null,
+                'max' => null,
+                'currency' => null,
+                'frequency' => null,
+            ],
+            'aggregate_rating' => [
+                'value' => null,
+                'count' => null,
+                'best' => null,
+                'worst' => null,
+            ],
+            'service_area_geo' => [
+                'latitude' => null,
+                'longitude' => null,
+                'radius_miles' => null,
+                'cities' => [],
+                'state' => null,
+            ],
+            'facility_profile' => [
+                'is_event_venue' => null,
+                'accepts_caps' => null,
+                'accepts_ga_pre_k' => null,
+                'security_cameras' => null,
+                'amenities' => [],
+            ],
+            'admissions' => [
+                'enrollment_steps' => [
+                    '__item' => [
+                        'title' => null,
+                        'text' => null,
+                        'url' => null,
+                    ],
+                ],
+            ],
+            'faqs' => [
+                '__item' => [
+                    'question' => null,
+                    'answer' => null,
+                ],
+            ],
+            'events' => [
+                '__item' => [
+                    'name' => null,
+                    'start' => null,
+                    'description' => null,
+                    'url' => null,
+                ],
+            ],
+            'open_house_date' => null,
+        ]);
+    }
+
+    private static function apply_contract_schema($value, array $schema)
+    {
+        if (array_key_exists('__item', $schema)) {
+            $items = is_array($value) ? $value : [];
+            $out = [];
+
+            foreach ($items as $item) {
+                if (is_array($schema['__item'])) {
+                    $out[] = self::apply_contract_schema($item, $schema['__item']);
+                } else {
+                    $out[] = $item;
+                }
+            }
+
+            return $out;
+        }
+
+        $source = is_array($value) ? $value : [];
+        $out = [];
+
+        foreach ($schema as $key => $default) {
+            $current = $source[$key] ?? null;
+
+            if (is_array($default)) {
+                if ($default === []) {
+                    $out[$key] = is_array($current) ? array_values($current) : [];
+                    continue;
+                }
+
+                $out[$key] = self::apply_contract_schema($current, $default);
+                continue;
+            }
+
+            $out[$key] = $current;
+        }
+
+        return $out;
     }
 
     private static function is_list_array(array $value): bool
