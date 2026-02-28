@@ -356,90 +356,121 @@ function chroma_advanced_seo_admin_assets($hook)
 		return;
 	}
 
-	?>
-	<style>
-		.chroma-seo-meta-box {
-			background: #fff;
+	$css = <<<CSS
+.chroma-seo-meta-box {
+	background: #fff;
+}
+
+.chroma-section-title {
+	font-size: 14px;
+	font-weight: 600;
+	margin: 15px 0 10px;
+	border-bottom: 1px solid #eee;
+	padding: 10px 0;
+}
+
+.chroma-field-wrapper {
+	margin-bottom: 20px;
+}
+
+.chroma-field-wrapper label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 5px;
+}
+
+.chroma-field-wrapper .description {
+	margin-top: 5px;
+	font-style: normal;
+	color: #666;
+}
+
+.chroma-field-wrapper .fallback-notice {
+	color: #2271b1;
+	font-style: italic;
+}
+
+.chroma-repeater-field {
+	border: 1px solid #ddd;
+	padding: 15px;
+	background: #f9f9f9;
+}
+
+.chroma-repeater-items {
+	margin-bottom: 10px;
+}
+
+.chroma-repeater-item {
+	display: flex;
+	gap: 10px;
+	margin-bottom: 8px;
+	align-items: center;
+}
+
+.chroma-repeater-item input {
+	flex: 1;
+}
+
+.chroma-remove-item {
+	color: #b32d2e;
+}
+CSS;
+
+	$js = <<<JS
+document.addEventListener('click', function (event) {
+	var addButton = event.target.closest('.chroma-add-item');
+	if (addButton) {
+		event.preventDefault();
+		var wrapper = addButton.closest('.chroma-repeater-field');
+		if (!wrapper) {
+			return;
 		}
 
-		.chroma-section-title {
-			font-size: 14px;
-			font-weight: 600;
-			margin: 15px 0 10px;
-			border-bottom: 1px solid #eee;
-			padding: 10px 0;
+		var items = wrapper.querySelector('.chroma-repeater-items');
+		var firstItem = items ? items.querySelector('.chroma-repeater-item') : null;
+		if (!items || !firstItem) {
+			return;
 		}
 
-		.chroma-field-wrapper {
-			margin-bottom: 20px;
-		}
-
-		.chroma-field-wrapper label {
-			display: block;
-			font-weight: 600;
-			margin-bottom: 5px;
-		}
-
-		.chroma-field-wrapper .description {
-			margin-top: 5px;
-			font-style: normal;
-			color: #666;
-		}
-
-		.chroma-field-wrapper .fallback-notice {
-			color: #2271b1;
-			font-style: italic;
-		}
-
-		.chroma-repeater-field {
-			border: 1px solid #ddd;
-			padding: 15px;
-			background: #f9f9f9;
-		}
-
-		.chroma-repeater-items {
-			margin-bottom: 10px;
-		}
-
-		.chroma-repeater-item {
-			display: flex;
-			gap: 10px;
-			margin-bottom: 8px;
-			align-items: center;
-		}
-
-		.chroma-repeater-item input {
-			flex: 1;
-		}
-
-		.chroma-remove-item {
-			color: #b32d2e;
-		}
-	</style>
-	<script>
-		jQuery(document).ready(function ($) {
-			// Repeater Add
-			$(document).on('click', '.chroma-add-item', function (e) {
-				e.preventDefault();
-				var $wrapper = $(this).closest('.chroma-repeater-field');
-				var $items = $wrapper.find('.chroma-repeater-items');
-				var $clone = $items.find('.chroma-repeater-item').first().clone();
-				$clone.find('input, textarea').val('');
-				$items.append($clone);
-			});
-
-			// Repeater Remove
-			$(document).on('click', '.chroma-remove-item', function (e) {
-				e.preventDefault();
-				if ($(this).closest('.chroma-repeater-items').find('.chroma-repeater-item').length > 1) {
-					$(this).closest('.chroma-repeater-item').remove();
-				} else {
-					$(this).closest('.chroma-repeater-item').find('input, textarea').val('');
-				}
-			});
+		var clone = firstItem.cloneNode(true);
+		clone.querySelectorAll('input, textarea').forEach(function (field) {
+			field.value = '';
 		});
-	</script>
-	<?php
+		items.appendChild(clone);
+		return;
+	}
+
+	var removeButton = event.target.closest('.chroma-remove-item');
+	if (!removeButton) {
+		return;
+	}
+
+	event.preventDefault();
+	var item = removeButton.closest('.chroma-repeater-item');
+	var itemsContainer = removeButton.closest('.chroma-repeater-items');
+	if (!item || !itemsContainer) {
+		return;
+	}
+
+	var itemCount = itemsContainer.querySelectorAll('.chroma-repeater-item').length;
+	if (itemCount > 1) {
+		item.remove();
+		return;
+	}
+
+	item.querySelectorAll('input, textarea').forEach(function (field) {
+		field.value = '';
+	});
+});
+JS;
+
+	wp_register_style('chroma-seo-admin-inline', false, [], null);
+	wp_enqueue_style('chroma-seo-admin-inline');
+	wp_add_inline_style('chroma-seo-admin-inline', $css);
+
+	wp_register_script('chroma-seo-admin-inline', false, [], null, true);
+	wp_enqueue_script('chroma-seo-admin-inline');
+	wp_add_inline_script('chroma-seo-admin-inline', $js);
 }
 
 add_action('admin_enqueue_scripts', 'chroma_advanced_seo_admin_assets');
