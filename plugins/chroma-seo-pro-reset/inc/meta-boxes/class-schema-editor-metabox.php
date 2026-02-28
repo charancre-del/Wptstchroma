@@ -40,7 +40,8 @@ class Chroma_Schema_Editor_Metabox
         wp_nonce_field('chroma_schema_tools', 'chroma_schema_nonce');
         
         $schema = get_post_meta($post->ID, '_chroma_schema_data', true);
-        $has_schema = !empty($schema);
+        $schema_items = is_array($schema) ? $schema : [];
+        $has_schema = !empty($schema_items);
         $gmb_synced = get_post_meta($post->ID, '_gmb_last_sync', true);
         $needs_review = get_post_meta($post->ID, '_chroma_needs_review', true);
         $confidence = get_post_meta($post->ID, '_chroma_schema_confidence', true);
@@ -108,7 +109,13 @@ class Chroma_Schema_Editor_Metabox
                     <div class="serp-url"><?php echo esc_url(get_permalink($post)); ?></div>
                     <div class="serp-description">
                         <?php 
-                        $desc = $schema[0]['data']['description'] ?? get_the_excerpt($post);
+                        $desc = get_the_excerpt($post);
+                        if (isset($schema_items[0]) && is_array($schema_items[0])) {
+                            $schema_data = $schema_items[0]['data'] ?? [];
+                            if (is_array($schema_data) && !empty($schema_data['description'])) {
+                                $desc = (string) $schema_data['description'];
+                            }
+                        }
                         echo esc_html(wp_trim_words($desc, 25)); 
                         ?>
                     </div>
