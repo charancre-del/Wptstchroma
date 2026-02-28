@@ -81,6 +81,9 @@ class Geo_Routes
         add_action('save_post', [__CLASS__, 'on_post_change'], 10, 2);
         add_action('deleted_post', [__CLASS__, 'on_post_delete']);
         add_action('updated_option', [__CLASS__, 'on_option_change'], 10, 3);
+        add_action('wp_head', [__CLASS__, 'output_geo_discovery_link'], 1);
+        add_action('wp_head', [__CLASS__, 'output_geo_schema_signpost'], 2);
+        add_filter('robots_txt', [__CLASS__, 'append_geo_robots_rules'], 20, 2);
     }
 
     public static function register(): void
@@ -174,6 +177,11 @@ class Geo_Routes
         ];
     }
 
+    public static function public_feed_url(): string
+    {
+        return rest_url(self::NS . '/geo-feed');
+    }
+
     public static function get_geo_feed(WP_REST_Request $request)
     {
         $refresh = Utils::truthy($request->get_param('refresh'));
@@ -252,6 +260,92 @@ class Geo_Routes
         ], true)) {
             delete_transient(self::CACHE_KEY);
         }
+    }
+
+    public static function output_geo_discovery_link(): void
+    {
+        if (!self::is_public_feed_available()) {
+            return;
+        }
+
+        echo '<link rel="alternate" type="application/json" title="Chroma GEO Feed" href="' . esc_url(self::public_feed_url()) . '">' . "\n";
+    }
+
+    public static function output_geo_schema_signpost(): void
+    {
+        if (!self::is_public_feed_available() || !is_front_page()) {
+            return;
+        }
+
+        $site_url = home_url('/');
+        $geo_url = self::public_feed_url();
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'EducationalOrganization',
+            '@id' => trailingslashit($site_url) . '#organization',
+            'name' => get_bloginfo('name'),
+            'url' => trailingslashit($site_url),
+            'subjectOf' => [
+                '@type' => 'DataFeed',
+                '@id' => $geo_url . '#feed',
+                'name' => 'Chroma Public GEO Feed',
+                'url' => $geo_url,
+                'encodingFormat' => 'application/json',
+                'description' => 'Machine-readable public feed for Chroma locations, programs, and events.',
+            ],
+            'potentialAction' => [
+                '@type' => 'ViewAction',
+                'target' => [
+                    '@type' => 'EntryPoint',
+                    'urlTemplate' => $geo_url,
+                    'encodingType' => 'application/json',
+                    'contentType' => 'application/json',
+                ],
+            ],
+        ];
+
+        echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+    }
+
+    public static function append_geo_robots_rules(string $output, bool $public): string
+    {
+        if (!self::is_public_feed_available()) {
+            return $output;
+        }
+
+        $output = rtrim($output);
+        if ($output !== '') {
+            $output .= "\n";
+        }
+
+        $path = wp_parse_url(self::public_feed_url(), PHP_URL_PATH);
+        if (!is_string($path) || $path === '') {
+            $path = '/wp-json/' . self::NS . '/geo-feed';
+        }
+
+        $bots = [
+            'GPTBot',
+            'Google-Extended',
+            'PerplexityBot',
+            'ClaudeBot',
+            'Claude-Web',
+        ];
+
+        $lines = [];
+        foreach ($bots as $bot) {
+            $lines[] = 'User-agent: ' . $bot;
+            $lines[] = 'Allow: ' . $path;
+        }
+
+        $lines[] = 'User-agent: *';
+        $lines[] = 'Allow: ' . $path;
+
+        return $output . implode("\n", $lines) . "\n";
+    }
+
+    private static function is_public_feed_available(): bool
+    {
+        return Utils::truthy(get_option(Utils::OPTION_ENABLED, 1));
     }
 
     private static function get_brand_payload(): array

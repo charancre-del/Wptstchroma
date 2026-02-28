@@ -10,6 +10,37 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+$early_start_preload_id = get_queried_object_id();
+$early_start_preload_asset_base = trailingslashit(CHROMA_THEME_URI . '/assets/images/early-start');
+$early_start_preload_hero = get_post_meta($early_start_preload_id, 'early_start_hero_image', true);
+if (!$early_start_preload_hero) {
+    $early_start_preload_hero = $early_start_preload_asset_base . 'hero-therapy.jpg';
+}
+
+add_action('wp_head', static function () use ($early_start_preload_hero) {
+    if (!$early_start_preload_hero) {
+        return;
+    }
+
+    echo '<link rel="preload" as="image" href="' . esc_url($early_start_preload_hero) . '" fetchpriority="high">' . "\n";
+}, 2);
+
+if (!function_exists('chroma_early_start_icon_svg')) {
+    function chroma_early_start_icon_svg($icon)
+    {
+        $icons = [
+            'arrow-right' => '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M4 10h9.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/><path d="M10.8 6.2L15 10l-4.2 3.8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>',
+            'external-link' => '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M8 4h8v8" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/><path d="M16 4l-7.5 7.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/><path d="M14 10.5V15a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>',
+            'check' => '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><circle cx="10" cy="10" r="7.25" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6.7 10.1l2.1 2.2 4.5-4.7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>',
+            'speech' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 7.25h11a2.25 2.25 0 0 1 2.25 2.25v5a2.25 2.25 0 0 1-2.25 2.25h-6l-3.75 3v-3H6.5a2.25 2.25 0 0 1-2.25-2.25v-5A2.25 2.25 0 0 1 6.5 7.25Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M8.5 11.25h7" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/><path d="M8.5 14.25h4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/></svg>',
+            'occupational' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 4.25l2.1 4.25 4.7.7-3.4 3.3.8 4.7L12 15l-4.2 2.2.8-4.7-3.4-3.3 4.7-.7L12 4.25Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><circle cx="12" cy="11.1" r="1.8" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>',
+            'aba' => '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M7.5 13.5c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5v3.25a2 2 0 0 1-2 2h-5a2 2 0 0 1-2-2V13.5Z" fill="none" stroke="currentColor" stroke-linejoin="round" stroke-width="1.8"/><path d="M9.25 10.25V8.9a2.75 2.75 0 1 1 5.5 0v1.35" fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.8"/><path d="M6 12.25H4.75a1.5 1.5 0 0 0-1.5 1.5v1.5a1.5 1.5 0 0 0 1.5 1.5H6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/><path d="M18 12.25h1.25a1.5 1.5 0 0 1 1.5 1.5v1.5a1.5 1.5 0 0 1-1.5 1.5H18" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>',
+        ];
+
+        return $icons[$icon] ?? '';
+    }
+}
+
 get_header();
 
 while (have_posts()) :
@@ -48,7 +79,7 @@ while (have_posts()) :
     $services = [
         [
             'icon' => 'fa-solid fa-comment-dots',
-            'accent' => '#D67D6B',
+            'accent' => '#964030',
             'accent_bg' => 'rgba(214, 125, 107, 0.12)',
             'title' => get_post_meta($page_id, 'early_start_service_1_title', true) ?: __('Speech & Language', 'chroma-excellence'),
             'description' => get_post_meta($page_id, 'early_start_service_1_description', true) ?: __('Helping children find their voice. From articulation and expressive language delays to pragmatic social communication and AAC device support.', 'chroma-excellence'),
@@ -56,7 +87,7 @@ while (have_posts()) :
         ],
         [
             'icon' => 'fa-solid fa-puzzle-piece',
-            'accent' => '#E6BE75',
+            'accent' => '#8C6B2F',
             'accent_bg' => 'rgba(230, 190, 117, 0.18)',
             'title' => get_post_meta($page_id, 'early_start_service_2_title', true) ?: __('Occupational Therapy', 'chroma-excellence'),
             'description' => get_post_meta($page_id, 'early_start_service_2_description', true) ?: __('Building independence in daily living. We focus on fine motor skills, sensory processing, feeding challenges, and self-regulation techniques.', 'chroma-excellence'),
@@ -108,6 +139,14 @@ while (have_posts()) :
         .ces-synergy-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
             align-items: center;
+        }
+
+        .ces-synergy-copy {
+            order: 1;
+        }
+
+        .ces-synergy-media {
+            order: 2;
         }
 
         .ces-badge,
@@ -187,6 +226,14 @@ while (have_posts()) :
             transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, color 0.2s ease;
         }
 
+        .ces-button svg,
+        .ces-button-secondary svg,
+        .ces-service-link svg {
+            width: 16px;
+            height: 16px;
+            flex: 0 0 16px;
+        }
+
         .ces-button {
             background: #263238;
             color: #ffffff;
@@ -221,7 +268,7 @@ while (have_posts()) :
             position: relative;
             border-radius: 40px;
             overflow: hidden;
-            min-height: 460px;
+            height: clamp(360px, 40vw, 520px);
             box-shadow: 0 24px 48px -20px rgba(47, 72, 88, 0.28);
             border: 8px solid #ffffff;
             z-index: 1;
@@ -257,7 +304,7 @@ while (have_posts()) :
         }
 
         .ces-stack-photo {
-            min-height: 220px;
+            aspect-ratio: 4 / 3;
             border-radius: 28px;
             overflow: hidden;
             box-shadow: 0 16px 36px -18px rgba(47, 72, 88, 0.2);
@@ -313,6 +360,20 @@ while (have_posts()) :
             margin-top: 3px;
         }
 
+        .ces-list-icon {
+            width: 20px;
+            height: 20px;
+            flex: 0 0 20px;
+            margin-top: 2px;
+            color: #4D5C54;
+        }
+
+        .ces-list-icon svg {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
         .ces-services {
             background: #ffffff;
         }
@@ -343,7 +404,12 @@ while (have_posts()) :
             align-items: center;
             justify-content: center;
             font-size: 1.4rem;
+            line-height: 1;
             margin-bottom: 22px;
+        }
+
+        .ces-service-icon i {
+            display: block;
         }
 
         .ces-service-card h3 {
@@ -401,7 +467,17 @@ while (have_posts()) :
             }
 
             .ces-hero-image {
-                min-height: 360px;
+                height: clamp(300px, 56vw, 420px);
+            }
+        }
+
+        @media (min-width: 981px) {
+            .ces-synergy-copy {
+                order: 2;
+            }
+
+            .ces-synergy-media {
+                order: 1;
             }
         }
 
@@ -446,18 +522,18 @@ while (have_posts()) :
                         <div class="ces-actions">
                             <a class="ces-button" href="<?php echo esc_url($primary_cta_url); ?>" target="_blank" rel="noopener">
                                 <?php echo esc_html($primary_cta_text); ?>
-                                <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                <?php echo chroma_early_start_icon_svg('arrow-right'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             </a>
                             <a class="ces-button-secondary" href="<?php echo esc_url($secondary_cta_url); ?>" target="_blank" rel="noopener">
                                 <?php echo esc_html($secondary_cta_text); ?>
-                                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                                <?php echo chroma_early_start_icon_svg('external-link'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             </a>
                         </div>
                     </div>
 
                     <div class="ces-card-frame">
                         <div class="ces-hero-image">
-                            <img src="<?php echo esc_url($hero_image); ?>" alt="<?php esc_attr_e('Pediatric therapist smiling and engaging with a young child', 'chroma-excellence'); ?>" loading="eager" />
+                            <img src="<?php echo esc_url($hero_image); ?>" alt="<?php esc_attr_e('Pediatric therapist smiling and engaging with a young child', 'chroma-excellence'); ?>" loading="eager" fetchpriority="high" decoding="sync" class="no-lazy" />
                         </div>
                     </div>
                 </div>
@@ -465,7 +541,25 @@ while (have_posts()) :
 
             <section class="ces-section ces-synergy">
                 <div class="ces-shell ces-grid ces-synergy-grid">
-                    <div class="ces-stack">
+                    <div class="ces-synergy-copy">
+                        <span class="ces-eyebrow"><?php echo esc_html($synergy_eyebrow); ?></span>
+                        <h2 class="ces-section-title"><?php echo esc_html($synergy_title); ?></h2>
+                        <p class="ces-copy"><?php echo esc_html($synergy_intro_one); ?></p>
+                        <p class="ces-copy"><?php echo esc_html($synergy_intro_two); ?></p>
+
+                        <ul class="ces-list">
+                            <?php foreach ($synergy_bullets as $bullet) : ?>
+                                <li>
+                                    <span class="ces-list-icon">
+                                        <?php echo chroma_early_start_icon_svg('check'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+                                    </span>
+                                    <span><?php echo esc_html($bullet); ?></span>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+
+                    <div class="ces-stack ces-synergy-media">
                         <div class="ces-stack-column ces-stack-column--offset">
                             <div class="ces-stack-photo">
                                 <img src="<?php echo esc_url($synergy_image_one); ?>" alt="<?php esc_attr_e('Child engaged in classroom learning', 'chroma-excellence'); ?>" loading="lazy" />
@@ -485,22 +579,6 @@ while (have_posts()) :
                                 <img src="<?php echo esc_url($synergy_image_two); ?>" alt="<?php esc_attr_e('Child engaging in sensory play', 'chroma-excellence'); ?>" loading="lazy" />
                             </div>
                         </div>
-                    </div>
-
-                    <div>
-                        <span class="ces-eyebrow"><?php echo esc_html($synergy_eyebrow); ?></span>
-                        <h2 class="ces-section-title"><?php echo esc_html($synergy_title); ?></h2>
-                        <p class="ces-copy"><?php echo esc_html($synergy_intro_one); ?></p>
-                        <p class="ces-copy"><?php echo esc_html($synergy_intro_two); ?></p>
-
-                        <ul class="ces-list">
-                            <?php foreach ($synergy_bullets as $bullet) : ?>
-                                <li>
-                                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
-                                    <span><?php echo esc_html($bullet); ?></span>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
                     </div>
                 </div>
             </section>
@@ -522,7 +600,7 @@ while (have_posts()) :
                                 <p><?php echo esc_html($service['description']); ?></p>
                                 <a class="ces-service-link" href="<?php echo esc_url($service['url']); ?>" target="_blank" rel="noopener" style="color: <?php echo esc_attr($service['accent']); ?>;">
                                     <?php esc_html_e('Learn More', 'chroma-excellence'); ?>
-                                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                                    <?php echo chroma_early_start_icon_svg('arrow-right'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </a>
                             </div>
                         <?php endforeach; ?>
@@ -536,7 +614,7 @@ while (have_posts()) :
                     <p class="ces-copy"><?php echo esc_html($cta_description); ?></p>
                     <a class="ces-button-secondary" href="<?php echo esc_url($cta_button_url); ?>" target="_blank" rel="noopener">
                         <?php echo esc_html($cta_button_text); ?>
-                        <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                        <?php echo chroma_early_start_icon_svg('external-link'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                     </a>
                 </div>
             </section>
