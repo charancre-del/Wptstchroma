@@ -592,14 +592,15 @@ while (have_posts()) :
 
                     <div class="ces-grid ces-service-grid">
                         <?php foreach ($services as $service) : ?>
+                            <?php $service_link_label = sprintf(__('Explore %s', 'chroma-excellence'), $service['title']); ?>
                             <div class="ces-service-card">
                                 <div class="ces-service-icon" style="background: <?php echo esc_attr($service['accent_bg']); ?>; color: <?php echo esc_attr($service['accent']); ?>;">
                                     <i class="<?php echo esc_attr($service['icon']); ?>" aria-hidden="true"></i>
                                 </div>
                                 <h3><?php echo esc_html($service['title']); ?></h3>
                                 <p><?php echo esc_html($service['description']); ?></p>
-                                <a class="ces-service-link" href="<?php echo esc_url($service['url']); ?>" target="_blank" rel="noopener" style="color: <?php echo esc_attr($service['accent']); ?>;">
-                                    <?php esc_html_e('Learn More', 'chroma-excellence'); ?>
+                                <a class="ces-service-link" href="<?php echo esc_url($service['url']); ?>" target="_blank" rel="noopener" aria-label="<?php echo esc_attr($service_link_label); ?>" style="color: <?php echo esc_attr($service['accent']); ?>;">
+                                    <?php echo esc_html($service_link_label); ?>
                                     <?php echo chroma_early_start_icon_svg('arrow-right'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </a>
                             </div>
