@@ -364,9 +364,6 @@ function chroma_enqueue_admin_assets($hook)
                 return;
         }
 
-        // Inline admin meta box scripts use jQuery before footer scripts render.
-        wp_enqueue_script('jquery');
-
         // Font Awesome for icon previews in admin (using local version)
         $admin_fa_asset = chroma_get_theme_asset('assets/css/font-awesome.css');
 
@@ -385,32 +382,6 @@ function chroma_enqueue_admin_assets($hook)
         wp_enqueue_script('chroma-admin', $admin_js_asset['url'], array('jquery'), $admin_js_asset['version'], true);
 }
 add_action('admin_enqueue_scripts', 'chroma_enqueue_admin_assets');
-
-/**
- * Ensure jQuery is available before any admin-head inline scripts on edit screens.
- *
- * Some plugins incorrectly echo raw jQuery-dependent scripts in admin_head.
- * Printing the core handle early prevents those scripts from fataling the page.
- */
-function chroma_force_admin_jquery_head(): void
-{
-        if (!is_admin()) {
-                return;
-        }
-
-        if (!function_exists('get_current_screen')) {
-                return;
-        }
-
-        $screen = get_current_screen();
-        if (!$screen || $screen->base !== 'post') {
-                return;
-        }
-
-        wp_enqueue_script('jquery');
-        wp_print_scripts(['jquery']);
-}
-add_action('admin_head', 'chroma_force_admin_jquery_head', 1);
 
 /**
  * Async load CSS for fonts only (not main CSS to prevent FOUC)
