@@ -244,6 +244,7 @@ if (is_admin()) {
     require_once CHROMA_THEME_DIR . '/inc/about-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/curriculum-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/contact-page-meta.php';
+    require_once CHROMA_THEME_DIR . '/inc/early-start-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/stories-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/parents-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/careers-page-meta.php';
