@@ -13,13 +13,15 @@ if (!defined('ABSPATH')) {
 
 class Chroma_LLM_Client
 {
+    private const API_KEY_OPTION = 'chroma_openai_api_key';
+    private const ENC_PREFIX = 'enc:v1:';
     private $api_key;
     private $model;
     private $base_url;
 
     public function __construct()
     {
-        $this->api_key = get_option('chroma_openai_api_key', '');
+        $this->api_key = self::get_api_key();
         $this->model = get_option('chroma_llm_model', 'gpt-4o-mini');
         $this->base_url = get_option('chroma_llm_base_url', 'https://api.openai.com/v1');
 
@@ -43,18 +45,19 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => 'Permission denied']);
         }
 
-        $api_key = get_option('chroma_openai_api_key', '');
+        $api_key = self::get_api_key();
         if (empty($api_key)) {
             wp_send_json_error(['message' => 'API key not configured']);
         }
 
         $base_url = get_option('chroma_llm_base_url', 'https://generativelanguage.googleapis.com/v1beta');
-        $url = rtrim($base_url, '/') . '/models?key=' . $api_key;
+        $url = rtrim($base_url, '/') . '/models';
 
         $response = wp_remote_get($url, [
             'timeout' => 15,
             'headers' => [
-                'Content-Type' => 'application/json'
+                'Content-Type' => 'application/json',
+                'x-goog-api-key' => $api_key,
             ]
         ]);
 
@@ -154,6 +157,8 @@ class Chroma_LLM_Client
 
         <script>
             jQuery(document).ready(function ($) {
+                var chromaLlmNonce = '<?php echo esc_js(wp_create_nonce('chroma_seo_nonce')); ?>';
+
                 // Unbind previous events to prevent duplicates in case of AJAX reloads
                 $(document).off('click', '#chroma-save-llm');
                 $(document).off('click', '#chroma-test-llm');
@@ -168,7 +173,8 @@ class Chroma_LLM_Client
                         action: 'chroma_save_llm_settings',
                         api_key: $('#chroma_openai_api_key').val(),
                         model: $('#chroma_llm_model').val(),
-                        base_url: $('#chroma_llm_base_url').val()
+                        base_url: $('#chroma_llm_base_url').val(),
+                        nonce: chromaLlmNonce
                     }, function (response) {
                         btn.prop('disabled', false).text('Save Settings');
                         if (response.success) {
@@ -192,7 +198,8 @@ class Chroma_LLM_Client
                     status.text('').css('color', 'inherit');
 
                     $.post(ajaxurl, {
-                        action: 'chroma_test_llm_connection'
+                        action: 'chroma_test_llm_connection',
+                        nonce: chromaLlmNonce
                     }, function (response) {
                         btn.prop('disabled', false).text('Test Connection');
                         if (response.success) {
@@ -215,18 +222,16 @@ class Chroma_LLM_Client
      */
     public function ajax_save_settings()
     {
+        check_ajax_referer('chroma_seo_nonce', 'nonce');
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied']);
         }
 
         if (isset($_POST['api_key'])) {
             $key = sanitize_text_field($_POST['api_key']);
-            chroma_debug_log(' LLM: Saving API Key - Length: ' . strlen($key));
-            if (empty($key)) {
-                chroma_debug_log(' LLM: Warning - Saving EMPTY API Key');
-            }
-            $updated = update_option('chroma_openai_api_key', $key);
-            chroma_debug_log(' LLM: update_option result: ' . ($updated ? 'true' : 'false'));
+            $encrypted_key = self::encrypt_api_key($key);
+            update_option(self::API_KEY_OPTION, $encrypted_key);
         }
         if (isset($_POST['model'])) {
             update_option('chroma_llm_model', sanitize_text_field($_POST['model']));
@@ -251,13 +256,14 @@ class Chroma_LLM_Client
      */
     public function ajax_test_connection()
     {
+        check_ajax_referer('chroma_seo_nonce', 'nonce');
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied']);
         }
 
         // Lazy-load API key fresh from database (in case user just saved it)
-        $api_key = get_option('chroma_openai_api_key', '');
-        chroma_debug_log(' LLM: Testing Connection. Loaded API Key Length: ' . strlen($api_key));
+        $api_key = self::get_api_key();
         if (!$api_key) {
             wp_send_json_error(['message' => 'No API Key found. (DB value empty)']);
         }
@@ -280,6 +286,8 @@ class Chroma_LLM_Client
      */
     public function ajax_generate_schema()
     {
+        check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
         if (!current_user_can('edit_posts')) {
             wp_send_json_error(['message' => 'Permission denied']);
         }
@@ -289,6 +297,10 @@ class Chroma_LLM_Client
 
         if (!$post_id || !$schema_type) {
             wp_send_json_error(['message' => 'Missing parameters']);
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
         }
 
         $result = $this->generate_schema_data($post_id, $schema_type);
@@ -678,6 +690,10 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => 'Post not found']);
         }
 
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
+
         $prompt = "Generate SEO metadata for the following content.\n";
         $prompt .= "Return ONLY valid JSON with two keys:\n";
         $prompt .= "- description: (string) A compelling meta description, max 160 chars.\n";
@@ -704,9 +720,7 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => $response->get_error_message()]);
         }
 
-        $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        $content = $data['choices'][0]['message']['content'] ?? '';
+        $content = $response['choices'][0]['message']['content'] ?? '';
 
         // Extract JSON
         if (preg_match('/\{.*\}/s', $content, $matches)) {
@@ -734,6 +748,10 @@ class Chroma_LLM_Client
         $post_id = intval($_POST['post_id']);
         if (!$post_id) {
             wp_send_json_error(['message' => 'Missing Post ID']);
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
         }
 
         $result = $this->generate_llm_targeting_data($post_id);
@@ -914,7 +932,7 @@ class Chroma_LLM_Client
     public function make_request($data)
     {
         // Lazy-load settings fresh from database to ensure latest values are used
-        $api_key = get_option('chroma_openai_api_key', '');
+        $api_key = self::get_api_key();
         $model = get_option('chroma_llm_model', 'gpt-4o-mini');
         $base_url = get_option('chroma_llm_base_url', 'https://api.openai.com/v1');
 
@@ -974,7 +992,7 @@ class Chroma_LLM_Client
         // 1. Try to get the live page content (if published)
         $permalink = get_permalink($post_id);
         if ($permalink && get_post_status($post_id) === 'publish') {
-            $response = wp_remote_get($permalink, ['timeout' => 5, 'sslverify' => false]);
+            $response = wp_remote_get($permalink, ['timeout' => 5, 'sslverify' => true]);
             if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
                 $body = wp_remote_retrieve_body($response);
                 // Extract main content or body text
@@ -988,7 +1006,7 @@ class Chroma_LLM_Client
         $home_url = home_url('/');
         // Avoid fetching homepage if we just fetched it as the permalink
         if ($permalink !== $home_url) {
-            $response = wp_remote_get($home_url, ['timeout' => 5, 'sslverify' => false]);
+            $response = wp_remote_get($home_url, ['timeout' => 5, 'sslverify' => true]);
             if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
                 $body = wp_remote_retrieve_body($response);
                 $text = strip_tags($body);
@@ -1280,7 +1298,7 @@ class Chroma_LLM_Client
      * Internal make request (no retry, no logging)
      */
     private function make_request_internal($data) {
-        $api_key = get_option('chroma_openai_api_key', '');
+        $api_key = self::get_api_key();
         $model = get_option('chroma_llm_model', 'gpt-4o-mini');
         $base_url = get_option('chroma_llm_base_url', 'https://api.openai.com/v1');
 
@@ -1477,6 +1495,80 @@ class Chroma_LLM_Client
             'ai_generated' => true,
             'retry_count' => $retry_count
         ];
+    }
+
+    /**
+     * Read API key from option and transparently decrypt if encrypted.
+     *
+     * @return string
+     */
+    private static function get_api_key()
+    {
+        $stored = get_option(self::API_KEY_OPTION, '');
+        if (!is_string($stored) || $stored === '') {
+            return '';
+        }
+
+        // Backward compatibility with existing plaintext values.
+        if (strpos($stored, self::ENC_PREFIX) !== 0) {
+            return $stored;
+        }
+
+        if (!function_exists('openssl_decrypt')) {
+            return '';
+        }
+
+        $payload = substr($stored, strlen(self::ENC_PREFIX));
+        $decoded = base64_decode($payload, true);
+        if ($decoded === false || strlen($decoded) <= 16) {
+            return '';
+        }
+
+        $iv = substr($decoded, 0, 16);
+        $ciphertext = substr($decoded, 16);
+        $plain = openssl_decrypt($ciphertext, 'AES-256-CBC', self::get_encryption_key(), OPENSSL_RAW_DATA, $iv);
+
+        return is_string($plain) ? $plain : '';
+    }
+
+    /**
+     * Encrypt API key for safer storage in wp_options.
+     *
+     * @param string $plain
+     * @return string
+     */
+    private static function encrypt_api_key($plain)
+    {
+        if (!is_string($plain) || $plain === '') {
+            return '';
+        }
+
+        if (!function_exists('openssl_encrypt')) {
+            return $plain;
+        }
+
+        try {
+            $iv = random_bytes(16);
+        } catch (Exception $e) {
+            return $plain;
+        }
+
+        $cipher = openssl_encrypt($plain, 'AES-256-CBC', self::get_encryption_key(), OPENSSL_RAW_DATA, $iv);
+        if ($cipher === false) {
+            return $plain;
+        }
+
+        return self::ENC_PREFIX . base64_encode($iv . $cipher);
+    }
+
+    /**
+     * Build a stable key from WP salts for local option encryption.
+     *
+     * @return string
+     */
+    private static function get_encryption_key()
+    {
+        return hash('sha256', wp_salt('auth') . '|' . ABSPATH . '|chroma_llm_key', true);
     }
 
 

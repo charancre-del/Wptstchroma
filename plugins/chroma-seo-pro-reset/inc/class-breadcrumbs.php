@@ -381,6 +381,8 @@ class Chroma_Breadcrumbs
 
         <script>
         jQuery(document).ready(function($) {
+            var chromaBreadcrumbNonce = '<?php echo esc_js(wp_create_nonce('chroma_breadcrumbs_nonce')); ?>';
+
             // Save Settings
             $('#chroma-save-breadcrumbs').on('click', function(e) {
                 e.preventDefault();
@@ -393,7 +395,8 @@ class Chroma_Breadcrumbs
                     home_text: $('#chroma_breadcrumbs_home_text').val(),
                     max_length: $('#chroma_breadcrumbs_max_length').val(),
                     truncate_suffix: $('#chroma_breadcrumbs_truncate_suffix').val(),
-                    strip_html: $('#chroma_breadcrumbs_strip_html').is(':checked') ? '1' : ''
+                    strip_html: $('#chroma_breadcrumbs_strip_html').is(':checked') ? '1' : '',
+                    nonce: chromaBreadcrumbNonce
                 }, function(response) {
                     btn.prop('disabled', false).text('Save Settings');
                     if(response.success) {
@@ -427,7 +430,8 @@ class Chroma_Breadcrumbs
 
                 $.post(ajaxurl, {
                     action: 'chroma_get_preview_posts',
-                    post_type: type
+                    post_type: type,
+                    nonce: chromaBreadcrumbNonce
                 }, function(response) {
                     $('#chroma-breadcrumb-spinner').removeClass('is-active');
                     if(response.success) {
@@ -460,7 +464,8 @@ class Chroma_Breadcrumbs
                 
                 $.post(ajaxurl, {
                     action: 'chroma_preview_breadcrumbs',
-                    post_id: id
+                    post_id: id,
+                    nonce: chromaBreadcrumbNonce
                 }, function(response) {
                     btn.prop('disabled', false).text('Preview');
                     if(response.success) {
@@ -482,8 +487,8 @@ class Chroma_Breadcrumbs
      */
     public function ajax_save_settings()
     {
-        // Check nonce (we need to pass this from JS)
-        // For now, at least check permissions
+        check_ajax_referer('chroma_breadcrumbs_nonce', 'nonce');
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error();
         }
@@ -508,7 +513,12 @@ class Chroma_Breadcrumbs
      */
     public function ajax_preview_breadcrumbs()
     {
-        // Ideally check nonce here too
+        check_ajax_referer('chroma_breadcrumbs_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
         $post_id = intval($_POST['post_id']);
         if(!$post_id) wp_send_json_error();
         
@@ -577,6 +587,8 @@ class Chroma_Breadcrumbs
      */
     public function ajax_get_preview_posts()
     {
+        check_ajax_referer('chroma_breadcrumbs_nonce', 'nonce');
+
         // Permission check
         if (!current_user_can('edit_posts')) {
             wp_send_json_error(['message' => 'Permission denied']);
@@ -585,6 +597,11 @@ class Chroma_Breadcrumbs
         $post_type = sanitize_text_field($_POST['post_type']);
         if (!$post_type) {
             wp_send_json_error(['message' => 'Missing post type']);
+        }
+
+        $allowed_post_types = ['location', 'program', 'page', 'post'];
+        if (!in_array($post_type, $allowed_post_types, true)) {
+            wp_send_json_error(['message' => 'Invalid post type']);
         }
 
         $posts = get_posts([

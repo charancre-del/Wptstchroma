@@ -68,6 +68,8 @@ class Chroma_Schema_Injector
         $schema = [
             '@context' => 'https://schema.org',
             '@type' => 'Person',
+            '@id' => get_permalink($post_id) . '#director-profile',
+            'url' => get_permalink($post_id) . '#director-profile',
             'name' => $director_name,
             'jobTitle' => 'Center Director',
             'worksFor' => [
@@ -107,6 +109,115 @@ class Chroma_Schema_Injector
     }
 
     /**
+     * Output ProfilePage schema for About and Location pages.
+     * - About page: one ProfilePage per team_member entry.
+     * - Location page: one ProfilePage for campus director.
+     */
+    public static function output_profile_page_schema()
+    {
+        if (!is_page() && !is_singular('location')) {
+            return;
+        }
+
+        $post_id = get_queried_object_id();
+        if (!$post_id) {
+            return;
+        }
+
+        // Respect manual overrides.
+        $override = get_post_meta($post_id, '_chroma_schema_override', true);
+        if ($override) {
+            return;
+        }
+
+        if (is_singular('location')) {
+            $person = self::get_person_schema_data($post_id);
+            if (!$person) {
+                return;
+            }
+
+            $profile_schema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'ProfilePage',
+                '@id' => get_permalink($post_id) . '#director-profile-page',
+                'url' => get_permalink($post_id) . '#director-profile',
+                'name' => sprintf(__('Director Profile: %s', 'chroma-excellence'), $person['name']),
+                'isPartOf' => [
+                    '@type' => 'WebPage',
+                    '@id' => get_permalink($post_id),
+                ],
+                'mainEntity' => $person,
+            ];
+
+            Chroma_Schema_Registry::register($profile_schema, ['source' => 'schema-injector-location-profile']);
+            return;
+        }
+
+        // About page profile directory.
+        $slug = get_post_field('post_name', $post_id);
+        if (!in_array($slug, ['about', 'about-us', 'our-story'], true)) {
+            return;
+        }
+
+        $team_posts = get_posts([
+            'post_type'      => 'team_member',
+            'posts_per_page' => -1,
+            'orderby'        => 'menu_order',
+            'order'          => 'ASC',
+            'post_status'    => 'publish',
+        ]);
+
+        if (empty($team_posts)) {
+            return;
+        }
+
+        foreach ($team_posts as $team_post) {
+            $team_id = $team_post->ID;
+            $profile_url = get_permalink($post_id) . '#team-member-' . $team_id;
+            $job_title = get_post_meta($team_id, 'team_member_title', true);
+            $image_url = get_the_post_thumbnail_url($team_id, 'full');
+
+            $person = [
+                '@type' => 'Person',
+                '@id' => $profile_url,
+                'url' => $profile_url,
+                'name' => get_the_title($team_id),
+            ];
+
+            if (!empty($job_title)) {
+                $person['jobTitle'] = $job_title;
+            }
+
+            if (!empty($image_url)) {
+                $person['image'] = $image_url;
+            }
+
+            $bio = trim(wp_strip_all_tags((string) $team_post->post_content));
+            if ($bio !== '') {
+                $person['description'] = wp_trim_words($bio, 55);
+            }
+
+            $profile_schema = [
+                '@context' => 'https://schema.org',
+                '@type' => 'ProfilePage',
+                '@id' => $profile_url . '-page',
+                'url' => $profile_url,
+                'name' => sprintf(__('%s Profile', 'chroma-excellence'), $person['name']),
+                'isPartOf' => [
+                    '@type' => 'WebPage',
+                    '@id' => get_permalink($post_id),
+                ],
+                'mainEntity' => $person,
+            ];
+
+            Chroma_Schema_Registry::register($profile_schema, [
+                'source' => 'schema-injector-about-profile',
+                'allow_duplicate' => true,
+            ]);
+        }
+    }
+
+    /**
      * Output JobPosting Schema for Career Pages
      */
     public static function output_job_posting_schema()
@@ -134,7 +245,7 @@ class Chroma_Schema_Injector
      */
     public static function get_organization_schema_data()
     {
-        return [
+        $data = [
             '@context' => 'https://schema.org',
             '@type' => 'Organization',
             '@id' => home_url() . '#organization',
@@ -637,12 +748,13 @@ class Chroma_Schema_Injector
 
         $graph = [];
 
-        foreach ($schemas as $schema_data) {
-            if (empty($schema_data['type'])) {
+        foreach ($schemas as $schema_index => $schema_data) {
+            $prepared = self::prepare_modular_schema_input($schema_data);
+            if (empty($prepared['type'])) {
                 continue;
             }
 
-            $schema_type = sanitize_text_field($schema_data['type']);
+            $schema_type = $prepared['type'];
 
             // Global Suppression Check (e.g. for external AI schema)
             $override = get_post_meta($post_id, '_chroma_schema_override', true);
@@ -671,16 +783,17 @@ class Chroma_Schema_Injector
                 continue;
             }
 
-            $fields = isset($schema_data['data']) ? $schema_data['data'] : [];
+            $fields = $prepared['fields'];
+            $schema_id = !empty($prepared['id']) ? $prepared['id'] : self::build_deterministic_schema_id($post_id, $schema_type, (int) $schema_index);
 
             $schema_output = [
                 '@type' => $schema_type,
-                '@id' => get_permalink($post_id) . '#' . strtolower($schema_type) . '-' . uniqid()
+                '@id' => $schema_id
             ];
 
             // Add fields
             foreach ($fields as $key => $value) {
-                if (empty($value))
+                if (self::is_empty_schema_value($value))
                     continue;
 
                 // Basic sanitization, but allow some HTML if needed? 
@@ -701,19 +814,18 @@ class Chroma_Schema_Injector
                             }
                         }
                     } elseif ($schema_type === 'FAQPage' && $key === 'questions') {
-                        $schema_output['mainEntity'] = [];
-                        foreach ($value as $q) {
-                            $schema_output['mainEntity'][] = [
-                                '@type' => 'Question',
-                                'name' => isset($q['question']) ? $q['question'] : '',
-                                'acceptedAnswer' => [
-                                    '@type' => 'Answer',
-                                    'text' => isset($q['answer']) ? $q['answer'] : ''
-                                ]
-                            ];
+                        $entities = self::normalize_faq_questions($value);
+                        if (!empty($entities)) {
+                            if (empty($schema_output['mainEntity']) || !is_array($schema_output['mainEntity'])) {
+                                $schema_output['mainEntity'] = [];
+                            }
+                            $schema_output['mainEntity'] = array_merge($schema_output['mainEntity'], $entities);
                         }
-                        global $chroma_faq_output_done;
-                        $chroma_faq_output_done = true;
+                    } elseif ($schema_type === 'FAQPage' && $key === 'mainEntity') {
+                        $entities = self::normalize_faq_main_entity($value);
+                        if (!empty($entities)) {
+                            $schema_output['mainEntity'] = $entities;
+                        }
                     } elseif ($schema_type === 'HowTo' && $key === 'steps') {
                         $schema_output['step'] = [];
                         foreach ($value as $s) {
@@ -935,6 +1047,39 @@ class Chroma_Schema_Injector
                 }
             }
 
+            if ($schema_type === 'FAQPage') {
+                if (empty($schema_output['mainEntity']) || !is_array($schema_output['mainEntity'])) {
+                    $schema_output['mainEntity'] = self::get_faq_entities_from_meta($post_id);
+                } else {
+                    $schema_output['mainEntity'] = self::normalize_faq_main_entity($schema_output['mainEntity']);
+                }
+
+                if (empty($schema_output['mainEntity'])) {
+                    continue;
+                }
+            }
+
+            $schema_output = self::normalize_modular_schema_output($schema_type, $schema_output, $fields, $post_id);
+            if (!is_array($schema_output) || empty($schema_output)) {
+                continue;
+            }
+
+            if (class_exists('Chroma_Schema_Validator')) {
+                Chroma_Schema_Validator::validate($schema_output, 'Modular schema');
+                $report = Chroma_Schema_Validator::get_report();
+                if (empty($report['valid'])) {
+                    if (defined('WP_DEBUG') && WP_DEBUG && function_exists('chroma_debug_log')) {
+                        chroma_debug_log('Modular schema blocked (' . $schema_type . '): ' . wp_json_encode($report['errors']));
+                    }
+                    continue;
+                }
+            }
+
+            if ($schema_type === 'FAQPage') {
+                global $chroma_faq_output_done;
+                $chroma_faq_output_done = true;
+            }
+
             $graph[] = $schema_output;
         }
 
@@ -956,6 +1101,554 @@ class Chroma_Schema_Injector
                 Chroma_Schema_Registry::register($final_schema, ['source' => 'schema-injector-modular-legacy']);
             }
         }
+    }
+
+    /**
+     * Accept schema rows in both builder format and raw JSON-LD-like format.
+     *
+     * @param mixed $schema_data
+     * @return array{type:string,fields:array,id:string}
+     */
+    private static function prepare_modular_schema_input($schema_data)
+    {
+        if (!is_array($schema_data)) {
+            return ['type' => '', 'fields' => [], 'id' => ''];
+        }
+
+        // Native builder shape: ['type' => 'FAQPage', 'data' => [...]]
+        if (!empty($schema_data['type'])) {
+            $type = sanitize_text_field((string) $schema_data['type']);
+            $fields = isset($schema_data['data']) && is_array($schema_data['data']) ? $schema_data['data'] : [];
+            $id = isset($schema_data['@id']) ? sanitize_text_field((string) $schema_data['@id']) : '';
+            return ['type' => $type, 'fields' => $fields, 'id' => $id];
+        }
+
+        // Raw JSON-LD-like shape: ['@type' => 'FAQPage', 'mainEntity' => [...]]
+        if (empty($schema_data['@type'])) {
+            return ['type' => '', 'fields' => [], 'id' => ''];
+        }
+
+        $type = $schema_data['@type'];
+        if (is_array($type)) {
+            $type = reset($type);
+        }
+        $type = sanitize_text_field((string) $type);
+
+        $fields = $schema_data;
+        unset($fields['@type'], $fields['@context'], $fields['@id']);
+
+        $id = isset($schema_data['@id']) ? sanitize_text_field((string) $schema_data['@id']) : '';
+
+        return ['type' => $type, 'fields' => $fields, 'id' => $id];
+    }
+
+    /**
+     * Build stable schema IDs to avoid per-request random IDs.
+     *
+     * @param int    $post_id
+     * @param string $schema_type
+     * @param int    $schema_index
+     * @return string
+     */
+    private static function build_deterministic_schema_id($post_id, $schema_type, $schema_index)
+    {
+        $base = untrailingslashit(get_permalink($post_id));
+        $type_slug = sanitize_title($schema_type);
+        return $base . '#schema-' . $type_slug . '-' . intval($schema_index + 1);
+    }
+
+    /**
+     * Determine if a schema value should be treated as empty.
+     *
+     * @param mixed $value
+     * @return bool
+     */
+    private static function is_empty_schema_value($value)
+    {
+        if ($value === null) {
+            return true;
+        }
+        if (is_string($value) && trim($value) === '') {
+            return true;
+        }
+        if (is_array($value) && empty($value)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Normalize FAQ question/answer rows to Question objects.
+     *
+     * @param array $rows
+     * @return array
+     */
+    private static function normalize_faq_questions($rows)
+    {
+        if (!is_array($rows)) {
+            return [];
+        }
+
+        $entities = [];
+        foreach ($rows as $row) {
+            if (!is_array($row)) {
+                continue;
+            }
+            $question = isset($row['question']) ? trim(wp_strip_all_tags((string) $row['question'])) : '';
+            $answer = isset($row['answer']) ? trim(wp_kses_post((string) $row['answer'])) : '';
+            if ($question === '' || $answer === '') {
+                continue;
+            }
+            $entities[] = [
+                '@type' => 'Question',
+                'name' => $question,
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => $answer,
+                ],
+            ];
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Normalize mainEntity for FAQPage.
+     *
+     * @param mixed $main_entity
+     * @return array
+     */
+    private static function normalize_faq_main_entity($main_entity)
+    {
+        if (!is_array($main_entity)) {
+            return [];
+        }
+
+        $entities = [];
+        foreach ($main_entity as $entity) {
+            if (!is_array($entity)) {
+                continue;
+            }
+            $question = isset($entity['name']) ? trim(wp_strip_all_tags((string) $entity['name'])) : '';
+            $answer = '';
+            if (isset($entity['acceptedAnswer']) && is_array($entity['acceptedAnswer'])) {
+                $answer = isset($entity['acceptedAnswer']['text']) ? trim(wp_kses_post((string) $entity['acceptedAnswer']['text'])) : '';
+            }
+            if ($question === '' || $answer === '') {
+                continue;
+            }
+            $entities[] = [
+                '@type' => 'Question',
+                'name' => $question,
+                'acceptedAnswer' => [
+                    '@type' => 'Answer',
+                    'text' => $answer,
+                ],
+            ];
+        }
+
+        return $entities;
+    }
+
+    /**
+     * Fallback FAQ source from universal FAQ meta.
+     *
+     * @param int $post_id
+     * @return array
+     */
+    private static function get_faq_entities_from_meta($post_id)
+    {
+        $faqs = [];
+        if (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) {
+            $faqs = get_post_meta($post_id, '_chroma_es_chroma_faq_items', true);
+        }
+        if (empty($faqs) || !is_array($faqs)) {
+            $faqs = get_post_meta($post_id, 'chroma_faq_items', true);
+        }
+
+        return self::normalize_faq_questions(is_array($faqs) ? $faqs : []);
+    }
+
+    /**
+     * Normalize modular builder output into valid Schema.org structures.
+     * Keeps backward compatibility with legacy flat builder fields.
+     *
+     * @param string $schema_type
+     * @param array  $schema
+     * @param array  $raw_fields
+     * @param int    $post_id
+     * @return array|null
+     */
+    private static function normalize_modular_schema_output($schema_type, $schema, $raw_fields, $post_id)
+    {
+        if (!is_array($schema) || empty($schema_type)) {
+            return null;
+        }
+
+        // Convert CSV sameAs to array.
+        if (isset($schema['sameAs']) && is_string($schema['sameAs'])) {
+            $same_as = array_filter(array_map('trim', explode(',', $schema['sameAs'])));
+            $schema['sameAs'] = array_values($same_as);
+        }
+
+        // Ensure ItemList items are ListItem objects.
+        if ($schema_type === 'ItemList' && !empty($schema['itemListElement']) && is_array($schema['itemListElement'])) {
+            $items = [];
+            $pos = 1;
+            foreach ($schema['itemListElement'] as $item) {
+                if (is_array($item)) {
+                    if (empty($item['@type'])) {
+                        $item['@type'] = 'ListItem';
+                    }
+                    if (empty($item['position'])) {
+                        $item['position'] = $pos;
+                    }
+                    $items[] = $item;
+                }
+                $pos++;
+            }
+            $schema['itemListElement'] = $items;
+        }
+
+        // Ensure Offer objects include @type.
+        if (!empty($schema['offers']) && is_array($schema['offers'])) {
+            $offers = [];
+            foreach ($schema['offers'] as $offer) {
+                if (!is_array($offer)) {
+                    continue;
+                }
+                if (empty($offer['@type'])) {
+                    $offer['@type'] = 'Offer';
+                }
+                $offers[] = $offer;
+            }
+            $schema['offers'] = $offers;
+        }
+
+        if (in_array($schema_type, ['LocalBusiness', 'ChildCare', 'Preschool', 'EducationalOrganization'], true)) {
+            $schema = self::normalize_local_business_like_schema($schema, $raw_fields, $post_id);
+        }
+
+        if ($schema_type === 'Review') {
+            $schema = self::normalize_review_schema($schema, $post_id);
+        }
+
+        if ($schema_type === 'Service') {
+            $schema = self::normalize_service_schema($schema);
+        }
+
+        if ($schema_type === 'Event') {
+            $schema = self::normalize_event_schema($schema, $raw_fields, $post_id);
+            if ($schema === null) {
+                return null;
+            }
+        }
+
+        return $schema;
+    }
+
+    /**
+     * Normalize LocalBusiness/ChildCare address and geo structures.
+     *
+     * @param array $schema
+     * @param array $raw_fields
+     * @param int   $post_id
+     * @return array
+     */
+    private static function normalize_local_business_like_schema($schema, $raw_fields, $post_id)
+    {
+        $street = $schema['streetAddress'] ?? ($raw_fields['streetAddress'] ?? '');
+        $city = $schema['addressLocality'] ?? ($raw_fields['addressLocality'] ?? '');
+        $region = $schema['addressRegion'] ?? ($raw_fields['addressRegion'] ?? '');
+        $postal = $schema['postalCode'] ?? ($raw_fields['postalCode'] ?? '');
+
+        // Backfill from location post meta when available.
+        if (empty($city)) {
+            $city = get_post_meta($post_id, 'location_city', true);
+        }
+        if (empty($region)) {
+            $region = get_post_meta($post_id, 'location_state', true);
+        }
+        if (empty($postal)) {
+            $postal = get_post_meta($post_id, 'location_zip', true);
+        }
+        if (empty($street)) {
+            $street = get_post_meta($post_id, 'location_address', true);
+        }
+
+        if (isset($schema['address']) && is_string($schema['address']) && empty($street)) {
+            $street = $schema['address'];
+        }
+
+        $address = $schema['address'] ?? [];
+        if (is_string($address)) {
+            $address = ['streetAddress' => $address];
+        }
+        if (!is_array($address)) {
+            $address = [];
+        }
+
+        if (empty($address['@type'])) {
+            $address['@type'] = 'PostalAddress';
+        }
+        if (empty($address['streetAddress']) && !empty($street)) {
+            $address['streetAddress'] = $street;
+        }
+        if (empty($address['addressLocality']) && !empty($city)) {
+            $address['addressLocality'] = $city;
+        }
+        if (empty($address['addressRegion']) && !empty($region)) {
+            $address['addressRegion'] = $region;
+        }
+        if (empty($address['postalCode']) && !empty($postal)) {
+            $address['postalCode'] = $postal;
+        }
+        if (empty($address['addressCountry'])) {
+            $address['addressCountry'] = 'US';
+        }
+
+        $schema['address'] = $address;
+
+        // Remove legacy flat address keys after nesting.
+        unset($schema['streetAddress'], $schema['addressLocality'], $schema['addressRegion'], $schema['postalCode']);
+
+        // Convert legacy geo fields (builder + common location meta fallbacks).
+        $lat = $raw_fields['geo_lat'] ?? '';
+        $lng = $raw_fields['geo_lng'] ?? '';
+        if ($lat === '') {
+            $lat = get_post_meta($post_id, 'location_latitude', true);
+        }
+        if ($lng === '') {
+            $lng = get_post_meta($post_id, 'location_longitude', true);
+        }
+        if ($lat === '') {
+            $lat = get_post_meta($post_id, 'location_lat', true);
+        }
+        if ($lng === '') {
+            $lng = get_post_meta($post_id, 'location_lng', true);
+        }
+
+        if (empty($schema['geo']) && $lat !== '' && $lng !== '') {
+            $schema['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => floatval($lat),
+                'longitude' => floatval($lng),
+            ];
+        }
+        unset($schema['geo_lat'], $schema['geo_lng']);
+
+        return $schema;
+    }
+
+    /**
+     * Normalize Review schema from legacy flat fields.
+     *
+     * @param array $schema
+     * @param int   $post_id
+     * @return array
+     */
+    private static function normalize_review_schema($schema, $post_id)
+    {
+        if (!empty($schema['author']) && is_string($schema['author'])) {
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $schema['author'],
+            ];
+        }
+
+        if (empty($schema['author']) && !empty($schema['author_name'])) {
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $schema['author_name'],
+            ];
+        }
+
+        if (!empty($schema['author']) && is_array($schema['author']) && empty($schema['author']['@type']) && !empty($schema['author']['name'])) {
+            $schema['author']['@type'] = 'Person';
+        }
+
+        if (!empty($schema['itemReviewed']) && is_string($schema['itemReviewed'])) {
+            $item_type = 'Thing';
+            $post_type = get_post_type($post_id);
+            if ($post_type === 'location') {
+                $item_type = 'LocalBusiness';
+            } elseif ($post_type === 'program') {
+                $item_type = 'Service';
+            }
+
+            $schema['itemReviewed'] = [
+                '@type' => $item_type,
+                'name' => $schema['itemReviewed'],
+            ];
+        }
+
+        if (empty($schema['itemReviewed']) && !empty($schema['itemReviewed_name'])) {
+            $item_type = 'Thing';
+            $post_type = get_post_type($post_id);
+            if ($post_type === 'location') {
+                $item_type = 'LocalBusiness';
+            } elseif ($post_type === 'program') {
+                $item_type = 'Service';
+            }
+
+            $schema['itemReviewed'] = [
+                '@type' => $item_type,
+                'name' => $schema['itemReviewed_name'],
+            ];
+        }
+
+        if (empty($schema['itemReviewed']) && in_array(get_post_type($post_id), ['location', 'program'], true)) {
+            $schema['itemReviewed'] = [
+                '@type' => get_post_type($post_id) === 'location' ? 'LocalBusiness' : 'Service',
+                'name' => get_the_title($post_id),
+            ];
+        }
+
+        // Convert scalar reviewRating to Rating object.
+        if (isset($schema['reviewRating']) && !is_array($schema['reviewRating'])) {
+            $schema['reviewRating'] = [
+                '@type' => 'Rating',
+                'ratingValue' => $schema['reviewRating'],
+            ];
+            if (!empty($schema['bestRating'])) {
+                $schema['reviewRating']['bestRating'] = $schema['bestRating'];
+            }
+        }
+
+        unset($schema['author_name'], $schema['itemReviewed_name']);
+        return $schema;
+    }
+
+    /**
+     * Normalize Service provider structure from legacy provider_name.
+     *
+     * @param array $schema
+     * @return array
+     */
+    private static function normalize_service_schema($schema)
+    {
+        if (!empty($schema['provider']) && is_string($schema['provider'])) {
+            $schema['provider'] = [
+                '@type' => 'Organization',
+                'name' => $schema['provider'],
+            ];
+        }
+
+        if (empty($schema['provider'])) {
+            $provider_name = '';
+            if (!empty($schema['provider_name'])) {
+                $provider_name = $schema['provider_name'];
+            } else {
+                $provider_name = get_bloginfo('name');
+            }
+
+            if (!empty($provider_name)) {
+                $schema['provider'] = [
+                    '@type' => 'Organization',
+                    'name' => $provider_name,
+                ];
+            }
+        }
+
+        if (!empty($schema['provider']) && is_array($schema['provider']) && empty($schema['provider']['@type']) && !empty($schema['provider']['name'])) {
+            $schema['provider']['@type'] = 'Organization';
+        }
+
+        unset($schema['provider_name']);
+        return $schema;
+    }
+
+    /**
+     * Normalize Event structure and suppress invalid empty event shells.
+     *
+     * @param array $schema
+     * @param array $raw_fields
+     * @param int   $post_id
+     * @return array|null
+     */
+    private static function normalize_event_schema($schema, $raw_fields, $post_id)
+    {
+        $location_name = $raw_fields['location_name'] ?? ($schema['location_name'] ?? '');
+        $location_addr = $raw_fields['location_address'] ?? ($schema['location_address'] ?? '');
+        $location_city = $raw_fields['location_city'] ?? '';
+        $location_region = $raw_fields['location_state'] ?? '';
+        $location_postal = $raw_fields['location_zip'] ?? '';
+
+        if (empty($location_name) && get_post_type($post_id) === 'location') {
+            $location_name = get_the_title($post_id);
+        }
+        if (empty($location_addr) && get_post_type($post_id) === 'location') {
+            $location_addr = get_post_meta($post_id, 'location_address', true);
+        }
+        if (empty($location_city) && get_post_type($post_id) === 'location') {
+            $location_city = get_post_meta($post_id, 'location_city', true);
+        }
+        if (empty($location_region) && get_post_type($post_id) === 'location') {
+            $location_region = get_post_meta($post_id, 'location_state', true);
+        }
+        if (empty($location_postal) && get_post_type($post_id) === 'location') {
+            $location_postal = get_post_meta($post_id, 'location_zip', true);
+        }
+
+        if (empty($schema['location']) && (!empty($location_name) || !empty($location_addr))) {
+            $schema['location'] = [
+                '@type' => 'Place',
+                'name' => $location_name,
+            ];
+            if (!empty($location_addr) || !empty($location_city) || !empty($location_region) || !empty($location_postal)) {
+                $schema['location']['address'] = [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => $location_addr,
+                    'addressLocality' => $location_city,
+                    'addressRegion' => $location_region,
+                    'postalCode' => $location_postal,
+                    'addressCountry' => 'US',
+                ];
+            }
+        } elseif (isset($schema['location']) && is_string($schema['location']) && !empty($schema['location'])) {
+            $schema['location'] = [
+                '@type' => 'Place',
+                'name' => $schema['location'],
+            ];
+        }
+
+        if (!empty($schema['location']) && is_array($schema['location']) && !empty($schema['location']['address']) && is_string($schema['location']['address'])) {
+            $schema['location']['address'] = [
+                '@type' => 'PostalAddress',
+                'streetAddress' => $schema['location']['address'],
+                'addressLocality' => $location_city,
+                'addressRegion' => $location_region,
+                'postalCode' => $location_postal,
+                'addressCountry' => 'US',
+            ];
+        }
+
+        if (!empty($schema['location']) && is_array($schema['location']) && !empty($schema['location']['address']) && is_array($schema['location']['address'])) {
+            if (empty($schema['location']['address']['@type'])) {
+                $schema['location']['address']['@type'] = 'PostalAddress';
+            }
+            if (empty($schema['location']['address']['addressCountry'])) {
+                $schema['location']['address']['addressCountry'] = 'US';
+            }
+        }
+
+        if (!empty($schema['startDate'])) {
+            if (empty($schema['eventAttendanceMode'])) {
+                $schema['eventAttendanceMode'] = 'https://schema.org/OfflineEventAttendanceMode';
+            }
+            if (empty($schema['eventStatus'])) {
+                $schema['eventStatus'] = 'https://schema.org/EventScheduled';
+            }
+        }
+
+        unset($schema['location_name'], $schema['location_address']);
+
+        // Do not output Event schema shells that cannot pass validation.
+        if (empty($schema['startDate']) || empty($schema['location'])) {
+            return null;
+        }
+
+        return $schema;
     }
 }
 

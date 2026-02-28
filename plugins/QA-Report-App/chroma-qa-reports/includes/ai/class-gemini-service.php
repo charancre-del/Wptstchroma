@@ -19,6 +19,11 @@ class Gemini_Service
     const API_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/';
 
     /**
+     * Safe retry increment for JSON generation retries.
+     */
+    const JSON_RETRY_TOKEN_STEP = 1000;
+
+    /**
      * Get the API key.
      *
      * @return string
@@ -73,7 +78,27 @@ class Gemini_Service
             error_log('[CQA DEBUG] Gemini Generate: Using model: ' . $model);
         }
 
+        $requested_tokens = isset($options['maxTokens']) ? (int) $options['maxTokens'] : 2048;
+        if ($requested_tokens < 1) {
+            $requested_tokens = 2048;
+        }
+        $max_output_tokens = self::clamp_max_output_tokens($requested_tokens, $model);
+
         $url = self::API_BASE_URL . $model . ':generateContent?key=' . self::get_api_key();
+
+        $generation_config = [
+            'temperature' => $options['temperature'] ?? 0.7,
+            'topK' => $options['topK'] ?? 40,
+            'topP' => $options['topP'] ?? 0.95,
+            'maxOutputTokens' => $max_output_tokens,
+        ];
+
+        if (!empty($options['responseMimeType']) && is_string($options['responseMimeType'])) {
+            $generation_config['responseMimeType'] = $options['responseMimeType'];
+        }
+        if (!empty($options['responseSchema']) && is_array($options['responseSchema'])) {
+            $generation_config['responseSchema'] = $options['responseSchema'];
+        }
 
         $body = [
             'contents' => [
@@ -83,12 +108,7 @@ class Gemini_Service
                     ],
                 ],
             ],
-            'generationConfig' => [
-                'temperature' => $options['temperature'] ?? 0.7,
-                'topK' => $options['topK'] ?? 40,
-                'topP' => $options['topP'] ?? 0.95,
-                'maxOutputTokens' => $options['maxTokens'] ?? 2048,
-            ],
+            'generationConfig' => $generation_config,
         ];
 
         $response = \wp_remote_post($url, [
@@ -96,7 +116,7 @@ class Gemini_Service
                 'Content-Type' => 'application/json',
             ],
             'body' => \wp_json_encode($body),
-            'timeout' => 60,
+            'timeout' => 120,
         ]);
 
         if (\is_wp_error($response)) {
@@ -133,12 +153,27 @@ class Gemini_Service
         \ChromaQA\Utils\Logger::info('Gemini', 'generate', [
             'prompt_length' => strlen($prompt),
             'response_length' => strlen($result_text),
-            'finish_reason' => $finish_reason
+            'finish_reason' => $finish_reason,
+            'requested_tokens' => $requested_tokens,
+            'effective_tokens' => $max_output_tokens,
         ], 'Success');
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log(sprintf(
+                '[CQA DEBUG] Gemini generate model=%s req_tokens=%d effective_tokens=%d finish_reason=%s',
+                $model,
+                $requested_tokens,
+                $max_output_tokens,
+                $finish_reason
+            ));
+        }
 
         // Return array format for consistency
         return [
             'text' => $result_text,
+            'finish_reason' => $finish_reason,
+            'usage' => $body_res['usageMetadata'] ?? [],
+            'model' => $model,
         ];
     }
 
@@ -154,17 +189,38 @@ class Gemini_Service
         // Add JSON instruction to prompt
         $json_prompt = $prompt . "\n\nRespond ONLY with valid JSON. Do not include any other text or markdown formatting. Ensure all strings are properly escaped.";
 
+        $schema = null;
+        if (!empty($options['schema']) && is_array($options['schema'])) {
+            $schema = $options['schema'];
+        }
+        unset($options['schema']);
+
+        $use_structured_mode = !empty($schema);
+
         // Retry configuration
         $max_retries = 2;
         $base_tokens = $options['maxTokens'] ?? 4000;
 
         for ($attempt = 0; $attempt <= $max_retries; $attempt++) {
             // Increase tokens on retries
-            $options['maxTokens'] = $base_tokens + ($attempt * 1000);
+            $attempt_options = $options;
+            $attempt_options['maxTokens'] = $base_tokens + ($attempt * self::JSON_RETRY_TOKEN_STEP);
+            if ($use_structured_mode) {
+                $attempt_options['responseMimeType'] = 'application/json';
+                $attempt_options['responseSchema'] = $schema;
+            }
 
-            $response = self::generate($json_prompt, $options);
+            $response = self::generate($json_prompt, $attempt_options);
 
             if (\is_wp_error($response)) {
+                if ($use_structured_mode && self::is_schema_unsupported_error($response)) {
+                    $use_structured_mode = false;
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('[CQA DEBUG] Gemini structured JSON not supported by model/endpoint; retrying without responseSchema.');
+                    }
+                    $attempt--;
+                    continue;
+                }
                 // If it's not a token error, return immediately
                 if ($attempt === $max_retries) {
                     return $response;
@@ -190,6 +246,12 @@ class Gemini_Service
             } elseif ($start !== false) {
                 // JSON was truncated - try to repair
                 $text = substr($text, $start);
+
+                $finish_reason = is_array($response) ? ($response['finish_reason'] ?? '') : '';
+                if ($finish_reason === 'MAX_TOKENS' && defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('[CQA DEBUG] Gemini JSON truncated by MAX_TOKENS; attempting repair.');
+                }
+
                 $text = self::repair_truncated_json($text);
             }
 
@@ -198,22 +260,253 @@ class Gemini_Service
 
             // 4. If decode succeeded, return
             if (json_last_error() === JSON_ERROR_NONE) {
+                if (!empty($schema)) {
+                    $schema_error = '';
+                    if (!self::validate_against_schema($data, $schema, $schema_error)) {
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            error_log('[CQA DEBUG] Gemini JSON schema validation failed (attempt ' . ($attempt + 1) . '): ' . $schema_error);
+                        }
+                        if ($attempt < $max_retries) {
+                            continue;
+                        }
+                        return new \WP_Error(
+                            'json_schema_error',
+                            __('AI response did not match the required format. Please try again.', 'chroma-qa-reports')
+                        );
+                    }
+                }
                 return $data;
             }
 
             // 5. On JSON error, log and retry if attempts remaining
             if ($attempt < $max_retries) {
-                error_log("[CQA] JSON decode failed (attempt " . ($attempt + 1) . "), retrying with more tokens: " . json_last_error_msg());
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log("[CQA DEBUG] JSON decode failed (attempt " . ($attempt + 1) . "), retrying with more tokens: " . json_last_error_msg());
+                }
                 continue;
             }
 
             // Final attempt failed
-            error_log('CQA Gemini JSON Error: ' . json_last_error_msg());
-            error_log('CQA Gemini Failed Text: ' . substr($text, 0, 500) . '...');
-            return new \WP_Error('json_parse_error', 'JSON Error: ' . json_last_error_msg() . ' | Content: ' . substr($text, 0, 200));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('CQA Gemini JSON Error: ' . json_last_error_msg());
+                error_log('CQA Gemini Failed Text (first 300 chars): ' . substr($text, 0, 300));
+            }
+            return new \WP_Error('json_parse_error', __('AI returned malformed JSON. Please try again.', 'chroma-qa-reports'));
         }
 
         return new \WP_Error('max_retries', __('Failed to get valid JSON after multiple attempts.', 'chroma-qa-reports'));
+    }
+
+    /**
+     * Determine whether structured JSON schema options are unsupported.
+     *
+     * @param \WP_Error $error Error object from API call.
+     * @return bool
+     */
+    private static function is_schema_unsupported_error($error)
+    {
+        if (!($error instanceof \WP_Error)) {
+            return false;
+        }
+
+        $message = strtolower((string) $error->get_error_message());
+        if ($message === '') {
+            return false;
+        }
+
+        $indicators = [
+            'responseschema',
+            'response schema',
+            'responsemimetype',
+            'response mime',
+            'invalid argument',
+            'generationconfig',
+            'unknown name',
+        ];
+
+        foreach ($indicators as $indicator) {
+            if (strpos($message, $indicator) !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Clamp requested max tokens against known model output limits.
+     *
+     * @param int    $requested_tokens Requested tokens.
+     * @param string $model            Model name.
+     * @return int
+     */
+    private static function clamp_max_output_tokens($requested_tokens, $model)
+    {
+        $requested = (int) $requested_tokens;
+        if ($requested < 1) {
+            $requested = 2048;
+        }
+
+        $limit = self::get_model_output_token_limit($model);
+        if (empty($limit) || !is_numeric($limit)) {
+            return $requested;
+        }
+
+        $limit = (int) $limit;
+        if ($limit < 1) {
+            return $requested;
+        }
+
+        if ($requested > $limit) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA DEBUG] Clamping maxOutputTokens for %s from %d to %d', $model, $requested, $limit));
+            }
+            return $limit;
+        }
+
+        return $requested;
+    }
+
+    /**
+     * Get output token limit for configured model when available.
+     *
+     * @param string $model Model name.
+     * @return int|null
+     */
+    private static function get_model_output_token_limit($model)
+    {
+        $models = self::get_cached_models();
+        if (empty($models) || !is_array($models)) {
+            $fetched = self::list_models(null, false);
+            if (!\is_wp_error($fetched) && is_array($fetched)) {
+                $models = $fetched;
+            }
+        }
+
+        if (empty($models) || !is_array($models)) {
+            return null;
+        }
+
+        $matched_without_limit = false;
+        foreach ($models as $candidate) {
+            if (!is_array($candidate) || empty($candidate['name'])) {
+                continue;
+            }
+            if ((string) $candidate['name'] !== (string) $model) {
+                continue;
+            }
+            if (!isset($candidate['outputTokenLimit']) || !is_numeric($candidate['outputTokenLimit'])) {
+                $matched_without_limit = true;
+                break;
+            }
+            return (int) $candidate['outputTokenLimit'];
+        }
+
+        if ($matched_without_limit) {
+            $refreshed = self::list_models(null, true);
+            if (!\is_wp_error($refreshed) && is_array($refreshed)) {
+                foreach ($refreshed as $candidate) {
+                    if (!is_array($candidate) || empty($candidate['name'])) {
+                        continue;
+                    }
+                    if ((string) $candidate['name'] !== (string) $model) {
+                        continue;
+                    }
+                    if (isset($candidate['outputTokenLimit']) && is_numeric($candidate['outputTokenLimit'])) {
+                        return (int) $candidate['outputTokenLimit'];
+                    }
+                    break;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Validate decoded data against a lightweight schema subset.
+     *
+     * @param mixed  $value  Decoded value.
+     * @param array  $schema Schema array.
+     * @param string $error  Output error message.
+     * @param string $path   Dot path.
+     * @return bool
+     */
+    private static function validate_against_schema($value, $schema, &$error = '', $path = 'root')
+    {
+        if (!is_array($schema)) {
+            return true;
+        }
+
+        $type = isset($schema['type']) ? strtolower((string) $schema['type']) : '';
+        if ($type === 'object') {
+            if (!is_array($value) || array_values($value) === $value) {
+                $error = $path . ' must be an object';
+                return false;
+            }
+
+            $required = isset($schema['required']) && is_array($schema['required']) ? $schema['required'] : [];
+            foreach ($required as $required_key) {
+                if (!array_key_exists($required_key, $value)) {
+                    $error = $path . '.' . $required_key . ' is required';
+                    return false;
+                }
+            }
+
+            if (!empty($schema['properties']) && is_array($schema['properties'])) {
+                foreach ($schema['properties'] as $property => $property_schema) {
+                    if (!array_key_exists($property, $value)) {
+                        continue;
+                    }
+                    if (!self::validate_against_schema($value[$property], $property_schema, $error, $path . '.' . $property)) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        if ($type === 'array') {
+            if (!is_array($value)) {
+                $error = $path . ' must be an array';
+                return false;
+            }
+            if (isset($schema['minItems']) && is_numeric($schema['minItems']) && count($value) < (int) $schema['minItems']) {
+                $error = $path . ' must have at least ' . (int) $schema['minItems'] . ' items';
+                return false;
+            }
+            if (!empty($schema['items']) && is_array($schema['items'])) {
+                foreach ($value as $index => $item) {
+                    if (!self::validate_against_schema($item, $schema['items'], $error, $path . '[' . $index . ']')) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        if ($type === 'string') {
+            if (!is_string($value)) {
+                $error = $path . ' must be a string';
+                return false;
+            }
+            if (isset($schema['minLength']) && is_numeric($schema['minLength']) && strlen(trim($value)) < (int) $schema['minLength']) {
+                $error = $path . ' is shorter than required';
+                return false;
+            }
+            return true;
+        }
+
+        if ($type === 'number' || $type === 'integer') {
+            if (!is_numeric($value)) {
+                $error = $path . ' must be numeric';
+                return false;
+            }
+            return true;
+        }
+
+        return true;
     }
 
     /**
@@ -225,7 +518,13 @@ class Gemini_Service
     private static function repair_truncated_json($json)
     {
         // Remove trailing incomplete string (common truncation point)
-        $json = preg_replace('/"[^"]*$/', '""', $json);
+        // If it ends with a dangling quote but not a closing quote
+        if (substr_count($json, '"') % 2 !== 0) {
+            $json = preg_replace('/"[^"]*$/', '""', $json);
+        }
+
+        // Remove trailing comma (common if truncated right after a field)
+        $json = preg_replace('/,\s*$/', '', $json);
 
         // Count opening and closing brackets
         $open_braces = substr_count($json, '{');
@@ -246,9 +545,11 @@ class Gemini_Service
         }
 
         // Clean up common trailing issues
-        $json = preg_replace('/,\s*([}\]])/', '$1', $json); // Remove trailing commas
+        $json = preg_replace('/,\s*([}\]])/', '$1', $json); // Remove trailing commas again just in case
 
-        error_log('[CQA] Attempted JSON repair: added ' . ($close_braces - substr_count($json, '}') + ($open_braces - $close_braces)) . ' closing braces');
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('[CQA] Attempted JSON repair: added ' . ($close_braces - substr_count($json, '}') + ($open_braces - $close_braces)) . ' closing braces');
+        }
 
         return $json;
     }
@@ -365,6 +666,8 @@ class Gemini_Service
                     'name' => $name,
                     'displayName' => $m['displayName'] ?? $name,
                     'description' => $m['description'] ?? '',
+                    'outputTokenLimit' => isset($m['outputTokenLimit']) ? (int) $m['outputTokenLimit'] : null,
+                    'inputTokenLimit' => isset($m['inputTokenLimit']) ? (int) $m['inputTokenLimit'] : null,
                 ];
             }
         }

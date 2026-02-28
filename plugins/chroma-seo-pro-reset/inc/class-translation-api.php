@@ -81,6 +81,10 @@ class Chroma_Translation_API
             return new WP_Error('not_found', 'Post not found', ['status' => 404]);
         }
 
+        if (!current_user_can('edit_post', $post_id)) {
+            return new WP_Error('forbidden', 'Permission denied for this post', ['status' => 403]);
+        }
+
         $alternates = [];
         if (class_exists('Chroma_Multilingual_Manager')) {
             $alternates = Chroma_Multilingual_Manager::get_alternates($post_id);
@@ -108,6 +112,10 @@ class Chroma_Translation_API
         $post_id = $request['id'];
         $body = $request->get_json_params();
 
+        if (!current_user_can('edit_post', $post_id)) {
+            return new WP_Error('forbidden', 'Permission denied for this post', ['status' => 403]);
+        }
+
         if (isset($body['title_es'])) {
             update_post_meta($post_id, '_chroma_es_title', sanitize_text_field($body['title_es']));
         }
@@ -132,6 +140,10 @@ class Chroma_Translation_API
     {
         $post_id = $request['id'];
 
+        if (!current_user_can('edit_post', $post_id)) {
+            return new WP_Error('forbidden', 'Permission denied for this post', ['status' => 403]);
+        }
+
         delete_post_meta($post_id, '_chroma_es_title');
         delete_post_meta($post_id, '_chroma_es_content');
         delete_post_meta($post_id, '_chroma_es_excerpt');
@@ -148,8 +160,13 @@ class Chroma_Translation_API
      */
     public function get_all_translations($request)
     {
-        $post_type = $request->get_param('post_type') ?? 'page';
+        $post_type = sanitize_key($request->get_param('post_type') ?? 'page');
         $status = $request->get_param('status'); // translated, untranslated, all
+
+        $allowed_post_types = ['page', 'post', 'location', 'program', 'city', 'team_member'];
+        if (!in_array($post_type, $allowed_post_types, true)) {
+            $post_type = 'page';
+        }
 
         $posts = get_posts([
             'post_type' => $post_type,
@@ -159,6 +176,10 @@ class Chroma_Translation_API
 
         $results = [];
         foreach ($posts as $post) {
+            if (!current_user_can('edit_post', $post->ID)) {
+                continue;
+            }
+
             $has_translation = !empty(get_post_meta($post->ID, '_chroma_es_content', true));
 
             if ($status === 'translated' && !$has_translation) continue;
@@ -191,6 +212,10 @@ class Chroma_Translation_API
         $post = get_post($post_id);
         if (!$post) {
             return new WP_Error('not_found', 'Post not found', ['status' => 404]);
+        }
+
+        if (!current_user_can('edit_post', $post_id)) {
+            return new WP_Error('forbidden', 'Permission denied for this post', ['status' => 403]);
         }
 
         $fields = [

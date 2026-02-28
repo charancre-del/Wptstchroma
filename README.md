@@ -439,3 +439,294 @@ Schedule tabs need classroom photos. Follow these steps:
 ## 📄 License
 
 Proprietary - All rights reserved © 2025 Chroma Early Learning Academy
+
+## Agent API (Secure Automation Guide)
+
+This repository now includes a dedicated plugin: `plugins/chroma-agent-api`.
+
+It provides machine-to-machine API-key access for programmatic auditing and updates of:
+- posts/pages/custom post types
+- theme options and theme mods
+- SEO plugin options and per-post SEO meta
+- media listing/upload/attachment
+
+### Security Guarantees
+
+- API-key auth only (no cookies required for automation)
+- HTTPS-only enforcement
+- key hashing with `password_hash` (no plaintext storage)
+- scoped permissions (least privilege)
+- per-key rate limiting
+- optional request signing (HMAC)
+- per-write audit logs with before/after/diff
+- dry-run support on mutating routes
+- rollback support (post revisions and option/theme snapshots)
+
+### Install and Enable
+
+1. Ensure plugin exists at `wp-content/plugins/chroma-agent-api`.
+2. Activate plugin in WP Admin, or with WP-CLI:
+
+```bash
+wp plugin activate chroma-agent-api
+```
+
+3. Plugin activation creates DB tables:
+- `wp_chroma_api_keys`
+- `wp_chroma_api_audit_log`
+- `wp_chroma_api_option_snapshots`
+
+4. Feature flag option:
+- `chroma_agent_api_enabled` (default `1`)
+
+To disable API without uninstalling:
+
+```bash
+wp option update chroma_agent_api_enabled 0
+```
+
+### Bootstrap First API Key
+
+You can create keys in the UI:
+
+1. Go to `Tools -> Chroma Agent API`
+2. Use **Create API Key**
+3. Copy the key shown in the one-time warning box
+
+Or use WP-CLI:
+
+```bash
+wp chroma-agent key create --label="IDE Agent" --scopes="admin:keys,admin:audit,read:content,write:content,read:theme,write:theme,read:seo,write:seo,read:media,write:media" --rate=120
+```
+
+The command prints the key once. Store it securely.
+
+### Authentication
+
+Use bearer auth:
+
+```http
+Authorization: Bearer ck_live_<id>.<secret>
+```
+
+Optional signed-request mode:
+- `X-Chroma-Timestamp: <unix-ts>`
+- `X-Chroma-Signature: <hmac_sha256(method + "\n" + route + "\n" + timestamp + "\n" + body, api_key)>`
+
+### Scopes
+
+- `read:content`
+- `write:content`
+- `read:theme`
+- `write:theme`
+- `read:seo`
+- `write:seo`
+- `read:media`
+- `write:media`
+- `admin:keys`
+- `admin:audit`
+
+### Core Endpoints (`/wp-json/chroma-agent/v1`)
+
+#### Discovery
+- `GET /discovery`
+- `GET /resources`
+
+#### Key Management
+- `GET /keys`
+- `POST /keys`
+- `POST /keys/{id}/revoke`
+- `POST /keys/{id}/rotate`
+
+#### Content
+- `GET /content`
+- `POST /content`
+- `GET /content/{id}`
+- `PATCH|POST|PUT /content/{id}`
+- `DELETE /content/{id}`
+- `POST /content/{id}/rollback` (requires `revision_id`)
+
+#### Theme
+- `GET /theme/options`
+- `PATCH|POST /theme/options`
+- `GET /theme/mods`
+- `PATCH|POST /theme/mods`
+
+#### SEO
+- `GET /seo/options`
+- `PATCH|POST /seo/options`
+- `GET /seo/meta/{post_id}`
+- `PATCH|POST /seo/meta/{post_id}`
+
+#### Media
+- `GET /media`
+- `POST /media` (multipart field: `file`)
+- `POST /media/attach`
+
+#### Audit and Rollback
+- `GET /audit`
+- `GET /audit/{id}`
+- `GET /snapshots`
+- `POST /rollback/snapshot`
+
+### Dry-Run
+
+All mutating routes support dry-run.
+
+Send either:
+- JSON body field: `"dry_run": true`
+- or parameter: `dry_run=1`
+
+Dry-run behavior:
+- validates payload and permissions
+- computes proposed output and diff
+- does not persist changes
+- still logs action as dry-run in audit table
+
+### Rollback Strategy
+
+#### Content
+Use WordPress revisions:
+
+```http
+POST /wp-json/chroma-agent/v1/content/{id}/rollback
+{
+  "revision_id": 12345
+}
+```
+
+#### Theme/SEO Options
+Each write stores a snapshot row. Roll back by snapshot id:
+
+```http
+POST /wp-json/chroma-agent/v1/rollback/snapshot
+{
+  "snapshot_id": 42
+}
+```
+
+### Allowlists
+
+For safety, theme and SEO writes are restricted by allowlists.
+
+Options:
+- `chroma_agent_api_theme_option_allowlist`
+- `chroma_agent_api_theme_mod_allowlist`
+- `chroma_agent_api_seo_option_allowlist`
+- `chroma_agent_api_seo_meta_allowlist`
+
+Update allowlists with WP-CLI if needed:
+
+```bash
+wp option get chroma_agent_api_seo_meta_allowlist --format=json
+wp option update chroma_agent_api_seo_meta_allowlist '["_chroma_es_title","_chroma_es_content"]' --format=json
+```
+
+### Example Requests
+
+#### List content
+
+```bash
+curl -sS "https://example.com/wp-json/chroma-agent/v1/content?post_type=page&per_page=10" \
+  -H "Authorization: Bearer $CHROMA_AGENT_KEY"
+```
+
+#### Update post (dry-run)
+
+```bash
+curl -sS "https://example.com/wp-json/chroma-agent/v1/content/123" \
+  -X PATCH \
+  -H "Authorization: Bearer $CHROMA_AGENT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "post_title":"Updated Title",
+    "meta":{"_chroma_es_title":"Titulo actualizado"},
+    "dry_run":true
+  }'
+```
+
+#### Set SEO option
+
+```bash
+curl -sS "https://example.com/wp-json/chroma-agent/v1/seo/options" \
+  -X PATCH \
+  -H "Authorization: Bearer $CHROMA_AGENT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "updates": {
+      "chroma_llm_brand_voice": "Professional, concise"
+    }
+  }'
+```
+
+### Key Rotation and Revocation
+
+UI (recommended for admins):
+- `Tools -> Chroma Agent API` then use **Rotate** or **Revoke**
+
+Rotate:
+
+```bash
+wp chroma-agent key rotate <id>
+```
+
+Revoke:
+
+```bash
+wp chroma-agent key revoke <id>
+```
+
+List:
+
+```bash
+wp chroma-agent key list
+```
+
+### Audit Operations
+
+- Every write records actor key id, route, method, target, dry-run flag, before/after/diff, status code, timestamp, IP.
+- Query logs with:
+  - `GET /audit?route=/content&target_type=post&limit=50`
+- Inspect one log with:
+  - `GET /audit/{id}`
+
+### Operational Safety Checklist
+
+Before enabling write scopes in production:
+1. Test all read routes on staging.
+2. Test write routes with `dry_run=true`.
+3. Validate audit log and snapshots are created.
+4. Test rollback for both content revision and snapshot restore.
+5. Rotate initial bootstrap key and store in secret manager.
+
+### Troubleshooting
+
+- `401 Missing API key`: send `Authorization: Bearer ...`
+- `403 HTTPS required`: call over HTTPS only
+- `403 Scope denied`: key is missing required scope
+- `429 Rate limit`: lower request burst or increase per-key rate
+- `404 Snapshot not found`: verify snapshot id from `GET /snapshots`
+
+### Performance Notes
+
+- Plugin is WordPress-native and only initializes route handlers.
+- No frontend assets are enqueued.
+- DB writes occur only for key usage updates, write audit, and snapshots.
+
+### Code Locations
+
+- Plugin bootstrap: `plugins/chroma-agent-api/chroma-agent-api.php`
+- Auth/scopes/rate limiting: `plugins/chroma-agent-api/includes/class-auth.php`
+- Key store: `plugins/chroma-agent-api/includes/class-key-store.php`
+- Audit log + diff + snapshots:
+  - `plugins/chroma-agent-api/includes/class-audit-log.php`
+  - `plugins/chroma-agent-api/includes/class-diff.php`
+  - `plugins/chroma-agent-api/includes/class-snapshot-store.php`
+- REST routes:
+  - `plugins/chroma-agent-api/includes/routes/class-discovery-routes.php`
+  - `plugins/chroma-agent-api/includes/routes/class-key-routes.php`
+  - `plugins/chroma-agent-api/includes/routes/class-content-routes.php`
+  - `plugins/chroma-agent-api/includes/routes/class-theme-routes.php`
+  - `plugins/chroma-agent-api/includes/routes/class-seo-routes.php`
+  - `plugins/chroma-agent-api/includes/routes/class-media-routes.php`
+  - `plugins/chroma-agent-api/includes/routes/class-audit-routes.php`

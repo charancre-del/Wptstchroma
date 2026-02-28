@@ -51,19 +51,55 @@ class Executive_Summary
         // Call 2: Generate Plan of Improvement (action items)
         $poi_result = $this->generate_poi_part($context, $previous_report);
 
-        // Handle errors
-        $errors = [];
         if (\is_wp_error($executive_result)) {
-            $errors[] = 'Executive: ' . $executive_result->get_error_message();
-        }
-        if (\is_wp_error($poi_result)) {
-            $errors[] = 'POI: ' . $poi_result->get_error_message();
+            return new \WP_Error(
+                'ai_executive_failed',
+                sprintf(__('AI executive summary generation failed: %s', 'chroma-qa-reports'), $executive_result->get_error_message()),
+                ['status' => 422, 'underlying_error' => $executive_result->get_error_code()]
+            );
         }
 
-        // If both failed, return error
-        if (count($errors) === 2) {
-            return new \WP_Error('ai_generation_failed', implode(' | ', $errors));
+        $executive_text = is_array($executive_result) ? trim((string) ($executive_result['executive_summary'] ?? '')) : '';
+        if ($executive_text === '') {
+            return new \WP_Error(
+                'ai_executive_empty',
+                __('AI executive summary returned an empty response. Please try again.', 'chroma-qa-reports'),
+                ['status' => 422]
+            );
         }
+
+        if (\is_wp_error($poi_result)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('[CQA DEBUG] POI generation failed: ' . $poi_result->get_error_message());
+            }
+            return new \WP_Error(
+                'ai_poi_failed',
+                sprintf(__('AI plan of improvement generation failed: %s', 'chroma-qa-reports'), $poi_result->get_error_message()),
+                ['status' => 422, 'underlying_error' => $poi_result->get_error_code()]
+            );
+        }
+
+        $poi_items = [];
+        if (is_array($poi_result)) {
+            $poi_items = $poi_result['plan_of_improvement'] ?? $poi_result['poi'] ?? $poi_result['support_and_growth_plan'] ?? [];
+        }
+
+        $poi_validation_error = '';
+        $poi_items = $this->normalize_poi_items($poi_items, $poi_validation_error);
+        if (empty($poi_items)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('[CQA DEBUG] POI validation produced zero valid items: ' . $poi_validation_error);
+            }
+            return new \WP_Error(
+                'ai_poi_empty',
+                __('AI plan of improvement returned no items. Please try again.', 'chroma-qa-reports'),
+                ['status' => 422]
+            );
+        }
+
+        // Normalize POI keys for downstream consumers/storage compatibility.
+        $poi_result['plan_of_improvement'] = $poi_items;
+        $poi_result['poi'] = $poi_items;
 
         // Merge results (use empty arrays for failed parts)
         $result = array_merge(
@@ -73,6 +109,15 @@ class Executive_Summary
 
         // Save the merged summary to database
         $this->save_summary($report->id, $result);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log(sprintf(
+                '[CQA DEBUG] AI summary generated report_id=%d poi_items=%d executive_chars=%d',
+                (int) $report->id,
+                count($poi_items),
+                strlen($executive_text)
+            ));
+        }
 
         return $result;
     }
@@ -111,6 +156,7 @@ class Executive_Summary
         return Gemini_Service::generate_json($prompt, [
             'temperature' => 0.4,
             'maxTokens' => 3000,  // Executive summary is narrative, needs less tokens
+            'schema' => $this->get_executive_schema(),
         ]);
     }
 
@@ -168,8 +214,231 @@ class Executive_Summary
 
         return Gemini_Service::generate_json($prompt, [
             'temperature' => 0.4,
-            'maxTokens' => 5000,
+            'maxTokens' => 10000,
+            'schema' => $this->get_poi_schema((bool) $previous_report),
         ]);
+    }
+
+    /**
+     * Lightweight schema for executive summary generation.
+     *
+     * @return array
+     */
+    private function get_executive_schema()
+    {
+        return [
+            'type' => 'object',
+            'required' => ['executive_summary'],
+            'properties' => [
+                'executive_summary' => ['type' => 'string', 'minLength' => 20],
+                'strengths' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                ],
+                'areas_of_concern' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'object',
+                        'properties' => [
+                            'severity' => ['type' => 'string'],
+                            'section' => ['type' => 'string'],
+                            'item' => ['type' => 'string'],
+                            'observation' => ['type' => 'string'],
+                            'coaching_note' => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+                'suggested_rating' => ['type' => 'string'],
+                'key_findings' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * Lightweight schema for POI generation.
+     *
+     * @param bool $include_comparison Whether comparison object is expected.
+     * @return array
+     */
+    private function get_poi_schema($include_comparison = false)
+    {
+        $schema = [
+            'type' => 'object',
+            'required' => ['plan_of_improvement'],
+            'properties' => [
+                'plan_of_improvement' => [
+                    'type' => 'array',
+                    'items' => [
+                        'type' => 'object',
+                        'required' => ['area'],
+                        'properties' => [
+                            'priority' => ['type' => 'integer'],
+                            'area' => ['type' => 'string', 'minLength' => 2],
+                            'current_status' => ['type' => 'string'],
+                            'action_steps' => [
+                                'type' => 'array',
+                                'items' => ['type' => 'string'],
+                            ],
+                            'timeline' => ['type' => 'string'],
+                            'success_criteria' => ['type' => 'string'],
+                            'support_offered' => ['type' => 'string'],
+                        ],
+                    ],
+                ],
+                'recommendations' => [
+                    'type' => 'array',
+                    'items' => ['type' => 'string'],
+                ],
+            ],
+        ];
+
+        if ($include_comparison) {
+            $schema['properties']['comparison'] = [
+                'type' => 'object',
+                'properties' => [
+                    'celebrations' => ['type' => 'array', 'items' => ['type' => 'string']],
+                    'regressions' => ['type' => 'array', 'items' => ['type' => 'string']],
+                    'focus_areas' => ['type' => 'array', 'items' => ['type' => 'string']],
+                ],
+            ];
+        }
+
+        return $schema;
+    }
+
+    /**
+     * Normalize POI items to a stable structure and filter invalid entries.
+     *
+     * @param mixed  $items Raw POI items.
+     * @param string $error Validation details for debug logs.
+     * @return array
+     */
+    private function normalize_poi_items($items, &$error = '')
+    {
+        $error = '';
+        if (!is_array($items)) {
+            $error = 'POI payload is not an array.';
+            return [];
+        }
+
+        $normalized = [];
+        $skipped = 0;
+
+        foreach ($items as $idx => $item) {
+            // Accept string POI entries from model fallbacks.
+            if (is_string($item)) {
+                $text_item = \sanitize_textarea_field($item);
+                if ($text_item === '') {
+                    $skipped++;
+                    continue;
+                }
+                $normalized[] = [
+                    'priority' => 3,
+                    'area' => 'General Improvement',
+                    'current_status' => '',
+                    'action_steps' => [$text_item],
+                    'timeline' => '',
+                    'success_criteria' => '',
+                    'support_offered' => '',
+                    'action' => $text_item,
+                ];
+                continue;
+            }
+
+            if (!is_array($item)) {
+                $skipped++;
+                continue;
+            }
+
+            $area = \sanitize_text_field((string) ($item['area'] ?? $item['section'] ?? $item['item'] ?? $item['title'] ?? $item['category'] ?? ''));
+            $current_status = \sanitize_textarea_field((string) ($item['current_status'] ?? $item['observation'] ?? ''));
+            $timeline = \sanitize_text_field((string) ($item['timeline'] ?? ''));
+            $success_criteria = \sanitize_textarea_field((string) ($item['success_criteria'] ?? ''));
+            $support_offered = \sanitize_textarea_field((string) ($item['support_offered'] ?? ''));
+
+            $priority_raw = $item['priority'] ?? 3;
+            $priority = is_numeric($priority_raw) ? (int) $priority_raw : \sanitize_text_field((string) $priority_raw);
+
+            $action_steps = [];
+            if (!empty($item['action_steps']) && is_array($item['action_steps'])) {
+                foreach ($item['action_steps'] as $step) {
+                    $step_text = \sanitize_textarea_field((string) $step);
+                    if ($step_text !== '') {
+                        $action_steps[] = $step_text;
+                    }
+                }
+            } elseif (!empty($item['steps']) && is_array($item['steps'])) {
+                foreach ($item['steps'] as $step) {
+                    $step_text = \sanitize_textarea_field((string) $step);
+                    if ($step_text !== '') {
+                        $action_steps[] = $step_text;
+                    }
+                }
+            } elseif (!empty($item['recommendations']) && is_array($item['recommendations'])) {
+                foreach ($item['recommendations'] as $step) {
+                    $step_text = \sanitize_textarea_field((string) $step);
+                    if ($step_text !== '') {
+                        $action_steps[] = $step_text;
+                    }
+                }
+            } elseif (!empty($item['action']) && is_string($item['action'])) {
+                $fallback_action = \sanitize_textarea_field($item['action']);
+                if ($fallback_action !== '') {
+                    $action_steps[] = $fallback_action;
+                }
+            } elseif (!empty($item['recommendation']) && is_string($item['recommendation'])) {
+                $fallback_action = \sanitize_textarea_field($item['recommendation']);
+                if ($fallback_action !== '') {
+                    $action_steps[] = $fallback_action;
+                }
+            }
+
+            // Final fallback: if model gave useful narrative but no explicit steps, keep item.
+            if (empty($action_steps)) {
+                $fallback_step = '';
+                if ($current_status !== '') {
+                    $fallback_step = $current_status;
+                } elseif ($success_criteria !== '') {
+                    $fallback_step = $success_criteria;
+                } elseif ($support_offered !== '') {
+                    $fallback_step = $support_offered;
+                }
+
+                if ($fallback_step !== '') {
+                    $action_steps[] = $fallback_step;
+                }
+            }
+
+            if ($area === '') {
+                $area = 'General Improvement';
+            }
+
+            if (empty($action_steps)) {
+                $skipped++;
+                continue;
+            }
+
+            $normalized[] = [
+                'priority' => $priority,
+                'area' => $area,
+                'current_status' => $current_status,
+                'action_steps' => $action_steps,
+                'timeline' => $timeline,
+                'success_criteria' => $success_criteria,
+                'support_offered' => $support_offered,
+                // Backward-compatible single action field for older templates.
+                'action' => $action_steps[0],
+            ];
+        }
+
+        if ($skipped > 0) {
+            $error = sprintf('Skipped %d invalid POI item(s).', (int) $skipped);
+        }
+
+        return $normalized;
     }
 
     /**

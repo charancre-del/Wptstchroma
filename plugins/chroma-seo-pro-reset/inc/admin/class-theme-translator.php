@@ -23,10 +23,11 @@ class Chroma_Theme_Translator
         add_action('wp_ajax_chroma_save_string_translations', [$this, 'ajax_save_translations']);
         add_action('wp_ajax_chroma_bulk_translate_strings', [$this, 'ajax_bulk_translate_strings']);
         add_action('wp_ajax_chroma_export_po', [$this, 'ajax_export_po']);
-        
-        // TEMP DEBUG
-        add_action('wp_ajax_chroma_debug_meta', [$this, 'ajax_debug_meta']);
-        add_action('wp_ajax_nopriv_chroma_debug_meta', [$this, 'ajax_debug_meta']);
+
+        // Debug endpoint is admin-only and only available in debug mode.
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            add_action('wp_ajax_chroma_debug_meta', [$this, 'ajax_debug_meta']);
+        }
 
         // Runtime Translation Hook
         add_filter('gettext', [$this, 'filter_gettext'], 10, 3);
@@ -424,6 +425,16 @@ class Chroma_Theme_Translator
     }
 
     public function ajax_debug_meta() {
+        if (!defined('WP_DEBUG') || !WP_DEBUG) {
+            wp_send_json_error(['message' => 'Not available']);
+        }
+
+        check_ajax_referer('chroma_seo_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
         $page = get_page_by_path('about');
         if (!$page) $page = get_page_by_path('about-us');
         
@@ -433,8 +444,7 @@ class Chroma_Theme_Translator
                 'id' => $page->ID,
                 'title' => $page->post_title,
                 'es_content' => $meta['_chroma_es_content'][0] ?? 'MISSING',
-                'es_title' => $meta['_chroma_es_title'][0] ?? 'MISSING',
-                'all_meta' => $meta
+                'es_title' => $meta['_chroma_es_title'][0] ?? 'MISSING'
             ]);
         }
         wp_send_json_error('Page not found');

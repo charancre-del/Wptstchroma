@@ -92,6 +92,10 @@ class Chroma_Schema_Review_Queue
         if (!$post_id) {
             wp_send_json_error(['message' => 'No post ID']);
         }
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
         
         if ($action === 'approve') {
             self::approve($post_id);
@@ -106,6 +110,10 @@ class Chroma_Schema_Review_Queue
      */
     public function ajax_get_queue() {
         check_ajax_referer('chroma_seo_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
         
         wp_send_json_success([
             'queue' => self::get_pending(),

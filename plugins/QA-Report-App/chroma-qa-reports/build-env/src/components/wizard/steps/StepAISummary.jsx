@@ -14,6 +14,19 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+const normalizeSummaryPayload = (summary) => {
+    if (!summary || typeof summary !== 'object') {
+        return summary;
+    }
+
+    const poiItems = summary.plan_of_improvement || summary.poi || summary.support_and_growth_plan || [];
+
+    return {
+        ...summary,
+        plan_of_improvement: Array.isArray(poiItems) ? poiItems : [],
+    };
+};
+
 export function StepAISummary({ readOnly = false }) {
     const report = useReportWizardStore(s => s.report);
     const responses = useReportWizardStore(s => s.responses);
@@ -54,6 +67,8 @@ export function StepAISummary({ readOnly = false }) {
                     ? { executive_summary: result }
                     : result;
             }
+
+            summaryObj = normalizeSummaryPayload(summaryObj);
 
             setReport({
                 ...report,

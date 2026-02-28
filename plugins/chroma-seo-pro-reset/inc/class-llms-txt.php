@@ -40,6 +40,24 @@ class Chroma_LLMs_Txt_Generator
             return;
         }
 
+        if (wp_doing_ajax()) {
+            $action = sanitize_text_field($_POST['action'] ?? '');
+            if ($action !== 'chroma_save_llm_targeting') {
+                return;
+            }
+
+            if (!current_user_can('edit_posts')) {
+                return;
+            }
+
+            // Keep this callback independently secure, even if another callback validates first.
+            if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
+                return;
+            }
+        } elseif (!current_user_can('manage_options')) {
+            return;
+        }
+
         $file_path = ABSPATH . 'llms.txt';
         $content = $this->generate_content();
 

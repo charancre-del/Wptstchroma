@@ -112,6 +112,7 @@ class Chroma_Near_Me_Pages
                 'url' => get_permalink($loc),
                 'city' => get_post_meta($loc->ID, 'location_city', true),
                 'state' => get_post_meta($loc->ID, 'location_state', true),
+                'zip' => get_post_meta($loc->ID, 'location_zip', true),
                 'address' => get_post_meta($loc->ID, 'location_address', true),
                 'phone' => get_post_meta($loc->ID, 'location_phone', true),
                 'lat' => floatval($lat),
@@ -360,7 +361,14 @@ class Chroma_Near_Me_Pages
                 'item' => [
                     '@type' => 'LocalBusiness',
                     'name' => $loc['title'],
-                    'address' => $loc['address'],
+                    'address' => [
+                        '@type' => 'PostalAddress',
+                        'streetAddress' => $loc['address'],
+                        'addressLocality' => $loc['city'],
+                        'addressRegion' => $loc['state'],
+                        'postalCode' => $loc['zip'],
+                        'addressCountry' => 'US',
+                    ],
                     'url' => $loc['url']
                 ]
             ];

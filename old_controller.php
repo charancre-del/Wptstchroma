@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Front-End Report Controller
  * 

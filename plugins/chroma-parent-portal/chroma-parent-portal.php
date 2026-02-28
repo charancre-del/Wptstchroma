@@ -56,23 +56,33 @@ add_filter('rest_authentication_errors', function ($result) {
     }
 
     $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
-    if (false === strpos($request_uri, '/wp-json/chroma-portal/v1/')) {
+    $rest_route = '';
+
+    // Support both pretty permalinks (/wp-json/...) and plain permalinks (?rest_route=...).
+    if (isset($_GET['rest_route'])) {
+        $rest_route = sanitize_text_field(wp_unslash($_GET['rest_route']));
+    } elseif (false !== strpos($request_uri, '/wp-json/')) {
+        $parts = explode('/wp-json', $request_uri, 2);
+        $rest_route = isset($parts[1]) ? $parts[1] : '';
+    }
+
+    if (0 !== strpos($rest_route, '/chroma-portal/v1/')) {
         return $result;
     }
 
-    $is_login_route = false !== strpos($request_uri, '/wp-json/chroma-portal/v1/login');
+    $is_login_route = 0 === strpos($rest_route, '/chroma-portal/v1/login');
     $is_token_route = (
         (
-            false !== strpos($request_uri, '/wp-json/chroma-portal/v1/content/dashboard')
-            || false !== strpos($request_uri, '/wp-json/chroma-portal/v1/years')
-            || false !== strpos($request_uri, '/wp-json/chroma-portal/v1/taxonomy/')
+            0 === strpos($rest_route, '/chroma-portal/v1/content/dashboard')
+            || 0 === strpos($rest_route, '/chroma-portal/v1/years')
+            || 0 === strpos($rest_route, '/chroma-portal/v1/taxonomy/')
         )
         && !empty($_SERVER['HTTP_X_PORTAL_TOKEN'])
     );
 
     if ($is_login_route || $is_token_route) {
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('Chroma Parent Portal: bypassed stale rest nonce for token/public route.');
+            error_log('Chroma Parent Portal: bypassed stale rest nonce for token/public route: ' . $rest_route);
         }
         return null;
     }
@@ -103,6 +113,7 @@ require_once CHROMA_PORTAL_PATH . 'includes/class-api-routes.php';
 if (is_admin()) {
     require_once CHROMA_PORTAL_PATH . 'includes/class-meta-boxes.php';
     require_once CHROMA_PORTAL_PATH . 'includes/class-bulk-importer.php';
+    require_once CHROMA_PORTAL_PATH . 'includes/class-bulk-uploader.php';
 }
 
 // Activation Hook

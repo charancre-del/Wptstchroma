@@ -20,7 +20,15 @@ class Chroma_Competitor_Analyzer
      * Fetch schema from competitor URL
      */
     public static function fetch_competitor_schema($url) {
-        $response = wp_remote_get($url, [
+        $safe_url = function_exists('chroma_seo_validate_remote_url')
+            ? chroma_seo_validate_remote_url($url, true)
+            : esc_url_raw($url);
+
+        if (!$safe_url) {
+            return [];
+        }
+
+        $response = wp_remote_get($safe_url, [
             'timeout' => 15,
             'user-agent' => 'Mozilla/5.0 (compatible; ChromaBot/1.0)'
         ]);
@@ -338,6 +346,10 @@ Return JSON with keys: alt_text, caption, keywords";
 // Register AJAX handlers
 add_action('wp_ajax_chroma_analyze_image', function() {
     check_ajax_referer('chroma_seo_nonce', 'nonce');
+
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error(['message' => 'Permission denied']);
+    }
     
     $image_url = esc_url_raw($_POST['image_url'] ?? '');
     if (!$image_url) {
@@ -355,12 +367,27 @@ add_action('wp_ajax_chroma_analyze_image', function() {
 
 add_action('wp_ajax_chroma_compare_competitor', function() {
     check_ajax_referer('chroma_seo_nonce', 'nonce');
+
+    if (!current_user_can('edit_posts')) {
+        wp_send_json_error(['message' => 'Permission denied']);
+    }
     
     $post_id = intval($_POST['post_id'] ?? 0);
     $competitor_url = esc_url_raw($_POST['competitor_url'] ?? '');
     
     if (!$post_id || !$competitor_url) {
         wp_send_json_error(['message' => 'Missing parameters']);
+    }
+
+    if (function_exists('chroma_seo_can_edit_post') && !chroma_seo_can_edit_post($post_id)) {
+        wp_send_json_error(['message' => 'Permission denied for this post']);
+    }
+
+    if (function_exists('chroma_seo_validate_remote_url')) {
+        $competitor_url = chroma_seo_validate_remote_url($competitor_url, true);
+        if (!$competitor_url) {
+            wp_send_json_error(['message' => 'Invalid or blocked competitor URL']);
+        }
     }
     
     $our_schema = get_post_meta($post_id, '_chroma_schema_data', true);

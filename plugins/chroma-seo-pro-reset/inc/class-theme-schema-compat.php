@@ -15,6 +15,62 @@ if (!defined('ABSPATH')) {
 }
 
 /**
+ * Safely output schema override JSON-LD.
+ *
+ * Accepts raw JSON or legacy <script type="application/ld+json"> wrappers.
+ * Never echoes raw HTML directly.
+ *
+ * @param int    $post_id Post ID.
+ * @param string $source  Source label for registry debug.
+ * @return bool
+ */
+if (!function_exists('chroma_output_schema_override_pro')) {
+    function chroma_output_schema_override_pro($post_id, $source = 'theme-compat-override') {
+        $override = get_post_meta($post_id, '_chroma_schema_override', true);
+        if (!is_string($override) || trim($override) === '') {
+            return false;
+        }
+
+        $raw = trim(wp_unslash($override));
+
+        // Backward compatibility: allow stored script wrapper, but parse JSON only.
+        if (stripos($raw, '<script') !== false) {
+            if (preg_match('/<script[^>]*application\/ld\+json[^>]*>(.*?)<\/script>/is', $raw, $matches)) {
+                $raw = trim($matches[1]);
+            } else {
+                return false;
+            }
+        }
+
+        $decoded = json_decode($raw, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            return false;
+        }
+
+        $items = isset($decoded[0]) && is_array($decoded[0]) ? $decoded : [$decoded];
+
+        foreach ($items as $schema_item) {
+            if (!is_array($schema_item) || empty($schema_item)) {
+                continue;
+            }
+
+            if (!isset($schema_item['@context'])) {
+                $schema_item['@context'] = 'https://schema.org';
+            }
+
+            if (class_exists('Chroma_Schema_Registry') && isset($schema_item['@type'])) {
+                Chroma_Schema_Registry::register($schema_item, ['source' => $source]);
+                continue;
+            }
+
+            echo '<script type="application/ld+json">' . wp_json_encode($schema_item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+        }
+
+        return true;
+    }
+}
+
+/**
  * Global Schema Override Handler (for standard pages/posts)
  * Hooks early to catch generic pages that have manual fixes
  */
@@ -27,19 +83,8 @@ if (!function_exists('chroma_general_content_schema_pro')) {
         $post_id = get_the_ID();
         if (!$post_id) return;
 
-        $override = get_post_meta($post_id, '_chroma_schema_override', true);
-        if ($override) {
-            // Parse override JSON and route through Registry
-            $override_data = json_decode($override, true);
-            if ($override_data) {
-                if (!isset($override_data['@context'])) {
-                    $override_data['@context'] = 'https://schema.org';
-                }
-                Chroma_Schema_Registry::register($override_data, ['source' => 'theme-compat-override']);
-            } else {
-                // Raw JSON string, output as-is with script tags
-                echo (strpos($override, '<script') !== false) ? $override : '<script type="application/ld+json">' . $override . '</script>' . "\n";
-            }
+        if (chroma_output_schema_override_pro($post_id, 'theme-compat-override')) {
+            return;
         }
     }
 }
@@ -69,13 +114,7 @@ function chroma_location_schema_pro()
     $location_id = get_the_ID();
     
     // Check for manual override first
-    $override = get_post_meta($location_id, '_chroma_schema_override', true);
-    if ($override) {
-        if (strpos($override, '<script') !== false) {
-            echo $override;
-        } else {
-            echo '<script type="application/ld+json">' . $override . '</script>';
-        }
+    if (chroma_output_schema_override_pro($location_id, 'theme-compat-location-override')) {
         return;
     }
 
@@ -336,13 +375,7 @@ function chroma_city_schema_pro()
     $post_id = get_the_ID();
     
     // Check for manual override
-    $override = get_post_meta($post_id, '_chroma_schema_override', true);
-    if ($override) {
-        if (strpos($override, '<script') !== false) {
-            echo $override;
-        } else {
-            echo '<script type="application/ld+json">' . $override . '</script>' . "\n";
-        }
+    if (chroma_output_schema_override_pro($post_id, 'theme-compat-city-override')) {
         return;
     }
 
@@ -430,13 +463,7 @@ function chroma_program_schema_pro()
 
     $program_id = get_the_ID();
     
-    $override = get_post_meta($program_id, '_chroma_schema_override', true);
-    if ($override) {
-        if (strpos($override, '<script') !== false) {
-            echo $override;
-        } else {
-            echo '<script type="application/ld+json">' . $override . '</script>';
-        }
+    if (chroma_output_schema_override_pro($program_id, 'theme-compat-program-override')) {
         return;
     }
 
@@ -486,8 +513,6 @@ function chroma_program_schema_pro()
     Chroma_Schema_Registry::register($schema, ['source' => 'theme-compat-program']);
 }
 }
-add_action('wp_head', 'chroma_program_schema');
-
 /**
  * Add FAQPage Schema to City Pages
  * Generates common FAQ questions about childcare in the specific city
@@ -600,9 +625,7 @@ if (!function_exists('chroma_organization_schema_pro')) {
         if (!is_front_page()) return;
         $homepage_id = get_option('page_on_front');
         
-        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
-        if ($override) {
-            echo (strpos($override, '<script') !== false) ? $override : '<script type="application/ld+json">' . $override . '</script>';
+        if (chroma_output_schema_override_pro($homepage_id, 'theme-compat-home-override')) {
             return;
         }
 

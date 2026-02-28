@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Advanced SEO/LLM Dashboard
  * Provides a centralized view of all SEO data
@@ -108,9 +108,29 @@ class Chroma_SEO_Dashboard
      */
     public function rest_validate_url($request)
     {
-        $url = $request->get_param('url');
+        $url = $this->normalize_remote_url($request->get_param('url'));
+        if (!$url) {
+            return new WP_REST_Response(['message' => 'Invalid or blocked URL'], 400);
+        }
+
         $result = $this->perform_url_validation($url);
         return new WP_REST_Response($result, 200);
+    }
+
+    /**
+     * Normalize outbound URLs and apply SSRF protections.
+     *
+     * @param string $url
+     * @param bool $allow_external
+     * @return string|false
+     */
+    private function normalize_remote_url($url, $allow_external = false)
+    {
+        if (function_exists('chroma_seo_validate_remote_url')) {
+            return chroma_seo_validate_remote_url($url, $allow_external);
+        }
+
+        return esc_url_raw($url, ['http', 'https']);
     }
 
     /**
@@ -163,7 +183,7 @@ class Chroma_SEO_Dashboard
     {
         ?>
         <div class="chroma-seo-card">
-            <h2>⚙️ Schema Validator Settings</h2>
+            <h2>âš™ï¸ Schema Validator Settings</h2>
             <form method="post" action="options.php">
                 <?php settings_fields('chroma_validator_options'); ?>
                 <table class="form-table">
@@ -456,7 +476,7 @@ class Chroma_SEO_Dashboard
         // Helper: Show Toast Notification
         function showToast(message, type) {
             type = type || 'success';
-            var icon = type === 'success' ? '✓' : (type === 'error' ? '✕' : '⚠');
+            var icon = type === 'success' ? 'âœ“' : (type === 'error' ? 'âœ•' : 'âš ');
             var toast = jQuery('<div class="chroma-toast ' + type + '"><span class="chroma-toast-icon">' + icon + '</span> <span class="chroma-toast-message">' + message + '</span></div>');
             jQuery('#chroma-toast-container').append(toast);
             setTimeout(function() {
@@ -562,7 +582,7 @@ class Chroma_SEO_Dashboard
     {
         ?>
         <div class="chroma-seo-card">
-            <h2>🌍 Geo-Optimization Settings</h2>
+            <h2>ðŸŒ Geo-Optimization Settings</h2>
             <p>Manage your location-based SEO settings.</p>
 
             <div class="chroma-doc-section" style="margin-top: 20px;">
@@ -607,7 +627,7 @@ class Chroma_SEO_Dashboard
         $selected_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
         ?>
         <div class="chroma-seo-card" style="margin-bottom: 20px;">
-            <h2>🤖 LLM Optimization Files</h2>
+            <h2>ðŸ¤– LLM Optimization Files</h2>
             <p>Your <strong>llms.txt</strong> file is automatically generated and optimized for AI crawlers (ChatGPT, Perplexity, Claude).</p>
             <code><a href="<?php echo home_url('/llms.txt'); ?>" target="_blank"><?php echo home_url('/llms.txt'); ?></a></code>
             <p class="description">This file aggregates the targeting data below into a format AI can easily read.</p>
@@ -711,7 +731,7 @@ class Chroma_SEO_Dashboard
                     }, function (response) {
                         btn.prop('disabled', false).text('Save LLM Targeting');
                         if (response.success) {
-                            alert('✅ Settings saved successfully!');
+                            alert('âœ… Settings saved successfully!');
                         } else {
                             alert('Error saving settings.');
                         }
@@ -744,7 +764,7 @@ class Chroma_SEO_Dashboard
                             $('#llm-queries-container').empty();
                             if (data.target_queries && Array.isArray(data.target_queries)) {
                                 data.target_queries.forEach(function (q) {
-                                    var html = '<div class="chroma-repeater-row" style="margin-bottom: 8px;"><input type="text" class="chroma-llm-query-input regular-text" value="' + q + '" style="width: 80%;"> <button class="button remove-llm-row">×</button></div>';
+                                    var html = '<div class="chroma-repeater-row" style="margin-bottom: 8px;"><input type="text" class="chroma-llm-query-input regular-text" value="' + q + '" style="width: 80%;"> <button class="button remove-llm-row">Ã—</button></div>';
                                     $('#llm-queries-container').append(html);
                                 });
                             }
@@ -753,12 +773,12 @@ class Chroma_SEO_Dashboard
                             $('#llm-diffs-container').empty();
                             if (data.key_differentiators && Array.isArray(data.key_differentiators)) {
                                 data.key_differentiators.forEach(function (d) {
-                                    var html = '<div class="chroma-repeater-row" style="margin-bottom: 8px;"><input type="text" class="chroma-llm-diff-input regular-text" value="' + d + '" style="width: 80%;"> <button class="button remove-llm-row">×</button></div>';
+                                    var html = '<div class="chroma-repeater-row" style="margin-bottom: 8px;"><input type="text" class="chroma-llm-diff-input regular-text" value="' + d + '" style="width: 80%;"> <button class="button remove-llm-row">Ã—</button></div>';
                                     $('#llm-diffs-container').append(html);
                                 });
                             }
 
-                            alert('✨ Content generated successfully!');
+                            alert('âœ¨ Content generated successfully!');
                         } else {
                             alert('AI Error: ' + (response.data && response.data.message ? response.data.message : 'Unknown error'));
                         }
@@ -768,14 +788,14 @@ class Chroma_SEO_Dashboard
                 // Add query row
                 $(document).on('click', '#add-llm-query', function (e) {
                     e.preventDefault();
-                    var html = '<div class="chroma-repeater-row" style="margin-bottom: 8px;"><input type="text" class="chroma-llm-query-input regular-text" placeholder="e.g., best preschool curriculum" style="width: 80%;"> <button class="button remove-llm-row">×</button></div>';
+                    var html = '<div class="chroma-repeater-row" style="margin-bottom: 8px;"><input type="text" class="chroma-llm-query-input regular-text" placeholder="e.g., best preschool curriculum" style="width: 80%;"> <button class="button remove-llm-row">Ã—</button></div>';
                     $('#llm-queries-container').append(html);
                 });
 
                 // Add differentiator row
                 $(document).on('click', '#add-llm-diff', function (e) {
                     e.preventDefault();
-                    var html = '<div class="chroma-repeater-row" style="margin-bottom: 8px;"><input type="text" class="chroma-llm-diff-input regular-text" placeholder="e.g., STEAM-focused curriculum" style="width: 80%;"> <button class="button remove-llm-row">×</button></div>';
+                    var html = '<div class="chroma-repeater-row" style="margin-bottom: 8px;"><input type="text" class="chroma-llm-diff-input regular-text" placeholder="e.g., STEAM-focused curriculum" style="width: 80%;"> <button class="button remove-llm-row">Ã—</button></div>';
                     $('#llm-diffs-container').append(html);
                 });
 
@@ -874,16 +894,16 @@ class Chroma_SEO_Dashboard
                                 $is_ai_desc = !$is_manual_desc && class_exists('Chroma_Fallback_Resolver') && Chroma_Fallback_Resolver::get_cached_ai_value($id, 'description');
                                 
                                 if ($is_manual_desc): ?>
-                                    <span class="chroma-badge chroma-badge-manual">✏️ Manual</span>
+                                    <span class="chroma-badge chroma-badge-manual">âœï¸ Manual</span>
                                 <?php elseif ($is_ai_desc): ?>
-                                    <span class="chroma-badge" style="background: #f0f6fc; color: #005a9c; border: 1px solid #c2dbff;">🤖 AI</span>
+                                    <span class="chroma-badge" style="background: #f0f6fc; color: #005a9c; border: 1px solid #c2dbff;">ðŸ¤– AI</span>
                                 <?php endif; ?>
                                 <div style="font-size: 11px; line-height: 1.4; margin-top: 3px;"><?php echo wp_trim_words($desc, 15); ?></div>
                             </div>
                         </td>
                         <td>
                             <?php if ($schema_count > 0): ?>
-                                <span class="chroma-check">✓</span> <?php echo $schema_count; ?> Custom Schema(s)
+                                <span class="chroma-check">âœ“</span> <?php echo $schema_count; ?> Custom Schema(s)
                             <?php else: ?>
                                 <span style="color: #ccc;">-</span> Default
                             <?php endif; ?>
@@ -1463,27 +1483,30 @@ class Chroma_SEO_Dashboard
         // Capture any stray output that might corrupt JSON
         ob_start();
 
-        // Debug Logging
-        chroma_debug_log(' SEO: ajax_fetch_inspector_data called');
-
         if (!check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce', false)) {
             ob_end_clean();
-            chroma_debug_log(' SEO: Nonce verification failed');
             wp_send_json_error(['message' => 'Security check failed (Nonce)']);
         }
 
+        if (!current_user_can('edit_posts')) {
+            ob_end_clean();
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
-        chroma_debug_log(' SEO: Fetching schema for Post ID: ' . $post_id);
 
         if (!$post_id) {
             ob_end_clean();
-            chroma_debug_log(' SEO: No Post ID provided');
             wp_send_json_error(['message' => 'Invalid Post ID']);
+        }
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            ob_end_clean();
+            wp_send_json_error(['message' => 'Permission denied for this post']);
         }
 
         if (!class_exists('Chroma_Schema_Types')) {
             ob_end_clean();
-            chroma_debug_log(' SEO: Chroma_Schema_Types class missing');
             wp_send_json_error(['message' => 'Critical Error: Schema Types Library missing']);
         }
 
@@ -1523,40 +1546,20 @@ class Chroma_SEO_Dashboard
             $available_types = Chroma_Schema_Types::get_definitions();
             ?>
                         <input type="hidden" id="chroma-inspector-post-id" value="<?php echo $post_id; ?>">
-
-                        <!-- DEBUG PANEL - Remove after fixing -->
-                        <details style="background: #fffbcc; border: 1px solid #e0d800; padding: 10px; margin-bottom: 15px;">
-                            <summary style="cursor: pointer; font-weight: bold; color: #806600;">🔍 Debug: Click to see raw schema data from
-                                database</summary>
-                            <pre style="background: #fff; padding: 10px; margin-top: 10px; overflow: auto; max-height: 300px; font-size: 11px;"><?php
-                            echo "Post ID: {$post_id}\n\n";
-                            echo "Raw _chroma_post_schemas meta:\n";
-                            echo htmlspecialchars(print_r($existing_schemas, true));
-                            ?></pre>
-                        </details>
-
-                        <div id="chroma-active-schemas">
+<div id="chroma-active-schemas">
                             <?php
-                            chroma_debug_log(' SEO: Raw existing_schemas from DB: ' . print_r($existing_schemas, true));
-
                             if (empty($existing_schemas)) {
                                 echo '<p class="description" style="padding: 20px; text-align: center;">No custom schemas added yet. Add one above.</p>';
                             } else {
                                 $valid_count = 0;
                                 foreach ($existing_schemas as $index => $schema) {
-                                    // Log each schema item for debugging
-                                    error_log("Chroma SEO: Schema item [{$index}]: " . print_r($schema, true));
-
                                     if (!is_array($schema)) {
-                                        error_log("Chroma SEO: Schema [{$index}] is not an array, skipping.");
                                         continue;
                                     }
                                     if (!isset($schema['type'])) {
-                                        error_log("Chroma SEO: Schema [{$index}] missing 'type' key, skipping.");
                                         continue;
                                     }
                                     if (!isset($schema['data']) || !is_array($schema['data'])) {
-                                        error_log("Chroma SEO: Schema [{$index}] missing or invalid 'data' key, skipping.");
                                         continue;
                                     }
                                     $valid_count++;
@@ -1590,17 +1593,14 @@ class Chroma_SEO_Dashboard
                         <?php
                         $html = ob_get_clean();
 
-                        // Force clean response
-                        @header('Content-Type: application/json; charset=utf-8');
-                        echo json_encode(['success' => true, 'data' => ['html' => $html]]);
-                        wp_die();
+                        wp_send_json_success(['html' => $html]);
 
         } catch (Throwable $e) {
             ob_end_clean(); // Clean buffer if error
             if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
                 chroma_debug_log(' SEO Error: ' . $e->getMessage());
             }
-            wp_send_json_error(['message' => 'Error: ' . $e->getMessage()]);
+            wp_send_json_error(['message' => 'Failed to load schema inspector data.']);
         }
     }
 
@@ -1671,7 +1671,7 @@ class Chroma_SEO_Dashboard
                                     <th scope="row" style="padding: 10px 0; width: 200px;">
                                         <?php echo esc_html($field['label']); ?>
                                         <?php if ($is_ai): ?>
-                                            <span class="chroma-ai-badge" title="AI Generated Fallback" style="background: #f0f6fc; color: #005a9c; border: 1px solid #c2dbff; border-radius: 3px; padding: 1px 4px; font-size: 10px; vertical-align: middle; margin-left: 5px;">🤖 AI</span>
+                                            <span class="chroma-ai-badge" title="AI Generated Fallback" style="background: #f0f6fc; color: #005a9c; border: 1px solid #c2dbff; border-radius: 3px; padding: 1px 4px; font-size: 10px; vertical-align: middle; margin-left: 5px;">ðŸ¤– AI</span>
                                         <?php endif; ?>
                                         <?php if (!empty($field['description'])): ?>
                                                 <span class="dashicons dashicons-editor-help chroma-help-tip"
@@ -1748,9 +1748,18 @@ class Chroma_SEO_Dashboard
     public function ajax_get_schema_fields()
     {
         check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
         $type = sanitize_text_field($_POST['schema_type']);
         $index = intval($_POST['index']);
         $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+
+        if ($post_id && !chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
 
         $prefill_data = [];
         if ($post_id) {
@@ -1800,11 +1809,18 @@ class Chroma_SEO_Dashboard
         $schemas = isset($_POST['schemas']) ? $_POST['schemas'] : [];
 
         chroma_debug_log(' SEO Save: Post ID = ' . $post_id);
-        chroma_debug_log(' SEO Save: Raw schemas received = ' . print_r($schemas, true));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $schema_count = is_array($schemas) ? count($schemas) : 0;
+            chroma_debug_log(' SEO Save: Schemas received count = ' . $schema_count);
+        }
 
         if (!$post_id) {
             chroma_debug_log(' SEO Save: Invalid post ID');
             wp_send_json_error(['message' => 'Invalid post ID']);
+        }
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
         }
 
         // Sanitize
@@ -1843,7 +1859,9 @@ class Chroma_SEO_Dashboard
             }
         }
 
-        chroma_debug_log(' SEO Save: Cleaned schemas = ' . print_r($clean_schemas, true));
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            chroma_debug_log(' SEO Save: Cleaned schemas count = ' . count($clean_schemas));
+        }
 
         $result = update_post_meta($post_id, '_chroma_post_schemas', $clean_schemas);
         chroma_debug_log(' SEO Save: update_post_meta result = ' . ($result ? 'success/updated' : 'no change or failed'));
@@ -1881,7 +1899,7 @@ class Chroma_SEO_Dashboard
                                 </div>
                                 <div style="padding: 10px 12px; background: #f0f2f5; border-top: 1px solid #dadde1;">
                                     <div style="font-size: 12px; color: #606770; text-transform: uppercase;" id="chroma-og-site">
-                                        <?php echo $_SERVER['HTTP_HOST']; ?>
+                                        <?php echo esc_html(wp_parse_url(home_url('/'), PHP_URL_HOST)); ?>
                                     </div>
                                     <div style="font-family: Georgia, serif; font-size: 16px; color: #1d2129; font-weight: 600; margin: 5px 0;"
                                         id="chroma-og-title">Page Title</div>
@@ -1934,9 +1952,18 @@ class Chroma_SEO_Dashboard
     public function ajax_fetch_social_preview()
     {
         check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
         $post_id = intval($_POST['post_id']);
         if (!$post_id)
             wp_send_json_error();
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
 
         $post = get_post($post_id);
         if (!$post)
@@ -1964,7 +1991,7 @@ class Chroma_SEO_Dashboard
             'title' => $title,
             'description' => $desc,
             'image' => $img_url,
-            'site_name' => $_SERVER['HTTP_HOST']
+            'site_name' => wp_parse_url(home_url('/'), PHP_URL_HOST)
         ]);
     }
 
@@ -1975,9 +2002,17 @@ class Chroma_SEO_Dashboard
     {
         check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
 
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
+
         $post_id = intval($_POST['post_id']);
         if (!$post_id)
             wp_send_json_error();
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
 
         // Get current values
         $primary_intent = get_post_meta($post_id, 'seo_llm_primary_intent', true);
@@ -2035,7 +2070,7 @@ class Chroma_SEO_Dashboard
                                     <div class="chroma-repeater-row" style="margin-bottom: 8px;">
                                         <input type="text" class="chroma-llm-query-input regular-text" value="<?php echo esc_attr($query); ?>"
                                             placeholder="e.g., best preschool curriculum" style="width: 80%;">
-                                        <button class="button remove-llm-row">×</button>
+                                        <button class="button remove-llm-row">Ã—</button>
                                     </div>
                             <?php endforeach; ?>
                         </div>
@@ -2058,7 +2093,7 @@ class Chroma_SEO_Dashboard
                                     <div class="chroma-repeater-row" style="margin-bottom: 8px;">
                                         <input type="text" class="chroma-llm-diff-input regular-text" value="<?php echo esc_attr($diff); ?>"
                                             placeholder="e.g., STEAM-focused curriculum" style="width: 80%;">
-                                        <button class="button remove-llm-row">×</button>
+                                        <button class="button remove-llm-row">Ã—</button>
                                     </div>
                             <?php endforeach; ?>
                         </div>
@@ -2090,6 +2125,10 @@ class Chroma_SEO_Dashboard
         if (!$post_id)
             wp_send_json_error();
 
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
+
         // Save data
         update_post_meta($post_id, 'seo_llm_primary_intent', sanitize_text_field($_POST['primary_intent']));
 
@@ -2114,6 +2153,10 @@ class Chroma_SEO_Dashboard
         $post_id = intval($_POST['post_id']);
         if (!$post_id)
             wp_send_json_error(['message' => 'Invalid Post ID']);
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
 
         // Delete new schema meta
         delete_post_meta($post_id, '_chroma_post_schemas');
@@ -2175,7 +2218,7 @@ class Chroma_SEO_Dashboard
         $sitemap_url = home_url('/sitemap.xml');
         ?>
                 <div class="chroma-seo-card">
-                    <h2>🗺️ Sitemap Manager</h2>
+                    <h2>ðŸ—ºï¸ Sitemap Manager</h2>
                     <p>Manage your XML Sitemap configuration. <a href="<?php echo esc_url($sitemap_url); ?>" target="_blank"
                             class="button">View Sitemap</a></p>
 
@@ -2222,7 +2265,7 @@ class Chroma_SEO_Dashboard
                         </div>
 
                         <div class="chroma-doc-section" style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 20px;">
-                            <h3>📂 Upload Custom Sitemap</h3>
+                            <h3>ðŸ“‚ Upload Custom Sitemap</h3>
                             <p>If you prefer to serve a static XML file instead of generating one dynamically.</p>
 
                             <label><input type="checkbox" name="use_uploaded" <?php checked($options['use_uploaded']); ?>> <strong>Use
@@ -2261,7 +2304,7 @@ class Chroma_SEO_Dashboard
         $schema_definitions = class_exists('Chroma_Schema_Types') ? Chroma_Schema_Types::get_definitions() : [];
         ?>
                 <div class="chroma-seo-card">
-                    <h2>📦 Bulk Operations</h2>
+                    <h2>ðŸ“¦ Bulk Operations</h2>
                     <p>Perform AI tasks on multiple pages at once. Build a queue of actions and apply them to all selected posts.</p>
 
                     <!-- Filter Bar -->
@@ -2337,7 +2380,7 @@ class Chroma_SEO_Dashboard
                         <!-- Right: Actions -->
                         <div style="flex: 1;">
                             <div style="background: #fff; border: 1px solid #ddd; padding: 20px; border-radius: 4px;">
-                                <h3>🛠 Job Queue</h3>
+                                <h3>ðŸ›  Job Queue</h3>
                                 <p class="description">Define what to do for each selected post.</p>
 
                                 <div id="bulk-action-queue"
@@ -2351,9 +2394,9 @@ class Chroma_SEO_Dashboard
                                     <label style="display: block; margin-bottom: 5px;"><strong>Add Action:</strong></label>
                                     <select id="bulk-add-action-selector" style="width: 100%; margin-bottom: 5px;">
                                         <option value="">-- Choose Action --</option>
-                                        <option value="reset_schema" style="color: red;">❌ Reset/Clear All Schemas</option>
-                                        <option value="llm_targeting">✨ Generate LLM Targeting</option>
-                                        <option value="amenities">🛡️ Extract Safety Amenities (AI)</option>
+                                        <option value="reset_schema" style="color: red;">âŒ Reset/Clear All Schemas</option>
+                                        <option value="llm_targeting">âœ¨ Generate LLM Targeting</option>
+                                        <option value="amenities">ðŸ›¡ï¸ Extract Safety Amenities (AI)</option>
                                         <optgroup label="Add Schema">
                                             <?php foreach ($schema_definitions as $key => $def): ?>
                                                     <option value="schema:<?php echo esc_attr($key); ?>">Schema:
@@ -2370,7 +2413,7 @@ class Chroma_SEO_Dashboard
 
                                 <div style="margin-top: 20px;">
                                     <button id="btn-run-bulk" class="button button-primary button-large" style="width: 100%;" disabled>
-                                        ▶ Run Bulk Process
+                                        â–¶ Run Bulk Process
                                     </button>
                                 </div>
 
@@ -2488,7 +2531,7 @@ class Chroma_SEO_Dashboard
                             // Recursive Worker
                             function processNextPost() {
                                 if (posts.length === 0) {
-                                    $('#bulk-log').val($('#bulk-log').val() + '✅ All Posts Completed!\n');
+                                    $('#bulk-log').val($('#bulk-log').val() + 'âœ… All Posts Completed!\n');
                                     $('#btn-run-bulk').prop('disabled', false);
                                     alert('Batch Processing Complete!');
                                     return;
@@ -2537,13 +2580,13 @@ class Chroma_SEO_Dashboard
 
                                     $.post(ajaxurl, payload, function (response) {
                                         if (response.success) {
-                                            log('  ✓ Success');
+                                            log('  âœ“ Success');
                                         } else {
-                                            log('  ❌ Failed: ' + (response.data.message || 'Unknown'));
+                                            log('  âŒ Failed: ' + (response.data.message || 'Unknown'));
                                         }
                                         processNextAction();
                                     }).fail(function () {
-                                        log('  ❌ Network Error');
+                                        log('  âŒ Network Error');
                                         processNextAction(); // Continue anyway
                                     });
                                 }
@@ -2572,12 +2615,12 @@ class Chroma_SEO_Dashboard
         $post_types = ['location', 'program', 'page', 'post'];
         ?>
         <div class="chroma-seo-card">
-            <h2>🔍 Bulk Schema Validator</h2>
+            <h2>ðŸ” Bulk Schema Validator</h2>
             <p>Scan your entire site for Schema.org validation errors. This process fetches the live frontend of each page to ensure accurate results.</p>
             
             <!-- Feature 9: Sitemap Configuration -->
             <div style="background: #f9f9f9; border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-                <h3 style="margin-top:0;">📍 URL Discovery Source</h3>
+                <h3 style="margin-top:0;">ðŸ“ URL Discovery Source</h3>
                 <p class="description">Choose how to discover pages for validation. Using a sitemap ensures ALL pages are scanned, including archives and dynamic pages.</p>
                 
                 <table class="form-table" style="margin:0;">
@@ -2741,7 +2784,7 @@ class Chroma_SEO_Dashboard
             <div id="chroma-bulk-modal" style="display:none; position:fixed; z-index:99999; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.6); backdrop-filter:blur(2px);">
                 <div style="background-color:#fefefe; margin:50px auto; padding:0; border:1px solid #888; width:90%; max-width:1100px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.2);">
                     <div style="padding:15px 20px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; border-radius:8px 8px 0 0;">
-                        <h2 style="margin:0; font-size:18px; color:#333;">🔍 Schema Inspector & Fixer</h2>
+                        <h2 style="margin:0; font-size:18px; color:#333;">ðŸ” Schema Inspector & Fixer</h2>
                         <span id="chroma-bulk-close" style="color:#aaa; font-size:28px; font-weight:bold; cursor:pointer; line-height:1;">&times;</span>
                     </div>
                     <div style="padding:20px; display:flex; gap:20px; height:70vh;">
@@ -2755,11 +2798,11 @@ class Chroma_SEO_Dashboard
                             
                             <div id="bulk-fix-actions" style="border-top:1px solid #eee; padding-top:15px;">
                                 <div style="display:flex; gap:10px; margin-bottom:15px;">
-                                    <button id="bulk-fix-btn" class="button button-secondary button-large" style="flex:1;">✨ Generate AI Proposal</button>
-                                    <button id="bulk-apply-btn" class="button button-primary button-large" style="flex:1; display:none;">💾 Apply Changes</button>
+                                    <button id="bulk-fix-btn" class="button button-secondary button-large" style="flex:1;">âœ¨ Generate AI Proposal</button>
+                                    <button id="bulk-apply-btn" class="button button-primary button-large" style="flex:1; display:none;">ðŸ’¾ Apply Changes</button>
                                 </div>
                                 <div id="bulk-fix-result" style="display:none;">
-                                    <h4 style="margin:0 0 5px; color:#2e7d32;">📝 Proposed Fix (Editable)</h4>
+                                    <h4 style="margin:0 0 5px; color:#2e7d32;">ðŸ“ Proposed Fix (Editable)</h4>
                                     <p style="margin:0 0 5px; font-size:11px; color:#666;">Review and edit the JSON below before saving.</p>
                                     <textarea id="bulk-fixed-schema" style="width:100%; height:200px; font-family:monospace; font-size:12px; padding:10px; border:1px solid #46b450; background:#fff; color:#333;"></textarea>
                                 </div>
@@ -2969,7 +3012,7 @@ class Chroma_SEO_Dashboard
                     }, function(response) {
                         btn.prop('disabled', false).text('Save Sitemap URLs & Exclusions');
                         if (response.success) {
-                            $('#sitemap-save-status').html('<span style="color:green;">✓ Saved</span>');
+                            $('#sitemap-save-status').html('<span style="color:green;">âœ“ Saved</span>');
                             showToast(response.data.message, 'success');
                             setTimeout(function() { $('#sitemap-save-status').empty(); }, 3000);
                         } else {
@@ -3215,11 +3258,11 @@ class Chroma_SEO_Dashboard
                 }
 
                 function renderRow(item) {
-                    var statusIcon = item.valid ? '✅' : '❌';
+                    var statusIcon = item.valid ? 'âœ…' : 'âŒ';
                     var statusText = item.valid ? 'Valid' : 'Invalid';
                     var statusClass = item.valid ? 'schema-valid' : 'schema-invalid';
                     if (item.warnings && item.warnings.length) {
-                        statusIcon = '⚠️';
+                        statusIcon = 'âš ï¸';
                         statusText = 'Warnings';
                         statusClass = 'schema-warnings';
                     }
@@ -3239,7 +3282,7 @@ class Chroma_SEO_Dashboard
                     var hasWarnings = item.warnings && item.warnings.length > 0;
                     var actionBtn = (item.valid && !hasWarnings) ? 
                         `<a href="${item.permalink}" target="_blank" class="button button-small">View Page</a>` :
-                        `<button class="button button-secondary chroma-open-bulk-fix" data-id="${item.id}">🔍 View & Fix</button>`;
+                        `<button class="button button-secondary chroma-open-bulk-fix" data-id="${item.id}">ðŸ” View & Fix</button>`;
 
                     var html = `
                         <tr class="${statusClass}" data-id="${item.id}" data-status="${item.valid ? 'valid' : 'invalid'}">
@@ -3282,7 +3325,7 @@ class Chroma_SEO_Dashboard
                         $('#bulk-scan-summary .notice').append(`
                             <div style="margin-top:10px; border-top:1px solid #ddd; padding-top:10px;">
                                 <button id="chroma-bulk-fix-all-btn" class="button button-primary">
-                                    ✨ Fix All Issues with AI (Errors + Warnings)
+                                    âœ¨ Fix All Issues with AI (Errors + Warnings)
                                 </button>
                                 <span id="bulk-fix-progress" style="display:none; margin-left:10px; color:#666;">
                                     Processing: <span id="bulk-fix-current">0</span>/${errorCount}...
@@ -3292,7 +3335,7 @@ class Chroma_SEO_Dashboard
                     }
 
                     if (errorCount === 0) {
-                         alert('🎉 Great job! No validation errors found on the site.');
+                         alert('ðŸŽ‰ Great job! No validation errors found on the site.');
                     } else {
                          alert('Scan complete. Found ' + errorCount + ' pages with errors.');
                     }
@@ -3306,7 +3349,7 @@ class Chroma_SEO_Dashboard
                     if (!confirm('Repair ' + selectedIds.length + ' selected pages using AI?')) return;
                     
                     var $btn = $(this);
-                    $btn.prop('disabled', true).text('⏳ Processing ' + selectedIds.length + '...');
+                    $btn.prop('disabled', true).text('â³ Processing ' + selectedIds.length + '...');
                     
                     var fixQueue = [];
                     $.each(selectedIds, function(i, id) {
@@ -3323,7 +3366,7 @@ class Chroma_SEO_Dashboard
                         
                         var item = fixQueue[index];
                         var $rowBtn = $('.chroma-open-bulk-fix[data-id="' + item.id + '"]');
-                        $rowBtn.text('⏳...').prop('disabled', true);
+                        $rowBtn.text('â³...').prop('disabled', true);
                         
                         // Use existing logic through a shared function would be better, but for now duplicate fix logic or call internal triggers
                         // For speed, let's trigger the AI fix logic manually
@@ -3343,12 +3386,12 @@ class Chroma_SEO_Dashboard
                                     post_id: item.id.replace('url-',''), // Handle both PID and temp IDs
                                     schema: res1.data.fixed_schema
                                 }, function(res2) {
-                                    $rowBtn.replaceWith('<span class="chroma-badge chroma-badge-manual">✅ Fixed</span>');
+                                    $rowBtn.replaceWith('<span class="chroma-badge chroma-badge-manual">âœ… Fixed</span>');
                                     index++;
                                     processNext();
                                 });
                             } else {
-                                $rowBtn.text('❌ Failed').prop('disabled', false);
+                                $rowBtn.text('âŒ Failed').prop('disabled', false);
                                 index++;
                                 processNext();
                             }
@@ -3387,7 +3430,7 @@ class Chroma_SEO_Dashboard
 
                     function processNextFix(index) {
                         if (index >= totalToFix) {
-                            $btn.text('✅ All Fixed!');
+                            $btn.text('âœ… All Fixed!');
                             alert('Batch Fix Complete! All ' + totalToFix + ' pages have been updated.');
                             return;
                         }
@@ -3397,7 +3440,7 @@ class Chroma_SEO_Dashboard
 
                         // Visual indicator on row
                         var $rowBtn = $('.chroma-open-bulk-fix[data-id="' + item.id + '"]');
-                        $rowBtn.text('⏳ Fixing...').prop('disabled', true);
+                        $rowBtn.text('â³ Fixing...').prop('disabled', true);
 
                         // 1. Generate Fix
                         var schemaJson = item.schema && item.schema.length ? item.schema[0] : '';
@@ -3424,22 +3467,22 @@ class Chroma_SEO_Dashboard
                                     if (res2.success) {
                                         // Update UI
                                         fixedSoFar++;
-                                        $rowBtn.replaceWith('<span class="chroma-badge chroma-badge-manual">✅ Fixed</span>');
+                                        $rowBtn.replaceWith('<span class="chroma-badge chroma-badge-manual">âœ… Fixed</span>');
                                         // Process Next
                                         processNextFix(index + 1);
                                     } else {
-                                        $rowBtn.text('❌ Save Failed').prop('disabled', false);
+                                        $rowBtn.text('âŒ Save Failed').prop('disabled', false);
                                         console.error('Save failed for ' + item.id, res2);
                                         processNextFix(index + 1); // Continue anyway
                                     }
                                 });
                             } else {
-                                $rowBtn.text('❌ AI Failed').prop('disabled', false);
+                                $rowBtn.text('âŒ AI Failed').prop('disabled', false);
                                 console.error('AI Fix failed for ' + item.id, res1);
                                 processNextFix(index + 1); // Continue anyway
                             }
                         }).fail(function() {
-                            $rowBtn.text('❌ Net Error').prop('disabled', false);
+                            $rowBtn.text('âŒ Net Error').prop('disabled', false);
                             processNextFix(index + 1);
                         });
                     }
@@ -3470,12 +3513,12 @@ class Chroma_SEO_Dashboard
                     
                     var reportHtml = '';
                     if (data.errors && data.errors.length) {
-                        reportHtml += '<h4 style="color:#d63638; margin-top:0;">❌ Errors</h4><ul style="color:#d63638; list-style:disc; padding-left:20px;">';
+                        reportHtml += '<h4 style="color:#d63638; margin-top:0;">âŒ Errors</h4><ul style="color:#d63638; list-style:disc; padding-left:20px;">';
                         data.errors.forEach(e => reportHtml += `<li>${e}</li>`);
                         reportHtml += '</ul>';
                     }
                     if (data.warnings && data.warnings.length) {
-                        reportHtml += '<h4 style="color:#dba617;">⚠️ Warnings</h4><ul style="color:#dba617; list-style:disc; padding-left:20px;">';
+                        reportHtml += '<h4 style="color:#dba617;">âš ï¸ Warnings</h4><ul style="color:#dba617; list-style:disc; padding-left:20px;">';
                         data.warnings.forEach(w => reportHtml += `<li>${w}</li>`);
                         reportHtml += '</ul>';
                     }
@@ -3483,7 +3526,7 @@ class Chroma_SEO_Dashboard
                     
                     // Reset Fix UI
                     $('#bulk-fix-result').hide();
-                    $('#bulk-fix-btn').prop('disabled', false).text('✨ Auto-Fix with AI');
+                    $('#bulk-fix-btn').prop('disabled', false).text('âœ¨ Auto-Fix with AI');
                     
                     $modal.show();
                 });
@@ -3531,14 +3574,14 @@ class Chroma_SEO_Dashboard
                             $('#bulk-fix-result').show();
                             $('#bulk-apply-btn').show();
                             
-                            btn.prop('disabled', false).text('✨ Regenerate AI Proposal');
+                            btn.prop('disabled', false).text('âœ¨ Regenerate AI Proposal');
                             
                         } else {
-                            btn.prop('disabled', false).text('✨ Generate AI Proposal');
+                            btn.prop('disabled', false).text('âœ¨ Generate AI Proposal');
                             alert('AI Generation Failed: ' + (response.data.message || 'Unknown error'));
                         }
                     }).fail(function() {
-                        btn.prop('disabled', false).text('✨ Generate AI Proposal');
+                        btn.prop('disabled', false).text('âœ¨ Generate AI Proposal');
                         alert('Network Error during AI Reqest');
                     });
                 });
@@ -3553,7 +3596,7 @@ class Chroma_SEO_Dashboard
                         return;
                     }
 
-                    btn.prop('disabled', true).text('💾 Saving...');
+                    btn.prop('disabled', true).text('ðŸ’¾ Saving...');
                     
                     // We send the EDITED content as a single block (or array if we parse it, but server handles strings too)
                     // The server expects 'schemas' (array) or 'schema' (string). 
@@ -3565,15 +3608,15 @@ class Chroma_SEO_Dashboard
                         post_id: currentSchemaData.id,
                         schema: editedSchema // Send as single string 
                     }, function(applyResponse) {
-                        btn.prop('disabled', false).text('💾 Apply Changes');
+                        btn.prop('disabled', false).text('ðŸ’¾ Apply Changes');
                         
                         if (applyResponse.success) {
-                            alert('✅ Schema Saved Successfully!');
+                            alert('âœ… Schema Saved Successfully!');
                             $modal.hide();
                             
                             // Update Table Row
                             var row = $('#bulk-results-table').find(`[data-id="${currentSchemaData.id}"]`).closest('tr');
-                            row.find('td:eq(2)').html('✅ Valid (Fixed)');
+                            row.find('td:eq(2)').html('âœ… Valid (Fixed)');
                             
                             // Update stored data locally in case they open it again without rescanning
                             currentSchemaData.schema = [editedSchema];
@@ -3586,7 +3629,7 @@ class Chroma_SEO_Dashboard
                             alert('Save failed: ' + (applyResponse.data.message || 'Unknown error'));
                         }
                     }).fail(function() {
-                        btn.prop('disabled', false).text('💾 Apply Changes');
+                        btn.prop('disabled', false).text('ðŸ’¾ Apply Changes');
                         alert('Network Error during Save');
                     });
                 });
@@ -3726,6 +3769,10 @@ class Chroma_SEO_Dashboard
             wp_send_json_error(['message' => 'Missing post ID']);
         }
 
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
+        }
+
         if (empty($schemas_array) && empty($single_schema)) {
             wp_send_json_error(['message' => 'Missing schema data']);
         }
@@ -3792,15 +3839,19 @@ class Chroma_SEO_Dashboard
     public function ajax_fetch_live_schema()
     {
         check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
         
-        $url = esc_url_raw($_POST['url']);
+        $url = $this->normalize_remote_url($_POST['url'] ?? '', false);
         if (empty($url)) {
-            wp_send_json_error(['message' => 'No URL provided']);
+            wp_send_json_error(['message' => 'Invalid or blocked URL']);
         }
         
         $response = wp_remote_get($url, [
             'timeout' => 60,
-            'sslverify' => false,
+            'sslverify' => true,
             'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
         ]);
         
@@ -3841,12 +3892,20 @@ class Chroma_SEO_Dashboard
     public function ajax_sync_schema_to_builder()
     {
         check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
         
         $post_id = intval($_POST['post_id']);
         $live_schemas = json_decode(stripslashes($_POST['schemas']), true);
         
         if (!$post_id || empty($live_schemas)) {
             wp_send_json_error(['message' => 'Invalid data or no schemas provided']);
+        }
+
+        if (!chroma_seo_can_edit_post($post_id)) {
+            wp_send_json_error(['message' => 'Permission denied for this post']);
         }
         
         $available_defs = Chroma_Schema_Types::get_definitions();
@@ -3891,6 +3950,30 @@ class Chroma_SEO_Dashboard
                 $geo = $schema['geo'];
                 $schema['geo_lat'] = $geo['latitude'] ?? ($schema['geo_lat'] ?? '');
                 $schema['geo_lng'] = $geo['longitude'] ?? ($schema['geo_lng'] ?? '');
+            }
+
+            // Convert FAQ mainEntity back to builder questions repeater when needed.
+            if ($type === 'FAQPage' && isset($schema['mainEntity']) && is_array($schema['mainEntity']) && !isset($schema['questions'])) {
+                $questions = [];
+                foreach ($schema['mainEntity'] as $entity) {
+                    if (!is_array($entity)) {
+                        continue;
+                    }
+                    $q = isset($entity['name']) ? sanitize_text_field($entity['name']) : '';
+                    $a = '';
+                    if (isset($entity['acceptedAnswer']) && is_array($entity['acceptedAnswer'])) {
+                        $a = isset($entity['acceptedAnswer']['text']) ? sanitize_textarea_field($entity['acceptedAnswer']['text']) : '';
+                    }
+                    if ($q !== '' && $a !== '') {
+                        $questions[] = [
+                            'question' => $q,
+                            'answer' => $a,
+                        ];
+                    }
+                }
+                if (!empty($questions)) {
+                    $schema['questions'] = $questions;
+                }
             }
 
             // Extract valid fields defined in our Builder for this type
@@ -4033,7 +4116,7 @@ class Chroma_SEO_Dashboard
     {
         check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
         
-        if (!current_user_can('edit_posts')) {
+        if (!current_user_can('manage_options')) {
             wp_send_json_error(['message' => 'Permission denied']);
         }
         
@@ -4081,9 +4164,15 @@ class Chroma_SEO_Dashboard
      */
     private function parse_sitemap($sitemap_url)
     {
-        $response = wp_remote_get($sitemap_url, [
+        $safe_sitemap_url = $this->normalize_remote_url($sitemap_url, false);
+        if (!$safe_sitemap_url) {
+            chroma_debug_log('[Chroma SEO] Blocked sitemap URL: ' . $sitemap_url);
+            return [];
+        }
+
+        $response = wp_remote_get($safe_sitemap_url, [
             'timeout' => 30,
-            'sslverify' => false,
+            'sslverify' => true,
             'user-agent' => 'Mozilla/5.0 (compatible; ChromaSEO/1.0)'
         ]);
         
@@ -4143,10 +4232,10 @@ class Chroma_SEO_Dashboard
                 wp_send_json_error(['message' => 'Permission denied']);
             }
             
-            $url = esc_url_raw($_POST['url']);
+            $url = $this->normalize_remote_url($_POST['url'] ?? '', false);
             
             if (empty($url)) {
-                wp_send_json_error(['message' => 'No URL provided']);
+                wp_send_json_error(['message' => 'Invalid or blocked URL']);
             }
             
             $result = $this->perform_url_validation($url);
@@ -4167,7 +4256,10 @@ class Chroma_SEO_Dashboard
                 'last_checked' => $result['timestamp']
             ]);
         } catch (Exception $e) {
-            wp_send_json_error(['message' => 'Internal Error: ' . $e->getMessage()]);
+            if (defined('WP_DEBUG') && WP_DEBUG && defined('WP_DEBUG_LOG') && WP_DEBUG_LOG) {
+                chroma_debug_log('SEO validate URL error: ' . $e->getMessage());
+            }
+            wp_send_json_error(['message' => 'Internal validation error']);
         }
     }
 
@@ -4285,11 +4377,11 @@ class Chroma_SEO_Dashboard
         $feed_url = get_option('chroma_careers_feed_url', 'https://app.acquire4hire.com/careers/list.json?id=4668');
         ?>
         <div class="chroma-seo-card">
-            <h2>💼 Career Feed Synchronization</h2>
+            <h2>ðŸ’¼ Career Feed Synchronization</h2>
             <p class="description">Automatically imports job listings from Acquire4Hire and generates <code>JobPosting</code> schema for Google Rich Results.</p>
             
             <div style="background: #f0f6fc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2271b1;">
-                <h3 style="margin-top: 0;">📊 Current Status</h3>
+                <h3 style="margin-top: 0;">ðŸ“Š Current Status</h3>
                 <p><strong>Last Sync:</strong> <span id="last-sync-time"><?php echo esc_html($last_sync); ?></span></p>
                 <p><strong>Jobs in Last Sync:</strong> <span id="last-sync-count"><?php echo esc_html($last_count); ?></span></p>
                 
@@ -4316,9 +4408,9 @@ class Chroma_SEO_Dashboard
             </form>
 
             <div style="margin-top: 40px; border-top: 1px solid #ddd; padding-top: 20px;">
-                <h3>🛡️ About Automated Careers</h3>
+                <h3>ðŸ›¡ï¸ About Automated Careers</h3>
                 <ul style="list-style: disc; margin-left: 20px;">
-                    <li><strong>Hourly Sync:</strong> The system automatically checks for new jobs every hour via WP-Cron.</li>
+                    <li><strong>Weekly Sync:</strong> The system automatically checks for new jobs once per week via WP-Cron.</li>
                     <li><strong>Auto-Pruning:</strong> Jobs removed from the external feed will be moved to the Trash in WordPress.</li>
                     <li><strong>Rich Snippets:</strong> Every synced job listing automatically includes validated <code>JobPosting</code> JSON-LD schema for Google.</li>
                 </ul>
@@ -4365,13 +4457,13 @@ class Chroma_SEO_Dashboard
     {
         ?>
         <div class="chroma-seo-card">
-            <h2>🚀 SEO Automations & Advanced Features</h2>
+            <h2>ðŸš€ SEO Automations & Advanced Features</h2>
             <p class="description">Central management for all automated SEO strategies and performance features.</p>
             
             <form method="post" action="options.php">
                 <?php settings_fields('chroma_automation_options'); ?>
                 
-                <h3 class="chroma-section-title">🔗 Internal Linking</h3>
+                <h3 class="chroma-section-title">ðŸ”— Internal Linking</h3>
                 <table class="form-table">
                     <tr>
                         <th scope="row">Related Locations</th>
@@ -4411,7 +4503,7 @@ class Chroma_SEO_Dashboard
                     </tr>
                 </table>
 
-                <h3 class="chroma-section-title">🛡️ E-E-A-T & Trust</h3>
+                <h3 class="chroma-section-title">ðŸ›¡ï¸ E-E-A-T & Trust</h3>
                 <table class="form-table">
                     <tr>
                         <th scope="row">Author Metadata & Box</th>
@@ -4442,7 +4534,7 @@ class Chroma_SEO_Dashboard
                     </tr>
                 </table>
 
-                <h3 class="chroma-section-title">♿ Accessibility SEO</h3>
+                <h3 class="chroma-section-title">â™¿ Accessibility SEO</h3>
                 <table class="form-table">
                     <tr>
                         <th scope="row">Skip Navigation Links</th>
@@ -4464,7 +4556,7 @@ class Chroma_SEO_Dashboard
                     </tr>
                 </table>
 
-                <h3 class="chroma-section-title">⚡ High Performance & Indexing</h3>
+                <h3 class="chroma-section-title">âš¡ High Performance & Indexing</h3>
                 <table class="form-table">
                     <tr>
                         <th scope="row">Speculation Rules API</th>
@@ -4486,7 +4578,7 @@ class Chroma_SEO_Dashboard
                     </tr>
                 </table>
 
-                <h3 class="chroma-section-title">🗺️ Geographic SEO</h3>
+                <h3 class="chroma-section-title">ðŸ—ºï¸ Geographic SEO</h3>
                 <table class="form-table">
                     <tr>
                         <th scope="row">County Service Areas</th>
@@ -4526,7 +4618,7 @@ class Chroma_SEO_Dashboard
                     </tr>
                 </table>
 
-                <h3 class="chroma-section-title">🛠️ Technical SEO</h3>
+                <h3 class="chroma-section-title">ðŸ› ï¸ Technical SEO</h3>
                 <table class="form-table">
                     <tr>
                         <th scope="row">Dynamic Title Patterns</th>
@@ -4563,7 +4655,7 @@ class Chroma_SEO_Dashboard
         $report = get_option('chroma_seo_link_report', []);
         ?>
         <div class="chroma-seo-card">
-            <h2>🔗 Internal Link Equity Analysis</h2>
+            <h2>ðŸ”— Internal Link Equity Analysis</h2>
             <p class="description">Scan your site to identify orphan pages, weak internal links, and AI-driven link suggestions.</p>
             
             <div style="background: #f0f6fc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2271b1;">
@@ -4687,7 +4779,7 @@ class Chroma_SEO_Dashboard
     {
         ?>
         <div class="chroma-seo-card">
-            <h2>🔗 Program + City Combo Pages</h2>
+            <h2>ðŸ”— Program + City Combo Pages</h2>
             <p class="description">Live view of dynamically generated intersection pages. These pages are generated on-the-fly when a valid Program/City combination is requested.</p>
             
             <div style="margin: 20px 0;">
@@ -4740,7 +4832,7 @@ class Chroma_SEO_Dashboard
     {
         ?>
         <div class="chroma-seo-card">
-            <h2>📍 Hyper-Local "Near Me" Pages</h2>
+            <h2>ðŸ“ Hyper-Local "Near Me" Pages</h2>
             <p class="description">Virtual pages optimized for "nearby" searches. These use browser geolocation to personalize content for the visitor.</p>
             
             <table class="chroma-seo-table widefat fixed striped" style="margin-top: 20px;">
@@ -4765,7 +4857,7 @@ class Chroma_SEO_Dashboard
                                 <tr>
                                     <td><strong><?php echo esc_html(str_replace(home_url(), '', $data['url'])); ?></strong></td>
                                     <td><span class="chroma-badge <?php echo $data['type'] === 'Generic' ? 'chroma-badge-manual' : 'chroma-badge-auto'; ?>"><?php echo esc_html($data['type']); ?></span></td>
-                                    <td><span class="chroma-check">✓</span> Indexed</td>
+                                    <td><span class="chroma-check">âœ“</span> Indexed</td>
                                     <td><a href="<?php echo esc_url($data['url']); ?>" target="_blank" class="button button-small">View Live</a></td>
                                 </tr>
                                 <?php
@@ -4856,14 +4948,14 @@ class Chroma_SEO_Dashboard
         $registry_active = class_exists('Chroma_Schema_Registry');
         ?>
         <div class="chroma-seo-card">
-            <h2>📊 Registry System Status</h2>
+            <h2>ðŸ“Š Registry System Status</h2>
             <p>This dashboard monitors the <strong>Chroma Schema Registry</strong> logic and database health.</p>
             
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                 <!-- System Health -->
                 <div style="background: <?php echo $registry_active ? '#f0f6fc' : '#fff5f5'; ?>; padding: 15px; border: 1px solid <?php echo $registry_active ? '#c2dbff' : '#fcb3b3'; ?>; border-radius: 5px;">
                     <h3 style="margin-top: 0; color: <?php echo $registry_active ? '#005a9c' : '#d63638'; ?>;">
-                        <?php echo $registry_active ? '✅ Registry Logic Active' : '❌ Registry Logic Missing'; ?>
+                        <?php echo $registry_active ? 'âœ… Registry Logic Active' : 'âŒ Registry Logic Missing'; ?>
                     </h3>
                     <p>The Registry class is loaded and ready to filter frontend output.</p>
                     <p><strong>Passthrough Mode:</strong> <span style="color: #00a32a; font-weight: bold;">Enabled</span></p>
@@ -4871,7 +4963,7 @@ class Chroma_SEO_Dashboard
 
                 <!-- Database Stats -->
                 <div style="background: #e8f5e9; padding: 15px; border: 1px solid #4caf50; border-radius: 5px;">
-                    <h3 style="margin-top: 0; color: #2e7d32;">💾 Database Content</h3>
+                    <h3 style="margin-top: 0; color: #2e7d32;">ðŸ’¾ Database Content</h3>
                     <table class="widefat striped" style="background: transparent; border: none;">
                         <tbody>
                             <tr>
@@ -4889,7 +4981,7 @@ class Chroma_SEO_Dashboard
 
             <!-- UNIVERSAL VALIDATOR -->
             <div style="background: #fff; border: 1px solid #ccd0d4; padding: 20px; border-left: 4px solid #673ab7;">
-                <h3 style="margin-top: 0; color: #673ab7;">🌐 Universal Live Validator</h3>
+                <h3 style="margin-top: 0; color: #673ab7;">ðŸŒ Universal Live Validator</h3>
                 <p>Enter any URL from your site to see EXACTLY what schemas are being output to Google. This detects duplicates and non-Registry schemas.</p>
                 
                 <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -4912,7 +5004,7 @@ class Chroma_SEO_Dashboard
 
         <!-- Consolidated Tools Section -->
         <div class="chroma-seo-card">
-            <h2>🛠️ Maintenance Tools</h2>
+            <h2>ðŸ› ï¸ Maintenance Tools</h2>
             
             <!-- Tab Navigation for Tools -->
             <?php
@@ -4975,7 +5067,7 @@ class Chroma_SEO_Dashboard
                         html += '<p><strong>Status:</strong> Found ' + data.schema_count + ' schema items in ' + data.schema_blocks_found + ' script block(s).</p>';
                         
                         if (data.schema_blocks_found > 1) {
-                            html += '<p style="color: #d63638; background: #ffebee; padding: 10px;"><strong>⚠️ WARNING: Multiple JSON-LD blocks found!</strong><br>This usually means something is bypassing the Registry. One block is likely from the Registry, and others are from the Theme or another plugin.</p>';
+                            html += '<p style="color: #d63638; background: #ffebee; padding: 10px;"><strong>âš ï¸ WARNING: Multiple JSON-LD blocks found!</strong><br>This usually means something is bypassing the Registry. One block is likely from the Registry, and others are from the Theme or another plugin.</p>';
                         }
                         
                         html += '<hr>';
@@ -5019,15 +5111,15 @@ class Chroma_SEO_Dashboard
             wp_send_json_error('Permission denied');
         }
         
-        $url = isset($_POST['url']) ? esc_url_raw($_POST['url']) : '';
+        $url = $this->normalize_remote_url($_POST['url'] ?? '', false);
         if (empty($url)) {
-            wp_send_json_error('Invalid URL');
+            wp_send_json_error('Invalid or blocked URL');
         }
         
         // Fetch the page
         $response = wp_remote_get($url, [
             'timeout' => 15,
-            'sslverify' => false
+            'sslverify' => true
         ]);
         
         if (is_wp_error($response)) {
@@ -5092,15 +5184,15 @@ class Chroma_SEO_Dashboard
         $registry_active = class_exists('Chroma_Schema_Registry');
         ?>
         <div class="chroma-seo-card">
-            <h2>🧹 Schema Cleanup Tools</h2>
+            <h2>ðŸ§¹ Schema Cleanup Tools</h2>
             <p>Scan and remove invalid or unwanted schema types from your posts. These issues were identified during schema audits.</p>
         </div>
 
         <!-- Schema Registry Status -->
         <div class="chroma-seo-card" style="background: <?php echo $registry_active ? '#e8f5e9' : '#fff3e0'; ?>; border-left: 4px solid <?php echo $registry_active ? '#00a32a' : '#ff9800'; ?>;">
-            <h3>🔗 Schema Registry Status</h3>
+            <h3>ðŸ”— Schema Registry Status</h3>
             <?php if ($registry_active): ?>
-                <p style="color: #00a32a;"><strong>✅ Registry is ACTIVE</strong></p>
+                <p style="color: #00a32a;"><strong>âœ… Registry is ACTIVE</strong></p>
                 <p>The Schema Registry is filtering duplicate and invalid schema types at output time.</p>
                 <ul style="margin-left: 20px;">
                     <li><strong>Deduplication:</strong> Prevents duplicate @type and @id schemas</li>
@@ -5109,14 +5201,14 @@ class Chroma_SEO_Dashboard
                 </ul>
                 <p><a href="<?php echo home_url('/?schema_debug=1'); ?>" target="_blank" class="button">View Registry Debug on Homepage</a></p>
             <?php else: ?>
-                <p style="color: #ff9800;"><strong>⚠️ Registry is NOT ACTIVE</strong></p>
+                <p style="color: #ff9800;"><strong>âš ï¸ Registry is NOT ACTIVE</strong></p>
                 <p>The Schema Registry class is not loaded. Check that <code>class-schema-registry.php</code> exists.</p>
             <?php endif; ?>
         </div>
 
         <!-- Bulk Cleanup Action -->
         <div class="chroma-seo-card" style="background: #ffebee; border-left: 4px solid #d63638;">
-            <h3>⚡ Quick Bulk Cleanup</h3>
+            <h3>âš¡ Quick Bulk Cleanup</h3>
             <p>Remove all invalid schema types from <strong>all posts</strong> in one click:</p>
             <button id="bulk-cleanup-btn" class="button button-primary button-hero" style="background: #d63638; border-color: #b71c1c; font-size: 16px; margin: 10px 0;">
                 <span class="dashicons dashicons-trash" style="margin-right: 8px; line-height: 1.4;"></span> Run Bulk Cleanup Now
@@ -5127,7 +5219,7 @@ class Chroma_SEO_Dashboard
         </div>
 
         <div class="chroma-seo-card">
-            <h3>📋 Invalid Schema Types Blocklist</h3>
+            <h3>ðŸ“‹ Invalid Schema Types Blocklist</h3>
             <p>The following schema types are blocked by the Registry and will be removed by cleanup:</p>
             <div style="display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0;">
                 <?php foreach ($invalid_types as $type): ?>
@@ -5137,7 +5229,7 @@ class Chroma_SEO_Dashboard
         </div>
 
         <div class="chroma-seo-card">
-            <h3>🔍 Scan for Invalid Schemas</h3>
+            <h3>ðŸ” Scan for Invalid Schemas</h3>
             <p>Click below to scan all posts for invalid schema types stored in <code>_chroma_post_schemas</code> meta.</p>
             
             <button id="cleanup-scan-btn" class="button button-primary" style="margin: 10px 0;">
@@ -5155,13 +5247,13 @@ class Chroma_SEO_Dashboard
                         <span class="dashicons dashicons-trash" style="margin-right: 5px;"></span> Remove Invalid Schemas
                     </button>
                     <span id="cleanup-execute-spinner" class="spinner" style="float: none;"></span>
-                    <p class="description" style="color: #d63638;">⚠️ This action cannot be undone. Make sure to backup your database first.</p>
+                    <p class="description" style="color: #d63638;">âš ï¸ This action cannot be undone. Make sure to backup your database first.</p>
                 </div>
             </div>
         </div>
 
         <div class="chroma-seo-card">
-            <h3>📊 FAQ Schema Audit</h3>
+            <h3>ðŸ“Š FAQ Schema Audit</h3>
             <p>Check for posts with FAQ schema that may not need it. FAQ data is stored in <code>chroma_faq_items</code> meta.</p>
             <button id="faq-audit-btn" class="button" style="margin: 10px 0;">
                 <span class="dashicons dashicons-editor-help" style="margin-right: 5px;"></span> Audit FAQ Usage
@@ -5179,7 +5271,7 @@ class Chroma_SEO_Dashboard
             $('#bulk-cleanup-btn').on('click', function(e) {
                 e.preventDefault();
                 
-                if (!confirm('⚠️ This will scan ALL posts and remove invalid schema types.\n\nAre you sure you want to proceed?')) {
+                if (!confirm('âš ï¸ This will scan ALL posts and remove invalid schema types.\n\nAre you sure you want to proceed?')) {
                     return;
                 }
                 
@@ -5196,7 +5288,7 @@ class Chroma_SEO_Dashboard
                     if (!response.success) {
                         btn.prop('disabled', false);
                         $('#bulk-cleanup-spinner').removeClass('is-active');
-                        $('#bulk-cleanup-result').html('<p style="color: #d63638;">❌ Scan failed: ' + (response.data || 'Unknown error') + '</p>');
+                        $('#bulk-cleanup-result').html('<p style="color: #d63638;">âŒ Scan failed: ' + (response.data || 'Unknown error') + '</p>');
                         return;
                     }
                     
@@ -5204,7 +5296,7 @@ class Chroma_SEO_Dashboard
                     if (posts.length === 0) {
                         btn.prop('disabled', false);
                         $('#bulk-cleanup-spinner').removeClass('is-active');
-                        $('#bulk-cleanup-result').html('<p style="color: #00a32a;">✅ No invalid schemas found! Database is clean.</p>');
+                        $('#bulk-cleanup-result').html('<p style="color: #00a32a;">âœ… No invalid schemas found! Database is clean.</p>');
                         return;
                     }
                     
@@ -5221,12 +5313,12 @@ class Chroma_SEO_Dashboard
                         
                         if (execResponse.success) {
                             $('#bulk-cleanup-result').html(
-                                '<p style="color: #00a32a; font-size: 16px;"><strong>✅ Bulk Cleanup Complete!</strong></p>' +
+                                '<p style="color: #00a32a; font-size: 16px;"><strong>âœ… Bulk Cleanup Complete!</strong></p>' +
                                 '<p>Removed invalid schemas from <strong>' + execResponse.data.cleaned + '</strong> posts.</p>' +
                                 '<p>Remember to <strong>clear your site cache</strong> to see the changes on the frontend.</p>'
                             );
                         } else {
-                            $('#bulk-cleanup-result').html('<p style="color: #d63638;">❌ Cleanup failed: ' + (execResponse.data || 'Unknown error') + '</p>');
+                            $('#bulk-cleanup-result').html('<p style="color: #d63638;">âŒ Cleanup failed: ' + (execResponse.data || 'Unknown error') + '</p>');
                         }
                     });
                 });
@@ -5253,7 +5345,7 @@ class Chroma_SEO_Dashboard
                         var invalidCount = response.data.invalid_count;
                         
                         $('#cleanup-summary').html(
-                            '✅ Scanned <strong>' + total + '</strong> posts. ' +
+                            'âœ… Scanned <strong>' + total + '</strong> posts. ' +
                             'Found <strong style="color: #d63638;">' + affected + '</strong> posts with ' +
                             '<strong style="color: #d63638;">' + invalidCount + '</strong> invalid schema entries.'
                         );
@@ -5261,7 +5353,7 @@ class Chroma_SEO_Dashboard
                         // Show breakdown of ALL types (Valid & Invalid)
                         if (response.data.all_types_breakdown) {
                             var breakdownHtml = '<div style="margin: 15px 0; padding: 10px; background: #eef; border: 1px solid #ccd; border-radius: 4px;">';
-                            breakdownHtml += '<strong>📊 Diagnostic: All Schema Types Found in DB:</strong><br>';
+                            breakdownHtml += '<strong>ðŸ“Š Diagnostic: All Schema Types Found in DB:</strong><br>';
                             breakdownHtml += '<small>If you see your "rogue" schema here but it is not flagged as invalid, it is likely a duplicate valid type.</small>';
                             breakdownHtml += '<ul style="margin: 5px 0 0 20px; list-style: disc; columns: 2;">';
                             $.each(response.data.all_types_breakdown, function(type, count) {
@@ -5282,7 +5374,7 @@ class Chroma_SEO_Dashboard
                             });
                             $('#cleanup-actions').show();
                         } else {
-                            listHtml = '<p style="color: #00a32a;">✓ No invalid schemas found!</p>';
+                            listHtml = '<p style="color: #00a32a;">âœ“ No invalid schemas found!</p>';
                             $('#cleanup-actions').hide();
                         }
                         
@@ -5315,7 +5407,7 @@ class Chroma_SEO_Dashboard
                     $('#cleanup-execute-spinner').removeClass('is-active');
                     
                     if (response.success) {
-                        alert('✅ Cleanup complete! Removed invalid schemas from ' + response.data.cleaned + ' posts.');
+                        alert('âœ… Cleanup complete! Removed invalid schemas from ' + response.data.cleaned + ' posts.');
                         $('#cleanup-scan-btn').click(); // Re-scan to show updated state
                     } else {
                         alert('Cleanup failed: ' + (response.data || 'Unknown error'));
@@ -5565,5 +5657,6 @@ class Chroma_SEO_Dashboard
         wp_send_json_success(['cleaned' => $cleaned]);
     }
 }
+
 
 

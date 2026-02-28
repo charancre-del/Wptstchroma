@@ -52,10 +52,18 @@ class Chroma_Geographic_SEO
      * Detect user location from IP
      */
     public static function detect_user_location() {
-        $ip = $_SERVER['REMOTE_ADDR'];
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+        if (!$ip || !filter_var($ip, FILTER_VALIDATE_IP)) {
+            return null;
+        }
         
         // Skip local IPs
-        if (in_array($ip, ['127.0.0.1', '::1'])) {
+        if (in_array($ip, ['127.0.0.1', '::1'], true)) {
+            return null;
+        }
+
+        // Skip private/reserved ranges
+        if (!filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
             return null;
         }
         
@@ -66,9 +74,10 @@ class Chroma_Geographic_SEO
             return $cached;
         }
         
-        // Use ip-api.com (free tier)
-        $response = wp_remote_get('http://ip-api.com/json/' . $ip . '?fields=lat,lon,city,regionCode', [
-            'timeout' => 3
+        // Use HTTPS endpoint to avoid insecure transport.
+        $response = wp_remote_get('https://ipapi.co/' . rawurlencode($ip) . '/json/', [
+            'timeout' => 3,
+            'sslverify' => true,
         ]);
         
         if (is_wp_error($response)) {
@@ -77,12 +86,12 @@ class Chroma_Geographic_SEO
         
         $data = json_decode(wp_remote_retrieve_body($response), true);
         
-        if (isset($data['lat'], $data['lon'])) {
+        if (isset($data['latitude'], $data['longitude'])) {
             $result = [
-                'lat' => $data['lat'],
-                'lng' => $data['lon'],
+                'lat' => $data['latitude'],
+                'lng' => $data['longitude'],
                 'city' => $data['city'] ?? '',
-                'state' => $data['regionCode'] ?? ''
+                'state' => $data['region_code'] ?? ''
             ];
             
             set_transient($cache_key, $result, HOUR_IN_SECONDS);

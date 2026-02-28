@@ -57,12 +57,9 @@ class Chroma_Schema_Registry
     {
         // Output all registered schemas at priority 99 (late, after all registrations)
         add_action('wp_head', [__CLASS__, 'output_all_schemas'], 99);
-        
-        // Add debug output in footer for admins
-        add_action('wp_footer', [__CLASS__, 'output_debug_panel'], 999);
-        
-        // Add admin bar indicator
-        add_action('admin_bar_menu', [__CLASS__, 'admin_bar_indicator'], 999);
+
+        // Frontend schema debug/admin-bar UI is intentionally disabled.
+        // Debug and validation should run from the dedicated admin dashboard.
     }
 
     /**

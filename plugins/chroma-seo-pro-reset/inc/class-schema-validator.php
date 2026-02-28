@@ -1152,6 +1152,8 @@ class Chroma_Schema_Validator
  * Register AJAX endpoint for schema validation
  */
 add_action('wp_ajax_chroma_validate_schema', function() {
+    check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
     if (!current_user_can('edit_posts')) {
         wp_send_json_error(['message' => 'Permission denied']);
     }
@@ -1182,6 +1184,8 @@ add_action('wp_ajax_chroma_validate_schema', function() {
  * Register AJAX endpoint for validating a post's schema
  */
 add_action('wp_ajax_chroma_validate_post_schema', function() {
+    check_ajax_referer('chroma_seo_dashboard_nonce', 'nonce');
+
     if (!current_user_can('edit_posts')) {
         wp_send_json_error(['message' => 'Permission denied']);
     }
@@ -1189,6 +1193,10 @@ add_action('wp_ajax_chroma_validate_post_schema', function() {
     $post_id = intval($_POST['post_id'] ?? 0);
     if (!$post_id) {
         wp_send_json_error(['message' => 'Invalid post ID']);
+    }
+
+    if (!current_user_can('edit_post', $post_id)) {
+        wp_send_json_error(['message' => 'Permission denied for this post']);
     }
 
     $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);

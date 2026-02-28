@@ -213,8 +213,9 @@ class Chroma_Credential_Badges
         echo '<script type="application/ld+json">';
         echo json_encode([
             '@context' => 'https://schema.org',
-            '@type' => 'LocalBusiness',
-            '@id' => get_permalink() . '#business',
+            '@type' => 'Organization',
+            '@id' => get_permalink() . '#organization',
+            'name' => get_the_title(get_the_ID()),
             'hasCredential' => $schema_credentials
         ], JSON_UNESCAPED_SLASHES);
         echo '</script>' . "\n";
