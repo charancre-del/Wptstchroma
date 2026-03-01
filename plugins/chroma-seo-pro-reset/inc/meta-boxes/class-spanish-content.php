@@ -123,7 +123,11 @@ class Chroma_Spanish_Content_Meta_Box extends Chroma_Advanced_SEO_Meta_Box_Base
         // JS for Translation
         ?>
         <script>
-        jQuery(document).ready(function($) {
+        document.addEventListener('DOMContentLoaded', function() {
+            var $ = window.jQuery;
+            if (!$) {
+                return;
+            }
             $('#chroma-auto-translate-btn').click(function(e) {
                 e.preventDefault();
                 var btn = $(this);

@@ -136,13 +136,24 @@ function chroma_home_hero()
 function chroma_home_stats()
 {
         $post_id = chroma_get_home_page_id();
-        $stats_json = chroma_get_translated_meta($post_id, 'home_stats_json', true);
-
         $stats = array();
-        if ($stats_json) {
-                $decoded = json_decode($stats_json, true);
-                if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
-                        $stats = $decoded;
+
+        $is_spanish = false;
+        if (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], '/es/') !== false) {
+                $is_spanish = true;
+        }
+        if (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish()) {
+                $is_spanish = true;
+        }
+
+        if ($is_spanish && $post_id) {
+                $stats_json = get_post_meta($post_id, '_chroma_es_home_stats_json', true);
+
+                if ($stats_json) {
+                        $decoded = json_decode($stats_json, true);
+                        if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
+                                $stats = $decoded;
+                        }
                 }
         }
 
@@ -167,6 +178,31 @@ function chroma_home_stats()
 
         return $cleaned;
 }
+
+/**
+ * Clear cached homepage stats strip markup.
+ */
+function chroma_home_clear_stats_strip_cache()
+{
+        delete_transient('chroma_home_stats_strip_en');
+        delete_transient('chroma_home_stats_strip_es');
+}
+add_action('customize_save_after', 'chroma_home_clear_stats_strip_cache');
+
+/**
+ * Clear homepage stats strip cache when the front page is saved.
+ *
+ * @param int $post_id Saved page ID.
+ */
+function chroma_home_maybe_clear_stats_strip_cache_on_page_save($post_id)
+{
+        if ((int) $post_id !== (int) get_option('page_on_front')) {
+                return;
+        }
+
+        chroma_home_clear_stats_strip_cache();
+}
+add_action('save_post_page', 'chroma_home_maybe_clear_stats_strip_cache_on_page_save');
 
 /**
  * Prismpath expertise panels

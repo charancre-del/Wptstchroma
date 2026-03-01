@@ -642,3 +642,15 @@
 .fa-map-location-dot:before {
     content: "\f5a0";
 }
+
+.fa-comment-dots:before {
+    content: "\f4ad";
+}
+
+.fa-puzzle-piece:before {
+    content: "\f12e";
+}
+
+.fa-hands-holding-child:before {
+    content: "\e4fa";
+}

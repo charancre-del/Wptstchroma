@@ -326,10 +326,11 @@ class Plugin
      */
     public function add_pwa_manifest()
     {
-        // Use dynamic URL to ensure correct headers
-        $manifest_url = home_url('/qa-reports/manifest.json');
+        // Use the direct plugin asset URL in admin to avoid rewrite dependencies.
+        $manifest_url = CQA_PLUGIN_URL . 'manifest.json';
         echo '<link rel="manifest" href="' . esc_url($manifest_url) . '">';
         echo '<meta name="theme-color" content="#6366f1">';
+        echo '<meta name="mobile-web-app-capable" content="yes">';
         echo '<meta name="apple-mobile-web-app-capable" content="yes">';
         echo '<meta name="apple-mobile-web-app-status-bar-style" content="default">';
     }
