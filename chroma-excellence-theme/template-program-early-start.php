@@ -1,6 +1,7 @@
 <?php
 /**
- * Template Name: Chroma Early Start
+ * Template Name: Early Start Template
+ * Template Post Type: program
  *
  * @package Chroma_Excellence
  * @since 1.0.0
@@ -43,7 +44,7 @@ if (!function_exists('chroma_early_start_icon_svg')) {
 
 get_header();
 
-while (have_posts()) :
+while (have_posts()):
     the_post();
 
     $page_id = get_the_ID();
@@ -198,7 +199,7 @@ while (have_posts()) :
             line-height: 1.8;
         }
 
-        .ces-copy + .ces-copy {
+        .ces-copy+.ces-copy {
             margin-top: 18px;
         }
 
@@ -460,6 +461,7 @@ while (have_posts()) :
         }
 
         @media (max-width: 980px) {
+
             .ces-hero-grid,
             .ces-synergy-grid,
             .ces-service-grid {
@@ -520,11 +522,13 @@ while (have_posts()) :
                         <p class="ces-lead"><?php echo esc_html($hero_description); ?></p>
 
                         <div class="ces-actions">
-                            <a class="ces-button" href="<?php echo esc_url($primary_cta_url); ?>" target="_blank" rel="noopener">
+                            <a class="ces-button" href="<?php echo esc_url($primary_cta_url); ?>" target="_blank"
+                                rel="noopener">
                                 <?php echo esc_html($primary_cta_text); ?>
                                 <?php echo chroma_early_start_icon_svg('arrow-right'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             </a>
-                            <a class="ces-button-secondary" href="<?php echo esc_url($secondary_cta_url); ?>" target="_blank" rel="noopener">
+                            <a class="ces-button-secondary" href="<?php echo esc_url($secondary_cta_url); ?>"
+                                target="_blank" rel="noopener">
                                 <?php echo esc_html($secondary_cta_text); ?>
                                 <?php echo chroma_early_start_icon_svg('external-link'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                             </a>
@@ -533,7 +537,9 @@ while (have_posts()) :
 
                     <div class="ces-card-frame">
                         <div class="ces-hero-image">
-                            <img src="<?php echo esc_url($hero_image); ?>" alt="<?php esc_attr_e('Pediatric therapist smiling and engaging with a young child', 'chroma-excellence'); ?>" loading="eager" fetchpriority="high" decoding="sync" class="no-lazy" />
+                            <img src="<?php echo esc_url($hero_image); ?>"
+                                alt="<?php esc_attr_e('Pediatric therapist smiling and engaging with a young child', 'chroma-excellence'); ?>"
+                                loading="eager" fetchpriority="high" decoding="sync" class="no-lazy" />
                         </div>
                     </div>
                 </div>
@@ -548,7 +554,7 @@ while (have_posts()) :
                         <p class="ces-copy"><?php echo esc_html($synergy_intro_two); ?></p>
 
                         <ul class="ces-list">
-                            <?php foreach ($synergy_bullets as $bullet) : ?>
+                            <?php foreach ($synergy_bullets as $bullet): ?>
                                 <li>
                                     <span class="ces-list-icon">
                                         <?php echo chroma_early_start_icon_svg('check'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
@@ -562,7 +568,9 @@ while (have_posts()) :
                     <div class="ces-stack ces-synergy-media">
                         <div class="ces-stack-column ces-stack-column--offset">
                             <div class="ces-stack-photo">
-                                <img src="<?php echo esc_url($synergy_image_one); ?>" alt="<?php esc_attr_e('Child engaged in classroom learning', 'chroma-excellence'); ?>" loading="lazy" />
+                                <img src="<?php echo esc_url($synergy_image_one); ?>"
+                                    alt="<?php esc_attr_e('Child engaged in classroom learning', 'chroma-excellence'); ?>"
+                                    loading="lazy" />
                             </div>
                             <div class="ces-stack-copy ces-stack-copy--blue">
                                 <h3><?php echo esc_html($push_title); ?></h3>
@@ -576,7 +584,9 @@ while (have_posts()) :
                                 <p><?php echo esc_html($pull_description); ?></p>
                             </div>
                             <div class="ces-stack-photo">
-                                <img src="<?php echo esc_url($synergy_image_two); ?>" alt="<?php esc_attr_e('Child engaging in sensory play', 'chroma-excellence'); ?>" loading="lazy" />
+                                <img src="<?php echo esc_url($synergy_image_two); ?>"
+                                    alt="<?php esc_attr_e('Child engaging in sensory play', 'chroma-excellence'); ?>"
+                                    loading="lazy" />
                             </div>
                         </div>
                     </div>
@@ -591,15 +601,18 @@ while (have_posts()) :
                     </div>
 
                     <div class="ces-grid ces-service-grid">
-                        <?php foreach ($services as $service) : ?>
+                        <?php foreach ($services as $service): ?>
                             <?php $service_link_label = sprintf(__('Explore %s', 'chroma-excellence'), $service['title']); ?>
                             <div class="ces-service-card">
-                                <div class="ces-service-icon" style="background: <?php echo esc_attr($service['accent_bg']); ?>; color: <?php echo esc_attr($service['accent']); ?>;">
+                                <div class="ces-service-icon"
+                                    style="background: <?php echo esc_attr($service['accent_bg']); ?>; color: <?php echo esc_attr($service['accent']); ?>;">
                                     <i class="<?php echo esc_attr($service['icon']); ?>" aria-hidden="true"></i>
                                 </div>
                                 <h3><?php echo esc_html($service['title']); ?></h3>
                                 <p><?php echo esc_html($service['description']); ?></p>
-                                <a class="ces-service-link" href="<?php echo esc_url($service['url']); ?>" target="_blank" rel="noopener" aria-label="<?php echo esc_attr($service_link_label); ?>" style="color: <?php echo esc_attr($service['accent']); ?>;">
+                                <a class="ces-service-link" href="<?php echo esc_url($service['url']); ?>" target="_blank"
+                                    rel="noopener" aria-label="<?php echo esc_attr($service_link_label); ?>"
+                                    style="color: <?php echo esc_attr($service['accent']); ?>;">
                                     <?php echo esc_html($service_link_label); ?>
                                     <?php echo chroma_early_start_icon_svg('arrow-right'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                                 </a>
@@ -613,7 +626,8 @@ while (have_posts()) :
                 <div class="ces-shell ces-cta-shell">
                     <h2 class="ces-section-title"><?php echo esc_html($cta_title); ?></h2>
                     <p class="ces-copy"><?php echo esc_html($cta_description); ?></p>
-                    <a class="ces-button-secondary" href="<?php echo esc_url($cta_button_url); ?>" target="_blank" rel="noopener">
+                    <a class="ces-button-secondary" href="<?php echo esc_url($cta_button_url); ?>" target="_blank"
+                        rel="noopener">
                         <?php echo esc_html($cta_button_text); ?>
                         <?php echo chroma_early_start_icon_svg('external-link'); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
                     </a>
@@ -622,7 +636,7 @@ while (have_posts()) :
         </article>
     </main>
 
-<?php
+    <?php
 endwhile;
 
 get_footer();

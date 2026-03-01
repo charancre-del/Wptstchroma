@@ -37,7 +37,8 @@ define('CHROMA_INVALID_SCHEMA_TYPES', array(
 /**
  * Helper function to check if schema type is invalid (case-insensitive)
  */
-function chroma_is_invalid_schema_type($type) {
+function chroma_is_invalid_schema_type($type)
+{
     if (!defined('CHROMA_INVALID_SCHEMA_TYPES')) {
         return false;
     }
@@ -160,11 +161,11 @@ class Chroma_Schema_Injector
         }
 
         $team_posts = get_posts([
-            'post_type'      => 'team_member',
+            'post_type' => 'team_member',
             'posts_per_page' => -1,
-            'orderby'        => 'menu_order',
-            'order'          => 'ASC',
-            'post_status'    => 'publish',
+            'orderby' => 'menu_order',
+            'order' => 'ASC',
+            'post_status' => 'publish',
         ]);
 
         if (empty($team_posts)) {
@@ -294,11 +295,11 @@ class Chroma_Schema_Injector
         // Inject Team Members on About Page
         if (is_page('about')) {
             $team_posts = get_posts([
-                'post_type'      => 'team_member',
+                'post_type' => 'team_member',
                 'posts_per_page' => -1,
-                'orderby'        => 'menu_order',
-                'order'          => 'ASC',
-                'post_status'    => 'publish'
+                'orderby' => 'menu_order',
+                'order' => 'ASC',
+                'post_status' => 'publish'
             ]);
 
             if (!empty($team_posts)) {
@@ -387,7 +388,7 @@ class Chroma_Schema_Injector
 
         // Build multi-type array
         $types = ['ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness'];
-        
+
         // Feature: Event Venue toggle
         if (get_post_meta($location_id, '_chroma_is_event_venue', true)) {
             $types[] = 'EventVenue';
@@ -662,7 +663,7 @@ class Chroma_Schema_Injector
                         'priceRange' => '$$',
                     ]
                 ];
-                
+
                 // Add AggregateRating if reviews exist
                 $reviews = get_post_meta($post_id, 'location_reviews', true);
                 if (!empty($reviews) && is_array($reviews)) {
@@ -1546,6 +1547,7 @@ class Chroma_Schema_Injector
                 $schema['provider'] = [
                     '@type' => 'Organization',
                     'name' => $provider_name,
+                    'url' => home_url('/'),
                 ];
             }
         }
@@ -1633,12 +1635,24 @@ class Chroma_Schema_Injector
         }
 
         if (!empty($schema['startDate'])) {
+            if (empty($schema['endDate'])) {
+                $schema['endDate'] = date('c', strtotime($schema['startDate']) + 7200);
+            }
             if (empty($schema['eventAttendanceMode'])) {
                 $schema['eventAttendanceMode'] = 'https://schema.org/OfflineEventAttendanceMode';
             }
             if (empty($schema['eventStatus'])) {
                 $schema['eventStatus'] = 'https://schema.org/EventScheduled';
             }
+        }
+
+        if (empty($schema['offers'])) {
+            $schema['offers'] = [
+                '@type' => 'Offer',
+                'price' => '0',
+                'priceCurrency' => 'USD',
+                'availability' => 'https://schema.org/InStock',
+            ];
         }
 
         unset($schema['location_name'], $schema['location_address']);
