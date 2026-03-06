@@ -60,7 +60,7 @@ function chroma_header_customizer_settings($wp_customize)
 
 	// Book a Tour Button URL
 	$wp_customize->add_setting('chroma_book_tour_url', array(
-		'default' => home_url('/contact#tour'),
+		'default' => home_url('/contact-us/#tour'),
 		'sanitize_callback' => 'esc_url_raw',
 		'transport' => 'refresh',
 	));
@@ -71,7 +71,7 @@ function chroma_header_customizer_settings($wp_customize)
 		'section' => 'chroma_header_settings',
 		'type' => 'url',
 		'input_attrs' => array(
-			'placeholder' => home_url('/contact#tour'),
+			'placeholder' => home_url('/contact-us/#tour'),
 		),
 	));
 

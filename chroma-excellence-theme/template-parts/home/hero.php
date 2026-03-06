@@ -38,6 +38,9 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             <p class="text-[15px] leading-relaxed text-brand-ink max-w-xl">
                 <?php echo esc_html($hero['subheading']); ?>
             </p>
+            <p class="text-sm leading-relaxed text-brand-ink/80 max-w-xl">
+                <?php _e('Our team includes both experienced educators and licensed clinicians supporting each child\'s growth.', 'chroma-excellence'); ?>
+            </p>
 
             <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
                 <a href="<?php echo esc_url($hero['cta_url']); ?>"

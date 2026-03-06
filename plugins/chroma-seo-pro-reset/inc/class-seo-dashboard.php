@@ -2215,7 +2215,7 @@ class Chroma_SEO_Dashboard
             'use_uploaded' => false,
         ));
 
-        $sitemap_url = home_url('/sitemap.xml');
+        $sitemap_url = home_url('/wp-sitemap.xml');
         ?>
                 <div class="chroma-seo-card">
                     <h2>ðŸ—ºï¸ Sitemap Manager</h2>
@@ -2640,8 +2640,8 @@ class Chroma_SEO_Dashboard
                     <tr id="sitemap-url-row" style="display:none;">
                         <th style="padding:10px 0;">Sitemap URL(s)</th>
                         <td style="padding:10px 0;">
-                            <textarea id="sitemap-urls" class="large-text" rows="3" placeholder="<?php echo home_url('/sitemap.xml'); ?>
-<?php echo home_url('/sitemap_index.xml'); ?>"><?php echo esc_textarea(get_option('chroma_validator_sitemaps', home_url('/sitemap.xml'))); ?></textarea>
+                            <textarea id="sitemap-urls" class="large-text" rows="3" placeholder="<?php echo home_url('/wp-sitemap.xml'); ?>
+<?php echo home_url('/sitemap.xml'); ?>"><?php echo esc_textarea(get_option('chroma_validator_sitemaps', home_url('/wp-sitemap.xml'))); ?></textarea>
                             <p class="description">One sitemap URL per line. Supports sitemap index files (will parse all child sitemaps).</p>
                             
                             <!-- Feature 5: URL Exclusions -->
@@ -4120,7 +4120,7 @@ class Chroma_SEO_Dashboard
             wp_send_json_error(['message' => 'Permission denied']);
         }
         
-        $sitemap_urls_raw = get_option('chroma_validator_sitemaps', home_url('/sitemap.xml'));
+        $sitemap_urls_raw = get_option('chroma_validator_sitemaps', home_url('/wp-sitemap.xml'));
         $sitemap_urls = array_filter(array_map('trim', explode("\n", $sitemap_urls_raw)));
         
         // Feature 5: Get Exclusions

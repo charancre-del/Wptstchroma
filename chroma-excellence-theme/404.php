@@ -82,7 +82,7 @@ if (!is_admin()) {
     <div class="flex flex-wrap justify-center gap-4">
       <a href="<?php echo esc_url(home_url('/')); ?>"
         class="px-8 py-3 bg-brand-ink text-white font-bold rounded-full uppercase tracking-widest text-xs hover:bg-chroma-blue transition-colors"><?php _e('Go Home', 'chroma-excellence'); ?></a>
-      <?php $locations_url = function_exists('chroma_smart_link') ? chroma_smart_link('locations') : home_url('/locations'); ?>
+      <?php $locations_url = function_exists('chroma_smart_link') ? chroma_smart_link('locations') : home_url('/locations/'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
         class="px-8 py-3 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-widest text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors"><?php _e('Find a School', 'chroma-excellence'); ?></a>
     </div>

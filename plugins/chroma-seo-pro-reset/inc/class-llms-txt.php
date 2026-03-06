@@ -119,10 +119,10 @@ class Chroma_LLMs_Txt_Generator
         
         $output .= "## Main Sections\n\n";
         $output .= "- [Home]({$url})\n";
-        $output .= "- [Locations]({$url}/locations)\n";
-        $output .= "- [Programs]({$url}/programs)\n";
-        $output .= "- [Blog]({$url}/stories)\n";
-        $output .= "- [Careers]({$url}/careers)\n\n";
+        $output .= "- [Locations]({$url}/locations/)\n";
+        $output .= "- [Programs]({$url}/programs/)\n";
+        $output .= "- [Blog]({$url}/stories/)\n";
+        $output .= "- [Careers]({$url}/careers/)\n\n";
 
         // Programs
         $output .= "## Programs (Curriculum)\n\n";

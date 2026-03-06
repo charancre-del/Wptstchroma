@@ -15,13 +15,111 @@ class Chroma_Sitemap_Integrator
 {
     public function init()
     {
-        $this->register_providers();
+        // Ensure providers are registered after core sitemap bootstraps.
+        add_action('init', [$this, 'register_providers'], 20);
+
+        // Keep legacy sitemap endpoints aligned to WP native sitemap index.
+        add_action('template_redirect', [$this, 'handle_legacy_sitemap_aliases'], 0);
+
+        // Exclude known duplicate winners from native post sitemaps.
+        add_filter('wp_sitemaps_posts_query_args', [$this, 'filter_posts_sitemap_query_args'], 10, 2);
     }
 
     public function register_providers()
     {
+        if (!function_exists('wp_register_sitemap_provider')) {
+            return;
+        }
+
         // One sitemap for all Spanish pages/posts (Singulars)
         wp_register_sitemap_provider('spanish', new Chroma_Spanish_Sitemap_Provider());
+    }
+
+    /**
+     * Redirect legacy sitemap endpoints to native index.
+     */
+    public function handle_legacy_sitemap_aliases()
+    {
+        if (is_admin() || wp_doing_ajax() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            return;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? strtok($_SERVER['REQUEST_URI'], '?') : '';
+        if (!$request_uri) {
+            return;
+        }
+
+        $request_uri = '/' . trim($request_uri, '/');
+        if ($request_uri === '/sitemap.xml' || $request_uri === '/sitemap_index.xml') {
+            wp_safe_redirect(home_url('/wp-sitemap.xml'), 301);
+            exit;
+        }
+    }
+
+    /**
+     * Exclude known duplicate URLs from native post sitemaps.
+     *
+     * @param array  $args
+     * @param string $post_type
+     * @return array
+     */
+    public function filter_posts_sitemap_query_args($args, $post_type)
+    {
+        $exclude_ids = $this->get_duplicate_excluded_post_ids();
+        if (empty($exclude_ids)) {
+            return $args;
+        }
+
+        if (!isset($args['post__not_in']) || !is_array($args['post__not_in'])) {
+            $args['post__not_in'] = [];
+        }
+
+        $args['post__not_in'] = array_values(array_unique(array_merge($args['post__not_in'], $exclude_ids)));
+        return $args;
+    }
+
+    /**
+     * Resolve duplicate content IDs once per request.
+     *
+     * @return int[]
+     */
+    private function get_duplicate_excluded_post_ids()
+    {
+        static $ids = null;
+        if ($ids !== null) {
+            return $ids;
+        }
+
+        $ids = [];
+
+        $winner_map_slugs = ['employers-2'];
+        foreach ($winner_map_slugs as $slug) {
+            $post = get_page_by_path($slug, OBJECT, ['page', 'post', 'career']);
+            if (!empty($post->ID)) {
+                $ids[] = (int) $post->ID;
+            }
+        }
+
+        // Career slug variants like childcare-teacher-2
+        $career_dupes = get_posts([
+            'post_type' => 'career',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'fields' => 'ids',
+            'name' => '',
+        ]);
+
+        if (!empty($career_dupes)) {
+            foreach ($career_dupes as $career_id) {
+                $slug = get_post_field('post_name', $career_id);
+                if ($slug && preg_match('/\-\d+$/', $slug)) {
+                    $ids[] = (int) $career_id;
+                }
+            }
+        }
+
+        $ids = array_values(array_unique(array_filter($ids)));
+        return $ids;
     }
 }
 
@@ -38,6 +136,10 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
 
     private $per_page = 2000;
     private $post_types = ['page', 'location', 'program', 'city', 'post', 'team_member'];
+    private $excluded_paths = [
+        'employers-2',
+        'es/employers-2',
+    ];
 
     public function get_url_list($page_num, $object_subtype = '') {
         $urls = [];
@@ -57,6 +159,11 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
                 // Remove base and prepend /es/
                 $path = str_replace($base, '', $en_permalink);
                 $path = ltrim($path, '/');
+
+                if ($this->should_exclude_path($path)) {
+                    continue;
+                }
+
                 $es_url = $base . '/es/' . $path;
                 
                 $urls[] = [
@@ -78,6 +185,35 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
             $count += (int)wp_count_posts($type)->publish;
         }
         return max(1, ceil($count / $this->per_page));
+    }
+
+    /**
+     * Exclude known duplicate paths from Spanish sitemap.
+     *
+     * @param string $path Relative EN path.
+     * @return bool
+     */
+    private function should_exclude_path($path)
+    {
+        $normalized = trim(strtolower((string) $path), '/');
+        if ($normalized === '') {
+            return false;
+        }
+
+        if (in_array($normalized, $this->excluded_paths, true)) {
+            return true;
+        }
+
+        // Career duplicates like /career/childcare-teacher-2/
+        if (preg_match('#^career/.+\-\d+$#', $normalized)) {
+            return true;
+        }
+
+        if (class_exists('Chroma_URL_Consolidator') && method_exists('Chroma_URL_Consolidator', 'is_duplicate_path')) {
+            return Chroma_URL_Consolidator::is_duplicate_path('/' . $normalized . '/');
+        }
+
+        return false;
     }
 }
 

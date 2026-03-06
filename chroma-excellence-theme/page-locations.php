@@ -267,7 +267,7 @@ function chroma_get_region_color_mem($term_id)
 					<p class="text-white/70 text-lg mb-8">Our enrollment specialists can help you find the nearest
 						location with openings for your child's age group.</p>
 					<div class="flex flex-wrap gap-4">
-						<a href="<?php echo esc_url(home_url('/contact')); ?>"
+						<a href="<?php echo esc_url(function_exists('chroma_get_page_link') ? chroma_get_page_link('contact') : home_url('/contact-us/')); ?>"
 							class="px-8 py-4 bg-chroma-yellow text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-white transition-colors">
 							Contact Support
 						</a>

@@ -33,6 +33,9 @@ $programs = $data_service->get_programs();
             <p class="text-lg text-brand-ink/90 max-w-2xl mx-auto mb-10 fade-in-up delay-200">
                 <?php _e('From sensory discovery in our infant suites to the project-based learning of Pre-K, every program uses our proprietary Prismpath™ model to meet children exactly where they are.', 'chroma-excellence'); ?>
             </p>
+            <p class="text-sm text-brand-ink/80 max-w-2xl mx-auto fade-in-up delay-200">
+                <?php _e('Beyond education, families can also access Behavioral/ABA, Occupational, and Speech support through our Chroma Early Start clinicians.', 'chroma-excellence'); ?>
+            </p>
         </div>
     </section>
 

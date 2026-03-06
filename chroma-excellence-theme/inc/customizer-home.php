@@ -300,7 +300,7 @@ function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
     $wp_customize->add_setting('chroma_home_locations_cta_label', array('default' => 'View All Locations', 'sanitize_callback' => 'sanitize_text_field'));
     $wp_customize->add_control('chroma_home_locations_cta_label', array('label' => __('CTA label', 'chroma-excellence'), 'section' => 'chroma_home_locations_section', 'type' => 'text'));
 
-    $wp_customize->add_setting('chroma_home_locations_cta_link', array('default' => '/locations', 'sanitize_callback' => 'esc_url_raw'));
+    $wp_customize->add_setting('chroma_home_locations_cta_link', array('default' => '/locations/', 'sanitize_callback' => 'esc_url_raw'));
     $wp_customize->add_control('chroma_home_locations_cta_link', array('label' => __('CTA link', 'chroma-excellence'), 'section' => 'chroma_home_locations_section', 'type' => 'url'));
 
     // Parent Reviews Section

@@ -235,6 +235,7 @@ while (have_posts()):
 						<?php echo esc_html($educators_title); ?>
 					</h2>
 					<p class="text-brand-ink/80"><?php echo esc_html($educators_description); ?></p>
+					<p class="text-sm text-brand-ink/70 mt-3"><?php _e('Our educators also collaborate with licensed clinicians to support classroom learning in real time.', 'chroma-excellence'); ?></p>
 				</div>
 
 				<div class="grid md:grid-cols-3 gap-8">

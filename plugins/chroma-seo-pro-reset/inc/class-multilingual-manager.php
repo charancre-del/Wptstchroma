@@ -85,7 +85,7 @@ class Chroma_Multilingual_Manager
      */
     public function output_hreflang_tags()
     {
-        if (!is_singular() && !is_home() && !is_front_page() && !get_query_var('chroma_combo')) {
+        if (!$this->is_hreflang_eligible_request()) {
             return;
         }
 
@@ -96,15 +96,41 @@ class Chroma_Multilingual_Manager
         }
 
         $alternates = self::get_alternates($post_id);
-        
-        if (empty($alternates['en']) || empty($alternates['es'])) {
+
+        if (empty($alternates['en'])) {
             return;
         }
 
         // x-default should point to the fallback (English)
         echo '<link rel="alternate" hreflang="x-default" href="' . esc_url($alternates['en']) . '" />' . "\n";
         echo '<link rel="alternate" hreflang="en-US" href="' . esc_url($alternates['en']) . '" />' . "\n";
-        echo '<link rel="alternate" hreflang="es-US" href="' . esc_url($alternates['es']) . '" />' . "\n";
+
+        if (!empty($alternates['es'])) {
+            echo '<link rel="alternate" hreflang="es-US" href="' . esc_url($alternates['es']) . '" />' . "\n";
+        }
+    }
+
+    /**
+     * Determine if current request should output hreflang tags.
+     *
+     * @return bool
+     */
+    private function is_hreflang_eligible_request()
+    {
+        if (is_admin() || is_404() || is_search() || is_feed() || is_trackback()) {
+            return false;
+        }
+
+        if (function_exists('is_robots') && is_robots()) {
+            return false;
+        }
+
+        // Attachments and author archives are redirected/noindex in this stack.
+        if (is_attachment() || is_author()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

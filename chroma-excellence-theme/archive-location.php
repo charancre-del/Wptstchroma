@@ -293,7 +293,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 						<?php _e('Our enrollment specialists can help you find the nearest location with openings for your child\'s age group.', 'chroma-excellence'); ?>
 					</p>
 					<div class="flex flex-wrap gap-4">
-						<a href="<?php echo esc_url(home_url('/contact')); ?>"
+						<a href="<?php echo esc_url(function_exists('chroma_get_page_link') ? chroma_get_page_link('contact') : home_url('/contact-us/')); ?>"
 							class="px-8 py-4 bg-chroma-yellow text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-white transition-colors">
 							<?php _e('Contact Support', 'chroma-excellence'); ?>
 						</a>

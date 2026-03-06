@@ -13,6 +13,13 @@ if (!defined('ABSPATH')) {
 
 class Chroma_Canonical_Enforcer
 {
+    /**
+     * Guard against duplicate canonical output in one request.
+     *
+     * @var bool
+     */
+    private $canonical_rendered = false;
+
     public function __construct() {
         // Remove WordPress default canonical
         remove_action('wp_head', 'rel_canonical');
@@ -33,14 +40,6 @@ class Chroma_Canonical_Enforcer
         // Start with current URL
         $url = home_url($wp->request);
         
-        // Force trailing slash preference
-        $trailing_slash = get_option('chroma_seo_trailing_slash', true);
-        if ($trailing_slash && !preg_match('/\.(html?|xml|json|php)$/', $url)) {
-            $url = trailingslashit($url);
-        } elseif (!$trailing_slash) {
-            $url = untrailingslashit($url);
-        }
-        
         // Handle special cases
         if (get_query_var('chroma_combo')) {
             $program_slug = get_query_var('combo_program');
@@ -57,17 +56,63 @@ class Chroma_Canonical_Enforcer
             $url = get_category_link(get_queried_object_id());
         } elseif (is_tag()) {
             $url = get_tag_link(get_queried_object_id());
+        } elseif (is_tax()) {
+            $term = get_queried_object();
+            if ($term && !empty($term->term_id)) {
+                $url = get_term_link($term);
+            }
         }
-        
-        // Ensure HTTPS
-        if (is_ssl()) {
-            $url = str_replace('http://', 'https://', $url);
+
+        return $this->normalize_canonical_url($url);
+    }
+
+    /**
+     * Normalize canonical URL according to site rules.
+     *
+     * @param string $url Raw canonical candidate.
+     * @return string
+     */
+    private function normalize_canonical_url($url) {
+        if (is_wp_error($url) || empty($url)) {
+            return '';
         }
-        
-        // Remove tracking parameters
-        $url = $this->strip_tracking_params($url);
-        
-        return $url;
+
+        $url = $this->strip_tracking_params((string) $url);
+
+        $parts = wp_parse_url($url);
+        if (empty($parts['host'])) {
+            return '';
+        }
+
+        $scheme = !empty($parts['scheme']) ? $parts['scheme'] : (is_ssl() ? 'https' : 'http');
+        if (is_ssl() || strpos(home_url('/'), 'https://') === 0) {
+            $scheme = 'https';
+        }
+
+        $path = isset($parts['path']) ? $parts['path'] : '/';
+        $query = isset($parts['query']) ? $parts['query'] : '';
+
+        $trailing_slash = get_option('chroma_seo_trailing_slash', true);
+        $is_file = (bool) preg_match('/\.(html?|xml|json|php)$/i', $path);
+
+        if (!$is_file) {
+            $path = $trailing_slash ? trailingslashit($path) : untrailingslashit($path);
+            if ($path === '') {
+                $path = '/';
+            }
+        }
+
+        $normalized = $scheme . '://' . $parts['host'];
+        if (!empty($parts['port'])) {
+            $normalized .= ':' . (int) $parts['port'];
+        }
+        $normalized .= $path;
+
+        if ($query !== '') {
+            $normalized .= '?' . $query;
+        }
+
+        return $normalized;
     }
     
     /**
@@ -124,10 +169,16 @@ class Chroma_Canonical_Enforcer
             return;
         }
         
+        if ($this->canonical_rendered || did_action('chroma_canonical_output_done')) {
+            return;
+        }
+
         $canonical = $this->get_canonical_url();
-        
-        if ($canonical) {
+
+        if (!empty($canonical)) {
             echo '<link rel="canonical" href="' . esc_url($canonical) . '" />' . "\n";
+            $this->canonical_rendered = true;
+            do_action('chroma_canonical_output_done', $canonical);
         }
     }
     
@@ -135,7 +186,7 @@ class Chroma_Canonical_Enforcer
      * Enforce canonical URL via redirect
      */
     public function enforce_canonical() {
-        if (!get_option('chroma_seo_redirect_canonical', false)) {
+        if (!get_option('chroma_seo_redirect_canonical', true)) {
             return;
         }
         
@@ -149,15 +200,24 @@ class Chroma_Canonical_Enforcer
             return;
         }
         
+        if (empty($_SERVER['HTTP_HOST']) || empty($_SERVER['REQUEST_URI'])) {
+            return;
+        }
+
         $current_url = (is_ssl() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+        $current_url = $this->normalize_canonical_url($current_url);
         $canonical = $this->get_canonical_url();
+
+        if (empty($current_url) || empty($canonical)) {
+            return;
+        }
         
         // Normalize for comparison (without query string for some checks)
         $current_path = strtok($current_url, '?');
         $canonical_path = strtok($canonical, '?');
         
         if ($current_path !== $canonical_path) {
-            wp_redirect($canonical, 301);
+            wp_safe_redirect($canonical, 301);
             exit;
         }
     }

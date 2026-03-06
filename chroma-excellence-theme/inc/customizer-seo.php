@@ -218,15 +218,82 @@ function chroma_sanitize_twitter_handle($handle) {
 function chroma_get_twitter_handle() {
     $handle = get_theme_mod('chroma_twitter_site', '');
     if (empty($handle)) {
+        $handle = apply_filters('chroma_default_twitter_handle', 'chromaela');
+    }
+
+    $handle = ltrim((string) $handle, '@');
+    if ($handle === '') {
         return '';
     }
-    return '@' . ltrim($handle, '@');
+
+    return '@' . $handle;
 }
+
+/**
+ * Build context-aware meta description.
+ *
+ * @return string
+ */
+function chroma_get_context_meta_description() {
+    $description = '';
+
+    if (is_singular()) {
+        $post = get_post();
+        if ($post) {
+            $description = get_post_meta($post->ID, 'meta_description', true);
+            if (empty($description)) {
+                $description = get_the_excerpt($post);
+            }
+            if (empty($description) && !empty($post->post_content)) {
+                $description = wp_trim_words(wp_strip_all_tags($post->post_content), 30, '...');
+            }
+        }
+    } elseif (is_home() || is_front_page()) {
+        $description = get_bloginfo('description');
+    } elseif (is_archive()) {
+        $description = trim(strip_tags((string) get_the_archive_description()));
+    }
+
+    if (empty($description)) {
+        $description = get_bloginfo('description');
+    }
+
+    return wp_trim_words(strip_tags((string) $description), 30, '...');
+}
+
+/**
+ * Shared meta description output.
+ */
+function chroma_shared_meta_description() {
+    if (is_admin() || is_404() || is_search() || is_feed() || is_robots()) {
+        return;
+    }
+
+    static $rendered = false;
+    if ($rendered) {
+        return;
+    }
+
+    $description = chroma_get_context_meta_description();
+    if ($description !== '') {
+        echo '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
+        $rendered = true;
+    }
+}
+add_action('wp_head', 'chroma_shared_meta_description', 2);
 
 /**
  * Output Twitter and Open Graph meta tags
  */
 function chroma_output_social_meta_tags() {
+    if (is_admin() || is_404() || is_search() || is_feed() || is_robots() || is_trackback()) {
+        return;
+    }
+
+    if (did_action('chroma_social_meta_output_done')) {
+        return;
+    }
+
     $twitter_site = chroma_get_twitter_handle();
     $twitter_card = get_theme_mod('chroma_twitter_card_type', 'summary_large_image');
     $fb_app_id = get_theme_mod('chroma_fb_app_id', '');
@@ -234,34 +301,48 @@ function chroma_output_social_meta_tags() {
     
     // Get current page data
     $title = wp_get_document_title();
-    $description = '';
+    $description = chroma_get_context_meta_description();
     $image = $default_og_image;
-    $url = get_permalink();
+    global $wp;
+    $request_path = (isset($wp) && isset($wp->request)) ? $wp->request : '';
+    $url = home_url(add_query_arg([], $request_path));
     $type = 'website';
     
     if (is_singular()) {
         $post = get_post();
-        $description = get_the_excerpt($post);
-        if (has_post_thumbnail($post)) {
+        if ($post && has_post_thumbnail($post)) {
             $image = get_the_post_thumbnail_url($post, 'large');
         }
         $type = is_singular('post') ? 'article' : 'website';
-        $url = get_permalink($post);
+        if ($post) {
+            $url = get_permalink($post);
+        }
     } elseif (is_home() || is_front_page()) {
-        $description = get_bloginfo('description');
         $url = home_url('/');
     } elseif (is_archive()) {
-        $description = get_the_archive_description();
-        $url = get_post_type_archive_link(get_post_type());
+        if (is_post_type_archive()) {
+            $url = get_post_type_archive_link(get_post_type());
+        } elseif (is_category() || is_tag() || is_tax()) {
+            $term_link = get_term_link(get_queried_object());
+            if (!is_wp_error($term_link)) {
+                $url = $term_link;
+            }
+        }
     }
     
-    // Fallback description
-    if (empty($description)) {
-        $description = get_bloginfo('description');
+    if (empty($image) && function_exists('get_site_icon_url')) {
+        $image = get_site_icon_url(512);
     }
-    
-    // Truncate description
-    $description = wp_trim_words(strip_tags($description), 30, '...');
+
+    if (empty($image) && function_exists('has_custom_logo') && has_custom_logo()) {
+        $logo_id = get_theme_mod('custom_logo');
+        if ($logo_id) {
+            $logo_url = wp_get_attachment_image_url($logo_id, 'full');
+            if ($logo_url) {
+                $image = $logo_url;
+            }
+        }
+    }
     
     // Output Twitter Card tags
     echo "\n<!-- Twitter Card Meta -->\n";
@@ -311,6 +392,8 @@ function chroma_output_social_meta_tags() {
         echo '<meta property="article:modified_time" content="' . esc_attr(get_the_modified_date('c')) . '">' . "\n";
         echo '<meta property="article:author" content="' . esc_attr(get_the_author()) . '">' . "\n";
     }
+
+    do_action('chroma_social_meta_output_done');
 }
 add_action('wp_head', 'chroma_output_social_meta_tags', 5);
 

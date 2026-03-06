@@ -41,6 +41,9 @@ $programs_query = chroma_cached_query(
 			<p class="text-lg text-brand-ink/90 max-w-2xl mx-auto mb-10 fade-in-up delay-200">
 				<?php _e('From sensory discovery in our infant suites to the project-based learning of Pre-K, every program uses our proprietary Prismpath™ model to meet children exactly where they are.', 'chroma-excellence'); ?>
 			</p>
+			<p class="text-sm text-brand-ink/80 max-w-2xl mx-auto fade-in-up delay-200">
+				<?php _e('Beyond education, families can also access Behavioral/ABA, Occupational, and Speech support through our Chroma Early Start clinicians.', 'chroma-excellence'); ?>
+			</p>
 		</div>
 	</section>
 
@@ -237,7 +240,7 @@ $programs_query = chroma_cached_query(
 				<?php _e('Every campus offers tours so you can meet the teachers, see the classrooms, and experience the Chroma culture firsthand.', 'chroma-excellence'); ?>
 			</p>
 			<div class="flex flex-wrap justify-center gap-4">
-				<a href="<?php echo esc_url(home_url('/locations')); ?>"
+				<a href="<?php echo esc_url(home_url('/locations/')); ?>"
 					class="px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors"><?php _e('Find a Location', 'chroma-excellence'); ?></a>
 				<a href="#tour"
 					class="px-8 py-4 bg-chroma-red text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:bg-chroma-red/90 transition-colors shadow-lg"><?php _e('Schedule a Tour', 'chroma-excellence'); ?></a>

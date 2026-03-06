@@ -127,6 +127,12 @@ function chroma_disable_emojis_dns_prefetch($urls, $relation_type)
  */
 function chroma_enforce_canonical()
 {
+        // Plugin canonical is primary. Theme canonical is fallback-only.
+        if ((class_exists('Chroma_Canonical_Enforcer') && get_option('chroma_seo_enable_canonical', true))
+                || did_action('chroma_canonical_output_done')) {
+                return;
+        }
+
         if (is_singular()) {
                 $canonical_url = get_permalink();
         } elseif (is_front_page()) {
@@ -140,7 +146,12 @@ function chroma_enforce_canonical()
         }
 
         if (!is_wp_error($canonical_url) && $canonical_url) {
+                $canonical_url = strtok($canonical_url, '?');
+                if (!preg_match('/\.(html?|xml|json|php)$/i', $canonical_url)) {
+                        $canonical_url = trailingslashit($canonical_url);
+                }
                 echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
+                do_action('chroma_canonical_output_done', $canonical_url);
         }
 }
 add_action('wp_head', 'chroma_enforce_canonical', 2);
