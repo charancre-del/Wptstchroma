@@ -51,7 +51,118 @@ $cta_description = chroma_get_translated_meta($page_id, 'careers_cta_description
 
 // Fetch jobs from API
 $jobs = function_exists('chroma_get_careers') ? chroma_get_careers() : array();
+
+// Build JobPosting schema directly on the Careers page.
+$job_schema_graph = array();
+if (!empty($jobs) && is_array($jobs)) {
+	$organization_schema = array(
+		'@type' => 'Organization',
+		'name' => get_bloginfo('name'),
+		'url' => home_url('/'),
+	);
+
+	if (function_exists('has_custom_logo') && has_custom_logo()) {
+		$logo_id = get_theme_mod('custom_logo');
+		$logo_url = $logo_id ? wp_get_attachment_image_url($logo_id, 'full') : '';
+		if ($logo_url) {
+			$organization_schema['logo'] = $logo_url;
+		}
+	}
+
+	$map_employment_type = static function ($raw_type) {
+		$type = strtoupper(trim((string) $raw_type));
+		$map = array(
+			'FULL TIME' => 'FULL_TIME',
+			'FULL-TIME' => 'FULL_TIME',
+			'PART TIME' => 'PART_TIME',
+			'PART-TIME' => 'PART_TIME',
+			'CONTRACT' => 'CONTRACTOR',
+			'CONTRACTOR' => 'CONTRACTOR',
+			'TEMP' => 'TEMPORARY',
+			'TEMPORARY' => 'TEMPORARY',
+			'INTERN' => 'INTERN',
+			'VOLUNTEER' => 'VOLUNTEER',
+		);
+
+		return $map[$type] ?? $type;
+	};
+
+	foreach ($jobs as $job) {
+		if (!is_array($job)) {
+			continue;
+		}
+
+		$title = sanitize_text_field($job['title'] ?? '');
+		if (!$title) {
+			continue;
+		}
+
+		$job_url = esc_url_raw($job['url'] ?? '');
+		$job_location = sanitize_text_field($job['location'] ?? '');
+		$raw_type = $job['type'] ?? '';
+		$employment_type = $raw_type ? $map_employment_type($raw_type) : '';
+
+		$raw_description = '';
+		if (!empty($job['description'])) {
+			$raw_description = $job['description'];
+		} elseif (!empty($job['summary'])) {
+			$raw_description = $job['summary'];
+		} elseif (!empty($job['content'])) {
+			$raw_description = $job['content'];
+		}
+
+		$description = trim(wp_strip_all_tags((string) $raw_description));
+		if (!$description) {
+			$description = sprintf(
+				/* translators: 1: job title, 2: company name */
+				__('Apply for %1$s at %2$s.', 'chroma-excellence'),
+				$title,
+				get_bloginfo('name')
+			);
+		}
+
+		$raw_date = $job['date_posted'] ?? ($job['posted'] ?? ($job['posted_at'] ?? ''));
+		$timestamp = $raw_date ? strtotime((string) $raw_date) : false;
+		$date_posted = $timestamp ? gmdate('Y-m-d', $timestamp) : gmdate('Y-m-d');
+
+		$schema_job = array(
+			'@type' => 'JobPosting',
+			'title' => $title,
+			'description' => $description,
+			'datePosted' => $date_posted,
+			'hiringOrganization' => $organization_schema,
+		);
+
+		if ($job_url) {
+			$schema_job['url'] = $job_url;
+			$schema_job['directApply'] = true;
+		}
+
+		if ($employment_type) {
+			$schema_job['employmentType'] = $employment_type;
+		}
+
+		if ($job_location) {
+			$schema_job['jobLocation'] = array(
+				'@type' => 'Place',
+				'address' => array(
+					'@type' => 'PostalAddress',
+					'addressLocality' => $job_location,
+					'addressCountry' => 'US',
+				),
+			);
+		}
+
+		$job_schema_graph[] = $schema_job;
+	}
+}
 ?>
+
+<?php if (!empty($job_schema_graph)): ?>
+	<script type="application/ld+json">
+		<?php echo wp_json_encode(array('@context' => 'https://schema.org', '@graph' => $job_schema_graph), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>
+	</script>
+<?php endif; ?>
 
 
 
