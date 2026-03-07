@@ -168,7 +168,7 @@ $sticky_url = chroma_get_localized_url(home_url('/schedule-a-tour/'));
 
 if (is_page('schedule-a-tour')) {
 	$show_sticky_cta = false;
-} elseif (is_page_template('page-early-start.php')) {
+} elseif (is_page_template('page-early-start.php') || is_page_template('template-program-early-start.php')) {
 	$show_sticky_cta = false;
 } elseif (is_singular('program')) {
 	$sticky_text = sprintf(__('Ready to enroll in <strong>%s</strong>?', 'chroma-excellence'), get_the_title());

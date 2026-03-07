@@ -10,6 +10,11 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+function chroma_is_early_start_template($template)
+{
+    return in_array($template, ['template-program-early-start.php', 'page-early-start.php'], true);
+}
+
 function chroma_get_current_admin_post_id()
 {
     if (isset($_GET['post'])) {
@@ -31,7 +36,7 @@ function chroma_early_start_page_meta_boxes()
     }
 
     $template = get_post_meta($post_id, '_wp_page_template', true);
-    if ($template !== 'template-program-early-start.php') {
+    if (!chroma_is_early_start_template($template)) {
         return;
     }
 
@@ -78,7 +83,7 @@ function chroma_early_start_template_note($post)
     $template = get_post_meta($post->ID, '_wp_page_template', true);
     echo '<p class="description" style="margin-bottom:16px;">';
     echo esc_html__('These fields are used by the "Early Start" program template.', 'chroma-excellence');
-    if ($template !== 'template-program-early-start.php') {
+    if (!chroma_is_early_start_template($template)) {
         echo ' ';
         echo esc_html__('This program is not currently using that template.', 'chroma-excellence');
     }
@@ -299,7 +304,7 @@ function chroma_seed_early_start_page_defaults($post_id)
     }
 
     $template = get_post_meta($post_id, '_wp_page_template', true);
-    if ($template !== 'template-program-early-start.php') {
+    if (!chroma_is_early_start_template($template)) {
         return;
     }
 
