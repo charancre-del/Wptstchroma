@@ -110,10 +110,12 @@ while (have_posts()):
 		array(
 			'post_type'      => 'team_member',
 			'posts_per_page' => -1,
-			'orderby'        => 'menu_order',
-			'order'          => 'ASC',
+			'orderby'        => array(
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
+			),
 		),
-		'team_members_about',
+		'team',
 		7 * DAY_IN_SECONDS
 	);
 	?>

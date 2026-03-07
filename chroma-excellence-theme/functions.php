@@ -177,7 +177,7 @@ function chroma_clear_query_cache($post_id)
         'location' => array('locations'),
         'program' => array('programs'),
         'city' => array('cities'),
-        'team_member' => array('team'),
+        'team_member' => array('team', 'team_members_about'),
     );
 
     if (isset($cache_prefixes[$post_type])) {
