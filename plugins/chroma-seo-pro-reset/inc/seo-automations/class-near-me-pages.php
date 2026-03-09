@@ -23,6 +23,7 @@ class Chroma_Near_Me_Pages
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_near_me_page']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
+        add_filter('chroma_sitemap_urls', [$this, 'add_to_unified_sitemap']);
 
         // Note: Sitemap providers are registered by Chroma_Sitemap_Integrator::register_providers()
     }
@@ -428,6 +429,53 @@ class Chroma_Near_Me_Pages
 
         return $urls;
     }
+
+    /**
+     * Add near-me URLs (EN + ES) to unified /sitemap.xml.
+     *
+     * @param array $urls
+     * @return array
+     */
+    public function add_to_unified_sitemap($urls)
+    {
+        if (!is_array($urls)) {
+            $urls = [];
+        }
+
+        $lastmod = gmdate('c');
+        $base = rtrim(home_url('/'), '/');
+        $links = self::get_sitemap_urls();
+
+        foreach ($links as $link) {
+            $url = (string) $link;
+            if ($url === '') {
+                continue;
+            }
+
+            $urls[] = [
+                'loc' => $url,
+                'lastmod' => $lastmod,
+            ];
+
+            $es_url = str_replace($base . '/', $base . '/es/', $url);
+            if ($es_url === $url) {
+                $path = (string) wp_parse_url($url, PHP_URL_PATH);
+                if ($path !== '') {
+                    $es_url = home_url('/es/' . ltrim($path, '/'));
+                }
+            }
+
+            if ($es_url !== $url) {
+                $urls[] = [
+                    'loc' => $es_url,
+                    'lastmod' => $lastmod,
+                ];
+            }
+        }
+
+        return $urls;
+    }
+
     public static function get_all_pages()
     {
         $pages = [];

@@ -25,6 +25,7 @@ class Chroma_Combo_Page_Generator
 
         add_action('template_redirect', [$this, 'handle_sitemap']); // Manual Sitemap Handler
         add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']); // Yoast index integration
+        add_filter('chroma_sitemap_urls', [$this, 'add_to_unified_sitemap']);
 
         // Note: Sitemap providers are registered by Chroma_Sitemap_Integrator::register_providers()
     }
@@ -878,6 +879,66 @@ class Chroma_Combo_Page_Generator
         }
 
         return $combos;
+    }
+
+    /**
+     * Add published combo URLs to unified /sitemap.xml.
+     *
+     * @param array $urls
+     * @return array
+     */
+    public function add_to_unified_sitemap($urls)
+    {
+        if (!is_array($urls)) {
+            $urls = [];
+        }
+
+        if (!class_exists('Chroma_Combo_Page_Data')) {
+            return $urls;
+        }
+
+        $lastmod = gmdate('c');
+        $base = rtrim(home_url('/'), '/');
+        $combos = self::get_all_combos();
+
+        foreach ($combos as $combo) {
+            if (empty($combo['program']) || empty($combo['city']) || empty($combo['state']) || empty($combo['url'])) {
+                continue;
+            }
+
+            $saved_data = Chroma_Combo_Page_Data::get(
+                $combo['program']->post_name,
+                sanitize_title($combo['city']),
+                $combo['state']
+            );
+            $status = $saved_data['status'] ?? 'auto';
+            if ($status !== 'published' && $status !== 'publish') {
+                continue;
+            }
+
+            $url = (string) $combo['url'];
+            $urls[] = [
+                'loc' => $url,
+                'lastmod' => $lastmod,
+            ];
+
+            $es_url = str_replace($base . '/', $base . '/es/', $url);
+            if ($es_url === $url) {
+                $path = (string) wp_parse_url($url, PHP_URL_PATH);
+                if ($path !== '') {
+                    $es_url = home_url('/es/' . ltrim($path, '/'));
+                }
+            }
+
+            if ($es_url !== $url) {
+                $urls[] = [
+                    'loc' => $es_url,
+                    'lastmod' => $lastmod,
+                ];
+            }
+        }
+
+        return $urls;
     }
 
     /**
