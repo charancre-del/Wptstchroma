@@ -555,9 +555,11 @@ function chroma_enforce_trailing_slash($url, $type)
 add_filter('user_trailingslashit', 'chroma_enforce_trailing_slash', 10, 2);
 
 /**
- * Sitemap Safety Net (Theme-level)
- * If server rewrite rules are stale, map wp-sitemap pretty URLs to core query vars.
- * This keeps /wp-sitemap.xml working when only theme code is deployed.
+ * Route Safety Net (Theme-level)
+ * If server/plugin rewrite rules are stale, map critical pretty URLs to query vars:
+ * - wp-sitemap URLs
+ * - combo pages
+ * - near-me pages
  */
 function chroma_force_sitemap_request_vars($query_vars)
 {
@@ -600,9 +602,106 @@ function chroma_force_sitemap_request_vars($query_vars)
         ];
     }
 
+    // /{program}-in-{city}-{state}/ and /es/{program}-in-{city}-{state}/
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $vars = [
+            'chroma_combo' => 1,
+            'combo_program' => sanitize_title($matches[2]),
+            'combo_city' => sanitize_title($matches[3]),
+            'combo_state' => strtoupper($matches[4]),
+        ];
+
+        if (!empty($matches[1])) {
+            $vars['chroma_lang'] = 'es';
+        }
+
+        return $vars;
+    }
+
+    // /{keyword}-near-me/ and /es/{keyword}-near-me/
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-near-me/?$#i', $path, $matches)) {
+        $vars = [
+            'chroma_near_me' => sanitize_title($matches[2]),
+        ];
+
+        if (!empty($matches[1])) {
+            $vars['chroma_lang'] = 'es';
+        }
+
+        return $vars;
+    }
+
+    // /{keyword}-near-{city}-{state}/ and /es/{keyword}-near-{city}-{state}/
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-near-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $vars = [
+            'chroma_near_me' => sanitize_title($matches[2]),
+            'near_city' => sanitize_title($matches[3]),
+            'near_state' => strtoupper($matches[4]),
+        ];
+
+        if (!empty($matches[1])) {
+            $vars['chroma_lang'] = 'es';
+        }
+
+        return $vars;
+    }
+
     return $query_vars;
 }
 add_filter('request', 'chroma_force_sitemap_request_vars', 0);
+
+/**
+ * Preserve dynamic SEO routes from core canonical redirects.
+ */
+function chroma_preserve_dynamic_route_redirects($redirect_url, $requested_url)
+{
+    $path = wp_parse_url((string) $requested_url, PHP_URL_PATH);
+    if (!is_string($path)) {
+        return $redirect_url;
+    }
+
+    if (preg_match('#/(wp-sitemap(?:-[^/]+)?\.xml|sitemap(?:_index)?\.xml|sitemap-[^/]+\.xml)$#i', $path)) {
+        return false;
+    }
+
+    if (preg_match('#^/(es/)?[a-z0-9-]+-in-[a-z-]+-[a-z]{2}/?$#i', $path)) {
+        return false;
+    }
+
+    if (preg_match('#^/(es/)?[a-z0-9-]+-near(?:-me|-[a-z-]+-[a-z]{2})/?$#i', $path)) {
+        return false;
+    }
+
+    return $redirect_url;
+}
+add_filter('redirect_canonical', 'chroma_preserve_dynamic_route_redirects', 1, 2);
+
+/**
+ * Prevent custom canonical enforcer from redirecting dynamic routes to home.
+ */
+function chroma_disable_custom_canonical_redirect_for_dynamic_routes($pre_option, $option, $default)
+{
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = wp_parse_url($request_uri, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return $pre_option;
+    }
+
+    if (preg_match('#/(wp-sitemap(?:-[^/]+)?\.xml|sitemap(?:_index)?\.xml|sitemap-[^/]+\.xml)$#i', $path)) {
+        return false;
+    }
+
+    if (preg_match('#^/(es/)?[a-z0-9-]+-in-[a-z-]+-[a-z]{2}/?$#i', $path)) {
+        return false;
+    }
+
+    if (preg_match('#^/(es/)?[a-z0-9-]+-near(?:-me|-[a-z-]+-[a-z]{2})/?$#i', $path)) {
+        return false;
+    }
+
+    return $pre_option;
+}
+add_filter('pre_option_chroma_seo_redirect_canonical', 'chroma_disable_custom_canonical_redirect_for_dynamic_routes', 10, 3);
 
 /**
  * Title Length Optimization for SEO
