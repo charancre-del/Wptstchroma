@@ -33,10 +33,10 @@ class Chroma_Combo_Page_Generator
         }
         
         // Auto-flush rules if needed (Temporary for update)
-        if (!get_option('chroma_combo_sitemap_flush_Check')) {
+        if (!get_option('chroma_combo_sitemap_flush_v2')) {
             add_action('init', function() {
                 flush_rewrite_rules();
-                update_option('chroma_combo_sitemap_flush_Check', true);
+                update_option('chroma_combo_sitemap_flush_v2', true);
             }, 99);
         }
     }
