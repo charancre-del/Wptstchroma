@@ -574,6 +574,41 @@ function chroma_enforce_trailing_slash($url, $type)
 add_filter('user_trailingslashit', 'chroma_enforce_trailing_slash', 10, 2);
 
 /**
+ * Legacy sitemap URL redirects (PHP-level, replaces .htaccess rules).
+ * 301-redirects old sitemap filenames to the correct WP sitemap provider URLs.
+ */
+function chroma_legacy_sitemap_redirects()
+{
+    if (is_admin()) {
+        return;
+    }
+
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = wp_parse_url($request_uri, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return;
+    }
+
+    $path = '/' . ltrim($path, '/');
+
+    $redirects = [
+        '/sitemap_index.xml' => '/wp-sitemap.xml',
+        '/sitemap.xml'       => '/wp-sitemap.xml',
+        '/sitemap-spanish.xml'     => '/wp-sitemap-spanish-1.xml',
+        '/sitemap-combos.xml'      => '/wp-sitemap-combos-1.xml',
+        '/sitemap-combos-es.xml'   => '/wp-sitemap-comboses-1.xml',
+        '/sitemap-near-me.xml'     => '/wp-sitemap-nearme-1.xml',
+        '/sitemap-near-me-es.xml'  => '/wp-sitemap-nearmees-1.xml',
+    ];
+
+    if (isset($redirects[$path])) {
+        wp_redirect($redirects[$path], 301);
+        exit;
+    }
+}
+add_action('template_redirect', 'chroma_legacy_sitemap_redirects', 1);
+
+/**
  * Route Safety Net (Theme-level)
  * If server/plugin rewrite rules are stale, map critical pretty URLs to query vars:
  * - combo pages
