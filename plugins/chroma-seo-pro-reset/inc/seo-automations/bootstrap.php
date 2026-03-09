@@ -91,4 +91,13 @@ register_activation_hook(__FILE__, function () {
     flush_rewrite_rules();
 });
 
-
+/**
+ * One-time rewrite rules flush after code deployment.
+ * Bump the version suffix when rewrite rules change.
+ */
+add_action('init', function () {
+    if (!get_option('chroma_seo_flush_v3')) {
+        flush_rewrite_rules();
+        update_option('chroma_seo_flush_v3', true);
+    }
+}, 99);

@@ -24,21 +24,7 @@ class Chroma_Near_Me_Pages
         add_action('template_redirect', [$this, 'handle_near_me_page']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
 
-        // Register Native Sitemap Providers (EN and ES)
-        if (did_action('init')) {
-            $this->register_sitemap_providers();
-        } else {
-            add_action('init', [$this, 'register_sitemap_providers']);
-        }
-    }
-
-    /**
-     * Register WP Native Sitemap Providers
-     */
-    public function register_sitemap_providers()
-    {
-        wp_register_sitemap_provider('near-me', new Chroma_Near_Me_Sitemap_Provider('en'));
-        wp_register_sitemap_provider('near-me-es', new Chroma_Near_Me_Sitemap_Provider('es'));
+        // Note: Sitemap providers are registered by Chroma_Sitemap_Integrator::register_providers()
     }
 
 
@@ -275,8 +261,8 @@ class Chroma_Near_Me_Pages
 
         <!-- Location data for JS -->
         <script type="application/json" id="locations-data">
-                    <?php echo json_encode($locations); ?>
-                </script>
+                            <?php echo json_encode($locations); ?>
+                        </script>
 
         <?php
         // Output schema

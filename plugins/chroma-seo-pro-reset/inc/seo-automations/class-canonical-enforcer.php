@@ -20,13 +20,14 @@ class Chroma_Canonical_Enforcer
      */
     private $canonical_rendered = false;
 
-    public function __construct() {
+    public function __construct()
+    {
         // Remove WordPress default canonical
         remove_action('wp_head', 'rel_canonical');
-        
+
         // Add our canonical
         add_action('wp_head', [$this, 'output_canonical'], 1);
-        
+
         // Redirect non-canonical URLs
         add_action('template_redirect', [$this, 'enforce_canonical'], 1);
     }
@@ -59,16 +60,17 @@ class Chroma_Canonical_Enforcer
 
         return false;
     }
-    
+
     /**
      * Get canonical URL for current page
      */
-    public function get_canonical_url() {
+    public function get_canonical_url()
+    {
         global $wp;
-        
+
         // Start with current URL
         $url = home_url($wp->request);
-        
+
         // Handle special cases
         if (get_query_var('chroma_combo')) {
             $program_slug = get_query_var('combo_program');
@@ -101,7 +103,8 @@ class Chroma_Canonical_Enforcer
      * @param string $url Raw canonical candidate.
      * @return string
      */
-    private function normalize_canonical_url($url) {
+    private function normalize_canonical_url($url)
+    {
         if (is_wp_error($url) || empty($url)) {
             return '';
         }
@@ -143,11 +146,12 @@ class Chroma_Canonical_Enforcer
 
         return $normalized;
     }
-    
+
     /**
      * Strip tracking parameters
      */
-    private function strip_tracking_params($url) {
+    private function strip_tracking_params($url)
+    {
         $tracking_params = [
             'utm_source',
             'utm_medium',
@@ -160,35 +164,36 @@ class Chroma_Canonical_Enforcer
             'ref',
             'source'
         ];
-        
+
         $parsed = parse_url($url);
-        
+
         if (!isset($parsed['query'])) {
             return $url;
         }
-        
+
         parse_str($parsed['query'], $params);
-        
+
         foreach ($tracking_params as $param) {
             unset($params[$param]);
         }
-        
+
         $base = $parsed['scheme'] . '://' . $parsed['host'];
         if (isset($parsed['path'])) {
             $base .= $parsed['path'];
         }
-        
+
         if (!empty($params)) {
             $base .= '?' . http_build_query($params);
         }
-        
+
         return $base;
     }
-    
+
     /**
      * Output canonical tag
      */
-    public function output_canonical() {
+    public function output_canonical()
+    {
         if (!get_option('chroma_seo_enable_canonical', true)) {
             return;
         }
@@ -197,12 +202,12 @@ class Chroma_Canonical_Enforcer
         if ($this->is_sitemap_request()) {
             return;
         }
-        
+
         // If Yoast SEO is active, let it handle the canonical to avoid duplicates
         if (defined('WPSEO_VERSION')) {
             return;
         }
-        
+
         if ($this->canonical_rendered || did_action('chroma_canonical_output_done')) {
             return;
         }
@@ -215,20 +220,21 @@ class Chroma_Canonical_Enforcer
             do_action('chroma_canonical_output_done', $canonical);
         }
     }
-    
+
     /**
      * Enforce canonical URL via redirect
      */
-    public function enforce_canonical() {
+    public function enforce_canonical()
+    {
         if (!get_option('chroma_seo_redirect_canonical', true)) {
             return;
         }
-        
+
         // Don't redirect admin, AJAX, or non-GET requests
         if (is_admin() || wp_doing_ajax() || $_SERVER['REQUEST_METHOD'] !== 'GET') {
             return;
         }
-        
+
         // Don't redirect 404s
         if (is_404()) {
             return;
@@ -238,7 +244,12 @@ class Chroma_Canonical_Enforcer
         if ($this->is_sitemap_request()) {
             return;
         }
-        
+
+        // Never redirect virtual pages (combo pages, near-me pages, geographic SEO).
+        if (get_query_var('chroma_combo') || get_query_var('chroma_near_me') || get_query_var('chroma_combo_sitemap') || get_query_var('chroma_service_area')) {
+            return;
+        }
+
         if (empty($_SERVER['HTTP_HOST']) || empty($_SERVER['REQUEST_URI'])) {
             return;
         }
@@ -250,11 +261,11 @@ class Chroma_Canonical_Enforcer
         if (empty($current_url) || empty($canonical)) {
             return;
         }
-        
+
         // Normalize for comparison (without query string for some checks)
         $current_path = strtok($current_url, '?');
         $canonical_path = strtok($canonical, '?');
-        
+
         if ($current_path !== $canonical_path) {
             wp_safe_redirect($canonical, 301);
             exit;
