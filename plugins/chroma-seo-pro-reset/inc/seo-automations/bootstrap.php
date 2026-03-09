@@ -25,6 +25,9 @@ require_once __DIR__ . '/class-combo-ai-generator.php';
 require_once __DIR__ . '/class-combo-internal-links.php';
 require_once __DIR__ . '/class-near-me-pages.php';
 
+new Chroma_Combo_Page_Generator();
+new Chroma_Near_Me_Pages();
+
 // Phase 3: Technical SEO
 require_once __DIR__ . '/class-dynamic-titles.php';
 require_once __DIR__ . '/class-canonical-enforcer.php';
@@ -46,7 +49,7 @@ require_once __DIR__ . '/class-schema-bulk-ops.php';
 /**
  * Register default options
  */
-add_action('after_setup_theme', function() {
+add_action('after_setup_theme', function () {
     // Set defaults if not already set
     $defaults = [
         'chroma_seo_show_related_locations' => true,
@@ -65,7 +68,7 @@ add_action('after_setup_theme', function() {
         'chroma_enable_speculation_rules' => 'yes',
         'chroma_enable_indexnow' => 'yes'
     ];
-    
+
     foreach ($defaults as $key => $default) {
         if (get_option($key) === false) {
             update_option($key, $default);
@@ -84,7 +87,7 @@ add_action('after_setup_theme', function() {
 /**
  * Flush rewrite rules on activation (Plugin context)
  */
-register_activation_hook(__FILE__, function() {
+register_activation_hook(__FILE__, function () {
     flush_rewrite_rules();
 });
 
