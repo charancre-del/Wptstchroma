@@ -714,14 +714,45 @@ function chroma_serve_custom_sitemap()
     header('Content-Type: application/xml; charset=UTF-8');
     status_header(200);
 
-    $base = rtrim(get_option('home'), '/');
-
     echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
     echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
 
-    // --- 1. Published WordPress content ---
-    $post_types = ['page', 'post', 'location', 'program', 'city', 'team_member'];
-    $excluded_paths = ['employers-2'];
+    // Central Registry: any component can add URLs here.
+    // Each entry should be an array like: ['loc' => '...', 'lastmod' => '...']
+    $urls = apply_filters('chroma_sitemap_urls', []);
+
+    // Also include standard posts/pages locally for simplicity
+    $standard_urls = chroma_get_standard_sitemap_urls();
+    $urls = array_merge($urls, $standard_urls);
+
+    // Filter out duplicates
+    $unique_urls = [];
+    foreach ($urls as $url_data) {
+        $loc = $url_data['loc'] ?? '';
+        if ($loc && !isset($unique_urls[$loc])) {
+            $unique_urls[$loc] = $url_data;
+            echo "  <url>\n";
+            echo "    <loc>" . esc_url($loc) . "</loc>\n";
+            if (!empty($url_data['lastmod'])) {
+                echo "    <lastmod>" . esc_html($url_data['lastmod']) . "</lastmod>\n";
+            }
+            echo "  </url>\n";
+        }
+    }
+
+    echo '</urlset>' . "\n";
+    exit;
+}
+add_action('template_redirect', 'chroma_serve_custom_sitemap', -999);
+
+/**
+ * Gets standard WordPress posts and pages for the sitemap.
+ */
+function chroma_get_standard_sitemap_urls()
+{
+    $urls = [];
+    $base = rtrim(home_url('/'), '/');
+    $post_types = apply_filters('chroma_sitemap_post_types', ['page', 'post', 'location', 'program', 'city', 'team_member']);
 
     $posts = get_posts([
         'post_type' => $post_types,
@@ -734,66 +765,21 @@ function chroma_serve_custom_sitemap()
         if (!$permalink)
             continue;
 
+        $urls[] = [
+            'loc' => $permalink,
+            'lastmod' => get_the_modified_date('c', $post->ID),
+        ];
+
+        // Traditional Spanish prefix logic (simpler than reaching into Spanish provider)
         $rel_path = trim(str_replace($base, '', $permalink), '/');
-        if (in_array($rel_path, $excluded_paths, true))
-            continue;
-        if (preg_match('#^career/.+-\d+$#', $rel_path))
-            continue;
-
-        $lastmod = get_the_modified_date('c', $post->ID);
-
-        // English version
-        chroma_sitemap_url($permalink, $lastmod);
-
-        // Spanish version
-        chroma_sitemap_url($base . '/es/' . $rel_path . '/', $lastmod);
-    }
-
-    // --- 2. Combo pages ---
-    if (class_exists('Chroma_Combo_Page_Generator') && class_exists('Chroma_Combo_Page_Data')) {
-        $combos = Chroma_Combo_Page_Generator::get_all_combos();
-        foreach ($combos as $combo) {
-            $saved = Chroma_Combo_Page_Data::get(
-                $combo['program']->post_name,
-                sanitize_title($combo['city']),
-                $combo['state']
-            );
-            $status = $saved['status'] ?? 'auto';
-            if ($status === 'published' || $status === 'publish') {
-                $url = $combo['url'];
-                chroma_sitemap_url($url);
-                // Spanish version
-                chroma_sitemap_url(str_replace($base . '/', $base . '/es/', $url));
-            }
+        if ($rel_path && !str_starts_with($rel_path, 'es/')) {
+            $urls[] = [
+                'loc' => $base . '/es/' . $rel_path . '/',
+                'lastmod' => get_the_modified_date('c', $post->ID),
+            ];
         }
     }
-
-    // --- 3. Near-me pages ---
-    if (class_exists('Chroma_Near_Me_Pages') && method_exists('Chroma_Near_Me_Pages', 'get_sitemap_urls')) {
-        $near_me_urls = Chroma_Near_Me_Pages::get_sitemap_urls();
-        foreach ($near_me_urls as $url) {
-            chroma_sitemap_url($url);
-            // Spanish version
-            chroma_sitemap_url(str_replace($base . '/', $base . '/es/', $url));
-        }
-    }
-
-    echo '</urlset>' . "\n";
-    exit;
-}
-add_action('template_redirect', 'chroma_serve_custom_sitemap', -999);
-
-/**
- * Output a single <url> element.
- */
-function chroma_sitemap_url($loc, $lastmod = '')
-{
-    echo "  <url>\n";
-    echo "    <loc>" . esc_url($loc) . "</loc>\n";
-    if ($lastmod) {
-        echo "    <lastmod>" . esc_html($lastmod) . "</lastmod>\n";
-    }
-    echo "  </url>\n";
+    return $urls;
 }
 
 /**

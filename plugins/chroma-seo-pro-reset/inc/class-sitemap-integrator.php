@@ -106,58 +106,18 @@ class Chroma_Sitemap_Integrator
         return $redirect_url;
     }
 
+    /**
+     * Former native provider registration - now unused.
+     */
     public function register_providers()
     {
-        if (!function_exists('wp_register_sitemap_provider')) {
-            return;
-        }
-
-        // One sitemap for all Spanish pages/posts (Singulars).
-        wp_register_sitemap_provider('spanish', new Chroma_Spanish_Sitemap_Provider());
-
-        // NOTE: WP native sitemap rewrite rules only allow [a-z]+ for provider names.
-        //       Provider names MUST NOT contain dashes, underscores, or numbers.
-        if (class_exists('Chroma_Combo_Sitemap_Provider')) {
-            wp_register_sitemap_provider('combos', new Chroma_Combo_Sitemap_Provider('en'));
-            wp_register_sitemap_provider('comboses', new Chroma_Combo_Sitemap_Provider('es'));
-        }
-
-        if (class_exists('Chroma_Near_Me_Sitemap_Provider')) {
-            wp_register_sitemap_provider('nearme', new Chroma_Near_Me_Sitemap_Provider('en'));
-            wp_register_sitemap_provider('nearmees', new Chroma_Near_Me_Sitemap_Provider('es'));
-        }
     }
 
     /**
-     * Redirect legacy sitemap endpoints to native index.
+     * Former legacy alias handler - now in functions.php.
      */
     public function handle_legacy_sitemap_aliases()
     {
-        if (is_admin() || wp_doing_ajax() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
-            return;
-        }
-
-        $request_uri = isset($_SERVER['REQUEST_URI']) ? strtok($_SERVER['REQUEST_URI'], '?') : '';
-        if (!$request_uri) {
-            return;
-        }
-
-        $request_uri = '/' . trim($request_uri, '/');
-
-        $aliases = [
-            '/sitemap.xml' => '/wp-sitemap.xml',
-            '/sitemap_index.xml' => '/wp-sitemap.xml',
-            '/sitemap-spanish.xml' => '/wp-sitemap-spanish-1.xml',
-            '/sitemap-combos.xml' => '/wp-sitemap-combos-1.xml',
-            '/sitemap-combos-es.xml' => '/wp-sitemap-comboses-1.xml',
-            '/sitemap-near-me.xml' => '/wp-sitemap-nearme-1.xml',
-            '/sitemap-near-me-es.xml' => '/wp-sitemap-nearmees-1.xml',
-        ];
-
-        if (isset($aliases[$request_uri])) {
-            wp_safe_redirect(home_url($aliases[$request_uri]), 301);
-            exit;
-        }
     }
 
     /**
