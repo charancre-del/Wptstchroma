@@ -1478,8 +1478,6 @@ add_action('admin_init', function() {
     });
 });
 
-new Chroma_Combo_Page_Generator();
-
 /**
  * Custom Sitemap Provider for Combo Pages
  */
@@ -1530,8 +1528,3 @@ class Chroma_Combo_Sitemap_Provider extends WP_Sitemaps_Provider {
         return ceil($count / 2000);
     }
 }
-
-new Chroma_Combo_Page_Generator();
-
-
-
