@@ -555,6 +555,56 @@ function chroma_enforce_trailing_slash($url, $type)
 add_filter('user_trailingslashit', 'chroma_enforce_trailing_slash', 10, 2);
 
 /**
+ * Sitemap Safety Net (Theme-level)
+ * If server rewrite rules are stale, map wp-sitemap pretty URLs to core query vars.
+ * This keeps /wp-sitemap.xml working when only theme code is deployed.
+ */
+function chroma_force_sitemap_request_vars($query_vars)
+{
+    if (is_admin()) {
+        return $query_vars;
+    }
+
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = wp_parse_url($request_uri, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return $query_vars;
+    }
+
+    $path = '/' . ltrim($path, '/');
+
+    if (preg_match('#/wp-sitemap\.xml$#i', $path)) {
+        return ['sitemap' => 'index'];
+    }
+
+    if (preg_match('#/wp-sitemap\.xsl$#i', $path)) {
+        return ['sitemap-stylesheet' => 'sitemap'];
+    }
+
+    if (preg_match('#/wp-sitemap-index\.xsl$#i', $path)) {
+        return ['sitemap-stylesheet' => 'index'];
+    }
+
+    if (preg_match('#/wp-sitemap-([a-z]+)-([a-z0-9_-]+)-([0-9]+)\.xml$#i', $path, $matches)) {
+        return [
+            'sitemap' => strtolower($matches[1]),
+            'sitemap-subtype' => strtolower($matches[2]),
+            'paged' => max(1, (int) $matches[3]),
+        ];
+    }
+
+    if (preg_match('#/wp-sitemap-([a-z]+)-([0-9]+)\.xml$#i', $path, $matches)) {
+        return [
+            'sitemap' => strtolower($matches[1]),
+            'paged' => max(1, (int) $matches[2]),
+        ];
+    }
+
+    return $query_vars;
+}
+add_filter('request', 'chroma_force_sitemap_request_vars', 0);
+
+/**
  * Title Length Optimization for SEO
  * Ensures titles stay within recommended limits
  */
