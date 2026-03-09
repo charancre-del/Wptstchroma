@@ -61,15 +61,16 @@ class Chroma_Sitemap_Integrator
         // One sitemap for all Spanish pages/posts (Singulars).
         wp_register_sitemap_provider('spanish', new Chroma_Spanish_Sitemap_Provider());
 
-        // Ensure combo and near-me providers are always present in native index when available.
+        // NOTE: WP native sitemap rewrite rules only allow [a-z]+ for provider names.
+        //       Provider names MUST NOT contain dashes, underscores, or numbers.
         if (class_exists('Chroma_Combo_Sitemap_Provider')) {
             wp_register_sitemap_provider('combos', new Chroma_Combo_Sitemap_Provider('en'));
-            wp_register_sitemap_provider('combos-es', new Chroma_Combo_Sitemap_Provider('es'));
+            wp_register_sitemap_provider('comboses', new Chroma_Combo_Sitemap_Provider('es'));
         }
 
         if (class_exists('Chroma_Near_Me_Sitemap_Provider')) {
-            wp_register_sitemap_provider('near-me', new Chroma_Near_Me_Sitemap_Provider('en'));
-            wp_register_sitemap_provider('near-me-es', new Chroma_Near_Me_Sitemap_Provider('es'));
+            wp_register_sitemap_provider('nearme', new Chroma_Near_Me_Sitemap_Provider('en'));
+            wp_register_sitemap_provider('nearmees', new Chroma_Near_Me_Sitemap_Provider('es'));
         }
     }
 
@@ -92,11 +93,11 @@ class Chroma_Sitemap_Integrator
         $aliases = [
             '/sitemap.xml' => '/wp-sitemap.xml',
             '/sitemap_index.xml' => '/wp-sitemap.xml',
-            '/sitemap-spanish.xml' => '/wp-sitemap-custom-spanish-1.xml',
-            '/sitemap-combos.xml' => '/wp-sitemap-custom-combos-1.xml',
-            '/sitemap-combos-es.xml' => '/wp-sitemap-custom-combos-es-1.xml',
-            '/sitemap-near-me.xml' => '/wp-sitemap-custom-near-me-1.xml',
-            '/sitemap-near-me-es.xml' => '/wp-sitemap-custom-near-me-es-1.xml',
+            '/sitemap-spanish.xml' => '/wp-sitemap-spanish-1.xml',
+            '/sitemap-combos.xml' => '/wp-sitemap-combos-1.xml',
+            '/sitemap-combos-es.xml' => '/wp-sitemap-comboses-1.xml',
+            '/sitemap-near-me.xml' => '/wp-sitemap-nearme-1.xml',
+            '/sitemap-near-me-es.xml' => '/wp-sitemap-nearmees-1.xml',
         ];
 
         if (isset($aliases[$request_uri])) {
@@ -137,23 +138,23 @@ class Chroma_Sitemap_Integrator
     {
         $entries = [
             [
-                'primary' => '/wp-sitemap-custom-spanish-1.xml',
+                'primary' => '/wp-sitemap-spanish-1.xml',
                 'aliases' => ['/sitemap-spanish.xml'],
             ],
             [
-                'primary' => '/wp-sitemap-custom-combos-1.xml',
+                'primary' => '/wp-sitemap-combos-1.xml',
                 'aliases' => ['/sitemap-combos.xml'],
             ],
             [
-                'primary' => '/wp-sitemap-custom-combos-es-1.xml',
+                'primary' => '/wp-sitemap-comboses-1.xml',
                 'aliases' => ['/sitemap-combos-es.xml'],
             ],
             [
-                'primary' => '/wp-sitemap-custom-near-me-1.xml',
+                'primary' => '/wp-sitemap-nearme-1.xml',
                 'aliases' => ['/sitemap-near-me.xml'],
             ],
             [
-                'primary' => '/wp-sitemap-custom-near-me-es-1.xml',
+                'primary' => '/wp-sitemap-nearmees-1.xml',
                 'aliases' => ['/sitemap-near-me-es.xml'],
             ],
         ];
@@ -239,11 +240,13 @@ class Chroma_Sitemap_Integrator
  * Custom Sitemap Provider for Spanish Content
  * Includes all translated post types (Singulars Only)
  */
-class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
-    
-    public function __construct() {
+class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider
+{
+
+    public function __construct()
+    {
         $this->name = 'spanish';
-        $this->object_type = 'custom'; 
+        $this->object_type = 'custom';
     }
 
     private $per_page = 2000;
@@ -253,10 +256,11 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
         'es/employers-2',
     ];
 
-    public function get_url_list($page_num, $object_subtype = '') {
+    public function get_url_list($page_num, $object_subtype = '')
+    {
         $urls = [];
         $base = rtrim(get_option('home'), '/');
-        
+
         // Static Post Types
         $posts = get_posts([
             'post_type' => $this->post_types,
@@ -277,7 +281,7 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
                 }
 
                 $es_url = $base . '/es/' . $path;
-                
+
                 $urls[] = [
                     'loc' => $es_url,
                     'lastmod' => get_the_modified_date('c', $post->ID),
@@ -291,10 +295,11 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider {
     }
 
 
-    public function get_max_num_pages($object_subtype = '') {
+    public function get_max_num_pages($object_subtype = '')
+    {
         $count = 0;
         foreach ($this->post_types as $type) {
-            $count += (int)wp_count_posts($type)->publish;
+            $count += (int) wp_count_posts($type)->publish;
         }
         return max(1, ceil($count / $this->per_page));
     }
