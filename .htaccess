@@ -14,11 +14,11 @@ RewriteRule ^wp-sitemap-([a-z]+)-([0-9]+)\.xml$ /index.php?sitemap=$1&paged=$2 [
 
 RewriteRule ^sitemap_index\.xml$ /wp-sitemap.xml [R=301,L]
 RewriteRule ^sitemap\.xml$ /wp-sitemap.xml [R=301,L]
-RewriteRule ^sitemap-spanish\.xml$ /wp-sitemap-custom-spanish-1.xml [R=301,L]
-RewriteRule ^sitemap-combos\.xml$ /wp-sitemap-custom-combos-1.xml [R=301,L]
-RewriteRule ^sitemap-combos-es\.xml$ /wp-sitemap-custom-combos-es-1.xml [R=301,L]
-RewriteRule ^sitemap-near-me\.xml$ /wp-sitemap-custom-near-me-1.xml [R=301,L]
-RewriteRule ^sitemap-near-me-es\.xml$ /wp-sitemap-custom-near-me-es-1.xml [R=301,L]
+RewriteRule ^sitemap-spanish\.xml$ /wp-sitemap-spanish-1.xml [R=301,L]
+RewriteRule ^sitemap-combos\.xml$ /wp-sitemap-combos-1.xml [R=301,L]
+RewriteRule ^sitemap-combos-es\.xml$ /wp-sitemap-comboses-1.xml [R=301,L]
+RewriteRule ^sitemap-near-me\.xml$ /wp-sitemap-nearme-1.xml [R=301,L]
+RewriteRule ^sitemap-near-me-es\.xml$ /wp-sitemap-nearmees-1.xml [R=301,L]
 </IfModule>
 
 # BEGIN WordPress

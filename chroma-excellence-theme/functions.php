@@ -576,11 +576,13 @@ add_filter('user_trailingslashit', 'chroma_enforce_trailing_slash', 10, 2);
 /**
  * Route Safety Net (Theme-level)
  * If server/plugin rewrite rules are stale, map critical pretty URLs to query vars:
- * - wp-sitemap URLs
  * - combo pages
  * - near-me pages
+ *
+ * Note: Sitemap query var injection is handled by Chroma_Sitemap_Integrator plugin
+ * and .htaccess rules. Duplicating it here caused query var conflicts.
  */
-function chroma_force_sitemap_request_vars($query_vars)
+function chroma_force_dynamic_route_request_vars($query_vars)
 {
     if (is_admin()) {
         return $query_vars;
@@ -593,33 +595,6 @@ function chroma_force_sitemap_request_vars($query_vars)
     }
 
     $path = '/' . ltrim($path, '/');
-
-    if (preg_match('#/wp-sitemap\.xml$#i', $path)) {
-        return ['sitemap' => 'index'];
-    }
-
-    if (preg_match('#/wp-sitemap\.xsl$#i', $path)) {
-        return ['sitemap-stylesheet' => 'sitemap'];
-    }
-
-    if (preg_match('#/wp-sitemap-index\.xsl$#i', $path)) {
-        return ['sitemap-stylesheet' => 'index'];
-    }
-
-    if (preg_match('#/wp-sitemap-([a-z]+)-([a-z0-9_-]+)-([0-9]+)\.xml$#i', $path, $matches)) {
-        return [
-            'sitemap' => strtolower($matches[1]),
-            'sitemap-subtype' => strtolower($matches[2]),
-            'paged' => max(1, (int) $matches[3]),
-        ];
-    }
-
-    if (preg_match('#/wp-sitemap-([a-z]+)-([0-9]+)\.xml$#i', $path, $matches)) {
-        return [
-            'sitemap' => strtolower($matches[1]),
-            'paged' => max(1, (int) $matches[2]),
-        ];
-    }
 
     // /{program}-in-{city}-{state}/ and /es/{program}-in-{city}-{state}/
     if (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
@@ -667,7 +642,7 @@ function chroma_force_sitemap_request_vars($query_vars)
 
     return $query_vars;
 }
-add_filter('request', 'chroma_force_sitemap_request_vars', 0);
+add_filter('request', 'chroma_force_dynamic_route_request_vars', 0);
 
 /**
  * Preserve dynamic SEO routes from core canonical redirects.
