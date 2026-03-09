@@ -1,3 +1,18 @@
+#
+# Legacy sitemap URL hard redirects
+# Ensures stale physical files (e.g., sitemap_index.xml) cannot bypass WP sitemap providers.
+#
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^sitemap_index\.xml$ /wp-sitemap.xml [R=301,L]
+RewriteRule ^sitemap\.xml$ /wp-sitemap.xml [R=301,L]
+RewriteRule ^sitemap-spanish\.xml$ /wp-sitemap-custom-spanish-1.xml [R=301,L]
+RewriteRule ^sitemap-combos\.xml$ /wp-sitemap-custom-combos-1.xml [R=301,L]
+RewriteRule ^sitemap-combos-es\.xml$ /wp-sitemap-custom-combos-es-1.xml [R=301,L]
+RewriteRule ^sitemap-near-me\.xml$ /wp-sitemap-custom-near-me-1.xml [R=301,L]
+RewriteRule ^sitemap-near-me-es\.xml$ /wp-sitemap-custom-near-me-es-1.xml [R=301,L]
+</IfModule>
+
 # BEGIN WordPress
 <IfModule mod_rewrite.c>
 RewriteEngine On
