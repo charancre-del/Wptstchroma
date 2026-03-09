@@ -489,9 +489,28 @@ add_filter('upload_mimes', 'chroma_mime_types');
  */
 function chroma_preload_lcp_image()
 {
-    // Using optimized logo as LCP candidate since specific hero image is missing
-    $logo_url = get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp';
-    echo '<link rel="preload" as="image" href="' . esc_url($logo_url) . '" fetchpriority="high">' . "\n";
+    // Front-page hero preload is handled in header.php.
+    if (is_front_page()) {
+        return;
+    }
+
+    // On single blog posts, preload the featured image (common LCP target).
+    if (is_singular('post') && has_post_thumbnail()) {
+        $thumb_id = get_post_thumbnail_id();
+        $thumb_url = wp_get_attachment_image_url($thumb_id, 'full');
+        if (!$thumb_url) {
+            return;
+        }
+
+        $srcset = wp_get_attachment_image_srcset($thumb_id, 'full');
+        $sizes = '(max-width: 1280px) 100vw, 1280px';
+
+        echo '<link rel="preload" as="image" href="' . esc_url($thumb_url) . '"';
+        if (!empty($srcset)) {
+            echo ' imagesrcset="' . esc_attr($srcset) . '" imagesizes="' . esc_attr($sizes) . '"';
+        }
+        echo ' fetchpriority="high">' . "\n";
+    }
 }
 add_action('wp_head', 'chroma_preload_lcp_image', 1);
 
