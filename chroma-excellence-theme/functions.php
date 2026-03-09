@@ -671,6 +671,71 @@ function chroma_force_sitemap_request_vars($query_vars)
 add_filter('request', 'chroma_force_sitemap_request_vars', 0);
 
 /**
+ * Nuclear sitemap renderer.
+ *
+ * The `request` filter alone is insufficient because WordPress's query
+ * processing chain still 404s on sitemap URLs. This handler runs at
+ * template_redirect priority -999 (before everything else), detects
+ * sitemap URLs, sets query vars directly on $wp_query, and calls
+ * WP_Sitemaps::render_sitemaps() which outputs XML and exits.
+ */
+function chroma_nuclear_sitemap_render()
+{
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = '/' . ltrim(strtok($request_uri, '?'), '/');
+
+    $sitemap = '';
+    $subtype = '';
+    $paged = 0;
+    $stylesheet = '';
+
+    if ($path === '/wp-sitemap.xml') {
+        $sitemap = 'index';
+    } elseif (preg_match('#^/wp-sitemap-([a-z]+)-(\d+)\.xml$#', $path, $m)) {
+        $sitemap = $m[1];
+        $paged = (int) $m[2];
+    } elseif (preg_match('#^/wp-sitemap-([a-z]+)-([a-z\d_-]+)-(\d+)\.xml$#', $path, $m)) {
+        $sitemap = $m[1];
+        $subtype = $m[2];
+        $paged = (int) $m[3];
+    } elseif ($path === '/wp-sitemap.xsl') {
+        $stylesheet = 'sitemap';
+    } elseif ($path === '/wp-sitemap-index.xsl') {
+        $stylesheet = 'sitemap-index';
+    } else {
+        return; // Not a sitemap URL
+    }
+
+    if (!function_exists('wp_sitemaps_get_server')) {
+        return;
+    }
+
+    global $wp_query;
+
+    if ($sitemap) {
+        $wp_query->set('sitemap', $sitemap);
+        if ($subtype) {
+            $wp_query->set('sitemap-subtype', $subtype);
+        }
+        if ($paged) {
+            $wp_query->set('paged', $paged);
+        }
+    } elseif ($stylesheet) {
+        $wp_query->set('sitemap-stylesheet', $stylesheet);
+    }
+
+    // Reset 404 state that WordPress may have set.
+    $wp_query->is_404 = false;
+    status_header(200);
+
+    $sitemaps = wp_sitemaps_get_server();
+    $sitemaps->render_sitemaps();
+    // render_sitemaps() calls exit() on success.
+    // If we reach here, the provider wasn't found — let WordPress handle as 404.
+}
+add_action('template_redirect', 'chroma_nuclear_sitemap_render', -999);
+
+/**
  * Preserve dynamic SEO routes from core canonical redirects.
  */
 function chroma_preserve_dynamic_route_redirects($redirect_url, $requested_url)
