@@ -671,69 +671,130 @@ function chroma_force_sitemap_request_vars($query_vars)
 add_filter('request', 'chroma_force_sitemap_request_vars', 0);
 
 /**
- * Nuclear sitemap renderer.
- *
- * The `request` filter alone is insufficient because WordPress's query
- * processing chain still 404s on sitemap URLs. This handler runs at
- * template_redirect priority -999 (before everything else), detects
- * sitemap URLs, sets query vars directly on $wp_query, and calls
- * WP_Sitemaps::render_sitemaps() which outputs XML and exits.
+ * Disable WordPress native sitemaps — we serve our own at /sitemap.xml.
  */
-function chroma_nuclear_sitemap_render()
+add_filter('wp_sitemaps_enabled', '__return_false');
+
+/**
+ * Single unified sitemap at /sitemap.xml.
+ *
+ * Completely bypasses WordPress's native sitemap system and its rewrite rules.
+ * Generates one flat XML sitemap containing ALL URLs:
+ * - Published posts, pages, locations, programs, cities
+ * - Combo pages (program-in-city-state)
+ * - Near-me pages
+ * - Spanish /es/ variants of everything above
+ */
+function chroma_serve_custom_sitemap()
 {
     $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
     $path = '/' . ltrim(strtok($request_uri, '?'), '/');
 
-    $sitemap = '';
-    $subtype = '';
-    $paged = 0;
-    $stylesheet = '';
-
-    if ($path === '/wp-sitemap.xml') {
-        $sitemap = 'index';
-    } elseif (preg_match('#^/wp-sitemap-([a-z]+)-(\d+)\.xml$#', $path, $m)) {
-        $sitemap = $m[1];
-        $paged = (int) $m[2];
-    } elseif (preg_match('#^/wp-sitemap-([a-z]+)-([a-z\d_-]+)-(\d+)\.xml$#', $path, $m)) {
-        $sitemap = $m[1];
-        $subtype = $m[2];
-        $paged = (int) $m[3];
-    } elseif ($path === '/wp-sitemap.xsl') {
-        $stylesheet = 'sitemap';
-    } elseif ($path === '/wp-sitemap-index.xsl') {
-        $stylesheet = 'sitemap-index';
-    } else {
-        return; // Not a sitemap URL
+    // Legacy aliases → redirect to /sitemap.xml
+    $legacy = [
+        '/sitemap_index.xml',
+        '/wp-sitemap.xml',
+        '/sitemap-combos.xml',
+        '/sitemap-combos-es.xml',
+        '/sitemap-spanish.xml',
+        '/sitemap-near-me.xml',
+        '/sitemap-near-me-es.xml',
+    ];
+    if (in_array($path, $legacy, true)) {
+        wp_safe_redirect(home_url('/sitemap.xml'), 301);
+        exit;
     }
 
-    if (!function_exists('wp_sitemaps_get_server')) {
+    if ($path !== '/sitemap.xml') {
         return;
     }
 
-    global $wp_query;
-
-    if ($sitemap) {
-        $wp_query->set('sitemap', $sitemap);
-        if ($subtype) {
-            $wp_query->set('sitemap-subtype', $subtype);
-        }
-        if ($paged) {
-            $wp_query->set('paged', $paged);
-        }
-    } elseif ($stylesheet) {
-        $wp_query->set('sitemap-stylesheet', $stylesheet);
-    }
-
-    // Reset 404 state that WordPress may have set.
-    $wp_query->is_404 = false;
+    // Prevent caching issues
+    nocache_headers();
+    header('Content-Type: application/xml; charset=UTF-8');
     status_header(200);
 
-    $sitemaps = wp_sitemaps_get_server();
-    $sitemaps->render_sitemaps();
-    // render_sitemaps() calls exit() on success.
-    // If we reach here, the provider wasn't found — let WordPress handle as 404.
+    $base = rtrim(get_option('home'), '/');
+
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+    // --- 1. Published WordPress content ---
+    $post_types = ['page', 'post', 'location', 'program', 'city', 'team_member'];
+    $excluded_paths = ['employers-2'];
+
+    $posts = get_posts([
+        'post_type' => $post_types,
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+    ]);
+
+    foreach ($posts as $post) {
+        $permalink = get_permalink($post->ID);
+        if (!$permalink)
+            continue;
+
+        $rel_path = trim(str_replace($base, '', $permalink), '/');
+        if (in_array($rel_path, $excluded_paths, true))
+            continue;
+        if (preg_match('#^career/.+-\d+$#', $rel_path))
+            continue;
+
+        $lastmod = get_the_modified_date('c', $post->ID);
+
+        // English version
+        chroma_sitemap_url($permalink, $lastmod);
+
+        // Spanish version
+        chroma_sitemap_url($base . '/es/' . $rel_path . '/', $lastmod);
+    }
+
+    // --- 2. Combo pages ---
+    if (class_exists('Chroma_Combo_Page_Generator') && class_exists('Chroma_Combo_Page_Data')) {
+        $combos = Chroma_Combo_Page_Generator::get_all_combos();
+        foreach ($combos as $combo) {
+            $saved = Chroma_Combo_Page_Data::get(
+                $combo['program']->post_name,
+                sanitize_title($combo['city']),
+                $combo['state']
+            );
+            $status = $saved['status'] ?? 'auto';
+            if ($status === 'published' || $status === 'publish') {
+                $url = $combo['url'];
+                chroma_sitemap_url($url);
+                // Spanish version
+                chroma_sitemap_url(str_replace($base . '/', $base . '/es/', $url));
+            }
+        }
+    }
+
+    // --- 3. Near-me pages ---
+    if (class_exists('Chroma_Near_Me_Pages') && method_exists('Chroma_Near_Me_Pages', 'get_sitemap_urls')) {
+        $near_me_urls = Chroma_Near_Me_Pages::get_sitemap_urls();
+        foreach ($near_me_urls as $url) {
+            chroma_sitemap_url($url);
+            // Spanish version
+            chroma_sitemap_url(str_replace($base . '/', $base . '/es/', $url));
+        }
+    }
+
+    echo '</urlset>' . "\n";
+    exit;
 }
-add_action('template_redirect', 'chroma_nuclear_sitemap_render', -999);
+add_action('template_redirect', 'chroma_serve_custom_sitemap', -999);
+
+/**
+ * Output a single <url> element.
+ */
+function chroma_sitemap_url($loc, $lastmod = '')
+{
+    echo "  <url>\n";
+    echo "    <loc>" . esc_url($loc) . "</loc>\n";
+    if ($lastmod) {
+        echo "    <lastmod>" . esc_html($lastmod) . "</lastmod>\n";
+    }
+    echo "  </url>\n";
+}
 
 /**
  * Preserve dynamic SEO routes from core canonical redirects.
