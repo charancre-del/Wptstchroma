@@ -30,6 +30,35 @@ class Chroma_Canonical_Enforcer
         // Redirect non-canonical URLs
         add_action('template_redirect', [$this, 'enforce_canonical'], 1);
     }
+
+    /**
+     * Detect XML sitemap requests (native WP and legacy aliases).
+     *
+     * @return bool
+     */
+    private function is_sitemap_request()
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $path = strtok($request_uri, '?');
+        if (!is_string($path)) {
+            $path = '';
+        }
+
+        if ($path !== '' && preg_match('#/(wp-sitemap(?:-[^/]+)?\.xml|sitemap(?:_index)?\.xml|sitemap-[^/]+\.xml)$#i', $path)) {
+            return true;
+        }
+
+        // Core query vars used by WP sitemaps.
+        if (get_query_var('sitemap') || get_query_var('sitemap-subtype') || get_query_var('sitemap-stylesheet')) {
+            return true;
+        }
+
+        if (isset($_GET['sitemap']) || isset($_GET['sitemap-stylesheet'])) {
+            return true;
+        }
+
+        return false;
+    }
     
     /**
      * Get canonical URL for current page
@@ -163,6 +192,11 @@ class Chroma_Canonical_Enforcer
         if (!get_option('chroma_seo_enable_canonical', true)) {
             return;
         }
+
+        // XML sitemap responses should not emit HTML canonical tags.
+        if ($this->is_sitemap_request()) {
+            return;
+        }
         
         // If Yoast SEO is active, let it handle the canonical to avoid duplicates
         if (defined('WPSEO_VERSION')) {
@@ -197,6 +231,11 @@ class Chroma_Canonical_Enforcer
         
         // Don't redirect 404s
         if (is_404()) {
+            return;
+        }
+
+        // Never canonical-redirect sitemap endpoints.
+        if ($this->is_sitemap_request()) {
             return;
         }
         

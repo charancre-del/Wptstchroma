@@ -24,8 +24,32 @@ class Chroma_Sitemap_Integrator
         // Exclude known duplicate winners from native post sitemaps.
         add_filter('wp_sitemaps_posts_query_args', [$this, 'filter_posts_sitemap_query_args'], 10, 2);
 
+        // Prevent core canonical redirect logic from collapsing sitemap endpoints to home.
+        add_filter('redirect_canonical', [$this, 'preserve_sitemap_endpoints'], 10, 2);
+
         // Keep Yoast sitemap index aligned with custom native providers when Yoast is active.
         add_filter('wpseo_sitemap_index', [$this, 'append_to_yoast_sitemap_index']);
+    }
+
+    /**
+     * Keep sitemap routes from being canonical-redirected.
+     *
+     * @param string|false $redirect_url
+     * @param string       $requested_url
+     * @return string|false
+     */
+    public function preserve_sitemap_endpoints($redirect_url, $requested_url)
+    {
+        $path = wp_parse_url((string) $requested_url, PHP_URL_PATH);
+        if (!is_string($path)) {
+            return $redirect_url;
+        }
+
+        if (preg_match('#/(wp-sitemap(?:-[^/]+)?\.xml|sitemap(?:_index)?\.xml|sitemap-[^/]+\.xml)$#i', $path)) {
+            return false;
+        }
+
+        return $redirect_url;
     }
 
     public function register_providers()
