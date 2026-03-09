@@ -55,31 +55,31 @@ class Chroma_Sitemap_Integrator
         $request_uri = isset($_SERVER['REQUEST_URI']) ? strtok($_SERVER['REQUEST_URI'], '?') : '';
         $path = '/' . trim($request_uri, '/');
 
+        $sitemap_vars = null;
+
         // /wp-sitemap.xml → sitemap index
         if ($path === '/wp-sitemap.xml') {
-            $query_vars['sitemap'] = 'index';
-            return $query_vars;
+            $sitemap_vars = ['sitemap' => 'index'];
         }
-
         // /wp-sitemap-{name}-{page}.xml → provider without subtype
-        if (preg_match('#^/wp-sitemap-([a-z]+)-(\d+)\.xml$#', $path, $m)) {
-            $query_vars['sitemap'] = $m[1];
-            $query_vars['paged'] = (int) $m[2];
-            return $query_vars;
+        elseif (preg_match('#^/wp-sitemap-([a-z]+)-(\d+)\.xml$#', $path, $m)) {
+            $sitemap_vars = ['sitemap' => $m[1], 'paged' => (int) $m[2]];
         }
-
         // /wp-sitemap-{name}-{subtype}-{page}.xml → provider with subtype
-        if (preg_match('#^/wp-sitemap-([a-z]+)-([a-z\d_-]+)-(\d+)\.xml$#', $path, $m)) {
-            $query_vars['sitemap'] = $m[1];
-            $query_vars['sitemap-subtype'] = $m[2];
-            $query_vars['paged'] = (int) $m[3];
-            return $query_vars;
+        elseif (preg_match('#^/wp-sitemap-([a-z]+)-([a-z\d_-]+)-(\d+)\.xml$#', $path, $m)) {
+            $sitemap_vars = ['sitemap' => $m[1], 'sitemap-subtype' => $m[2], 'paged' => (int) $m[3]];
+        }
+        // Sitemap stylesheets
+        elseif ($path === '/wp-sitemap.xsl' || $path === '/wp-sitemap-index.xsl') {
+            $sitemap_vars = ['sitemap-stylesheet' => ($path === '/wp-sitemap-index.xsl') ? 'sitemap-index' : 'sitemap'];
         }
 
-        // Sitemap stylesheets
-        if ($path === '/wp-sitemap.xsl' || $path === '/wp-sitemap-index.xsl') {
-            $query_vars['sitemap-stylesheet'] = ($path === '/wp-sitemap-index.xsl') ? 'sitemap-index' : 'sitemap';
-            return $query_vars;
+        if ($sitemap_vars !== null) {
+            // CRITICAL: Remove conflicting vars that WP sets when rewrite rules fail.
+            // Without this, WP treats the URL as a page request ("pagename=wp-sitemap.xml"),
+            // can't find such a page, and returns 404 before the sitemap handler fires.
+            unset($query_vars['pagename'], $query_vars['name'], $query_vars['page'], $query_vars['error']);
+            return array_merge($query_vars, $sitemap_vars);
         }
 
         return $query_vars;
