@@ -18,8 +18,8 @@ class Chroma_Sitemap_Integrator
         // Ensure providers are registered after core sitemap bootstraps.
         add_action('init', [$this, 'register_providers'], 20);
 
-        // Fallback: manually route sitemap URLs to query vars when rewrite rules are missing.
-        add_filter('request', [$this, 'force_sitemap_query_vars'], 1);
+        // NOTE: Sitemap query var routing is handled by the theme's
+        // chroma_force_sitemap_request_vars() in functions.php at priority 0.
 
         // Keep legacy sitemap endpoints aligned to WP native sitemap index.
         add_action('template_redirect', [$this, 'handle_legacy_sitemap_aliases'], 0);

@@ -579,10 +579,19 @@ add_filter('user_trailingslashit', 'chroma_enforce_trailing_slash', 10, 2);
  * - wp-sitemap URLs
  * - combo pages
  * - near-me pages
+ *
+ * IMPORTANT: Always MERGE into $query_vars and clear conflicting keys like
+ * 'pagename', 'name', 'error' so WordPress doesn't treat the URL as a page
+ * lookup and 404 before the actual handler fires.
  */
 function chroma_force_sitemap_request_vars($query_vars)
 {
     if (is_admin()) {
+        return $query_vars;
+    }
+
+    // If sitemap query vars are already set (e.g., by working rewrite rules), bail.
+    if (!empty($query_vars['sitemap']) || !empty($query_vars['sitemap-stylesheet'])) {
         return $query_vars;
     }
 
@@ -593,76 +602,68 @@ function chroma_force_sitemap_request_vars($query_vars)
     }
 
     $path = '/' . ltrim($path, '/');
+    $inject = null;
+
+    // --- Sitemaps ---
 
     if (preg_match('#/wp-sitemap\.xml$#i', $path)) {
-        return ['sitemap' => 'index'];
-    }
-
-    if (preg_match('#/wp-sitemap\.xsl$#i', $path)) {
-        return ['sitemap-stylesheet' => 'sitemap'];
-    }
-
-    if (preg_match('#/wp-sitemap-index\.xsl$#i', $path)) {
-        return ['sitemap-stylesheet' => 'index'];
-    }
-
-    if (preg_match('#/wp-sitemap-([a-z]+)-([a-z0-9_-]+)-([0-9]+)\.xml$#i', $path, $matches)) {
-        return [
+        $inject = ['sitemap' => 'index'];
+    } elseif (preg_match('#/wp-sitemap\.xsl$#i', $path)) {
+        $inject = ['sitemap-stylesheet' => 'sitemap'];
+    } elseif (preg_match('#/wp-sitemap-index\.xsl$#i', $path)) {
+        $inject = ['sitemap-stylesheet' => 'index'];
+    } elseif (preg_match('#/wp-sitemap-([a-z]+)-([a-z0-9_-]+)-([0-9]+)\.xml$#i', $path, $matches)) {
+        $inject = [
             'sitemap' => strtolower($matches[1]),
             'sitemap-subtype' => strtolower($matches[2]),
             'paged' => max(1, (int) $matches[3]),
         ];
-    }
-
-    if (preg_match('#/wp-sitemap-([a-z]+)-([0-9]+)\.xml$#i', $path, $matches)) {
-        return [
+    } elseif (preg_match('#/wp-sitemap-([a-z]+)-([0-9]+)\.xml$#i', $path, $matches)) {
+        $inject = [
             'sitemap' => strtolower($matches[1]),
             'paged' => max(1, (int) $matches[2]),
         ];
     }
 
-    // /{program}-in-{city}-{state}/ and /es/{program}-in-{city}-{state}/
-    if (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
-        $vars = [
+    // --- Combo pages: /{program}-in-{city}-{state}/ and /es/{program}-in-{city}-{state}/ ---
+    elseif (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $inject = [
             'chroma_combo' => 1,
             'combo_program' => sanitize_title($matches[2]),
             'combo_city' => sanitize_title($matches[3]),
             'combo_state' => strtoupper($matches[4]),
         ];
-
         if (!empty($matches[1])) {
-            $vars['chroma_lang'] = 'es';
+            $inject['chroma_lang'] = 'es';
         }
-
-        return $vars;
     }
 
-    // /{keyword}-near-me/ and /es/{keyword}-near-me/
-    if (preg_match('#^/(es/)?([a-z0-9-]+)-near-me/?$#i', $path, $matches)) {
-        $vars = [
+    // --- Near-me pages: /{keyword}-near-me/ ---
+    elseif (preg_match('#^/(es/)?([a-z0-9-]+)-near-me/?$#i', $path, $matches)) {
+        $inject = [
             'chroma_near_me' => sanitize_title($matches[2]),
         ];
-
         if (!empty($matches[1])) {
-            $vars['chroma_lang'] = 'es';
+            $inject['chroma_lang'] = 'es';
         }
-
-        return $vars;
     }
 
-    // /{keyword}-near-{city}-{state}/ and /es/{keyword}-near-{city}-{state}/
-    if (preg_match('#^/(es/)?([a-z0-9-]+)-near-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
-        $vars = [
+    // --- Near-city pages: /{keyword}-near-{city}-{state}/ ---
+    elseif (preg_match('#^/(es/)?([a-z0-9-]+)-near-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $inject = [
             'chroma_near_me' => sanitize_title($matches[2]),
             'near_city' => sanitize_title($matches[3]),
             'near_state' => strtoupper($matches[4]),
         ];
-
         if (!empty($matches[1])) {
-            $vars['chroma_lang'] = 'es';
+            $inject['chroma_lang'] = 'es';
         }
+    }
 
-        return $vars;
+    if ($inject !== null) {
+        // CRITICAL: Remove conflicting vars so WP doesn't treat URL as a page lookup.
+        unset($query_vars['pagename'], $query_vars['name'], $query_vars['page'], $query_vars['error']);
+        return array_merge($query_vars, $inject);
     }
 
     return $query_vars;

@@ -96,8 +96,8 @@ register_activation_hook(__FILE__, function () {
  * Bump the version suffix when rewrite rules change.
  */
 add_action('init', function () {
-    if (!get_option('chroma_seo_flush_v4')) {
+    if (!get_option('chroma_seo_flush_v5')) {
         flush_rewrite_rules();
-        update_option('chroma_seo_flush_v4', true);
+        update_option('chroma_seo_flush_v5', true);
     }
 }, 99);
