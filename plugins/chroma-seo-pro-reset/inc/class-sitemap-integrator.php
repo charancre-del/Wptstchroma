@@ -23,6 +23,9 @@ class Chroma_Sitemap_Integrator
 
         // Exclude known duplicate winners from native post sitemaps.
         add_filter('wp_sitemaps_posts_query_args', [$this, 'filter_posts_sitemap_query_args'], 10, 2);
+
+        // Keep Yoast sitemap index aligned with custom native providers when Yoast is active.
+        add_filter('wpseo_sitemap_index', [$this, 'append_to_yoast_sitemap_index']);
     }
 
     public function register_providers()
@@ -31,8 +34,19 @@ class Chroma_Sitemap_Integrator
             return;
         }
 
-        // One sitemap for all Spanish pages/posts (Singulars)
+        // One sitemap for all Spanish pages/posts (Singulars).
         wp_register_sitemap_provider('spanish', new Chroma_Spanish_Sitemap_Provider());
+
+        // Ensure combo and near-me providers are always present in native index when available.
+        if (class_exists('Chroma_Combo_Sitemap_Provider')) {
+            wp_register_sitemap_provider('combos', new Chroma_Combo_Sitemap_Provider('en'));
+            wp_register_sitemap_provider('combos-es', new Chroma_Combo_Sitemap_Provider('es'));
+        }
+
+        if (class_exists('Chroma_Near_Me_Sitemap_Provider')) {
+            wp_register_sitemap_provider('near-me', new Chroma_Near_Me_Sitemap_Provider('en'));
+            wp_register_sitemap_provider('near-me-es', new Chroma_Near_Me_Sitemap_Provider('es'));
+        }
     }
 
     /**
@@ -50,8 +64,19 @@ class Chroma_Sitemap_Integrator
         }
 
         $request_uri = '/' . trim($request_uri, '/');
-        if ($request_uri === '/sitemap.xml' || $request_uri === '/sitemap_index.xml') {
-            wp_safe_redirect(home_url('/wp-sitemap.xml'), 301);
+
+        $aliases = [
+            '/sitemap.xml' => '/wp-sitemap.xml',
+            '/sitemap_index.xml' => '/wp-sitemap.xml',
+            '/sitemap-spanish.xml' => '/wp-sitemap-custom-spanish-1.xml',
+            '/sitemap-combos.xml' => '/wp-sitemap-custom-combos-1.xml',
+            '/sitemap-combos-es.xml' => '/wp-sitemap-custom-combos-es-1.xml',
+            '/sitemap-near-me.xml' => '/wp-sitemap-custom-near-me-1.xml',
+            '/sitemap-near-me-es.xml' => '/wp-sitemap-custom-near-me-es-1.xml',
+        ];
+
+        if (isset($aliases[$request_uri])) {
+            wp_safe_redirect(home_url($aliases[$request_uri]), 301);
             exit;
         }
     }
@@ -76,6 +101,69 @@ class Chroma_Sitemap_Integrator
 
         $args['post__not_in'] = array_values(array_unique(array_merge($args['post__not_in'], $exclude_ids)));
         return $args;
+    }
+
+    /**
+     * Append custom native sitemaps to Yoast index (without duplicate entries).
+     *
+     * @param string $sitemap_index
+     * @return string
+     */
+    public function append_to_yoast_sitemap_index($sitemap_index)
+    {
+        $entries = [
+            [
+                'primary' => '/wp-sitemap-custom-spanish-1.xml',
+                'aliases' => ['/sitemap-spanish.xml'],
+            ],
+            [
+                'primary' => '/wp-sitemap-custom-combos-1.xml',
+                'aliases' => ['/sitemap-combos.xml'],
+            ],
+            [
+                'primary' => '/wp-sitemap-custom-combos-es-1.xml',
+                'aliases' => ['/sitemap-combos-es.xml'],
+            ],
+            [
+                'primary' => '/wp-sitemap-custom-near-me-1.xml',
+                'aliases' => ['/sitemap-near-me.xml'],
+            ],
+            [
+                'primary' => '/wp-sitemap-custom-near-me-es-1.xml',
+                'aliases' => ['/sitemap-near-me-es.xml'],
+            ],
+        ];
+
+        $last_mod = gmdate('c');
+        foreach ($entries as $entry) {
+            if ($this->sitemap_index_contains_any($sitemap_index, array_merge([$entry['primary']], $entry['aliases']))) {
+                continue;
+            }
+
+            $loc = esc_url(home_url($entry['primary']));
+            $sitemap_index .= '<sitemap><loc>' . $loc . '</loc><lastmod>' . $last_mod . '</lastmod></sitemap>';
+        }
+
+        return $sitemap_index;
+    }
+
+    /**
+     * Check whether sitemap index already contains any sitemap URL path.
+     *
+     * @param string $sitemap_index
+     * @param array  $paths
+     * @return bool
+     */
+    private function sitemap_index_contains_any($sitemap_index, $paths)
+    {
+        foreach ((array) $paths as $path) {
+            $url = home_url($path);
+            if (strpos($sitemap_index, $url) !== false || strpos($sitemap_index, esc_url($url)) !== false) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -1527,7 +1527,7 @@ class Chroma_Combo_Sitemap_Provider extends WP_Sitemaps_Provider {
             $status = $saved_data['status'] ?? 'auto';
             if ($status === 'published' || $status === 'publish') $count++;
         }
-        return ceil($count / 2000);
+        return max(1, (int) ceil($count / 2000));
     }
 }
 

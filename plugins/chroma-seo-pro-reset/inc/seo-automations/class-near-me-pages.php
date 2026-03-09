@@ -483,7 +483,7 @@ class Chroma_Near_Me_Sitemap_Provider extends WP_Sitemaps_Provider {
 
     public function get_max_num_pages($object_subtype = '') {
         $links = Chroma_Near_Me_Pages::get_sitemap_urls();
-        return ceil(count($links) / 2000);
+        return max(1, (int) ceil(count($links) / 2000));
     }
 }
 
