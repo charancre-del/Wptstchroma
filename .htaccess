@@ -4,6 +4,14 @@
 #
 <IfModule mod_rewrite.c>
 RewriteEngine On
+
+# Core WP sitemap pretty URLs -> query vars (works even when DB rewrite rules are stale)
+RewriteRule ^wp-sitemap\.xml$ /index.php?sitemap=index [L,QSA]
+RewriteRule ^wp-sitemap\.xsl$ /index.php?sitemap-stylesheet=sitemap [L,QSA]
+RewriteRule ^wp-sitemap-index\.xsl$ /index.php?sitemap-stylesheet=index [L,QSA]
+RewriteRule ^wp-sitemap-([a-z]+)-([a-z0-9_-]+)-([0-9]+)\.xml$ /index.php?sitemap=$1&sitemap-subtype=$2&paged=$3 [L,QSA,NC]
+RewriteRule ^wp-sitemap-([a-z]+)-([0-9]+)\.xml$ /index.php?sitemap=$1&paged=$2 [L,QSA,NC]
+
 RewriteRule ^sitemap_index\.xml$ /wp-sitemap.xml [R=301,L]
 RewriteRule ^sitemap\.xml$ /wp-sitemap.xml [R=301,L]
 RewriteRule ^sitemap-spanish\.xml$ /wp-sitemap-custom-spanish-1.xml [R=301,L]
