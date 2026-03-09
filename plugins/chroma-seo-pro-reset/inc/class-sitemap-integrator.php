@@ -18,6 +18,9 @@ class Chroma_Sitemap_Integrator
         // Ensure providers are registered after core sitemap bootstraps.
         add_action('init', [$this, 'register_providers'], 20);
 
+        // Fallback: manually route sitemap URLs to query vars when rewrite rules are missing.
+        add_filter('request', [$this, 'force_sitemap_query_vars'], 1);
+
         // Keep legacy sitemap endpoints aligned to WP native sitemap index.
         add_action('template_redirect', [$this, 'handle_legacy_sitemap_aliases'], 0);
 
@@ -29,6 +32,57 @@ class Chroma_Sitemap_Integrator
 
         // Keep Yoast sitemap index aligned with custom native providers when Yoast is active.
         add_filter('wpseo_sitemap_index', [$this, 'append_to_yoast_sitemap_index']);
+    }
+
+    /**
+     * Manually inject sitemap query vars from the URL when rewrite rules are missing.
+     *
+     * WordPress native sitemaps rely on rewrite rules to map pretty URLs like
+     * /wp-sitemap.xml to query vars (?sitemap=index). If flush_rewrite_rules()
+     * fails to persist (hosting, caching, etc.), sitemaps silently 404.
+     * This filter detects sitemap URLs and sets the query vars directly.
+     *
+     * @param array $query_vars Parsed query vars from WP::parse_request().
+     * @return array
+     */
+    public function force_sitemap_query_vars($query_vars)
+    {
+        // Only act when query vars don't already contain sitemap info.
+        if (!empty($query_vars['sitemap'])) {
+            return $query_vars;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? strtok($_SERVER['REQUEST_URI'], '?') : '';
+        $path = '/' . trim($request_uri, '/');
+
+        // /wp-sitemap.xml → sitemap index
+        if ($path === '/wp-sitemap.xml') {
+            $query_vars['sitemap'] = 'index';
+            return $query_vars;
+        }
+
+        // /wp-sitemap-{name}-{page}.xml → provider without subtype
+        if (preg_match('#^/wp-sitemap-([a-z]+)-(\d+)\.xml$#', $path, $m)) {
+            $query_vars['sitemap'] = $m[1];
+            $query_vars['paged'] = (int) $m[2];
+            return $query_vars;
+        }
+
+        // /wp-sitemap-{name}-{subtype}-{page}.xml → provider with subtype
+        if (preg_match('#^/wp-sitemap-([a-z]+)-([a-z\d_-]+)-(\d+)\.xml$#', $path, $m)) {
+            $query_vars['sitemap'] = $m[1];
+            $query_vars['sitemap-subtype'] = $m[2];
+            $query_vars['paged'] = (int) $m[3];
+            return $query_vars;
+        }
+
+        // Sitemap stylesheets
+        if ($path === '/wp-sitemap.xsl' || $path === '/wp-sitemap-index.xsl') {
+            $query_vars['sitemap-stylesheet'] = ($path === '/wp-sitemap-index.xsl') ? 'sitemap-index' : 'sitemap';
+            return $query_vars;
+        }
+
+        return $query_vars;
     }
 
     /**
