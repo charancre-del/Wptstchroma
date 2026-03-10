@@ -15,8 +15,8 @@ class Chroma_Sitemap_Integrator
 {
     public function init()
     {
-        // Ensure providers are registered after core sitemap bootstraps.
-        add_action('init', [$this, 'register_providers'], 20);
+        // Serve custom XML sitemap endpoints before theme-level redirects.
+        add_action('template_redirect', [$this, 'serve_custom_sitemap_endpoints'], -1001);
 
         // NOTE: Sitemap query var routing is handled by the theme's
         // chroma_force_sitemap_request_vars() in functions.php at priority 0.
@@ -32,6 +32,267 @@ class Chroma_Sitemap_Integrator
 
         // Keep Yoast sitemap index aligned with custom native providers when Yoast is active.
         add_filter('wpseo_sitemap_index', [$this, 'append_to_yoast_sitemap_index']);
+    }
+
+    /**
+     * Serve dedicated sitemap endpoints directly from plugin code.
+     *
+     * Endpoints:
+     * - /sitemap_index.xml
+     * - /sitemap-spanish.xml
+     * - /sitemap-combos.xml
+     * - /sitemap-combos-es.xml
+     * - /sitemap-near-me.xml
+     * - /sitemap-near-me-es.xml
+     */
+    public function serve_custom_sitemap_endpoints()
+    {
+        if (is_admin() || wp_doing_ajax() || ($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'GET') {
+            return;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? strtok($_SERVER['REQUEST_URI'], '?') : '';
+        if (!$request_uri) {
+            return;
+        }
+
+        $path = '/' . trim($request_uri, '/');
+
+        switch ($path) {
+            case '/sitemap_index.xml':
+                $this->render_sitemap_index([
+                    '/sitemap.xml',
+                    '/sitemap-spanish.xml',
+                    '/sitemap-combos.xml',
+                    '/sitemap-combos-es.xml',
+                    '/sitemap-near-me.xml',
+                    '/sitemap-near-me-es.xml',
+                ]);
+                break;
+
+            case '/sitemap-spanish.xml':
+                $this->render_spanish_sitemap();
+                break;
+
+            case '/sitemap-combos.xml':
+                $this->render_combo_sitemap('en');
+                break;
+
+            case '/sitemap-combos-es.xml':
+                $this->render_combo_sitemap('es');
+                break;
+
+            case '/sitemap-near-me.xml':
+                $this->render_near_me_sitemap('en');
+                break;
+
+            case '/sitemap-near-me-es.xml':
+                $this->render_near_me_sitemap('es');
+                break;
+        }
+    }
+
+    /**
+     * Render a sitemap index XML document.
+     *
+     * @param string[] $paths
+     */
+    private function render_sitemap_index($paths)
+    {
+        nocache_headers();
+        header('Content-Type: application/xml; charset=UTF-8');
+        status_header(200);
+
+        $lastmod = gmdate('c');
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+        foreach ((array) $paths as $path) {
+            $loc = esc_url(home_url((string) $path));
+            echo '  <sitemap>' . "\n";
+            echo '    <loc>' . $loc . '</loc>' . "\n";
+            echo '    <lastmod>' . esc_html($lastmod) . '</lastmod>' . "\n";
+            echo '  </sitemap>' . "\n";
+        }
+        echo '</sitemapindex>' . "\n";
+        exit;
+    }
+
+    /**
+     * Render combo sitemap XML.
+     *
+     * @param string $lang 'en'|'es'
+     */
+    private function render_combo_sitemap($lang = 'en')
+    {
+        $entries = [];
+        $lastmod = gmdate('c');
+
+        if (class_exists('Chroma_Combo_Page_Generator') && class_exists('Chroma_Combo_Page_Data')) {
+            $combos = Chroma_Combo_Page_Generator::get_all_combos();
+            foreach ($combos as $combo) {
+                if (empty($combo['program']) || empty($combo['city']) || empty($combo['state']) || empty($combo['url'])) {
+                    continue;
+                }
+
+                $saved_data = Chroma_Combo_Page_Data::get(
+                    $combo['program']->post_name,
+                    sanitize_title($combo['city']),
+                    $combo['state']
+                );
+                $status = $saved_data['status'] ?? 'auto';
+                if ($status !== 'published' && $status !== 'publish') {
+                    continue;
+                }
+
+                $url = (string) $combo['url'];
+                if ($lang === 'es') {
+                    $url = $this->to_spanish_url($url);
+                }
+
+                if ($url === '') {
+                    continue;
+                }
+
+                $entries[] = [
+                    'loc' => $url,
+                    'lastmod' => $lastmod,
+                ];
+            }
+        }
+
+        $this->render_urlset($entries);
+    }
+
+    /**
+     * Render near-me sitemap XML.
+     *
+     * @param string $lang 'en'|'es'
+     */
+    private function render_near_me_sitemap($lang = 'en')
+    {
+        $entries = [];
+        $lastmod = gmdate('c');
+
+        if (class_exists('Chroma_Near_Me_Pages') && method_exists('Chroma_Near_Me_Pages', 'get_sitemap_urls')) {
+            $links = Chroma_Near_Me_Pages::get_sitemap_urls();
+            foreach ($links as $link) {
+                $url = (string) $link;
+                if ($lang === 'es') {
+                    $url = $this->to_spanish_url($url);
+                }
+
+                if ($url === '') {
+                    continue;
+                }
+
+                $entries[] = [
+                    'loc' => $url,
+                    'lastmod' => $lastmod,
+                ];
+            }
+        }
+
+        $this->render_urlset($entries);
+    }
+
+    /**
+     * Render Spanish sitemap XML.
+     */
+    private function render_spanish_sitemap()
+    {
+        $entries = [];
+        $base = rtrim(home_url('/'), '/');
+        $post_types = ['page', 'location', 'program', 'city', 'post', 'team_member'];
+
+        $posts = get_posts([
+            'post_type' => $post_types,
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+        ]);
+
+        foreach ($posts as $post) {
+            $en_url = get_permalink($post->ID);
+            if (!$en_url) {
+                continue;
+            }
+
+            $path = ltrim((string) str_replace($base, '', $en_url), '/');
+            if ($path === '' || str_starts_with($path, 'es/')) {
+                continue;
+            }
+
+            // Keep duplicate winners out (same rule used across sitemap logic).
+            if (class_exists('Chroma_URL_Consolidator') && method_exists('Chroma_URL_Consolidator', 'is_duplicate_path')) {
+                if (Chroma_URL_Consolidator::is_duplicate_path('/' . trim($path, '/') . '/')) {
+                    continue;
+                }
+            }
+
+            $entries[] = [
+                'loc' => $base . '/es/' . trim($path, '/') . '/',
+                'lastmod' => get_the_modified_date('c', $post->ID),
+            ];
+        }
+
+        $this->render_urlset($entries);
+    }
+
+    /**
+     * Convert an absolute EN URL to its /es/ equivalent.
+     *
+     * @param string $url
+     * @return string
+     */
+    private function to_spanish_url($url)
+    {
+        $url = (string) $url;
+        if ($url === '') {
+            return '';
+        }
+
+        $base = rtrim(home_url('/'), '/');
+        $es_url = str_replace($base . '/', $base . '/es/', $url);
+        if ($es_url !== $url) {
+            return $es_url;
+        }
+
+        $path = wp_parse_url($url, PHP_URL_PATH);
+        if (!is_string($path) || $path === '') {
+            return '';
+        }
+
+        return home_url('/es/' . ltrim($path, '/'));
+    }
+
+    /**
+     * Render urlset XML and terminate request.
+     *
+     * @param array[] $entries
+     */
+    private function render_urlset($entries)
+    {
+        nocache_headers();
+        header('Content-Type: application/xml; charset=UTF-8');
+        status_header(200);
+
+        echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+        echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+        foreach ((array) $entries as $entry) {
+            $loc = isset($entry['loc']) ? (string) $entry['loc'] : '';
+            if ($loc === '') {
+                continue;
+            }
+
+            $lastmod = isset($entry['lastmod']) && $entry['lastmod'] ? (string) $entry['lastmod'] : gmdate('c');
+            echo "  <url>\n";
+            echo '    <loc>' . esc_url($loc) . "</loc>\n";
+            echo '    <lastmod>' . esc_html($lastmod) . "</lastmod>\n";
+            echo "  </url>\n";
+        }
+
+        echo '</urlset>' . "\n";
+        exit;
     }
 
     /**
@@ -152,24 +413,24 @@ class Chroma_Sitemap_Integrator
     {
         $entries = [
             [
-                'primary' => '/wp-sitemap-spanish-1.xml',
-                'aliases' => ['/sitemap-spanish.xml'],
+                'primary' => '/sitemap-spanish.xml',
+                'aliases' => [],
             ],
             [
-                'primary' => '/wp-sitemap-combos-1.xml',
-                'aliases' => ['/sitemap-combos.xml'],
+                'primary' => '/sitemap-combos.xml',
+                'aliases' => [],
             ],
             [
-                'primary' => '/wp-sitemap-comboses-1.xml',
-                'aliases' => ['/sitemap-combos-es.xml'],
+                'primary' => '/sitemap-combos-es.xml',
+                'aliases' => [],
             ],
             [
-                'primary' => '/wp-sitemap-nearme-1.xml',
-                'aliases' => ['/sitemap-near-me.xml'],
+                'primary' => '/sitemap-near-me.xml',
+                'aliases' => [],
             ],
             [
-                'primary' => '/wp-sitemap-nearmees-1.xml',
-                'aliases' => ['/sitemap-near-me-es.xml'],
+                'primary' => '/sitemap-near-me-es.xml',
+                'aliases' => [],
             ],
         ];
 
@@ -347,5 +608,3 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider
         return false;
     }
 }
-
-
