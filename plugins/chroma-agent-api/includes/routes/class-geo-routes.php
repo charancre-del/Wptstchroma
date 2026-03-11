@@ -1371,6 +1371,16 @@ class Geo_Routes
                 $hours['display'] ?? null,
                 array_values(array_filter(array_map(static fn($x) => $x['name'] ?? null, $programs_offered)))
             );
+            $description = self::fallback_location_description(
+                self::nullable_string($location['description'] ?? ''),
+                self::nullable_string($location['seo_text'] ?? ''),
+                self::nullable_string($location['short_description'] ?? '')
+            );
+            $accepts_ga_pre_k_meta = self::normalize_nullable_bool($facility_profile['accepts_ga_pre_k'] ?? null);
+            $accepts_ga_pre_k = $accepts_ga_pre_k_meta;
+            if ($accepts_ga_pre_k === null && self::location_has_ga_pre_k_program($programs_offered)) {
+                $accepts_ga_pre_k = true;
+            }
 
             $legacy = [
                 'id' => $location_id > 0 ? $location_id : null,
@@ -1390,7 +1400,7 @@ class Geo_Routes
                 'hours_normalized' => $hours_normalized,
                 'facility_highlights' => [
                     'tagline' => self::nullable_string($location['tagline'] ?? ''),
-                    'description' => self::nullable_string($location['description'] ?? ''),
+                    'description' => $description,
                     'seo_title' => self::nullable_string($location['seo_title'] ?? ''),
                     'seo_text' => self::nullable_string($location['seo_text'] ?? ''),
                 ],
@@ -1414,12 +1424,12 @@ class Geo_Routes
                 'facility_profile' => [
                     'is_event_venue' => self::normalize_nullable_bool($facility_profile['is_event_venue'] ?? null),
                     'accepts_caps' => self::normalize_nullable_bool($facility_profile['accepts_caps'] ?? null),
-                    'accepts_ga_pre_k' => self::normalize_nullable_bool($facility_profile['accepts_ga_pre_k'] ?? null),
+                    'accepts_ga_pre_k' => $accepts_ga_pre_k,
                     'security_cameras' => self::normalize_nullable_bool($facility_profile['security_cameras'] ?? null),
                     'amenities' => self::parse_text_list($facility_profile['amenities'] ?? []),
                 ],
                 'facility_profile_normalized' => [
-                    'accepts_ga_pre_k' => self::normalize_nullable_bool($facility_profile['accepts_ga_pre_k'] ?? null),
+                    'accepts_ga_pre_k' => $accepts_ga_pre_k,
                 ],
                 'facility_profile_source' => 'wordpress_meta',
                 'admissions' => is_array($location['admissions'] ?? null) ? $location['admissions'] : ['enrollment_steps' => []],
@@ -1812,6 +1822,43 @@ class Geo_Routes
         return array_slice(self::normalize_entity_faqs($merged), 0, 6);
     }
 
+    private static function location_has_ga_pre_k_program(array $programs_offered): bool
+    {
+        foreach ($programs_offered as $program) {
+            if (!is_array($program)) {
+                continue;
+            }
+
+            $slug = strtolower((string) ($program['slug'] ?? ''));
+            $name = strtolower((string) ($program['name'] ?? ''));
+            if ($slug === 'ga-pre-k' || strpos($slug, 'ga-pre-k') !== false || strpos($name, 'ga pre-k') !== false || strpos($name, 'georgia pre-k') !== false) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static function fallback_location_description(?string $description, ?string $seo_text, ?string $short_description): ?string
+    {
+        if ($description !== null) {
+            return self::limit_text($description, 500);
+        }
+
+        if ($seo_text !== null) {
+            $parts = preg_split('/(?<=[.!?])\s+/', trim($seo_text), 2);
+            $first_sentence = is_array($parts) ? trim((string) ($parts[0] ?? '')) : '';
+            $candidate = $first_sentence !== '' ? $first_sentence : $seo_text;
+            return self::limit_text($candidate, 500);
+        }
+
+        if ($short_description !== null) {
+            return self::limit_text($short_description, 500);
+        }
+
+        return null;
+    }
+
     private static function compute_location_completeness_score(array $location): float
     {
         $checks = [
@@ -2199,14 +2246,35 @@ class Geo_Routes
         ];
 
         $out = [];
+        $has_structured_day_hours = false;
         foreach ($days as $key => $label) {
             $entry = is_array($hours[$key] ?? null) ? $hours[$key] : ['open' => null, 'close' => null, 'closed' => null];
+            $open = self::nullable_string($entry['open'] ?? '');
+            $close = self::nullable_string($entry['close'] ?? '');
+            if ($open !== null && $close !== null) {
+                $has_structured_day_hours = true;
+            }
             $out[] = [
                 'day' => $label,
-                'open' => self::nullable_string($entry['open'] ?? ''),
-                'close' => self::nullable_string($entry['close'] ?? ''),
+                'open' => $open,
+                'close' => $close,
                 'closed' => isset($entry['closed']) ? (bool) $entry['closed'] : null,
             ];
+        }
+
+        if (!$has_structured_day_hours) {
+            $notes = self::nullable_string($hours['notes'] ?? '');
+            $parsed = $notes !== null ? self::parse_hours_range($notes) : null;
+            if ($parsed !== null) {
+                foreach ($out as &$item) {
+                    if (in_array($item['day'], ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'], true)) {
+                        $item['open'] = $parsed['open'];
+                        $item['close'] = $parsed['close'];
+                        $item['closed'] = false;
+                    }
+                }
+                unset($item);
+            }
         }
 
         return $out;
