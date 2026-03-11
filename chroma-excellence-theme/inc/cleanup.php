@@ -54,6 +54,107 @@ function chroma_disable_author_archives()
 add_action('template_redirect', 'chroma_disable_author_archives');
 
 /**
+ * Redirect tracked marketing 404 URLs to homepage.
+ *
+ * Some ad platforms append tracking parameters (or malformed tracking suffixes)
+ * to landing URLs. If that results in a 404, recover to homepage while preserving
+ * attribution parameters where possible.
+ */
+function chroma_redirect_tracked_404_to_home()
+{
+        if (is_admin() || wp_doing_ajax() || !is_404()) {
+                return;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+        $path = is_string($path) ? $path : '';
+
+        // Skip internal/system endpoints.
+        $skip_prefixes = array(
+                '/wp-admin',
+                '/wp-json',
+                '/wp-content',
+                '/wp-includes',
+        );
+
+        foreach ($skip_prefixes as $prefix) {
+                if (strpos($path, $prefix) === 0) {
+                        return;
+                }
+        }
+
+        $skip_exact = array('/robots.txt', '/favicon.ico', '/sitemap.xml');
+        if (in_array($path, $skip_exact, true)) {
+                return;
+        }
+
+        $tracking_keys = array(
+                'fbclid',
+                'utm_source',
+                'utm_medium',
+                'utm_campaign',
+                'utm_term',
+                'utm_content',
+                'utm_id',
+                'gclid',
+                'msclkid',
+                'ttclid',
+                'twclid',
+                'wbraid',
+                'gbraid',
+                'li_fat_id',
+                'mc_cid',
+                'mc_eid',
+                'yclid',
+        );
+
+        $has_tracking_marker = false;
+        foreach ($tracking_keys as $key) {
+                if (isset($_GET[$key])) {
+                        $has_tracking_marker = true;
+                        break;
+                }
+        }
+
+        // Fallback detection for malformed paths that include fbclid-like suffixes.
+        if (
+                !$has_tracking_marker
+                && is_string($request_uri)
+                && preg_match('/(?:fbclid|utm_|gclid|msclkid|ttclid|wbraid|gbraid|twclid)=/i', $request_uri)
+        ) {
+                $has_tracking_marker = true;
+        }
+
+        if (!$has_tracking_marker) {
+                return;
+        }
+
+        $query_forward = array();
+        foreach ($tracking_keys as $key) {
+                if (!isset($_GET[$key])) {
+                        continue;
+                }
+
+                $value = wp_unslash($_GET[$key]);
+                if (is_array($value)) {
+                        continue;
+                }
+
+                $query_forward[$key] = sanitize_text_field((string) $value);
+        }
+
+        $target = home_url('/');
+        if (!empty($query_forward)) {
+                $target = add_query_arg($query_forward, $target);
+        }
+
+        wp_safe_redirect($target, 302);
+        exit;
+}
+add_action('template_redirect', 'chroma_redirect_tracked_404_to_home', 0);
+
+/**
  * Disable XML-RPC
  */
 add_filter('xmlrpc_enabled', '__return_false');

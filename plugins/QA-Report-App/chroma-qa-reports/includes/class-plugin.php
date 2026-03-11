@@ -294,6 +294,7 @@ class Plugin
     public function add_manifest_rewrite()
     {
         add_rewrite_rule('^qa-reports/manifest\.json', 'index.php?cqa_manifest=1', 'top');
+        add_rewrite_rule('^qa-report/manifest\.json', 'index.php?cqa_manifest=1', 'top');
     }
 
     /**

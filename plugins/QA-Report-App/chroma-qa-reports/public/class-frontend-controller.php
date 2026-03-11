@@ -14,6 +14,23 @@ namespace ChromaQA\Frontend;
  */
 class Frontend_Controller
 {
+    /**
+     * Public portal base slugs.
+     *
+     * Keep both values for backwards compatibility with older links that
+     * referenced the singular slug.
+     *
+     * @var string[]
+     */
+    private const ROUTE_BASES = ['qa-reports', 'qa-report'];
+
+    /**
+     * Rewrite rules schema version.
+     *
+     * Bump this when route rules change so active installs get a one-time
+     * rewrite flush without requiring manual permalink saves.
+     */
+    private const REWRITE_VERSION = '2';
 
     /**
      * Initialize front-end functionality.
@@ -21,6 +38,7 @@ class Frontend_Controller
     public static function init()
     {
         add_action('init', [self::class, 'register_rewrites']);
+        add_action('init', [self::class, 'maybe_flush_rewrite_rules'], 99);
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('CQA DEBUG: Frontend_Controller::init called');
         }
@@ -40,6 +58,8 @@ class Frontend_Controller
         add_filter('wp_sitemaps_add_provider', [self::class, 'exclude_from_sitemap'], 10, 2);
         add_filter('wpseo_exclude_from_sitemap_by_url', [self::class, 'yoast_exclude_urls']);
         add_filter('rank_math/sitemap/exclude_urls', [self::class, 'rankmath_exclude_urls']);
+        add_filter('redirect_canonical', [self::class, 'preserve_qa_route_canonical'], 1, 2);
+        add_filter('pre_option_chroma_seo_redirect_canonical', [self::class, 'disable_custom_canonical_on_qa_routes'], 10, 3);
 
         // Add noindex to QA pages
         add_action('wp_head', [self::class, 'add_noindex_meta']);
@@ -58,7 +78,9 @@ class Frontend_Controller
      */
     public static function yoast_exclude_urls($excluded)
     {
-        $excluded[] = home_url('/qa-reports/');
+        foreach (self::ROUTE_BASES as $base) {
+            $excluded[] = home_url('/' . $base . '/');
+        }
         return $excluded;
     }
 
@@ -67,7 +89,9 @@ class Frontend_Controller
      */
     public static function rankmath_exclude_urls($urls)
     {
-        $urls[] = home_url('/qa-reports/');
+        foreach (self::ROUTE_BASES as $base) {
+            $urls[] = home_url('/' . $base . '/');
+        }
         return $urls;
     }
 
@@ -89,15 +113,91 @@ class Frontend_Controller
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('CQA DEBUG: register_rewrites called');
         }
-        // Login Route
-        add_rewrite_rule('^qa-reports/login/?$', 'index.php?cqa_page=login', 'top');
+        foreach (self::ROUTE_BASES as $base) {
+            // Login Route
+            add_rewrite_rule('^' . $base . '/login/?$', 'index.php?cqa_page=login', 'top');
 
-        // Auth Callback
-        add_rewrite_rule('^qa-reports/auth/callback/?$', 'index.php?cqa_page=oauth_callback', 'top');
+            // Auth Callback
+            add_rewrite_rule('^' . $base . '/auth/callback/?$', 'index.php?cqa_page=oauth_callback', 'top');
 
-        // All other routes map to the React App (Dashboard)
-        add_rewrite_rule('^qa-reports/.*', 'index.php?cqa_page=dashboard', 'top');
-        add_rewrite_rule('^qa-reports/?$', 'index.php?cqa_page=dashboard', 'top');
+            // All other routes map to the React App (Dashboard)
+            add_rewrite_rule('^' . $base . '/.*', 'index.php?cqa_page=dashboard', 'top');
+            add_rewrite_rule('^' . $base . '/?$', 'index.php?cqa_page=dashboard', 'top');
+        }
+    }
+
+    /**
+     * Flush rewrite rules once after route changes.
+     */
+    public static function maybe_flush_rewrite_rules()
+    {
+        $stored_version = get_option('cqa_frontend_rewrite_version', '');
+        if ($stored_version === self::REWRITE_VERSION) {
+            return;
+        }
+
+        self::register_rewrites();
+        flush_rewrite_rules(false);
+        update_option('cqa_frontend_rewrite_version', self::REWRITE_VERSION, false);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('CQA DEBUG: Frontend rewrite rules flushed to version ' . self::REWRITE_VERSION);
+        }
+    }
+
+    /**
+     * Prevent core canonical redirects from hijacking QA routes.
+     *
+     * @param string|false $redirect_url Redirect URL candidate.
+     * @param string $requested_url Current requested URL.
+     * @return string|false
+     */
+    public static function preserve_qa_route_canonical($redirect_url, $requested_url)
+    {
+        $path = wp_parse_url((string) $requested_url, PHP_URL_PATH);
+        if (!is_string($path)) {
+            $path = '';
+        }
+
+        if (self::is_qa_route_path($path)) {
+            return false;
+        }
+
+        return $redirect_url;
+    }
+
+    /**
+     * Disable custom canonical redirect option for QA routes only.
+     *
+     * @param mixed $pre_option Pre-option value.
+     * @param string $option Option key.
+     * @param mixed $default Default option value.
+     * @return mixed
+     */
+    public static function disable_custom_canonical_on_qa_routes($pre_option, $option, $default)
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+        if (!is_string($path)) {
+            $path = '';
+        }
+
+        if (self::is_qa_route_path($path)) {
+            return false;
+        }
+
+        return $pre_option;
+    }
+
+    /**
+     * Whether the path is one of the public QA portal routes.
+     *
+     * @param string $path Request path.
+     * @return bool
+     */
+    private static function is_qa_route_path($path)
+    {
+        return is_string($path) && (bool) preg_match('#^/qa-reports?(?:/|$)#i', $path);
     }
 
     /**
@@ -130,8 +230,12 @@ class Frontend_Controller
         }
 
         $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
-        if (is_string($request_uri) && strpos($request_uri, '/qa-reports') !== false) {
-            return false;
+        if (is_string($request_uri)) {
+            foreach (self::ROUTE_BASES as $base) {
+                if (strpos($request_uri, '/' . $base) !== false) {
+                    return false;
+                }
+            }
         }
 
         return $show;
