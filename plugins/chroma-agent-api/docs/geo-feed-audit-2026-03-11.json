@@ -1,0 +1,635 @@
+{
+  "timestamp": "2026-03-11",
+  "top_level_keys": [
+    "success",
+    "cached",
+    "contract_version",
+    "generated_at_gmt",
+    "source",
+    "summary",
+    "brand",
+    "curriculum",
+    "locations",
+    "programs"
+  ],
+  "summary": {
+    "location_count": 19,
+    "program_count": 8,
+    "event_count": 0
+  },
+  "contract_version": "2026-02-28.3",
+  "location_field_completion": {
+    "id": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "campus_name": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "slug": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "url": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "address.street": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "address.city": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "address.state": {
+      "filled": 16,
+      "total": 19,
+      "pct": 84.2
+    },
+    "address.postal_code": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "address.country": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "phone_number": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "email": {
+      "filled": 18,
+      "total": 19,
+      "pct": 94.7
+    },
+    "administrator_name": {
+      "filled": 17,
+      "total": 19,
+      "pct": 89.5
+    },
+    "programs_offered": {
+      "filled": 0,
+      "total": 19,
+      "pct": 0.0
+    },
+    "ages_accepted": {
+      "filled": 15,
+      "total": 19,
+      "pct": 78.9
+    },
+    "operating_hours": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "facility_highlights.tagline": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "facility_highlights.description": {
+      "filled": 17,
+      "total": 19,
+      "pct": 89.5
+    },
+    "facility_highlights.seo_title": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "facility_highlights.seo_text": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "service_areas": {
+      "filled": 0,
+      "total": 19,
+      "pct": 0.0
+    },
+    "coordinates.latitude": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "coordinates.longitude": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "availability": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "pricing": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "aggregate_rating": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "service_area_geo": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "facility_profile": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "admissions": {
+      "filled": 19,
+      "total": 19,
+      "pct": 100.0
+    },
+    "faqs": {
+      "filled": 10,
+      "total": 19,
+      "pct": 52.6
+    },
+    "events": {
+      "filled": 0,
+      "total": 19,
+      "pct": 0.0
+    },
+    "open_house_date": {
+      "filled": 0,
+      "total": 19,
+      "pct": 0.0
+    }
+  },
+  "program_field_completion": {
+    "id": {
+      "filled": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "name": {
+      "filled": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "slug": {
+      "filled": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "url": {
+      "filled": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "summary": {
+      "filled": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "age_range": {
+      "filled": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "features": {
+      "filled": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "locations_served": {
+      "filled": 8,
+      "total": 8,
+      "pct": 100.0
+    },
+    "related_programs": {
+      "filled": 1,
+      "total": 8,
+      "pct": 12.5
+    },
+    "seo": {
+      "filled": 2,
+      "total": 8,
+      "pct": 25.0
+    },
+    "lesson_plan_url": {
+      "filled": 5,
+      "total": 8,
+      "pct": 62.5
+    }
+  },
+  "location_quality_scores": [
+    {
+      "id": 4287,
+      "slug": "tyrone-campus",
+      "campus_name": "Tyrone Campus",
+      "quality_score": 74.2,
+      "missing_fields": [
+        "address.state",
+        "email",
+        "programs_offered",
+        "ages_accepted",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4289,
+      "slug": "pleasanthill-campus-duluth",
+      "campus_name": "Downtown Duluth",
+      "quality_score": 77.4,
+      "missing_fields": [
+        "address.state",
+        "programs_offered",
+        "ages_accepted",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4288,
+      "slug": "lawrenceville-campus",
+      "campus_name": "Lawrenceville Campus",
+      "quality_score": 77.4,
+      "missing_fields": [
+        "address.state",
+        "programs_offered",
+        "ages_accepted",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4290,
+      "slug": "tramore-campus-austell",
+      "campus_name": "Tramore Campus",
+      "quality_score": 77.4,
+      "missing_fields": [
+        "administrator_name",
+        "programs_offered",
+        "ages_accepted",
+        "facility_highlights.description",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4420,
+      "slug": "newnan",
+      "campus_name": "Shenandoah Campus, Newnan GA",
+      "quality_score": 80.6,
+      "missing_fields": [
+        "administrator_name",
+        "programs_offered",
+        "facility_highlights.description",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4410,
+      "slug": "ellenwood-campus",
+      "campus_name": "Ellenwood Campus",
+      "quality_score": 83.9,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4407,
+      "slug": "lilburn-campus",
+      "campus_name": "Lilburn Campus",
+      "quality_score": 83.9,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4408,
+      "slug": "east-cobb-campus",
+      "campus_name": "Marietta Campus ( East )",
+      "quality_score": 83.9,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4336,
+      "slug": "mcdonough",
+      "campus_name": "Mcdonough Campus",
+      "quality_score": 83.9,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4417,
+      "slug": "midway-campus",
+      "campus_name": "Midway Campus, Alpharetta GA",
+      "quality_score": 83.9,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4411,
+      "slug": "west-cobb-campus",
+      "campus_name": "West Cobb Campus, Marietta",
+      "quality_score": 83.9,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "faqs",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4406,
+      "slug": "cherokee-campus",
+      "campus_name": "Cherokee Academy by Chroma, Canton GA",
+      "quality_score": 87.1,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4237,
+      "slug": "johns-creek",
+      "campus_name": "Johns Creek Campus",
+      "quality_score": 87.1,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4414,
+      "slug": "jonesboro-campus",
+      "campus_name": "Jonesboro Campus",
+      "quality_score": 87.1,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4419,
+      "slug": "north-hall-campus-murraysville",
+      "campus_name": "North Hall Campus, Murrayville",
+      "quality_score": 87.1,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4415,
+      "slug": "rivergreen-campus",
+      "campus_name": "Rivergreen Campus, Canton GA",
+      "quality_score": 87.1,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4409,
+      "slug": "roswell-campus",
+      "campus_name": "Roswell Campus",
+      "quality_score": 87.1,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4413,
+      "slug": "satellite-bvd-campus",
+      "campus_name": "Satellite Blvd Campus, Duluth, GA",
+      "quality_score": 87.1,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    },
+    {
+      "id": 4416,
+      "slug": "south-cobb-campus-austell",
+      "campus_name": "South Cobb Campus, Austell",
+      "quality_score": 87.1,
+      "missing_fields": [
+        "programs_offered",
+        "service_areas",
+        "events",
+        "open_house_date"
+      ]
+    }
+  ],
+  "program_quality_scores": [
+    {
+      "id": 4326,
+      "slug": "camp-summer-winter-fall",
+      "name": "Camp ( Summer, Winter, Fall)",
+      "quality_score": 72.7,
+      "missing_fields": [
+        "related_programs",
+        "seo",
+        "lesson_plan_url"
+      ]
+    },
+    {
+      "id": 4324,
+      "slug": "ga-pre-k",
+      "name": "Pre-K / GA Pre-K",
+      "quality_score": 72.7,
+      "missing_fields": [
+        "related_programs",
+        "seo",
+        "lesson_plan_url"
+      ]
+    },
+    {
+      "id": 4327,
+      "slug": "parents-day-out",
+      "name": "Parent&#8217;s Day Out",
+      "quality_score": 81.8,
+      "missing_fields": [
+        "related_programs",
+        "lesson_plan_url"
+      ]
+    },
+    {
+      "id": 4323,
+      "slug": "pre-k-prep",
+      "name": "Pre-K Prep",
+      "quality_score": 81.8,
+      "missing_fields": [
+        "related_programs",
+        "seo"
+      ]
+    },
+    {
+      "id": 4322,
+      "slug": "preschool",
+      "name": "Preschool",
+      "quality_score": 81.8,
+      "missing_fields": [
+        "related_programs",
+        "seo"
+      ]
+    },
+    {
+      "id": 4293,
+      "slug": "toddler-care",
+      "name": "Toddlers",
+      "quality_score": 81.8,
+      "missing_fields": [
+        "related_programs",
+        "seo"
+      ]
+    },
+    {
+      "id": 4219,
+      "slug": "infant-care",
+      "name": "Infant Care",
+      "quality_score": 90.9,
+      "missing_fields": [
+        "related_programs"
+      ]
+    },
+    {
+      "id": 4325,
+      "slug": "after-school",
+      "name": "Schoolagers",
+      "quality_score": 90.9,
+      "missing_fields": [
+        "seo"
+      ]
+    }
+  ],
+  "avg_location_quality": 83.5,
+  "avg_program_quality": 81.8,
+  "reverse_mapping_missing_location_ids": [
+    4406,
+    4289,
+    4410,
+    4237,
+    4414,
+    4288,
+    4407,
+    4408,
+    4336,
+    4417,
+    4419,
+    4415,
+    4409,
+    4413,
+    4420,
+    4416,
+    4290,
+    4287,
+    4411
+  ],
+  "issues": {
+    "schema_inconsistencies": [
+      "locations.programs_offered empty while programs.locations_served populated",
+      "coordinates are string typed in legacy coordinates fields",
+      "address.state null/empty for subset of locations"
+    ],
+    "null_missing_data": [
+      "address.state",
+      "email",
+      "administrator_name",
+      "programs_offered",
+      "ages_accepted",
+      "facility_highlights.description",
+      "service_areas",
+      "faqs",
+      "events",
+      "open_house_date"
+    ],
+    "format_inconsistencies": [
+      "phone formatting mixed",
+      "hours formatting mixed",
+      "address stuffing into street in some records"
+    ],
+    "relationship_gaps": [
+      "19 locations missing reverse program mappings"
+    ],
+    "seo_weaknesses": [
+      "missing facility_highlights.seo_title/seo_text for many locations"
+    ],
+    "ai_citation_weaknesses": [
+      "missing FAQs for many locations",
+      "missing admin/email in several locations"
+    ],
+    "parser_risks": [
+      "mixed scalar/object typing and optional omissions in legacy payload"
+    ]
+  },
+  "prioritized_remediation": [
+    "Auto-populate locations[].programs_offered from programs[].locations_served reverse map",
+    "Normalize address/state/coordinates/phone/hours/ages with companion normalized fields",
+    "Add feed-level validation, warnings, and data_quality_score metadata",
+    "Harden FAQs using deterministic source-backed fallbacks where source fields exist",
+    "Add CLI and external validator scripts for regression safety checks"
+  ]
+}

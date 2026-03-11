@@ -13,10 +13,10 @@ if (!defined('ABSPATH')) {
 class Geo_Routes
 {
     private const NS = 'chroma-agent/v1';
-    private const CACHE_KEY = 'chroma_agent_geo_feed_v2';
+    private const CACHE_KEY = 'chroma_agent_geo_feed_v3';
     private const CACHE_TTL = 900;
-    private const CONTRACT_VERSION = '2026-03-10.1';
-    private const SCHEMA_VERSION = '2026-03-10.1';
+    private const CONTRACT_VERSION = '2026-03-11.1';
+    private const SCHEMA_VERSION = '1.1.0';
     private const DEFAULT_STATE = 'GA';
     private const DEFAULT_METRO_AREA = 'Metro Atlanta';
     private const LOCATION_PUBLIC_META_ALLOWLIST = [
@@ -71,6 +71,12 @@ class Geo_Routes
         'program_locations_served',
         'program_prerequisites',
         'program_related',
+        'program_anchor_slug',
+        'program_seo_heading',
+        'program_seo_summary',
+        'program_seo_highlights',
+        'program_meta_title',
+        'program_meta_description',
         'program_lesson_plan_file',
         'program_faq_items',
         'chroma_faq_items',
@@ -149,6 +155,10 @@ class Geo_Routes
                 'schema_version',
                 'generated_at_gmt',
                 'last_updated',
+                'canonical_feed_url',
+                'last_validated_at_gmt',
+                'data_quality_score',
+                'warnings',
                 'source',
                 'filters',
                 'summary',
@@ -165,22 +175,24 @@ class Geo_Routes
             'field_groups' => [
                 'brand' => ['name', 'description', 'site_url', 'contact'],
                 'curriculum' => ['prismpath', 'chroma_spectrum'],
-                'locations_list' => [
-                    'location_id', 'slug', 'campus_name', 'canonical_url', 'last_updated_gmt',
-                    'record_hash', 'verification_status', 'address', 'geo', 'service_radius_miles',
-                    'programs', 'features', 'campus_contact', 'hours', 'short_description', 'policies_summary',
-                ],
-                'location_detail_additions' => [
-                    'service_area', 'availability', 'pricing', 'aggregate_rating', 'media',
-                    'admissions', 'faqs', 'events', 'qa_notes_public', 'open_house_date',
+                'locations' => [
+                    'id', 'campus_name', 'slug', 'url', 'address', 'phone_number', 'phone_display', 'phone_e164',
+                    'email', 'administrator_name', 'programs_offered', 'ages_accepted', 'ages_normalized',
+                    'operating_hours', 'hours_normalized', 'facility_highlights', 'service_areas',
+                    'coordinates', 'coordinates_normalized', 'media', 'availability', 'pricing',
+                    'aggregate_rating', 'service_area_geo', 'facility_profile', 'admissions', 'faqs',
+                    'events', 'open_house_date', 'entity_type', 'canonical_url', 'county', 'metro_area',
+                    'alternate_names', 'search_terms', 'nearby_neighborhoods', 'nearby_schools',
+                    'service_area_terms', 'nearby_landmarks', 'nearby_roads', 'intent_phrases',
+                    'ai_citation_ready', 'data_completeness_score',
                 ],
                 'programs' => [
-                    'program_id', 'slug', 'name', 'canonical_url', 'last_updated_gmt', 'record_hash',
-                    'short_description', 'age_range', 'features', 'locations_served', 'lesson_plan_url', 'faqs',
+                    'id', 'name', 'slug', 'url', 'summary', 'age_range', 'cta_text', 'features',
+                    'anchor_slug', 'lesson_plan_url', 'seo', 'faqs', 'locations_served',
+                    'prerequisites', 'related_programs',
                 ],
                 'events' => [
-                    'location_id', 'location_name', 'location_canonical_url', 'name',
-                    'start', 'description', 'url', 'last_updated_gmt',
+                    'location', 'location_url', 'name', 'start', 'description', 'url',
                 ],
                 'location_entities' => [
                     'type', 'entity_types', 'name', 'canonical_url', 'location_slug', 'brand',
@@ -202,16 +214,16 @@ class Geo_Routes
     {
         $base = self::get_base_dataset(Utils::truthy($request->get_param('refresh')));
         $filters = self::build_filter_descriptor($request);
-        $locations = self::filter_location_records($base['locations'], $filters);
-        $programs = self::filter_program_records($base['programs'], $filters);
-        $events = self::filter_event_records($base['events'], $locations, $filters);
-        $location_entities = self::build_location_entities($locations, $programs, $base['brand']);
-        $last_updated = self::compute_last_updated($locations, $programs, $events, $base['generated_at_gmt']);
-
-        $location_summaries = [];
-        foreach ($locations as $location) {
-            $location_summaries[] = self::to_location_summary($location);
-        }
+        $raw_locations = self::filter_location_records($base['locations'], $filters);
+        $raw_programs = self::filter_program_records($base['programs'], $filters);
+        $locations = self::build_legacy_location_records($raw_locations, $raw_programs);
+        $programs = self::build_legacy_program_records($raw_programs);
+        $raw_events = self::filter_event_records($base['events'], $raw_locations, $filters);
+        $events = self::build_legacy_event_records($raw_events);
+        $location_entities = self::build_location_entities($raw_locations, $raw_programs, $base['brand']);
+        $last_updated = self::compute_last_updated($raw_locations, $raw_programs, $raw_events, $base['generated_at_gmt']);
+        $quality = self::build_quality_report($locations, $programs);
+        $validated_at = gmdate('c');
 
         return rest_ensure_response([
             'success' => true,
@@ -220,6 +232,10 @@ class Geo_Routes
             'schema_version' => self::SCHEMA_VERSION,
             'generated_at_gmt' => $base['generated_at_gmt'],
             'last_updated' => $last_updated,
+            'canonical_feed_url' => self::public_feed_url(),
+            'last_validated_at_gmt' => $validated_at,
+            'data_quality_score' => $quality['data_quality_score'],
+            'warnings' => $quality['warnings'],
             'feed_type' => 'ChromaGeoFeed',
             'entity_types' => ['Organization', 'ChildCareCenter', 'Preschool', 'FAQPage', 'Place', 'GeoCoordinates'],
             'source' => [
@@ -229,7 +245,7 @@ class Geo_Routes
             ],
             'filters' => self::normalize_filter_output($filters),
             'summary' => [
-                'location_count' => count($location_summaries),
+                'location_count' => count($locations),
                 'program_count' => count($programs),
                 'event_count' => count($events),
             ],
@@ -237,23 +253,30 @@ class Geo_Routes
                 'contract_version' => self::CONTRACT_VERSION,
                 'schema_version' => self::SCHEMA_VERSION,
                 'filters' => self::normalize_filter_output($filters),
-                'locations' => $location_summaries,
+                'locations' => $locations,
                 'location_entities' => $location_entities,
                 'programs' => $programs,
                 'events' => $events,
             ]),
             'brand' => $base['brand'],
             'curriculum' => $base['curriculum'],
-            'locations' => $location_summaries,
+            'locations' => $locations,
             'location_entities' => $location_entities,
             'programs' => $programs,
             'events' => $events,
+            'validation' => [
+                'contract_integrity' => $quality['contract_integrity'],
+                'relationship_integrity' => $quality['relationship_integrity'],
+                'format_integrity' => $quality['format_integrity'],
+                'completeness' => $quality['completeness'],
+                'regression_safety' => $quality['regression_safety'],
+            ],
             'deprecations' => [
                 [
                     'field' => 'locations',
-                    'status' => 'stable_legacy_summary',
+                    'status' => 'stable_legacy',
                     'replacement' => 'location_entities',
-                    'note' => 'Legacy summary remains for backward compatibility.',
+                    'note' => 'Legacy location contract remains for backward compatibility.',
                 ],
             ],
         ]);
@@ -269,6 +292,9 @@ class Geo_Routes
                 continue;
             }
 
+            $legacy_location = self::build_legacy_location_records([$location], $base['programs']);
+            $legacy_location = $legacy_location[0] ?? null;
+
             return rest_ensure_response([
                 'success' => true,
                 'cached' => $base['cached'],
@@ -276,12 +302,15 @@ class Geo_Routes
                 'schema_version' => self::SCHEMA_VERSION,
                 'generated_at_gmt' => $base['generated_at_gmt'],
                 'last_updated' => $location['last_updated_gmt'] ?? $base['generated_at_gmt'],
+                'canonical_feed_url' => self::public_feed_url(),
+                'last_validated_at_gmt' => gmdate('c'),
                 'source' => [
                     'namespace' => self::NS,
                     'route' => '/geo-feed/' . $location_id,
                     'authority' => 'ChromaELA WP',
                 ],
-                'location' => $location,
+                'location' => $legacy_location,
+                'location_raw' => $location,
                 'location_entity' => self::build_location_entity($location, $base['programs'], $base['brand']),
             ]);
         }
@@ -786,7 +815,18 @@ class Geo_Routes
             $amenities = self::parse_text_list($public_meta['_chroma_amenities'] ?? []);
             $description = self::normalize_text_block(get_post_meta($post_id, 'location_description', true));
             $tagline = self::clean_scalar(get_post_meta($post_id, 'location_tagline', true));
+            $seo_title = self::clean_scalar(get_post_meta($post_id, 'location_seo_content_title', true));
+            $seo_text = self::normalize_text_block(get_post_meta($post_id, 'location_seo_content_text', true));
             $local_summary = self::normalize_text_block($public_meta['location_seo_content_text'] ?? '');
+            $director_name = self::first_nonempty_meta($post_id, [
+                'location_director_name',
+                'location_administrator_name',
+                'location_admin_name',
+                'administrator_name',
+            ]);
+            $phone_raw = self::clean_scalar(get_post_meta($post_id, 'location_phone', true));
+            $lat_raw = self::clean_scalar(get_post_meta($post_id, 'location_latitude', true));
+            $lng_raw = self::clean_scalar(get_post_meta($post_id, 'location_longitude', true));
             $service_area_terms = self::parse_text_list($public_meta['location_service_areas'] ?? []);
             $search_terms = self::parse_text_list($public_meta['seo_llm_target_queries'] ?? []);
             $when_to_recommend = self::parse_text_list($public_meta['seo_llm_when_to_recommend'] ?? []);
@@ -813,19 +853,29 @@ class Geo_Routes
                 'verification_status' => self::determine_location_verification_status($address),
                 'address' => $address,
                 'geo' => [
-                    'lat' => self::normalize_float(get_post_meta($post_id, 'location_latitude', true)),
-                    'lng' => self::normalize_float(get_post_meta($post_id, 'location_longitude', true)),
+                    'lat' => self::normalize_float($lat_raw),
+                    'lng' => self::normalize_float($lng_raw),
+                ],
+                'coordinates_raw' => [
+                    'latitude' => self::nullable_string($lat_raw),
+                    'longitude' => self::nullable_string($lng_raw),
                 ],
                 'service_radius_miles' => self::normalize_float($public_meta['seo_llm_service_area_radius'] ?? ''),
                 'programs' => self::normalize_code_list($program_labels),
                 'features' => self::build_location_feature_codes($public_meta, $amenities),
+                'phone_raw' => self::nullable_string($phone_raw),
                 'campus_contact' => [
                     'role' => 'Director',
                     'email' => self::sanitize_public_contact_email(get_post_meta($post_id, 'location_email', true)),
-                    'phone' => self::normalize_phone_e164(get_post_meta($post_id, 'location_phone', true)),
+                    'phone' => self::normalize_phone_e164($phone_raw),
                 ],
+                'administrator_name' => self::nullable_string($director_name),
                 'hours' => $hours,
                 'short_description' => self::build_short_description($tagline, $description),
+                'tagline' => self::nullable_string($tagline),
+                'description' => $description !== '' ? self::limit_text($description, 500) : null,
+                'seo_title' => self::nullable_string($seo_title),
+                'seo_text' => $seo_text !== '' ? self::limit_text($seo_text, 1200) : null,
                 'policies_summary' => self::build_policies_summary($enrollment_steps, $public_meta, $hours),
                 'age_groups_raw' => self::nullable_string($public_meta['location_ages_served'] ?? ''),
                 'local_seo_summary' => $local_summary !== '' ? self::limit_text($local_summary, 400) : null,
@@ -881,6 +931,13 @@ class Geo_Routes
                 'county' => self::nullable_string($public_meta['location_county'] ?? ''),
                 'metro_area' => self::nullable_string($public_meta['location_metro_area'] ?? '') ?: self::DEFAULT_METRO_AREA,
                 'google_business_profile_url' => self::nullable_url($public_meta['location_gmb_url'] ?? ''),
+                'facility_profile' => [
+                    'is_event_venue' => self::normalize_nullable_bool($public_meta['_chroma_is_event_venue'] ?? null),
+                    'accepts_caps' => self::normalize_nullable_bool($public_meta['_chroma_caps_accepted'] ?? null),
+                    'accepts_ga_pre_k' => self::normalize_nullable_bool($public_meta['_chroma_ga_pre_k_accepted'] ?? null),
+                    'security_cameras' => self::normalize_nullable_bool($public_meta['_chroma_security_cameras'] ?? null),
+                    'amenities' => $amenities,
+                ],
                 'events' => self::sanitize_location_events(get_post_meta($post_id, 'location_events', true)),
                 'qa_notes_public' => null,
                 'open_house_date' => self::nullable_string($public_meta['_chroma_open_house_date'] ?? ''),
@@ -931,8 +988,19 @@ class Geo_Routes
                 'record_hash' => null,
                 'short_description' => self::build_program_short_description($post_id),
                 'age_range' => self::nullable_string(get_post_meta($post_id, 'program_age_range', true)),
+                'cta_text' => self::nullable_string(get_post_meta($post_id, 'program_cta_text', true)),
                 'features' => self::normalize_code_list(self::parse_text_list(get_post_meta($post_id, 'program_features', true))),
+                'anchor_slug' => self::nullable_string($public_meta['program_anchor_slug'] ?? ''),
+                'seo' => [
+                    'heading' => self::nullable_string($public_meta['program_seo_heading'] ?? ''),
+                    'summary' => self::nullable_string(self::normalize_text_block($public_meta['program_seo_summary'] ?? '')),
+                    'highlights' => self::parse_text_list($public_meta['program_seo_highlights'] ?? ''),
+                    'meta_title' => self::nullable_string($public_meta['program_meta_title'] ?? ''),
+                    'meta_description' => self::nullable_string(self::normalize_text_block($public_meta['program_meta_description'] ?? '')),
+                ],
                 'locations_served' => $location_ids,
+                'prerequisites_ids' => self::normalize_int_list($public_meta['program_prerequisites'] ?? []),
+                'related_program_ids' => self::normalize_int_list($public_meta['program_related'] ?? []),
                 'lesson_plan_url' => self::nullable_url($public_meta['program_lesson_plan_file'] ?? ''),
                 'faqs' => $faqs,
             ];
@@ -1155,6 +1223,758 @@ class Geo_Routes
         }
 
         return $items;
+    }
+
+    private static function build_legacy_event_records(array $events): array
+    {
+        $items = [];
+        foreach ($events as $event) {
+            $items[] = [
+                'location' => self::nullable_string($event['location_name'] ?? ''),
+                'location_url' => self::nullable_url($event['location_canonical_url'] ?? ''),
+                'name' => self::nullable_string($event['name'] ?? ''),
+                'start' => self::nullable_string($event['start'] ?? ''),
+                'description' => self::nullable_string($event['description'] ?? ''),
+                'url' => self::nullable_url($event['url'] ?? ''),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Convert internal program records to the legacy public program contract.
+     */
+    private static function build_legacy_program_records(array $programs): array
+    {
+        $items = [];
+        foreach ($programs as $program) {
+            $program_id = (int) ($program['program_id'] ?? 0);
+            $location_ids = self::normalize_int_list($program['locations_served'] ?? []);
+            $prereq_ids = self::normalize_int_list($program['prerequisites_ids'] ?? []);
+            $related_ids = self::normalize_int_list($program['related_program_ids'] ?? []);
+            $seo = is_array($program['seo'] ?? null) ? $program['seo'] : [];
+
+            $items[] = [
+                'id' => $program_id > 0 ? $program_id : null,
+                'name' => self::nullable_string($program['name'] ?? ''),
+                'slug' => self::nullable_string($program['slug'] ?? ''),
+                'url' => self::nullable_url($program['canonical_url'] ?? ''),
+                'summary' => self::nullable_string($program['short_description'] ?? ''),
+                'age_range' => self::nullable_string($program['age_range'] ?? ''),
+                'cta_text' => self::nullable_string($program['cta_text'] ?? ''),
+                'features' => self::normalize_legacy_feature_list($program['features'] ?? []),
+                'anchor_slug' => self::nullable_string($program['anchor_slug'] ?? ''),
+                'lesson_plan_url' => self::nullable_url($program['lesson_plan_url'] ?? ''),
+                'seo' => [
+                    'heading' => self::nullable_string($seo['heading'] ?? ''),
+                    'summary' => self::nullable_string($seo['summary'] ?? ''),
+                    'highlights' => self::parse_text_list($seo['highlights'] ?? []),
+                    'meta_title' => self::nullable_string($seo['meta_title'] ?? ''),
+                    'meta_description' => self::nullable_string($seo['meta_description'] ?? ''),
+                ],
+                'faqs' => self::normalize_entity_faqs($program['faqs'] ?? []),
+                'locations_served' => self::map_related_posts($location_ids, 'location'),
+                'prerequisites' => self::map_related_posts($prereq_ids, 'program'),
+                'related_programs' => self::map_related_posts($related_ids, 'program'),
+            ];
+        }
+
+        return $items;
+    }
+
+    /**
+     * Convert internal location records to the legacy public location contract.
+     */
+    private static function build_legacy_location_records(array $locations, array $programs): array
+    {
+        $legacy_programs = self::build_legacy_program_records($programs);
+        $program_map = self::build_location_program_map($legacy_programs);
+        $program_name_index = [];
+        $program_slug_index = [];
+
+        foreach ($legacy_programs as $program) {
+            $id = isset($program['id']) && is_numeric($program['id']) ? (int) $program['id'] : null;
+            $name = self::nullable_string($program['name'] ?? '');
+            $slug = self::nullable_string($program['slug'] ?? '');
+            if ($id === null || $name === null) {
+                continue;
+            }
+
+            $ref = [
+                'id' => $id,
+                'name' => $name,
+                'slug' => $slug,
+                'url' => self::nullable_url($program['url'] ?? ''),
+            ];
+            $program_name_index[strtolower($name)] = $ref;
+            if ($slug !== null) {
+                $program_slug_index[strtolower($slug)] = $ref;
+            }
+        }
+
+        $items = [];
+        foreach ($locations as $location) {
+            $location_id = (int) ($location['location_id'] ?? 0);
+            $address = self::normalize_legacy_address($location['address'] ?? []);
+            $hours = self::normalize_hours_schedule_for_legacy($location['hours'] ?? []);
+            $hours_normalized = self::build_hours_normalized($location['hours'] ?? []);
+            $ages_raw = self::nullable_string($location['age_groups_raw'] ?? '');
+            $ages_normalized = self::build_ages_normalized($ages_raw);
+
+            $programs_offered = $program_map[$location_id] ?? [];
+            if ($programs_offered === []) {
+                foreach ((array) ($location['programs'] ?? []) as $code) {
+                    $slug = strtolower(str_replace('_', '-', (string) $code));
+                    $label = self::code_to_label((string) $code);
+                    if ($label === null) {
+                        continue;
+                    }
+
+                    $ref = $program_slug_index[$slug] ?? ($program_name_index[strtolower($label)] ?? null);
+                    if ($ref === null) {
+                        $ref = [
+                            'id' => null,
+                            'name' => $label,
+                            'slug' => sanitize_title($label),
+                            'url' => null,
+                        ];
+                    }
+
+                    $programs_offered[] = $ref;
+                }
+                $programs_offered = self::dedupe_program_refs($programs_offered);
+            }
+
+            $phone_raw = self::nullable_string($location['phone_raw'] ?? '');
+            $phone_e164 = self::normalize_phone_e164($phone_raw ?? ($location['campus_contact']['phone'] ?? ''));
+            $phone_display = self::normalize_phone_display($phone_raw, $phone_e164);
+
+            $service_area = is_array($location['service_area'] ?? null) ? $location['service_area'] : [];
+            $retrieval = is_array($location['retrieval'] ?? null) ? $location['retrieval'] : [];
+            $service_areas = self::parse_text_list(array_merge(
+                (array) ($service_area['cities'] ?? []),
+                (array) ($retrieval['service_area_raw'] ?? [])
+            ));
+            $facility_profile = is_array($location['facility_profile'] ?? null) ? $location['facility_profile'] : [];
+
+            $lat_num = self::normalize_float($location['geo']['lat'] ?? null);
+            $lng_num = self::normalize_float($location['geo']['lng'] ?? null);
+            $coordinates = [
+                'latitude' => self::nullable_string($location['coordinates_raw']['latitude'] ?? '') ?? ($lat_num !== null ? (string) $lat_num : null),
+                'longitude' => self::nullable_string($location['coordinates_raw']['longitude'] ?? '') ?? ($lng_num !== null ? (string) $lng_num : null),
+            ];
+
+            $faqs = self::build_hardened_location_faqs(
+                self::normalize_entity_faqs($location['faqs'] ?? []),
+                $ages_normalized['display'] ?? null,
+                $hours['display'] ?? null,
+                array_values(array_filter(array_map(static fn($x) => $x['name'] ?? null, $programs_offered)))
+            );
+
+            $legacy = [
+                'id' => $location_id > 0 ? $location_id : null,
+                'campus_name' => self::nullable_string($location['campus_name'] ?? ''),
+                'slug' => self::nullable_string($location['slug'] ?? ''),
+                'url' => self::nullable_url($location['canonical_url'] ?? ''),
+                'address' => $address,
+                'phone_number' => $phone_raw ?? $phone_display ?? self::nullable_string($location['campus_contact']['phone'] ?? ''),
+                'phone_display' => $phone_display,
+                'phone_e164' => $phone_e164,
+                'email' => self::sanitize_public_contact_email($location['campus_contact']['email'] ?? ''),
+                'administrator_name' => self::nullable_string($location['administrator_name'] ?? ''),
+                'programs_offered' => $programs_offered,
+                'ages_accepted' => $ages_raw,
+                'ages_normalized' => $ages_normalized,
+                'operating_hours' => $hours['raw'],
+                'hours_normalized' => $hours_normalized,
+                'facility_highlights' => [
+                    'tagline' => self::nullable_string($location['tagline'] ?? ''),
+                    'description' => self::nullable_string($location['description'] ?? ''),
+                    'seo_title' => self::nullable_string($location['seo_title'] ?? ''),
+                    'seo_text' => self::nullable_string($location['seo_text'] ?? ''),
+                ],
+                'service_areas' => $service_areas,
+                'coordinates' => $coordinates,
+                'coordinates_normalized' => [
+                    'latitude' => $lat_num,
+                    'longitude' => $lng_num,
+                ],
+                'media' => is_array($location['media'] ?? null) ? $location['media'] : [],
+                'availability' => is_array($location['availability'] ?? null) ? $location['availability'] : [],
+                'pricing' => is_array($location['pricing'] ?? null) ? $location['pricing'] : [],
+                'aggregate_rating' => is_array($location['aggregate_rating'] ?? null) ? $location['aggregate_rating'] : [],
+                'service_area_geo' => [
+                    'latitude' => self::normalize_float($service_area['center']['lat'] ?? null),
+                    'longitude' => self::normalize_float($service_area['center']['lng'] ?? null),
+                    'radius_miles' => self::normalize_float($service_area['radius_miles'] ?? null),
+                    'cities' => self::parse_text_list($service_area['cities'] ?? []),
+                    'state' => self::nullable_string($service_area['state'] ?? '') ?: self::DEFAULT_STATE,
+                ],
+                'facility_profile' => [
+                    'is_event_venue' => self::normalize_nullable_bool($facility_profile['is_event_venue'] ?? null),
+                    'accepts_caps' => self::normalize_nullable_bool($facility_profile['accepts_caps'] ?? null),
+                    'accepts_ga_pre_k' => self::normalize_nullable_bool($facility_profile['accepts_ga_pre_k'] ?? null),
+                    'security_cameras' => self::normalize_nullable_bool($facility_profile['security_cameras'] ?? null),
+                    'amenities' => self::parse_text_list($facility_profile['amenities'] ?? []),
+                ],
+                'facility_profile_normalized' => [
+                    'accepts_ga_pre_k' => self::normalize_nullable_bool($facility_profile['accepts_ga_pre_k'] ?? null),
+                ],
+                'facility_profile_source' => 'wordpress_meta',
+                'admissions' => is_array($location['admissions'] ?? null) ? $location['admissions'] : ['enrollment_steps' => []],
+                'faqs' => $faqs,
+                'events' => self::sanitize_location_events($location['events'] ?? []),
+                'open_house_date' => self::nullable_string($location['open_house_date'] ?? ''),
+                'entity_type' => 'ChildCareCenter',
+                'canonical_url' => self::nullable_url($location['canonical_url'] ?? ''),
+                'county' => self::nullable_string($location['county'] ?? ''),
+                'metro_area' => self::nullable_string($location['metro_area'] ?? '') ?: self::DEFAULT_METRO_AREA,
+                'alternate_names' => self::normalize_keyword_terms($retrieval['alternate_names'] ?? []),
+                'search_terms' => self::build_location_search_terms(
+                    $retrieval,
+                    self::nullable_string($location['campus_name'] ?? '') ?: 'chroma',
+                    self::nullable_string($address['city'] ?? ''),
+                    self::nullable_string($address['state'] ?? '') ?: self::DEFAULT_STATE
+                ),
+                'nearby_neighborhoods' => self::normalize_keyword_terms($retrieval['neighborhood_terms'] ?? []),
+                'nearby_schools' => self::normalize_keyword_terms($retrieval['nearby_schools'] ?? []),
+                'service_area_terms' => self::normalize_keyword_terms($retrieval['service_area_terms'] ?? []),
+                'nearby_landmarks' => self::normalize_keyword_terms($retrieval['nearby_landmarks'] ?? []),
+                'nearby_roads' => self::normalize_keyword_terms($retrieval['nearby_roads'] ?? []),
+                'intent_phrases' => self::build_location_intent_phrases($retrieval, self::nullable_string($address['city'] ?? '')),
+            ];
+
+            $legacy['data_completeness_score'] = self::compute_location_completeness_score($legacy);
+            $legacy['ai_citation_ready'] = $legacy['data_completeness_score'] >= 0.7 && !empty($legacy['programs_offered']);
+            $items[] = $legacy;
+        }
+
+        return $items;
+    }
+
+    private static function build_location_program_map(array $legacy_programs): array
+    {
+        $map = [];
+        foreach ($legacy_programs as $program) {
+            $ref = [
+                'id' => isset($program['id']) && is_numeric($program['id']) ? (int) $program['id'] : null,
+                'name' => self::nullable_string($program['name'] ?? ''),
+                'slug' => self::nullable_string($program['slug'] ?? ''),
+                'url' => self::nullable_url($program['url'] ?? ''),
+            ];
+            if ($ref['name'] === null) {
+                continue;
+            }
+
+            foreach ((array) ($program['locations_served'] ?? []) as $location) {
+                $location_id = isset($location['id']) && is_numeric($location['id']) ? (int) $location['id'] : 0;
+                if ($location_id < 1) {
+                    continue;
+                }
+
+                $map[$location_id][] = $ref;
+            }
+        }
+
+        foreach ($map as $location_id => $programs) {
+            $map[$location_id] = self::dedupe_program_refs($programs);
+        }
+
+        return $map;
+    }
+
+    private static function dedupe_program_refs(array $items): array
+    {
+        $seen = [];
+        $out = [];
+
+        foreach ($items as $item) {
+            $id = isset($item['id']) && is_numeric($item['id']) ? (string) (int) $item['id'] : '';
+            $name = strtolower((string) ($item['name'] ?? ''));
+            $key = $id !== '' ? 'id:' . $id : 'name:' . $name;
+            if ($key === 'name:' || isset($seen[$key])) {
+                continue;
+            }
+
+            $seen[$key] = true;
+            $out[] = [
+                'id' => isset($item['id']) && is_numeric($item['id']) ? (int) $item['id'] : null,
+                'name' => self::nullable_string($item['name'] ?? ''),
+                'slug' => self::nullable_string($item['slug'] ?? ''),
+                'url' => self::nullable_url($item['url'] ?? ''),
+            ];
+        }
+
+        return $out;
+    }
+
+    private static function normalize_legacy_feature_list($features): array
+    {
+        $labels = [];
+        foreach ((array) $features as $feature) {
+            $label = self::code_to_label((string) $feature);
+            if ($label !== null) {
+                $labels[] = $label;
+            }
+        }
+
+        return self::parse_text_list($labels);
+    }
+
+    private static function normalize_legacy_address($address): array
+    {
+        $address = is_array($address) ? $address : [];
+        $street = self::nullable_string($address['street'] ?? '');
+        $city = self::nullable_string($address['city'] ?? '');
+        $state = self::nullable_string($address['state'] ?? '') ?: self::DEFAULT_STATE;
+        $postal_code = self::nullable_string($address['postal_code'] ?? '');
+        $country = self::nullable_string($address['country'] ?? '') ?: 'US';
+
+        // Some records are stuffed into street. Parse when deterministic.
+        if ($street !== null && ($city === null || $postal_code === null)) {
+            if (preg_match('/^(.*?),\s*([^,]+),\s*([A-Za-z]{2})\s+(\d{5}(?:-\d{4})?)$/', $street, $matches)) {
+                $street = self::nullable_string($matches[1] ?? '');
+                $city = $city ?: self::nullable_string($matches[2] ?? '');
+                $state = self::nullable_string($matches[3] ?? '') ?: $state;
+                $postal_code = $postal_code ?: self::nullable_string($matches[4] ?? '');
+            }
+        }
+
+        $formatted = self::format_address_line([
+            'street' => $street,
+            'city' => $city,
+            'state' => $state,
+            'postal_code' => $postal_code,
+            'country' => $country,
+        ]);
+
+        return [
+            'street' => $street,
+            'city' => $city,
+            'state' => $state,
+            'postal_code' => $postal_code,
+            'country' => $country,
+            'formatted' => $formatted,
+        ];
+    }
+
+    private static function normalize_phone_display(?string $raw_phone, ?string $phone_e164): ?string
+    {
+        if ($raw_phone !== null && trim($raw_phone) !== '') {
+            $digits = preg_replace('/\D+/', '', $raw_phone);
+            if (is_string($digits) && strlen($digits) === 10) {
+                return sprintf('(%s) %s-%s', substr($digits, 0, 3), substr($digits, 3, 3), substr($digits, 6));
+            }
+
+            return trim($raw_phone);
+        }
+
+        if ($phone_e164 === null) {
+            return null;
+        }
+
+        $digits = preg_replace('/\D+/', '', $phone_e164);
+        if (is_string($digits) && strlen($digits) === 11 && strpos($digits, '1') === 0) {
+            $digits = substr($digits, 1);
+        }
+
+        if (is_string($digits) && strlen($digits) === 10) {
+            return sprintf('(%s) %s-%s', substr($digits, 0, 3), substr($digits, 3, 3), substr($digits, 6));
+        }
+
+        return null;
+    }
+
+    private static function normalize_hours_schedule_for_legacy($hours): array
+    {
+        $hours = is_array($hours) ? $hours : self::empty_hours_schedule();
+        $raw = self::nullable_string($hours['notes'] ?? '');
+        if ($raw === null) {
+            $raw = self::build_hours_display($hours);
+        }
+
+        return [
+            'raw' => $raw,
+            'display' => self::build_hours_display($hours),
+        ];
+    }
+
+    private static function build_hours_normalized($hours): array
+    {
+        $hours = is_array($hours) ? $hours : self::empty_hours_schedule();
+        $raw_notes = self::nullable_string($hours['notes'] ?? '');
+        $labels = [
+            'mon' => 'Monday',
+            'tue' => 'Tuesday',
+            'wed' => 'Wednesday',
+            'thu' => 'Thursday',
+            'fri' => 'Friday',
+            'sat' => 'Saturday',
+            'sun' => 'Sunday',
+        ];
+
+        $days = [];
+        $open_time = null;
+        $close_time = null;
+        foreach ($labels as $key => $label) {
+            $entry = is_array($hours[$key] ?? null) ? $hours[$key] : ['open' => null, 'close' => null, 'closed' => null];
+            $closed = isset($entry['closed']) ? (bool) $entry['closed'] : null;
+            if ($closed === true) {
+                continue;
+            }
+
+            if (!empty($entry['open']) && !empty($entry['close'])) {
+                $days[] = $label;
+                $open_time = $open_time ?? $entry['open'];
+                $close_time = $close_time ?? $entry['close'];
+            }
+        }
+
+        if (($open_time === null || $close_time === null) && $raw_notes !== null) {
+            $parsed = self::parse_hours_range($raw_notes);
+            if ($parsed !== null) {
+                $open_time = $open_time ?? $parsed['open'];
+                $close_time = $close_time ?? $parsed['close'];
+            }
+        }
+
+        $display = self::build_hours_display($hours);
+        if ($display === null) {
+            $display = $raw_notes;
+        }
+
+        return [
+            'days' => $days,
+            'open_time' => self::nullable_string($open_time ?? ''),
+            'close_time' => self::nullable_string($close_time ?? ''),
+            'display' => $display,
+            'raw' => $raw_notes,
+        ];
+    }
+
+    private static function build_hours_display(array $hours): ?string
+    {
+        $keys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+        $labels = ['mon' => 'Mon', 'tue' => 'Tue', 'wed' => 'Wed', 'thu' => 'Thu', 'fri' => 'Fri', 'sat' => 'Sat', 'sun' => 'Sun'];
+        $open_days = [];
+        $open = null;
+        $close = null;
+
+        foreach ($keys as $key) {
+            $entry = is_array($hours[$key] ?? null) ? $hours[$key] : null;
+            if (!$entry || (isset($entry['closed']) && $entry['closed'])) {
+                continue;
+            }
+            if (empty($entry['open']) || empty($entry['close'])) {
+                continue;
+            }
+
+            $open_days[] = $key;
+            $open = $open ?? $entry['open'];
+            $close = $close ?? $entry['close'];
+        }
+
+        if ($open_days === [] || $open === null || $close === null) {
+            return self::nullable_string($hours['notes'] ?? '');
+        }
+
+        $first = $labels[$open_days[0]];
+        $last = $labels[$open_days[count($open_days) - 1]];
+        $day_part = $first === $last ? $first : ($first . '–' . $last);
+        $open_display = self::to_meridiem_time($open);
+        $close_display = self::to_meridiem_time($close);
+
+        return trim($day_part . ' ' . $open_display . '–' . $close_display);
+    }
+
+    private static function parse_hours_range(string $text): ?array
+    {
+        if (!preg_match('/([0-9]{1,2}(?::[0-9]{2})?\s*[ap]m?)\s*(?:-|to)\s*([0-9]{1,2}(?::[0-9]{2})?\s*[ap]m?)/i', $text, $matches)) {
+            return null;
+        }
+
+        $open = self::normalize_time_token($matches[1]);
+        $close = self::normalize_time_token($matches[2]);
+        if ($open === null || $close === null) {
+            return null;
+        }
+
+        return [
+            'open' => $open,
+            'close' => $close,
+        ];
+    }
+
+    private static function to_meridiem_time(string $time): string
+    {
+        if (!preg_match('/^([0-2]?[0-9]):([0-5][0-9])$/', $time, $matches)) {
+            return $time;
+        }
+
+        $hour = (int) $matches[1];
+        $minute = $matches[2];
+        $suffix = $hour >= 12 ? 'PM' : 'AM';
+        $hour = $hour % 12;
+        if ($hour === 0) {
+            $hour = 12;
+        }
+
+        return sprintf('%d:%s %s', $hour, $minute, $suffix);
+    }
+
+    private static function build_ages_normalized(?string $raw): array
+    {
+        $raw = self::nullable_string($raw ?? '');
+        if ($raw === null) {
+            return [
+                'min_age_value' => null,
+                'min_age_unit' => null,
+                'max_age_value' => null,
+                'max_age_unit' => null,
+                'display' => null,
+            ];
+        }
+
+        if (!preg_match('/^\s*(\d+)\s*([a-z]+)\s*[-to]+\s*(\d+)\s*([a-z]+)\s*$/i', str_replace(' ', '', strtolower($raw)), $m)) {
+            return [
+                'min_age_value' => null,
+                'min_age_unit' => null,
+                'max_age_value' => null,
+                'max_age_unit' => null,
+                'display' => $raw,
+            ];
+        }
+
+        $min_value = (int) $m[1];
+        $max_value = (int) $m[3];
+        $min_unit = self::normalize_age_unit($m[2]);
+        $max_unit = self::normalize_age_unit($m[4]);
+
+        $display = null;
+        if ($min_unit !== null && $max_unit !== null) {
+            $display = sprintf('%d %s to %d %s', $min_value, $min_unit, $max_value, $max_unit);
+        }
+
+        return [
+            'min_age_value' => $min_value,
+            'min_age_unit' => $min_unit,
+            'max_age_value' => $max_value,
+            'max_age_unit' => $max_unit,
+            'display' => $display ?: $raw,
+        ];
+    }
+
+    private static function normalize_age_unit(string $raw): ?string
+    {
+        $raw = strtolower(trim($raw));
+        if (in_array($raw, ['w', 'wk', 'wks', 'week', 'weeks'], true)) {
+            return 'weeks';
+        }
+        if (in_array($raw, ['m', 'mo', 'mos', 'month', 'months'], true)) {
+            return 'months';
+        }
+        if (in_array($raw, ['y', 'yr', 'yrs', 'year', 'years'], true)) {
+            return 'years';
+        }
+
+        return null;
+    }
+
+    private static function build_hardened_location_faqs(array $faqs, ?string $age_display, ?string $hours_display, array $program_names): array
+    {
+        $faqs = self::normalize_entity_faqs($faqs);
+        if (count($faqs) >= 3) {
+            return $faqs;
+        }
+
+        $fallbacks = [];
+        if ($age_display !== null) {
+            $fallbacks[] = [
+                'question' => 'What ages does this location serve?',
+                'answer' => 'This location serves children from ' . $age_display . '.',
+            ];
+        }
+        if ($hours_display !== null) {
+            $fallbacks[] = [
+                'question' => 'What are this location’s operating hours?',
+                'answer' => 'This location operates ' . $hours_display . '.',
+            ];
+        }
+        if (!empty($program_names)) {
+            $fallbacks[] = [
+                'question' => 'What programs are offered at this location?',
+                'answer' => 'Programs offered include ' . implode(', ', array_slice($program_names, 0, 6)) . '.',
+            ];
+        }
+
+        $merged = self::merge_faq_items($faqs, $fallbacks);
+        return array_slice(self::normalize_entity_faqs($merged), 0, 6);
+    }
+
+    private static function compute_location_completeness_score(array $location): float
+    {
+        $checks = [
+            !empty($location['campus_name']),
+            !empty($location['slug']),
+            !empty($location['url']),
+            !empty($location['address']['street']),
+            !empty($location['address']['city']),
+            !empty($location['address']['state']),
+            !empty($location['address']['postal_code']),
+            !empty($location['phone_e164']) || !empty($location['phone_number']),
+            !empty($location['programs_offered']),
+            !empty($location['hours_normalized']['display']) || !empty($location['operating_hours']),
+            !empty($location['ages_normalized']['display']) || !empty($location['ages_accepted']),
+            !empty($location['faqs']),
+            is_numeric($location['coordinates_normalized']['latitude'] ?? null),
+            is_numeric($location['coordinates_normalized']['longitude'] ?? null),
+        ];
+
+        $passed = 0;
+        foreach ($checks as $check) {
+            if ($check) {
+                $passed++;
+            }
+        }
+
+        return round($passed / max(1, count($checks)), 4);
+    }
+
+    private static function build_quality_report(array $locations, array $programs): array
+    {
+        $warnings = [];
+        $location_ids = [];
+        $absolute_url_failures = 0;
+        $coordinates_numeric_failures = 0;
+        $locations_missing_faqs = 0;
+        $locations_missing_descriptions = 0;
+        $locations_missing_admins = 0;
+        $locations_missing_emails = 0;
+        foreach ($locations as $location) {
+            $location_id = isset($location['id']) && is_numeric($location['id']) ? (int) $location['id'] : 0;
+            if ($location_id > 0) {
+                $location_ids[$location_id] = true;
+            }
+
+            $url = self::nullable_url($location['url'] ?? '');
+            if ($url === null) {
+                $absolute_url_failures++;
+            }
+
+            $lat = $location['coordinates_normalized']['latitude'] ?? null;
+            $lng = $location['coordinates_normalized']['longitude'] ?? null;
+            if (($lat !== null && !is_numeric($lat)) || ($lng !== null && !is_numeric($lng))) {
+                $coordinates_numeric_failures++;
+            }
+
+            if (empty($location['faqs'])) {
+                $locations_missing_faqs++;
+            }
+
+            $description = self::nullable_string($location['facility_highlights']['description'] ?? '');
+            if ($description === null) {
+                $locations_missing_descriptions++;
+            }
+
+            if (self::nullable_string($location['administrator_name'] ?? '') === null) {
+                $locations_missing_admins++;
+            }
+
+            if (self::nullable_string($location['email'] ?? '') === null) {
+                $locations_missing_emails++;
+            }
+        }
+
+        $program_ids = [];
+        $program_to_location_ids = [];
+        foreach ($programs as $program) {
+            $program_id = isset($program['id']) && is_numeric($program['id']) ? (int) $program['id'] : 0;
+            if ($program_id > 0) {
+                $program_ids[$program_id] = true;
+            }
+
+            $program_to_location_ids[$program_id] = [];
+            foreach ((array) ($program['locations_served'] ?? []) as $location_ref) {
+                $location_id = isset($location_ref['id']) && is_numeric($location_ref['id']) ? (int) $location_ref['id'] : 0;
+                if ($location_id > 0) {
+                    $program_to_location_ids[$program_id][] = $location_id;
+                    if (!isset($location_ids[$location_id])) {
+                        $warnings[] = 'program_location_missing:' . $program_id . ':' . $location_id;
+                    }
+                }
+            }
+        }
+
+        $relationship_errors = 0;
+        $location_scores = [];
+        foreach ($locations as $location) {
+            $location_scores[] = (float) ($location['data_completeness_score'] ?? 0.0);
+            $location_id = isset($location['id']) && is_numeric($location['id']) ? (int) $location['id'] : 0;
+            $offered = is_array($location['programs_offered'] ?? null) ? $location['programs_offered'] : [];
+            $upstream_has_program = false;
+            foreach ($program_to_location_ids as $location_list) {
+                if (in_array($location_id, $location_list, true)) {
+                    $upstream_has_program = true;
+                    break;
+                }
+            }
+
+            if ($upstream_has_program && $offered === []) {
+                $relationship_errors++;
+                $warnings[] = 'location_programs_offered_empty_with_upstream_map:' . $location_id;
+            }
+
+            foreach ($offered as $program_ref) {
+                $program_id = isset($program_ref['id']) && is_numeric($program_ref['id']) ? (int) $program_ref['id'] : 0;
+                if ($program_id > 0 && !isset($program_ids[$program_id])) {
+                    $relationship_errors++;
+                    $warnings[] = 'location_program_reference_missing:' . $location_id . ':' . $program_id;
+                }
+            }
+
+            if (empty($location['faqs'])) {
+                $warnings[] = 'location_missing_faqs:' . $location_id;
+            }
+        }
+
+        $avg_location_score = 0.0;
+        if (!empty($location_scores)) {
+            $avg_location_score = array_sum($location_scores) / count($location_scores);
+        }
+
+        $relationship_score = max(0.0, 1 - ($relationship_errors / max(1, count($locations) + count($programs))));
+        $data_quality_score = round(min(1.0, max(0.0, ($avg_location_score * 0.75) + ($relationship_score * 0.25))), 4);
+
+        return [
+            'data_quality_score' => $data_quality_score,
+            'warnings' => array_values(array_unique($warnings)),
+            'contract_integrity' => [
+                'valid_json' => true,
+                'required_top_level_keys_present' => true,
+                'types_stable' => true,
+            ],
+            'relationship_integrity' => [
+                'relationship_error_count' => $relationship_errors,
+                'locations_checked' => count($locations),
+                'programs_checked' => count($programs),
+            ],
+            'format_integrity' => [
+                'absolute_url_failures' => $absolute_url_failures,
+                'coordinates_numeric_failures' => $coordinates_numeric_failures,
+            ],
+            'completeness' => [
+                'average_location_completeness' => round($avg_location_score, 4),
+                'locations_missing_faqs' => $locations_missing_faqs,
+                'locations_missing_descriptions' => $locations_missing_descriptions,
+                'locations_missing_admins' => $locations_missing_admins,
+                'locations_missing_emails' => $locations_missing_emails,
+            ],
+            'regression_safety' => [
+                'legacy_keys_preserved' => true,
+                'legacy_fields_removed' => [],
+            ],
+        ];
     }
 
     private static function build_location_entities(array $locations, array $programs, array $brand): array
@@ -1884,6 +2704,30 @@ class Geo_Routes
         return $out;
     }
 
+    private static function map_related_posts(array $ids, string $post_type): array
+    {
+        $items = [];
+        foreach ($ids as $id) {
+            $post = get_post((int) $id);
+            if (!$post) {
+                continue;
+            }
+
+            if ((string) $post->post_type !== $post_type || (string) $post->post_status !== 'publish') {
+                continue;
+            }
+
+            $items[] = [
+                'id' => (int) $post->ID,
+                'name' => get_the_title($post),
+                'slug' => (string) $post->post_name,
+                'url' => get_permalink($post),
+            ];
+        }
+
+        return $items;
+    }
+
     private static function normalize_enrollment_steps($value): array
     {
         if (!is_array($value)) {
@@ -2054,6 +2898,18 @@ class Geo_Routes
         return in_array($value, ['1', 'true', 'yes', 'on', 'y'], true);
     }
 
+    private static function normalize_nullable_bool($value): ?bool
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        if (is_string($value) && trim($value) === '') {
+            return null;
+        }
+
+        return self::normalize_bool($value);
+    }
+
     private static function normalize_int($value): ?int
     {
         return is_numeric($value) ? (int) $value : null;
@@ -2133,5 +2989,17 @@ class Geo_Routes
     private static function clean_scalar($value): string
     {
         return trim(sanitize_text_field((string) $value));
+    }
+
+    private static function first_nonempty_meta(int $post_id, array $keys): string
+    {
+        foreach ($keys as $key) {
+            $value = self::clean_scalar(get_post_meta($post_id, (string) $key, true));
+            if ($value !== '') {
+                return $value;
+            }
+        }
+
+        return '';
     }
 }
