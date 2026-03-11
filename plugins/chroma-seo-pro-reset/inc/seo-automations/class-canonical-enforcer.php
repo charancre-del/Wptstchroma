@@ -62,6 +62,26 @@ class Chroma_Canonical_Enforcer
     }
 
     /**
+     * Detect QA portal routes that should never be canonical-redirected.
+     *
+     * @return bool
+     */
+    private function is_qa_route_request()
+    {
+        if ((string) get_query_var('cqa_page') !== '') {
+            return true;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+        if (!is_string($path) || $path === '') {
+            return false;
+        }
+
+        return (bool) preg_match('#^/qa-reports?(?:/|$)#i', $path);
+    }
+
+    /**
      * Get canonical URL for current page
      */
     public function get_canonical_url()
@@ -198,6 +218,11 @@ class Chroma_Canonical_Enforcer
             return;
         }
 
+        // QA portal is app-shell driven and handles its own route behavior.
+        if ($this->is_qa_route_request()) {
+            return;
+        }
+
         // XML sitemap responses should not emit HTML canonical tags.
         if ($this->is_sitemap_request()) {
             return;
@@ -231,7 +256,12 @@ class Chroma_Canonical_Enforcer
         }
 
         // Don't redirect admin, AJAX, or non-GET requests
-        if (is_admin() || wp_doing_ajax() || $_SERVER['REQUEST_METHOD'] !== 'GET') {
+        if (is_admin() || wp_doing_ajax() || !isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] !== 'GET') {
+            return;
+        }
+
+        // Never canonical-redirect QA portal routes.
+        if ($this->is_qa_route_request()) {
             return;
         }
 
@@ -274,4 +304,3 @@ class Chroma_Canonical_Enforcer
 }
 
 new Chroma_Canonical_Enforcer();
-
