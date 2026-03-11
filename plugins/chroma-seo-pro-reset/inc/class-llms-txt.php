@@ -19,15 +19,8 @@ class Chroma_LLMs_Txt_Generator
      */
     public function init()
     {
-        // Remove virtual rewrite rules
-        // add_action('init', [$this, 'add_rewrite_rule']);
-        // add_filter('query_vars', [$this, 'add_query_var']);
-        // add_action('template_redirect', [$this, 'render_file']);
-
-        // Physical File Generation Hooks
-        add_action('admin_init', [$this, 'write_physical_file']); // Force check on admin load
-        add_action('save_post', [$this, 'write_physical_file']);
-        add_action('wp_ajax_chroma_save_llm_targeting', [$this, 'write_physical_file'], 20);
+        // LLM discovery ownership moved to chroma-agent-api plugin.
+        // Keep this class available for backward-compatible content generation only.
     }
 
     /**
