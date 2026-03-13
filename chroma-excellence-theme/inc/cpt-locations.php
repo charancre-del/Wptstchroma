@@ -290,6 +290,8 @@ function chroma_render_location_custom_fields_meta_box($post)
 	$director_signature = get_post_meta($post->ID, 'location_director_signature', true);
 	$maps_embed = get_post_meta($post->ID, 'location_maps_embed', true);
 	$tour_booking_link = get_post_meta($post->ID, 'location_tour_booking_link', true);
+	$summer_camp_calendar_url = get_post_meta($post->ID, 'location_summer_camp_calendar_url', true);
+	$summer_camp_calendar_attachment_id = get_post_meta($post->ID, 'location_summer_camp_calendar_attachment_id', true);
 	$school_pickups = get_post_meta($post->ID, 'location_school_pickups', true);
 	$seo_content_title = get_post_meta($post->ID, 'location_seo_content_title', true);
 	$seo_content_text = get_post_meta($post->ID, 'location_seo_content_text', true);
@@ -647,6 +649,31 @@ function chroma_render_location_custom_fields_meta_box($post)
 	</div>
 
 	<div class="chroma-meta-section">
+		<h4><?php _e('Summer Camp Calendar', 'chroma-excellence'); ?></h4>
+
+		<div class="chroma-meta-field">
+			<label for="location_summer_camp_calendar_url"><?php _e('Summer Camp Calendar PDF', 'chroma-excellence'); ?></label>
+			<input type="url" id="location_summer_camp_calendar_url" name="location_summer_camp_calendar_url"
+				class="chroma-media-field" data-preview-type="file"
+				value="<?php echo esc_attr($summer_camp_calendar_url); ?>" placeholder="https://..." style="width: calc(100% - 260px); display: inline-block;" />
+			<input type="hidden" id="location_summer_camp_calendar_attachment_id" name="location_summer_camp_calendar_attachment_id"
+				value="<?php echo esc_attr($summer_camp_calendar_attachment_id); ?>" />
+			<button type="button" class="button chroma-upload-button" data-field="location_summer_camp_calendar_url"
+				data-attachment-field="location_summer_camp_calendar_attachment_id" data-media-type="application/pdf"
+				data-preview-type="file" data-uploader-title="Select Summer Camp Calendar PDF"
+				data-button-text="Use this PDF" style="margin-left: 5px;">
+				<i class="fa-solid fa-file-pdf"></i> <?php _e('Upload PDF', 'chroma-excellence'); ?>
+			</button>
+			<button type="button" class="button chroma-clear-button" data-field="location_summer_camp_calendar_url"
+				data-attachment-field="location_summer_camp_calendar_attachment_id" style="margin-left: 5px;">
+				<i class="fa-solid fa-times"></i> <?php _e('Clear', 'chroma-excellence'); ?>
+			</button>
+			<div class="chroma-image-preview"></div>
+			<small><?php _e('This PDF is used by the Summer Camp landing page for the campus-specific "View Calendar" button.', 'chroma-excellence'); ?></small>
+		</div>
+	</div>
+
+	<div class="chroma-meta-section">
 		<h4><?php _e('School Pickups', 'chroma-excellence'); ?></h4>
 
 		<div class="chroma-meta-field">
@@ -736,6 +763,8 @@ function chroma_save_location_custom_fields($post_id)
 		'location_director_signature',
 		'location_maps_embed',
 		'location_tour_booking_link',
+		'location_summer_camp_calendar_url',
+		'location_summer_camp_calendar_attachment_id',
 		'location_school_pickups',
 		'location_seo_content_title',
 		'location_seo_content_text',
@@ -779,14 +808,19 @@ function chroma_save_location_custom_fields($post_id)
 				$value = wp_kses($value, $allowed_tags);
 			} elseif ($field === 'location_email') {
 				$value = sanitize_email($value);
-			} elseif ($field === 'location_tour_booking_link' || $field === 'location_gmb_url') {
+			} elseif ($field === 'location_tour_booking_link' || $field === 'location_gmb_url' || $field === 'location_summer_camp_calendar_url') {
 				$value = esc_url_raw($value);
+			} elseif ($field === 'location_summer_camp_calendar_attachment_id') {
+				$value = absint($value);
 			} else {
 				$value = sanitize_text_field($value);
 			}
 			update_post_meta($post_id, $field, $value);
 		}
 	}
+
+	$calendar_url = get_post_meta($post_id, 'location_summer_camp_calendar_url', true);
+	update_post_meta($post_id, 'summer_camp_calendar_url', esc_url_raw((string) $calendar_url));
 
 	// Save checkbox field for quality_rated
 	$quality_rated = isset($_POST['location_quality_rated']) ? '1' : '';
