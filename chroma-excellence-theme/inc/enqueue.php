@@ -157,6 +157,7 @@ function chroma_should_load_effects_bundle()
 {
         return is_front_page()
                 || is_page(array('about', 'locations', 'programs', 'schedule-tour', 'schedule-a-tour'))
+                || is_page_template('page-summer-camp.php')
                 || is_post_type_archive('location')
                 || is_post_type_archive('program')
                 || is_singular(array('location', 'program'))
@@ -169,6 +170,7 @@ function chroma_should_load_effects_bundle()
 function chroma_should_load_forms_bundle()
 {
         return is_page(array('contact', 'careers', 'schedule-tour', 'schedule-a-tour'))
+                || is_page_template('page-summer-camp.php')
                 || chroma_page_has_shortcode(array('chroma_contact_form', 'chroma_career_form', 'chroma_tour_form', 'contact-form-7'));
 }
 
