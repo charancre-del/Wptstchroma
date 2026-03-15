@@ -11,7 +11,6 @@ if (!defined('ABSPATH')) {
 
 $camp_year = (int) current_time('Y');
 $schedule_tour_url = home_url('/schedule-tour/');
-$summer_camp_page_id = get_the_ID();
 
 $normalize_location_name = static function ($name) {
 	$name = trim((string) $name);
@@ -194,7 +193,7 @@ get_header();
 				</div>
 
 				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink leading-tight mb-6">
-					<?php echo wp_kses_post(__('10 Weeks of <span class="text-chroma-yellow italic">Discovery.</span>', 'chroma-excellence')); ?>
+					<?php echo wp_kses_post(__('A Summer of <span class="text-chroma-yellow italic">Discovery.</span>', 'chroma-excellence')); ?>
 				</h1>
 
 				<p class="text-lg text-brand-ink/70 max-w-xl mb-8">
@@ -238,7 +237,7 @@ get_header();
 			<div class="text-center max-w-3xl mx-auto mb-14">
 				<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Camp Highlights', 'chroma-excellence'); ?></span>
 				<h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-4"><?php _e('What makes summer at Chroma different?', 'chroma-excellence'); ?></h2>
-				<p class="text-brand-ink/70"><?php _e('The page design comes from your sample, but the experience is wired into the current theme and live campus data so the page can evolve with the rest of the site.', 'chroma-excellence'); ?></p>
+				<p class="text-brand-ink/70"><?php _e('Each week blends themed adventures, active play, and hands-on discovery so children stay engaged all summer long.', 'chroma-excellence'); ?></p>
 			</div>
 
 			<div class="grid md:grid-cols-3 gap-8">
@@ -274,7 +273,7 @@ get_header();
 			<div class="text-center max-w-3xl mx-auto mb-10">
 				<span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php printf(esc_html__('%d Camp Calendars', 'chroma-excellence'), $camp_year); ?></span>
 				<h2 class="font-serif text-4xl font-bold text-brand-ink mb-4"><?php _e('Find Your Camp Calendar', 'chroma-excellence'); ?></h2>
-				<p class="text-brand-ink/70"><?php _e('Campuses are pulled from live location posts. Calendar buttons can use a PDF, an external registration schedule, or gracefully fall back to the campus page when a calendar has not been added yet.', 'chroma-excellence'); ?></p>
+				<p class="text-brand-ink/70"><?php _e('Browse participating campuses below to view weekly calendars, camp themes, and available tour options.', 'chroma-excellence'); ?></p>
 			</div>
 
 			<?php if (!empty($active_regions)): ?>
@@ -368,7 +367,7 @@ get_header();
 			<?php else: ?>
 				<div class="max-w-2xl mx-auto text-center bg-brand-cream border border-brand-ink/5 rounded-[2rem] p-10">
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php _e('No summer camp campuses are available yet.', 'chroma-excellence'); ?></h3>
-					<p class="text-brand-ink/70"><?php _e('Publish location posts to populate this directory automatically.', 'chroma-excellence'); ?></p>
+					<p class="text-brand-ink/70"><?php _e('Camp calendars are being finalized. Please check back soon or contact us for updates.', 'chroma-excellence'); ?></p>
 				</div>
 			<?php endif; ?>
 		</div>
@@ -378,40 +377,40 @@ get_header();
 		<div class="max-w-4xl mx-auto px-4 lg:px-6">
 			<div class="text-center mb-12">
 				<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Common Questions', 'chroma-excellence'); ?></span>
-				<h2 class="font-serif text-3xl font-bold text-brand-ink"><?php _e('Camp Parent FAQ', 'chroma-excellence'); ?></h2>
+				<h2 class="font-serif text-3xl font-bold text-brand-ink"><?php _e('Summer Camp FAQ', 'chroma-excellence'); ?></h2>
 			</div>
 
 			<div class="space-y-4">
 				<details class="group bg-white rounded-2xl p-5 border border-brand-ink/5 shadow-sm">
 					<summary class="flex items-center justify-between gap-4 font-bold text-brand-ink list-none cursor-pointer">
-						<span><?php _e('What are the daily hours for summer camp?', 'chroma-excellence'); ?></span>
+						<span><?php _e('What ages is summer camp for?', 'chroma-excellence'); ?></span>
 						<span class="text-chroma-blue group-open:rotate-180 transition-transform"><i class="fa-solid fa-chevron-down"></i></span>
 					</summary>
-					<p class="mt-3 text-sm text-brand-ink/70 leading-relaxed"><?php _e('Camp typically follows full-day care hours so working families have flexibility for drop-off and pick-up. Final daily schedules and field-trip timing vary by campus.', 'chroma-excellence'); ?></p>
+					<p class="mt-3 text-sm text-brand-ink/70 leading-relaxed"><?php _e('Chroma Summer Camp is designed for school-age children ages 5 to 12. Check your preferred campus calendar for any campus-specific groupings or programming notes.', 'chroma-excellence'); ?></p>
 				</details>
 
 				<details class="group bg-white rounded-2xl p-5 border border-brand-ink/5 shadow-sm">
 					<summary class="flex items-center justify-between gap-4 font-bold text-brand-ink list-none cursor-pointer">
-						<span><?php _e('Can families register for individual weeks?', 'chroma-excellence'); ?></span>
+						<span><?php _e('Can I enroll by week?', 'chroma-excellence'); ?></span>
 						<span class="text-chroma-blue group-open:rotate-180 transition-transform"><i class="fa-solid fa-chevron-down"></i></span>
 					</summary>
-					<p class="mt-3 text-sm text-brand-ink/70 leading-relaxed"><?php _e('Many families build their own summer schedule week by week. Availability and theme calendars depend on the campus, so earlier registration is still the safer move.', 'chroma-excellence'); ?></p>
+					<p class="mt-3 text-sm text-brand-ink/70 leading-relaxed"><?php _e('Many families build their summer schedule one week at a time. Availability varies by campus and by week, so earlier registration gives you the best selection.', 'chroma-excellence'); ?></p>
 				</details>
 
 				<details class="group bg-white rounded-2xl p-5 border border-brand-ink/5 shadow-sm">
 					<summary class="flex items-center justify-between gap-4 font-bold text-brand-ink list-none cursor-pointer">
-						<span><?php _e('Are meals, snacks, and field trips included?', 'chroma-excellence'); ?></span>
+						<span><?php _e('What should my child bring each day?', 'chroma-excellence'); ?></span>
 						<span class="text-chroma-blue group-open:rotate-180 transition-transform"><i class="fa-solid fa-chevron-down"></i></span>
 					</summary>
-					<p class="mt-3 text-sm text-brand-ink/70 leading-relaxed"><?php _e('Camp-specific inclusions can vary, but Chroma campuses are designed around full-service family convenience. Use the calendar or inquiry CTA for the exact details at your preferred school.', 'chroma-excellence'); ?></p>
+					<p class="mt-3 text-sm text-brand-ink/70 leading-relaxed"><?php _e('Your campus will share the final checklist, but families should expect to send comfortable play clothes, any required personal items, and field-trip or splash-day essentials when noted on the calendar.', 'chroma-excellence'); ?></p>
 				</details>
 
 				<details class="group bg-white rounded-2xl p-5 border border-brand-ink/5 shadow-sm">
 					<summary class="flex items-center justify-between gap-4 font-bold text-brand-ink list-none cursor-pointer">
-						<span><?php _e('What happens if a campus does not have a calendar linked yet?', 'chroma-excellence'); ?></span>
+						<span><?php _e('How do I view my campus calendar and field trip schedule?', 'chroma-excellence'); ?></span>
 						<span class="text-chroma-blue group-open:rotate-180 transition-transform"><i class="fa-solid fa-chevron-down"></i></span>
 					</summary>
-					<p class="mt-3 text-sm text-brand-ink/70 leading-relaxed"><?php _e('The page falls back to the campus detail page or the inquiry section below. That keeps the landing page usable while calendar links are still being added.', 'chroma-excellence'); ?></p>
+					<p class="mt-3 text-sm text-brand-ink/70 leading-relaxed"><?php _e('Use the campus cards above to open the latest calendar for your preferred location. If you need help finding the right campus or week, use the inquiry form below and our team will help.', 'chroma-excellence'); ?></p>
 				</details>
 			</div>
 		</div>
@@ -423,7 +422,7 @@ get_header();
 			<div>
 				<span class="text-chroma-yellow font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Need Help Choosing?', 'chroma-excellence'); ?></span>
 				<h2 class="font-serif text-3xl md:text-5xl font-bold mb-4"><?php _e('Ask about camp availability or schedule a walkthrough.', 'chroma-excellence'); ?></h2>
-				<p class="text-white/80 text-lg mb-6"><?php _e('This section reuses the existing Chroma tour form implementation so the page stays consistent with the rest of the theme.', 'chroma-excellence'); ?></p>
+				<p class="text-white/80 text-lg mb-6"><?php _e('Need help choosing a campus or checking availability? Our team can help you find the best fit for your family.', 'chroma-excellence'); ?></p>
 
 				<div id="summer-camp-campus-panel" class="hidden bg-white/10 border border-white/15 rounded-[2rem] p-6 mb-6">
 					<p class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60 mb-2"><?php _e('Selected Campus', 'chroma-excellence'); ?></p>
@@ -432,8 +431,8 @@ get_header();
 				</div>
 
 				<div class="bg-white/10 border border-white/15 rounded-[2rem] p-6">
-					<p class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60 mb-2"><?php _e('Implementation Note', 'chroma-excellence'); ?></p>
-					<p class="text-sm text-white/80"><?php _e('Campus cards with a direct booking link keep the current booking flow. Cards without one send families here so no CTA dead-ends.', 'chroma-excellence'); ?></p>
+					<p class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60 mb-2"><?php _e('What to Expect', 'chroma-excellence'); ?></p>
+					<p class="text-sm text-white/80"><?php _e('Select a campus to view its calendar, request details, or schedule a visit with the Chroma team.', 'chroma-excellence'); ?></p>
 				</div>
 			</div>
 
@@ -450,13 +449,6 @@ get_header();
 		</div>
 	</section>
 
-	<?php if (trim((string) get_post_field('post_content', $summer_camp_page_id)) !== ''): ?>
-		<section class="py-20 bg-white border-t border-brand-ink/5">
-			<div class="max-w-4xl mx-auto px-4 lg:px-6 text-brand-ink/80 leading-relaxed">
-				<?php the_content(); ?>
-			</div>
-		</section>
-	<?php endif; ?>
 </main>
 
 <div id="chroma-tour-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
