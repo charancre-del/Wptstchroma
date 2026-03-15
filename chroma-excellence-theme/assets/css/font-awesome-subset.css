@@ -643,6 +643,14 @@
     content: "\f5a0";
 }
 
+.fa-rocket:before {
+    content: "\f135";
+}
+
+.fa-water:before {
+    content: "\f773";
+}
+
 .fa-comment-dots:before {
     content: "\f4ad";
 }

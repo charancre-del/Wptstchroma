@@ -44,6 +44,59 @@ function chroma_bump_nav_cache_version()
 }
 
 /**
+ * Purge external page caches after nav changes so cached HTML reflects the latest menu.
+ */
+function chroma_purge_page_caches()
+{
+	static $purged = false;
+
+	if ($purged) {
+		return;
+	}
+
+	$purged = true;
+
+	if (function_exists('wp_cache_flush')) {
+		wp_cache_flush();
+	}
+
+	if (class_exists('LiteSpeed\\Purge')) {
+		LiteSpeed\Purge::purge_all();
+	} elseif (has_action('litespeed_purge_all')) {
+		do_action('litespeed_purge_all');
+	}
+
+	if (function_exists('w3tc_flush_all')) {
+		w3tc_flush_all();
+	}
+
+	if (function_exists('rocket_clean_domain')) {
+		rocket_clean_domain();
+	}
+
+	if (function_exists('wpfc_clear_all_cache')) {
+		wpfc_clear_all_cache(true);
+	}
+}
+
+/**
+ * The homepage header changes with WP menu updates, so do not allow edge caches to freeze it.
+ */
+function chroma_disable_front_page_edge_cache()
+{
+	if (is_admin() || !is_front_page() || headers_sent()) {
+		return;
+	}
+
+	header_remove('Cache-Control');
+	header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+	header('Pragma: no-cache');
+	header('Expires: Wed, 11 Jan 1984 05:00:00 GMT');
+	header('Surrogate-Control: no-store');
+}
+add_action('send_headers', 'chroma_disable_front_page_edge_cache', 100);
+
+/**
  * Nav markup on the front page goes stale most visibly, so skip transients there.
  */
 function chroma_should_cache_nav_markup()
@@ -466,6 +519,7 @@ function chroma_clear_nav_transients()
 	}
 
 	chroma_bump_nav_cache_version();
+	chroma_purge_page_caches();
 }
 add_action('wp_update_nav_menu', 'chroma_clear_nav_transients');
 add_action('wp_update_nav_menu_item', 'chroma_clear_nav_transients');
