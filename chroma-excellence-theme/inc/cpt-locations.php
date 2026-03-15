@@ -658,20 +658,95 @@ function chroma_render_location_custom_fields_meta_box($post)
 				value="<?php echo esc_attr($summer_camp_calendar_url); ?>" placeholder="https://..." style="width: calc(100% - 260px); display: inline-block;" />
 			<input type="hidden" id="location_summer_camp_calendar_attachment_id" name="location_summer_camp_calendar_attachment_id"
 				value="<?php echo esc_attr($summer_camp_calendar_attachment_id); ?>" />
-			<button type="button" class="button chroma-upload-button" data-field="location_summer_camp_calendar_url"
+			<button type="button" id="location_summer_camp_calendar_upload" class="button chroma-upload-button" data-field="location_summer_camp_calendar_url"
 				data-attachment-field="location_summer_camp_calendar_attachment_id" data-media-type="application/pdf"
 				data-preview-type="file" data-uploader-title="Select Summer Camp Calendar PDF"
 				data-button-text="Use this PDF" style="margin-left: 5px;">
 				<i class="fa-solid fa-file-pdf"></i> <?php _e('Upload PDF', 'chroma-excellence'); ?>
 			</button>
-			<button type="button" class="button chroma-clear-button" data-field="location_summer_camp_calendar_url"
+			<button type="button" id="location_summer_camp_calendar_clear" class="button chroma-clear-button" data-field="location_summer_camp_calendar_url"
 				data-attachment-field="location_summer_camp_calendar_attachment_id" style="margin-left: 5px;">
 				<i class="fa-solid fa-times"></i> <?php _e('Clear', 'chroma-excellence'); ?>
 			</button>
-			<div class="chroma-image-preview"></div>
+			<div class="chroma-image-preview" id="location_summer_camp_calendar_preview"></div>
 			<small><?php _e('This PDF is used by the Summer Camp landing page for the campus-specific "View Calendar" button.', 'chroma-excellence'); ?></small>
 		</div>
 	</div>
+	<script>
+		(function () {
+			const bindUploader = function () {
+				const uploadButton = document.getElementById('location_summer_camp_calendar_upload');
+				const clearButton = document.getElementById('location_summer_camp_calendar_clear');
+				const urlField = document.getElementById('location_summer_camp_calendar_url');
+				const attachmentField = document.getElementById('location_summer_camp_calendar_attachment_id');
+				const preview = document.getElementById('location_summer_camp_calendar_preview');
+
+				if (!uploadButton || !clearButton || !urlField || !attachmentField || !preview || uploadButton.dataset.boundUploader === '1') {
+					return;
+				}
+
+				const mediaWindow = (window.top && window.top.wp && window.top.wp.media) ? window.top : window;
+				if (!mediaWindow.wp || !mediaWindow.wp.media) {
+					return;
+				}
+
+				const renderPreview = function (url) {
+					if (!url) {
+						preview.innerHTML = '';
+						return;
+					}
+
+					const parts = url.split('/');
+					const fileName = parts[parts.length - 1] || url;
+					preview.innerHTML =
+						'<div style="margin-top:10px;padding:10px 12px;border:1px solid #ddd;border-radius:4px;background:#f8f8f8;">' +
+							'<strong>Selected file:</strong> ' +
+							'<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + fileName + '</a>' +
+						'</div>';
+				};
+
+				uploadButton.dataset.boundUploader = '1';
+				renderPreview(urlField.value);
+
+				uploadButton.addEventListener('click', function (event) {
+					event.preventDefault();
+
+					const frame = mediaWindow.wp.media({
+						title: 'Select Summer Camp Calendar PDF',
+						button: {
+							text: 'Use this PDF'
+						},
+						multiple: false,
+						library: {
+							type: ['application/pdf']
+						}
+					});
+
+					frame.on('select', function () {
+						const attachment = frame.state().get('selection').first().toJSON();
+						urlField.value = attachment.url || '';
+						attachmentField.value = attachment.id || '';
+						renderPreview(urlField.value);
+					});
+
+					frame.open();
+				});
+
+				clearButton.addEventListener('click', function (event) {
+					event.preventDefault();
+					urlField.value = '';
+					attachmentField.value = '';
+					renderPreview('');
+				});
+			};
+
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', bindUploader);
+			} else {
+				bindUploader();
+			}
+		}());
+	</script>
 
 	<div class="chroma-meta-section">
 		<h4><?php _e('School Pickups', 'chroma-excellence'); ?></h4>
