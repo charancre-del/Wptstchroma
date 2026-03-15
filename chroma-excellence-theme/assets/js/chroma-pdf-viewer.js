@@ -24,8 +24,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const titleSpan = document.getElementById('chroma-pdf-title');
     const backdrop = document.getElementById('chroma-pdf-backdrop');
 
-    const LOW_RES_SCALE_CAP = 0.9;
-    const ENHANCE_SCALE_DELTA = 0.2;
+    const LOW_RES_SCALE_CAP = 0.72;
+    const ENHANCE_SCALE_DELTA = 0.05;
     const POSTER_MAX_WIDTH = 240;
 
     const viewerState = {
@@ -346,8 +346,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         viewerState.pdfDoc.getPage(num).then(function (page) {
             const targetScale = getTargetScale(page);
-            const shouldEnhance = options.lowResFirst && targetScale > (LOW_RES_SCALE_CAP + ENHANCE_SCALE_DELTA);
-            const firstPassScale = shouldEnhance ? LOW_RES_SCALE_CAP : targetScale;
+            const firstPassScale = options.lowResFirst
+                ? Math.min(targetScale, LOW_RES_SCALE_CAP)
+                : targetScale;
+            const shouldEnhance = options.lowResFirst && targetScale > (firstPassScale + ENHANCE_SCALE_DELTA);
 
             return renderCanvasPage(page, firstPassScale).then(function () {
                 if (renderGeneration !== viewerState.renderGeneration) {
