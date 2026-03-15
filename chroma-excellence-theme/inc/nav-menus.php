@@ -28,19 +28,60 @@ function chroma_register_menus()
 add_action('init', 'chroma_register_menus');
 
 /**
+ * Get the current nav cache version.
+ */
+function chroma_get_nav_cache_version()
+{
+	return (string) max(1, (int) get_option('chroma_nav_cache_version', 1));
+}
+
+/**
+ * Bump the nav cache version whenever menu data changes.
+ */
+function chroma_bump_nav_cache_version()
+{
+	update_option('chroma_nav_cache_version', time(), false);
+}
+
+/**
+ * Nav markup on the front page goes stale most visibly, so skip transients there.
+ */
+function chroma_should_cache_nav_markup()
+{
+	return !is_front_page() && !is_customize_preview();
+}
+
+/**
+ * Build a stable nav cache key that can be invalidated globally.
+ */
+function chroma_get_nav_cache_key($prefix, $is_es)
+{
+	$request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '/';
+	$page_hash = md5($request_uri);
+
+	return implode('_', array(
+		$prefix,
+		$is_es ? 'es' : 'en',
+		chroma_get_nav_cache_version(),
+		$page_hash,
+	));
+}
+
+/**
  * Primary Navigation with Tailwind classes
  */
 function chroma_primary_nav()
 {
 	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
-	// Page-specific key to preserve "active" menu classes
-	$page_hash = md5($_SERVER['REQUEST_URI']);
-	$cache_key = 'chroma_primary_nav_' . ($is_es ? 'es' : 'en') . '_' . $page_hash;
+	$cache_enabled = chroma_should_cache_nav_markup();
+	$cache_key = chroma_get_nav_cache_key('chroma_primary_nav', $is_es);
 
-	$cached = get_transient($cache_key);
-	if ($cached !== false) {
-		echo $cached;
-		return;
+	if ($cache_enabled) {
+		$cached = get_transient($cache_key);
+		if ($cached !== false) {
+			echo $cached;
+			return;
+		}
 	}
 
 	ob_start();
@@ -57,7 +98,9 @@ function chroma_primary_nav()
 	));
 
 	$output = ob_get_clean();
-	set_transient($cache_key, $output, DAY_IN_SECONDS);
+	if ($cache_enabled) {
+		set_transient($cache_key, $output, DAY_IN_SECONDS);
+	}
 	echo $output;
 }
 
@@ -92,13 +135,15 @@ function chroma_primary_nav_fallback()
 function chroma_footer_nav()
 {
 	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
-	$page_hash = md5($_SERVER['REQUEST_URI']);
-	$cache_key = 'chroma_footer_nav_' . ($is_es ? 'es' : 'en') . '_' . $page_hash;
+	$cache_enabled = chroma_should_cache_nav_markup();
+	$cache_key = chroma_get_nav_cache_key('chroma_footer_nav', $is_es);
 
-	$cached = get_transient($cache_key);
-	if ($cached !== false) {
-		echo $cached;
-		return;
+	if ($cache_enabled) {
+		$cached = get_transient($cache_key);
+		if ($cached !== false) {
+			echo $cached;
+			return;
+		}
 	}
 
 	ob_start();
@@ -115,7 +160,9 @@ function chroma_footer_nav()
 	));
 
 	$output = ob_get_clean();
-	set_transient($cache_key, $output, DAY_IN_SECONDS);
+	if ($cache_enabled) {
+		set_transient($cache_key, $output, DAY_IN_SECONDS);
+	}
 	echo $output;
 }
 
@@ -150,13 +197,15 @@ function chroma_footer_nav_fallback()
 function chroma_footer_contact_nav()
 {
 	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
-	$page_hash = md5($_SERVER['REQUEST_URI']);
-	$cache_key = 'chroma_footer_contact_nav_' . ($is_es ? 'es' : 'en') . '_' . $page_hash;
+	$cache_enabled = chroma_should_cache_nav_markup();
+	$cache_key = chroma_get_nav_cache_key('chroma_footer_contact_nav', $is_es);
 
-	$cached = get_transient($cache_key);
-	if ($cached !== false) {
-		echo $cached;
-		return;
+	if ($cache_enabled) {
+		$cached = get_transient($cache_key);
+		if ($cached !== false) {
+			echo $cached;
+			return;
+		}
 	}
 
 	ob_start();
@@ -194,7 +243,9 @@ function chroma_footer_contact_nav()
 	}
 
 	$output = ob_get_clean();
-	set_transient($cache_key, $output, DAY_IN_SECONDS);
+	if ($cache_enabled) {
+		set_transient($cache_key, $output, DAY_IN_SECONDS);
+	}
 	echo $output;
 }
 
@@ -282,13 +333,15 @@ class Chroma_Footer_Nav_Walker extends Walker_Nav_Menu
 function chroma_mobile_nav()
 {
 	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
-	$page_hash = md5($_SERVER['REQUEST_URI']);
-	$cache_key = 'chroma_mobile_nav_' . ($is_es ? 'es' : 'en') . '_' . $page_hash;
+	$cache_enabled = chroma_should_cache_nav_markup();
+	$cache_key = chroma_get_nav_cache_key('chroma_mobile_nav', $is_es);
 
-	$cached = get_transient($cache_key);
-	if ($cached !== false) {
-		echo $cached;
-		return;
+	if ($cache_enabled) {
+		$cached = get_transient($cache_key);
+		if ($cached !== false) {
+			echo $cached;
+			return;
+		}
 	}
 
 	ob_start();
@@ -305,7 +358,9 @@ function chroma_mobile_nav()
 	));
 
 	$output = ob_get_clean();
-	set_transient($cache_key, $output, DAY_IN_SECONDS);
+	if ($cache_enabled) {
+		set_transient($cache_key, $output, DAY_IN_SECONDS);
+	}
 	echo $output;
 }
 
@@ -409,5 +464,11 @@ function chroma_clear_nav_transients()
 			)
 		);
 	}
+
+	chroma_bump_nav_cache_version();
 }
 add_action('wp_update_nav_menu', 'chroma_clear_nav_transients');
+add_action('wp_update_nav_menu_item', 'chroma_clear_nav_transients');
+add_action('save_post_nav_menu_item', 'chroma_clear_nav_transients');
+add_action('customize_save_after', 'chroma_clear_nav_transients');
+add_action('switch_theme', 'chroma_clear_nav_transients');
