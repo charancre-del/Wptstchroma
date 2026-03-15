@@ -7,6 +7,10 @@
 jQuery(document).ready(function($) {
     'use strict';
 
+    function getPreviewContainer(button) {
+        return button.siblings('.chroma-image-preview').first();
+    }
+
     function renderMediaPreview(previewContainer, url, previewType) {
         if (!previewContainer.length) {
             return;
@@ -34,19 +38,24 @@ jQuery(document).ready(function($) {
     }
 
     // Media uploader for location assets
-    $('.chroma-upload-button').on('click', function(e) {
+    $(document).on('click', '.chroma-upload-button', function(e) {
         e.preventDefault();
 
         const button = $(this);
         const fieldId = button.data('field');
         const inputField = $('#' + fieldId);
-        const previewContainer = button.siblings('.chroma-image-preview');
+        const previewContainer = getPreviewContainer(button);
         const attachmentFieldId = button.data('attachmentField');
         const attachmentField = attachmentFieldId ? $('#' + attachmentFieldId) : $();
         const mediaType = button.data('mediaType') || 'image';
         const previewType = button.data('previewType') || (mediaType === 'image' ? 'image' : 'file');
         const uploaderTitle = button.data('uploaderTitle') || (mediaType === 'image' ? 'Select Image' : 'Select File');
         const buttonText = button.data('buttonText') || (mediaType === 'image' ? 'Use this image' : 'Use this file');
+
+        if (typeof wp === 'undefined' || !wp.media) {
+            window.alert('The WordPress media uploader is unavailable on this screen. Please refresh and try again.');
+            return;
+        }
 
         const mediaArgs = {
             title: uploaderTitle,
@@ -56,8 +65,8 @@ jQuery(document).ready(function($) {
             multiple: false
         };
 
-        if (mediaType === 'image') {
-            mediaArgs.library = { type: 'image' };
+        if (mediaType) {
+            mediaArgs.library = { type: mediaType };
         }
 
         // Create WordPress media frame
@@ -79,13 +88,13 @@ jQuery(document).ready(function($) {
     });
 
     // Clear image button
-    $('.chroma-clear-button').on('click', function(e) {
+    $(document).on('click', '.chroma-clear-button', function(e) {
         e.preventDefault();
 
         const button = $(this);
         const fieldId = button.data('field');
         const inputField = $('#' + fieldId);
-        const previewContainer = button.siblings('.chroma-image-preview');
+        const previewContainer = getPreviewContainer(button);
         const attachmentFieldId = button.data('attachmentField');
         const attachmentField = attachmentFieldId ? $('#' + attachmentFieldId) : $();
 

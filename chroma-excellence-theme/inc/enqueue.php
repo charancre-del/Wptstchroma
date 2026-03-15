@@ -381,7 +381,13 @@ function chroma_enqueue_admin_assets($hook)
 
         // Custom admin script for media uploader
         $admin_js_asset = chroma_get_theme_asset('assets/js/admin.js');
-        wp_enqueue_script('chroma-admin', $admin_js_asset['url'], array('jquery'), $admin_js_asset['version'], true);
+        wp_enqueue_script(
+                'chroma-admin',
+                $admin_js_asset['url'],
+                array('jquery', 'media-editor', 'media-views'),
+                $admin_js_asset['version'],
+                true
+        );
 }
 add_action('admin_enqueue_scripts', 'chroma_enqueue_admin_assets');
 
