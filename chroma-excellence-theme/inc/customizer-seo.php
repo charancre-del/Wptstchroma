@@ -230,6 +230,60 @@ function chroma_get_twitter_handle() {
 }
 
 /**
+ * Build the current page URL before SEO filters are applied.
+ *
+ * @return string
+ */
+function chroma_get_context_base_url() {
+    global $wp;
+
+    $request_path = (isset($wp) && isset($wp->request)) ? (string) $wp->request : '';
+    $url = home_url(add_query_arg([], $request_path));
+
+    if (is_singular()) {
+        $post = get_post();
+        if ($post) {
+            $permalink = get_permalink($post);
+            if ($permalink) {
+                $url = $permalink;
+            }
+        }
+    } elseif (is_home() || is_front_page()) {
+        $url = home_url('/');
+    } elseif (is_archive()) {
+        if (is_post_type_archive()) {
+            $archive_url = get_post_type_archive_link(get_post_type());
+            if ($archive_url) {
+                $url = $archive_url;
+            }
+        } elseif (is_category() || is_tag() || is_tax()) {
+            $term_link = get_term_link(get_queried_object());
+            if (!is_wp_error($term_link)) {
+                $url = $term_link;
+            }
+        }
+    }
+
+    return (string) $url;
+}
+
+/**
+ * Build the current canonical URL while honoring route-level overrides.
+ *
+ * @return string
+ */
+function chroma_get_context_canonical_url() {
+    $url = chroma_get_context_base_url();
+    $filtered = apply_filters('wpseo_canonical', $url);
+
+    if (is_string($filtered) && $filtered !== '') {
+        return $filtered;
+    }
+
+    return $url;
+}
+
+/**
  * Build context-aware meta description.
  *
  * @return string
@@ -255,6 +309,11 @@ function chroma_get_context_meta_description() {
     }
 
     if (empty($description)) {
+        $description = get_bloginfo('description');
+    }
+
+    $description = apply_filters('wpseo_metadesc', (string) $description);
+    if ($description === '') {
         $description = get_bloginfo('description');
     }
 
@@ -302,10 +361,13 @@ function chroma_output_social_meta_tags() {
     // Get current page data
     $title = wp_get_document_title();
     $description = chroma_get_context_meta_description();
+    $description = apply_filters('wpseo_opengraph_desc', $description);
+    if (!is_string($description) || $description === '') {
+        $description = chroma_get_context_meta_description();
+    }
+
     $image = $default_og_image;
-    global $wp;
-    $request_path = (isset($wp) && isset($wp->request)) ? $wp->request : '';
-    $url = home_url(add_query_arg([], $request_path));
+    $url = chroma_get_context_canonical_url();
     $type = 'website';
     
     if (is_singular()) {
@@ -314,20 +376,13 @@ function chroma_output_social_meta_tags() {
             $image = get_the_post_thumbnail_url($post, 'large');
         }
         $type = is_singular('post') ? 'article' : 'website';
-        if ($post) {
-            $url = get_permalink($post);
-        }
     } elseif (is_home() || is_front_page()) {
         $url = home_url('/');
-    } elseif (is_archive()) {
-        if (is_post_type_archive()) {
-            $url = get_post_type_archive_link(get_post_type());
-        } elseif (is_category() || is_tag() || is_tax()) {
-            $term_link = get_term_link(get_queried_object());
-            if (!is_wp_error($term_link)) {
-                $url = $term_link;
-            }
-        }
+    }
+
+    $social_url = apply_filters('wpseo_opengraph_url', $url);
+    if (is_string($social_url) && $social_url !== '') {
+        $url = $social_url;
     }
     
     if (empty($image) && function_exists('get_site_icon_url')) {

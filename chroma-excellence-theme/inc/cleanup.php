@@ -247,6 +247,11 @@ function chroma_enforce_canonical()
         }
 
         if (!is_wp_error($canonical_url) && $canonical_url) {
+                $filtered_canonical = apply_filters('wpseo_canonical', $canonical_url);
+                if (is_string($filtered_canonical) && $filtered_canonical !== '') {
+                        $canonical_url = $filtered_canonical;
+                }
+
                 $canonical_url = strtok($canonical_url, '?');
                 if (!preg_match('/\.(html?|xml|json|php)$/i', $canonical_url)) {
                         $canonical_url = trailingslashit($canonical_url);

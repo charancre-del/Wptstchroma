@@ -76,8 +76,142 @@ class Chroma_Near_Me_Pages
         $city_slug = sanitize_title(get_query_var('near_city'));
         $state = strtoupper(sanitize_text_field(get_query_var('near_state')));
 
+        $this->prepare_virtual_page_query_state();
+        $this->register_seo_overrides($keyword, $city_slug, $state);
         $this->render_near_me_page($keyword, $city_slug, $state);
         exit;
+    }
+
+    /**
+     * Keep virtual near pages from inheriting front-page query flags.
+     *
+     * The route is rendered manually in template_redirect, so WordPress may still
+     * think the request is the homepage unless we clear those flags before wp_head.
+     */
+    private function prepare_virtual_page_query_state()
+    {
+        global $wp_query;
+
+        if (!($wp_query instanceof WP_Query)) {
+            return;
+        }
+
+        $wp_query->is_home = false;
+        $wp_query->is_front_page = false;
+        $wp_query->is_archive = false;
+        $wp_query->is_404 = false;
+        $wp_query->is_search = false;
+        $wp_query->is_feed = false;
+        $wp_query->is_page = false;
+        $wp_query->is_single = false;
+        $wp_query->is_singular = false;
+        $wp_query->queried_object = null;
+        $wp_query->queried_object_id = 0;
+    }
+
+    /**
+     * Register route-level SEO overrides so theme and plugin head output stay aligned.
+     */
+    private function register_seo_overrides($keyword, $city_slug = '', $state = '')
+    {
+        $title = $this->build_page_title($keyword, $city_slug, $state);
+        $description = $this->build_meta_description($keyword, $city_slug, $state);
+        $canonical = $this->build_canonical_url($keyword, $city_slug, $state);
+
+        add_filter('pre_get_document_title', function ($current) use ($title) {
+            return $title;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_title', function ($current) use ($title) {
+            return $title;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_metadesc', function ($current) use ($description) {
+            return $description;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_opengraph_desc', function ($current) use ($description) {
+            return $description;
+        }, PHP_INT_MAX);
+
+        foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $filter) {
+            add_filter($filter, function ($current) use ($canonical) {
+                return $canonical;
+            }, PHP_INT_MAX);
+        }
+    }
+
+    /**
+     * Build the display and SEO title for the current near page.
+     */
+    private function build_page_title($keyword, $city_slug = '', $state = '')
+    {
+        $keyword_label = ucwords(str_replace('-', ' ', (string) $keyword));
+
+        if ($city_slug !== '' && $state !== '') {
+            $city_name = ucwords(str_replace('-', ' ', $city_slug));
+            return sprintf(__('%1$s Near %2$s, %3$s | Chroma', 'chroma-excellence'), $keyword_label, $city_name, $state);
+        }
+
+        return sprintf(__('%1$s Near Me | Chroma', 'chroma-excellence'), $keyword_label);
+    }
+
+    /**
+     * Build a route-specific meta description for the current near page.
+     */
+    private function build_meta_description($keyword, $city_slug = '', $state = '')
+    {
+        $keyword_label = strtolower(str_replace('-', ' ', (string) $keyword));
+
+        if ($city_slug !== '' && $state !== '') {
+            $city_name = ucwords(str_replace('-', ' ', $city_slug));
+            return sprintf(
+                __('Compare trusted %1$s options near %2$s, %3$s. Explore nearby Chroma locations, curriculum, and tour information for local families.', 'chroma-excellence'),
+                $keyword_label,
+                $city_name,
+                $state
+            );
+        }
+
+        return sprintf(
+            __('Compare trusted %1$s options near you. Explore nearby Chroma locations, curriculum, and tour information for Georgia families.', 'chroma-excellence'),
+            $keyword_label
+        );
+    }
+
+    /**
+     * Build the canonical URL for the current near page.
+     */
+    private function build_canonical_url($keyword, $city_slug = '', $state = '')
+    {
+        $segments = [];
+        if ($this->is_spanish_request()) {
+            $segments[] = 'es';
+        }
+
+        $state_slug = strtolower((string) $state);
+        if ($city_slug !== '' && $state_slug !== '') {
+            $segments[] = sanitize_title($keyword) . '-near-' . sanitize_title($city_slug) . '-' . $state_slug;
+        } else {
+            $segments[] = sanitize_title($keyword) . '-near-me';
+        }
+
+        return home_url('/' . implode('/', $segments) . '/');
+    }
+
+    /**
+     * Detect whether the current request is the Spanish route variant.
+     */
+    private function is_spanish_request()
+    {
+        if ((string) get_query_var('chroma_lang') === 'es') {
+            return true;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+
+        return is_string($path) && strpos($path, '/es/') === 0;
     }
 
     /**

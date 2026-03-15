@@ -114,6 +114,11 @@ class Chroma_Canonical_Enforcer
             }
         }
 
+        $filtered = apply_filters('wpseo_canonical', $url);
+        if (is_string($filtered) && $filtered !== '') {
+            $url = $filtered;
+        }
+
         return $this->normalize_canonical_url($url);
     }
 
