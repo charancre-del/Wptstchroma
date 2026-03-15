@@ -47,6 +47,42 @@ document.addEventListener('DOMContentLoaded', function () {
     const posterPromiseCache = new Map();
     let pdfLibraryPromise = null;
 
+    function getPdfConfig() {
+        if (window.chromaPdfConfig && window.chromaPdfConfig.pdfJsUrl && window.chromaPdfConfig.pdfWorkerUrl) {
+            return window.chromaPdfConfig;
+        }
+
+        const script = document.querySelector('script[src*="/assets/js/chroma-pdf-viewer.js"]');
+        if (!script || !script.src) {
+            return null;
+        }
+
+        const scriptUrl = new URL(script.src, window.location.href);
+        const viewerPath = '/assets/js/chroma-pdf-viewer.js';
+        const pathname = scriptUrl.pathname;
+        const basePath = pathname.endsWith(viewerPath)
+            ? pathname.slice(0, pathname.length - viewerPath.length)
+            : '';
+
+        if (basePath === '') {
+            return null;
+        }
+
+        return {
+            pdfJsUrl: scriptUrl.origin + basePath + '/assets/js/pdf/pdf.min.js',
+            pdfWorkerUrl: scriptUrl.origin + basePath + '/assets/js/pdf/pdf.worker.min.js'
+        };
+    }
+
+    function getClosestTrigger(target) {
+        const element = target && target.nodeType === 1 ? target : (target && target.parentElement ? target.parentElement : null);
+        if (!element || typeof element.closest !== 'function') {
+            return null;
+        }
+
+        return element.closest('.chroma-pdf-trigger');
+    }
+
     function isPdfUrl(url) {
         return /\.pdf(?:\?.*)?$/i.test(String(url || ''));
     }
@@ -121,10 +157,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         pdfLibraryPromise = new Promise(function (resolve, reject) {
+            const pdfConfig = getPdfConfig();
+            if (!pdfConfig) {
+                reject(new Error('chromaPdfConfig is not available.'));
+                return;
+            }
+
             const script = document.createElement('script');
-            script.src = chromaPdfConfig.pdfJsUrl;
+            script.src = pdfConfig.pdfJsUrl;
             script.onload = function () {
-                window.pdfjsLib.GlobalWorkerOptions.workerSrc = chromaPdfConfig.pdfWorkerUrl;
+                window.pdfjsLib.GlobalWorkerOptions.workerSrc = pdfConfig.pdfWorkerUrl;
                 resolve(window.pdfjsLib);
             };
             script.onerror = reject;
@@ -511,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('resize', onResize);
 
     document.addEventListener('click', function (event) {
-        const trigger = event.target.closest('.chroma-pdf-trigger');
+        const trigger = getClosestTrigger(event.target);
         if (!trigger) {
             return;
         }
@@ -529,21 +571,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     document.addEventListener('mouseenter', function (event) {
-        const trigger = event.target.closest('.chroma-pdf-trigger');
+        const trigger = getClosestTrigger(event.target);
         if (trigger) {
             warmTriggerPoster(trigger);
         }
     }, true);
 
     document.addEventListener('focusin', function (event) {
-        const trigger = event.target.closest('.chroma-pdf-trigger');
+        const trigger = getClosestTrigger(event.target);
         if (trigger) {
             warmTriggerPoster(trigger);
         }
     });
 
     document.addEventListener('touchstart', function (event) {
-        const trigger = event.target.closest('.chroma-pdf-trigger');
+        const trigger = getClosestTrigger(event.target);
         if (trigger) {
             warmTriggerPoster(trigger);
         }

@@ -97,6 +97,11 @@ function chroma_enqueue_pdf_assets() {
         'pdfJsUrl' => get_template_directory_uri() . '/assets/js/pdf/pdf.min.js',
         'pdfWorkerUrl' => get_template_directory_uri() . '/assets/js/pdf/pdf.worker.min.js'
     );
+    wp_add_inline_script(
+        'chroma-pdf-viewer',
+        'window.chromaPdfConfig = ' . wp_json_encode($config) . ';',
+        'before'
+    );
     wp_localize_script('chroma-pdf-viewer', 'chromaPdfConfig', $config);
     wp_enqueue_script('chroma-pdf-viewer');
 }
