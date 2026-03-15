@@ -459,14 +459,99 @@ get_header();
 	<?php endif; ?>
 </main>
 
+<div id="chroma-tour-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+	<div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="chroma-tour-backdrop"></div>
+
+	<div class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+		<div class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
+			<h3 class="font-serif text-xl font-bold text-brand-ink"><?php _e('Schedule Your Visit', 'chroma-excellence'); ?></h3>
+			<div class="flex items-center gap-4">
+				<a href="#" id="chroma-tour-external" target="_blank" rel="noopener noreferrer"
+					class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">
+					<?php _e('Open in new tab', 'chroma-excellence'); ?> <i class="fa-solid fa-external-link-alt ml-1"></i>
+				</a>
+				<button id="chroma-tour-close"
+					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
+					<i class="fa-solid fa-xmark text-lg"></i>
+				</button>
+			</div>
+		</div>
+
+		<div class="flex-grow relative bg-white">
+			<div id="chroma-tour-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
+				<div class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin"></div>
+			</div>
+			<iframe id="chroma-tour-frame" src="" class="w-full h-full border-0"
+				allow="camera; microphone; autoplay; encrypted-media;"></iframe>
+		</div>
+	</div>
+</div>
+
 <script>
 	document.addEventListener('DOMContentLoaded', function () {
 		var campusPanel = document.getElementById('summer-camp-campus-panel');
 		var campusName = document.getElementById('summer-camp-campus-name');
 		var inquirySection = document.getElementById('camp-inquiry');
 		var buttons = document.querySelectorAll('.summer-camp-tour-btn[data-campus]');
+		var modal = document.getElementById('chroma-tour-modal');
+		var backdrop = document.getElementById('chroma-tour-backdrop');
+		var closeBtn = document.getElementById('chroma-tour-close');
+		var iframe = document.getElementById('chroma-tour-frame');
+		var externalLink = document.getElementById('chroma-tour-external');
+		var loader = document.getElementById('chroma-tour-loader');
+
+		function openTourModal(url) {
+			if (!modal || !iframe || !loader || !externalLink) {
+				window.location.href = url;
+				return;
+			}
+
+			modal.classList.remove('hidden');
+			document.body.style.overflow = 'hidden';
+			loader.classList.remove('hidden');
+			iframe.src = url;
+			externalLink.href = url;
+
+			iframe.onload = function () {
+				loader.classList.add('hidden');
+			};
+		}
+
+		function closeTourModal() {
+			if (!modal || !iframe || !loader) {
+				return;
+			}
+
+			modal.classList.add('hidden');
+			document.body.style.overflow = '';
+			iframe.src = '';
+			loader.classList.remove('hidden');
+		}
+
+		document.querySelectorAll('.booking-btn').forEach(function (button) {
+			button.addEventListener('click', function (event) {
+				var url = button.getAttribute('href');
+				if (!url || url.indexOf('http') !== 0) {
+					return;
+				}
+
+				event.preventDefault();
+				openTourModal(url);
+			});
+		});
 
 		if (!campusPanel || !campusName || !inquirySection || !buttons.length) {
+			if (closeBtn) {
+				closeBtn.addEventListener('click', closeTourModal);
+			}
+			if (backdrop) {
+				backdrop.addEventListener('click', closeTourModal);
+			}
+			document.addEventListener('keydown', function (event) {
+				if (event.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+					closeTourModal();
+				}
+			});
 			return;
 		}
 
@@ -484,6 +569,18 @@ get_header();
 					inquirySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 				}, 40);
 			});
+		});
+
+		if (closeBtn) {
+			closeBtn.addEventListener('click', closeTourModal);
+		}
+		if (backdrop) {
+			backdrop.addEventListener('click', closeTourModal);
+		}
+		document.addEventListener('keydown', function (event) {
+			if (event.key === 'Escape' && modal && !modal.classList.contains('hidden')) {
+				closeTourModal();
+			}
 		});
 	});
 </script>

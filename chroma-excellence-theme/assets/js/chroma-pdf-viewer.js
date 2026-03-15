@@ -27,6 +27,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const LOW_RES_SCALE_CAP = 0.72;
     const ENHANCE_SCALE_DELTA = 0.05;
     const POSTER_MAX_WIDTH = 240;
+    const MAX_TARGET_SCALE = 2.6;
+    const HIGH_RES_OUTPUT_SCALE = Math.max(1.75, Math.min(window.devicePixelRatio || 1, 2.5));
 
     const viewerState = {
         pdfDoc: null,
@@ -212,8 +214,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const unscaledViewport = page.getViewport({ scale: 1 });
         let desiredScale = (containerWidth - 60) / unscaledViewport.width;
 
-        if (desiredScale > 2.0) {
-            desiredScale = 2.0;
+        if (desiredScale > MAX_TARGET_SCALE) {
+            desiredScale = MAX_TARGET_SCALE;
         }
 
         if (desiredScale < 0.6) {
@@ -223,14 +225,19 @@ document.addEventListener('DOMContentLoaded', function () {
         return desiredScale;
     }
 
-    function renderCanvasPage(page, scale) {
+    function renderCanvasPage(page, scale, outputScale) {
         if (!ensureCanvas()) {
             return Promise.reject(new Error('PDF canvas is not available.'));
         }
 
+        const backingScale = Math.max(1, outputScale || 1);
         const viewport = page.getViewport({ scale: scale });
-        viewerState.canvas.height = viewport.height;
-        viewerState.canvas.width = viewport.width;
+        viewerState.canvas.width = Math.ceil(viewport.width * backingScale);
+        viewerState.canvas.height = Math.ceil(viewport.height * backingScale);
+        viewerState.canvas.style.width = Math.ceil(viewport.width) + 'px';
+        viewerState.canvas.style.height = Math.ceil(viewport.height) + 'px';
+        viewerState.ctx.setTransform(backingScale, 0, 0, backingScale, 0, 0);
+        viewerState.ctx.clearRect(0, 0, viewport.width, viewport.height);
 
         return page.render({
             canvasContext: viewerState.ctx,
@@ -351,7 +358,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 : targetScale;
             const shouldEnhance = options.lowResFirst && targetScale > (firstPassScale + ENHANCE_SCALE_DELTA);
 
-            return renderCanvasPage(page, firstPassScale).then(function () {
+            return renderCanvasPage(page, firstPassScale, 1).then(function () {
                 if (renderGeneration !== viewerState.renderGeneration) {
                     return;
                 }
@@ -393,7 +400,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         return;
                     }
 
-                    renderCanvasPage(page, targetScale).catch(function () {
+                    renderCanvasPage(page, targetScale, HIGH_RES_OUTPUT_SCALE).catch(function () {
                         // The low-res render already succeeded. Ignore enhancement failures.
                     });
                 }, 80);
