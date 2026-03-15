@@ -106,7 +106,6 @@ $regions = array(
 
 $calendar_overrides = apply_filters('chroma_summer_camp_calendar_map', array());
 $has_pdf_calendar = false;
-
 $locations_query = new WP_Query(
 	array(
 		'post_type' => 'location',

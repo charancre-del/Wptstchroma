@@ -15,6 +15,7 @@ while (have_posts()):
 	$age_range = chroma_get_translated_meta($program_id, 'program_age_range', true);
 	$color_scheme = get_post_meta($program_id, 'program_color_scheme', true) ?: 'red';
 	$lesson_plan_url = get_post_meta($program_id, 'program_lesson_plan_file', true);
+	$has_lesson_plan = trim((string) $lesson_plan_url) !== '' && trim((string) $lesson_plan_url) !== '#';
 
 	// Hero section
 	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: get_the_title();
@@ -54,6 +55,10 @@ while (have_posts()):
 	if (!$hero_image) {
 		$hero_image = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop';
 	}
+
+	if ($has_lesson_plan && function_exists('chroma_enqueue_pdf_assets')) {
+		chroma_enqueue_pdf_assets();
+	}
 	?>
 
 	<main>
@@ -84,8 +89,8 @@ while (have_posts()):
 					<div class="flex gap-4 flex-wrap" style="margin-top: 3rem;">
 						<a href="#prism"
 							class="px-8 py-4 bg-<?php echo esc_attr($colors['main']); ?> text-white font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:opacity-90 transition-colors shadow-lg"><?php _e('View Curriculum', 'chroma-excellence'); ?></a>
-						<?php if ($lesson_plan_url): ?>
-							<button type="button" 
+						<?php if ($has_lesson_plan): ?>
+							<button type="button"
 								class="chroma-pdf-trigger px-8 py-4 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-[0.2em] text-xs hover:border-<?php echo esc_attr($colors['main']); ?> hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors cursor-pointer"
 								data-pdf-url="<?php echo esc_url($lesson_plan_url); ?>"
 								data-pdf-title="<?php printf(__('%s Lesson Plan', 'chroma-excellence'), esc_html(get_the_title())); ?>">
