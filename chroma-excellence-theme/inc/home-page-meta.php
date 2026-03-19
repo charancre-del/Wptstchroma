@@ -245,12 +245,12 @@ function chroma_home_json_meta_box_render( $post ) {
 	$cards_json = get_post_meta( $post->ID, 'home_prismpath_cards_json', true );
 	$faq_items_json = get_post_meta( $post->ID, 'home_faq_items_json', true );
 	?>
-	<p class="description">Paste translated JSON here to override the default/customizer items.</p>
+	<p class="description">Paste translated JSON here to override the default/customizer items. Stats support optional <code>key</code>, <code>value</code>, and <code>label</code> fields.</p>
 	<table class="form-table">
 		<tr>
 			<th><label>Stats JSON [ES]</label></th>
 			<td>
-				<textarea name="_chroma_es_home_stats_json" rows="5" class="large-text code" placeholder="[{&quot;value&quot;:&quot;...&quot;, &quot;label&quot;:&quot;...&quot;}]"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_home_stats_json', true ) ); ?></textarea>
+				<textarea name="_chroma_es_home_stats_json" rows="5" class="large-text code" placeholder="[{&quot;key&quot;:&quot;locations&quot;,&quot;value&quot;:&quot;19+&quot;,&quot;label&quot;:&quot;Locations&quot;},{&quot;key&quot;:&quot;families_served&quot;,&quot;value&quot;:&quot;2000+&quot;,&quot;label&quot;:&quot;Families Served&quot;}]"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_home_stats_json', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>

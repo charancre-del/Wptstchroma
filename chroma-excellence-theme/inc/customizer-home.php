@@ -109,8 +109,8 @@ function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
     $wp_customize->add_control(
         'chroma_home_stats_json',
         array(
-            'label' => __('Stats JSON (value/label pairs)', 'chroma-excellence'),
-            'description' => __('Example: [{"value":"19+","label":"Metro campuses"}]', 'chroma-excellence'),
+            'label' => __('Stats JSON (optional key/value/label)', 'chroma-excellence'),
+            'description' => __('Example: [{"key":"locations","value":"19+","label":"Metro campuses"},{"key":"families_served","value":"2000+","label":"Families Served"}]', 'chroma-excellence'),
             'section' => 'chroma_home_stats_section',
             'type' => 'textarea',
         )

@@ -30,12 +30,15 @@ function chroma_register_location_cpt()
 		'label' => __('Location', 'chroma-excellence'),
 		'labels' => $labels,
 		'supports' => array('title', 'editor', 'thumbnail', 'excerpt'),
+		'taxonomies' => array('location_region'),
 		'public' => true,
 		'menu_position' => 21,
 		'menu_icon' => 'dashicons-location',
 		'has_archive' => 'locations',
 		'rewrite' => array('slug' => 'locations'),
 		'show_in_rest' => true,
+		'rest_base' => 'location',
+		'rest_controller_class' => 'WP_REST_Posts_Controller',
 	);
 
 	register_post_type('location', $args);
@@ -70,6 +73,8 @@ function chroma_register_location_taxonomy()
 			'show_ui' => true,
 			'show_admin_column' => true,
 			'show_in_rest' => true,
+			'rest_base' => 'location_region',
+			'rest_controller_class' => 'WP_REST_Terms_Controller',
 			'publicly_queryable' => false,
 			'query_var' => false,
 			'rewrite' => false,
@@ -79,8 +84,40 @@ function chroma_register_location_taxonomy()
 			),
 		)
 	);
+
+	register_taxonomy_for_object_type('location_region', 'location');
 }
 add_action('init', 'chroma_register_location_taxonomy', 1);
+
+/**
+ * Register REST-visible term meta for location regions.
+ */
+function chroma_register_location_region_term_meta()
+{
+	$meta_keys = array(
+		'region_color_bg',
+		'region_color_text',
+		'region_color_border',
+	);
+
+	foreach ($meta_keys as $meta_key) {
+		register_term_meta(
+			'location_region',
+			$meta_key,
+			array(
+				'type' => 'string',
+				'single' => true,
+				'sanitize_callback' => 'sanitize_text_field',
+				'show_in_rest' => true,
+				'auth_callback' => function () {
+					return current_user_can('manage_categories');
+				},
+				'default' => '',
+			)
+		);
+	}
+}
+add_action('init', 'chroma_register_location_region_term_meta', 2);
 
 /**
  * Add admin columns

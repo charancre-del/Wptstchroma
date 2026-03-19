@@ -21,7 +21,7 @@ function chroma_get_home_page_id()
 
 function chroma_home_default_hero()
 {
-        return array(
+        $stats = array(
                 'heading' => __('The art of <span class="italic text-chroma-red">growing up.</span>', 'chroma-excellence'),
                 'subheading' => __('Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.', 'chroma-excellence'),
                 'cta_label' => __('Schedule a Tour', 'chroma-excellence'),
@@ -29,14 +29,18 @@ function chroma_home_default_hero()
                 'secondary_label' => __('View Programs', 'chroma-excellence'),
                 'secondary_url' => chroma_get_program_archive_url(),
         );
+
+        $stats[3]['key'] = 'age_range';
+
+        return $stats;
 }
 
 function chroma_home_default_stats()
 {
         return array(
-                array('value' => '19+', 'label' => __('Metro campuses', 'chroma-excellence')),
-                array('value' => '2,000+', 'label' => __('Children enrolled', 'chroma-excellence')),
-                array('value' => '4.8', 'label' => __('Avg parent rating', 'chroma-excellence')),
+                array('key' => 'locations', 'value' => '19+', 'label' => __('Metro campuses', 'chroma-excellence')),
+                array('key' => 'families_served', 'value' => '2,000+', 'label' => __('Children enrolled', 'chroma-excellence')),
+                array('key' => 'avg_parent_rating', 'value' => '4.8', 'label' => __('Avg parent rating', 'chroma-excellence')),
                 array('value' => '6w–12y', 'label' => __('Age range', 'chroma-excellence')),
         );
 }
@@ -133,6 +137,52 @@ function chroma_home_hero()
 /**
  * Home Stats
  */
+function chroma_home_normalize_stat_text($text)
+{
+        $text = remove_accents(wp_strip_all_tags((string) $text));
+        $text = strtolower($text);
+        $text = preg_replace('/[^a-z0-9]+/', ' ', $text);
+        return trim((string) preg_replace('/\s+/', ' ', $text));
+}
+
+function chroma_home_infer_stat_key($stat, $index = 0)
+{
+        $raw_key = sanitize_key($stat['key'] ?? '');
+        if ($raw_key !== '') {
+                return $raw_key;
+        }
+
+        $label = chroma_home_normalize_stat_text($stat['label'] ?? '');
+        $known_labels = array(
+                'locations' => array('locations', 'metro campuses', 'campuses', 'metro atlanta locations', 'metro atlanta campuses', 'metro locations'),
+                'families_served' => array('families served', 'children enrolled', 'children served', 'students', 'students served', 'families'),
+                'avg_parent_rating' => array('avg parent rating', 'average parent rating', 'parent rating', 'rating'),
+                'age_range' => array('age range', 'ages served', 'age groups'),
+                'years_excellence' => array('years of total aggregated excellence', 'years of excellence', 'years experience', 'years of experience'),
+                'meals' => array('wholesome meals', 'meals'),
+        );
+
+        foreach ($known_labels as $key => $labels) {
+                if (in_array($label, $labels, true)) {
+                        return $key;
+                }
+        }
+
+        if ($label !== '') {
+                if (strpos($label, 'family') !== false || strpos($label, 'student') !== false || strpos($label, 'children') !== false) {
+                        return 'families_served';
+                }
+
+                if (strpos($label, 'campus') !== false || strpos($label, 'location') !== false) {
+                        return 'locations';
+                }
+        }
+
+        $fallback_keys = array('locations', 'families_served', 'avg_parent_rating', 'age_range');
+
+        return $fallback_keys[$index] ?? 'stat_' . ($index + 1);
+}
+
 function chroma_home_stats()
 {
         $post_id = chroma_get_home_page_id();
@@ -169,6 +219,7 @@ function chroma_home_stats()
 
         foreach ($stats as $stat) {
                 $cleaned[] = array(
+                        'key' => chroma_home_infer_stat_key($stat, $index),
                         'value' => sanitize_text_field($stat['value'] ?? ''),
                         'label' => sanitize_text_field($stat['label'] ?? ''),
                         'color' => $colors[$index % count($colors)],
@@ -177,6 +228,27 @@ function chroma_home_stats()
         }
 
         return $cleaned;
+}
+
+function chroma_home_get_stat_by_key($key)
+{
+        $target_key = sanitize_key((string) $key);
+        if ($target_key === '') {
+                return null;
+        }
+
+        $stats = chroma_home_stats();
+        foreach ($stats as $stat) {
+                if (($stat['key'] ?? '') === $target_key) {
+                        return $stat;
+                }
+        }
+
+        if ($target_key === 'families_served' && isset($stats[1]) && is_array($stats[1])) {
+                return $stats[1];
+        }
+
+        return null;
 }
 
 /**

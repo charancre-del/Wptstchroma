@@ -23,37 +23,37 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
         <div class="absolute top-20 right-16 w-80 h-80 bg-chroma-blue/10 blur-[120px]"></div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-2 gap-14 items-center">
-        <div class="space-y-8 fade-in-up">
+    <div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-2 gap-14 items-center overflow-x-hidden">
+        <div class="space-y-8 fade-in-up min-w-0">
             <div
-                class="inline-flex items-center gap-2 bg-white border border-chroma-blue/15 px-3 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-semibold text-brand-ink shadow-soft">
+                class="inline-flex max-w-full items-center gap-2 bg-white border border-chroma-blue/15 px-3 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-semibold text-brand-ink shadow-soft text-left break-words sm:whitespace-nowrap">
                 <span class="w-2 h-2 rounded-full bg-chroma-blue animate-pulse"></span>
                 <?php _e('19+ Metro Atlanta Locations', 'chroma-excellence'); ?>
             </div>
 
-            <h1 class="font-serif text-brand-ink text-4xl sm:text-[3.4rem] leading-tight tracking-tight">
+            <h1 class="font-serif text-brand-ink text-4xl sm:text-[3.4rem] leading-tight tracking-tight break-words max-w-full">
                 <?php echo wp_kses_post($hero['heading']); ?>
             </h1>
 
-            <p class="text-[15px] leading-relaxed text-brand-ink max-w-xl">
+            <p class="text-[15px] leading-relaxed text-brand-ink max-w-full lg:max-w-xl">
                 <?php echo esc_html($hero['subheading']); ?>
             </p>
-            <p class="text-sm leading-relaxed text-brand-ink/80 max-w-xl">
+            <p class="text-sm leading-relaxed text-brand-ink/80 max-w-full lg:max-w-xl">
                 <?php _e('Our team includes both experienced educators and licensed clinicians supporting each child\'s growth.', 'chroma-excellence'); ?>
             </p>
 
             <div class="flex flex-col sm:flex-row gap-4 sm:items-center">
                 <a href="<?php echo esc_url($hero['cta_url']); ?>"
-                    class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-[0.22em] shadow-soft hover:bg-chroma-red/90 transition">
+                    class="inline-flex w-full sm:w-auto items-center justify-center px-8 py-4 rounded-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-[0.22em] shadow-soft hover:bg-chroma-red/90 transition">
                     <?php echo esc_html($hero['cta_label']); ?>
                 </a>
                 <a href="<?php echo esc_url($hero['secondary_url']); ?>"
-                    class="inline-flex items-center justify-center px-7 py-3.5 rounded-full border border-chroma-blue/30 bg-white text-xs font-semibold uppercase tracking-[0.18em] text-brand-ink hover:border-chroma-blue hover:text-chroma-blue transition">
+                    class="inline-flex w-full sm:w-auto items-center justify-center px-7 py-3.5 rounded-full border border-chroma-blue/30 bg-white text-xs font-semibold uppercase tracking-[0.18em] text-brand-ink hover:border-chroma-blue hover:text-chroma-blue transition">
                     <?php echo esc_html($hero['secondary_label']); ?>
                 </a>
             </div>
 
-            <div class="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-5 text-[12px] text-brand-ink">
+            <div class="flex min-w-0 flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-5 text-[12px] text-brand-ink">
                 <div class="flex items-center gap-2 w-full sm:w-auto">
                     <span class="text-chroma-yellow text-lg">★★★★★</span>
                     <span><?php _e('4.8 Average Parent Rating', 'chroma-excellence'); ?></span>
@@ -66,7 +66,7 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             </div>
         </div>
 
-        <div class="chroma-hero-lock relative w-full isolate mt-8 sm:mt-0"
+        <div class="chroma-hero-lock relative w-full min-w-0 isolate mt-8 sm:mt-0 overflow-hidden sm:overflow-visible"
             style="min-height:clamp(400px,42vw,500px);aspect-ratio:4/3;">
             <!-- Background Decorations -->
             <div
