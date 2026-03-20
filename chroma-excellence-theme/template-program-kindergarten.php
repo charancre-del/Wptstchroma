@@ -53,12 +53,12 @@ while (have_posts()):
 			'description' => __('Our core framework delivers standards-aligned exploration in science, social studies, literacy, and the arts through project-based investigations.', 'chroma-excellence'),
 		),
 		array(
-			'icon' => 'fa-solid fa-spell-check',
+			'icon' => 'fa-solid fa-book-open',
 			'title' => __('Heggerty Phonemic Awareness', 'chroma-excellence'),
 			'description' => __('Explicit, systematic phonemic awareness instruction builds the blending, segmenting, and decoding skills strong readers need.', 'chroma-excellence'),
 		),
 		array(
-			'icon' => 'fa-solid fa-cubes',
+			'icon' => 'fa-solid fa-shapes',
 			'title' => __('Math-U-See', 'chroma-excellence'),
 			'description' => __('Manipulative-based math instruction helps children move from counting to true conceptual understanding and durable confidence.', 'chroma-excellence'),
 		),
@@ -72,7 +72,7 @@ while (have_posts()):
 			'description' => __('Our Private Kindergarten is aligned to the standards families expect from a strong 1st-grade bridge, supporting a smooth transition into public or private elementary pathways.', 'chroma-excellence'),
 		),
 		array(
-			'icon' => 'fa-solid fa-hand-holding-dollar',
+			'icon' => 'fa-solid fa-shield-halved',
 			'accent' => 'text-chroma-green',
 			'title' => __('Promise Scholarships & SSOs', 'chroma-excellence'),
 			'description' => __('Chroma works to keep premium early education accessible and can guide families through scholarship conversations, tuition planning, and next-step enrollment questions.', 'chroma-excellence'),
@@ -140,6 +140,10 @@ while (have_posts()):
 			box-shadow: 0 24px 60px -32px rgba(47, 72, 88, 0.24);
 		}
 
+		.kinder-next-steps {
+			background: linear-gradient(135deg, #263238 0%, #2F4858 100%);
+		}
+
 		.kinder-chart-shell {
 			min-height: 360px;
 		}
@@ -164,10 +168,10 @@ while (have_posts()):
 	<section class="relative overflow-hidden bg-white">
 		<div class="absolute inset-0 kinder-hero-glow"></div>
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 pt-16 pb-20 lg:pt-24 lg:pb-24 relative z-10">
-			<div class="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-center">
+			<div class="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-start">
 				<div class="fade-in-up">
 					<div class="inline-flex items-center gap-2 bg-white border border-chroma-blue/20 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-blue shadow-sm mb-6">
-						<i class="fa-solid fa-school" aria-hidden="true"></i>
+						<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
 						<?php echo esc_html($age_range); ?>
 					</div>
 
@@ -199,7 +203,7 @@ while (have_posts()):
 					</div>
 				</div>
 
-				<div class="relative fade-in-up" style="animation-delay: 0.15s;">
+				<div class="relative fade-in-up self-start" style="animation-delay: 0.15s;">
 					<div class="absolute -inset-4 bg-chroma-blue/10 rounded-[3rem] blur-3xl"></div>
 					<div class="relative h-[460px] md:h-[520px] rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl">
 						<img src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr(get_the_title()); ?>"
@@ -242,8 +246,8 @@ while (have_posts()):
 						<?php
 						$focus_icon_classes = array(
 							'fa-solid fa-book-open text-chroma-blue',
-							'fa-solid fa-calculator text-chroma-red',
-							'fa-solid fa-users-gear text-chroma-green',
+							'fa-solid fa-chart-line text-chroma-red',
+							'fa-solid fa-users text-chroma-green',
 						);
 						foreach ($focus_items as $index => $item):
 							$icon_class = $focus_icon_classes[$index] ?? 'fa-solid fa-circle-check text-chroma-blueDark';
@@ -349,7 +353,7 @@ while (have_posts()):
 
 	<section class="py-20 bg-white border-t border-brand-ink/5">
 		<div class="max-w-5xl mx-auto px-4 lg:px-6">
-			<div class="rounded-[2.5rem] bg-[linear-gradient(135deg,#263238_0%,#2F4858_100%)] text-white p-10 md:p-14 text-center shadow-2xl">
+			<div class="rounded-[2.5rem] kinder-next-steps text-white p-10 md:p-14 text-center shadow-2xl">
 				<span class="text-chroma-yellow font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
 					<?php esc_html_e('Next Steps', 'chroma-excellence'); ?>
 				</span>

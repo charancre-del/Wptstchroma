@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
     useReactTable,
@@ -8,7 +8,7 @@ import {
     getSortedRowModel,
     flexRender,
 } from '@tanstack/react-table';
-import { useReports, useApproveReport, useRevertToDraft } from '@hooks/useQueries';
+import { useReports, useApproveReport, useRevertToDraft, useDeleteReport } from '@hooks/useQueries';
 import { formatDate, cn } from '@utils/helpers';
 import useAuthStore from '@stores/useAuthStore';
 import useUIStore from '@stores/useUIStore';
@@ -30,6 +30,7 @@ import {
     Download,
     Printer,
     MoreHorizontal,
+    Trash2,
 } from 'lucide-react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 
@@ -75,17 +76,29 @@ export function ReportsPage() {
     const { addToast } = useUIStore();
     const approveMutation = useApproveReport();
     const revertMutation = useRevertToDraft();
+    const deleteMutation = useDeleteReport();
 
-    const handleApprove = async (reportId) => {
+    const canDeleteReport = useCallback((report) => {
+        if (!report || report.status !== 'draft') {
+            return false;
+        }
+
+        return Boolean(
+            capabilities?.cqa_delete_reports ||
+            (capabilities?.cqa_delete_own_reports && report.is_mine)
+        );
+    }, [capabilities]);
+
+    const handleApprove = useCallback(async (reportId) => {
         try {
             await approveMutation.mutateAsync(reportId);
             addToast({ type: 'success', message: 'Report approved successfully' });
         } catch (error) {
             addToast({ type: 'error', message: error.message || 'Failed to approve report' });
         }
-    };
+    }, [addToast, approveMutation]);
 
-    const handleRevert = async (reportId) => {
+    const handleRevert = useCallback(async (reportId) => {
         if (!confirm('Are you sure you want to revert this report to draft? It will be removed from approved status and become editable again.')) {
             return;
         }
@@ -95,7 +108,25 @@ export function ReportsPage() {
         } catch (error) {
             addToast({ type: 'error', message: error.message || 'Failed to revert report' });
         }
-    };
+    }, [addToast, revertMutation]);
+
+    const handleDeleteDraft = useCallback(async (report) => {
+        if (!report?.id || report.status !== 'draft') {
+            return;
+        }
+
+        const schoolName = report.school_name || 'this draft';
+        if (!confirm(`Delete draft for ${schoolName}? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await deleteMutation.mutateAsync(report.id);
+            addToast({ type: 'success', message: 'Draft deleted successfully' });
+        } catch (error) {
+            addToast({ type: 'error', message: error.message || 'Failed to delete draft' });
+        }
+    }, [addToast, deleteMutation]);
 
     const reports = Array.isArray(data) ? data : (data?.data || []);
 
@@ -250,12 +281,24 @@ export function ReportsPage() {
                                     </Link>
                                 </DropdownMenu.Item>
                             )}
+                            {canDeleteReport(row.original) && (
+                                <>
+                                    <DropdownMenu.Separator className="h-px my-1 bg-brand-ink/5" />
+                                    <DropdownMenu.Item
+                                        onClick={() => handleDeleteDraft(row.original)}
+                                        className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-chroma-red hover:bg-chroma-red/5 cursor-pointer"
+                                    >
+                                        <Trash2 className="w-4 h-4 text-chroma-red" />
+                                        Delete Draft
+                                    </DropdownMenu.Item>
+                                </>
+                            )}
                         </DropdownMenu.Content>
                     </DropdownMenu.Portal>
                 </DropdownMenu.Root>
             ),
         },
-    ], []);
+    ], [capabilities, canDeleteReport, handleApprove, handleDeleteDraft, handleRevert]);
 
     const table = useReactTable({
         data: filteredReports,

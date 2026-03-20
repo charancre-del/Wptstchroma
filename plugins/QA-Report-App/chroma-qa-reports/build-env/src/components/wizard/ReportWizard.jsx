@@ -10,9 +10,10 @@ import {
     useUpdateReport,
     useSubmitReport,
     useApproveReport,
-    useRevertToDraft
+    useRevertToDraft,
+    useDeleteReport
 } from '@hooks/useQueries';
-import { Eye, Printer } from 'lucide-react';
+import { Eye, Printer, Trash2 } from 'lucide-react';
 import apiFetch from '../../api/client';
 
 // Steps
@@ -63,8 +64,9 @@ const ReportWizard = () => {
     const submitMutation = useSubmitReport();
     const approveMutation = useApproveReport();
     const revertMutation = useRevertToDraft();
+    const deleteMutation = useDeleteReport();
 
-    const isSavingManual = createMutation.isPending || updateMutation.isPending || submitMutation.isPending || approveMutation.isPending || revertMutation.isPending;
+    const isSavingManual = createMutation.isPending || updateMutation.isPending || submitMutation.isPending || approveMutation.isPending || revertMutation.isPending || deleteMutation.isPending;
 
     // Auto-Save Hook (Handles DB sync & Conflict Modal)
     // CRITICAL FIX: Must be called before early returns to satisfy Rules of Hooks (Error #310)
@@ -255,6 +257,35 @@ const ReportWizard = () => {
         }
     };
 
+    const canDeleteDraft = Boolean(
+        reportState?.id &&
+        reportState?.status === 'draft' &&
+        (
+            capabilities?.cqa_delete_reports ||
+            (capabilities?.cqa_delete_own_reports && reportState?.is_mine)
+        )
+    );
+
+    const handleDeleteDraft = async () => {
+        if (!reportState?.id || reportState?.status !== 'draft') {
+            return;
+        }
+
+        const schoolName = reportState.school_name || 'this draft';
+        if (!confirm(`Delete draft for ${schoolName}? This cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            await deleteMutation.mutateAsync(reportState.id);
+            addToast({ type: 'success', message: 'Draft deleted successfully.' });
+            resetWizard();
+            navigate('/reports');
+        } catch (error) {
+            addToast({ type: 'error', message: error.message || 'Failed to delete draft.' });
+        }
+    };
+
     // LOADING RENDER (Fetch or Hydration)
     if ((id && reportLoading) || (!id && !hasHydrated)) {
         return (
@@ -364,6 +395,16 @@ const ReportWizard = () => {
                             ) : (
                                 <>Save Draft</>
                             )}
+                        </button>
+                    )}
+                    {canDeleteDraft && (
+                        <button
+                            onClick={handleDeleteDraft}
+                            className="px-6 py-2.5 border border-chroma-red/30 text-chroma-red rounded-2xl font-bold text-sm hover:bg-chroma-red/10 transition-all flex items-center gap-2"
+                            disabled={isSaving || isSavingManual}
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            {deleteMutation.isPending ? 'Deleting...' : 'Delete Draft'}
                         </button>
                     )}
 

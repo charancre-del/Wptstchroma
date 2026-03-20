@@ -66,7 +66,7 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             </div>
         </div>
 
-        <div class="chroma-hero-lock relative w-full min-w-0 isolate mt-8 sm:mt-0 overflow-hidden sm:overflow-visible"
+        <div class="chroma-hero-lock relative w-full min-w-0 isolate mt-8 sm:mt-0"
             style="min-height:clamp(400px,42vw,500px);aspect-ratio:4/3;">
             <!-- Background Decorations -->
             <div
@@ -115,7 +115,7 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
 
             <!-- Badge (Kindergarten Ready) -->
             <div
-                class="absolute bottom-6 left-4 sm:-left-8 bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-soft max-w-[200px] sm:max-w-xs border border-white z-10 flex gap-3 sm:gap-4 items-center">
+                class="absolute bottom-6 left-4 right-4 sm:right-auto sm:-left-8 bg-white/90 backdrop-blur-md p-4 sm:p-5 rounded-2xl shadow-soft max-w-none sm:max-w-xs border border-white z-10 flex gap-3 sm:gap-4 items-center">
                 <div
                     class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-chroma-blue/10 flex items-center justify-center text-chroma-blue text-lg sm:text-xl shrink-0">
                     <i class="fa-solid fa-graduation-cap"></i>

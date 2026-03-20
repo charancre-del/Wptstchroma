@@ -191,6 +191,21 @@ export function useRevertToDraft() {
 }
 
 /**
+ * Delete a report
+ */
+export function useDeleteReport() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id) => apiClient.delete(`/reports/${id}`),
+        onSuccess: (_, id) => {
+            queryClient.removeQueries({ queryKey: queryKeys.reports.detail(id) });
+            queryClient.invalidateQueries({ queryKey: queryKeys.reports.all });
+        },
+    });
+}
+
+/**
  * Upload photos to a report
  */
 export function useUploadPhotos() {
