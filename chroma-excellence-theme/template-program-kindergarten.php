@@ -66,7 +66,7 @@ while (have_posts()):
 
 	$support_cards = array(
 		array(
-			'icon' => 'fa-solid fa-award',
+			'icon' => 'fa-solid fa-check-circle',
 			'accent' => 'text-chroma-blueLight',
 			'title' => __('Georgia Accrediting Commission', 'chroma-excellence'),
 			'description' => __('Our Private Kindergarten is aligned to the standards families expect from a strong 1st-grade bridge, supporting a smooth transition into public or private elementary pathways.', 'chroma-excellence'),
@@ -144,8 +144,49 @@ while (have_posts()):
 			background: linear-gradient(135deg, #263238 0%, #2F4858 100%);
 		}
 
+		.kinder-hero-copy {
+			max-width: 62rem;
+		}
+
+		.kinder-hero-media {
+			position: relative;
+			margin-top: 3rem;
+		}
+
+		.kinder-hero-frame {
+			position: relative;
+			overflow: hidden;
+			border-radius: 2.5rem;
+			border: 4px solid #ffffff;
+			box-shadow: 0 32px 80px -36px rgba(38, 50, 56, 0.28);
+			aspect-ratio: 16 / 10;
+		}
+
+		.kinder-support-icon {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 3.5rem;
+			height: 3.5rem;
+			border-radius: 1.25rem;
+			border: 1px solid rgba(255, 255, 255, 0.12);
+			background: rgba(255, 255, 255, 0.06);
+			font-size: 1.5rem;
+			line-height: 1;
+		}
+
 		.kinder-chart-shell {
 			min-height: 360px;
+		}
+
+		@media (min-width: 1024px) {
+			.kinder-hero-media {
+				margin-top: 3.5rem;
+			}
+
+			.kinder-hero-frame {
+				aspect-ratio: 21 / 10;
+			}
 		}
 
 		.kinder-rhythm::before {
@@ -168,55 +209,46 @@ while (have_posts()):
 	<section class="relative overflow-hidden bg-white">
 		<div class="absolute inset-0 kinder-hero-glow"></div>
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 pt-16 pb-20 lg:pt-24 lg:pb-24 relative z-10">
-			<div class="grid lg:grid-cols-[1.05fr_0.95fr] gap-10 lg:gap-14 items-start">
-				<div class="fade-in-up">
-					<div class="inline-flex items-center gap-2 bg-white border border-chroma-blue/20 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-blue shadow-sm mb-6">
-						<i class="fa-solid fa-graduation-cap" aria-hidden="true"></i>
-						<?php echo esc_html($age_range); ?>
-					</div>
-
-					<h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6 leading-tight">
-						<?php echo esc_html($hero_title); ?>
-					</h1>
-
-					<p class="text-lg text-brand-ink/80 max-w-2xl">
-						<?php echo esc_html($hero_description); ?>
+			<div class="fade-in-up kinder-hero-copy">
+				<?php if ($age_range): ?>
+					<p class="sr-only">
+						<?php echo esc_html(sprintf(__('Age range: %s', 'chroma-excellence'), $age_range)); ?>
 					</p>
+				<?php endif; ?>
 
-					<div class="flex flex-wrap gap-4 mt-8">
-						<a href="<?php echo esc_url($schedule_tour_url); ?>"
-							class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-brand-ink text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-blue transition-colors">
-							<?php esc_html_e('Book Tour', 'chroma-excellence'); ?>
-						</a>
-						<a href="#kinder-focus"
-							class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-white border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-chroma-blue hover:text-chroma-blue transition-colors">
-							<?php esc_html_e('View Curriculum', 'chroma-excellence'); ?>
-						</a>
-						<?php if ($has_lesson_plan): ?>
-							<button type="button"
-								class="chroma-pdf-trigger inline-flex items-center justify-center px-8 py-4 rounded-full bg-white border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-chroma-blue hover:text-chroma-blue transition-colors cursor-pointer"
-								data-pdf-url="<?php echo esc_url($lesson_plan_url); ?>"
-								data-pdf-title="<?php echo esc_attr(sprintf(__('%s Curriculum Guide', 'chroma-excellence'), get_the_title())); ?>">
-								<?php esc_html_e('View Guide', 'chroma-excellence'); ?>
-							</button>
-						<?php endif; ?>
-					</div>
+				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6 leading-tight max-w-5xl">
+						<?php echo esc_html($hero_title); ?>
+				</h1>
+
+				<p class="text-lg md:text-xl text-brand-ink/80 max-w-3xl leading-relaxed">
+					<?php echo esc_html($hero_description); ?>
+				</p>
+
+				<div class="flex flex-wrap gap-4 mt-10">
+					<a href="<?php echo esc_url($schedule_tour_url); ?>"
+						class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-brand-ink text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-blue transition-colors">
+						<?php esc_html_e('Book Tour', 'chroma-excellence'); ?>
+					</a>
+					<a href="#kinder-focus"
+						class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-white border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-chroma-blue hover:text-chroma-blue transition-colors">
+						<?php esc_html_e('View Curriculum', 'chroma-excellence'); ?>
+					</a>
+					<?php if ($has_lesson_plan): ?>
+						<button type="button"
+							class="chroma-pdf-trigger inline-flex items-center justify-center px-8 py-4 rounded-full bg-white border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-chroma-blue hover:text-chroma-blue transition-colors cursor-pointer"
+							data-pdf-url="<?php echo esc_url($lesson_plan_url); ?>"
+							data-pdf-title="<?php echo esc_attr(sprintf(__('%s Curriculum Guide', 'chroma-excellence'), get_the_title())); ?>">
+							<?php esc_html_e('View Guide', 'chroma-excellence'); ?>
+						</button>
+					<?php endif; ?>
 				</div>
+			</div>
 
-				<div class="relative fade-in-up self-start" style="animation-delay: 0.15s;">
-					<div class="absolute -inset-4 bg-chroma-blue/10 rounded-[3rem] blur-3xl"></div>
-					<div class="relative h-[460px] md:h-[520px] rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl">
-						<img src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr(get_the_title()); ?>"
-							class="w-full h-full object-cover" fetchpriority="high" />
-					</div>
-					<div class="absolute -left-4 bottom-6 md:-left-10 md:bottom-10 max-w-[220px] kinder-panel rounded-[2rem] p-5 border border-white/70 shadow-soft">
-						<p class="text-[10px] font-bold uppercase tracking-[0.22em] text-chroma-blue mb-2">
-							<?php esc_html_e('1st Grade Readiness', 'chroma-excellence'); ?>
-						</p>
-						<p class="text-sm text-brand-ink/80 leading-relaxed">
-							<?php esc_html_e('Reading, math, executive function, and classroom confidence are built together, not in silos.', 'chroma-excellence'); ?>
-						</p>
-					</div>
+			<div class="fade-in-up kinder-hero-media" style="animation-delay: 0.15s;">
+				<div class="absolute -inset-4 bg-chroma-blue/10 rounded-[3rem] blur-3xl" aria-hidden="true"></div>
+				<div class="kinder-hero-frame">
+					<img src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr(get_the_title()); ?>"
+						class="w-full h-full object-cover" fetchpriority="high" />
 				</div>
 			</div>
 		</div>
@@ -242,7 +274,7 @@ while (have_posts()):
 						<?php echo esc_html($prism_description); ?>
 					</p>
 
-					<ul class="space-y-4 text-sm text-brand-ink/85">
+					<ul class="space-y-5 text-base md:text-lg text-brand-ink/88 max-w-2xl">
 						<?php
 						$focus_icon_classes = array(
 							'fa-solid fa-book-open text-chroma-blue',
@@ -252,9 +284,11 @@ while (have_posts()):
 						foreach ($focus_items as $index => $item):
 							$icon_class = $focus_icon_classes[$index] ?? 'fa-solid fa-circle-check text-chroma-blueDark';
 							?>
-							<li class="flex gap-3 items-start">
-								<i class="<?php echo esc_attr($icon_class); ?> mt-0.5" aria-hidden="true"></i>
-								<span><?php echo esc_html($item); ?></span>
+							<li class="flex gap-4 items-start">
+								<span class="w-6 shrink-0 pt-1 text-center" aria-hidden="true">
+									<i class="<?php echo esc_attr($icon_class); ?>"></i>
+								</span>
+								<span class="leading-relaxed"><?php echo esc_html($item); ?></span>
 							</li>
 						<?php endforeach; ?>
 					</ul>
@@ -309,14 +343,14 @@ while (have_posts()):
 
 			<div class="grid md:grid-cols-2 gap-8">
 				<?php foreach ($support_cards as $card): ?>
-					<article class="bg-white/5 p-8 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-colors">
-						<div class="text-4xl mb-4 <?php echo esc_attr($card['accent']); ?>">
+					<article class="bg-white/5 p-10 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-colors">
+						<div class="kinder-support-icon mb-8 <?php echo esc_attr($card['accent']); ?>">
 							<i class="<?php echo esc_attr($card['icon']); ?>" aria-hidden="true"></i>
 						</div>
-						<h3 class="font-bold text-xl mb-3">
+						<h3 class="font-serif font-bold text-2xl mb-4">
 							<?php echo esc_html($card['title']); ?>
 						</h3>
-						<p class="text-sm text-white/90 leading-relaxed">
+						<p class="text-base text-white/88 leading-relaxed max-w-xl">
 							<?php echo esc_html($card['description']); ?>
 						</p>
 					</article>
