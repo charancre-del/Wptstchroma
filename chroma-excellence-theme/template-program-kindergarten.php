@@ -23,6 +23,10 @@ while (have_posts()):
 
 	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: __('The ultimate foundation for 1st grade.', 'chroma-excellence');
 	$hero_description = chroma_get_translated_meta($program_id, 'program_hero_description', true) ?: __('Our Private Kindergarten program blends the research-backed power of The Creative Curriculum with targeted, mastery-based instruction in reading and math. We do not just prepare students for 1st grade. We equip them with the critical thinking, independence, and confidence to lead.', 'chroma-excellence');
+	$hero_image_override = trim((string) chroma_get_translated_meta($program_id, 'program_hero_image', true));
+	if ($hero_image_override === '') {
+		$hero_image_override = trim((string) get_post_meta($program_id, 'program_hero_image', true));
+	}
 
 	$prism_title = chroma_get_translated_meta($program_id, 'program_prism_title', true) ?: __('Rigorous Academics. Joyful Discovery.', 'chroma-excellence');
 	$prism_description = chroma_get_translated_meta($program_id, 'program_prism_description', true) ?: __('We believe that academic rigor and whole-child development are not mutually exclusive. By pairing purposeful play with explicit, teacher-led instruction, we cultivate a lasting love of learning alongside measurable academic mastery.', 'chroma-excellence');
@@ -41,9 +45,41 @@ while (have_posts()):
 		'creative' => absint(get_post_meta($program_id, 'program_prism_creative', true) ?: 80),
 	);
 
-	$hero_image = get_the_post_thumbnail_url($program_id, 'full');
-	if (!$hero_image) {
-		$hero_image = 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1400&auto=format&fit=crop';
+	$hero_image_markup = '';
+	$hero_image_attachment_id = get_post_thumbnail_id($program_id);
+	$hero_image_fallback = trim((string) get_theme_mod('chroma_default_og_image', ''));
+
+	if ($hero_image_override !== '') {
+		$hero_image_markup = sprintf(
+			'<img src="%1$s" alt="%2$s" class="w-full h-full object-cover" fetchpriority="high" loading="eager" decoding="async" />',
+			esc_url($hero_image_override),
+			esc_attr(get_the_title())
+		);
+	} elseif ($hero_image_attachment_id) {
+		$hero_image_markup = wp_get_attachment_image(
+			$hero_image_attachment_id,
+			'full',
+			false,
+			array(
+				'class' => 'w-full h-full object-cover',
+				'fetchpriority' => 'high',
+				'loading' => 'eager',
+				'decoding' => 'async',
+				'sizes' => '(min-width: 1024px) 1400px, 100vw',
+			)
+		);
+	} elseif ($hero_image_fallback !== '') {
+		$hero_image_markup = sprintf(
+			'<img src="%1$s" alt="%2$s" class="w-full h-full object-cover" fetchpriority="high" loading="eager" decoding="async" />',
+			esc_url($hero_image_fallback),
+			esc_attr(get_the_title())
+		);
+	} else {
+		$hero_image_markup = sprintf(
+			'<img src="%1$s" alt="%2$s" class="w-full h-full object-cover" fetchpriority="high" loading="eager" decoding="async" />',
+			esc_url('https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1400&auto=format&fit=crop'),
+			esc_attr(get_the_title())
+		);
 	}
 
 	$curriculum_cards = array(
@@ -148,6 +184,11 @@ while (have_posts()):
 			max-width: 62rem;
 		}
 
+		.kinder-hero-description {
+			max-width: 46rem;
+			margin: 0;
+		}
+
 		.kinder-hero-media {
 			position: relative;
 			margin-top: 3rem;
@@ -220,7 +261,7 @@ while (have_posts()):
 						<?php echo esc_html($hero_title); ?>
 				</h1>
 
-				<p class="text-lg md:text-xl text-brand-ink/80 max-w-3xl leading-relaxed">
+				<p class="kinder-hero-description text-lg md:text-xl text-brand-ink/80 leading-relaxed">
 					<?php echo esc_html($hero_description); ?>
 				</p>
 
@@ -247,8 +288,7 @@ while (have_posts()):
 			<div class="fade-in-up kinder-hero-media" style="animation-delay: 0.15s;">
 				<div class="absolute -inset-4 bg-chroma-blue/10 rounded-[3rem] blur-3xl" aria-hidden="true"></div>
 				<div class="kinder-hero-frame">
-					<img src="<?php echo esc_url($hero_image); ?>" alt="<?php echo esc_attr(get_the_title()); ?>"
-						class="w-full h-full object-cover" fetchpriority="high" />
+					<?php echo $hero_image_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				</div>
 			</div>
 		</div>

@@ -268,12 +268,6 @@ function chroma_enqueue_assets()
                         min-height: 48px !important;
                         font-size: 16px !important; /* Prevent iOS zoom */
                 }
-                
-                        /* Force CTA Button Visibility */
-                        header .container > a[href*='contact'] {
-                                display: flex !important;
-                        }
-                }
 
                 /* Accessibility: Increase contrast for muted text */
                 .text-brand-ink\/60 { color: rgba(38, 50, 56, 0.9) !important; }

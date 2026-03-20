@@ -42,7 +42,7 @@
 	<?php
 	$branding = Chroma_Branding_Engine::get_instance();
 	$favicon = $branding->get_setting('assets', 'favicon_url');
-	if ($favicon): ?>
+	if ($favicon && !has_site_icon()): ?>
 		<link rel="icon" href="<?php echo esc_url($favicon); ?>" />
 	<?php endif; ?>
 
