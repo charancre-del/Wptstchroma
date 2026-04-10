@@ -20,10 +20,12 @@ const normalizeSummaryPayload = (summary) => {
     }
 
     const poiItems = summary.plan_of_improvement || summary.poi || summary.support_and_growth_plan || [];
+    const generationWarnings = summary.generation_warnings || summary.warnings || [];
 
     return {
         ...summary,
         plan_of_improvement: Array.isArray(poiItems) ? poiItems : [],
+        generation_warnings: Array.isArray(generationWarnings) ? generationWarnings.filter(Boolean) : [],
     };
 };
 
@@ -46,7 +48,6 @@ export function StepAISummary({ readOnly = false }) {
         try {
             const result = await generateSummary.mutateAsync({
                 reportId: report.id,
-                checklistData: responses
             });
 
             // Handle both response formats:
@@ -135,6 +136,10 @@ export function StepAISummary({ readOnly = false }) {
 
     const hasResponses = responseCount > 0;
     const hasSummary = !!report?.ai_summary;
+    const generationWarnings = React.useMemo(() => {
+        const warnings = report?.ai_summary?.generation_warnings || [];
+        return Array.isArray(warnings) ? warnings.filter(Boolean) : [];
+    }, [report?.ai_summary]);
 
     return (
         <div className="space-y-6 w-full">
@@ -157,6 +162,20 @@ export function StepAISummary({ readOnly = false }) {
                     </p>
                 </div>
             </div>
+
+            {hasSummary && generationWarnings.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+                    <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-sm text-amber-800">
+                        <p className="font-medium mb-1">Review Before Sharing</p>
+                        {generationWarnings.map((warning, index) => (
+                            <p key={index} className={index > 0 ? 'mt-1' : ''}>
+                                {warning}
+                            </p>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Generate Button */}
             {!hasSummary && (

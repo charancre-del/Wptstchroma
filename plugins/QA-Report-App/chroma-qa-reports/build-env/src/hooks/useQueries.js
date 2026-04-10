@@ -227,8 +227,8 @@ export function useUploadPhotos() {
  */
 export function useGenerateAISummary() {
     return useMutation({
-        mutationFn: ({ reportId, checklistData }) =>
-            apiClient.post(`/reports/${reportId}/generate-summary`, { checklist: checklistData }),
+        mutationFn: ({ reportId }) =>
+            apiClient.post(`/reports/${reportId}/generate-summary`),
     });
 }
 
