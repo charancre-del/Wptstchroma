@@ -340,11 +340,6 @@ class Report
         global $wpdb;
         $table = self::get_table_name();
 
-        // Create snapshot before updating existing report
-        if ($this->id) {
-            Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report updated');
-        }
-
         $data = [
             'school_id' => $this->school_id,
             'user_id' => $this->user_id,
@@ -363,6 +358,15 @@ class Report
             $result = $wpdb->update($table, $data, ['id' => $this->id], $format, ['%d']);
             if ($result !== false) {
                 $this->version_id = $data['version_id'];
+                $fresh = self::find($this->id);
+                if ($fresh) {
+                    $this->created_at = $fresh->created_at;
+                    $this->updated_at = $fresh->updated_at;
+                }
+
+                if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report updated') && defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log(sprintf('[CQA Snapshot] Failed to create snapshot for report update %d', (int) $this->id));
+                }
                 return $this->id;
             }
             return false;
@@ -371,6 +375,15 @@ class Report
             if ($result) {
                 $this->id = $wpdb->insert_id;
                 $this->version_id = $data['version_id'];
+                $fresh = self::find($this->id);
+                if ($fresh) {
+                    $this->created_at = $fresh->created_at;
+                    $this->updated_at = $fresh->updated_at;
+                }
+
+                if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report created') && defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log(sprintf('[CQA Snapshot] Failed to create snapshot for report create %d', (int) $this->id));
+                }
                 return $this->id;
             }
             return false;

@@ -972,7 +972,15 @@ class REST_Controller
         // [FIX] Save Checklist Responses
         $responses = $request->get_param('responses');
         if (!empty($responses) && is_array($responses)) {
-            \ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses);
+            if (!\ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses)) {
+                return new WP_Error('save_failed', __('Failed to save checklist responses.', 'chroma-qa-reports'), ['status' => 500]);
+            }
+        }
+
+        if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report created')) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA Snapshot] Failed to refresh final create snapshot for report %d', (int) $report->id));
+            }
         }
 
         return new WP_REST_Response($this->prepare_report_response($report), 201);
@@ -1086,7 +1094,9 @@ class REST_Controller
             $report->status = $new_status;
         }
 
-        $report->save();
+        if (!$report->save()) {
+            return new WP_Error('save_failed', __('Failed to update report.', 'chroma-qa-reports'), ['status' => 500]);
+        }
 
         // Process Photos
         $this->process_report_photos($report->id, $request);
@@ -1095,7 +1105,9 @@ class REST_Controller
         // [FIX] Save Checklist Responses
         $responses = $request->get_param('responses');
         if (!empty($responses) && is_array($responses)) {
-            \ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses);
+            if (!\ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses)) {
+                return new WP_Error('save_failed', __('Failed to save checklist responses.', 'chroma-qa-reports'), ['status' => 500]);
+            }
         }
 
         // Process AI Summary Updates (Plan of Improvement)
@@ -1161,7 +1173,15 @@ class REST_Controller
                     error_log(sprintf('[CQA DEBUG] update_report summary_poi normalized items=%d report_id=%d', count($poi_list), (int) $report->id));
                 }
 
-                $ai->save_summary($report->id, $updated_summary);
+                if (!$ai->save_summary($report->id, $updated_summary)) {
+                    return new WP_Error('summary_save_failed', __('Failed to save AI summary.', 'chroma-qa-reports'), ['status' => 500]);
+                }
+            }
+        }
+
+        if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report updated')) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA Snapshot] Failed to refresh final update snapshot for report %d', (int) $report->id));
             }
         }
 

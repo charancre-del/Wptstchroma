@@ -10,6 +10,7 @@
         reportId: null,
         container: null,
         versions: [],
+        currentVersion: null,
 
         init: function () {
             this.container = $('#cqa-version-history .cqa-version-list');
@@ -28,13 +29,14 @@
             const self = this;
 
             $.ajax({
-                url: cqaAdmin.restUrl + 'cqa/v1/reports/' + this.reportId + '/versions',
+                url: cqaAdmin.restUrl + 'reports/' + this.reportId + '/versions',
                 type: 'GET',
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-WP-Nonce', cqaAdmin.nonce);
                 }
             }).done(function (response) {
                 self.versions = response.versions || [];
+                self.currentVersion = parseInt(response.current_version, 10) || null;
                 self.renderVersions(self.versions);
             }).fail(function () {
                 self.container.html('<p class="cqa-error">Failed to load versions</p>');
@@ -49,10 +51,10 @@
 
             let html = '<ul class="cqa-versions">';
 
-            versions.slice(0, 10).forEach(function (v, idx) {
+            versions.slice(0, 10).forEach(function (v) {
                 const date = new Date(v.created_at);
                 const timeAgo = VersionHistory.timeAgo(date);
-                const isCurrent = idx === 0;
+                const isCurrent = VersionHistory.currentVersion === parseInt(v.version_number, 10);
 
                 html += `
                     <li class="cqa-version-item ${isCurrent ? 'current' : ''}" data-version="${v.version_number}">
@@ -129,7 +131,7 @@
 
         showComparison: function (version) {
             const self = this;
-            const currentVersion = this.versions[0]?.version_number;
+            const currentVersion = this.currentVersion || this.versions[0]?.version_number;
 
             if (!currentVersion) return;
 
@@ -149,7 +151,7 @@
 
         fetchVersion: function (version) {
             return $.ajax({
-                url: cqaAdmin.restUrl + 'cqa/v1/reports/' + this.reportId + '/versions/' + version,
+                url: cqaAdmin.restUrl + 'reports/' + this.reportId + '/versions/' + version,
                 type: 'GET',
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-WP-Nonce', cqaAdmin.nonce);
@@ -158,8 +160,8 @@
         },
 
         renderComparison: function (current, old, currentVer, oldVer) {
-            const currentData = current.snapshot?.data || {};
-            const oldData = old.snapshot?.data || {};
+            const currentData = current.snapshot_data || {};
+            const oldData = old.snapshot_data || {};
 
             let html = `
                 <div class="cqa-compare-header-bar">
@@ -207,7 +209,7 @@
 
         compareObjects: function (oldObj, newObj) {
             const changes = [];
-            const importantFields = ['overall_rating', 'status', 'closing_notes', 'inspector_notes'];
+            const importantFields = ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'status', 'closing_notes'];
 
             importantFields.forEach(function (field) {
                 const oldVal = oldObj[field] || '';
@@ -304,7 +306,7 @@
             btn.prop('disabled', true).text('Restoring...');
 
             $.ajax({
-                url: cqaAdmin.restUrl + 'cqa/v1/reports/' + this.reportId + '/restore/' + version,
+                url: cqaAdmin.restUrl + 'reports/' + this.reportId + '/restore/' + version,
                 type: 'POST',
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-WP-Nonce', cqaAdmin.nonce);

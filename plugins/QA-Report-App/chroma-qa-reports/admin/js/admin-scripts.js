@@ -17,51 +17,54 @@
         baseUrl: cqaAdmin.restUrl,
         nonce: cqaAdmin.nonce,
 
-        request: function (endpoint, method, data) {
+        request: function (endpoint, method, data, options) {
+            options = options || {};
             return $.ajax({
                 url: this.baseUrl + endpoint,
                 method: method || 'GET',
                 data: data,
-                headers: {
+                headers: $.extend({
                     'X-WP-Nonce': this.nonce
-                },
+                }, options.headers || {}),
                 contentType: 'application/json',
                 dataType: 'json'
             });
         },
 
-        get: function (endpoint, data) {
-            return this.request(endpoint, 'GET', data);
+        get: function (endpoint, data, options) {
+            return this.request(endpoint, 'GET', data, options);
         },
 
-        post: function (endpoint, data) {
+        post: function (endpoint, data, options) {
+            options = options || {};
             return $.ajax({
                 url: this.baseUrl + endpoint,
                 method: 'POST',
                 data: JSON.stringify(data),
-                headers: {
+                headers: $.extend({
                     'X-WP-Nonce': this.nonce,
                     'Content-Type': 'application/json'
-                },
+                }, options.headers || {}),
                 dataType: 'json'
             });
         },
 
-        put: function (endpoint, data) {
+        put: function (endpoint, data, options) {
+            options = options || {};
             return $.ajax({
                 url: this.baseUrl + endpoint,
                 method: 'PUT',
                 data: JSON.stringify(data),
-                headers: {
+                headers: $.extend({
                     'X-WP-Nonce': this.nonce,
                     'Content-Type': 'application/json'
-                },
+                }, options.headers || {}),
                 dataType: 'json'
             });
         },
 
-        delete: function (endpoint) {
-            return this.request(endpoint, 'DELETE');
+        delete: function (endpoint, options) {
+            return this.request(endpoint, 'DELETE', undefined, options);
         }
     };
 

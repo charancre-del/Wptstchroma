@@ -50,6 +50,11 @@ class Upgrade_Manager
             self::migration_v1_2_consolidate_options();
         }
 
+        // Version 1.3.1: Snapshot integrity hardening
+        if (version_compare($current_version, '1.3.1', '<')) {
+            self::migration_v1_3_1_harden_report_snapshots();
+        }
+
         // Update version option
         update_option('cqa_db_version', CQA_VERSION);
     }
@@ -74,6 +79,37 @@ class Upgrade_Manager
                 ['%s'],
                 ['%d']
             );
+        }
+    }
+
+    /**
+     * Migration: ensure every live report has a current-version snapshot row.
+     *
+     * @return void
+     */
+    private static function migration_v1_3_1_harden_report_snapshots()
+    {
+        global $wpdb;
+
+        $reports_table = $wpdb->prefix . 'cqa_reports';
+        $snapshots_table = $wpdb->prefix . 'cqa_report_snapshots';
+
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $snapshots_table));
+        if ($table_exists !== $snapshots_table) {
+            return;
+        }
+
+        $report_ids = $wpdb->get_col(
+            "SELECT r.id
+             FROM {$reports_table} r
+             LEFT JOIN {$snapshots_table} s
+               ON s.report_id = r.id
+              AND s.version_number = r.version_id
+             WHERE s.id IS NULL"
+        );
+
+        foreach ($report_ids as $report_id) {
+            \ChromaQA\Models\Report_Snapshot::create_snapshot((int) $report_id, 'Backfilled current version snapshot');
         }
     }
 }

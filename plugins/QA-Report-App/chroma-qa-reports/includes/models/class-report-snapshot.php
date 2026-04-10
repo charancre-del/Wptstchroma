@@ -64,9 +64,7 @@ class Report_Snapshot
             return false;
         }
 
-        // Get current version number
-        $current_version = self::get_latest_version($report_id);
-        $new_version = $current_version + 1;
+        $version_number = max(1, (int) $report->version_id);
 
         // Collect full state
         $snapshot_data = [
@@ -80,22 +78,37 @@ class Report_Snapshot
             ],
         ];
 
-        $result = $wpdb->insert(
-            $table,
-            [
-                'report_id' => $report_id,
-                'version_number' => $new_version,
-                'snapshot_data' => wp_json_encode($snapshot_data),
-                'change_summary' => \sanitize_text_field($change_summary),
-                'user_id' => \get_current_user_id(),
-            ],
-            ['%d', '%d', '%s', '%s', '%d']
-        );
+        $payload = [
+            'report_id' => $report_id,
+            'version_number' => $version_number,
+            'snapshot_data' => wp_json_encode($snapshot_data),
+            'change_summary' => \sanitize_text_field($change_summary),
+            'user_id' => \get_current_user_id(),
+        ];
+        $format = ['%d', '%d', '%s', '%s', '%d'];
 
-        if ($result) {
+        $existing_id = $wpdb->get_var($wpdb->prepare(
+            "SELECT id FROM {$table} WHERE report_id = %d AND version_number = %d LIMIT 1",
+            $report_id,
+            $version_number
+        ));
+
+        if ($existing_id) {
+            $result = $wpdb->update(
+                $table,
+                $payload,
+                ['id' => (int) $existing_id],
+                $format,
+                ['%d']
+            );
+        } else {
+            $result = $wpdb->insert($table, $payload, $format);
+        }
+
+        if ($result !== false) {
             // Prune old versions
             self::prune_old_versions($report_id);
-            return $wpdb->insert_id;
+            return $existing_id ? (int) $existing_id : (int) $wpdb->insert_id;
         }
 
         return false;
@@ -202,49 +215,46 @@ class Report_Snapshot
      */
     public static function restore($report_id, $version_number)
     {
-        global $wpdb;
-
         // Get the snapshot
         $snapshot = self::get_snapshot($report_id, $version_number);
         if (!$snapshot || empty($snapshot['snapshot_data'])) {
             return false;
         }
 
-        // Create a new snapshot of current state before restoring
-        self::create_snapshot($report_id, "Before restoring to v{$version_number}");
-
         $data = $snapshot['snapshot_data'];
-
-        // Start transaction
-        $wpdb->query('START TRANSACTION');
-
-        try {
-            // Restore report fields
-            if (!empty($data['report'])) {
-                $report = Report::find($report_id);
-                if ($report) {
-                    $report->overall_rating = $data['report']['overall_rating'];
-                    $report->closing_notes = $data['report']['closing_notes'];
-                    $report->status = $data['report']['status'];
-                    $report->save("Restored to version {$version_number}");
-                }
-            }
-
-            // Restore responses (using force_replace to completely replace)
-            if (!empty($data['responses'])) {
-                Checklist_Response::bulk_save($report_id, $data['responses'], true);
-            }
-
-            $wpdb->query('COMMIT');
-            return true;
-
-        } catch (\Exception $e) {
-            $wpdb->query('ROLLBACK');
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log('Report_Snapshot::restore failed: ' . $e->getMessage());
-            }
+        $report = Report::find($report_id);
+        if (!$report) {
             return false;
         }
+
+        if (!empty($data['report']) && is_array($data['report'])) {
+            $report_data = $data['report'];
+            $report->school_id = isset($report_data['school_id']) ? (int) $report_data['school_id'] : $report->school_id;
+            $report->report_type = $report_data['report_type'] ?? $report->report_type;
+            $report->inspection_date = $report_data['inspection_date'] ?? $report->inspection_date;
+            $report->previous_report_id = !empty($report_data['previous_report_id']) ? (int) $report_data['previous_report_id'] : null;
+            $report->overall_rating = $report_data['overall_rating'] ?? $report->overall_rating;
+            $report->closing_notes = $report_data['closing_notes'] ?? '';
+            $report->status = $report_data['status'] ?? $report->status;
+        }
+
+        if (!$report->save("Restored to version {$version_number}")) {
+            return false;
+        }
+
+        if (!Checklist_Response::bulk_save($report_id, $data['responses'] ?? [], true)) {
+            return false;
+        }
+
+        if (!self::restore_photos($report_id, $data['photos'] ?? [])) {
+            return false;
+        }
+
+        if (!self::restore_ai_summary($report_id, $data['ai_summary'] ?? null)) {
+            return false;
+        }
+
+        return self::create_snapshot($report_id, "Restored to version {$version_number}") !== false;
     }
 
     /**
@@ -374,5 +384,64 @@ class Report_Snapshot
             }
         }
         return $count;
+    }
+
+    /**
+     * Restore AI summary for a report.
+     *
+     * @param int        $report_id Report ID.
+     * @param array|null $summary   Snapshot summary data.
+     * @return bool
+     */
+    private static function restore_ai_summary($report_id, $summary)
+    {
+        global $wpdb;
+
+        if (empty($summary) || !is_array($summary)) {
+            return $wpdb->delete($wpdb->prefix . 'cqa_ai_summaries', ['report_id' => $report_id], ['%d']) !== false;
+        }
+
+        $ai = new \ChromaQA\AI\Executive_Summary();
+        return $ai->save_summary($report_id, $summary);
+    }
+
+    /**
+     * Restore the active photo set for a report from snapshot metadata.
+     *
+     * @param int   $report_id Report ID.
+     * @param array $photos    Snapshot photos.
+     * @return bool
+     */
+    private static function restore_photos($report_id, $photos)
+    {
+        $existing_photos = Photo::get_by_report($report_id);
+        foreach ($existing_photos as $existing_photo) {
+            if (!$existing_photo->soft_delete()) {
+                return false;
+            }
+        }
+
+        foreach ($photos as $photo_data) {
+            if (!is_array($photo_data)) {
+                continue;
+            }
+
+            $photo = new Photo();
+            $photo->report_id = $report_id;
+            $photo->section_key = \sanitize_text_field((string) ($photo_data['section_key'] ?? 'general'));
+            $photo->item_key = \sanitize_text_field((string) ($photo_data['item_key'] ?? ''));
+            $photo->location_tag = \sanitize_text_field((string) ($photo_data['location_tag'] ?? ''));
+            $photo->drive_file_id = \sanitize_text_field((string) ($photo_data['drive_file_id'] ?? ''));
+            $photo->filename = \sanitize_text_field((string) ($photo_data['filename'] ?? ''));
+            $photo->caption = \sanitize_text_field((string) ($photo_data['caption'] ?? ''));
+            $photo->has_markup = !empty($photo_data['has_markup']);
+            $photo->sort_order = isset($photo_data['sort_order']) ? (int) $photo_data['sort_order'] : 0;
+
+            if (!$photo->save()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

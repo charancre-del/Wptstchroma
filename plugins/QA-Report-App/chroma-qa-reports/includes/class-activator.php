@@ -150,7 +150,7 @@ class Activator
             PRIMARY KEY (id),
             KEY report_id (report_id),
             KEY version_number (version_number),
-            KEY report_version (report_id, version_number)
+            UNIQUE KEY report_version (report_id, version_number)
         ) $charset_collate;";
 
         // Run table creation
@@ -168,8 +168,71 @@ class Activator
             $wpdb->query("ALTER TABLE {$photos_table} ADD COLUMN deleted_at DATETIME DEFAULT NULL");
         }
 
+        self::ensure_snapshot_constraints();
+
         // Store DB version
         update_option('cqa_db_version', CQA_VERSION);
+    }
+
+    /**
+     * Ensure snapshot versions are unique per report.
+     *
+     * @return void
+     */
+    private static function ensure_snapshot_constraints()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_report_snapshots';
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
+        if ($table_exists !== $table) {
+            return;
+        }
+
+        self::dedupe_snapshot_versions($table);
+
+        $index = $wpdb->get_row("SHOW INDEX FROM {$table} WHERE Key_name = 'report_version'", ARRAY_A);
+
+        if ($index && isset($index['Non_unique']) && (int) $index['Non_unique'] === 0) {
+            return;
+        }
+
+        if ($index) {
+            $wpdb->query("ALTER TABLE {$table} DROP INDEX report_version");
+        }
+
+        $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY report_version (report_id, version_number)");
+    }
+
+    /**
+     * Remove duplicate snapshot rows so the unique constraint can be added safely.
+     *
+     * @param string $table Snapshot table name.
+     * @return void
+     */
+    private static function dedupe_snapshot_versions($table)
+    {
+        global $wpdb;
+
+        $duplicates = $wpdb->get_results(
+            "SELECT report_id, version_number, MAX(id) AS keep_id
+             FROM {$table}
+             GROUP BY report_id, version_number
+             HAVING COUNT(*) > 1",
+            ARRAY_A
+        );
+
+        foreach ($duplicates as $duplicate) {
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$table}
+                 WHERE report_id = %d
+                   AND version_number = %d
+                   AND id <> %d",
+                (int) $duplicate['report_id'],
+                (int) $duplicate['version_number'],
+                (int) $duplicate['keep_id']
+            ));
+        }
     }
 
     /**
