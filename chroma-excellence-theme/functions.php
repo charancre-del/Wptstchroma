@@ -267,8 +267,9 @@ if (is_admin() || is_customize_preview()) {
     require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
-    require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
 }
+// Global script output must be available on frontend requests too.
+require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
 require_once CHROMA_THEME_DIR . '/inc/customizer-seo.php';
 
 // Legacy helper files (ACF plugin optional; helpers run on core WP functions only)

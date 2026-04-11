@@ -75,20 +75,6 @@ function chroma_header_customizer_settings($wp_customize)
 		),
 	));
 
-	// Header Scripts
-	$wp_customize->add_setting('chroma_header_scripts', array(
-		'default' => '',
-		'sanitize_callback' => 'chroma_sanitize_raw_html',
-		'transport' => 'refresh',
-	));
-
-	$wp_customize->add_control('chroma_header_scripts', array(
-		'label' => __('Header Scripts', 'chroma-excellence'),
-		'description' => __('Scripts to be output before </head>.', 'chroma-excellence'),
-		'section' => 'chroma_header_settings',
-		'type' => 'textarea',
-	));
-
 	// Logo Width (Desktop)
 	$wp_customize->add_setting('chroma_logo_width_desktop', array(
 		'default' => 70,

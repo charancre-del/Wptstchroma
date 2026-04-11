@@ -190,10 +190,8 @@ function chroma_output_footer_scripts()
             return;
         }
 
-        // Advanced: Generic Lazy-Load for Third Parties (TBT/LCP Optimization)
-        $scripts = chroma_optimize_third_party_scripts($scripts);
-
-        echo "<!-- Global Footer Scripts (Optimized) -->\n";
+        // Global scripts should execute exactly as configured by the site owner.
+        echo "<!-- Global Footer Scripts -->\n";
         echo $scripts . "\n";
         echo "<!-- End Global Footer Scripts -->\n";
     }
