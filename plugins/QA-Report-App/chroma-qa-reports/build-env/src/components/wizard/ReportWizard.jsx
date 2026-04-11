@@ -190,6 +190,10 @@ const ReportWizard = () => {
         [ setDraft, setIsDirty ]
     );
 
+    // Use current ID from hook or param
+    const reportState = draft;
+    const effectivelyReadOnly = isViewMode || reportState.status === 'approved';
+
     const syncServerReportMeta = React.useCallback(
         ( savedReport ) => {
             if ( ! savedReport || typeof savedReport !== 'object' ) {
@@ -210,10 +214,6 @@ const ReportWizard = () => {
         },
         [ reportState.id, reportState.previous_report_id, reportState.status, reportState.updated_at, reportState.version_id, setDraft ]
     );
-
-    // Use current ID from hook or param
-    const reportState = draft;
-    const effectivelyReadOnly = isViewMode || reportState.status === 'approved';
 
     const handleSave = async () => {
         try {
