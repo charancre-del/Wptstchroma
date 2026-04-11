@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import useUIStore from '@stores/useUIStore';
+import { useReportWizardStore } from '@stores/index';
 import apiFetch from '@api/client';
 import { saveLocalDraft } from '@utils/db';
 
@@ -20,6 +21,39 @@ const useAutoSave = ( draft, isDirty ) => {
         isDirtyRef.current = isDirty;
     }, [ draft, isDirty ] );
 
+    const buildAutosaveDraft = useCallback( () => {
+        const currentDraft = draftRef.current;
+        const { responses, photos } = useReportWizardStore.getState();
+
+        return {
+            ...currentDraft,
+            responses,
+            photos,
+        };
+    }, [] );
+
+    const syncServerDraftMeta = useCallback( ( savedReport ) => {
+        if ( ! savedReport || typeof savedReport !== 'object' ) {
+            return;
+        }
+
+        const patch = {};
+
+        if ( savedReport.updated_at ) {
+            draftRef.current.updated_at = savedReport.updated_at;
+            patch.updated_at = savedReport.updated_at;
+        }
+
+        if ( savedReport.version_id ) {
+            draftRef.current.version_id = savedReport.version_id;
+            patch.version_id = savedReport.version_id;
+        }
+
+        if ( Object.keys( patch ).length ) {
+            useReportWizardStore.getState().updateReportData( patch );
+        }
+    }, [] );
+
     const performSave = useCallback( async () => {
         if ( ! isDirtyRef.current ) {
             return;
@@ -28,7 +62,7 @@ const useAutoSave = ( draft, isDirty ) => {
         setIsSaving( true );
         setSaveError( null );
 
-        const currentDraft = draftRef.current;
+        const currentDraft = buildAutosaveDraft();
 
         try {
             // 1. Always save to Local IndexedDB (Audit Finding #4: Local Backup)
@@ -42,6 +76,9 @@ const useAutoSave = ( draft, isDirty ) => {
                 // Add If-Unmodified-Since header if we have a server timestamp
                 if ( currentDraft.updated_at ) {
                     options.ifUnmodifiedSince = currentDraft.updated_at;
+                }
+                if ( currentDraft.version_id ) {
+                    options.headers = { 'X-CQA-Version': currentDraft.version_id };
                 }
 
                 const response = await apiFetch( `reports/${ currentDraft.id }`, {
@@ -61,10 +98,7 @@ const useAutoSave = ( draft, isDirty ) => {
                     ...options,
                 } );
 
-                // Update local 'updated_at' from server response to stay in sync
-                if ( response.data && response.data.updated_at ) {
-                    draftRef.current.updated_at = response.data.updated_at;
-                }
+                syncServerDraftMeta( response );
             }
 
             setLastSaved( new Date() );
@@ -73,14 +107,21 @@ const useAutoSave = ( draft, isDirty ) => {
 
             // Handle 409 Conflict (Audit Finding #3)
             if ( error.status === 409 ) {
+                const conflictData = error.data || {};
+                const updatedBy = conflictData.updated_by || conflictData.details?.updated_by || 'Unknown';
+                const updatedAt = conflictData.updated_at || conflictData.details?.updated_at;
+
                 showConflictModal( {
-                    updatedBy: error.data?.details?.updated_by || 'Unknown',
-                    updatedAt: error.data?.details?.updated_at,
+                    updatedBy,
+                    updatedAt,
                     onOverwrite: async () => {
                         // Force save without If-Unmodified-Since header
                         try {
                             const forceSaveResponse = await apiFetch( `reports/${ currentDraft.id }`, {
                                 method: 'PUT',
+                                headers: currentDraft.version_id
+                                    ? { 'X-CQA-Version': currentDraft.version_id }
+                                    : {},
                                 body: {
                                     status: currentDraft.status || 'draft',
                                     school_id: currentDraft.school_id,
@@ -94,10 +135,7 @@ const useAutoSave = ( draft, isDirty ) => {
                                 },
                                 // No ifUnmodifiedSince = force overwrite
                             } );
-                            // Update local timestamp from server response
-                            if ( forceSaveResponse.data?.updated_at ) {
-                                draftRef.current.updated_at = forceSaveResponse.data.updated_at;
-                            }
+                            syncServerDraftMeta( forceSaveResponse );
                             showConflictModal( null ); // Close modal
                             addToast( { type: 'success', message: 'Report saved (overwritten server version)' } );
                             setLastSaved( new Date() );
@@ -119,7 +157,7 @@ const useAutoSave = ( draft, isDirty ) => {
         } finally {
             setIsSaving( false );
         }
-    }, [ addToast, showConflictModal ] );
+    }, [ addToast, buildAutosaveDraft, showConflictModal, syncServerDraftMeta ] );
 
     useEffect( () => {
         const interval = setInterval( performSave, AUTOSAVE_INTERVAL );

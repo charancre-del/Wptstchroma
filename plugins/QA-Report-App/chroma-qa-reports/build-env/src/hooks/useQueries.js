@@ -16,6 +16,16 @@ export const queryKeys = {
         list: ( filters ) => [ 'reports', 'list', filters ],
         detail: ( id ) => [ 'reports', 'detail', id ],
         checklist: ( id ) => [ 'reports', id, 'checklist' ],
+        versions: ( id ) => [ 'reports', id, 'versions' ],
+        version: ( id, version ) => [ 'reports', id, 'versions', version ],
+        compare: ( id, currentVersion, compareVersion ) => [
+            'reports',
+            id,
+            'versions',
+            'compare',
+            currentVersion,
+            compareVersion,
+        ],
     },
     user: {
         me: [ 'user', 'me' ],
@@ -105,6 +115,57 @@ export function useReport( id ) {
 }
 
 /**
+ * Fetch report version list
+ * @param id
+ */
+export function useReportVersions( id ) {
+    return useQuery( {
+        queryKey: queryKeys.reports.versions( id ),
+        queryFn: () => apiClient.get( `/reports/${ id }/versions` ),
+        enabled: !! id,
+        staleTime: 30 * 1000,
+    } );
+}
+
+/**
+ * Fetch a single report version snapshot
+ * @param id
+ * @param version
+ * @param enabled
+ */
+export function useReportVersion( id, version, enabled = true ) {
+    return useQuery( {
+        queryKey: queryKeys.reports.version( id, version ),
+        queryFn: () => apiClient.get( `/reports/${ id }/versions/${ version }` ),
+        enabled: !! id && !! version && enabled,
+        staleTime: 30 * 1000,
+    } );
+}
+
+/**
+ * Fetch two versions for comparison in one stable query
+ * @param id
+ * @param currentVersion
+ * @param compareVersion
+ * @param enabled
+ */
+export function useCompareReportVersions( id, currentVersion, compareVersion, enabled = true ) {
+    return useQuery( {
+        queryKey: queryKeys.reports.compare( id, currentVersion, compareVersion ),
+        queryFn: async () => {
+            const [ current, compare ] = await Promise.all( [
+                apiClient.get( `/reports/${ id }/versions/${ currentVersion }` ),
+                apiClient.get( `/reports/${ id }/versions/${ compareVersion }` ),
+            ] );
+
+            return { current, compare };
+        },
+        enabled: !! id && !! currentVersion && !! compareVersion && enabled,
+        staleTime: 30 * 1000,
+    } );
+}
+
+/**
  * Fetch report checklist template
  * @param reportType
  */
@@ -125,8 +186,12 @@ export function useCreateReport() {
 
     return useMutation( {
         mutationFn: ( data ) => apiClient.post( '/reports', data ),
-        onSuccess: () => {
+        onSuccess: ( response ) => {
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
+            if ( response?.id ) {
+                queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( response.id ) } );
+                queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( response.id ) } );
+            }
         },
     } );
 }
@@ -138,12 +203,34 @@ export function useUpdateReport() {
     const queryClient = useQueryClient();
 
     return useMutation( {
-        mutationFn: ( { id, version_id, ...data } ) =>
+        mutationFn: ( { id, version_id, updated_at, updatedAt, ...data } ) =>
             apiClient.put( `/reports/${ id }`, data, {
                 headers: version_id ? { 'X-CQA-Version': version_id } : {},
+                ifUnmodifiedSince: updated_at || updatedAt || undefined,
             } ),
         onSuccess: ( _, variables ) => {
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( variables.id ) } );
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( variables.id ) } );
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
+        },
+    } );
+}
+
+/**
+ * Restore a report to a previous version
+ */
+export function useRestoreReportVersion() {
+    const queryClient = useQueryClient();
+
+    return useMutation( {
+        mutationFn: ( { id, version, currentVersion, updatedAt } ) =>
+            apiClient.post( `/reports/${ id }/restore/${ version }`, {}, {
+                headers: currentVersion ? { 'X-CQA-Version': currentVersion } : {},
+                ifUnmodifiedSince: updatedAt || undefined,
+            } ),
+        onSuccess: ( _, variables ) => {
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( variables.id ) } );
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( variables.id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
         },
     } );
@@ -157,9 +244,23 @@ export function useSubmitReport() {
 
     return useMutation( {
         // Use PUT with status='submitted' instead of non-existent RPC endpoint
-        mutationFn: ( id ) => apiClient.put( `/reports/${ id }`, { status: 'submitted' } ),
-        onSuccess: ( _, id ) => {
+        mutationFn: ( report ) =>
+            apiClient.put(
+                `/reports/${ typeof report === 'object' ? report.id : report }`,
+                { status: 'submitted' },
+                {
+                    headers:
+                        typeof report === 'object' && report.version_id
+                            ? { 'X-CQA-Version': report.version_id }
+                            : {},
+                    ifUnmodifiedSince:
+                        typeof report === 'object' ? report.updated_at || undefined : undefined,
+                }
+            ),
+        onSuccess: ( _, report ) => {
+            const id = typeof report === 'object' ? report.id : report;
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
         },
     } );
@@ -172,9 +273,23 @@ export function useApproveReport() {
     const queryClient = useQueryClient();
 
     return useMutation( {
-        mutationFn: ( id ) => apiClient.put( `/reports/${ id }`, { status: 'approved' } ),
-        onSuccess: ( _, id ) => {
+        mutationFn: ( report ) =>
+            apiClient.put(
+                `/reports/${ typeof report === 'object' ? report.id : report }`,
+                { status: 'approved' },
+                {
+                    headers:
+                        typeof report === 'object' && report.version_id
+                            ? { 'X-CQA-Version': report.version_id }
+                            : {},
+                    ifUnmodifiedSince:
+                        typeof report === 'object' ? report.updated_at || undefined : undefined,
+                }
+            ),
+        onSuccess: ( _, report ) => {
+            const id = typeof report === 'object' ? report.id : report;
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
         },
     } );
@@ -187,9 +302,23 @@ export function useRevertToDraft() {
     const queryClient = useQueryClient();
 
     return useMutation( {
-        mutationFn: ( id ) => apiClient.put( `/reports/${ id }`, { status: 'draft' } ),
-        onSuccess: ( _, id ) => {
+        mutationFn: ( report ) =>
+            apiClient.put(
+                `/reports/${ typeof report === 'object' ? report.id : report }`,
+                { status: 'draft' },
+                {
+                    headers:
+                        typeof report === 'object' && report.version_id
+                            ? { 'X-CQA-Version': report.version_id }
+                            : {},
+                    ifUnmodifiedSince:
+                        typeof report === 'object' ? report.updated_at || undefined : undefined,
+                }
+            ),
+        onSuccess: ( _, report ) => {
+            const id = typeof report === 'object' ? report.id : report;
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
         },
     } );

@@ -22,6 +22,7 @@ import StepChecklist from './steps/StepChecklist';
 import StepPhotos from './steps/StepPhotos';
 import StepAISummary from './steps/StepAISummary';
 import StepReview from './steps/StepReview';
+import VersionHistoryPanel from '@components/reports/VersionHistoryPanel';
 
 const ReportWizard = () => {
     const navigate = useNavigate();
@@ -55,7 +56,13 @@ const ReportWizard = () => {
     const [ isDirty, setIsDirty ] = useState( false );
 
     // Fetch report if ID is present (Edit Mode)
-    const { data: existingReport, isLoading: reportLoading, isError } = useReport( id );
+    const {
+        data: existingReport,
+        isLoading: reportLoading,
+        isFetching: reportFetching,
+        isError,
+        refetch: refetchReport,
+    } = useReport( id );
 
     // React Query Mutations
     const createMutation = useCreateReport();
@@ -90,27 +97,33 @@ const ReportWizard = () => {
         };
     }, [ resetWizard ] );
 
-    // Initialize from Params or Existing Report
-    useEffect( () => {
-        if ( existingReport && id ) {
-            setDraft( {
-                ...existingReport,
-                school_id: parseInt( existingReport.school_id, 10 ),
-            } );
+    const hydrateReportFromServer = React.useCallback(
+        ( reportData ) => {
+            if ( ! reportData ) {
+                return;
+            }
 
-            // Hydrate responses and photos from server
-            if ( existingReport.responses ) {
-                setResponses( existingReport.responses );
-            }
-            if ( existingReport.photos ) {
-                setPhotos( existingReport.photos );
-            }
+            setDraft( {
+                ...reportData,
+                school_id: parseInt( reportData.school_id, 10 ),
+            } );
+            setResponses( reportData.responses || {} );
+            setPhotos( reportData.photos || [] );
+            setIsDirty( false );
 
             // If explicitly in view mode or report is approved, jump to Review/Summary
             // [STATUS-MANAGEMENT] Submitted reports are now editable in Edit mode
-            if ( isViewMode || existingReport.status === 'approved' ) {
+            if ( isViewMode || reportData.status === 'approved' ) {
                 setCurrentStep( 6 );
             }
+        },
+        [ isViewMode, setCurrentStep, setDraft, setPhotos, setResponses ]
+    );
+
+    // Initialize from Params or Existing Report
+    useEffect( () => {
+        if ( existingReport && id ) {
+            hydrateReportFromServer( existingReport );
         } else {
             const schoolId = schoolParam || stateSchoolId;
             if ( schoolId ) {
@@ -119,14 +132,11 @@ const ReportWizard = () => {
         }
     }, [
         existingReport,
+        hydrateReportFromServer,
         id,
-        isViewMode,
         schoolParam,
         stateSchoolId,
         setDraft,
-        setResponses,
-        setPhotos,
-        setCurrentStep,
     ] );
 
     // Step Definitions
@@ -180,6 +190,27 @@ const ReportWizard = () => {
         [ setDraft, setIsDirty ]
     );
 
+    const syncServerReportMeta = React.useCallback(
+        ( savedReport ) => {
+            if ( ! savedReport || typeof savedReport !== 'object' ) {
+                return;
+            }
+
+            setDraft( {
+                id: savedReport.id ?? reportState.id,
+                status: savedReport.status ?? reportState.status,
+                updated_at: savedReport.updated_at ?? reportState.updated_at,
+                version_id: savedReport.version_id ?? reportState.version_id,
+                previous_report_id:
+                    savedReport.previous_report_id !== undefined
+                        ? savedReport.previous_report_id
+                        : reportState.previous_report_id,
+            } );
+            setIsDirty( false );
+        },
+        [ reportState.id, reportState.previous_report_id, reportState.status, reportState.updated_at, reportState.version_id, setDraft ]
+    );
+
     // Use current ID from hook or param
     const reportState = draft;
     const effectivelyReadOnly = isViewMode || reportState.status === 'approved';
@@ -188,12 +219,13 @@ const ReportWizard = () => {
         try {
             if ( reportState.id ) {
                 // Update
-                await updateMutation.mutateAsync( {
+                const savedReport = await updateMutation.mutateAsync( {
                     ...reportState,
                     responses,
                     photos,
                     updatedAt: reportState.updated_at, // Pass timestamp for optimistic lock
                 } );
+                syncServerReportMeta( savedReport );
             } else {
                 // Create
                 const newReport = await createMutation.mutateAsync( {
@@ -201,25 +233,29 @@ const ReportWizard = () => {
                     responses,
                     photos,
                 } );
-                updateDraft( { id: newReport.id } );
+                syncServerReportMeta( newReport );
             }
 
             addToast( { type: 'success', message: 'Draft saved successfully.' } );
         } catch ( error ) {
             console.error( 'Save failed', error );
-            addToast( { type: 'error', message: 'Failed to save draft.' } );
+            addToast( { type: 'error', message: error.message || 'Failed to save draft.' } );
         }
     };
 
     const handleSubmit = async () => {
         // Ensure saved first if new
         let currentId = reportState.id;
+        let submitVersionId = reportState.version_id;
+        let submitUpdatedAt = reportState.updated_at;
 
         if ( ! currentId ) {
             try {
                 const newReport = await createMutation.mutateAsync( { ...reportState, responses, photos } );
                 currentId = newReport.id;
-                updateDraft( { id: currentId } );
+                submitVersionId = newReport.version_id;
+                submitUpdatedAt = newReport.updated_at;
+                syncServerReportMeta( newReport );
             } catch ( err ) {
                 addToast( { type: 'error', message: 'Failed to create report before submission.' } );
                 return;
@@ -227,19 +263,31 @@ const ReportWizard = () => {
         } else {
             try {
                 // Update latest state before submitting
-                await updateMutation.mutateAsync( {
+                const savedReport = await updateMutation.mutateAsync( {
                     ...reportState,
                     responses,
                     photos,
                     updatedAt: reportState.updated_at,
                 } );
+                submitVersionId = savedReport.version_id;
+                submitUpdatedAt = savedReport.updated_at;
+                syncServerReportMeta( savedReport );
             } catch ( err ) {
                 console.warn( 'Pre-submit save had issues', err );
+                addToast( {
+                    type: 'error',
+                    message: err.message || 'The latest draft could not be saved, so submission was stopped.',
+                } );
+                return;
             }
         }
 
         try {
-            await submitMutation.mutateAsync( currentId );
+            await submitMutation.mutateAsync( {
+                id: currentId,
+                version_id: submitVersionId,
+                updated_at: submitUpdatedAt,
+            } );
 
             addToast( { type: 'success', message: 'Report submitted successfully!' } );
             resetWizard();
@@ -251,11 +299,15 @@ const ReportWizard = () => {
 
     const handleApprove = async () => {
         try {
-            await approveMutation.mutateAsync( id );
+            await approveMutation.mutateAsync( {
+                id,
+                version_id: reportState.version_id,
+                updated_at: reportState.updated_at,
+            } );
             addToast( { type: 'success', message: 'Report approved successfully!' } );
             navigate( '/reports' );
         } catch ( error ) {
-            addToast( { type: 'error', message: 'Failed to approve report.' } );
+            addToast( { type: 'error', message: error.message || 'Failed to approve report.' } );
         }
     };
 
@@ -266,11 +318,15 @@ const ReportWizard = () => {
             return;
         }
         try {
-            await revertMutation.mutateAsync( id );
+            await revertMutation.mutateAsync( {
+                id,
+                version_id: reportState.version_id,
+                updated_at: reportState.updated_at,
+            } );
             addToast( { type: 'success', message: 'Report reverted to draft status.' } );
             navigate( `/edit/${ id }` ); // Transition to edit mode immediately
         } catch ( error ) {
-            addToast( { type: 'error', message: 'Failed to revert report to draft.' } );
+            addToast( { type: 'error', message: error.message || 'Failed to revert report to draft.' } );
         }
     };
 
@@ -299,6 +355,19 @@ const ReportWizard = () => {
             addToast( { type: 'error', message: error.message || 'Failed to delete draft.' } );
         }
     };
+
+    const handleRestoreSuccess = React.useCallback(
+        async () => {
+            const refreshed = await refetchReport();
+            if ( refreshed.data ) {
+                hydrateReportFromServer( refreshed.data );
+                return;
+            }
+
+            throw new Error( 'The restored report could not be reloaded automatically. Please refresh the page.' );
+        },
+        [ hydrateReportFromServer, refetchReport ]
+    );
 
     // LOADING RENDER (Fetch or Hydration)
     if ( ( id && reportLoading ) || ( ! id && ! hasHydrated ) ) {
@@ -356,15 +425,28 @@ const ReportWizard = () => {
             { /* Step Content */ }
             <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
                 { CurrentComponent ? (
-                    <CurrentComponent
-                        draft={ draft }
-                        updateDraft={ updateDraft }
-                        nextStep={ nextStep }
-                        isViewMode={ isViewMode }
-                        readOnly={ effectivelyReadOnly }
-                        photos={ photos }
-                        setPhotos={ setPhotos }
-                    />
+                    <>
+                        <CurrentComponent
+                            draft={ draft }
+                            updateDraft={ updateDraft }
+                            nextStep={ nextStep }
+                            isViewMode={ isViewMode }
+                            readOnly={ effectivelyReadOnly }
+                            photos={ photos }
+                            setPhotos={ setPhotos }
+                        />
+                        { reportState.id ? (
+                            <VersionHistoryPanel
+                                reportId={ reportState.id }
+                                currentVersion={ reportState.version_id }
+                                currentUpdatedAt={ reportState.updated_at }
+                                canRestore={ reportState.status !== 'approved' || capabilities?.cqa_approve_reports }
+                                hasUnsavedChanges={ isDirty }
+                                isBusy={ isSaving || isSavingManual || reportLoading || reportFetching }
+                                onRestoreSuccess={ handleRestoreSuccess }
+                            />
+                        ) : null }
+                    </>
                 ) : (
                     <div className="p-8 text-center text-red-500">
                         Error: Component for step { safeStep } not found.

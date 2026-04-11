@@ -2152,6 +2152,18 @@ class REST_Controller
 
         $versions = \ChromaQA\Models\Report_Snapshot::get_versions($report_id);
 
+        $has_current_snapshot = false;
+        foreach ($versions as $version_row) {
+            if ((int) ($version_row['version_number'] ?? 0) === (int) $report->version_id) {
+                $has_current_snapshot = true;
+                break;
+            }
+        }
+
+        if (!$has_current_snapshot && (int) $report->version_id > 0) {
+            array_unshift($versions, $this->build_live_version_row($report));
+        }
+
         return new \WP_REST_Response([
             'report_id' => $report_id,
             'current_version' => $report->version_id,
@@ -2177,6 +2189,10 @@ class REST_Controller
 
         $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, $version);
         if (!$snapshot) {
+            if ($version === (int) $report->version_id) {
+                return new \WP_REST_Response($this->build_live_snapshot_response($report));
+            }
+
             return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
         }
 
@@ -2199,6 +2215,47 @@ class REST_Controller
             return new \WP_Error('not_found', 'Report not found', ['status' => 404]);
         }
 
+        $if_unmodified_since = $request->get_header('If-Unmodified-Since');
+        if ($if_unmodified_since && $report->updated_at) {
+            $client_timestamp = strtotime($if_unmodified_since);
+            $server_timestamp = strtotime($report->updated_at);
+
+            if ($client_timestamp && $server_timestamp > $client_timestamp) {
+                $updated_by_user = \get_userdata($report->user_id);
+                $updated_by_name = $updated_by_user ? $updated_by_user->display_name : 'Another user';
+
+                return new \WP_Error(
+                    'CONFLICT',
+                    sprintf(
+                        __('Report was modified by %s at %s. Please reload and try again.', 'chroma-qa-reports'),
+                        $updated_by_name,
+                        \wp_date('g:i A', $server_timestamp)
+                    ),
+                    [
+                        'status' => 409,
+                        'updated_by' => $updated_by_name,
+                        'updated_at' => $report->updated_at,
+                    ]
+                );
+            }
+        }
+
+        $client_version = $request->get_header('X-CQA-Version') ?: $request->get_param('version_id');
+        if ($client_version !== null && $client_version !== '') {
+            $client_version = (int) $client_version;
+            if ($client_version !== (int) $report->version_id) {
+                return new \WP_Error(
+                    'CONCURRENCY_CONFLICT',
+                    __('This report has changed since you opened it. Refresh the report before restoring a version.', 'chroma-qa-reports'),
+                    [
+                        'status' => 409,
+                        'client_version' => $client_version,
+                        'server_version' => (int) $report->version_id,
+                    ]
+                );
+            }
+        }
+
         $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, $version);
         if (!$snapshot) {
             return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
@@ -2215,5 +2272,67 @@ class REST_Controller
             'message' => "Report restored to version {$version}",
             'new_version' => \ChromaQA\Models\Report_Snapshot::get_latest_version($report_id),
         ]);
+    }
+
+    /**
+     * Build a synthetic current-version row when the live report version does not yet have a snapshot row.
+     *
+     * @param Report $report Report model.
+     * @return array
+     */
+    private function build_live_version_row($report)
+    {
+        $updated_by_user = \get_userdata($report->user_id);
+
+        return [
+            'id' => 'live-' . (int) $report->id . '-' . (int) $report->version_id,
+            'version_number' => (int) $report->version_id,
+            'change_summary' => __('Current live report state', 'chroma-qa-reports'),
+            'user_id' => (int) $report->user_id,
+            'created_at' => $report->updated_at ?: $report->created_at,
+            'user_name' => $updated_by_user ? $updated_by_user->display_name : '',
+        ];
+    }
+
+    /**
+     * Build a synthetic snapshot response for the current live report version.
+     *
+     * @param Report $report Report model.
+     * @return array
+     */
+    private function build_live_snapshot_response($report)
+    {
+        return [
+            'id' => 'live-' . (int) $report->id . '-' . (int) $report->version_id,
+            'report_id' => (int) $report->id,
+            'version_number' => (int) $report->version_id,
+            'snapshot_data' => [
+                'report' => [
+                    'id' => (int) $report->id,
+                    'school_id' => (int) $report->school_id,
+                    'user_id' => (int) $report->user_id,
+                    'report_type' => $report->report_type,
+                    'inspection_date' => $report->inspection_date,
+                    'previous_report_id' => $report->previous_report_id,
+                    'overall_rating' => $report->overall_rating,
+                    'closing_notes' => $report->closing_notes,
+                    'status' => $report->status,
+                    'version_id' => (int) $report->version_id,
+                    'created_at' => $report->created_at,
+                    'updated_at' => $report->updated_at,
+                ],
+                'responses' => \ChromaQA\Models\Checklist_Response::get_by_report_array($report->id),
+                'photos' => \ChromaQA\Models\Photo::get_by_report_array($report->id),
+                'ai_summary' => $report->get_ai_summary(),
+                'snapshot_meta' => [
+                    'captured_at' => \current_time('mysql'),
+                    'plugin_version' => defined('CQA_VERSION') ? CQA_VERSION : '1.0.0',
+                    'source' => 'live_report',
+                ],
+            ],
+            'change_summary' => __('Current live report state', 'chroma-qa-reports'),
+            'user_id' => (int) $report->user_id,
+            'created_at' => $report->updated_at ?: $report->created_at,
+        ];
     }
 }
