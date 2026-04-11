@@ -809,6 +809,82 @@ function chroma_preserve_dynamic_route_redirects($redirect_url, $requested_url)
 add_filter('redirect_canonical', 'chroma_preserve_dynamic_route_redirects', 1, 2);
 
 /**
+ * Build the canonical path for dynamic combo and near-me routes.
+ *
+ * @param string $path Request path.
+ * @return string
+ */
+function chroma_get_dynamic_route_canonical_path($path)
+{
+    if (!is_string($path) || $path === '') {
+        return '';
+    }
+
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $segments[] = sanitize_title($matches[2]) . '-in-' . sanitize_title($matches[3]) . '-' . strtolower($matches[4]);
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-near-me/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $segments[] = sanitize_title($matches[2]) . '-near-me';
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-near-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $segments[] = sanitize_title($matches[2]) . '-near-' . sanitize_title($matches[3]) . '-' . strtolower($matches[4]);
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    return '';
+}
+
+/**
+ * Normalize dynamic combo and near-me routes to their slash canonical.
+ */
+function chroma_redirect_dynamic_route_canonical()
+{
+    if (is_admin() || wp_doing_ajax() || !isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] !== 'GET') {
+        return;
+    }
+
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = wp_parse_url($request_uri, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return;
+    }
+
+    $canonical_path = chroma_get_dynamic_route_canonical_path($path);
+    if ($canonical_path === '' || $canonical_path === $path) {
+        return;
+    }
+
+    $query = wp_parse_url($request_uri, PHP_URL_QUERY);
+    $target = home_url($canonical_path);
+    if (is_string($query) && $query !== '') {
+        $target .= '?' . $query;
+    }
+
+    wp_safe_redirect($target, 301);
+    exit;
+}
+add_action('template_redirect', 'chroma_redirect_dynamic_route_canonical', 0);
+
+/**
  * Prevent custom canonical enforcer from redirecting dynamic routes to home.
  */
 function chroma_disable_custom_canonical_redirect_for_dynamic_routes($pre_option, $option, $default)
