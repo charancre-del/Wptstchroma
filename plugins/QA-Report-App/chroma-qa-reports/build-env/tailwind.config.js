@@ -1,8 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    content: [
-        "./src/**/*.{js,jsx,ts,tsx}",
-    ],
+    content: [ './src/**/*.{js,jsx,ts,tsx}' ],
     theme: {
         extend: {
             colors: {
@@ -25,18 +23,18 @@ module.exports = {
                         cream: '#F9F7F2',
                         ink: '#1A1A1A',
                         secondary: '#9D8253',
-                    }
-                }
+                    },
+                },
             },
             fontFamily: {
-                sans: ['Outfit', 'sans-serif'],
-                outfit: ['Outfit', 'sans-serif'],
-                serif: ['"DM Serif Display"', 'serif'],
-            }
+                sans: [ 'Outfit', 'sans-serif' ],
+                outfit: [ 'Outfit', 'sans-serif' ],
+                serif: [ '"DM Serif Display"', 'serif' ],
+            },
         },
     },
     plugins: [],
     corePlugins: {
         preflight: false, // Disable preflight to avoid conflict with WP Admin styles
-    }
-}
+    },
+};

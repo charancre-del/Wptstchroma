@@ -1,6 +1,6 @@
 /**
  * IndexedDB Draft Storage Helper
- * 
+ *
  * Manages local draft persistence with enforced limits:
  * - Max 10 drafts
  * - 30-day TTL auto-cleanup
@@ -16,7 +16,7 @@ const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 const MAX_PHOTO_BYTES = 200 * 1024 * 1024; // 200MB
 
 // Create dedicated store
-const store = createStore(DB_NAME, STORE_NAME);
+const store = createStore( DB_NAME, STORE_NAME );
 
 /**
  * Draft Storage API
@@ -24,49 +24,52 @@ const store = createStore(DB_NAME, STORE_NAME);
 export const draftStorage = {
     /**
      * Save a draft (auto-triggers cleanup)
+     * @param draftId
+     * @param data
      */
-    async save(draftId, data) {
+    async save( draftId, data ) {
         const draft = {
             ...data,
             id: draftId,
             lastModified: Date.now(),
         };
-        await set(draftId, draft, store);
+        await set( draftId, draft, store );
         await this.cleanup();
         return draft;
     },
 
     /**
      * Get a draft by ID
+     * @param draftId
      */
-    async get(draftId) {
-        return get(draftId, store);
+    async get( draftId ) {
+        return get( draftId, store );
     },
 
     /**
      * Delete a draft by ID
+     * @param draftId
      */
-    async delete(draftId) {
-        await del(draftId, store);
+    async delete( draftId ) {
+        await del( draftId, store );
     },
 
     /**
      * Get all drafts
      */
     async getAll() {
-        const allKeys = await keys(store);
-        const drafts = await Promise.all(
-            allKeys.map(k => get(k, store))
-        );
-        return drafts.filter(Boolean);
+        const allKeys = await keys( store );
+        const drafts = await Promise.all( allKeys.map( ( k ) => get( k, store ) ) );
+        return drafts.filter( Boolean );
     },
 
     /**
      * Check if a draft exists
+     * @param draftId
      */
-    async exists(draftId) {
-        const draft = await get(draftId, store);
-        return !!draft;
+    async exists( draftId ) {
+        const draft = await get( draftId, store );
+        return !! draft;
     },
 
     /**
@@ -77,8 +80,8 @@ export const draftStorage = {
             await this._deleteExpiredDrafts();
             await this._enforceMaxDrafts();
             await this._evictPhotosIfNeeded();
-        } catch (error) {
-            console.error('[DraftStorage] Cleanup error:', error);
+        } catch ( error ) {
+            console.error( '[DraftStorage] Cleanup error:', error );
         }
     },
 
@@ -89,10 +92,10 @@ export const draftStorage = {
         const drafts = await this.getAll();
         const cutoff = Date.now() - MAX_AGE_MS;
 
-        const expired = drafts.filter(d => d.lastModified < cutoff);
-        for (const draft of expired) {
-            console.log(`[DraftStorage] Deleting expired draft: ${draft.id}`);
-            await this.delete(draft.id);
+        const expired = drafts.filter( ( d ) => d.lastModified < cutoff );
+        for ( const draft of expired ) {
+            console.log( `[DraftStorage] Deleting expired draft: ${ draft.id }` );
+            await this.delete( draft.id );
         }
     },
 
@@ -101,15 +104,17 @@ export const draftStorage = {
      */
     async _enforceMaxDrafts() {
         const drafts = await this.getAll();
-        if (drafts.length <= MAX_DRAFTS) return;
+        if ( drafts.length <= MAX_DRAFTS ) {
+            return;
+        }
 
         // Sort by lastModified descending (newest first)
-        const sorted = drafts.sort((a, b) => b.lastModified - a.lastModified);
-        const toDelete = sorted.slice(MAX_DRAFTS);
+        const sorted = drafts.sort( ( a, b ) => b.lastModified - a.lastModified );
+        const toDelete = sorted.slice( MAX_DRAFTS );
 
-        for (const draft of toDelete) {
-            console.log(`[DraftStorage] Evicting old draft: ${draft.id}`);
-            await this.delete(draft.id);
+        for ( const draft of toDelete ) {
+            console.log( `[DraftStorage] Evicting old draft: ${ draft.id }` );
+            await this.delete( draft.id );
         }
     },
 
@@ -120,40 +125,47 @@ export const draftStorage = {
         const drafts = await this.getAll();
         let totalSize = 0;
 
-        for (const draft of drafts) {
-            totalSize += this._estimatePhotoSize(draft.photos || []);
+        for ( const draft of drafts ) {
+            totalSize += this._estimatePhotoSize( draft.photos || [] );
         }
 
-        if (totalSize <= MAX_PHOTO_BYTES) return;
+        if ( totalSize <= MAX_PHOTO_BYTES ) {
+            return;
+        }
 
         // Sort by lastModified ascending (oldest first)
         const sorted = drafts
-            .filter(d => d.photos?.length > 0)
-            .sort((a, b) => a.lastModified - b.lastModified);
+            .filter( ( d ) => d.photos?.length > 0 )
+            .sort( ( a, b ) => a.lastModified - b.lastModified );
 
         // Remove photos from oldest draft until under limit
-        for (const draft of sorted) {
-            if (totalSize <= MAX_PHOTO_BYTES) break;
+        for ( const draft of sorted ) {
+            if ( totalSize <= MAX_PHOTO_BYTES ) {
+                break;
+            }
 
-            const photoSize = this._estimatePhotoSize(draft.photos);
-            console.log(`[DraftStorage] Evicting photos from draft: ${draft.id} (${photoSize} bytes)`);
+            const photoSize = this._estimatePhotoSize( draft.photos );
+            console.log( `[DraftStorage] Evicting photos from draft: ${ draft.id } (${ photoSize } bytes)` );
 
             draft.photos = [];
-            await this.save(draft.id, draft);
+            await this.save( draft.id, draft );
             totalSize -= photoSize;
         }
     },
 
     /**
      * Estimate photo size from base64 previews
+     * @param photos
      */
-    _estimatePhotoSize(photos) {
-        if (!photos || !Array.isArray(photos)) return 0;
-        return photos.reduce((sum, p) => {
+    _estimatePhotoSize( photos ) {
+        if ( ! photos || ! Array.isArray( photos ) ) {
+            return 0;
+        }
+        return photos.reduce( ( sum, p ) => {
             // base64 preview length is ~4/3 of actual size
             const previewSize = p.preview?.length || 0;
-            return sum + Math.ceil(previewSize * 0.75);
-        }, 0);
+            return sum + Math.ceil( previewSize * 0.75 );
+        }, 0 );
     },
 
     /**
@@ -163,8 +175,8 @@ export const draftStorage = {
         const drafts = await this.getAll();
         let totalPhotoBytes = 0;
 
-        for (const draft of drafts) {
-            totalPhotoBytes += this._estimatePhotoSize(draft.photos);
+        for ( const draft of drafts ) {
+            totalPhotoBytes += this._estimatePhotoSize( draft.photos );
         }
 
         return {
@@ -172,7 +184,7 @@ export const draftStorage = {
             maxDrafts: MAX_DRAFTS,
             photoBytes: totalPhotoBytes,
             maxPhotoBytes: MAX_PHOTO_BYTES,
-            photoUsagePercent: Math.round((totalPhotoBytes / MAX_PHOTO_BYTES) * 100),
+            photoUsagePercent: Math.round( ( totalPhotoBytes / MAX_PHOTO_BYTES ) * 100 ),
         };
     },
 
@@ -180,9 +192,9 @@ export const draftStorage = {
      * Clear all drafts (for testing/reset)
      */
     async clear() {
-        const allKeys = await keys(store);
-        for (const key of allKeys) {
-            await del(key, store);
+        const allKeys = await keys( store );
+        for ( const key of allKeys ) {
+            await del( key, store );
         }
     },
 };

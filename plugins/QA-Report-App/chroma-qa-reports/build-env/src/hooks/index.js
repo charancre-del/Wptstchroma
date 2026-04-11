@@ -1,5 +1,5 @@
 // Hooks barrel export
-export { useAutoSave } from './useAutoSave';
+export { default as useAutoSave } from './useAutoSave';
 export { draftStorage } from './useDraftStorage';
 
 // Re-export query hooks
