@@ -117,9 +117,7 @@
     }
 
     .cqa-react-wrap,
-    #cqa-react-app,
-    #cqa-react-app > div,
-    #cqa-react-app main {
+    #cqa-react-app {
         display: block;
         margin: 0 !important;
         padding: 0 !important;
@@ -594,9 +592,6 @@
 }
 .resize-y {
         resize: vertical;
-}
-.resize {
-        resize: both;
 }
 .break-before-page {
         -moz-column-break-before: page;
