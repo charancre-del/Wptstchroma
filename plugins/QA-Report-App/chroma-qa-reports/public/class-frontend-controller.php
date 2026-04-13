@@ -346,6 +346,7 @@ class Frontend_Controller
 
         // Enqueue assets
         self::enqueue_assets($page);
+        self::restrict_asset_queue($page);
 
         include CQA_PLUGIN_DIR . 'public/views/header.php';
 
@@ -356,7 +357,7 @@ class Frontend_Controller
         } else {
             // Render React App Container for all other routes
             ?>
-            <div class="wrap cqa-react-wrap" style="min-height: 80vh;">
+            <div class="cqa-react-wrap">
                 <div id="cqa-react-app" role="application">
                     <div class="cqa-loading-placeholder"
                         style="display: flex; align-items: center; justify-content: center; min-height: 400px;">
@@ -371,6 +372,116 @@ class Frontend_Controller
         }
 
         include CQA_PLUGIN_DIR . 'public/views/footer.php';
+    }
+
+    /**
+     * Limit QA portal output to the handles the portal actually needs.
+     *
+     * This prevents third-party themes/plugins from injecting unrelated CSS,
+     * widgets, or analytics just because they enqueue assets globally.
+     *
+     * @param string $page Current portal page.
+     * @return void
+     */
+    private static function restrict_asset_queue($page)
+    {
+        $allowed_styles = ['cqa-frontend-styles'];
+        $allowed_scripts = [];
+
+        if ($page === 'login') {
+            $allowed_scripts = ['cqa-frontend'];
+        } else {
+            $allowed_styles[] = 'cqa-react-app';
+            $allowed_scripts = ['cqa-runtime-guard', 'cqa-react-app'];
+        }
+
+        self::restrict_wp_style_queue($allowed_styles);
+        self::restrict_wp_script_queue($allowed_scripts);
+    }
+
+    /**
+     * Restrict enqueued style handles to an allow-list and their dependencies.
+     *
+     * @param string[] $allowed_handles Allowed top-level handles.
+     * @return void
+     */
+    private static function restrict_wp_style_queue(array $allowed_handles)
+    {
+        global $wp_styles;
+
+        if (!($wp_styles instanceof \WP_Styles)) {
+            return;
+        }
+
+        $allowed = self::expand_dependency_handles($allowed_handles, $wp_styles->registered);
+        $queued = is_array($wp_styles->queue) ? $wp_styles->queue : [];
+
+        foreach ($queued as $handle) {
+            if (!isset($allowed[$handle])) {
+                wp_dequeue_style($handle);
+                wp_deregister_style($handle);
+            }
+        }
+    }
+
+    /**
+     * Restrict enqueued script handles to an allow-list and their dependencies.
+     *
+     * @param string[] $allowed_handles Allowed top-level handles.
+     * @return void
+     */
+    private static function restrict_wp_script_queue(array $allowed_handles)
+    {
+        global $wp_scripts;
+
+        if (!($wp_scripts instanceof \WP_Scripts)) {
+            return;
+        }
+
+        $allowed = self::expand_dependency_handles($allowed_handles, $wp_scripts->registered);
+        $queued = is_array($wp_scripts->queue) ? $wp_scripts->queue : [];
+
+        foreach ($queued as $handle) {
+            if (!isset($allowed[$handle])) {
+                wp_dequeue_script($handle);
+                wp_deregister_script($handle);
+            }
+        }
+    }
+
+    /**
+     * Expand a list of handles to include all recursively registered deps.
+     *
+     * @param string[] $handles Root handles to keep.
+     * @param array<string,\_WP_Dependency> $registered Registered dependency map.
+     * @return array<string,bool>
+     */
+    private static function expand_dependency_handles(array $handles, array $registered)
+    {
+        $allowed = [];
+        $stack = array_values(array_unique(array_filter($handles, 'is_string')));
+
+        while (!empty($stack)) {
+            $handle = array_pop($stack);
+
+            if ($handle === '' || isset($allowed[$handle])) {
+                continue;
+            }
+
+            $allowed[$handle] = true;
+
+            if (!isset($registered[$handle]) || empty($registered[$handle]->deps)) {
+                continue;
+            }
+
+            foreach ((array) $registered[$handle]->deps as $dep) {
+                if (is_string($dep) && $dep !== '' && !isset($allowed[$dep])) {
+                    $stack[] = $dep;
+                }
+            }
+        }
+
+        return $allowed;
     }
 
     /**

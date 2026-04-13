@@ -180,7 +180,11 @@ function chroma_should_load_forms_bundle()
 function chroma_enqueue_assets()
 {
         $script_dependencies = array();
-        $skip_global_scripts = chroma_is_app_shell_route();
+        $skip_global_assets = chroma_is_app_shell_route();
+
+        if ($skip_global_assets) {
+                return;
+        }
 
         // Font Awesome (Subset)
         $fa_asset = chroma_get_theme_asset('assets/css/font-awesome-subset.css');
@@ -294,7 +298,7 @@ function chroma_enqueue_assets()
         // Main JavaScript.
         $main_js_asset = chroma_get_theme_asset('assets/js/main.js');
 
-        if (!$skip_global_scripts) {
+        if (!$skip_global_assets) {
                 wp_enqueue_script(
                         'chroma-main-js',
                         $main_js_asset['url'],
