@@ -106,14 +106,21 @@
 }
 
     /* Force WordPress admin content area to be full width */
+    #wpwrap,
+    #wpcontent,
+    #wpbody,
     #wpbody-content {
+        max-width: none !important;
+        width: auto !important;
         padding-bottom: 0 !important;
         float: none !important;
     }
 
     .cqa-react-wrap,
     #cqa-react-app,
+    #cqa-react-app > div,
     #cqa-react-app main {
+        display: block;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
@@ -371,6 +378,9 @@
 .h-96 {
         height: 24rem;
 }
+.h-\[320px\] {
+        height: 320px;
+}
 .h-\[calc\(100vh-32px\)\] {
         height: calc(100vh - 32px);
 }
@@ -401,17 +411,11 @@
 .min-h-\[120px\] {
         min-height: 120px;
 }
-.min-h-\[300px\] {
-        min-height: 300px;
-}
 .min-h-\[40px\] {
         min-height: 40px;
 }
 .min-h-\[45vh\] {
         min-height: 45vh;
-}
-.min-h-\[500px\] {
-        min-height: 500px;
 }
 .min-h-\[50vh\] {
         min-height: 50vh;
@@ -619,6 +623,9 @@
 }
 .items-center {
         align-items: center;
+}
+.items-stretch {
+        align-items: stretch;
 }
 .justify-end {
         justify-content: flex-end;
@@ -1904,6 +1911,9 @@
         .md\:block {
                 display: block;
         }
+        .md\:h-\[380px\] {
+                height: 380px;
+        }
         .md\:min-h-\[600px\] {
                 min-height: 600px;
         }
@@ -1936,17 +1946,16 @@
         }
 }
 @media (min-width: 1024px) {
-        .lg\:col-span-1 {
-                grid-column: span 1 / span 1;
-        }
-        .lg\:col-span-2 {
-                grid-column: span 2 / span 2;
-        }
         .lg\:grid-cols-3 {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
         }
-        .lg\:grid-cols-4 {
+}
+@media (min-width: 1280px) {
+        .xl\:grid-cols-4 {
                 grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+        .xl\:grid-cols-\[minmax\(0\2c 2\.1fr\)_minmax\(320px\2c 1fr\)\] {
+                grid-template-columns: minmax(0,2.1fr) minmax(320px,1fr);
         }
 }
 .peer:checked ~ .rtl\:peer-checked\:after\:-translate-x-full:where([dir="rtl"], [dir="rtl"] *)::after {

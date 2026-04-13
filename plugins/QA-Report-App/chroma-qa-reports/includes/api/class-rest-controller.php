@@ -542,10 +542,10 @@ class REST_Controller
 
         // 3. Compliance Breakdown (Approved Reports Ratings)
         $ratings = $wpdb->get_results("
-            SELECT rating, COUNT(*) as count 
+            SELECT overall_rating, COUNT(*) as count 
             FROM $reports_table 
-            WHERE status = 'approved' AND rating IS NOT NULL 
-            GROUP BY rating
+            WHERE status = 'approved' AND overall_rating IS NOT NULL 
+            GROUP BY overall_rating
         ");
 
         $compliance = [
@@ -555,7 +555,7 @@ class REST_Controller
         ];
 
         foreach ($ratings as $row) {
-            $key = strtolower(str_replace('Expectations', '', $row->rating));
+            $key = strtolower(str_replace('Expectations', '', $row->overall_rating));
             $key = trim(str_replace(' ', '_', $key));
 
             if ($key === 'exceeds' || $key === 'exceeds_expectations') {
@@ -587,9 +587,9 @@ class REST_Controller
                 DATE_FORMAT(inspection_date, '%b') as name,
                 DATE_FORMAT(inspection_date, '%m') as month_num,
                 AVG(CASE 
-                    WHEN rating IN ('exceeds', 'Exceeds Expectations', 'Exceeds') THEN 100
-                    WHEN rating IN ('meets', 'Meets Expectations', 'Meets') THEN 85
-                    WHEN rating IN ('needs_improvement', 'Needs Improvement') THEN 60
+                    WHEN overall_rating = 'exceeds' THEN 100
+                    WHEN overall_rating = 'meets' THEN 85
+                    WHEN overall_rating = 'needs_improvement' THEN 60
                     ELSE 40
                 END) as score
             FROM $reports_table
@@ -609,7 +609,7 @@ class REST_Controller
             FROM $reports_table r
             JOIN $schools_table s ON r.school_id = s.id
             WHERE r.status = 'approved' 
-            AND r.rating = 'Needs Improvement'
+            AND r.overall_rating = 'needs_improvement'
             AND r.inspection_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             LIMIT 3
         ");

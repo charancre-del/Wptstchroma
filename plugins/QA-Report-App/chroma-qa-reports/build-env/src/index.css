@@ -5,7 +5,12 @@
 @layer base {
 
     /* Force WordPress admin content area to be full width */
+    #wpwrap,
+    #wpcontent,
+    #wpbody,
     #wpbody-content {
+        max-width: none !important;
+        width: auto !important;
         padding-bottom: 0 !important;
         float: none !important;
     }
@@ -18,7 +23,9 @@
 
     .cqa-react-wrap,
     #cqa-react-app,
+    #cqa-react-app > div,
     #cqa-react-app main {
+        display: block;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
