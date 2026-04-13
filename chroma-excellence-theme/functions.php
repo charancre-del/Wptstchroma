@@ -278,8 +278,12 @@ if (is_admin() || is_customize_preview()) {
  */
 function chroma_should_load_global_script_customizer()
 {
-    if (is_admin() || is_customize_preview()) {
+    if (is_customize_preview()) {
         return true;
+    }
+
+    if (is_admin()) {
+        return false;
     }
 
     if (wp_doing_ajax() || wp_doing_cron()) {

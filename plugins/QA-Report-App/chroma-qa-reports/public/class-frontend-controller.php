@@ -342,6 +342,8 @@ class Frontend_Controller
      */
     private static function load_template($page)
     {
+        self::disable_theme_marketing_scripts();
+
         // Enqueue assets
         self::enqueue_assets($page);
 
@@ -369,6 +371,23 @@ class Frontend_Controller
         }
 
         include CQA_PLUGIN_DIR . 'public/views/footer.php';
+    }
+
+    /**
+     * Strip site-wide marketing widgets/scripts from the QA portal shell.
+     *
+     * The QA React app should render in a clean environment without global
+     * footer widgets, analytics snippets, or modal markup interfering with its
+     * layout, runtime, or accessibility.
+     *
+     * @return void
+     */
+    private static function disable_theme_marketing_scripts()
+    {
+        \remove_action('wp_head', 'chroma_output_header_scripts', 1);
+        \remove_action('wp_footer', 'chroma_output_footer_scripts', 99);
+        \remove_action('wp_footer', 'chroma_render_booking_modal');
+        \remove_action('wp_footer', 'chroma_render_pdf_modal');
     }
 
     /**

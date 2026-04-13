@@ -14,6 +14,21 @@ if (!defined('ABSPATH')) {
 /**
  * Register Global Scripts Customizer Settings
  */
+if (!function_exists('chroma_should_skip_global_scripts_output')) {
+    function chroma_should_skip_global_scripts_output()
+    {
+        if (is_admin() || is_customize_preview()) {
+            return true;
+        }
+
+        if (function_exists('chroma_is_app_shell_route') && chroma_is_app_shell_route()) {
+            return true;
+        }
+
+        return false;
+    }
+}
+
 if (!function_exists('chroma_scripts_customizer_settings')) {
     function chroma_scripts_customizer_settings($wp_customize)
     {
@@ -171,6 +186,10 @@ if (!function_exists('chroma_dedupe_customizer_scripts')) {
 if (!function_exists('chroma_output_header_scripts')) {
     function chroma_output_header_scripts()
     {
+        if (chroma_should_skip_global_scripts_output()) {
+            return;
+        }
+
         $scripts = get_theme_mod('chroma_header_scripts');
         if ($scripts) {
             $scripts = chroma_dedupe_customizer_scripts($scripts);
@@ -196,6 +215,10 @@ add_action('wp_head', 'chroma_output_header_scripts', 1);
 if (!function_exists('chroma_output_footer_scripts')) {
     function chroma_output_footer_scripts()
     {
+        if (chroma_should_skip_global_scripts_output()) {
+            return;
+        }
+
         $scripts = get_theme_mod('chroma_footer_scripts');
         if ($scripts) {
             $scripts = chroma_dedupe_customizer_scripts($scripts);
