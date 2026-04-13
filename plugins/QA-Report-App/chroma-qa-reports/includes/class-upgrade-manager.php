@@ -132,14 +132,9 @@ class Upgrade_Manager
         }
 
         $column_exists = $wpdb->get_var("SHOW COLUMNS FROM {$snapshots_table} LIKE 'snapshot_type'");
-        if ($column_exists) {
-            $wpdb->query(
-                $wpdb->prepare(
-                    "UPDATE {$snapshots_table} SET snapshot_type = %s WHERE snapshot_type IS NULL OR snapshot_type = ''",
-                    'manual'
-                )
-            );
-        }
+        // Note: We intentionally stripped out the manual bulk UPDATE query here.
+        // It was scanning the entire table without indexes, causing fatal timeouts.
+        // MySQL `DEFAULT` logic handles the value population seamlessly.
 
         // Note: We intentionally skip running prune_old_versions for every report here
         // to prevent `max_execution_time` timeouts (500 errors) on large databases block plugins_loaded.

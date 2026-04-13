@@ -227,12 +227,8 @@ class Activator
             $wpdb->query("ALTER TABLE {$table} ADD COLUMN snapshot_type VARCHAR(50) DEFAULT 'manual' AFTER snapshot_data");
         }
 
-        $wpdb->query(
-            $wpdb->prepare(
-                "UPDATE {$table} SET snapshot_type = %s WHERE snapshot_type IS NULL OR snapshot_type = ''",
-                'manual'
-            )
-        );
+        // The UPDATE query was removed here to prevent `max_execution_time` timeouts on large tables.
+        // MySQL handles default value backfilling automatically via the ALTER TABLE DEFAULT syntax above.
 
         $index = $wpdb->get_row("SHOW INDEX FROM {$table} WHERE Key_name = 'snapshot_type'", ARRAY_A);
         if (!$index) {
