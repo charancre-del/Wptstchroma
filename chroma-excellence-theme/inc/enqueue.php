@@ -182,8 +182,7 @@ function chroma_enqueue_assets()
         $script_dependencies = array();
         $skip_global_scripts = chroma_is_app_shell_route();
 
-        // Font Awesome (Subset)
-        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome-subset.css');
+        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome.css');
         wp_enqueue_style(
                 'chroma-font-awesome',
                 $fa_asset['url'],
