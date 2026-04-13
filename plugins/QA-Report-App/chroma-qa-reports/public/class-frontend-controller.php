@@ -344,6 +344,10 @@ class Frontend_Controller
     {
         self::disable_theme_marketing_scripts();
 
+        if (!did_action('wp_enqueue_scripts')) {
+            do_action('wp_enqueue_scripts');
+        }
+
         // Enqueue assets
         self::enqueue_assets($page);
         self::restrict_asset_queue($page);
