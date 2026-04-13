@@ -446,6 +446,14 @@ function chroma_home_default_curriculum_profiles()
                                 'data' => array(60, 60, 80, 90, 70),
                         ),
                         array(
+                                'key' => 'kindergarten',
+                                'label' => 'Kindergarten',
+                                'title' => 'Kindergarten Mastery',
+                                'description' => 'A rigorous, joyful environment ensuring mastery in early reading, conceptual mathematics, and collaborative problem-solving.',
+                                'color' => '#A8551E',
+                                'data' => array(55, 65, 85, 95, 75),
+                        ),
+                        array(
                                 'key' => 'afterschool',
                                 'label' => 'After School',
                                 'title' => 'Enrichment Phase',

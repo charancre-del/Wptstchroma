@@ -28,7 +28,10 @@ $hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.m
             <div
                 class="inline-flex max-w-full items-center gap-2 bg-white border border-chroma-blue/15 px-3 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-semibold text-brand-ink shadow-soft text-left break-words sm:whitespace-nowrap">
                 <span class="w-2 h-2 rounded-full bg-chroma-blue animate-pulse"></span>
-                <?php _e('19+ Metro Atlanta Locations', 'chroma-excellence'); ?>
+                <?php 
+                $loc_count = wp_count_posts('location')->publish ?? 19;
+                printf(esc_html__('%d+ Metro Atlanta Locations', 'chroma-excellence'), $loc_count); 
+                ?>
             </div>
 
             <h1 class="font-serif text-brand-ink text-4xl sm:text-[3.4rem] leading-tight tracking-tight break-words max-w-full">
