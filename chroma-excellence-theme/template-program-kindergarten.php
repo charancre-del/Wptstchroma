@@ -232,8 +232,10 @@ while (have_posts()):
 							$icon_class = $focus_icon_classes[$index] ?? 'fa-solid fa-circle-check text-chroma-blueDark';
 							$parts = explode(':', $item, 2);
 							?>
-							<li class="flex gap-3 items-center">
-								<i class="<?php echo esc_attr($icon_class); ?>" aria-hidden="true"></i>
+							<li class="flex gap-4 items-start">
+								<span class="w-5 shrink-0 mt-1 text-center" aria-hidden="true">
+									<i class="<?php echo esc_attr($icon_class); ?>"></i>
+								</span>
 								<span>
 									<?php if (count($parts) === 2): ?>
 										<strong><?php echo esc_html($parts[0]); ?>:</strong><?php echo esc_html($parts[1]); ?>
