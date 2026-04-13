@@ -23,7 +23,7 @@ class Activator
         self::set_default_options();
 
         // Flush rewrite rules
-        flush_rewrite_rules();
+        delete_option('rewrite_rules');
 
         // Set activation flag for admin notice
         // Set activation flag for admin notice
@@ -192,19 +192,20 @@ class Activator
             return;
         }
 
-        self::dedupe_snapshot_versions($table);
-
         $index = $wpdb->get_row("SHOW INDEX FROM {$table} WHERE Key_name = 'report_version'", ARRAY_A);
 
         if ($index && isset($index['Non_unique']) && (int) $index['Non_unique'] === 0) {
             return;
         }
 
+        self::dedupe_snapshot_versions($table);
+
         if ($index) {
             $wpdb->query("ALTER TABLE {$table} DROP INDEX report_version");
         }
 
         $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY report_version (report_id, version_number)");
+
     }
 
     /**
