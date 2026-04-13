@@ -55,6 +55,11 @@ class Upgrade_Manager
             self::migration_v1_3_1_harden_report_snapshots();
         }
 
+        // Version 1.3.2: Snapshot typing and autosave retention
+        if (version_compare($current_version, '1.3.2', '<')) {
+            self::migration_v1_3_2_snapshot_types();
+        }
+
         // Update version option
         update_option('cqa_db_version', CQA_VERSION);
     }
@@ -110,6 +115,37 @@ class Upgrade_Manager
 
         foreach ($report_ids as $report_id) {
             \ChromaQA\Models\Report_Snapshot::create_snapshot((int) $report_id, 'Backfilled current version snapshot');
+        }
+    }
+
+    /**
+     * Migration: classify snapshots and prune autosave noise safely.
+     *
+     * @return void
+     */
+    private static function migration_v1_3_2_snapshot_types()
+    {
+        global $wpdb;
+
+        $snapshots_table = $wpdb->prefix . 'cqa_report_snapshots';
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $snapshots_table));
+        if ($table_exists !== $snapshots_table) {
+            return;
+        }
+
+        $column_exists = $wpdb->get_var("SHOW COLUMNS FROM {$snapshots_table} LIKE 'snapshot_type'");
+        if ($column_exists) {
+            $wpdb->query(
+                $wpdb->prepare(
+                    "UPDATE {$snapshots_table} SET snapshot_type = %s WHERE snapshot_type IS NULL OR snapshot_type = ''",
+                    'manual'
+                )
+            );
+        }
+
+        $report_ids = $wpdb->get_col("SELECT DISTINCT report_id FROM {$snapshots_table}");
+        foreach ($report_ids as $report_id) {
+            \ChromaQA\Models\Report_Snapshot::prune_old_versions((int) $report_id);
         }
     }
 }

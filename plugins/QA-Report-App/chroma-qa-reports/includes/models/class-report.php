@@ -333,9 +333,10 @@ class Report
      * Save the report.
      *
      * @param string $change_summary Optional description of what changed.
+     * @param string $snapshot_type Optional snapshot category.
      * @return bool|int
      */
-    public function save($change_summary = '')
+    public function save($change_summary = '', $snapshot_type = Report_Snapshot::TYPE_MANUAL)
     {
         global $wpdb;
         $table = self::get_table_name();
@@ -364,7 +365,7 @@ class Report
                     $this->updated_at = $fresh->updated_at;
                 }
 
-                if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report updated') && defined('WP_DEBUG') && WP_DEBUG) {
+                if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report updated', $snapshot_type) && defined('WP_DEBUG') && WP_DEBUG) {
                     error_log(sprintf('[CQA Snapshot] Failed to create snapshot for report update %d', (int) $this->id));
                 }
                 return $this->id;
@@ -381,7 +382,7 @@ class Report
                     $this->updated_at = $fresh->updated_at;
                 }
 
-                if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report created') && defined('WP_DEBUG') && WP_DEBUG) {
+                if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report created', $snapshot_type) && defined('WP_DEBUG') && WP_DEBUG) {
                     error_log(sprintf('[CQA Snapshot] Failed to create snapshot for report create %d', (int) $this->id));
                 }
                 return $this->id;

@@ -144,12 +144,14 @@ class Activator
             report_id BIGINT(20) UNSIGNED NOT NULL,
             version_number INT UNSIGNED NOT NULL,
             snapshot_data LONGTEXT NOT NULL,
+            snapshot_type VARCHAR(50) DEFAULT 'manual',
             change_summary VARCHAR(255) DEFAULT '',
             user_id BIGINT(20) UNSIGNED NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY report_id (report_id),
             KEY version_number (version_number),
+            KEY snapshot_type (snapshot_type),
             UNIQUE KEY report_version (report_id, version_number)
         ) $charset_collate;";
 
@@ -169,6 +171,7 @@ class Activator
         }
 
         self::ensure_snapshot_constraints();
+        self::ensure_snapshot_type_column();
 
         // Store DB version
         update_option('cqa_db_version', CQA_VERSION);
@@ -202,6 +205,39 @@ class Activator
         }
 
         $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY report_version (report_id, version_number)");
+    }
+
+    /**
+     * Ensure snapshot rows support retention by type.
+     *
+     * @return void
+     */
+    private static function ensure_snapshot_type_column()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_report_snapshots';
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
+        if ($table_exists !== $table) {
+            return;
+        }
+
+        $column_exists = $wpdb->get_var("SHOW COLUMNS FROM {$table} LIKE 'snapshot_type'");
+        if (!$column_exists) {
+            $wpdb->query("ALTER TABLE {$table} ADD COLUMN snapshot_type VARCHAR(50) DEFAULT 'manual' AFTER snapshot_data");
+        }
+
+        $wpdb->query(
+            $wpdb->prepare(
+                "UPDATE {$table} SET snapshot_type = %s WHERE snapshot_type IS NULL OR snapshot_type = ''",
+                'manual'
+            )
+        );
+
+        $index = $wpdb->get_row("SHOW INDEX FROM {$table} WHERE Key_name = 'snapshot_type'", ARRAY_A);
+        if (!$index) {
+            $wpdb->query("ALTER TABLE {$table} ADD KEY snapshot_type (snapshot_type)");
+        }
     }
 
     /**

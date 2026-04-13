@@ -6,7 +6,7 @@ import { saveLocalDraft } from '@utils/db';
 
 const AUTOSAVE_INTERVAL = 30000; // 30 seconds
 
-const useAutoSave = ( draft, isDirty ) => {
+const useAutoSave = ( draft, isDirty, onServerSaveSuccess = null ) => {
     const { showConflictModal, addToast } = useUIStore();
     const [ lastSaved, setLastSaved ] = useState( null );
     const [ isSaving, setIsSaving ] = useState( false );
@@ -92,6 +92,7 @@ const useAutoSave = ( draft, isDirty ) => {
                         overall_rating: currentDraft.overall_rating,
                         closing_notes: currentDraft.closing_notes,
                         previous_report_id: currentDraft.previous_report_id,
+                        save_mode: 'autosave',
                         responses: currentDraft.responses,
                         photos: currentDraft.photos,
                     },
@@ -99,6 +100,9 @@ const useAutoSave = ( draft, isDirty ) => {
                 } );
 
                 syncServerDraftMeta( response );
+                if ( typeof onServerSaveSuccess === 'function' ) {
+                    onServerSaveSuccess( response );
+                }
             }
 
             setLastSaved( new Date() );
@@ -119,9 +123,6 @@ const useAutoSave = ( draft, isDirty ) => {
                         try {
                             const forceSaveResponse = await apiFetch( `reports/${ currentDraft.id }`, {
                                 method: 'PUT',
-                                headers: currentDraft.version_id
-                                    ? { 'X-CQA-Version': currentDraft.version_id }
-                                    : {},
                                 body: {
                                     status: currentDraft.status || 'draft',
                                     school_id: currentDraft.school_id,
@@ -130,12 +131,16 @@ const useAutoSave = ( draft, isDirty ) => {
                                     overall_rating: currentDraft.overall_rating,
                                     closing_notes: currentDraft.closing_notes,
                                     previous_report_id: currentDraft.previous_report_id,
+                                    save_mode: 'autosave',
                                     responses: currentDraft.responses,
                                     photos: currentDraft.photos,
                                 },
                                 // No ifUnmodifiedSince = force overwrite
                             } );
                             syncServerDraftMeta( forceSaveResponse );
+                            if ( typeof onServerSaveSuccess === 'function' ) {
+                                onServerSaveSuccess( forceSaveResponse );
+                            }
                             showConflictModal( null ); // Close modal
                             addToast( { type: 'success', message: 'Report saved (overwritten server version)' } );
                             setLastSaved( new Date() );
@@ -157,7 +162,7 @@ const useAutoSave = ( draft, isDirty ) => {
         } finally {
             setIsSaving( false );
         }
-    }, [ addToast, buildAutosaveDraft, showConflictModal, syncServerDraftMeta ] );
+    }, [ addToast, buildAutosaveDraft, onServerSaveSuccess, showConflictModal, syncServerDraftMeta ] );
 
     useEffect( () => {
         const interval = setInterval( performSave, AUTOSAVE_INTERVAL );

@@ -900,7 +900,7 @@ class REST_Controller
     {
         $this->log_unexpected_payload_keys(
             $request,
-            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'photos', 'drive_files'],
+            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'photos', 'drive_files', 'save_mode'],
             'create_report'
         );
 
@@ -911,6 +911,8 @@ class REST_Controller
         }
 
         // Initialize Report
+        $snapshot_type = $this->get_snapshot_type_from_request($request);
+
         $report = new Report();
         $school_id = (int) $request->get_param('school_id');
 
@@ -957,7 +959,7 @@ class REST_Controller
         $report->closing_notes = \sanitize_textarea_field($request->get_param('closing_notes'));
         $report->status = \sanitize_text_field($request->get_param('status')) ?: 'draft';
 
-        $result = $report->save();
+        $result = $report->save('', $snapshot_type);
 
         if (!$result) {
             return new WP_Error('create_failed', \__('Failed to create report.', 'chroma-qa-reports'), ['status' => 500]);
@@ -977,7 +979,7 @@ class REST_Controller
             }
         }
 
-        if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report created')) {
+        if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report created', $snapshot_type)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log(sprintf('[CQA Snapshot] Failed to refresh final create snapshot for report %d', (int) $report->id));
             }
@@ -990,9 +992,11 @@ class REST_Controller
     {
         $this->log_unexpected_payload_keys(
             $request,
-            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'summary_poi', 'version_id'],
+            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'summary_poi', 'version_id', 'save_mode'],
             'update_report'
         );
+
+        $snapshot_type = $this->get_snapshot_type_from_request($request);
 
         $report = Report::find($request['id']);
 
@@ -1094,7 +1098,7 @@ class REST_Controller
             $report->status = $new_status;
         }
 
-        if (!$report->save()) {
+        if (!$report->save('', $snapshot_type)) {
             return new WP_Error('save_failed', __('Failed to update report.', 'chroma-qa-reports'), ['status' => 500]);
         }
 
@@ -1179,7 +1183,7 @@ class REST_Controller
             }
         }
 
-        if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report updated')) {
+        if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report updated', $snapshot_type)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log(sprintf('[CQA Snapshot] Failed to refresh final update snapshot for report %d', (int) $report->id));
             }
@@ -1237,9 +1241,15 @@ class REST_Controller
             return new WP_Error('save_failed', __('Failed to save responses.', 'chroma-qa-reports'), ['status' => 500]);
         }
 
+        if (!$report->save('Checklist responses updated', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
+            return new WP_Error('save_failed', __('Failed to create a report version for checklist updates.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
         return new WP_REST_Response([
             'success' => true,
             'responses' => Checklist_Response::get_by_report_grouped($report_id),
+            'version_id' => $report->version_id,
+            'updated_at' => $report->updated_at,
         ], 200);
     }
 
@@ -1497,6 +1507,10 @@ class REST_Controller
             }
         }
 
+        if (!empty($uploaded_photos) && !$report->save('Photos updated', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
+            return new WP_Error('save_failed', __('Photos uploaded but the report version could not be updated.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
         // Return unified response
         $response_data = [
             'success' => true,
@@ -1528,12 +1542,21 @@ class REST_Controller
             $photo->section_key = \sanitize_text_field($request->get_param('section_key'));
         }
 
-        $photo->save();
+        if (!$photo->save()) {
+            return new WP_Error('save_failed', __('Failed to update photo.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        $report = Report::find($photo->report_id);
+        if ($report && !$report->save('Photo updated', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
+            return new WP_Error('save_failed', __('Photo updated but the report version could not be updated.', 'chroma-qa-reports'), ['status' => 500]);
+        }
 
         return new WP_REST_Response([
             'id' => $photo->id,
             'caption' => $photo->caption,
-            'section_key' => $photo->section_key
+            'section_key' => $photo->section_key,
+            'version_id' => $report ? $report->version_id : null,
+            'updated_at' => $report ? $report->updated_at : null,
         ], 200);
     }
 
@@ -1545,9 +1568,21 @@ class REST_Controller
             return new WP_Error('not_found', __('Photo not found.', 'chroma-qa-reports'), ['status' => 404]);
         }
 
-        $photo->delete();
+        $report = Report::find($photo->report_id);
 
-        return new WP_REST_Response(['success' => true], 200);
+        if (!$photo->delete()) {
+            return new WP_Error('delete_failed', __('Failed to delete photo.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        if ($report && !$report->save('Photo deleted', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
+            return new WP_Error('save_failed', __('Photo deleted but the report version could not be updated.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'version_id' => $report ? $report->version_id : null,
+            'updated_at' => $report ? $report->updated_at : null,
+        ], 200);
     }
 
     // ===== SETTINGS ENDPOINTS =====
@@ -1577,6 +1612,19 @@ class REST_Controller
         }
 
         return new WP_REST_Response($settings, 200);
+    }
+
+    /**
+     * Resolve the snapshot category for a save request.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return string
+     */
+    private function get_snapshot_type_from_request(WP_REST_Request $request)
+    {
+        $save_mode = $request->get_param('save_mode');
+
+        return \ChromaQA\Models\Report_Snapshot::normalize_snapshot_type($save_mode);
     }
 
     public function update_settings(WP_REST_Request $request)

@@ -247,7 +247,7 @@ export function useSubmitReport() {
         mutationFn: ( report ) =>
             apiClient.put(
                 `/reports/${ typeof report === 'object' ? report.id : report }`,
-                { status: 'submitted' },
+                { status: 'submitted', save_mode: 'status_change' },
                 {
                     headers:
                         typeof report === 'object' && report.version_id
@@ -276,7 +276,7 @@ export function useApproveReport() {
         mutationFn: ( report ) =>
             apiClient.put(
                 `/reports/${ typeof report === 'object' ? report.id : report }`,
-                { status: 'approved' },
+                { status: 'approved', save_mode: 'status_change' },
                 {
                     headers:
                         typeof report === 'object' && report.version_id
@@ -305,7 +305,7 @@ export function useRevertToDraft() {
         mutationFn: ( report ) =>
             apiClient.put(
                 `/reports/${ typeof report === 'object' ? report.id : report }`,
-                { status: 'draft' },
+                { status: 'draft', save_mode: 'status_change' },
                 {
                     headers:
                         typeof report === 'object' && report.version_id

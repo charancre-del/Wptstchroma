@@ -25,12 +25,27 @@ class Report_Snapshot
     const MAX_VERSIONS = 20;
 
     /**
+     * Maximum autosave versions to keep per report.
+     */
+    const MAX_AUTOSAVE_VERSIONS = 5;
+
+    /**
+     * Snapshot type constants.
+     */
+    const TYPE_AUTOSAVE = 'autosave';
+    const TYPE_MANUAL = 'manual';
+    const TYPE_STATUS_CHANGE = 'status_change';
+    const TYPE_RESTORE = 'restore';
+    const TYPE_SYSTEM = 'system';
+
+    /**
      * Snapshot properties.
      */
     public $id;
     public $report_id;
     public $version_number;
     public $snapshot_data;
+    public $snapshot_type;
     public $change_summary;
     public $user_id;
     public $created_at;
@@ -51,9 +66,10 @@ class Report_Snapshot
      *
      * @param int    $report_id      Report ID.
      * @param string $change_summary Description of what changed.
+     * @param string $snapshot_type  Snapshot category.
      * @return int|false Snapshot ID or false on failure.
      */
-    public static function create_snapshot($report_id, $change_summary = '')
+    public static function create_snapshot($report_id, $change_summary = '', $snapshot_type = self::TYPE_MANUAL)
     {
         global $wpdb;
         $table = self::get_table_name();
@@ -82,10 +98,11 @@ class Report_Snapshot
             'report_id' => $report_id,
             'version_number' => $version_number,
             'snapshot_data' => wp_json_encode($snapshot_data),
+            'snapshot_type' => self::normalize_snapshot_type($snapshot_type),
             'change_summary' => \sanitize_text_field($change_summary),
             'user_id' => \get_current_user_id(),
         ];
-        $format = ['%d', '%d', '%s', '%s', '%d'];
+        $format = ['%d', '%d', '%s', '%s', '%s', '%d'];
 
         $existing_id = $wpdb->get_var($wpdb->prepare(
             "SELECT id FROM {$table} WHERE report_id = %d AND version_number = %d LIMIT 1",
@@ -106,7 +123,6 @@ class Report_Snapshot
         }
 
         if ($result !== false) {
-            // Prune old versions
             self::prune_old_versions($report_id);
             return $existing_id ? (int) $existing_id : (int) $wpdb->insert_id;
         }
@@ -171,6 +187,7 @@ class Report_Snapshot
 
         $rows = $wpdb->get_results($wpdb->prepare(
             "SELECT s.id, s.version_number, s.change_summary, s.user_id, s.created_at, u.display_name as user_name
+                    , s.snapshot_type
              FROM {$table} s
              LEFT JOIN {$users_table} u ON s.user_id = u.ID
              WHERE s.report_id = %d
@@ -238,7 +255,7 @@ class Report_Snapshot
             $report->status = $report_data['status'] ?? $report->status;
         }
 
-        if (!$report->save("Restored to version {$version_number}")) {
+        if (!$report->save("Restored to version {$version_number}", self::TYPE_RESTORE)) {
             return false;
         }
 
@@ -254,7 +271,7 @@ class Report_Snapshot
             return false;
         }
 
-        return self::create_snapshot($report_id, "Restored to version {$version_number}") !== false;
+        return self::create_snapshot($report_id, "Restored to version {$version_number}", self::TYPE_RESTORE) !== false;
     }
 
     /**
@@ -269,15 +286,88 @@ class Report_Snapshot
         global $wpdb;
         $table = self::get_table_name();
 
-        if ($keep === null) {
+        $deleted = 0;
+
+        $milestone_keep = $keep;
+        if ($milestone_keep === null) {
             $settings = \get_option('cqa_settings', []);
-            $keep = isset($settings['max_report_versions']) ? (int) $settings['max_report_versions'] : self::MAX_VERSIONS;
+            $milestone_keep = isset($settings['max_report_versions']) ? (int) $settings['max_report_versions'] : self::MAX_VERSIONS;
         }
 
-        // Get IDs of versions to keep
+        $deleted += self::prune_versions_by_type($report_id, self::TYPE_AUTOSAVE, self::MAX_AUTOSAVE_VERSIONS);
+        $deleted += self::prune_versions_by_type($report_id, 'non_autosave', $milestone_keep);
+
+        return (int) $deleted;
+    }
+
+    /**
+     * Delete versions beyond a type-scoped retention limit.
+     *
+     * @param int    $report_id      Report ID.
+     * @param string $snapshot_type  autosave or non_autosave.
+     * @param int    $keep           Number of versions to keep.
+     * @return int
+     */
+    private static function prune_versions_by_type($report_id, $snapshot_type, $keep)
+    {
+        global $wpdb;
+        $table = self::get_table_name();
+        $keep = max(0, (int) $keep);
+
+        if ($keep === 0) {
+            if ($snapshot_type === self::TYPE_AUTOSAVE) {
+                return (int) $wpdb->delete($table, ['report_id' => $report_id, 'snapshot_type' => self::TYPE_AUTOSAVE], ['%d', '%s']);
+            }
+
+            return (int) $wpdb->query(
+                $wpdb->prepare(
+                    "DELETE FROM {$table}
+                     WHERE report_id = %d
+                       AND (snapshot_type <> %s OR snapshot_type IS NULL)",
+                    $report_id,
+                    self::TYPE_AUTOSAVE
+                )
+            );
+        }
+
+        if ($snapshot_type === self::TYPE_AUTOSAVE) {
+            $keep_ids = $wpdb->get_col($wpdb->prepare(
+                "SELECT id
+                 FROM {$table}
+                 WHERE report_id = %d AND snapshot_type = %s
+                 ORDER BY version_number DESC
+                 LIMIT %d",
+                $report_id,
+                self::TYPE_AUTOSAVE,
+                $keep
+            ));
+
+            if (empty($keep_ids)) {
+                return 0;
+            }
+
+            $keep_ids_string = implode(',', array_map('intval', $keep_ids));
+            $deleted = $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$table}
+                 WHERE report_id = %d
+                   AND snapshot_type = %s
+                   AND id NOT IN ({$keep_ids_string})",
+                $report_id,
+                self::TYPE_AUTOSAVE
+            ));
+
+            return (int) $deleted;
+        }
+
         $keep_ids = $wpdb->get_col($wpdb->prepare(
-            "SELECT id FROM {$table} WHERE report_id = %d ORDER BY version_number DESC LIMIT %d",
+            "SELECT id
+             FROM {$table}
+             WHERE report_id = %d
+               AND (snapshot_type <> %s OR snapshot_type IS NULL)
+             ORDER BY version_number DESC
+             LIMIT %d",
             $report_id,
+            self::TYPE_AUTOSAVE,
             $keep
         ));
 
@@ -285,14 +375,37 @@ class Report_Snapshot
             return 0;
         }
 
-        // Delete older versions
         $keep_ids_string = implode(',', array_map('intval', $keep_ids));
         $deleted = $wpdb->query($wpdb->prepare(
-            "DELETE FROM {$table} WHERE report_id = %d AND id NOT IN ({$keep_ids_string})",
-            $report_id
+            "DELETE FROM {$table}
+             WHERE report_id = %d
+               AND (snapshot_type <> %s OR snapshot_type IS NULL)
+               AND id NOT IN ({$keep_ids_string})",
+            $report_id,
+            self::TYPE_AUTOSAVE
         ));
 
         return (int) $deleted;
+    }
+
+    /**
+     * Normalize supported snapshot types.
+     *
+     * @param string $snapshot_type Requested snapshot type.
+     * @return string
+     */
+    public static function normalize_snapshot_type($snapshot_type)
+    {
+        $allowed = [
+            self::TYPE_AUTOSAVE,
+            self::TYPE_MANUAL,
+            self::TYPE_STATUS_CHANGE,
+            self::TYPE_RESTORE,
+            self::TYPE_SYSTEM,
+        ];
+
+        $snapshot_type = \sanitize_key((string) $snapshot_type);
+        return in_array($snapshot_type, $allowed, true) ? $snapshot_type : self::TYPE_MANUAL;
     }
 
     /**

@@ -82,7 +82,11 @@ const ReportWizard = () => {
 
     // Auto-Save Hook (Handles DB sync & Conflict Modal)
     // CRITICAL FIX: Must be called before early returns to satisfy Rules of Hooks (Error #310)
-    const { isSaving } = useAutoSave( draft, isDirty );
+    const handleAutoSaveSynced = React.useCallback( () => {
+        setIsDirty( false );
+    }, [] );
+
+    const { isSaving } = useAutoSave( draft, isDirty, handleAutoSaveSynced );
 
     useEffect( () => {
         if ( ! id && editIdParam ) {
@@ -221,6 +225,7 @@ const ReportWizard = () => {
                 // Update
                 const savedReport = await updateMutation.mutateAsync( {
                     ...reportState,
+                    save_mode: 'manual',
                     responses,
                     photos,
                     updatedAt: reportState.updated_at, // Pass timestamp for optimistic lock
@@ -230,6 +235,7 @@ const ReportWizard = () => {
                 // Create
                 const newReport = await createMutation.mutateAsync( {
                     ...reportState,
+                    save_mode: 'manual',
                     responses,
                     photos,
                 } );
@@ -265,6 +271,7 @@ const ReportWizard = () => {
                 // Update latest state before submitting
                 const savedReport = await updateMutation.mutateAsync( {
                     ...reportState,
+                    save_mode: 'manual',
                     responses,
                     photos,
                     updatedAt: reportState.updated_at,
