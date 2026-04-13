@@ -798,6 +798,7 @@ function chroma_home_schedule_tracks()
                         'yellow' => array('color' => 'chroma-yellow', 'background' => 'bg-chroma-yellowLight'),
                         'blueDark' => array('color' => 'chroma-blueDark', 'background' => 'bg-chroma-blueDark/10'),
                         'green' => array('color' => 'chroma-green', 'background' => 'bg-chroma-greenLight'),
+                        'orange' => array('color' => 'chroma-orange', 'background' => 'bg-chroma-orange/10'),
                 );
                 $colors = $color_map[$color_scheme] ?? $color_map['blue'];
 

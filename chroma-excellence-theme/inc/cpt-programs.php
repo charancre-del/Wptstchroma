@@ -635,6 +635,7 @@ function chroma_program_details_meta_box_render($post)
 			<option value="yellow" <?php selected($color_scheme, 'yellow'); ?>>Yellow - Preschool</option>
 			<option value="blueDark" <?php selected($color_scheme, 'blueDark'); ?>>Dark Blue - Pre-K Prep</option>
 			<option value="green" <?php selected($color_scheme, 'green'); ?>>Green - GA Pre-K</option>
+			<option value="orange" <?php selected($color_scheme, 'orange'); ?>>Orange - Kindergarten</option>
 		</select>
 		<div class="chroma-color-preview">
 			<div class="color-swatch" style="background-color: #D67D6B;" title="Red"></div>
@@ -642,6 +643,7 @@ function chroma_program_details_meta_box_render($post)
 			<div class="color-swatch" style="background-color: #E6BE75;" title="Yellow"></div>
 			<div class="color-swatch" style="background-color: #2F4858;" title="Dark Blue"></div>
 			<div class="color-swatch" style="background-color: #8DA399;" title="Green"></div>
+			<div class="color-swatch" style="background-color: #A8551E;" title="Orange"></div>
 		</div>
 		<small><?php _e('Color theme for the program card hover effects and badges', 'chroma-excellence'); ?></small>
 	</div>
