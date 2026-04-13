@@ -268,8 +268,38 @@ if (is_admin() || is_customize_preview()) {
     require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
 }
-// Global script output must be available on frontend requests too.
-require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
+
+/**
+ * Determine whether the current request is a normal frontend HTML request.
+ *
+ * Global header/footer scripts should load on rendered site pages, but not on
+ * REST, feeds, AJAX, cron, or other bootstrap paths where they add no value
+ * and can widen the blast radius of a bad include.
+ */
+function chroma_should_load_global_script_customizer()
+{
+    if (is_admin() || is_customize_preview()) {
+        return true;
+    }
+
+    if (wp_doing_ajax() || wp_doing_cron()) {
+        return false;
+    }
+
+    if ((defined('REST_REQUEST') && REST_REQUEST) || (function_exists('wp_is_json_request') && wp_is_json_request())) {
+        return false;
+    }
+
+    if (is_feed() || is_robots() || is_trackback() || is_embed()) {
+        return false;
+    }
+
+    return true;
+}
+
+if (chroma_should_load_global_script_customizer()) {
+    require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
+}
 require_once CHROMA_THEME_DIR . '/inc/customizer-seo.php';
 
 // Legacy helper files (ACF plugin optional; helpers run on core WP functions only)
