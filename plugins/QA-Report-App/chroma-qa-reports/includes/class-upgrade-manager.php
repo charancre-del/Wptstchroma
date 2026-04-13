@@ -46,9 +46,7 @@ class Upgrade_Manager
         }
 
         // Version 1.2.0: Consolidate Options (FIX-306)
-        if (version_compare($current_version, '1.2.0', '<')) {
-            self::migration_v1_2_consolidate_options();
-        }
+        // Removed undefined migration_v1_2_consolidate_options method call
 
         // Version 1.3.1: Snapshot integrity hardening
         if (version_compare($current_version, '1.3.1', '<')) {
@@ -143,9 +141,8 @@ class Upgrade_Manager
             );
         }
 
-        $report_ids = $wpdb->get_col("SELECT DISTINCT report_id FROM {$snapshots_table}");
-        foreach ($report_ids as $report_id) {
-            \ChromaQA\Models\Report_Snapshot::prune_old_versions((int) $report_id);
-        }
+        // Note: We intentionally skip running prune_old_versions for every report here
+        // to prevent `max_execution_time` timeouts (500 errors) on large databases block plugins_loaded.
+        // Old autosaves will be naturally pruned the next time a report is saved via Report_Snapshot::create_snapshot.
     }
 }
