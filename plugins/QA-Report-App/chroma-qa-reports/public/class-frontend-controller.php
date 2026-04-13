@@ -385,10 +385,11 @@ class Frontend_Controller
      */
     private static function restrict_asset_queue($page)
     {
-        $allowed_styles = ['cqa-frontend-styles'];
+        $allowed_styles = ['chroma-font-awesome', 'chroma-main'];
         $allowed_scripts = [];
 
         if ($page === 'login') {
+            $allowed_styles[] = 'cqa-frontend-styles';
             $allowed_scripts = ['cqa-frontend'];
         } else {
             $allowed_styles[] = 'cqa-react-app';
@@ -506,11 +507,9 @@ class Frontend_Controller
      */
     private static function enqueue_assets($page)
     {
-        // Enqueue styles
-        wp_enqueue_style('cqa-frontend-styles', CQA_PLUGIN_URL . 'public/css/frontend-styles.css', [], CQA_VERSION);
-
         // If Login page, load legacy logic
         if ($page === 'login') {
+            wp_enqueue_style('cqa-frontend-styles', CQA_PLUGIN_URL . 'public/css/frontend-styles.css', [], CQA_VERSION);
             wp_enqueue_script('cqa-frontend', CQA_PLUGIN_URL . 'public/js/frontend-app.js', ['jquery'], CQA_VERSION, true);
             wp_localize_script('cqa-frontend', 'cqaFrontend', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -528,6 +527,7 @@ class Frontend_Controller
             // React Styles
             wp_enqueue_style('cqa-react-app', CQA_PLUGIN_URL . 'build/index.css', [], $assets['version']);
             wp_add_inline_style('cqa-react-app', self::get_local_font_face_css());
+            wp_add_inline_style('cqa-react-app', self::get_react_shell_css());
 
             // React Script
             wp_enqueue_script(
@@ -597,6 +597,44 @@ class Frontend_Controller
 @font-face{font-family:'Playfair Display';src:url('{$playfair_bold}') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
 @font-face{font-family:'DM Serif Display';src:url('{$playfair_semibold}') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:'DM Serif Display';src:url('{$playfair_bold}') format('woff2');font-weight:400;font-style:italic;font-display:swap;}";
+    }
+
+    /**
+     * Minimal shell CSS for React QA routes.
+     *
+     * Keep this intentionally tiny so the React app controls its own layout
+     * without inheriting the legacy public portal styles.
+     *
+     * @return string
+     */
+    private static function get_react_shell_css()
+    {
+        return "
+html, body.cqa-frontend {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: #f7f4ec;
+    color: #263238;
+}
+body.cqa-frontend {
+    width: 100%;
+    overflow-x: hidden;
+}
+.cqa-main,
+.cqa-react-wrap,
+#cqa-react-app {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+#cqa-react-app {
+    display: block;
+}
+";
     }
 
     /**

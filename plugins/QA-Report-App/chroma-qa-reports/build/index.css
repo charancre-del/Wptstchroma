@@ -595,6 +595,9 @@
 .resize-y {
         resize: vertical;
 }
+.resize {
+        resize: both;
+}
 .break-before-page {
         -moz-column-break-before: page;
              break-before: page;
