@@ -53,6 +53,14 @@ class Chroma_AMP_Blog
      * Needed on existing installs where earlier flushes happened before endpoint registration.
      */
     public function maybe_flush_rewrite_rules() {
+        if (!is_admin() || wp_doing_ajax() || wp_doing_cron()) {
+            return;
+        }
+
+        if ((defined('REST_REQUEST') && REST_REQUEST) || (function_exists('wp_is_json_request') && wp_is_json_request())) {
+            return;
+        }
+
         if (wp_installing()) {
             return;
         }

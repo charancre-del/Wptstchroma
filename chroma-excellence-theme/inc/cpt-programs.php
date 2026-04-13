@@ -43,13 +43,29 @@ function chroma_register_program_cpt()
 
 	register_post_type('program', $args);
 
-	// Self-healing: Flush rewrite rules if slug changed or first run. v2 = forces new flush.
-	if (get_option('chroma_program_rewrite_flushed') !== 'v2') {
-		flush_rewrite_rules();
-		update_option('chroma_program_rewrite_flushed', 'v2');
-	}
 }
 add_action('init', 'chroma_register_program_cpt', 0);
+
+/**
+ * Refresh Program rewrites from a safe admin context instead of live requests.
+ *
+ * Flushing rewrites during frontend/REST bootstrap can trigger expensive work
+ * on every request if the version flag is missing or cannot be updated.
+ */
+function chroma_maybe_flush_program_rewrites_admin()
+{
+	if (!is_admin() || wp_doing_ajax() || wp_doing_cron()) {
+		return;
+	}
+
+	if (get_option('chroma_program_rewrite_flushed') === 'v2') {
+		return;
+	}
+
+	flush_rewrite_rules(false);
+	update_option('chroma_program_rewrite_flushed', 'v2');
+}
+add_action('admin_init', 'chroma_maybe_flush_program_rewrites_admin', 20);
 
 /**
  * Register Program-Location Relationship Taxonomy
