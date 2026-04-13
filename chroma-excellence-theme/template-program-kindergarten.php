@@ -292,10 +292,11 @@ while (have_posts()):
 			<div class="grid md:grid-cols-2 gap-8 text-left">
 				<?php foreach ($support_cards as $index => $card): ?>
 					<?php
-					$icon_color = ($index === 0) ? 'text-chroma-blueLight' : 'text-chroma-green';
+					$icon_color = ($index === 0) ? 'text-chroma-blueLight' : '';
+					$icon_style = ($index === 1) ? 'color: #A6C1B3;' : '';
 					?>
 					<div class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors">
-						<div class="text-4xl mb-4 <?php echo esc_attr($icon_color); ?>">
+						<div class="text-4xl mb-4 <?php echo esc_attr($icon_color); ?>" style="<?php echo esc_attr($icon_style); ?>">
 							<i class="<?php echo esc_attr($card['icon']); ?>" aria-hidden="true"></i>
 						</div>
 						<h3 class="font-bold text-xl mb-3">
