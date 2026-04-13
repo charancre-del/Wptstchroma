@@ -22,14 +22,14 @@ while (have_posts()):
 	$has_lesson_plan = trim((string) $lesson_plan_url) !== '' && trim((string) $lesson_plan_url) !== '#';
 
 	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: __('The ultimate foundation for 1st grade.', 'chroma-excellence');
-	$hero_description = chroma_get_translated_meta($program_id, 'program_hero_description', true) ?: __('Our Private Kindergarten program blends the research-backed power of The Creative Curriculum with targeted, mastery-based instruction in reading and math. We do not just prepare students for 1st grade. We equip them with the critical thinking, independence, and confidence to lead.', 'chroma-excellence');
+	$hero_description = chroma_get_translated_meta($program_id, 'program_hero_description', true) ?: __('Our Private Kindergarten program blends the research-backed power of <strong>The Creative Curriculum®</strong> with targeted, mastery-based instruction in reading and math. We don\'t just prepare students for 1st grade—we equip them with the critical thinking, independence, and unshakeable confidence to lead.', 'chroma-excellence');
 	$hero_image_override = trim((string) chroma_get_translated_meta($program_id, 'program_hero_image', true));
 	if ($hero_image_override === '') {
 		$hero_image_override = trim((string) get_post_meta($program_id, 'program_hero_image', true));
 	}
 
 	$prism_title = chroma_get_translated_meta($program_id, 'program_prism_title', true) ?: __('Rigorous Academics. Joyful Discovery.', 'chroma-excellence');
-	$prism_description = chroma_get_translated_meta($program_id, 'program_prism_description', true) ?: __('We believe that academic rigor and whole-child development are not mutually exclusive. By pairing purposeful play with explicit, teacher-led instruction, we cultivate a lasting love of learning alongside measurable academic mastery.', 'chroma-excellence');
+	$prism_description = chroma_get_translated_meta($program_id, 'program_prism_description', true) ?: __('We believe that academic rigor and whole-child development are not mutually exclusive. By seamlessly integrating purposeful play with explicit, teacher-directed instruction, we cultivate a deep, enduring love of learning alongside tangible academic mastery.', 'chroma-excellence');
 	$prism_focus_items = chroma_get_translated_meta($program_id, 'program_prism_focus_items', true);
 	$focus_items = $prism_focus_items ? array_filter(array_map('trim', explode("\n", $prism_focus_items))) : array(
 		__('Advanced Literacy: Phonics, decoding, and reading fluency.', 'chroma-excellence'),
@@ -77,7 +77,7 @@ while (have_posts()):
 	} else {
 		$hero_image_markup = sprintf(
 			'<img src="%1$s" alt="%2$s" class="w-full h-full object-cover" fetchpriority="high" loading="eager" decoding="async" />',
-			esc_url('https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1400&auto=format&fit=crop'),
+			esc_url('https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1200&auto=format&fit=crop'),
 			esc_attr(get_the_title())
 		);
 	}
@@ -85,33 +85,31 @@ while (have_posts()):
 	$curriculum_cards = array(
 		array(
 			'icon' => 'fa-solid fa-lightbulb',
-			'title' => __('The Creative Curriculum', 'chroma-excellence'),
-			'description' => __('Our core framework delivers standards-aligned exploration in science, social studies, literacy, and the arts through project-based investigations.', 'chroma-excellence'),
+			'title' => __('The Creative Curriculum®', 'chroma-excellence'),
+			'description' => __('Our core framework provides an immersive, standards-aligned exploration of science, social studies, and the arts through dynamic, project-based investigations.', 'chroma-excellence'),
 		),
 		array(
-			'icon' => 'fa-solid fa-book-open',
+			'icon' => 'fa-solid fa-spell-check',
 			'title' => __('Heggerty Phonemic Awareness', 'chroma-excellence'),
-			'description' => __('Explicit, systematic phonemic awareness instruction builds the blending, segmenting, and decoding skills strong readers need.', 'chroma-excellence'),
+			'description' => __('Explicit, systematic phonemic awareness training. Heggerty is a proven methodology that rapidly builds the decoding and blending skills necessary for fluent, confident early readers.', 'chroma-excellence'),
 		),
 		array(
-			'icon' => 'fa-solid fa-shapes',
+			'icon' => 'fa-solid fa-cubes',
 			'title' => __('Math-U-See', 'chroma-excellence'),
-			'description' => __('Manipulative-based math instruction helps children move from counting to true conceptual understanding and durable confidence.', 'chroma-excellence'),
+			'description' => __('A revolutionary, manipulative-based approach. Math-U-See shifts students from simple counting to true conceptual mastery, building deep mathematical confidence step-by-step.', 'chroma-excellence'),
 		),
 	);
 
 	$support_cards = array(
 		array(
-			'icon' => 'fa-solid fa-check-circle',
-			'accent' => 'text-chroma-blueLight',
+			'icon' => 'fa-solid fa-award',
 			'title' => __('Georgia Accrediting Commission', 'chroma-excellence'),
-			'description' => __('Our Private Kindergarten is aligned to the standards families expect from a strong 1st-grade bridge, supporting a smooth transition into public or private elementary pathways.', 'chroma-excellence'),
+			'description' => __('Our Private Kindergarten is fully accredited by the <strong>Georgia Accrediting Commission (GAC)</strong>. This prestigious designation guarantees our program meets or exceeds the highest educational and operational standards in the state, ensuring a seamless academic transition to any public or private 1st-grade program.', 'chroma-excellence'),
 		),
 		array(
-			'icon' => 'fa-solid fa-shield-halved',
-			'accent' => 'text-chroma-green',
+			'icon' => 'fa-solid fa-hand-holding-dollar',
 			'title' => __('Promise Scholarships & SSOs', 'chroma-excellence'),
-			'description' => __('Chroma works to keep premium early education accessible and can guide families through scholarship conversations, tuition planning, and next-step enrollment questions.', 'chroma-excellence'),
+			'description' => __('We believe a premium education should be within reach. Chroma proudly accepts the <strong>Georgia Promise Scholarship</strong> and partners with multiple <strong>Student Scholarship Organizations (SSOs)</strong> to help eligible families offset the cost of private kindergarten tuition.', 'chroma-excellence'),
 		),
 	);
 
@@ -136,17 +134,17 @@ while (have_posts()):
 			array(
 				'time' => '8:30',
 				'title' => __('Morning Meeting & Literacy Block', 'chroma-excellence'),
-				'copy' => __('We begin with social-emotional connection and move directly into teacher-led Heggerty routines that strengthen phonemic awareness, decoding, and fluent reading habits.', 'chroma-excellence'),
+				'copy' => __('We start with social-emotional connections, transitioning directly into dynamic, teacher-led <strong>Heggerty</strong> exercises to explicitly build phonemic awareness and decoding skills.', 'chroma-excellence'),
 			),
 			array(
 				'time' => '10:00',
 				'title' => __('Math-U-See & Guided Centers', 'chroma-excellence'),
-				'copy' => __('Students explore mathematical logic using Math-U-See manipulatives, then rotate through guided reading, writing, and collaborative learning centers.', 'chroma-excellence'),
+				'copy' => __('Targeted exploration of mathematical logic using <strong>Math-U-See</strong> manipulatives, followed by independent reading, writing, and collaborative learning centers.', 'chroma-excellence'),
 			),
 			array(
 				'time' => '1:30',
 				'title' => __('Project-Based Learning', 'chroma-excellence'),
-				'copy' => __('Children apply The Creative Curriculum through science investigations, social studies projects, artistic expression, and deeper critical thinking work.', 'chroma-excellence'),
+				'copy' => __('Applying <strong>The Creative Curriculum®</strong> through deep scientific investigations, artistic expression, and social studies projects that challenge students to think critically.', 'chroma-excellence'),
 			),
 		);
 	}
@@ -160,109 +158,21 @@ while (have_posts()):
 	}
 	?>
 
-	<style>
-		.kinder-hero-glow {
-			background:
-				radial-gradient(circle at top right, rgba(74, 108, 124, 0.18), transparent 42%),
-				radial-gradient(circle at bottom left, rgba(230, 190, 117, 0.14), transparent 40%);
-		}
-
-		.kinder-panel {
-			backdrop-filter: blur(18px);
-			background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 252, 248, 0.94));
-		}
-
-		.kinder-card {
-			box-shadow: 0 24px 60px -32px rgba(47, 72, 88, 0.24);
-		}
-
-		.kinder-next-steps {
-			background: linear-gradient(135deg, #263238 0%, #2F4858 100%);
-		}
-
-		.kinder-hero-copy {
-			max-width: 62rem;
-		}
-
-		.kinder-hero-description {
-			max-width: 46rem;
-			margin: 0;
-		}
-
-		.kinder-hero-media {
-			position: relative;
-			margin-top: 3rem;
-		}
-
-		.kinder-hero-frame {
-			position: relative;
-			overflow: hidden;
-			border-radius: 2.5rem;
-			border: 4px solid #ffffff;
-			box-shadow: 0 32px 80px -36px rgba(38, 50, 56, 0.28);
-			aspect-ratio: 16 / 10;
-		}
-
-		.kinder-support-icon {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			width: 3.5rem;
-			height: 3.5rem;
-			border-radius: 1.25rem;
-			border: 1px solid rgba(255, 255, 255, 0.12);
-			background: rgba(255, 255, 255, 0.06);
-			font-size: 1.5rem;
-			line-height: 1;
-		}
-
-		.kinder-chart-shell {
-			min-height: 360px;
-		}
-
-		@media (min-width: 1024px) {
-			.kinder-hero-media {
-				margin-top: 3.5rem;
-			}
-
-			.kinder-hero-frame {
-				aspect-ratio: 21 / 10;
-			}
-		}
-
-		.kinder-rhythm::before {
-			content: '';
-			position: absolute;
-			left: 2rem;
-			top: 1rem;
-			bottom: 1rem;
-			width: 1px;
-			background: rgba(38, 50, 56, 0.12);
-		}
-
-		@media (max-width: 767px) {
-			.kinder-rhythm::before {
-				left: 1.5rem;
-			}
-		}
-	</style>
-
-	<section class="relative overflow-hidden bg-white">
-		<div class="absolute inset-0 kinder-hero-glow"></div>
-		<div class="max-w-7xl mx-auto px-4 lg:px-6 pt-16 pb-20 lg:pt-24 lg:pb-24 relative z-10">
-			<div class="fade-in-up kinder-hero-copy">
+	<section class="relative pt-20 pb-20 bg-white">
+		<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chroma-blueLight/60 to-transparent"></div>
+		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
+			<div>
 				<?php if ($age_range): ?>
-					<p class="sr-only">
-						<?php echo esc_html(sprintf(__('Age range: %s', 'chroma-excellence'), $age_range)); ?>
-					</p>
+					<div class="inline-flex items-center gap-2 bg-white border border-chroma-blue/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-brand-ink shadow-sm mb-6">
+						<?php echo esc_html($age_range); ?>
+					</div>
 				<?php endif; ?>
 
-				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6 leading-tight max-w-5xl">
-						<?php echo esc_html($hero_title); ?>
+				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6">
+					<?php echo esc_html($hero_title); ?>
 				</h1>
-
-				<p class="kinder-hero-description text-lg md:text-xl text-brand-ink/80 leading-relaxed">
-					<?php echo esc_html($hero_description); ?>
+				<p class="text-lg text-brand-ink/80 mb-8">
+					<?php echo wp_kses_post($hero_description); ?>
 				</p>
 
 				<div class="flex flex-wrap gap-4 mt-10">
@@ -285,50 +195,52 @@ while (have_posts()):
 				</div>
 			</div>
 
-			<div class="fade-in-up kinder-hero-media" style="animation-delay: 0.15s;">
-				<div class="absolute -inset-4 bg-chroma-blue/10 rounded-[3rem] blur-3xl" aria-hidden="true"></div>
-				<div class="kinder-hero-frame">
-					<?php echo $hero_image_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				</div>
+			<div class="relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white mt-10 lg:mt-0">
+				<?php echo $hero_image_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 		</div>
 	</section>
 
 	<section id="kinder-focus" class="py-24 bg-brand-cream">
 		<div class="max-w-6xl mx-auto px-4 lg:px-6">
-			<div class="grid lg:grid-cols-2 gap-14 items-center">
-				<div class="bg-white rounded-[3rem] p-8 lg:p-10 border border-brand-ink/5 shadow-soft kinder-chart-shell order-2 lg:order-1">
+			<div class="grid lg:grid-cols-2 gap-16 items-center">
+				<div class="bg-white rounded-[3rem] p-8 shadow-soft border border-brand-ink/5 order-2 lg:order-1" style="min-height: 360px;">
 					<canvas id="kinderProgramChart" role="img"
 						aria-label="<?php esc_attr_e('Radar chart showing Kindergarten curriculum focus across physical, emotional, social, academic, and creative development.', 'chroma-excellence'); ?>">
 						<?php esc_html_e('A radar chart illustrating our Kindergarten focus across physical, emotional, social, academic, and creative development.', 'chroma-excellence'); ?>
 					</canvas>
 				</div>
 				<div class="order-1 lg:order-2">
-					<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
-						<?php esc_html_e('Prismpath Focus', 'chroma-excellence'); ?>
+					<span class="text-brand-ink font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
+						<?php esc_html_e('Prismpath™ Focus', 'chroma-excellence'); ?>
 					</span>
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
 						<?php echo esc_html($prism_title); ?>
 					</h2>
-					<p class="text-brand-ink/80 text-lg mb-7">
+					<p class="text-brand-ink/80 text-lg mb-6">
 						<?php echo esc_html($prism_description); ?>
 					</p>
 
-					<ul class="space-y-5 text-base md:text-lg text-brand-ink/88 max-w-2xl">
+					<ul class="space-y-3 text-sm text-brand-ink/80">
 						<?php
 						$focus_icon_classes = array(
 							'fa-solid fa-book-open text-chroma-blue',
-							'fa-solid fa-chart-line text-chroma-red',
-							'fa-solid fa-users text-chroma-green',
+							'fa-solid fa-calculator text-chroma-red',
+							'fa-solid fa-users-gear text-chroma-green',
 						);
 						foreach ($focus_items as $index => $item):
 							$icon_class = $focus_icon_classes[$index] ?? 'fa-solid fa-circle-check text-chroma-blueDark';
+							$parts = explode(':', $item, 2);
 							?>
-							<li class="flex gap-4 items-start">
-								<span class="w-6 shrink-0 pt-1 text-center" aria-hidden="true">
-									<i class="<?php echo esc_attr($icon_class); ?>"></i>
+							<li class="flex gap-3 items-center">
+								<i class="<?php echo esc_attr($icon_class); ?>" aria-hidden="true"></i>
+								<span>
+									<?php if (count($parts) === 2): ?>
+										<strong><?php echo esc_html($parts[0]); ?>:</strong><?php echo esc_html($parts[1]); ?>
+									<?php else: ?>
+										<?php echo esc_html($item); ?>
+									<?php endif; ?>
 								</span>
-								<span class="leading-relaxed"><?php echo esc_html($item); ?></span>
 							</li>
 						<?php endforeach; ?>
 					</ul>
@@ -339,21 +251,18 @@ while (have_posts()):
 
 	<section class="py-20 bg-white border-t border-brand-ink/5">
 		<div class="max-w-7xl mx-auto px-4 lg:px-6">
-			<div class="text-center max-w-3xl mx-auto mb-14">
-				<span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
-					<?php esc_html_e('Curriculum Deep Dive', 'chroma-excellence'); ?>
-				</span>
-				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
+			<div class="text-center mb-16">
+				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink">
 					<?php esc_html_e('An Elite Instructional Framework', 'chroma-excellence'); ?>
 				</h2>
-				<p class="text-brand-ink/80">
-					<?php esc_html_e('We layer proven supplemental resources into the Kindergarten classroom to ensure children leave with a strong academic base and a genuine love of learning.', 'chroma-excellence'); ?>
+				<p class="text-brand-ink/80 mt-4 max-w-2xl mx-auto">
+					<?php esc_html_e('We incorporate targeted, elite supplemental resources to guarantee a superior foundation in both reading and mathematics.', 'chroma-excellence'); ?>
 				</p>
 			</div>
 
 			<div class="grid md:grid-cols-3 gap-8">
 				<?php foreach ($curriculum_cards as $card): ?>
-					<article class="p-8 bg-chroma-blueLight/40 rounded-[2rem] border border-chroma-blue/15 hover:-translate-y-1 transition-transform kinder-card">
+					<div class="p-8 bg-chroma-blueLight/50 rounded-[2rem] border border-chroma-blue/20 hover:-translate-y-1 transition-transform">
 						<div class="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center text-chroma-blue text-2xl mb-6">
 							<i class="<?php echo esc_attr($card['icon']); ?>" aria-hidden="true"></i>
 						</div>
@@ -363,37 +272,37 @@ while (have_posts()):
 						<p class="text-sm text-brand-ink/80 leading-relaxed">
 							<?php echo esc_html($card['description']); ?>
 						</p>
-					</article>
+					</div>
 				<?php endforeach; ?>
 			</div>
 		</div>
 	</section>
 
-	<section class="py-20 bg-chroma-blueDark text-white overflow-hidden relative">
-		<div class="absolute -right-16 top-0 w-72 h-72 bg-white/5 rounded-full blur-3xl"></div>
-		<div class="max-w-5xl mx-auto px-4 lg:px-6 relative z-10">
-			<div class="text-center mb-10">
-				<span class="text-chroma-blueLight font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
-					<?php esc_html_e('Accreditation & Affordability', 'chroma-excellence'); ?>
-				</span>
-				<h2 class="text-3xl md:text-4xl font-serif font-bold">
-					<?php esc_html_e('Recognized Excellence. Accessible to Families.', 'chroma-excellence'); ?>
-				</h2>
-			</div>
-
-			<div class="grid md:grid-cols-2 gap-8">
-				<?php foreach ($support_cards as $card): ?>
-					<article class="bg-white/5 p-10 rounded-[2rem] border border-white/10 hover:bg-white/10 transition-colors">
-						<div class="kinder-support-icon mb-8 <?php echo esc_attr($card['accent']); ?>">
+	<section class="py-20 bg-chroma-blueDark text-white">
+		<div class="max-w-5xl mx-auto px-4 lg:px-6 text-center">
+			<span class="text-chroma-blueLight font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
+				<?php esc_html_e('Accreditation & Affordability', 'chroma-excellence'); ?>
+			</span>
+			<h2 class="text-3xl md:text-4xl font-serif font-bold mb-10">
+				<?php esc_html_e('Recognized Excellence. Accessible to All.', 'chroma-excellence'); ?>
+			</h2>
+			
+			<div class="grid md:grid-cols-2 gap-8 text-left">
+				<?php foreach ($support_cards as $index => $card): ?>
+					<?php
+					$icon_color = ($index === 0) ? 'text-chroma-blueLight' : 'text-chroma-green';
+					?>
+					<div class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors">
+						<div class="text-4xl mb-4 <?php echo esc_attr($icon_color); ?>">
 							<i class="<?php echo esc_attr($card['icon']); ?>" aria-hidden="true"></i>
 						</div>
-						<h3 class="font-serif font-bold text-2xl mb-4">
+						<h3 class="font-bold text-xl mb-3">
 							<?php echo esc_html($card['title']); ?>
 						</h3>
-						<p class="text-base text-white/88 leading-relaxed max-w-xl">
-							<?php echo esc_html($card['description']); ?>
+						<p class="text-sm text-white/90 leading-relaxed">
+							<?php echo wp_kses_post($card['description']); ?>
 						</p>
-					</article>
+					</div>
 				<?php endforeach; ?>
 			</div>
 		</div>
@@ -401,22 +310,22 @@ while (have_posts()):
 
 	<section class="py-24 bg-brand-cream border-t border-brand-ink/5">
 		<div class="max-w-4xl mx-auto px-4 lg:px-6">
-			<h2 class="text-3xl font-serif font-bold text-center text-brand-ink mb-12">
+			<h2 class="text-3xl font-serif font-bold text-center mb-12 text-brand-ink">
 				<?php echo esc_html($schedule_title); ?>
 			</h2>
 
-			<div class="relative space-y-8 kinder-rhythm">
+			<div class="space-y-8 relative before:absolute before:left-8 before:top-4 before:bottom-4 before:w-0.5 before:bg-brand-ink/10">
 				<?php foreach ($schedule as $step): ?>
-					<div class="flex gap-6 md:gap-8 items-start relative">
-						<div class="w-12 h-12 md:w-16 md:h-16 rounded-full bg-chroma-blueLight text-brand-ink font-bold flex items-center justify-center shrink-0 z-10 border-4 border-white shadow-sm text-xs md:text-sm">
+					<div class="flex gap-8 items-start relative">
+						<div class="w-16 h-16 rounded-full bg-chroma-blueLight text-brand-ink font-bold flex items-center justify-center shrink-0 z-10 border-4 border-white shadow-sm text-sm" aria-hidden="true">
 							<?php echo esc_html($step['time']); ?>
 						</div>
-						<div class="pt-2 md:pt-3">
-							<h3 class="font-bold text-lg text-brand-ink mb-2">
+						<div class="pt-3">
+							<h3 class="font-bold text-lg text-brand-ink">
 								<?php echo esc_html($step['title']); ?>
 							</h3>
-							<p class="text-brand-ink/80 leading-relaxed">
-								<?php echo esc_html($step['copy']); ?>
+							<p class="text-brand-ink/80">
+								<?php echo wp_kses_post($step['copy']); ?>
 							</p>
 						</div>
 					</div>
@@ -427,7 +336,7 @@ while (have_posts()):
 
 	<section class="py-20 bg-white border-t border-brand-ink/5">
 		<div class="max-w-5xl mx-auto px-4 lg:px-6">
-			<div class="rounded-[2.5rem] kinder-next-steps text-white p-10 md:p-14 text-center shadow-2xl">
+			<div class="rounded-[2.5rem] bg-gradient-to-br from-brand-ink to-[#2F4858] text-white p-10 md:p-14 text-center shadow-2xl">
 				<span class="text-chroma-yellow font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
 					<?php esc_html_e('Next Steps', 'chroma-excellence'); ?>
 				</span>
@@ -483,7 +392,7 @@ while (have_posts()):
 								<?php echo (int) $chart_values['academic']; ?>,
 								<?php echo (int) $chart_values['creative']; ?>
 							],
-							backgroundColor: 'rgba(74, 108, 124, 0.18)',
+							backgroundColor: 'rgba(74, 108, 124, 0.2)',
 							borderColor: '#4A6C7C',
 							pointBackgroundColor: '#ffffff',
 							pointBorderColor: '#4A6C7C',
