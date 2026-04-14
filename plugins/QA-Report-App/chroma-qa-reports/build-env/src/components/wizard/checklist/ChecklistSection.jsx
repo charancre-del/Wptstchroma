@@ -1,10 +1,32 @@
 import React from 'react';
 import ChecklistItem from '../ChecklistItem';
 
-const ChecklistSection = ( { section, responses, onResponseChange, readOnly = false } ) => {
+const getEffectiveItemResponse = ( item, sectionResponses, allResponses ) => {
+    const itemKey = item.key || item.id;
+    const response = sectionResponses?.[ itemKey ] || {};
+
+    if ( ! item?.shared_with ) {
+        return response;
+    }
+
+    const sourceResponse = allResponses?.[ item.shared_with.section_key ]?.[ item.shared_with.item_key ] || {};
+
+    return {
+        ...response,
+        rating: response.rating || sourceResponse.rating || '',
+        notes:
+            item.entry_mode === 'shared_exact'
+                ? response.notes || sourceResponse.notes || ''
+                : response.notes || '',
+    };
+};
+
+const ChecklistSection = ( { section, responses, allResponses, onResponseChange, readOnly = false } ) => {
     // Calculate progress for this section
     const totalItems = section.items.length;
-    const answeredItems = section.items.filter( ( item ) => responses[ item.key || item.id ]?.rating ).length;
+    const answeredItems = section.items.filter(
+        ( item ) => getEffectiveItemResponse( item, responses, allResponses )?.rating
+    ).length;
     const progress = Math.round( ( answeredItems / totalItems ) * 100 );
 
     return (
@@ -14,6 +36,11 @@ const ChecklistSection = ( { section, responses, onResponseChange, readOnly = fa
                 <h3 className="text-sm font-black text-cqa-brand-ink uppercase tracking-widest flex items-center gap-2">
                     <span className="w-1.5 h-6 bg-cqa-brand-secondary rounded-full"></span>
                     { section.name || section.title }
+                    { section.tier === 2 && (
+                        <span className="text-[10px] font-bold uppercase tracking-wide bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full">
+                            Tier 2
+                        </span>
+                    ) }
                 </h3>
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end">
@@ -45,6 +72,7 @@ const ChecklistSection = ( { section, responses, onResponseChange, readOnly = fa
                             item={ item }
                             sectionKey={ section.key }
                             response={ responses[ itemKey ] || {} }
+                            allResponses={ allResponses }
                             readOnly={ readOnly }
                             onChange={ ( itemId, response ) => onResponseChange( itemId, response, section.key ) }
                         />

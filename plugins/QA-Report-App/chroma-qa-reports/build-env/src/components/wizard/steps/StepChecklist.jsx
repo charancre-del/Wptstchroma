@@ -5,9 +5,37 @@ import ChecklistSection from '@components/wizard/checklist/ChecklistSection';
 import { ListChecks, AlertTriangle } from 'lucide-react';
 import { useReportWizardStore } from '@stores/index';
 
+const getLinkedSourceResponse = ( item, allResponses ) => {
+    if ( ! item?.shared_with ) {
+        return null;
+    }
+
+    return allResponses?.[ item.shared_with.section_key ]?.[ item.shared_with.item_key ] || null;
+};
+
+const getEffectiveItemResponse = ( item, sectionResponses, allResponses ) => {
+    const itemKey = item.key || item.id;
+    const response = sectionResponses?.[ itemKey ] || {};
+    const sourceResponse = getLinkedSourceResponse( item, allResponses );
+
+    if ( ! sourceResponse ) {
+        return response;
+    }
+
+    return {
+        ...response,
+        rating: response.rating || sourceResponse.rating || '',
+        notes:
+            item.entry_mode === 'shared_exact'
+                ? response.notes || sourceResponse.notes || ''
+                : response.notes || '',
+    };
+};
+
 const StepChecklist = ( { draft, readOnly = false } ) => {
     const responses = useReportWizardStore( ( s ) => s.responses );
     const setResponse = useReportWizardStore( ( s ) => s.setResponse );
+    const setResponses = useReportWizardStore( ( s ) => s.setResponses );
 
     // Determine checklist type from draft or default to 'tier1'
     const checklistType = draft.report_type || 'tier1';
@@ -33,6 +61,62 @@ const StepChecklist = ( { draft, readOnly = false } ) => {
         [ readOnly, setResponse ]
     );
 
+    React.useEffect( () => {
+        if ( readOnly || ! checklistDef?.sections?.length ) {
+            return;
+        }
+
+        let nextResponses = null;
+
+        checklistDef.sections.forEach( ( section ) => {
+            section.items.forEach( ( item ) => {
+                if ( ! item.shared_with ) {
+                    return;
+                }
+
+                const itemKey = item.key || item.id;
+                const sourceResponse =
+                    responses?.[ item.shared_with.section_key ]?.[ item.shared_with.item_key ] || null;
+
+                if ( ! sourceResponse?.rating ) {
+                    return;
+                }
+
+                const currentResponse = responses?.[ section.key ]?.[ itemKey ] || {};
+                const desiredResponse = {
+                    ...currentResponse,
+                    rating: sourceResponse.rating,
+                };
+
+                if ( item.entry_mode === 'shared_exact' && ! currentResponse.notes && sourceResponse.notes ) {
+                    desiredResponse.notes = sourceResponse.notes;
+                }
+
+                const notesChanged =
+                    item.entry_mode === 'shared_exact' &&
+                    ( currentResponse.notes || '' ) !== ( desiredResponse.notes || '' );
+
+                if ( ( currentResponse.rating || '' ) === desiredResponse.rating && ! notesChanged ) {
+                    return;
+                }
+
+                if ( ! nextResponses ) {
+                    nextResponses = { ...responses };
+                }
+
+                if ( ! nextResponses[ section.key ] || nextResponses[ section.key ] === responses[ section.key ] ) {
+                    nextResponses[ section.key ] = { ...( responses[ section.key ] || {} ) };
+                }
+
+                nextResponses[ section.key ][ itemKey ] = desiredResponse;
+            } );
+        } );
+
+        if ( nextResponses ) {
+            setResponses( nextResponses );
+        }
+    }, [ checklistDef, readOnly, responses, setResponses ] );
+
     // Calculate Completion
     const completion = React.useMemo( () => {
         if ( ! checklistDef?.sections ) {
@@ -46,8 +130,8 @@ const StepChecklist = ( { draft, readOnly = false } ) => {
             const sectionResponses = responses[ section.key ] || {};
             total += section.items.length;
             section.items.forEach( ( item ) => {
-                const itemKey = item.key || item.id;
-                if ( sectionResponses[ itemKey ]?.rating ) {
+                const effectiveResponse = getEffectiveItemResponse( item, sectionResponses, responses );
+                if ( effectiveResponse?.rating ) {
                     answered++;
                 }
             } );
@@ -104,9 +188,10 @@ const StepChecklist = ( { draft, readOnly = false } ) => {
             <div>
                 { checklistDef.sections?.map( ( section ) => (
                     <ChecklistSection
-                        key={ section.id }
+                        key={ section.key || section.id }
                         section={ section }
                         responses={ responses[ section.key ] || {} }
+                        allResponses={ responses }
                         readOnly={ readOnly }
                         onResponseChange={ handleResponseChange }
                     />

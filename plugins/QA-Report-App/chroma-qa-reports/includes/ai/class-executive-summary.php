@@ -225,7 +225,7 @@ class Executive_Summary
             }
         }
 
-        $merged_items = $this->merge_section_poi_items($section_items, 5);
+        $merged_items = $this->merge_section_poi_items($section_items, $findings);
 
         if (empty($merged_items)) {
             $fallback = $this->build_fallback_poi_result($responses, $stats, $previous_report, $checklist_lookup);
@@ -306,7 +306,7 @@ class Executive_Summary
      * @param bool $include_comparison Whether comparison object is expected.
      * @return array
      */
-    private function get_poi_schema($include_comparison = false, $max_items = 5, $require_traceability = false)
+    private function get_poi_schema($include_comparison = false, $max_items = null, $require_traceability = false)
     {
         $required_fields = ['priority', 'area', 'current_status', 'action_steps', 'timeline', 'success_criteria', 'support_offered'];
         if ($require_traceability) {
@@ -319,7 +319,6 @@ class Executive_Summary
             'properties' => [
                 'plan_of_improvement' => [
                     'type' => 'array',
-                    'maxItems' => max(1, (int) $max_items),
                     'items' => [
                         'type' => 'object',
                         'required' => $required_fields,
@@ -327,6 +326,7 @@ class Executive_Summary
                             'priority' => ['type' => 'integer'],
                             'section_key' => ['type' => 'string', 'minLength' => 2],
                             'item_key' => ['type' => 'string', 'minLength' => 2],
+                            'root_key' => ['type' => 'string'],
                             'area' => ['type' => 'string', 'minLength' => 2],
                             'current_status' => ['type' => 'string', 'minLength' => 10],
                             'action_steps' => [
@@ -487,6 +487,7 @@ class Executive_Summary
                 'priority' => $priority,
                 'section_key' => \sanitize_text_field((string) ($item['section_key'] ?? '')),
                 'item_key' => \sanitize_text_field((string) ($item['item_key'] ?? '')),
+                'root_key' => \sanitize_text_field((string) ($item['root_key'] ?? '')),
                 'area' => $area,
                 'current_status' => $current_status,
                 'action_steps' => $action_steps,
@@ -541,6 +542,12 @@ class Executive_Summary
                     'section_name' => $section_name,
                     'item_key' => $item_key,
                     'item_label' => (string) ($item['label'] ?? $this->humanize_key($item_key)),
+                    'tier' => (int) ($item['tier'] ?? $section['tier'] ?? 1),
+                    'entry_mode' => (string) ($item['entry_mode'] ?? 'standalone'),
+                    'root_key' => (string) ($item['root_key'] ?? ($section_key . '/' . $item_key)),
+                    'shared_with' => !empty($item['shared_with']) && is_array($item['shared_with'])
+                        ? $item['shared_with']
+                        : null,
                 ];
             }
         }
@@ -558,6 +565,7 @@ class Executive_Summary
     private function collect_response_findings($responses, $checklist_lookup)
     {
         $findings = [];
+        $exact_duplicate_index = [];
 
         if (!is_array($responses)) {
             return $findings;
@@ -582,9 +590,13 @@ class Executive_Summary
                     'section_name' => $this->humanize_key($section_key),
                     'item_key' => $item_key,
                     'item_label' => $this->humanize_key($item_key),
+                    'tier' => 1,
+                    'entry_mode' => 'standalone',
+                    'root_key' => $section_key . '/' . $item_key,
+                    'shared_with' => null,
                 ];
 
-                $findings[] = [
+                $finding = [
                     'section_key' => $section_key,
                     'section_name' => $meta['section_name'],
                     'item_key' => $item_key,
@@ -594,7 +606,37 @@ class Executive_Summary
                     'previous_rating' => $previous_rating,
                     'previous_notes' => $previous_notes,
                     'priority' => $this->determine_priority($section_key, $rating),
+                    'tier' => (int) ($meta['tier'] ?? 1),
+                    'entry_mode' => (string) ($meta['entry_mode'] ?? 'standalone'),
+                    'root_key' => (string) ($meta['root_key'] ?? ($section_key . '/' . $item_key)),
+                    'shared_with' => $meta['shared_with'] ?? null,
                 ];
+
+                if ($finding['entry_mode'] === 'shared_exact') {
+                    $dedupe_key = $finding['root_key'];
+                    if (isset($exact_duplicate_index[$dedupe_key])) {
+                        $existing_index = $exact_duplicate_index[$dedupe_key];
+                        $existing = $findings[$existing_index];
+
+                        if (strlen($finding['notes']) > strlen($existing['notes'])) {
+                            $findings[$existing_index]['notes'] = $finding['notes'];
+                        }
+
+                        if (strlen($finding['previous_notes']) > strlen($existing['previous_notes'])) {
+                            $findings[$existing_index]['previous_notes'] = $finding['previous_notes'];
+                        }
+
+                        $findings[$existing_index]['priority'] = min(
+                            (int) $existing['priority'],
+                            (int) $finding['priority']
+                        );
+                        continue;
+                    }
+
+                    $exact_duplicate_index[$dedupe_key] = count($findings);
+                }
+
+                $findings[] = $finding;
             }
         }
 
@@ -623,7 +665,7 @@ class Executive_Summary
      * @param Report|null $previous_report Previous report model.
      * @return string
      */
-    private function build_section_poi_prompt($school, $report, $section_group, $findings, $stats, $previous_report, $max_items)
+    private function build_section_poi_prompt($school, $report, $section_group, $findings, $stats, $previous_report)
     {
         $school_name = $school ? $school->name : 'Unknown School';
         $report_type = $report->get_type_label();
@@ -659,17 +701,21 @@ class Executive_Summary
             );
             $prompt .= '   Observation: ' . $observation . "\n";
 
+            if (($finding['entry_mode'] ?? '') === 'linked_refinement' && !empty($finding['shared_with']['label'])) {
+                $prompt .= '   Tier 2 refinement of: ' . $finding['shared_with']['label'] . "\n";
+            }
+
             if (!empty($finding['previous_rating'])) {
                 $prompt .= '   Previous visit rating: ' . strtoupper($finding['previous_rating']) . "\n";
             }
         }
 
         $prompt .= "\n## Output Requirements\n";
-        $prompt .= '- Create at most ' . max(1, (int) $max_items) . " plan_of_improvement items.\n";
+        $prompt .= "- Create one plan_of_improvement item for every actionable finding below unless two findings are clearly the same operational issue.\n";
         $prompt .= "- Stay inside the focus section only. Do not mention other sections.\n";
-        $prompt .= "- Use 1 item per finding unless two findings are clearly the same operational issue.\n";
         $prompt .= "- Every POI item must include section_key exactly as {$section_key}.\n";
         $prompt .= "- Every POI item must include item_key matching one of the findings above.\n";
+        $prompt .= "- When a finding is marked as a Tier 2 refinement of a Tier 1 baseline, build on the deeper Tier 2 expectation instead of repeating the baseline wording.\n";
         $prompt .= "- current_status must be one concise sentence grounded only in the provided observations.\n";
         $prompt .= "- action_steps must contain 2 or 3 short, concrete steps.\n";
         $prompt .= "- timeline must be one of: Within 24 hours, Within 7 days, By next visit.\n";
@@ -815,7 +861,7 @@ class Executive_Summary
         ));
 
         $poi_items = [];
-        foreach (array_slice($findings, 0, 6) as $finding) {
+        foreach ($findings as $finding) {
             $poi_items[] = $this->build_poi_item_from_finding($finding);
         }
 
@@ -909,46 +955,59 @@ class Executive_Summary
     private function generate_section_poi_items($school, $report, $section_group, $stats, $previous_report, &$warning = '')
     {
         $warning = '';
-        $section_findings = array_slice($section_group['findings'], 0, 4);
-        $max_items = min(3, max(1, count($section_findings)));
+        $section_findings = array_values($section_group['findings']);
+        $finding_chunks = array_chunk($section_findings, 5);
+        $items = [];
+        $chunk_warnings = [];
 
-        $prompt = $this->build_section_poi_prompt(
-            $school,
-            $report,
-            $section_group,
-            $section_findings,
-            $stats,
-            $previous_report,
-            $max_items
-        );
-
-        $response = Gemini_Service::generate_json($prompt, [
-            'temperature' => 0.2,
-            'maxTokens' => 1600,
-            'schema' => $this->get_poi_schema(false, $max_items, true),
-        ]);
-
-        if (\is_wp_error($response)) {
-            $warning = sprintf(
-                __('The %s section plan used checklist-derived fallback items because the section AI response could not be parsed cleanly.', 'chroma-qa-reports'),
-                $section_group['section_name']
+        foreach ($finding_chunks as $chunk_index => $finding_chunk) {
+            $prompt = $this->build_section_poi_prompt(
+                $school,
+                $report,
+                $section_group,
+                $finding_chunk,
+                $stats,
+                $previous_report
             );
-            return $this->build_section_fallback_poi_items($section_findings, $max_items);
+
+            $response = Gemini_Service::generate_json($prompt, [
+                'temperature' => 0.2,
+                'maxTokens' => 2400,
+                'schema' => $this->get_poi_schema(false, null, true),
+            ]);
+
+            if (\is_wp_error($response)) {
+                $chunk_warnings[] = sprintf(
+                    __('The %1$s section batch %2$d used checklist-derived fallback items because the section AI response could not be parsed cleanly.', 'chroma-qa-reports'),
+                    $section_group['section_name'],
+                    $chunk_index + 1
+                );
+                $items = array_merge($items, $this->build_section_fallback_poi_items($finding_chunk));
+                continue;
+            }
+
+            $validation_error = '';
+            $chunk_items = $this->normalize_poi_items($response['plan_of_improvement'] ?? $response['poi'] ?? [], $validation_error);
+            $chunk_items = $this->enrich_section_poi_items($chunk_items, $section_group, $finding_chunk);
+
+            if (empty($chunk_items)) {
+                $chunk_warnings[] = sprintf(
+                    __('The %1$s section batch %2$d used checklist-derived fallback items because the AI action items were incomplete.', 'chroma-qa-reports'),
+                    $section_group['section_name'],
+                    $chunk_index + 1
+                );
+                $items = array_merge($items, $this->build_section_fallback_poi_items($finding_chunk));
+                continue;
+            }
+
+            $items = array_merge($items, $chunk_items);
         }
 
-        $validation_error = '';
-        $items = $this->normalize_poi_items($response['plan_of_improvement'] ?? $response['poi'] ?? [], $validation_error);
-        $items = $this->enrich_section_poi_items($items, $section_group, $section_findings);
-
-        if (empty($items)) {
-            $warning = sprintf(
-                __('The %s section plan used checklist-derived fallback items because the section AI action items were incomplete.', 'chroma-qa-reports'),
-                $section_group['section_name']
-            );
-            return $this->build_section_fallback_poi_items($section_findings, $max_items);
+        if (!empty($chunk_warnings)) {
+            $warning = implode(' ', array_unique($chunk_warnings));
         }
 
-        return array_slice($items, 0, $max_items);
+        return $this->merge_poi_item_collection($items);
     }
 
     /**
@@ -958,10 +1017,10 @@ class Executive_Summary
      * @param int $max_items Max items to return.
      * @return array
      */
-    private function build_section_fallback_poi_items($findings, $max_items)
+    private function build_section_fallback_poi_items($findings)
     {
         $items = [];
-        foreach (array_slice($findings, 0, max(1, (int) $max_items)) as $finding) {
+        foreach ($findings as $finding) {
             $items[] = $this->build_poi_item_from_finding($finding);
         }
 
@@ -994,6 +1053,7 @@ class Executive_Summary
             'priority' => (int) $finding['priority'],
             'section_key' => (string) ($finding['section_key'] ?? ''),
             'item_key' => (string) ($finding['item_key'] ?? ''),
+            'root_key' => (string) ($finding['root_key'] ?? (($finding['section_key'] ?? '') . '/' . ($finding['item_key'] ?? ''))),
             'area' => (string) ($finding['item_label'] ?? __('General Improvement', 'chroma-qa-reports')),
             'current_status' => $current_status,
             'action_steps' => $action_steps,
@@ -1076,6 +1136,7 @@ class Executive_Summary
                 'priority' => $priority,
                 'section_key' => $section_key,
                 'item_key' => $item_key,
+                'root_key' => (string) ($matched_finding['root_key'] ?? $fallback_item['root_key'] ?? ($section_key . '/' . $item_key)),
                 'area' => $area !== '' ? $area : $fallback_item['area'],
                 'current_status' => $current_status !== '' ? $current_status : $fallback_item['current_status'],
                 'action_steps' => array_slice(array_values(array_unique($action_steps)), 0, 3),
@@ -1145,34 +1206,98 @@ class Executive_Summary
      * @param int   $max_items Maximum final POI items.
      * @return array
      */
-    private function merge_section_poi_items($section_items, $max_items = 5)
+    private function merge_section_poi_items($section_items, $all_findings = [])
     {
-        $merged = [];
+        $merged_items = [];
 
         foreach ($section_items as $items) {
             if (!is_array($items)) {
                 continue;
             }
 
-            foreach ($items as $item) {
-                if (!is_array($item)) {
-                    continue;
-                }
+            $merged_items = array_merge($merged_items, $items);
+        }
 
-                $item['source_sections'] = $this->normalize_traceability_list($item['source_sections'] ?? []);
-                $item['source_items'] = $this->normalize_traceability_list($item['source_items'] ?? []);
-                $key = $this->canonical_poi_key($item);
+        $merged_items = $this->merge_poi_item_collection($merged_items);
+        $merged_items = $this->ensure_poi_coverage($merged_items, $all_findings);
 
-                if (!isset($merged[$key])) {
-                    $merged[$key] = $item;
-                    continue;
-                }
+        return $this->merge_poi_item_collection($merged_items);
+    }
 
-                $merged[$key] = $this->merge_poi_item_pair($merged[$key], $item);
+    /**
+     * Merge duplicate POI items while keeping every distinct action item.
+     *
+     * @param array $items POI items.
+     * @return array
+     */
+    private function merge_poi_item_collection($items)
+    {
+        $merged = [];
+
+        foreach ($items as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
+
+            $item['source_sections'] = $this->normalize_traceability_list($item['source_sections'] ?? []);
+            $item['source_items'] = $this->normalize_traceability_list($item['source_items'] ?? []);
+            $key = $this->canonical_poi_key($item);
+
+            if (!isset($merged[$key])) {
+                $merged[$key] = $item;
+                continue;
+            }
+
+            $merged[$key] = $this->merge_poi_item_pair($merged[$key], $item);
+        }
+
+        return $this->sort_poi_items(array_values($merged));
+    }
+
+    /**
+     * Ensure that every actionable finding is represented in the final POI output.
+     *
+     * @param array $items Final POI items.
+     * @param array $all_findings Actionable findings that should be covered.
+     * @return array
+     */
+    private function ensure_poi_coverage($items, $all_findings)
+    {
+        if (empty($all_findings)) {
+            return $items;
+        }
+
+        $covered = [];
+        foreach ($items as $item) {
+            $root_key = trim((string) ($item['root_key'] ?? ''));
+            if ($root_key !== '') {
+                $covered[$root_key] = true;
+            }
+
+            foreach ($item['source_items'] ?? [] as $source_item) {
+                $covered[(string) $source_item] = true;
+            }
+
+            $section_key = trim((string) ($item['section_key'] ?? ''));
+            $item_key = trim((string) ($item['item_key'] ?? ''));
+            if ($section_key !== '' && $item_key !== '') {
+                $covered[$section_key . '/' . $item_key] = true;
             }
         }
 
-        return $this->select_balanced_poi_items(array_values($merged), $max_items);
+        foreach ($all_findings as $finding) {
+            $root_key = (string) ($finding['root_key'] ?? (($finding['section_key'] ?? '') . '/' . ($finding['item_key'] ?? '')));
+            if ($root_key !== '' && isset($covered[$root_key])) {
+                continue;
+            }
+
+            $items[] = $this->build_poi_item_from_finding($finding);
+            if ($root_key !== '') {
+                $covered[$root_key] = true;
+            }
+        }
+
+        return $items;
     }
 
     /**
@@ -1183,6 +1308,11 @@ class Executive_Summary
      */
     private function canonical_poi_key($item)
     {
+        $root_key = strtolower(trim((string) ($item['root_key'] ?? '')));
+        if ($root_key !== '') {
+            return 'root:' . $root_key;
+        }
+
         $source_items = $this->normalize_traceability_list($item['source_items'] ?? []);
         if (!empty($source_items)) {
             sort($source_items);
@@ -1241,6 +1371,7 @@ class Executive_Summary
             'priority' => min((int) ($left['priority'] ?? 3), (int) ($right['priority'] ?? 3)),
             'section_key' => (string) ($left['section_key'] ?? $right['section_key'] ?? ''),
             'item_key' => (string) ($left['item_key'] ?? $right['item_key'] ?? ''),
+            'root_key' => (string) ($left['root_key'] ?? $right['root_key'] ?? ''),
             'area' => strlen((string) ($right['area'] ?? '')) > strlen((string) ($left['area'] ?? ''))
                 ? (string) $right['area']
                 : (string) ($left['area'] ?? $right['area'] ?? ''),
@@ -1253,6 +1384,43 @@ class Executive_Summary
             'source_items' => $this->normalize_traceability_list(array_merge($left['source_items'] ?? [], $right['source_items'] ?? [])),
             'action' => !empty($merged_steps) ? $merged_steps[0] : (string) ($left['action'] ?? $right['action'] ?? ''),
         ];
+    }
+
+    /**
+     * Sort POI items consistently without truncating the list.
+     *
+     * @param array $items Candidate POI items.
+     * @return array
+     */
+    private function sort_poi_items($items)
+    {
+        $items = array_values(array_filter($items, function ($item) {
+            return is_array($item) && !empty($item['action_steps']) && !empty($item['area']);
+        }));
+
+        usort($items, function ($left, $right) {
+            $left_priority = (int) ($left['priority'] ?? 3);
+            $right_priority = (int) ($right['priority'] ?? 3);
+            if ($left_priority !== $right_priority) {
+                return $left_priority <=> $right_priority;
+            }
+
+            $left_sources = count($left['source_items'] ?? []);
+            $right_sources = count($right['source_items'] ?? []);
+            if ($left_sources !== $right_sources) {
+                return $right_sources <=> $left_sources;
+            }
+
+            return strcmp((string) ($left['area'] ?? ''), (string) ($right['area'] ?? ''));
+        });
+
+        return array_values(array_map(function ($item) {
+            $item['source_sections'] = $this->normalize_traceability_list($item['source_sections'] ?? []);
+            $item['source_items'] = $this->normalize_traceability_list($item['source_items'] ?? []);
+            $item['action_steps'] = array_slice(array_values(array_unique(array_filter($item['action_steps'] ?? []))), 0, 3);
+            $item['action'] = !empty($item['action_steps']) ? $item['action_steps'][0] : (string) ($item['action'] ?? '');
+            return $item;
+        }, $items));
     }
 
     /**
@@ -1703,11 +1871,19 @@ class Executive_Summary
             $prompt .= "### {$section['name']}\n";
 
             foreach ($section['items'] as $item) {
+                if (($item['entry_mode'] ?? 'standalone') === 'shared_exact') {
+                    continue;
+                }
+
                 if (isset($section_responses[$item['key']])) {
                     $response = $section_responses[$item['key']];
                     $rating = strtoupper($response->rating);
                     $notes = $response->notes ? " - Notes: {$response->notes}" : '';
-                    $prompt .= "- [{$rating}] {$item['label']}{$notes}\n";
+                    $refinement_note = '';
+                    if (($item['entry_mode'] ?? '') === 'linked_refinement' && !empty($item['shared_with']['label'])) {
+                        $refinement_note = ' (Tier 2 refinement of ' . $item['shared_with']['label'] . ')';
+                    }
+                    $prompt .= "- [{$rating}] {$item['label']}{$refinement_note}{$notes}\n";
                 }
             }
 

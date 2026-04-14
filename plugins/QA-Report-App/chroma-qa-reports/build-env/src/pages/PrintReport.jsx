@@ -1,13 +1,65 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useReport, useSchool } from '@hooks/useQueries';
+import { useReport, useReportChecklist, useSchool } from '@hooks/useQueries';
 import { formatDate } from '@utils/helpers';
 import { AlertCircle, AlertTriangle, ClipboardList, Camera, MapPin, FileText, School } from 'lucide-react';
+
+const RATING_LABELS = {
+    yes: 'Yes',
+    sometimes: 'Sometimes',
+    no: 'No',
+    na: 'N/A',
+};
+
+const RATING_WEIGHTS = {
+    no: 0,
+    sometimes: 1,
+    na: 2,
+    yes: 3,
+};
+
+const getEffectiveResponse = ( item, sectionKey, groupedResponses ) => {
+    const currentResponse = groupedResponses?.[ sectionKey ]?.[ item.key ] || null;
+
+    if ( ! item?.shared_with ) {
+        return currentResponse;
+    }
+
+    const sourceResponse =
+        groupedResponses?.[ item.shared_with.section_key ]?.[ item.shared_with.item_key ] || null;
+
+    return {
+        ...( currentResponse || {} ),
+        rating: currentResponse?.rating || sourceResponse?.rating || 'na',
+        notes:
+            item.entry_mode === 'shared_exact'
+                ? currentResponse?.notes || sourceResponse?.notes || ''
+                : currentResponse?.notes || '',
+    };
+};
+
+const getComparisonState = ( currentRating, previousRating ) => {
+    if ( ! previousRating ) {
+        return { label: 'No prior response', className: 'text-gray-500 bg-gray-100' };
+    }
+
+    if ( currentRating === previousRating ) {
+        return { label: 'Same', className: 'text-gray-600 bg-gray-100' };
+    }
+
+    if ( ( RATING_WEIGHTS[ currentRating ] ?? 0 ) > ( RATING_WEIGHTS[ previousRating ] ?? 0 ) ) {
+        return { label: 'Improved', className: 'text-green-700 bg-green-100' };
+    }
+
+    return { label: 'Regressed', className: 'text-red-700 bg-red-100' };
+};
 
 const PrintReport = () => {
     const { id } = useParams();
     const { data: report, isLoading, isError } = useReport( id );
     const { data: school } = useSchool( report?.school_id || 0 );
+    const { data: previousReport } = useReport( report?.previous_report_id || 0 );
+    const { data: checklistDef } = useReportChecklist( report?.report_type );
     const [ isReady, setIsReady ] = useState( false );
 
     // Filter valid photos
@@ -15,22 +67,27 @@ const PrintReport = () => {
     const generalPhotos = allPhotos.filter( ( p ) => ! p.item_key );
     const photosByItem = allPhotos.reduce( ( acc, p ) => {
         if ( p.item_key ) {
-            if ( ! acc[ p.item_key ] ) {
-                acc[ p.item_key ] = [];
+            const photoKey = `${ p.section_key || '' }|${ p.item_key }`;
+            if ( ! acc[ photoKey ] ) {
+                acc[ photoKey ] = [];
             }
-            acc[ p.item_key ].push( p );
+            acc[ photoKey ].push( p );
         }
         return acc;
     }, {} );
 
     // Organize checklist by section
     const checklist = report?.responses || {};
+    const previousChecklist = previousReport?.responses || {};
     const poiItemsRaw = report?.ai_summary?.plan_of_improvement || report?.ai_summary?.poi || [];
     const poiItems = Array.isArray( poiItemsRaw ) ? poiItemsRaw : [];
+    const orderedSections = checklistDef?.sections || [];
 
     // Auto-trigger print when data is loaded
     useEffect( () => {
-        if ( ! isLoading && report && school && ! isReady ) {
+        const hasRequiredComparisonData = ! report?.previous_report_id || previousReport;
+
+        if ( ! isLoading && report && school && checklistDef && hasRequiredComparisonData && ! isReady ) {
             // Small delay to ensure DOM is fully painted specifically for images
             const timer = setTimeout( () => {
                 setIsReady( true );
@@ -38,7 +95,7 @@ const PrintReport = () => {
             }, 800 );
             return () => clearTimeout( timer );
         }
-    }, [ isLoading, report, school, isReady ] );
+    }, [ isLoading, report, school, previousReport, checklistDef, isReady ] );
 
     if ( isLoading ) {
         return (
@@ -97,7 +154,9 @@ const PrintReport = () => {
                 <div className="grid grid-cols-2 gap-x-12 gap-y-4 mb-10 text-sm">
                     <div className="flex justify-between border-b border-gray-100 py-2">
                         <span className="text-gray-500">Visit Date:</span>
-                        <span className="font-semibold">{ formatDate( report.visit_date ) }</span>
+                        <span className="font-semibold">
+                            { formatDate( report.inspection_date || report.visit_date ) }
+                        </span>
                     </div>
                     <div className="flex justify-between border-b border-gray-100 py-2">
                         <span className="text-gray-500">Report Type:</span>
@@ -115,6 +174,15 @@ const PrintReport = () => {
                             { report.overall_rating?.replace( '_', ' ' ) || 'Pending' }
                         </span>
                     </div>
+                    { previousReport && (
+                        <div className="flex justify-between border-b border-gray-100 py-2 col-span-2">
+                            <span className="text-gray-500">Compared To:</span>
+                            <span className="font-semibold text-right">
+                                { formatDate( previousReport.inspection_date ) } Report
+                                { previousReport.school_name ? ` • ${ previousReport.school_name }` : '' }
+                            </span>
+                        </div>
+                    ) }
                 </div>
 
                 { /* Summary Section */ }
@@ -234,73 +302,155 @@ const PrintReport = () => {
                         Inspection Results
                     </h2>
 
-                    { Object.entries( checklist ).map( ( [ sectionKey, items ] ) => {
-                        const hasItems = Object.keys( items || {} ).length > 0;
-                        if ( ! hasItems ) {
+                    { orderedSections.map( ( section ) => {
+                        const visibleItems = ( section.items || [] ).filter(
+                            ( item ) => item.entry_mode !== 'shared_exact'
+                        );
+
+                        if ( visibleItems.length === 0 ) {
                             return null;
                         }
 
                         return (
-                            <div key={ sectionKey } className="mb-8 break-inside-avoid">
-                                <h3 className="text-lg font-bold text-gray-800 mb-3 border-b border-gray-200 pb-2 capitalize">
-                                    { sectionKey.replace( /([A-Z])/g, ' $1' ).trim() }
-                                </h3>
+                            <div key={ section.key } className="mb-8 break-inside-avoid">
+                                <div className="flex items-center gap-2 mb-3 border-b border-gray-200 pb-2">
+                                    <h3 className="text-lg font-bold text-gray-800">{ section.name }</h3>
+                                    { section.tier === 2 && (
+                                        <span className="text-[10px] font-bold uppercase tracking-wide bg-indigo-100 text-indigo-700 px-2 py-1 rounded-full">
+                                            Tier 2
+                                        </span>
+                                    ) }
+                                </div>
                                 <div className="space-y-4">
-                                    { Object.entries( items ).map( ( [ itemKey, response ] ) => (
-                                        <div key={ itemKey } className="bg-white p-3 rounded-lg border border-gray-100">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="font-medium text-gray-900 text-sm flex-1 mr-4">
-                                                    { itemKey.replace( /_/g, ' ' ) }
-                                                </span>
-                                                <span
-                                                    className={ `
-                                                    px-2 py-1 rounded text-xs font-bold uppercase tracking-wider
-                                                    ${
-                                                        response.rating === 'yes'
-                                                            ? 'bg-green-100 text-green-700'
-                                                            : response.rating === 'no'
-                                                            ? 'bg-red-100 text-red-700'
-                                                            : response.rating === 'sometimes'
-                                                            ? 'bg-amber-100 text-amber-700'
-                                                            : 'bg-gray-100 text-gray-600'
-                                                    }
-                                                ` }
-                                                >
-                                                    { response.rating }
-                                                </span>
-                                            </div>
-                                            { ( response.notes ||
-                                                response.rating !== 'yes' ||
-                                                photosByItem[ itemKey ] ) && (
-                                                <div className="text-xs text-gray-600 bg-gray-50 p-2 rounded mt-1">
-                                                    { response.notes ? (
-                                                        <div className="mb-2">{ response.notes }</div>
-                                                    ) : (
-                                                        response.rating !== 'yes' && (
-                                                            <div className="mb-2 italic">No notes provided.</div>
-                                                        )
-                                                    ) }
+                                    { visibleItems.map( ( item ) => {
+                                        const currentResponse = getEffectiveResponse( item, section.key, checklist ) || {
+                                            rating: 'na',
+                                            notes: '',
+                                        };
+                                        const previousResponse = getEffectiveResponse(
+                                            item,
+                                            section.key,
+                                            previousChecklist
+                                        ) || { rating: '', notes: '' };
+                                        const comparisonState = getComparisonState(
+                                            currentResponse.rating || 'na',
+                                            previousResponse.rating || ''
+                                        );
+                                        const photoKey = `${ section.key }|${ item.key }`;
+                                        const itemPhotos = photosByItem[ photoKey ] || [];
 
-                                                    { photosByItem[ itemKey ] && (
-                                                        <div className="flex flex-wrap gap-2 mt-2">
-                                                            { photosByItem[ itemKey ].map( ( photo, i ) => (
-                                                                <div
-                                                                    key={ i }
-                                                                    className="w-20 h-20 rounded border border-gray-200 overflow-hidden"
+                                        return (
+                                            <div
+                                                key={ `${ section.key }/${ item.key }` }
+                                                className="bg-white p-4 rounded-lg border border-gray-100"
+                                            >
+                                                <div className="flex justify-between items-start gap-4 mb-3">
+                                                    <div className="flex-1">
+                                                        <span className="font-medium text-gray-900 text-sm">
+                                                            { item.label }
+                                                        </span>
+                                                        { item.entry_mode === 'linked_refinement' &&
+                                                            item.shared_with?.label && (
+                                                                <p className="text-xs text-violet-600 mt-1">
+                                                                    Tier 2 refinement of { item.shared_with.label }
+                                                                </p>
+                                                            ) }
+                                                    </div>
+                                                    <div className="flex flex-wrap items-center gap-2 text-xs font-bold uppercase tracking-wider">
+                                                        <span
+                                                            className={ `
+                                                                px-2 py-1 rounded
+                                                                ${
+                                                                    currentResponse.rating === 'yes'
+                                                                        ? 'bg-green-100 text-green-700'
+                                                                        : currentResponse.rating === 'no'
+                                                                        ? 'bg-red-100 text-red-700'
+                                                                        : currentResponse.rating === 'sometimes'
+                                                                        ? 'bg-amber-100 text-amber-700'
+                                                                        : 'bg-gray-100 text-gray-600'
+                                                                }
+                                                            ` }
+                                                        >
+                                                            Current: { RATING_LABELS[ currentResponse.rating ] || 'N/A' }
+                                                        </span>
+                                                        { previousReport && (
+                                                            <>
+                                                                <span className="px-2 py-1 rounded bg-slate-100 text-slate-700">
+                                                                    Previous:{ ' ' }
+                                                                    { previousResponse.rating
+                                                                        ? RATING_LABELS[ previousResponse.rating ] ||
+                                                                          previousResponse.rating
+                                                                        : 'None' }
+                                                                </span>
+                                                                <span
+                                                                    className={ `px-2 py-1 rounded ${ comparisonState.className }` }
                                                                 >
-                                                                    <img
-                                                                        src={ photo.thumbnail_url || photo.url }
-                                                                        className="w-full h-full object-cover"
-                                                                        alt=""
-                                                                    />
-                                                                </div>
-                                                            ) ) }
-                                                        </div>
-                                                    ) }
+                                                                    { comparisonState.label }
+                                                                </span>
+                                                            </>
+                                                        ) }
+                                                    </div>
                                                 </div>
-                                            ) }
-                                        </div>
-                                    ) ) }
+
+                                                { ( currentResponse.notes ||
+                                                    previousResponse.notes ||
+                                                    currentResponse.rating !== 'yes' ||
+                                                    itemPhotos.length > 0 ) && (
+                                                    <div className="text-xs text-gray-600 bg-gray-50 p-3 rounded mt-1 space-y-3">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                            <div>
+                                                                <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1">
+                                                                    Current Notes
+                                                                </div>
+                                                                <div className="leading-relaxed">
+                                                                    { currentResponse.notes || (
+                                                                        currentResponse.rating !== 'yes' ? (
+                                                                            <span className="italic">
+                                                                                No current notes provided.
+                                                                            </span>
+                                                                        ) : (
+                                                                            'No notes.'
+                                                                        )
+                                                                    ) }
+                                                                </div>
+                                                            </div>
+                                                            { previousReport && (
+                                                                <div>
+                                                                    <div className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-1">
+                                                                        Previous Notes
+                                                                    </div>
+                                                                    <div className="leading-relaxed">
+                                                                        { previousResponse.notes || (
+                                                                            <span className="italic">
+                                                                                No prior notes recorded.
+                                                                            </span>
+                                                                        ) }
+                                                                    </div>
+                                                                </div>
+                                                            ) }
+                                                        </div>
+
+                                                        { itemPhotos.length > 0 && (
+                                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                                { itemPhotos.map( ( photo, i ) => (
+                                                                    <div
+                                                                        key={ i }
+                                                                        className="w-20 h-20 rounded border border-gray-200 overflow-hidden"
+                                                                    >
+                                                                        <img
+                                                                            src={ photo.thumbnail_url || photo.url }
+                                                                            className="w-full h-full object-cover"
+                                                                            alt=""
+                                                                        />
+                                                                    </div>
+                                                                ) ) }
+                                                            </div>
+                                                        ) }
+                                                    </div>
+                                                ) }
+                                            </div>
+                                        );
+                                    } ) }
                                 </div>
                             </div>
                         );
