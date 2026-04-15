@@ -69,26 +69,36 @@ class Monday
             'monday_status_column_id' => [
                 'title' => 'Status',
                 'type' => 'status',
+                'types' => ['status'],
+                'aliases' => ['Status'],
                 'id' => 'qa_status',
             ],
             'monday_priority_column_id' => [
                 'title' => 'Priority',
                 'type' => 'status',
+                'types' => ['status'],
+                'aliases' => ['Priority'],
                 'id' => 'qa_priority',
             ],
             'monday_date_column_id' => [
                 'title' => 'Due Date',
                 'type' => 'date',
+                'types' => ['date'],
+                'aliases' => ['Due Date', 'Date'],
                 'id' => 'qa_due_date',
             ],
             'monday_notes_column_id' => [
                 'title' => 'Notes',
                 'type' => 'long_text',
+                'types' => ['long_text', 'text'],
+                'aliases' => ['Notes', 'Text'],
                 'id' => 'qa_notes',
             ],
             'monday_person_column_id' => [
                 'title' => 'Person',
                 'type' => 'people',
+                'types' => ['people'],
+                'aliases' => ['Person'],
                 'id' => 'qa_person',
             ],
         ];
@@ -566,6 +576,10 @@ GRAPHQL;
      */
     public static function create_column($board_id, $title, $type, $id)
     {
+        if ($type === 'status') {
+            return self::create_status_column($board_id, $title, $id);
+        }
+
         $query = <<<'GRAPHQL'
 mutation ($boardId: ID!, $title: String!, $columnType: ColumnType!, $id: String) {
   create_column(board_id: $boardId, title: $title, column_type: $columnType, id: $id) {
@@ -591,6 +605,42 @@ GRAPHQL;
         }
 
         return $data['create_column'] ?? [];
+    }
+
+    /**
+     * Create a monday status-style column using the typed mutation monday now expects.
+     *
+     * @param string|int $board_id Board ID.
+     * @param string     $title Column title.
+     * @param string     $id Preferred custom ID.
+     * @return array|WP_Error
+     */
+    public static function create_status_column($board_id, $title, $id)
+    {
+        $query = <<<'GRAPHQL'
+mutation ($boardId: ID!, $title: String!, $id: String) {
+  create_status_column(board_id: $boardId, title: $title, id: $id) {
+    id
+    title
+    type
+  }
+}
+GRAPHQL;
+
+        $data = self::request(
+            $query,
+            [
+                'boardId' => (string) $board_id,
+                'title' => $title,
+                'id' => $id,
+            ]
+        );
+
+        if (is_wp_error($data)) {
+            return $data;
+        }
+
+        return $data['create_status_column'] ?? [];
     }
 
     /**
@@ -846,6 +896,9 @@ GRAPHQL;
      */
     private static function find_matching_column($columns, $definition, $mapped_id = '')
     {
+        $allowed_types = array_map('strtolower', (array) ($definition['types'] ?? [$definition['type'] ?? '']));
+        $aliases = array_map('strtolower', (array) ($definition['aliases'] ?? [$definition['title'] ?? '']));
+
         foreach ($columns as $column) {
             if ($mapped_id !== '' && ($column['id'] ?? '') === $mapped_id) {
                 return $column;
@@ -860,8 +913,8 @@ GRAPHQL;
 
         foreach ($columns as $column) {
             if (
-                strtolower((string) ($column['title'] ?? '')) === strtolower($definition['title']) &&
-                strtolower((string) ($column['type'] ?? '')) === strtolower($definition['type'])
+                in_array(strtolower((string) ($column['title'] ?? '')), $aliases, true) &&
+                in_array(strtolower((string) ($column['type'] ?? '')), $allowed_types, true)
             ) {
                 return $column;
             }

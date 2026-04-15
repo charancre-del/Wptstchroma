@@ -447,7 +447,7 @@ export function useMondayBoards() {
  */
 export function useSetupMondayBoard() {
     return useMutation( {
-        mutationFn: ( { boardId, ...data } ) => apiClient.post( `/monday/boards/${ boardId }/setup`, data ),
+        mutationFn: ( { boardId, ...data } ) => apiClient.post( '/monday/boards/setup', { boardId, ...data } ),
     } );
 }
 

@@ -235,7 +235,13 @@ class REST_Controller
             'permission_callback' => [$this, 'check_settings_permission'],
         ]);
 
-        \register_rest_route(self::NAMESPACE, '/monday/boards/(?P<id>\d+)/setup', [
+        \register_rest_route(self::NAMESPACE, '/monday/boards/setup', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'setup_monday_board'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/monday/boards/(?P<id>[\w-]+)/setup', [
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => [$this, 'setup_monday_board'],
             'permission_callback' => [$this, 'check_settings_permission'],
@@ -1874,7 +1880,15 @@ class REST_Controller
      */
     public function setup_monday_board(WP_REST_Request $request)
     {
-        $board_id = (string) $request['id'];
+        $board_id = (string) ($request['id'] ?: $request->get_param('boardId') ?: $request->get_param('board_id'));
+        if ($board_id === '') {
+            return new WP_Error(
+                'cqa_monday_board_missing',
+                __('A monday.com board ID is required to set up board columns.', 'chroma-qa-reports'),
+                ['status' => 422]
+            );
+        }
+
         $mapping = [
             'monday_status_column_id' => sanitize_text_field((string) $request->get_param('monday_status_column_id')),
             'monday_priority_column_id' => sanitize_text_field((string) $request->get_param('monday_priority_column_id')),

@@ -34,7 +34,7 @@ class Monday_Sync_Service
             return new WP_Error('cqa_monday_report_not_approved', __('Only approved reports can sync to monday.com.', 'chroma-qa-reports'), ['status' => 409]);
         }
 
-        if (!Monday::is_enabled()) {
+        if (!Monday::is_enabled() && $trigger !== 'manual') {
             $error = new WP_Error('cqa_monday_disabled', __('monday.com sync is disabled in settings.', 'chroma-qa-reports'), ['status' => 422]);
             self::persist_report_status($report, 'error', $error->get_error_message());
             return $error;
