@@ -503,6 +503,9 @@
 .min-w-\[180px\] {
         min-width: 180px;
 }
+.min-w-\[200px\] {
+        min-width: 200px;
+}
 .min-w-\[3rem\] {
         min-width: 3rem;
 }

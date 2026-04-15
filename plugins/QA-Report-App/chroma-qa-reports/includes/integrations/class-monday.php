@@ -104,7 +104,7 @@ class Monday
     {
         $token = self::get_token();
         if ($token === '') {
-            return new WP_Error('cqa_monday_missing_token', __('monday.com API token is not configured.', 'chroma-qa-reports'));
+            return new WP_Error('cqa_monday_missing_token', __('monday.com API token is not configured.', 'chroma-qa-reports'), ['status' => 422]);
         }
 
         $response = wp_remote_post(
@@ -136,17 +136,17 @@ class Monday
             return new WP_Error(
                 'cqa_monday_http_error',
                 sprintf(__('monday.com request failed with status %d.', 'chroma-qa-reports'), $code),
-                ['body' => $body]
+                ['status' => 502, 'body' => $body]
             );
         }
 
         if (!is_array($body)) {
-            return new WP_Error('cqa_monday_invalid_response', __('Invalid monday.com response received.', 'chroma-qa-reports'));
+            return new WP_Error('cqa_monday_invalid_response', __('Invalid monday.com response received.', 'chroma-qa-reports'), ['status' => 502]);
         }
 
         if (!empty($body['errors'])) {
             $message = $body['errors'][0]['message'] ?? __('Unknown monday.com API error.', 'chroma-qa-reports');
-            return new WP_Error('cqa_monday_api_error', $message, $body['errors']);
+            return new WP_Error('cqa_monday_api_error', $message, ['status' => 502, 'errors' => $body['errors']]);
         }
 
         return $body['data'] ?? [];
@@ -168,13 +168,52 @@ class Monday
     }
 
     /**
+     * Fetch available workspaces.
+     *
+     * @return array|WP_Error
+     */
+    public static function get_workspaces()
+    {
+        $query = <<<'GRAPHQL'
+query {
+  workspaces {
+    id
+    name
+    kind
+    description
+  }
+}
+GRAPHQL;
+
+        $data = self::request($query);
+        if (is_wp_error($data)) {
+            return $data;
+        }
+
+        return $data['workspaces'] ?? [];
+    }
+
+    /**
      * Fetch available boards.
      *
      * @return array|WP_Error
      */
-    public static function get_boards()
+    public static function get_boards($workspace_id = null)
     {
-        $query = <<<'GRAPHQL'
+        if ($workspace_id) {
+            $query = <<<'GRAPHQL'
+query ($workspaceIds: [ID!]) {
+  boards(limit: 200, workspace_ids: $workspaceIds) {
+    id
+    name
+    state
+  }
+}
+GRAPHQL;
+
+            $data = self::request($query, ['workspaceIds' => [(string) $workspace_id]]);
+        } else {
+            $query = <<<'GRAPHQL'
 query {
   boards(limit: 200) {
     id
@@ -184,7 +223,9 @@ query {
 }
 GRAPHQL;
 
-        $data = self::request($query);
+            $data = self::request($query);
+        }
+
         if (is_wp_error($data)) {
             return $data;
         }

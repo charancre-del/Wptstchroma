@@ -428,11 +428,23 @@ export function useTestMondayConnection() {
 }
 
 /**
- * Fetch monday.com boards.
+ * Fetch monday.com workspaces.
+ */
+export function useMondayWorkspaces() {
+    return useMutation( {
+        mutationFn: () => apiClient.get( '/monday/workspaces' ),
+    } );
+}
+
+/**
+ * Fetch monday.com boards, optionally filtered by workspace.
  */
 export function useMondayBoards() {
     return useMutation( {
-        mutationFn: () => apiClient.get( '/monday/boards' ),
+        mutationFn: ( workspaceId ) =>
+            apiClient.get( '/monday/boards', {
+                params: workspaceId ? { workspace_id: workspaceId } : {},
+            } ),
     } );
 }
 

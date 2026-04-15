@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, School, FileText, PlusCircle, Menu, ChevronLeft, LogOut } from 'lucide-react';
+import { LayoutDashboard, School, FileText, PlusCircle, Menu, ChevronLeft, LogOut, Settings2 } from 'lucide-react';
 import useUIStore from '@stores/useUIStore';
 import useAuthStore from '@stores/useAuthStore';
 
@@ -13,6 +13,7 @@ const Sidebar = ( { isOpen } ) => {
         { path: '/schools', label: 'Schools', icon: School, requiredCap: 'cqa_manage_schools' },
         { path: '/reports', label: 'Reports', icon: FileText },
         { path: '/create', label: 'New Inspection', icon: PlusCircle, requiredCap: 'cqa_create_reports' },
+        { path: '/settings', label: 'Settings', icon: Settings2, requiredCap: 'cqa_manage_settings' },
     ];
 
     // Filter items based on capabilities

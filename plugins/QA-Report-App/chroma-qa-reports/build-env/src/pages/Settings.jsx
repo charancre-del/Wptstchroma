@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { Save, Lock, Bot, Database, Check, Link2, RefreshCcw, Wrench } from 'lucide-react';
+import { Save, Lock, Bot, Database, Check, Link2, RefreshCcw, Wrench, AlertCircle, CheckCircle2, Building2 } from 'lucide-react';
 import {
     useSettings,
     useUpdateSettings,
     useSchools,
     useUpdateSchool,
     useMondayBoards,
+    useMondayWorkspaces,
     useTestMondayConnection,
     useSetupMondayBoard,
 } from '@hooks/useQueries';
@@ -19,10 +20,12 @@ const Settings = () => {
     const updateSettingsMutation = useUpdateSettings();
     const updateSchoolMutation = useUpdateSchool();
     const mondayBoardsMutation = useMondayBoards();
+    const mondayWorkspacesMutation = useMondayWorkspaces();
     const mondayTestMutation = useTestMondayConnection();
     const mondaySetupMutation = useSetupMondayBoard();
 
     const [ isSaved, setIsSaved ] = useState( false );
+    const [ connectionStatus, setConnectionStatus ] = useState( null ); // { type: 'success'|'error', message }
     const [ formData, setFormData ] = useState( {
         google_client_id: '',
         google_client_secret: '',
@@ -32,11 +35,14 @@ const Settings = () => {
         monday_api_token: '',
         monday_auto_sync_on_approval: 'yes',
         monday_default_status_label: 'Not Started',
+        monday_workspace_id: '',
+        monday_workspace_name: '',
     } );
     const [ schoolMappings, setSchoolMappings ] = useState( {} );
 
     const schools = schoolsResponse?.data || [];
     const boards = mondayBoardsMutation.data?.data || [];
+    const workspaces = mondayWorkspacesMutation.data?.data || [];
 
     useEffect( () => {
         if ( settings ) {
@@ -49,6 +55,8 @@ const Settings = () => {
                 monday_api_token: settings.monday_api_token || '',
                 monday_auto_sync_on_approval: settings.monday_auto_sync_on_approval || 'yes',
                 monday_default_status_label: settings.monday_default_status_label || 'Not Started',
+                monday_workspace_id: settings.monday_workspace_id || '',
+                monday_workspace_name: settings.monday_workspace_name || '',
             } );
         }
     }, [ settings ] );
@@ -105,26 +113,63 @@ const Settings = () => {
         await updateSettingsMutation.mutateAsync( formData );
     };
 
-    const handleLoadBoards = async () => {
-        try {
-            await persistSettingsForMonday();
-            await mondayBoardsMutation.mutateAsync();
-            addToast( { type: 'success', message: 'monday.com boards loaded.' } );
-        } catch ( error ) {
-            addToast( { type: 'error', message: error.message || 'Failed to load monday.com boards.' } );
-        }
-    };
-
     const handleTestMonday = async () => {
+        setConnectionStatus( null );
         try {
             await persistSettingsForMonday();
             const result = await mondayTestMutation.mutateAsync();
+            const userName = result?.data?.name || 'your account';
+            const userEmail = result?.data?.email ? ` (${ result.data.email })` : '';
+            setConnectionStatus( {
+                type: 'success',
+                message: `Connected as ${ userName }${ userEmail }`,
+            } );
             addToast( {
                 type: 'success',
-                message: `Connected to monday.com as ${ result?.data?.name || 'your account' }.`,
+                message: `Connected to monday.com as ${ userName }.`,
             } );
         } catch ( error ) {
+            setConnectionStatus( {
+                type: 'error',
+                message: error.message || 'Connection failed.',
+            } );
             addToast( { type: 'error', message: error.message || 'monday.com connection test failed.' } );
+        }
+    };
+
+    const handleLoadWorkspaces = async () => {
+        try {
+            await persistSettingsForMonday();
+            const result = await mondayWorkspacesMutation.mutateAsync();
+            const count = result?.data?.length || 0;
+            addToast( { type: 'success', message: `${ count } workspace${ count !== 1 ? 's' : '' } loaded.` } );
+        } catch ( error ) {
+            addToast( { type: 'error', message: error.message || 'Failed to load monday.com workspaces.' } );
+        }
+    };
+
+    const handleWorkspaceChange = ( e ) => {
+        const selectedId = e.target.value;
+        const workspace = workspaces.find( ( ws ) => String( ws.id ) === selectedId );
+        setFormData( ( prev ) => ( {
+            ...prev,
+            monday_workspace_id: selectedId,
+            monday_workspace_name: workspace?.name || '',
+        } ) );
+    };
+
+    const handleLoadBoards = async () => {
+        try {
+            await persistSettingsForMonday();
+            const wsId = formData.monday_workspace_id || null;
+            const result = await mondayBoardsMutation.mutateAsync( wsId );
+            const count = result?.data?.length || 0;
+            addToast( {
+                type: 'success',
+                message: `${ count } board${ count !== 1 ? 's' : '' } loaded${ wsId ? ' from selected workspace' : '' }.`,
+            } );
+        } catch ( error ) {
+            addToast( { type: 'error', message: error.message || 'Failed to load monday.com boards.' } );
         }
     };
 
@@ -346,24 +391,90 @@ const Settings = () => {
                             Re-sync keeps monday Status and Notes intact, and removed POI items move to <strong>Removed from QA Sync</strong>.
                         </div>
 
-                        <div className="flex flex-wrap gap-3">
+                        { /* Step 1: Test Connection */ }
+                        <div className="flex flex-wrap items-center gap-3">
                             <button
                                 type="button"
                                 onClick={ handleTestMonday }
                                 disabled={ mondayTestMutation.isPending || ! formData.monday_api_token }
-                                className="px-4 py-2 rounded-lg border border-amber-300 text-amber-800 hover:bg-amber-100 disabled:opacity-50"
+                                className="px-4 py-2 rounded-lg border border-amber-300 text-amber-800 hover:bg-amber-100 disabled:opacity-50 transition-colors"
                             >
                                 { mondayTestMutation.isPending ? 'Testing...' : 'Test Connection' }
                             </button>
+                            { connectionStatus && (
+                                <span className={ `inline-flex items-center gap-1.5 text-sm font-medium ${
+                                    connectionStatus.type === 'success' ? 'text-emerald-700' : 'text-red-600'
+                                }` }>
+                                    { connectionStatus.type === 'success'
+                                        ? <CheckCircle2 size={ 16 } />
+                                        : <AlertCircle size={ 16 } />
+                                    }
+                                    { connectionStatus.message }
+                                </span>
+                            ) }
+                        </div>
+
+                        { /* Step 2: Fetch Workspaces & Select */ }
+                        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                                <Building2 size={ 16 } />
+                                Workspace
+                            </div>
+                            <div className="flex flex-wrap items-end gap-3">
+                                <div className="flex-1 min-w-[200px]">
+                                    <label className="block text-xs font-medium text-gray-600 mb-1">monday Workspace</label>
+                                    <select
+                                        value={ formData.monday_workspace_id || '' }
+                                        onChange={ handleWorkspaceChange }
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"
+                                    >
+                                        <option value="">
+                                            { workspaces.length === 0
+                                                ? 'Click "Fetch Workspaces" first'
+                                                : 'Select workspace'
+                                            }
+                                        </option>
+                                        { workspaces.map( ( ws ) => (
+                                            <option key={ ws.id } value={ ws.id }>
+                                                { ws.name }{ ws.kind === 'open' ? '' : ` (${ ws.kind })` }
+                                            </option>
+                                        ) ) }
+                                    </select>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={ handleLoadWorkspaces }
+                                    disabled={ mondayWorkspacesMutation.isPending || ! formData.monday_api_token }
+                                    className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2 text-sm transition-colors"
+                                >
+                                    <RefreshCcw size={ 14 } className={ mondayWorkspacesMutation.isPending ? 'animate-spin' : '' } />
+                                    { mondayWorkspacesMutation.isPending ? 'Loading...' : 'Fetch Workspaces' }
+                                </button>
+                            </div>
+                            { formData.monday_workspace_name && (
+                                <p className="text-xs text-gray-500">
+                                    Selected: <strong>{ formData.monday_workspace_name }</strong>
+                                </p>
+                            ) }
+                        </div>
+
+                        { /* Step 3: Fetch Boards */ }
+                        <div className="flex flex-wrap items-center gap-3">
                             <button
                                 type="button"
                                 onClick={ handleLoadBoards }
                                 disabled={ mondayBoardsMutation.isPending || ! formData.monday_api_token }
-                                className="px-4 py-2 rounded-lg border border-amber-300 text-amber-800 hover:bg-amber-100 disabled:opacity-50 flex items-center gap-2"
+                                className="px-4 py-2 rounded-lg border border-amber-300 text-amber-800 hover:bg-amber-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
                             >
-                                <RefreshCcw size={ 14 } />
+                                <RefreshCcw size={ 14 } className={ mondayBoardsMutation.isPending ? 'animate-spin' : '' } />
                                 { mondayBoardsMutation.isPending ? 'Loading Boards...' : 'Fetch Boards' }
                             </button>
+                            { boards.length > 0 && (
+                                <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-700">
+                                    <CheckCircle2 size={ 16 } />
+                                    { boards.length } board{ boards.length !== 1 ? 's' : '' } loaded
+                                </span>
+                            ) }
                         </div>
                     </div>
                 </div>
@@ -443,7 +554,9 @@ const Settings = () => {
                                                 } }
                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                                             >
-                                                <option value="">Select board</option>
+                                                <option value="">
+                                                    { boards.length === 0 ? 'Fetch boards first' : 'Select board' }
+                                                </option>
                                                 { boards.map( ( board ) => (
                                                     <option key={ board.id } value={ board.id }>
                                                         { board.name }
@@ -484,3 +597,4 @@ const Settings = () => {
 };
 
 export default Settings;
+

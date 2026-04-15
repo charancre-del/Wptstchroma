@@ -223,6 +223,12 @@ class REST_Controller
             'permission_callback' => [$this, 'check_settings_permission'],
         ]);
 
+        \register_rest_route(self::NAMESPACE, '/monday/workspaces', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_monday_workspaces'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
         \register_rest_route(self::NAMESPACE, '/monday/boards', [
             'methods' => WP_REST_Server::READABLE,
             'callback' => [$this, 'get_monday_boards'],
@@ -1690,6 +1696,8 @@ class REST_Controller
                 'monday_api_token' => \ChromaQA\Settings::get('monday_api_token', ''),
                 'monday_auto_sync_on_approval' => \ChromaQA\Settings::get('monday_auto_sync_on_approval', 'yes'),
                 'monday_default_status_label' => \ChromaQA\Settings::get('monday_default_status_label', Monday::DEFAULT_STATUS),
+                'monday_workspace_id' => \ChromaQA\Settings::get('monday_workspace_id', ''),
+                'monday_workspace_name' => \ChromaQA\Settings::get('monday_workspace_name', ''),
             ];
         } else {
             // Fallback to legacy options
@@ -1704,6 +1712,8 @@ class REST_Controller
                 'monday_api_token' => \get_option('cqa_monday_api_token', ''),
                 'monday_auto_sync_on_approval' => \get_option('cqa_monday_auto_sync_on_approval', 'yes'),
                 'monday_default_status_label' => \get_option('cqa_monday_default_status_label', Monday::DEFAULT_STATUS),
+                'monday_workspace_id' => \get_option('cqa_monday_workspace_id', ''),
+                'monday_workspace_name' => \get_option('cqa_monday_workspace_name', ''),
             ];
         }
 
@@ -1737,6 +1747,8 @@ class REST_Controller
             'monday_api_token',
             'monday_auto_sync_on_approval',
             'monday_default_status_label',
+            'monday_workspace_id',
+            'monday_workspace_name',
         ];
 
         foreach ($fields as $field) {
@@ -1790,9 +1802,29 @@ class REST_Controller
      * @param WP_REST_Request $request Request object.
      * @return WP_REST_Response|WP_Error
      */
+    public function get_monday_workspaces(WP_REST_Request $request)
+    {
+        $workspaces = Monday::get_workspaces();
+        if (is_wp_error($workspaces)) {
+            return $workspaces;
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $workspaces,
+        ], 200);
+    }
+
+    /**
+     * Fetch monday boards.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
     public function get_monday_boards(WP_REST_Request $request)
     {
-        $boards = Monday::get_boards();
+        $workspace_id = $request->get_param('workspace_id');
+        $boards = Monday::get_boards($workspace_id ?: null);
         if (is_wp_error($boards)) {
             return $boards;
         }
