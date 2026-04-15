@@ -544,7 +544,7 @@ const ReportWizard = () => {
                             <RefreshCcw className="w-4 h-4" />
                             { mondaySyncMutation.isPending
                                 ? 'Syncing...'
-                                : reportState?.monday_last_synced_at
+                                : reportState?.monday_sync_status === 'synced' && reportState?.monday_last_synced_at
                                   ? 'Re-sync monday'
                                   : 'Sync to monday' }
                         </button>

@@ -54,48 +54,44 @@ class Monday_Sync_Service
         }
 
         $mapping = self::school_mapping_array($school);
-        $missing_mapping_fields = array_filter(
-            array_keys(Monday::required_columns()),
-            static function ($required_field) use ($mapping) {
-                return empty($mapping[$required_field]);
-            }
-        );
-
-        if (!empty($missing_mapping_fields)) {
-            $ensured_columns = Monday::ensure_board_columns($school->monday_board_id, $mapping);
-            if (is_wp_error($ensured_columns)) {
-                self::persist_report_status($report, 'error', $ensured_columns->get_error_message());
-                return $ensured_columns;
-            }
-
-            $mapping = array_merge($mapping, $ensured_columns['mapping'] ?? []);
-            $school->monday_board_name = (string) ($ensured_columns['board_name'] ?? $school->monday_board_name);
-            $school->monday_status_column_id = (string) ($mapping['monday_status_column_id'] ?? $school->monday_status_column_id);
-            $school->monday_priority_column_id = (string) ($mapping['monday_priority_column_id'] ?? $school->monday_priority_column_id);
-            $school->monday_date_column_id = (string) ($mapping['monday_date_column_id'] ?? $school->monday_date_column_id);
-            $school->monday_notes_column_id = (string) ($mapping['monday_notes_column_id'] ?? $school->monday_notes_column_id);
-            $school->monday_person_column_id = (string) ($mapping['monday_person_column_id'] ?? $school->monday_person_column_id);
-            $school->save();
+        $ensured_columns = Monday::ensure_board_columns($school->monday_board_id, $mapping);
+        if (is_wp_error($ensured_columns)) {
+            self::persist_report_status($report, 'error', $ensured_columns->get_error_message());
+            return $ensured_columns;
         }
 
+        $mapping = array_merge($mapping, $ensured_columns['mapping'] ?? []);
+        $school->monday_board_name = (string) ($ensured_columns['board_name'] ?? $school->monday_board_name);
+        $school->monday_status_column_id = (string) ($mapping['monday_status_column_id'] ?? $school->monday_status_column_id);
+        $school->monday_priority_column_id = (string) ($mapping['monday_priority_column_id'] ?? $school->monday_priority_column_id);
+        $school->monday_date_column_id = (string) ($mapping['monday_date_column_id'] ?? $school->monday_date_column_id);
+        $school->monday_notes_column_id = (string) ($mapping['monday_notes_column_id'] ?? $school->monday_notes_column_id);
+        $school->monday_person_column_id = (string) ($mapping['monday_person_column_id'] ?? $school->monday_person_column_id);
+        $school->save();
+
+        $missing_mapping_fields = [];
         foreach (array_keys(Monday::required_columns()) as $required_field) {
             if (empty($mapping[$required_field])) {
-                $error = new WP_Error(
-                    'cqa_monday_columns_missing',
-                    sprintf(
-                        __('This school board is missing required monday.com column mappings after validation: %s.', 'chroma-qa-reports'),
-                        implode(', ', $missing_mapping_fields)
-                    ),
-                    ['status' => 422]
-                );
-                self::persist_report_status($report, 'error', $error->get_error_message());
-                return $error;
+                $missing_mapping_fields[] = $required_field;
             }
+        }
+
+        if (!empty($missing_mapping_fields)) {
+            $error = new WP_Error(
+                'cqa_monday_columns_missing',
+                sprintf(
+                    __('This school board is missing required monday.com column mappings after validation: %s.', 'chroma-qa-reports'),
+                    implode(', ', $missing_mapping_fields)
+                ),
+                ['status' => 422]
+            );
+            self::persist_report_status($report, 'error', $error->get_error_message());
+            return $error;
         }
 
         $poi_items = self::normalize_poi_items($report);
         if (empty($poi_items)) {
-            $error = new WP_Error('cqa_monday_no_poi', __('This report has no plan of improvement items to sync.', 'chroma-qa-reports'), ['status' => 422]);
+            $error = new WP_Error('cqa_monday_no_poi', __('This report has no plan of improvement items or non-compliant findings to sync.', 'chroma-qa-reports'), ['status' => 422]);
             self::persist_report_status($report, 'error', $error->get_error_message());
             return $error;
         }
@@ -166,7 +162,7 @@ class Monday_Sync_Service
                         $school->monday_board_id,
                         $row['monday_item_id'],
                         Monday::format_column_values($mapping, $base_values),
-                        false
+                        true
                     );
 
                     if (is_wp_error($update)) {

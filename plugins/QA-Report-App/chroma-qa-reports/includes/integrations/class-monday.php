@@ -16,6 +16,7 @@ class Monday
     const API_VERSION = '2026-01';
     const DEFAULT_STATUS = 'Not Started';
     const REMOVED_STATUS = 'Removed from QA Sync';
+    const LONG_TEXT_LIMIT = 2000;
 
     /**
      * Determine whether monday sync is enabled.
@@ -818,7 +819,7 @@ GRAPHQL;
         }
 
         if (!empty($mapping['monday_notes_column_id']) && array_key_exists('notes', $values)) {
-            $payload[$mapping['monday_notes_column_id']] = ['text' => (string) $values['notes']];
+            $payload[$mapping['monday_notes_column_id']] = ['text' => self::truncate_long_text((string) $values['notes'])];
         }
 
         if (!empty($mapping['monday_person_column_id']) && !empty($values['person_id'])) {
@@ -867,5 +868,32 @@ GRAPHQL;
         }
 
         return null;
+    }
+
+    /**
+     * monday long text columns are capped at 2,000 characters.
+     *
+     * @param string $text Notes text.
+     * @return string
+     */
+    private static function truncate_long_text($text)
+    {
+        if ($text === '') {
+            return '';
+        }
+
+        if (function_exists('mb_strlen') && function_exists('mb_substr')) {
+            if (mb_strlen($text) <= self::LONG_TEXT_LIMIT) {
+                return $text;
+            }
+
+            return rtrim(mb_substr($text, 0, self::LONG_TEXT_LIMIT - 24)) . ' [Truncated from QA sync]';
+        }
+
+        if (strlen($text) <= self::LONG_TEXT_LIMIT) {
+            return $text;
+        }
+
+        return rtrim(substr($text, 0, self::LONG_TEXT_LIMIT - 24)) . ' [Truncated from QA sync]';
     }
 }
