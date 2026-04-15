@@ -25,28 +25,28 @@ class Monday_Sync_Service
     {
         $report = Report::find((int) $report_id);
         if (!$report) {
-            return new WP_Error('cqa_monday_report_missing', __('Report not found.', 'chroma-qa-reports'));
+            return new WP_Error('cqa_monday_report_missing', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
         }
 
         if ($report->status !== Report::STATUS_APPROVED) {
-            return new WP_Error('cqa_monday_report_not_approved', __('Only approved reports can sync to monday.com.', 'chroma-qa-reports'));
+            return new WP_Error('cqa_monday_report_not_approved', __('Only approved reports can sync to monday.com.', 'chroma-qa-reports'), ['status' => 409]);
         }
 
         if (!Monday::is_enabled()) {
-            $error = new WP_Error('cqa_monday_disabled', __('monday.com sync is disabled in settings.', 'chroma-qa-reports'));
+            $error = new WP_Error('cqa_monday_disabled', __('monday.com sync is disabled in settings.', 'chroma-qa-reports'), ['status' => 422]);
             self::persist_report_status($report, 'error', $error->get_error_message());
             return $error;
         }
 
         $school = School::find($report->school_id);
         if (!$school) {
-            $error = new WP_Error('cqa_monday_school_missing', __('The report school could not be found.', 'chroma-qa-reports'));
+            $error = new WP_Error('cqa_monday_school_missing', __('The report school could not be found.', 'chroma-qa-reports'), ['status' => 404]);
             self::persist_report_status($report, 'error', $error->get_error_message());
             return $error;
         }
 
         if (empty($school->monday_board_id)) {
-            $error = new WP_Error('cqa_monday_board_missing', __('This school is not mapped to a monday.com board.', 'chroma-qa-reports'));
+            $error = new WP_Error('cqa_monday_board_missing', __('This school is not mapped to a monday.com board.', 'chroma-qa-reports'), ['status' => 422]);
             self::persist_report_status($report, 'error', $error->get_error_message());
             return $error;
         }
@@ -54,7 +54,7 @@ class Monday_Sync_Service
         $mapping = self::school_mapping_array($school);
         foreach (array_keys(Monday::required_columns()) as $required_field) {
             if (empty($mapping[$required_field])) {
-                $error = new WP_Error('cqa_monday_columns_missing', __('This school board is missing required monday.com column mappings.', 'chroma-qa-reports'));
+                $error = new WP_Error('cqa_monday_columns_missing', __('This school board is missing required monday.com column mappings.', 'chroma-qa-reports'), ['status' => 422]);
                 self::persist_report_status($report, 'error', $error->get_error_message());
                 return $error;
             }
@@ -62,7 +62,7 @@ class Monday_Sync_Service
 
         $poi_items = self::normalize_poi_items($report);
         if (empty($poi_items)) {
-            $error = new WP_Error('cqa_monday_no_poi', __('This report has no plan of improvement items to sync.', 'chroma-qa-reports'));
+            $error = new WP_Error('cqa_monday_no_poi', __('This report has no plan of improvement items to sync.', 'chroma-qa-reports'), ['status' => 422]);
             self::persist_report_status($report, 'error', $error->get_error_message());
             return $error;
         }
@@ -72,6 +72,8 @@ class Monday_Sync_Service
             self::persist_report_status($report, 'error', $group->get_error_message());
             return $group;
         }
+
+        self::persist_report_status($report, 'syncing', '', (string) ($group['id'] ?? ''));
 
         $existing_mappings = self::get_item_mappings($report->id);
         $seen_keys = [];
@@ -100,9 +102,18 @@ class Monday_Sync_Service
                 }
 
                 if (!$existing_item) {
-                    $created_item = self::create_poi_item($school, $mapping, $group['id'], $item_name, $base_values);
+                    $created_item = self::create_poi_item(
+                        $school,
+                        $mapping,
+                        $group['id'],
+                        $item_name,
+                        $base_values + [
+                            'status' => Monday::default_status_label(),
+                            'notes' => self::notes_text($poi),
+                        ]
+                    );
                     if (is_wp_error($created_item)) {
-                        self::persist_report_status($report, 'error', $created_item->get_error_message());
+                        self::persist_report_status($report, 'error', $created_item->get_error_message(), $group['id']);
                         return $created_item;
                     }
 
@@ -114,7 +125,7 @@ class Monday_Sync_Service
                 if (($row['last_synced_hash'] ?? '') !== $hash) {
                     $rename = Monday::rename_item($row['monday_item_id'], $item_name);
                     if (is_wp_error($rename)) {
-                        self::persist_report_status($report, 'error', $rename->get_error_message());
+                        self::persist_report_status($report, 'error', $rename->get_error_message(), $group['id']);
                         return $rename;
                     }
 
@@ -126,7 +137,7 @@ class Monday_Sync_Service
                     );
 
                     if (is_wp_error($update)) {
-                        self::persist_report_status($report, 'error', $update->get_error_message());
+                        self::persist_report_status($report, 'error', $update->get_error_message(), $group['id']);
                         return $update;
                     }
 
@@ -145,7 +156,7 @@ class Monday_Sync_Service
             $created_item = self::create_poi_item($school, $mapping, $group['id'], $item_name, $create_values);
 
             if (is_wp_error($created_item)) {
-                self::persist_report_status($report, 'error', $created_item->get_error_message());
+                self::persist_report_status($report, 'error', $created_item->get_error_message(), $group['id']);
                 return $created_item;
             }
 
@@ -155,6 +166,17 @@ class Monday_Sync_Service
 
         foreach ($existing_mappings as $poi_key => $row) {
             if (in_array($poi_key, $seen_keys, true)) {
+                continue;
+            }
+
+            $existing_item = Monday::get_item($row['monday_item_id']);
+            if (is_wp_error($existing_item)) {
+                self::persist_report_status($report, 'error', $existing_item->get_error_message(), $group['id']);
+                return $existing_item;
+            }
+
+            if (!$existing_item) {
+                self::delete_item_mapping($report->id, $poi_key);
                 continue;
             }
 
@@ -168,7 +190,7 @@ class Monday_Sync_Service
             );
 
             if (is_wp_error($retire)) {
-                self::persist_report_status($report, 'error', $retire->get_error_message());
+                self::persist_report_status($report, 'error', $retire->get_error_message(), $group['id']);
                 return $retire;
             }
 
@@ -233,18 +255,6 @@ class Monday_Sync_Service
             }
         }
 
-        $existing = Monday::find_group_by_title($school->monday_board_id, $group_title);
-        if (is_wp_error($existing)) {
-            return $existing;
-        }
-
-        if ($existing) {
-            return [
-                'id' => (string) $existing['id'],
-                'title' => $existing['title'],
-            ];
-        }
-
         $created = Monday::create_group($school->monday_board_id, $group_title);
         if (is_wp_error($created)) {
             return $created;
@@ -293,11 +303,25 @@ class Monday_Sync_Service
         $normalized = [];
 
         foreach ($items as $index => $item) {
+            if (is_string($item)) {
+                $title = trim($item);
+                if ($title === '') {
+                    continue;
+                }
+
+                $normalized[] = [
+                    'poi_key' => 'poi_' . ($index + 1) . '_' . md5($title),
+                    'issue' => $title,
+                    'action' => $title,
+                ];
+                continue;
+            }
+
             if (!is_array($item)) {
                 continue;
             }
 
-            $title = trim((string) ($item['issue'] ?? $item['title'] ?? $item['item'] ?? ''));
+            $title = trim((string) ($item['issue'] ?? $item['title'] ?? $item['item'] ?? $item['area'] ?? $item['section'] ?? ''));
             if ($title === '') {
                 continue;
             }
@@ -356,7 +380,7 @@ class Monday_Sync_Service
      */
     private static function item_name($poi)
     {
-        return trim((string) ($poi['issue'] ?? $poi['title'] ?? 'POI Item'));
+        return trim((string) ($poi['issue'] ?? $poi['title'] ?? $poi['area'] ?? 'POI Item'));
     }
 
     /**
@@ -367,9 +391,24 @@ class Monday_Sync_Service
      */
     private static function priority_label($poi)
     {
-        $value = strtolower(trim((string) ($poi['priority'] ?? $poi['severity'] ?? '')));
+        $raw_value = $poi['priority'] ?? $poi['severity'] ?? '';
 
-        if (in_array($value, ['critical', 'high'], true)) {
+        if (is_numeric($raw_value)) {
+            $priority = (int) $raw_value;
+            if ($priority <= 2) {
+                return 'High';
+            }
+
+            if ($priority === 3) {
+                return 'Medium';
+            }
+
+            return 'Low';
+        }
+
+        $value = strtolower(trim((string) $raw_value));
+
+        if (in_array($value, ['critical', 'immediate', 'high'], true)) {
             return 'High';
         }
 
@@ -416,7 +455,7 @@ class Monday_Sync_Service
     private static function notes_text($poi)
     {
         $parts = [];
-        foreach (['recommendation', 'action', 'action_steps', 'notes', 'timeline'] as $key) {
+        foreach (['current_status', 'recommendation', 'action', 'action_steps', 'notes', 'timeline', 'success_criteria', 'support_offered'] as $key) {
             if (empty($poi[$key])) {
                 continue;
             }
@@ -513,6 +552,28 @@ class Monday_Sync_Service
         }
 
         $wpdb->insert($table, $data, $format);
+    }
+
+    /**
+     * Delete a stale POI mapping row.
+     *
+     * @param int    $report_id Report ID.
+     * @param string $poi_key Stable POI key.
+     * @return void
+     */
+    private static function delete_item_mapping($report_id, $poi_key)
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_monday_poi_syncs';
+        $wpdb->delete(
+            $table,
+            [
+                'report_id' => (int) $report_id,
+                'poi_key' => $poi_key,
+            ],
+            ['%d', '%s']
+        );
     }
 
     /**
