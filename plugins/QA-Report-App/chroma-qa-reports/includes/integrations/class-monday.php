@@ -326,7 +326,8 @@ class Monday
      */
     public static function test_connection()
     {
-        $data = self::request('query { me { id name email } }');
+        // monday's auth docs use `me { id name }` as the stable test query.
+        $data = self::request('query { me { id name } }');
         if (is_wp_error($data)) {
             return $data;
         }
@@ -435,6 +436,33 @@ GRAPHQL;
         }
 
         return $data['boards'][0] ?? [];
+    }
+
+    /**
+     * Find a group by ID on a board.
+     *
+     * @param string|int $board_id Board ID.
+     * @param string|int $group_id Group ID.
+     * @return array|null|WP_Error
+     */
+    public static function find_group($board_id, $group_id)
+    {
+        $board = self::get_board($board_id);
+        if (is_wp_error($board)) {
+            return $board;
+        }
+
+        foreach (($board['groups'] ?? []) as $group) {
+            if (!empty($group['deleted']) || !empty($group['archived'])) {
+                continue;
+            }
+
+            if ((string) ($group['id'] ?? '') === (string) $group_id) {
+                return $group;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -714,6 +742,37 @@ GRAPHQL;
         }
 
         return $data['change_item_name'] ?? [];
+    }
+
+    /**
+     * Fetch a monday item by ID.
+     *
+     * @param string|int $item_id Item ID.
+     * @return array|null|WP_Error
+     */
+    public static function get_item($item_id)
+    {
+        $query = <<<'GRAPHQL'
+query ($itemIds: [ID!]) {
+  items(ids: $itemIds) {
+    id
+    name
+  }
+}
+GRAPHQL;
+
+        $data = self::request(
+            $query,
+            [
+                'itemIds' => [(string) $item_id],
+            ]
+        );
+
+        if (is_wp_error($data)) {
+            return $data;
+        }
+
+        return $data['items'][0] ?? null;
     }
 
     /**

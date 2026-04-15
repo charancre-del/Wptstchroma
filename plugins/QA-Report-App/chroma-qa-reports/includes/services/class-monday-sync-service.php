@@ -93,6 +93,23 @@ class Monday_Sync_Service
 
             if (isset($existing_mappings[$poi_key])) {
                 $row = $existing_mappings[$poi_key];
+                $existing_item = Monday::get_item($row['monday_item_id']);
+                if (is_wp_error($existing_item)) {
+                    self::persist_report_status($report, 'error', $existing_item->get_error_message());
+                    return $existing_item;
+                }
+
+                if (!$existing_item) {
+                    $created_item = self::create_poi_item($school, $mapping, $group['id'], $item_name, $base_values);
+                    if (is_wp_error($created_item)) {
+                        self::persist_report_status($report, 'error', $created_item->get_error_message());
+                        return $created_item;
+                    }
+
+                    self::upsert_item_mapping($report->id, $poi_key, $created_item['id'], $group['id'], $hash);
+                    $created++;
+                    continue;
+                }
 
                 if (($row['last_synced_hash'] ?? '') !== $hash) {
                     $rename = Monday::rename_item($row['monday_item_id'], $item_name);
@@ -125,12 +142,7 @@ class Monday_Sync_Service
                 'notes' => self::notes_text($poi),
             ];
 
-            $created_item = Monday::create_item(
-                $school->monday_board_id,
-                $group['id'],
-                $item_name,
-                Monday::format_column_values($mapping, $create_values)
-            );
+            $created_item = self::create_poi_item($school, $mapping, $group['id'], $item_name, $create_values);
 
             if (is_wp_error($created_item)) {
                 self::persist_report_status($report, 'error', $created_item->get_error_message());
@@ -208,10 +220,17 @@ class Monday_Sync_Service
         $group_title = self::build_group_name($report);
 
         if (!empty($report->monday_group_id)) {
-            return [
-                'id' => (string) $report->monday_group_id,
-                'title' => $group_title,
-            ];
+            $existing_by_id = Monday::find_group($school->monday_board_id, $report->monday_group_id);
+            if (is_wp_error($existing_by_id)) {
+                return $existing_by_id;
+            }
+
+            if ($existing_by_id) {
+                return [
+                    'id' => (string) $existing_by_id['id'],
+                    'title' => $existing_by_id['title'] ?? $group_title,
+                ];
+            }
         }
 
         $existing = Monday::find_group_by_title($school->monday_board_id, $group_title);
@@ -235,6 +254,26 @@ class Monday_Sync_Service
             'id' => (string) ($created['id'] ?? ''),
             'title' => $created['title'] ?? $group_title,
         ];
+    }
+
+    /**
+     * Create a monday item for a POI row.
+     *
+     * @param School  $school School model.
+     * @param array   $mapping Monday mapping array.
+     * @param string  $group_id monday group ID.
+     * @param string  $item_name monday item title.
+     * @param array   $values Column values.
+     * @return array|WP_Error
+     */
+    private static function create_poi_item($school, $mapping, $group_id, $item_name, $values)
+    {
+        return Monday::create_item(
+            $school->monday_board_id,
+            $group_id,
+            $item_name,
+            Monday::format_column_values($mapping, $values)
+        );
     }
 
     /**
