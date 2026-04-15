@@ -12,8 +12,9 @@ import {
     useApproveReport,
     useRevertToDraft,
     useDeleteReport,
+    useSyncReportToMonday,
 } from '@hooks/useQueries';
-import { Eye, Printer, Trash2 } from 'lucide-react';
+import { Eye, Printer, RefreshCcw, Trash2 } from 'lucide-react';
 
 // Steps
 import StepSchool from './steps/StepSchool';
@@ -71,6 +72,7 @@ const ReportWizard = () => {
     const approveMutation = useApproveReport();
     const revertMutation = useRevertToDraft();
     const deleteMutation = useDeleteReport();
+    const mondaySyncMutation = useSyncReportToMonday();
 
     const isSavingManual =
         createMutation.isPending ||
@@ -78,7 +80,8 @@ const ReportWizard = () => {
         submitMutation.isPending ||
         approveMutation.isPending ||
         revertMutation.isPending ||
-        deleteMutation.isPending;
+        deleteMutation.isPending ||
+        mondaySyncMutation.isPending;
 
     // Auto-Save Hook (Handles DB sync & Conflict Modal)
     // CRITICAL FIX: Must be called before early returns to satisfy Rules of Hooks (Error #310)
@@ -209,6 +212,11 @@ const ReportWizard = () => {
                 status: savedReport.status ?? reportState.status,
                 updated_at: savedReport.updated_at ?? reportState.updated_at,
                 version_id: savedReport.version_id ?? reportState.version_id,
+                monday_group_id: savedReport.monday_group_id ?? reportState.monday_group_id,
+                monday_last_synced_at:
+                    savedReport.monday_last_synced_at ?? reportState.monday_last_synced_at,
+                monday_sync_status: savedReport.monday_sync_status ?? reportState.monday_sync_status,
+                monday_sync_error: savedReport.monday_sync_error ?? reportState.monday_sync_error,
                 previous_report_id:
                     savedReport.previous_report_id !== undefined
                         ? savedReport.previous_report_id
@@ -376,6 +384,31 @@ const ReportWizard = () => {
         [ hydrateReportFromServer, refetchReport ]
     );
 
+    const handleSyncToMonday = async () => {
+        if ( ! reportState?.id ) {
+            return;
+        }
+
+        try {
+            const result = await mondaySyncMutation.mutateAsync( reportState.id );
+            const syncData = result?.data || {};
+            if ( result?.report ) {
+                syncServerReportMeta( result.report );
+            } else {
+                const refreshed = await refetchReport();
+                if ( refreshed?.data ) {
+                    syncServerReportMeta( refreshed.data );
+                }
+            }
+            addToast( {
+                type: 'success',
+                message: `monday sync complete. Created ${ syncData.created || 0 }, updated ${ syncData.updated || 0 }, retired ${ syncData.retired || 0 }.`,
+            } );
+        } catch ( error ) {
+            addToast( { type: 'error', message: error.message || 'Failed to sync report to monday.com.' } );
+        }
+    };
+
     // LOADING RENDER (Fetch or Hydration)
     if ( ( id && reportLoading ) || ( ! id && ! hasHydrated ) ) {
         return (
@@ -500,6 +533,20 @@ const ReportWizard = () => {
                             disabled={ isSaving || isSavingManual }
                         >
                             { isSaving || isSavingManual ? <>Saving...</> : <>Save Draft</> }
+                        </button>
+                    ) }
+                    { reportState?.id && reportState?.status === 'approved' && (
+                        <button
+                            onClick={ handleSyncToMonday }
+                            className="px-6 py-2.5 border border-emerald-300 text-emerald-700 rounded-2xl font-bold text-sm hover:bg-emerald-50 transition-all flex items-center gap-2"
+                            disabled={ isSaving || isSavingManual || mondaySyncMutation.isPending }
+                        >
+                            <RefreshCcw className="w-4 h-4" />
+                            { mondaySyncMutation.isPending
+                                ? 'Syncing...'
+                                : reportState?.monday_last_synced_at
+                                  ? 'Re-sync monday'
+                                  : 'Sync to monday' }
                         </button>
                     ) }
                     { canDeleteDraft && (

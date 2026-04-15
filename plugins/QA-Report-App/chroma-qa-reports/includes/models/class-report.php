@@ -87,6 +87,10 @@ class Report
     public $closing_notes;
     public $status;
     public $version_id;
+    public $monday_group_id;
+    public $monday_last_synced_at;
+    public $monday_sync_status;
+    public $monday_sync_error;
     public $created_at;
     public $updated_at;
 
@@ -324,6 +328,10 @@ class Report
         $report->closing_notes = $row['closing_notes'];
         $report->status = $row['status'];
         $report->version_id = (int) ($row['version_id'] ?? 1);
+        $report->monday_group_id = $row['monday_group_id'] ?? '';
+        $report->monday_last_synced_at = $row['monday_last_synced_at'] ?? null;
+        $report->monday_sync_status = $row['monday_sync_status'] ?? '';
+        $report->monday_sync_error = $row['monday_sync_error'] ?? '';
         $report->created_at = $row['created_at'];
         $report->updated_at = $row['updated_at'];
         return $report;
@@ -457,6 +465,55 @@ class Report
             error_log('Report deletion failed: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Update monday sync metadata without incrementing report version.
+     *
+     * @param array $meta monday sync metadata.
+     * @return bool
+     */
+    public function update_monday_sync_meta($meta)
+    {
+        if (!$this->id) {
+            return false;
+        }
+
+        global $wpdb;
+        $table = self::get_table_name();
+
+        $data = [];
+        $format = [];
+
+        if (array_key_exists('monday_group_id', $meta)) {
+            $data['monday_group_id'] = (string) $meta['monday_group_id'];
+            $format[] = '%s';
+            $this->monday_group_id = $data['monday_group_id'];
+        }
+
+        if (array_key_exists('monday_last_synced_at', $meta)) {
+            $data['monday_last_synced_at'] = $meta['monday_last_synced_at'];
+            $format[] = $meta['monday_last_synced_at'] === null ? '%s' : '%s';
+            $this->monday_last_synced_at = $meta['monday_last_synced_at'];
+        }
+
+        if (array_key_exists('monday_sync_status', $meta)) {
+            $data['monday_sync_status'] = (string) $meta['monday_sync_status'];
+            $format[] = '%s';
+            $this->monday_sync_status = $data['monday_sync_status'];
+        }
+
+        if (array_key_exists('monday_sync_error', $meta)) {
+            $data['monday_sync_error'] = (string) $meta['monday_sync_error'];
+            $format[] = '%s';
+            $this->monday_sync_error = $data['monday_sync_error'];
+        }
+
+        if (empty($data)) {
+            return true;
+        }
+
+        return $wpdb->update($table, $data, ['id' => $this->id], $format, ['%d']) !== false;
     }
 
     /**

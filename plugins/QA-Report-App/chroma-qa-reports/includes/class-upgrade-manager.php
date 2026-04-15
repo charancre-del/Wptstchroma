@@ -58,6 +58,11 @@ class Upgrade_Manager
             self::migration_v1_3_2_snapshot_types();
         }
 
+        // Version 1.4.0: monday.com sync defaults
+        if (version_compare($current_version, '1.4.0', '<')) {
+            self::migration_v1_4_0_monday_defaults();
+        }
+
         // Update version option
         update_option('cqa_db_version', CQA_VERSION);
     }
@@ -139,5 +144,27 @@ class Upgrade_Manager
         // Note: We intentionally skip running prune_old_versions for every report here
         // to prevent `max_execution_time` timeouts (500 errors) on large databases block plugins_loaded.
         // Old autosaves will be naturally pruned the next time a report is saved via Report_Snapshot::create_snapshot.
+    }
+
+    /**
+     * Migration: seed monday.com settings defaults safely.
+     *
+     * @return void
+     */
+    private static function migration_v1_4_0_monday_defaults()
+    {
+        $settings = get_option('cqa_settings', []);
+        if (!is_array($settings)) {
+            $settings = [];
+        }
+
+        $defaults = [
+            'monday_enabled' => 'no',
+            'monday_api_token' => '',
+            'monday_auto_sync_on_approval' => 'yes',
+            'monday_default_status_label' => 'Not Started',
+        ];
+
+        update_option('cqa_settings', array_merge($defaults, $settings));
     }
 }

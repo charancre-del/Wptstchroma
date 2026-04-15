@@ -417,3 +417,51 @@ export function useUpdateSettings() {
         },
     } );
 }
+
+/**
+ * Test monday.com connection.
+ */
+export function useTestMondayConnection() {
+    return useMutation( {
+        mutationFn: () => apiClient.post( '/monday/test', {} ),
+    } );
+}
+
+/**
+ * Fetch monday.com boards.
+ */
+export function useMondayBoards() {
+    return useMutation( {
+        mutationFn: () => apiClient.get( '/monday/boards' ),
+    } );
+}
+
+/**
+ * Validate and create missing columns on a monday board.
+ */
+export function useSetupMondayBoard() {
+    return useMutation( {
+        mutationFn: ( { boardId, ...data } ) => apiClient.post( `/monday/boards/${ boardId }/setup`, data ),
+    } );
+}
+
+/**
+ * Sync a report's POI to monday.com.
+ */
+export function useSyncReportToMonday() {
+    const queryClient = useQueryClient();
+
+    return useMutation( {
+        mutationFn: ( reportId ) => apiClient.post( `/reports/${ reportId }/sync-monday`, {} ),
+        onSuccess: ( response, reportId ) => {
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( reportId ) } );
+            queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
+
+            if ( response?.report?.school_id ) {
+                queryClient.invalidateQueries( {
+                    queryKey: queryKeys.schools.detail( response.report.school_id ),
+                } );
+            }
+        },
+    } );
+}

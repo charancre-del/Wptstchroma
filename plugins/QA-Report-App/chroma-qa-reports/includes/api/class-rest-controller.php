@@ -12,7 +12,9 @@ use ChromaQA\Models\Report;
 use ChromaQA\Models\Checklist_Response;
 use ChromaQA\Models\Photo;
 use ChromaQA\Integrations\Google_Drive;
+use ChromaQA\Integrations\Monday;
 use ChromaQA\Checklists\Checklist_Manager;
+use ChromaQA\Services\Monday_Sync_Service;
 use ChromaQA\Utils\Docx_Parser;
 use ChromaQA\AI\Gemini_Service;
 use WP_REST_Server;
@@ -214,6 +216,31 @@ class REST_Controller
             ],
         ]);
 
+        // monday.com integration
+        \register_rest_route(self::NAMESPACE, '/monday/test', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'test_monday_connection'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/monday/boards', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_monday_boards'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/monday/boards/(?P<id>\d+)/setup', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'setup_monday_board'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/reports/(?P<id>\d+)/sync-monday', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'sync_report_to_monday'],
+            'permission_callback' => [$this, 'check_edit_reports_permission'],
+        ]);
+
         // Dashboard Stats
         \register_rest_route(self::NAMESPACE , '/stats', [
             'methods' => WP_REST_Server::READABLE,
@@ -312,7 +339,16 @@ class REST_Controller
             $sanitized = [];
             foreach ($data as $key => $value) {
                 $key_label = is_string($key) ? $key : (string) $key;
-                if (is_string($key_label) && in_array(strtolower($key_label), $sensitive_keys, true)) {
+                $normalized_key = is_string($key_label) ? strtolower($key_label) : '';
+                $contains_sensitive_fragment = false;
+                foreach ($sensitive_keys as $fragment) {
+                    if ($normalized_key !== '' && strpos($normalized_key, $fragment) !== false) {
+                        $contains_sensitive_fragment = true;
+                        break;
+                    }
+                }
+
+                if ($contains_sensitive_fragment) {
                     $sanitized[$key] = '[REDACTED]';
                     continue;
                 }
@@ -768,6 +804,14 @@ class REST_Controller
         $school->acquired_date = \sanitize_text_field($request->get_param('acquired_date'));
         $school->status = \sanitize_text_field($request->get_param('status')) ?: 'active';
         $school->drive_folder_id = \sanitize_text_field($request->get_param('drive_folder_id'));
+        $school->monday_board_id = \sanitize_text_field($request->get_param('monday_board_id'));
+        $school->monday_board_name = \sanitize_text_field($request->get_param('monday_board_name'));
+        $school->monday_status_column_id = \sanitize_text_field($request->get_param('monday_status_column_id'));
+        $school->monday_priority_column_id = \sanitize_text_field($request->get_param('monday_priority_column_id'));
+        $school->monday_date_column_id = \sanitize_text_field($request->get_param('monday_date_column_id'));
+        $school->monday_notes_column_id = \sanitize_text_field($request->get_param('monday_notes_column_id'));
+        $school->monday_person_column_id = \sanitize_text_field($request->get_param('monday_person_column_id'));
+        $school->monday_default_person_id = \sanitize_text_field($request->get_param('monday_default_person_id'));
         $school->classroom_config = $request->get_param('classroom_config') ?: [];
 
         error_log('REST_Controller: create_school - Data: ' . print_r($request->get_params(), true));
@@ -807,6 +851,30 @@ class REST_Controller
         }
         if ($request->has_param('drive_folder_id')) {
             $school->drive_folder_id = \sanitize_text_field($request->get_param('drive_folder_id'));
+        }
+        if ($request->has_param('monday_board_id')) {
+            $school->monday_board_id = \sanitize_text_field($request->get_param('monday_board_id'));
+        }
+        if ($request->has_param('monday_board_name')) {
+            $school->monday_board_name = \sanitize_text_field($request->get_param('monday_board_name'));
+        }
+        if ($request->has_param('monday_status_column_id')) {
+            $school->monday_status_column_id = \sanitize_text_field($request->get_param('monday_status_column_id'));
+        }
+        if ($request->has_param('monday_priority_column_id')) {
+            $school->monday_priority_column_id = \sanitize_text_field($request->get_param('monday_priority_column_id'));
+        }
+        if ($request->has_param('monday_date_column_id')) {
+            $school->monday_date_column_id = \sanitize_text_field($request->get_param('monday_date_column_id'));
+        }
+        if ($request->has_param('monday_notes_column_id')) {
+            $school->monday_notes_column_id = \sanitize_text_field($request->get_param('monday_notes_column_id'));
+        }
+        if ($request->has_param('monday_person_column_id')) {
+            $school->monday_person_column_id = \sanitize_text_field($request->get_param('monday_person_column_id'));
+        }
+        if ($request->has_param('monday_default_person_id')) {
+            $school->monday_default_person_id = \sanitize_text_field($request->get_param('monday_default_person_id'));
         }
         if ($request->has_param('classroom_config')) {
             $school->classroom_config = $request->get_param('classroom_config');
@@ -982,6 +1050,13 @@ class REST_Controller
         if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report created', $snapshot_type)) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log(sprintf('[CQA Snapshot] Failed to refresh final create snapshot for report %d', (int) $report->id));
+            }
+        }
+
+        if ($report->status === Report::STATUS_APPROVED && Monday::auto_sync_on_approval()) {
+            $sync_result = Monday_Sync_Service::sync_report($report->id, 'approval');
+            if (is_wp_error($sync_result) && defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA Monday] Create approval sync failed for report %d: %s', (int) $report->id, $sync_result->get_error_message()));
             }
         }
 
@@ -1189,6 +1264,17 @@ class REST_Controller
             }
         }
 
+        if (
+            $previous_status !== Report::STATUS_APPROVED &&
+            $report->status === Report::STATUS_APPROVED &&
+            Monday::auto_sync_on_approval()
+        ) {
+            $sync_result = Monday_Sync_Service::sync_report($report->id, 'approval');
+            if (is_wp_error($sync_result) && defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA Monday] Approval sync failed for report %d: %s', (int) $report->id, $sync_result->get_error_message()));
+            }
+        }
+
         return new WP_REST_Response($this->prepare_report_response($report), 200);
     }
 
@@ -1231,6 +1317,8 @@ class REST_Controller
         if (!$report) {
             return new WP_Error('not_found', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
         }
+
+        $previous_status = $report->status;
 
         if (!is_array($responses)) {
             return new WP_Error('invalid_data', \__('Invalid responses data.', 'chroma-qa-reports'), ['status' => 400]);
@@ -1598,6 +1686,10 @@ class REST_Controller
                 'gemini_api_key' => \ChromaQA\Settings::get('gemini_api_key', \get_option('cqa_gemini_api_key')),
                 'gemini_model' => \ChromaQA\Settings::get('gemini_model', \get_option('cqa_gemini_model', 'gemini-1.5-flash')),
                 'enable_ai' => \ChromaQA\Settings::get('enable_ai', \get_option('cqa_enable_ai', 'yes')),
+                'monday_enabled' => \ChromaQA\Settings::get('monday_enabled', 'no'),
+                'monday_api_token' => \ChromaQA\Settings::get('monday_api_token', ''),
+                'monday_auto_sync_on_approval' => \ChromaQA\Settings::get('monday_auto_sync_on_approval', 'yes'),
+                'monday_default_status_label' => \ChromaQA\Settings::get('monday_default_status_label', Monday::DEFAULT_STATUS),
             ];
         } else {
             // Fallback to legacy options
@@ -1608,6 +1700,10 @@ class REST_Controller
                 'gemini_api_key' => \get_option('cqa_gemini_api_key'),
                 'gemini_model' => \get_option('cqa_gemini_model', 'gemini-1.5-flash'),
                 'enable_ai' => \get_option('cqa_enable_ai', 'yes'),
+                'monday_enabled' => \get_option('cqa_monday_enabled', 'no'),
+                'monday_api_token' => \get_option('cqa_monday_api_token', ''),
+                'monday_auto_sync_on_approval' => \get_option('cqa_monday_auto_sync_on_approval', 'yes'),
+                'monday_default_status_label' => \get_option('cqa_monday_default_status_label', Monday::DEFAULT_STATUS),
             ];
         }
 
@@ -1637,6 +1733,10 @@ class REST_Controller
             'gemini_api_key',
             'gemini_model',
             'enable_ai',
+            'monday_enabled',
+            'monday_api_token',
+            'monday_auto_sync_on_approval',
+            'monday_default_status_label',
         ];
 
         foreach ($fields as $field) {
@@ -1644,7 +1744,7 @@ class REST_Controller
                 $value = \sanitize_text_field($params[$field]);
 
                 // Masking protection: If value is all asterisks or dots, do not overwrite existing
-                if (in_array($field, ['google_client_secret', 'gemini_api_key', 'google_developer_key'])) {
+                if (in_array($field, ['google_client_secret', 'gemini_api_key', 'google_developer_key', 'monday_api_token'], true)) {
                     if (preg_match('/^[\*•]+$/u', $value)) {
                         continue;
                     }
@@ -1663,6 +1763,94 @@ class REST_Controller
         }
 
         return new WP_REST_Response(['success' => true], 200);
+    }
+
+    /**
+     * Test monday connection with current settings.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function test_monday_connection(WP_REST_Request $request)
+    {
+        $result = Monday::test_connection();
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $result,
+        ], 200);
+    }
+
+    /**
+     * Fetch monday boards.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function get_monday_boards(WP_REST_Request $request)
+    {
+        $boards = Monday::get_boards();
+        if (is_wp_error($boards)) {
+            return $boards;
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $boards,
+        ], 200);
+    }
+
+    /**
+     * Validate and create missing monday columns for a board.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function setup_monday_board(WP_REST_Request $request)
+    {
+        $board_id = (string) $request['id'];
+        $mapping = [
+            'monday_status_column_id' => sanitize_text_field((string) $request->get_param('monday_status_column_id')),
+            'monday_priority_column_id' => sanitize_text_field((string) $request->get_param('monday_priority_column_id')),
+            'monday_date_column_id' => sanitize_text_field((string) $request->get_param('monday_date_column_id')),
+            'monday_notes_column_id' => sanitize_text_field((string) $request->get_param('monday_notes_column_id')),
+            'monday_person_column_id' => sanitize_text_field((string) $request->get_param('monday_person_column_id')),
+        ];
+
+        $result = Monday::ensure_board_columns($board_id, $mapping);
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $result,
+        ], 200);
+    }
+
+    /**
+     * Manually sync an approved report to monday.com.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function sync_report_to_monday(WP_REST_Request $request)
+    {
+        $result = Monday_Sync_Service::sync_report((int) $request['id'], 'manual');
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        $report = Report::find((int) $request['id']);
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $result,
+            'report' => $report ? $this->prepare_report_response($report) : null,
+        ], 200);
     }
 
     public function generate_report_pdf(WP_REST_Request $request)
@@ -1939,6 +2127,14 @@ class REST_Controller
             'acquired_date' => $school->acquired_date,
             'status' => $school->status,
             'drive_folder_id' => $school->drive_folder_id,
+            'monday_board_id' => $school->monday_board_id,
+            'monday_board_name' => $school->monday_board_name,
+            'monday_status_column_id' => $school->monday_status_column_id,
+            'monday_priority_column_id' => $school->monday_priority_column_id,
+            'monday_date_column_id' => $school->monday_date_column_id,
+            'monday_notes_column_id' => $school->monday_notes_column_id,
+            'monday_person_column_id' => $school->monday_person_column_id,
+            'monday_default_person_id' => $school->monday_default_person_id,
             'classroom_config' => $school->classroom_config,
             'created_at' => $school->created_at,
             'last_inspection_date' => $school->last_inspection_date,
@@ -1982,6 +2178,10 @@ class REST_Controller
             'created_at' => $report->created_at,
             'updated_at' => $report->updated_at,
             'version_id' => $report->version_id,
+            'monday_group_id' => $report->monday_group_id,
+            'monday_last_synced_at' => $report->monday_last_synced_at,
+            'monday_sync_status' => $report->monday_sync_status,
+            'monday_sync_error' => $report->monday_sync_error,
             'school_name' => $report->get_school() ? $report->get_school()->name : 'Unknown School',
             'is_mine' => ($report->user_id == \get_current_user_id()),
         ];

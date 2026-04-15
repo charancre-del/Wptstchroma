@@ -57,6 +57,14 @@ class Activator
             acquired_date DATE DEFAULT NULL,
             status VARCHAR(50) DEFAULT 'active',
             drive_folder_id VARCHAR(100) DEFAULT '',
+            monday_board_id VARCHAR(50) DEFAULT '',
+            monday_board_name VARCHAR(255) DEFAULT '',
+            monday_status_column_id VARCHAR(100) DEFAULT '',
+            monday_priority_column_id VARCHAR(100) DEFAULT '',
+            monday_date_column_id VARCHAR(100) DEFAULT '',
+            monday_notes_column_id VARCHAR(100) DEFAULT '',
+            monday_person_column_id VARCHAR(100) DEFAULT '',
+            monday_default_person_id VARCHAR(50) DEFAULT '',
             classroom_config LONGTEXT DEFAULT '',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -78,6 +86,10 @@ class Activator
             closing_notes LONGTEXT DEFAULT '',
             status VARCHAR(50) DEFAULT 'draft',
             version_id BIGINT(20) UNSIGNED DEFAULT 1,
+            monday_group_id VARCHAR(50) DEFAULT '',
+            monday_last_synced_at DATETIME DEFAULT NULL,
+            monday_sync_status VARCHAR(50) DEFAULT '',
+            monday_sync_error LONGTEXT DEFAULT '',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
@@ -155,6 +167,21 @@ class Activator
             UNIQUE KEY report_version (report_id, version_number)
         ) $charset_collate;";
 
+        $sql_monday_syncs = "CREATE TABLE {$prefix}monday_poi_syncs (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            report_id BIGINT(20) UNSIGNED NOT NULL,
+            poi_key VARCHAR(191) NOT NULL,
+            monday_item_id VARCHAR(50) NOT NULL,
+            monday_group_id VARCHAR(50) DEFAULT '',
+            last_synced_hash VARCHAR(64) DEFAULT '',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY report_poi (report_id, poi_key),
+            KEY report_id (report_id),
+            KEY monday_item_id (monday_item_id)
+        ) $charset_collate;";
+
         // Run table creation
         dbDelta($sql_schools);
         dbDelta($sql_reports);
@@ -162,6 +189,7 @@ class Activator
         dbDelta($sql_photos);
         dbDelta($sql_ai_summaries);
         dbDelta($sql_snapshots);
+        dbDelta($sql_monday_syncs);
 
         // Add deleted_at column to photos for soft-delete (if not exists)
         $photos_table = $prefix . 'photos';
@@ -172,6 +200,8 @@ class Activator
 
         self::ensure_snapshot_constraints();
         self::ensure_snapshot_type_column();
+        self::ensure_school_monday_columns();
+        self::ensure_report_monday_columns();
 
         // Store DB version
         update_option('cqa_db_version', CQA_VERSION);
@@ -265,6 +295,60 @@ class Activator
                 (int) $duplicate['version_number'],
                 (int) $duplicate['keep_id']
             ));
+        }
+    }
+
+    /**
+     * Ensure monday.com mapping columns exist on schools.
+     *
+     * @return void
+     */
+    private static function ensure_school_monday_columns()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_schools';
+        $columns = [
+            'monday_board_id' => "ALTER TABLE {$table} ADD COLUMN monday_board_id VARCHAR(50) DEFAULT '' AFTER drive_folder_id",
+            'monday_board_name' => "ALTER TABLE {$table} ADD COLUMN monday_board_name VARCHAR(255) DEFAULT '' AFTER monday_board_id",
+            'monday_status_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_status_column_id VARCHAR(100) DEFAULT '' AFTER monday_board_name",
+            'monday_priority_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_priority_column_id VARCHAR(100) DEFAULT '' AFTER monday_status_column_id",
+            'monday_date_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_date_column_id VARCHAR(100) DEFAULT '' AFTER monday_priority_column_id",
+            'monday_notes_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_notes_column_id VARCHAR(100) DEFAULT '' AFTER monday_date_column_id",
+            'monday_person_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_person_column_id VARCHAR(100) DEFAULT '' AFTER monday_notes_column_id",
+            'monday_default_person_id' => "ALTER TABLE {$table} ADD COLUMN monday_default_person_id VARCHAR(50) DEFAULT '' AFTER monday_person_column_id",
+        ];
+
+        foreach ($columns as $column => $sql) {
+            $exists = $wpdb->get_var("SHOW COLUMNS FROM {$table} LIKE '{$column}'");
+            if (!$exists) {
+                $wpdb->query($sql);
+            }
+        }
+    }
+
+    /**
+     * Ensure monday.com sync metadata columns exist on reports.
+     *
+     * @return void
+     */
+    private static function ensure_report_monday_columns()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_reports';
+        $columns = [
+            'monday_group_id' => "ALTER TABLE {$table} ADD COLUMN monday_group_id VARCHAR(50) DEFAULT '' AFTER version_id",
+            'monday_last_synced_at' => "ALTER TABLE {$table} ADD COLUMN monday_last_synced_at DATETIME DEFAULT NULL AFTER monday_group_id",
+            'monday_sync_status' => "ALTER TABLE {$table} ADD COLUMN monday_sync_status VARCHAR(50) DEFAULT '' AFTER monday_last_synced_at",
+            'monday_sync_error' => "ALTER TABLE {$table} ADD COLUMN monday_sync_error LONGTEXT DEFAULT '' AFTER monday_sync_status",
+        ];
+
+        foreach ($columns as $column => $sql) {
+            $exists = $wpdb->get_var("SHOW COLUMNS FROM {$table} LIKE '{$column}'");
+            if (!$exists) {
+                $wpdb->query($sql);
+            }
         }
     }
 
@@ -387,6 +471,10 @@ class Activator
             'google_client_secret' => '',
             'gemini_api_key' => '',
             'drive_root_folder' => '',
+            'monday_enabled' => 'no',
+            'monday_api_token' => '',
+            'monday_auto_sync_on_approval' => 'yes',
+            'monday_default_status_label' => 'Not Started',
             'company_name' => 'Chroma Early Learning Academy',
             'reports_per_school' => 2,
         ];

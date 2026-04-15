@@ -69,6 +69,14 @@ class School
      * @var string
      */
     public $drive_folder_id;
+    public $monday_board_id;
+    public $monday_board_name;
+    public $monday_status_column_id;
+    public $monday_priority_column_id;
+    public $monday_date_column_id;
+    public $monday_notes_column_id;
+    public $monday_person_column_id;
+    public $monday_default_person_id;
 
     /**
      * Classroom configuration JSON.
@@ -335,6 +343,14 @@ class School
         $school->acquired_date = $row['acquired_date'] ?: null;
         $school->status = $row['status'] ?? 'active';
         $school->drive_folder_id = $row['drive_folder_id'];
+        $school->monday_board_id = $row['monday_board_id'] ?? '';
+        $school->monday_board_name = $row['monday_board_name'] ?? '';
+        $school->monday_status_column_id = $row['monday_status_column_id'] ?? '';
+        $school->monday_priority_column_id = $row['monday_priority_column_id'] ?? '';
+        $school->monday_date_column_id = $row['monday_date_column_id'] ?? '';
+        $school->monday_notes_column_id = $row['monday_notes_column_id'] ?? '';
+        $school->monday_person_column_id = $row['monday_person_column_id'] ?? '';
+        $school->monday_default_person_id = $row['monday_default_person_id'] ?? '';
         $school->classroom_config = json_decode($row['classroom_config'] ?: '{}', true);
         $school->created_at = $row['created_at'];
         $school->updated_at = $row['updated_at'];
@@ -361,10 +377,18 @@ class School
             'acquired_date' => !empty($this->acquired_date) ? $this->acquired_date : null,
             'status' => $this->status ?: 'active',
             'drive_folder_id' => $this->drive_folder_id,
+            'monday_board_id' => $this->monday_board_id ?: '',
+            'monday_board_name' => $this->monday_board_name ?: '',
+            'monday_status_column_id' => $this->monday_status_column_id ?: '',
+            'monday_priority_column_id' => $this->monday_priority_column_id ?: '',
+            'monday_date_column_id' => $this->monday_date_column_id ?: '',
+            'monday_notes_column_id' => $this->monday_notes_column_id ?: '',
+            'monday_person_column_id' => $this->monday_person_column_id ?: '',
+            'monday_default_person_id' => $this->monday_default_person_id ?: '',
             'classroom_config' => \wp_json_encode($this->classroom_config ?: []),
         ];
 
-        $format = ['%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s'];
+        $format = ['%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s'];
 
         if ($this->id) {
             // Update existing
