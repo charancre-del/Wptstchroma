@@ -30,7 +30,7 @@ export const compressImage = ( file, maxWidth = 2048, maxHeight = 2048, quality 
                 }
             } else if ( height > maxHeight ) {
                 width *= maxHeight / height;
-                width = maxWidth;
+                height = maxHeight;
             }
 
             canvas.width = width;

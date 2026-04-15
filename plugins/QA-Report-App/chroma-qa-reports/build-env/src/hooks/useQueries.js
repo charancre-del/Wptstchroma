@@ -346,14 +346,8 @@ export function useUploadPhotos() {
     return useMutation( {
         mutationFn: ( { reportId, photos } ) => {
             const formData = new FormData();
-            photos.forEach( ( photo, index ) => {
-                formData.append( `photos[${ index }]`, photo.file );
-                if ( photo.caption ) {
-                    formData.append( `captions[${ index }]`, photo.caption );
-                }
-                if ( photo.category ) {
-                    formData.append( `categories[${ index }]`, photo.category );
-                }
+            photos.forEach( ( photo ) => {
+                formData.append( 'photos[]', photo.file );
             } );
             return apiClient.post( `/reports/${ reportId }/photos`, formData );
         },

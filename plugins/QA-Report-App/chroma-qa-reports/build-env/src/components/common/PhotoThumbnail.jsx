@@ -20,7 +20,7 @@ const PhotoThumbnail = ( { photo, onDelete, readOnly = false } ) => {
     };
 
     return (
-        <div className="relative group w-16 h-16 bg-gray-100 rounded border border-gray-200 overflow-hidden flex-shrink-0">
+        <div className="relative group w-full h-full bg-gray-100 rounded border border-gray-200 overflow-hidden">
             { error ? (
                 <div className="w-full h-full flex items-center justify-center text-gray-400">
                     <AlertCircle size={ 16 } />

@@ -17,7 +17,7 @@ const PhotoUploader = ( { onUpload } ) => {
             setUploading( true );
             try {
                 // Compress and process files locally
-                const processedFiles = await Promise.all(
+                const processedFiles = await Promise.allSettled(
                     acceptedFiles.map( async ( file ) => {
                         try {
                             // Only compress if it's an image
@@ -32,8 +32,26 @@ const PhotoUploader = ( { onUpload } ) => {
                     } )
                 );
 
-                const newPhotos = processedFiles.map( ( file ) => ( {
-                    id: `temp-${ Date.now() }-${ file.name }`,
+                const successfulFiles = processedFiles
+                    .filter( ( result ) => result.status === 'fulfilled' )
+                    .map( ( result ) => result.value );
+
+                const failedFiles = processedFiles.filter( ( result ) => result.status === 'rejected' );
+
+                if ( successfulFiles.length === 0 ) {
+                    throw new Error( 'No photos could be prepared for upload.' );
+                }
+
+                if ( failedFiles.length > 0 ) {
+                    addToast( {
+                        type: 'warning',
+                        message: `${ failedFiles.length } photo${ failedFiles.length !== 1 ? 's' : '' } could not be prepared and were skipped.`,
+                    } );
+                }
+
+                const timestamp = Date.now();
+                const newPhotos = successfulFiles.map( ( file, index ) => ( {
+                    id: `temp-${ timestamp }-${ index }-${ file.name }`,
                     file,
                     preview: URL.createObjectURL( file ), // Local preview
                     name: file.name,

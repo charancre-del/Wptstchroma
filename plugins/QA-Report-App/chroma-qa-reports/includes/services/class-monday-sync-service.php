@@ -7,7 +7,9 @@
 
 namespace ChromaQA\Services;
 
+use ChromaQA\Checklists\Checklist_Manager;
 use ChromaQA\Integrations\Monday;
+use ChromaQA\Models\Checklist_Response;
 use ChromaQA\Models\Report;
 use ChromaQA\Models\School;
 use WP_Error;
@@ -52,9 +54,40 @@ class Monday_Sync_Service
         }
 
         $mapping = self::school_mapping_array($school);
+        $missing_mapping_fields = array_filter(
+            array_keys(Monday::required_columns()),
+            static function ($required_field) use ($mapping) {
+                return empty($mapping[$required_field]);
+            }
+        );
+
+        if (!empty($missing_mapping_fields)) {
+            $ensured_columns = Monday::ensure_board_columns($school->monday_board_id, $mapping);
+            if (is_wp_error($ensured_columns)) {
+                self::persist_report_status($report, 'error', $ensured_columns->get_error_message());
+                return $ensured_columns;
+            }
+
+            $mapping = array_merge($mapping, $ensured_columns['mapping'] ?? []);
+            $school->monday_board_name = (string) ($ensured_columns['board_name'] ?? $school->monday_board_name);
+            $school->monday_status_column_id = (string) ($mapping['monday_status_column_id'] ?? $school->monday_status_column_id);
+            $school->monday_priority_column_id = (string) ($mapping['monday_priority_column_id'] ?? $school->monday_priority_column_id);
+            $school->monday_date_column_id = (string) ($mapping['monday_date_column_id'] ?? $school->monday_date_column_id);
+            $school->monday_notes_column_id = (string) ($mapping['monday_notes_column_id'] ?? $school->monday_notes_column_id);
+            $school->monday_person_column_id = (string) ($mapping['monday_person_column_id'] ?? $school->monday_person_column_id);
+            $school->save();
+        }
+
         foreach (array_keys(Monday::required_columns()) as $required_field) {
             if (empty($mapping[$required_field])) {
-                $error = new WP_Error('cqa_monday_columns_missing', __('This school board is missing required monday.com column mappings.', 'chroma-qa-reports'), ['status' => 422]);
+                $error = new WP_Error(
+                    'cqa_monday_columns_missing',
+                    sprintf(
+                        __('This school board is missing required monday.com column mappings after validation: %s.', 'chroma-qa-reports'),
+                        implode(', ', $missing_mapping_fields)
+                    ),
+                    ['status' => 422]
+                );
                 self::persist_report_status($report, 'error', $error->get_error_message());
                 return $error;
             }
@@ -295,11 +328,28 @@ class Monday_Sync_Service
     private static function normalize_poi_items($report)
     {
         $summary = $report->get_ai_summary();
-        $items = $summary['plan_of_improvement'] ?? [];
-        if (!is_array($items)) {
-            return [];
+        $items = is_array($summary)
+            ? ($summary['plan_of_improvement'] ?? $summary['poi'] ?? [])
+            : [];
+
+        if (is_array($items)) {
+            $normalized = self::normalize_raw_poi_items($items);
+            if (!empty($normalized)) {
+                return $normalized;
+            }
         }
 
+        return self::build_fallback_poi_items($report);
+    }
+
+    /**
+     * Normalize raw POI items into stable sync items.
+     *
+     * @param array $items Raw POI items.
+     * @return array<int,array<string,mixed>>
+     */
+    private static function normalize_raw_poi_items($items)
+    {
         $normalized = [];
 
         foreach ($items as $index => $item) {
@@ -351,6 +401,107 @@ class Monday_Sync_Service
         }
 
         return $normalized;
+    }
+
+    /**
+     * Build fallback POI items directly from non-compliant checklist responses.
+     *
+     * @param Report $report Report model.
+     * @return array<int,array<string,mixed>>
+     */
+    private static function build_fallback_poi_items($report)
+    {
+        $responses = Checklist_Response::get_by_report_grouped($report->id);
+        if (!is_array($responses) || empty($responses)) {
+            return [];
+        }
+
+        $checklist = Checklist_Manager::get_checklist_for_type($report->report_type);
+        $lookup = [];
+
+        if (is_array($checklist) && !empty($checklist['sections']) && is_array($checklist['sections'])) {
+            foreach ($checklist['sections'] as $section) {
+                $section_key = (string) ($section['key'] ?? '');
+                if ($section_key === '') {
+                    continue;
+                }
+
+                $section_name = (string) ($section['name'] ?? ucwords(str_replace('_', ' ', $section_key)));
+                $items = isset($section['items']) && is_array($section['items']) ? $section['items'] : [];
+
+                foreach ($items as $item) {
+                    $item_key = (string) ($item['key'] ?? '');
+                    if ($item_key === '') {
+                        continue;
+                    }
+
+                    $lookup[$section_key . '/' . $item_key] = [
+                        'section_name' => $section_name,
+                        'item_label' => (string) ($item['label'] ?? ucwords(str_replace('_', ' ', $item_key))),
+                        'root_key' => (string) ($item['root_key'] ?? ($section_key . '/' . $item_key)),
+                        'entry_mode' => (string) ($item['entry_mode'] ?? 'standalone'),
+                    ];
+                }
+            }
+        }
+
+        $items = [];
+        $deduped = [];
+
+        foreach ($responses as $section_key => $section_items) {
+            if (!is_array($section_items)) {
+                continue;
+            }
+
+            foreach ($section_items as $item_key => $response) {
+                $rating = strtolower(trim((string) (is_object($response) ? ($response->rating ?? '') : ($response['rating'] ?? ''))));
+                if (!in_array($rating, ['no', 'sometimes'], true)) {
+                    continue;
+                }
+
+                $meta = $lookup[$section_key . '/' . $item_key] ?? [
+                    'section_name' => ucwords(str_replace('_', ' ', (string) $section_key)),
+                    'item_label' => ucwords(str_replace('_', ' ', (string) $item_key)),
+                    'root_key' => $section_key . '/' . $item_key,
+                    'entry_mode' => 'standalone',
+                ];
+
+                $root_key = (string) ($meta['root_key'] ?? ($section_key . '/' . $item_key));
+                if (($meta['entry_mode'] ?? 'standalone') === 'shared_exact' && isset($deduped[$root_key])) {
+                    continue;
+                }
+
+                $deduped[$root_key] = true;
+                $notes = trim((string) (is_object($response) ? ($response->notes ?? '') : ($response['notes'] ?? '')));
+                $label = (string) ($meta['item_label'] ?? ucwords(str_replace('_', ' ', (string) $item_key)));
+                $section_name = (string) ($meta['section_name'] ?? ucwords(str_replace('_', ' ', (string) $section_key)));
+
+                $items[] = [
+                    'poi_key' => $root_key,
+                    'root_key' => $root_key,
+                    'section_key' => (string) $section_key,
+                    'item_key' => (string) $item_key,
+                    'issue' => $label,
+                    'area' => $label,
+                    'section' => $section_name,
+                    'current_status' => $notes !== ''
+                        ? $notes
+                        : sprintf('%s in %s was marked as %s.', $label, $section_name, strtoupper($rating)),
+                    'action_steps' => [
+                        sprintf('Review current practice for %s with the team.', $label),
+                        sprintf('Implement the correction for %s and document the change.', $label),
+                        sprintf('Verify %s is consistently meeting expectations before the next QA review.', $label),
+                    ],
+                    'action' => sprintf('Address %s.', $label),
+                    'priority' => $rating === 'no' ? 1 : 2,
+                    'timeline' => $rating === 'no' ? 'Within 24 hours' : 'Within 7 days',
+                    'success_criteria' => sprintf('%s is consistently observed meeting expectations.', $label),
+                    'support_offered' => 'Provide coaching, examples, and follow-up verification support.',
+                ];
+            }
+        }
+
+        return $items;
     }
 
     /**

@@ -1521,6 +1521,7 @@ class REST_Controller
         $folder_id = $school ? $school->drive_folder_id : null;
 
         $uploaded_photos = [];
+        $upload_errors = [];
         $photos = $files['photos'];
 
         // Normalize if single file
@@ -1597,8 +1598,35 @@ class REST_Controller
                         'view_url' => $photo->get_view_url(),
                     ];
                     $uploaded_photos[] = $photo_data;
+                } else {
+                    $upload_errors[] = sprintf(
+                        __('Failed to create attachment for %s.', 'chroma-qa-reports'),
+                        basename($file['name'] ?? __('photo', 'chroma-qa-reports'))
+                    );
                 }
+            } elseif (isset($movefile['error'])) {
+                $upload_errors[] = sprintf(
+                    __('%1$s: %2$s', 'chroma-qa-reports'),
+                    basename($file['name'] ?? __('photo', 'chroma-qa-reports')),
+                    $movefile['error']
+                );
+            } else {
+                $upload_errors[] = sprintf(
+                    __('%s could not be uploaded.', 'chroma-qa-reports'),
+                    basename($file['name'] ?? __('photo', 'chroma-qa-reports'))
+                );
             }
+        }
+
+        if (empty($uploaded_photos) && !empty($upload_errors)) {
+            return new WP_Error(
+                'upload_failed',
+                implode(' ', $upload_errors),
+                [
+                    'status' => 422,
+                    'errors' => $upload_errors,
+                ]
+            );
         }
 
         if (!empty($uploaded_photos) && !$report->save('Photos updated', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
@@ -1610,6 +1638,9 @@ class REST_Controller
             'success' => true,
             'data' => $uploaded_photos, // For new React app
             'photos' => $uploaded_photos, // For older React app versions
+            'errors' => $upload_errors,
+            'version_id' => $report ? $report->version_id : null,
+            'updated_at' => $report ? $report->updated_at : null,
         ];
 
         // For Legacy jQuery uploader (which uploads one by one and expects response.id)

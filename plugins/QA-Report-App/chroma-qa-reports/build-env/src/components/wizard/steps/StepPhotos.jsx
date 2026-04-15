@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import apiFetch from '@api/client';
 import useUIStore from '@stores/useUIStore';
 import PhotoUploader from '../../common/upload/PhotoUploader';
@@ -7,9 +7,34 @@ import PhotoThumbnail from '../../common/PhotoThumbnail';
 const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPhotos } ) => {
     const { addToast } = useUIStore();
     const [ uploading, setUploading ] = useState( false );
+    const [ pendingPhotos, setPendingPhotos ] = useState( [] );
 
     // Use photos prop from parent store
     const currentPhotos = photos || [];
+    const latestPhotosRef = useRef( currentPhotos );
+
+    useEffect( () => {
+        latestPhotosRef.current = currentPhotos;
+    }, [ currentPhotos ] );
+
+    const allVisiblePhotos = useMemo( () => [ ...pendingPhotos, ...currentPhotos ], [ pendingPhotos, currentPhotos ] );
+
+    const mergePhotos = ( incomingPhotos ) => {
+        const latestPhotos = latestPhotosRef.current || [];
+        const merged = [ ...latestPhotos ];
+
+        incomingPhotos.forEach( ( photo ) => {
+            if ( ! merged.some( ( existing ) => String( existing.id ) === String( photo.id ) ) ) {
+                merged.push( photo );
+            }
+        } );
+
+        if ( setPhotos ) {
+            setPhotos( merged );
+        } else {
+            updateDraft( { photos: merged } );
+        }
+    };
 
     const handleUpload = async ( newFiles ) => {
         setUploading( true );
@@ -22,38 +47,68 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
 
         const reportId = draft.id;
         console.log( '[StepPhotos] Uploading to report:', reportId );
+        setPendingPhotos( ( prev ) => [ ...prev, ...newFiles ] );
 
-        const formData = new FormData();
-        newFiles.forEach( ( fileObj ) => {
-            formData.append( 'photos[]', fileObj.file );
-        } );
+        let uploadedCount = 0;
+        let failedCount = 0;
 
         try {
-            const response = await apiFetch( `reports/${ reportId }/photos`, {
-                method: 'POST',
-                body: formData,
-            } );
+            for ( const fileObj of newFiles ) {
+                const formData = new FormData();
+                formData.append( 'photos[]', fileObj.file );
 
-            if ( response.success ) {
-                // If API returns unified structure, data is in response.data
-                const newPhotos = response.data || [];
+                const response = await apiFetch( `reports/${ reportId }/photos`, {
+                    method: 'POST',
+                    body: formData,
+                } );
 
-                // Update Global Store directly via setPhotos
-                if ( setPhotos ) {
-                    setPhotos( [ ...currentPhotos, ...newPhotos ] );
+                if ( response.success ) {
+                    if ( response.version_id || response.updated_at ) {
+                        updateDraft?.( {
+                            ...( response.version_id ? { version_id: response.version_id } : {} ),
+                            ...( response.updated_at ? { updated_at: response.updated_at } : {} ),
+                        } );
+                    }
+
+                    const uploadedPhotos = Array.isArray( response.data ) ? response.data : response.data ? [ response.data ] : [];
+                    if ( uploadedPhotos.length > 0 ) {
+                        mergePhotos( uploadedPhotos );
+                        uploadedCount += uploadedPhotos.length;
+                    }
+
+                    if ( Array.isArray( response.errors ) && response.errors.length > 0 ) {
+                        failedCount += response.errors.length;
+                    }
                 } else {
-                    // Fallback if setPhotos not passed (legacy)
-                    updateDraft( { photos: [ ...currentPhotos, ...newPhotos ] } );
+                    failedCount++;
                 }
+            }
 
-                addToast( { type: 'success', message: `${ newFiles.length } photos uploaded.` } );
-            } else {
-                throw new Error( 'Upload failed' );
+            if ( uploadedCount > 0 ) {
+                addToast( {
+                    type: failedCount > 0 ? 'warning' : 'success',
+                    message:
+                        failedCount > 0
+                            ? `${ uploadedCount } photo${ uploadedCount !== 1 ? 's' : '' } uploaded, ${ failedCount } failed.`
+                            : `${ uploadedCount } photo${ uploadedCount !== 1 ? 's' : '' } uploaded.`,
+                } );
+            } else if ( failedCount > 0 ) {
+                addToast( {
+                    type: 'error',
+                    message: 'Photo upload failed. Check file size, type, or image processing.',
+                } );
             }
         } catch ( error ) {
             console.error( 'Photo upload failed', error );
-            addToast( { type: 'error', message: 'Photo upload failed. Check file size/type.' } );
+            addToast( { type: 'error', message: error.message || 'Photo upload failed. Check file size/type.' } );
         } finally {
+            newFiles.forEach( ( fileObj ) => {
+                if ( fileObj.preview ) {
+                    URL.revokeObjectURL( fileObj.preview );
+                }
+            } );
+            const pendingIds = new Set( newFiles.map( ( fileObj ) => fileObj.id ) );
+            setPendingPhotos( ( prev ) => prev.filter( ( photo ) => ! pendingIds.has( photo.id ) ) );
             setUploading( false );
         }
     };
@@ -65,7 +120,7 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
 
         try {
             // Optimistic Update
-            const updatedPhotos = currentPhotos.filter( ( p ) => p.id !== photoId );
+            const updatedPhotos = ( latestPhotosRef.current || [] ).filter( ( p ) => p.id !== photoId );
 
             if ( setPhotos ) {
                 setPhotos( updatedPhotos );
@@ -99,19 +154,29 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
             ) }
 
             { /* Gallery Grid */ }
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                { currentPhotos.map( ( photo ) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                { allVisiblePhotos.map( ( photo ) => (
                     <div
                         key={ photo.id }
-                        className="relative group aspect-square bg-gray-100 rounded-lg overflow-hidden border border-gray-200"
+                        className="relative rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm"
                     >
-                        <PhotoThumbnail photo={ photo } onDelete={ handleDelete } readOnly={ readOnly } />
+                        <div className="aspect-square bg-gray-100">
+                            <PhotoThumbnail photo={ photo } onDelete={ handleDelete } readOnly={ readOnly || photo.status === 'pending' } />
+                        </div>
+                        <div className="px-3 py-2 border-t border-gray-100">
+                            <p className="text-xs font-medium text-gray-700 truncate">
+                                { photo.caption || photo.filename || photo.name || 'Evidence photo' }
+                            </p>
+                            { photo.status === 'pending' && (
+                                <p className="text-[11px] text-cqa-primary mt-1 animate-pulse">Processing and uploading...</p>
+                            ) }
+                        </div>
                     </div>
                 ) ) }
             </div>
 
             { /* Empty State */ }
-            { currentPhotos.length === 0 && (
+            { allVisiblePhotos.length === 0 && (
                 <div className="text-center py-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-lg">
                     <p>No photos added yet.</p>
                 </div>
