@@ -126,30 +126,197 @@ class Monday
         );
 
         if (is_wp_error($response)) {
-            return $response;
+            self::log_error('transport_error', $response->get_error_messages());
+
+            return new WP_Error(
+                'cqa_monday_transport_error',
+                __('Could not reach monday.com. Please try again in a moment.', 'chroma-qa-reports'),
+                [
+                    'status' => 424,
+                    'details' => $response->get_error_messages(),
+                ]
+            );
         }
 
         $code = (int) wp_remote_retrieve_response_code($response);
-        $body = json_decode((string) wp_remote_retrieve_body($response), true);
+        $raw_body = (string) wp_remote_retrieve_body($response);
+        $body = json_decode($raw_body, true);
 
         if ($code >= 400) {
+            $message = self::extract_http_error_message($body, $code);
+            self::log_error(
+                'http_error',
+                [
+                    'http_status' => $code,
+                    'body' => is_array($body) ? $body : substr($raw_body, 0, 500),
+                ]
+            );
+
             return new WP_Error(
                 'cqa_monday_http_error',
-                sprintf(__('monday.com request failed with status %d.', 'chroma-qa-reports'), $code),
-                ['status' => 502, 'body' => $body]
+                $message,
+                [
+                    'status' => self::map_http_status($code),
+                    'monday_status' => $code,
+                    'body' => is_array($body) ? $body : null,
+                ]
             );
         }
 
         if (!is_array($body)) {
-            return new WP_Error('cqa_monday_invalid_response', __('Invalid monday.com response received.', 'chroma-qa-reports'), ['status' => 502]);
+            self::log_error('invalid_response', substr($raw_body, 0, 500));
+
+            return new WP_Error(
+                'cqa_monday_invalid_response',
+                __('Invalid response received from monday.com.', 'chroma-qa-reports'),
+                [
+                    'status' => 424,
+                    'response_text' => substr($raw_body, 0, 500),
+                ]
+            );
         }
 
         if (!empty($body['errors'])) {
-            $message = $body['errors'][0]['message'] ?? __('Unknown monday.com API error.', 'chroma-qa-reports');
-            return new WP_Error('cqa_monday_api_error', $message, ['status' => 502, 'errors' => $body['errors']]);
+            $message = self::extract_graphql_error_message($body['errors']);
+            self::log_error('graphql_error', $body['errors']);
+
+            return new WP_Error(
+                'cqa_monday_api_error',
+                $message,
+                [
+                    'status' => self::map_graphql_status($body['errors']),
+                    'errors' => $body['errors'],
+                ]
+            );
         }
 
         return $body['data'] ?? [];
+    }
+
+    /**
+     * Map monday HTTP responses to JSON-safe application statuses.
+     *
+     * Avoid returning 5xx here for ordinary dependency/app failures so upstream
+     * proxies don't replace our REST JSON with branded HTML error pages.
+     *
+     * @param int $http_status monday HTTP status.
+     * @return int
+     */
+    private static function map_http_status($http_status)
+    {
+        if (in_array($http_status, [401, 403, 404, 409, 422, 429], true)) {
+            return $http_status;
+        }
+
+        return 424;
+    }
+
+    /**
+     * Map monday GraphQL errors to JSON-safe application statuses.
+     *
+     * @param array $errors GraphQL errors.
+     * @return int
+     */
+    private static function map_graphql_status($errors)
+    {
+        foreach ((array) $errors as $error) {
+            $extensions = is_array($error['extensions'] ?? null) ? $error['extensions'] : [];
+            $code = strtolower((string) ($extensions['code'] ?? ''));
+            $status_code = isset($extensions['status_code']) ? (int) $extensions['status_code'] : 0;
+            $message = strtolower((string) ($error['message'] ?? ''));
+
+            if (in_array($status_code, [401, 403, 404, 409, 422, 429], true)) {
+                return $status_code;
+            }
+
+            if (
+                str_contains($code, 'auth') ||
+                str_contains($message, 'unauthorized') ||
+                str_contains($message, 'invalid api token')
+            ) {
+                return 401;
+            }
+
+            if (
+                str_contains($code, 'permission') ||
+                str_contains($message, 'forbidden') ||
+                str_contains($message, 'permission')
+            ) {
+                return 403;
+            }
+
+            if (
+                str_contains($code, 'validation') ||
+                str_contains($message, 'column') ||
+                str_contains($message, 'argument') ||
+                str_contains($message, 'variable')
+            ) {
+                return 400;
+            }
+        }
+
+        return 400;
+    }
+
+    /**
+     * Extract the most useful message from monday GraphQL errors.
+     *
+     * @param array $errors GraphQL errors.
+     * @return string
+     */
+    private static function extract_graphql_error_message($errors)
+    {
+        foreach ((array) $errors as $error) {
+            if (!empty($error['message'])) {
+                return (string) $error['message'];
+            }
+        }
+
+        return __('Unknown monday.com API error.', 'chroma-qa-reports');
+    }
+
+    /**
+     * Extract the most useful message from monday HTTP/body errors.
+     *
+     * @param mixed $body Decoded body.
+     * @param int   $code HTTP status code.
+     * @return string
+     */
+    private static function extract_http_error_message($body, $code)
+    {
+        if (is_array($body)) {
+            if (!empty($body['error_message'])) {
+                return (string) $body['error_message'];
+            }
+
+            if (!empty($body['message'])) {
+                return (string) $body['message'];
+            }
+
+            if (!empty($body['errors']) && is_array($body['errors'])) {
+                return self::extract_graphql_error_message($body['errors']);
+            }
+        }
+
+        return sprintf(__('monday.com request failed with status %d.', 'chroma-qa-reports'), $code);
+    }
+
+    /**
+     * Log monday integration failures for easier support diagnosis.
+     *
+     * @param string $context Error context.
+     * @param mixed  $payload Debug payload.
+     * @return void
+     */
+    private static function log_error($context, $payload)
+    {
+        error_log(
+            sprintf(
+                '[CQA Monday] %s: %s',
+                $context,
+                wp_json_encode($payload)
+            )
+        );
     }
 
     /**
