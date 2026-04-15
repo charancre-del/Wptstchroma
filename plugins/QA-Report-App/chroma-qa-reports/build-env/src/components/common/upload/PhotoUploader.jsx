@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
 import useUIStore from '@stores/useUIStore';
-import { compressImage } from '../../../utils/image';
 
 const PhotoUploader = ( { onUpload } ) => {
     const { addToast } = useUIStore();
@@ -16,54 +15,10 @@ const PhotoUploader = ( { onUpload } ) => {
 
             setUploading( true );
             try {
-                // Compress and process files locally
-                const processedFiles = await Promise.allSettled(
-                    acceptedFiles.map( async ( file ) => {
-                        try {
-                            // Only compress if it's an image
-                            if ( file.type.startsWith( 'image/' ) ) {
-                                return await compressImage( file );
-                            }
-                            return file;
-                        } catch ( err ) {
-                            console.warn( 'Compression failed, using original', err );
-                            return file;
-                        }
-                    } )
-                );
-
-                const successfulFiles = processedFiles
-                    .filter( ( result ) => result.status === 'fulfilled' )
-                    .map( ( result ) => result.value );
-
-                const failedFiles = processedFiles.filter( ( result ) => result.status === 'rejected' );
-
-                if ( successfulFiles.length === 0 ) {
-                    throw new Error( 'No photos could be prepared for upload.' );
-                }
-
-                if ( failedFiles.length > 0 ) {
-                    addToast( {
-                        type: 'warning',
-                        message: `${ failedFiles.length } photo${ failedFiles.length !== 1 ? 's' : '' } could not be prepared and were skipped.`,
-                    } );
-                }
-
-                const timestamp = Date.now();
-                const newPhotos = successfulFiles.map( ( file, index ) => ( {
-                    id: `temp-${ timestamp }-${ index }-${ file.name }`,
-                    file,
-                    preview: URL.createObjectURL( file ), // Local preview
-                    name: file.name,
-                    size: file.size,
-                    status: 'pending', // pending -> uploading -> completed
-                } ) );
-
-                // Pass to parent handler for API upload logic or local state
-                await onUpload( newPhotos );
+                await onUpload( acceptedFiles );
             } catch ( error ) {
                 console.error( 'Upload preparation failed', error );
-                addToast( { type: 'error', message: 'Failed to prepare files.' } );
+                addToast( { type: 'error', message: error.message || 'Failed to prepare files.' } );
             } finally {
                 setUploading( false );
             }

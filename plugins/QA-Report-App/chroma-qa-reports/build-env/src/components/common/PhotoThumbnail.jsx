@@ -38,7 +38,7 @@ const PhotoThumbnail = ( { photo, onDelete, readOnly = false } ) => {
                 <button
                     onClick={ handleDelete }
                     disabled={ loading }
-                    className="absolute top-0 right-0 p-1 bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-bl hover:bg-red-600"
+                    className="absolute top-0 right-0 p-1 bg-red-500 text-white opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity rounded-bl hover:bg-red-600"
                 >
                     <X size={ 10 } />
                 </button>
