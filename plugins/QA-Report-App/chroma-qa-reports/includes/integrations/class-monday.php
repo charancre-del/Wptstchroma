@@ -119,7 +119,7 @@ class Monday
                 'body' => wp_json_encode(
                     [
                         'query' => $query,
-                        'variables' => $variables,
+                        'variables' => self::normalize_variables($variables),
                     ]
                 ),
             ]
@@ -317,6 +317,25 @@ class Monday
                 wp_json_encode($payload)
             )
         );
+    }
+
+    /**
+     * Normalize GraphQL variables to the shape monday expects.
+     *
+     * GraphQL requests require `variables` to be an object map, not a JSON
+     * array. Empty PHP arrays encode as `[]`, which can trigger "Invalid
+     * GraphQL request" on otherwise valid queries like `query { me { id name } }`.
+     *
+     * @param mixed $variables Variables payload.
+     * @return array|\stdClass
+     */
+    private static function normalize_variables($variables)
+    {
+        if (!is_array($variables) || empty($variables)) {
+            return new \stdClass();
+        }
+
+        return $variables;
     }
 
     /**
