@@ -39,12 +39,9 @@ while (have_posts()):
 	the_post();
 
 	$program_id = get_the_ID();
-	$age_range = chroma_get_translated_meta($program_id, 'program_age_range', true) ?: __('Ages 3-4', 'chroma-excellence');
-	$lesson_plan_url = get_post_meta($program_id, 'program_lesson_plan_file', true);
-	$has_lesson_plan = trim((string) $lesson_plan_url) !== '' && trim((string) $lesson_plan_url) !== '#';
 
 	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: __('The perfect stepping stone to Pre-K.', 'chroma-excellence');
-	$hero_description = chroma_get_translated_meta($program_id, 'program_hero_description', true) ?: __('Transitioning into a structured Pre-K environment is a major developmental leap. Our <strong>Rising Pre-K Summer Program</strong> is a joyful 6-week bridge that strengthens routines, social-emotional resilience, and foundational literacy before the fall semester begins.', 'chroma-excellence');
+	$hero_description = chroma_get_translated_meta($program_id, 'program_hero_description', true) ?: __('Transitioning into a structured Pre-K environment is a massive developmental leap. Our <strong>Rising Pre-K Summer Program</strong> is an intensive, joyful 6-week bridge designed to build classroom routines, social-emotional resilience, and early literacy before the fall semester begins.', 'chroma-excellence');
 	$hero_image_override = trim((string) chroma_get_translated_meta($program_id, 'program_hero_image', true));
 
 	if ($hero_image_override === '') {
@@ -74,102 +71,65 @@ while (have_posts()):
 		);
 	}
 
-	$focus_scores = array(
-		array(
-			'label' => __('Social', 'chroma-excellence'),
-			'description' => __('Taking turns, sharing, joining group routines, and learning alongside peers.', 'chroma-excellence'),
-			'value' => max(0, min(100, absint(get_post_meta($program_id, 'program_prism_social', true) ?: 95))),
-			'bar_class' => 'bg-chroma-green',
-		),
-		array(
-			'label' => __('Emotional', 'chroma-excellence'),
-			'description' => __('Safe separation, confidence with transitions, and expressing feelings clearly.', 'chroma-excellence'),
-			'value' => max(0, min(100, absint(get_post_meta($program_id, 'program_prism_emotional', true) ?: 90))),
-			'bar_class' => 'bg-chroma-red',
-		),
-		array(
-			'label' => __('Creative', 'chroma-excellence'),
-			'description' => __('Imaginative play, storytelling, music, and hands-on exploration.', 'chroma-excellence'),
-			'value' => max(0, min(100, absint(get_post_meta($program_id, 'program_prism_creative', true) ?: 70))),
-			'bar_class' => 'bg-chroma-yellow',
-		),
-		array(
-			'label' => __('Academic', 'chroma-excellence'),
-			'description' => __('Foundational alphabet and number exposure through play-based instruction.', 'chroma-excellence'),
-			'value' => max(0, min(100, absint(get_post_meta($program_id, 'program_prism_academic', true) ?: 60))),
-			'bar_class' => 'bg-chroma-blue',
-		),
-		array(
-			'label' => __('Physical', 'chroma-excellence'),
-			'description' => __('Fine-motor control, classroom stamina, and independence in care routines.', 'chroma-excellence'),
-			'value' => max(0, min(100, absint(get_post_meta($program_id, 'program_prism_physical', true) ?: 60))),
-			'bar_class' => 'bg-brand-ink',
-		),
-	);
-
 	$funding_cards = array(
 		array(
-			'eyebrow' => __('Georgia DECAL Summer Transition', 'chroma-excellence'),
-			'title' => __('State-Funded Track', 'chroma-excellence'),
-			'copy' => __('Funded by the Georgia Department of Early Care and Learning, this option is free for eligible families and is designed to expand access for dual language learners and families meeting program requirements.', 'chroma-excellence'),
+			'icon_class' => 'fa-solid fa-landmark-dome',
+			'icon_color' => 'text-chroma-blue',
+			'title' => __('Georgia DECAL Summer Transition', 'chroma-excellence'),
+			'copy' => __('Funded by the Georgia Department of Early Care and Learning, this track is <strong>completely free</strong> for eligible families. It is specifically designed for dual language learners and families meeting specific income requirements to ensure educational equity.', 'chroma-excellence'),
 			'points' => array(
-				__('100% tuition covered for approved families', 'chroma-excellence'),
-				__('Meals and classroom materials included', 'chroma-excellence'),
-				__('Six-week intensive transition schedule', 'chroma-excellence'),
+				__('100% Tuition Covered', 'chroma-excellence'),
+				__('Meals & materials included', 'chroma-excellence'),
+				__('6-week intensive schedule', 'chroma-excellence'),
 			),
 			'accent_class' => 'border-chroma-blue',
-			'chip_class' => 'bg-chroma-blueLight text-chroma-blue',
 			'link_text' => __('Check Eligibility', 'chroma-excellence'),
+			'link_color' => 'text-chroma-blue',
 		),
 		array(
-			'eyebrow' => __('Chroma Private Transition', 'chroma-excellence'),
-			'title' => __('Private Tuition Track', 'chroma-excellence'),
-			'copy' => __('Families who do not meet DECAL requirements can still access the same classroom experience, curriculum, and teaching support through a private-pay summer bridge option.', 'chroma-excellence'),
+			'icon_class' => 'fa-solid fa-seedling',
+			'icon_color' => 'text-chroma-yellow',
+			'title' => __('Chroma Private Transition', 'chroma-excellence'),
+			'copy' => __('For families who do not meet state DECAL requirements but still want their child to experience the profound benefits of a summer prep program, our Private Track offers identical classroom experiences, curriculum, and expert teaching.', 'chroma-excellence'),
 			'points' => array(
-				__('Identical Prismpath summer curriculum', 'chroma-excellence'),
+				__('Identical Prismpath™ curriculum', 'chroma-excellence'),
 				__('Low teacher-to-student ratios', 'chroma-excellence'),
-				__('Flexible wraparound care options', 'chroma-excellence'),
+				__('Flexible wrap-around care options', 'chroma-excellence'),
 			),
 			'accent_class' => 'border-chroma-yellow',
-			'chip_class' => 'bg-chroma-yellowLight text-chroma-yellow',
-			'link_text' => __('Request Tuition Info', 'chroma-excellence'),
+			'link_text' => __('Request Private Tuition Rates', 'chroma-excellence'),
+			'link_color' => 'text-chroma-yellow',
 		),
 	);
 
 	$curriculum_cards = array(
 		array(
 			'icon_class' => 'fa-solid fa-users',
+			'icon_bg' => 'bg-chroma-green/20',
 			'icon_color' => 'text-chroma-green',
-			'icon_bg' => 'bg-chroma-greenLight',
 			'title' => __('Social-Emotional Readiness', 'chroma-excellence'),
-			'copy' => __('Children practice sharing, taking turns, expressing feelings safely, and separating from parents with increasing comfort and joy.', 'chroma-excellence'),
+			'copy' => __('Learning to share, taking turns, expressing emotions safely, and separating from parents with confidence and joy.', 'chroma-excellence'),
 		),
 		array(
 			'icon_class' => 'fa-solid fa-list-check',
+			'icon_bg' => 'bg-chroma-yellow/20',
 			'icon_color' => 'text-chroma-yellow',
-			'icon_bg' => 'bg-chroma-yellowLight',
 			'title' => __('Classroom Routines', 'chroma-excellence'),
-			'copy' => __('The summer bridge builds familiarity with circle time, center transitions, hand washing, cleanup, and following two-step directions.', 'chroma-excellence'),
+			'copy' => __('Mastering the flow of a school day: sitting for circle time, transitioning between centers, washing hands, and following two-step directions.', 'chroma-excellence'),
 		),
 		array(
 			'icon_class' => 'fa-solid fa-shapes',
+			'icon_bg' => 'bg-chroma-red/20',
 			'icon_color' => 'text-chroma-red',
-			'icon_bg' => 'bg-chroma-redLight',
 			'title' => __('Foundational Academics', 'chroma-excellence'),
-			'copy' => __('Children build name recognition, fine-motor confidence, counting concepts, and early alphabet exposure through engaging play-based experiences.', 'chroma-excellence'),
+			'copy' => __('Name recognition, fine motor development (holding crayons/scissors safely), counting concepts, and letter exposure.', 'chroma-excellence'),
 		),
 	);
 
-	$schedule_tour_url = chroma_get_localized_url(home_url('/schedule-a-tour/'));
-	$locations_url = chroma_get_localized_url(get_post_type_archive_link('location'));
 	$contact_url = function_exists('chroma_get_page_link')
 		? chroma_get_page_link('contact')
 		: home_url('/contact-us/');
 	$contact_url = chroma_get_localized_url($contact_url);
-
-	if ($has_lesson_plan && function_exists('chroma_enqueue_pdf_assets')) {
-		chroma_enqueue_pdf_assets();
-	}
 	?>
 
 	<style>
@@ -195,103 +155,73 @@ while (have_posts()):
 			filter: blur(10px);
 		}
 
-		.rising-prek-score__bar {
-			position: relative;
-			height: 0.75rem;
-			border-radius: 9999px;
-			background: rgba(38, 50, 56, 0.08);
-			overflow: hidden;
-		}
-
-		.rising-prek-score__fill {
-			display: block;
-			height: 100%;
-			width: var(--score-width, 0%);
-			border-radius: 9999px;
+		.rising-prek-chart-shell {
+			min-height: 360px;
 		}
 	</style>
 
-	<section class="relative overflow-hidden bg-white border-b border-brand-ink/5">
-		<div class="absolute inset-y-0 right-0 hidden lg:block w-1/2 bg-gradient-to-l from-chroma-greenLight/70 to-transparent" aria-hidden="true"></div>
-		<div class="max-w-7xl mx-auto px-4 lg:px-6 py-16 lg:py-20 relative z-10 grid lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+	<section class="relative pt-20 pb-20 bg-white overflow-hidden">
+		<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chroma-greenLight/60 to-transparent" aria-hidden="true"></div>
+		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
 			<div>
-				<div class="inline-flex items-center gap-2 bg-white border border-chroma-green/20 px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-brand-ink shadow-sm mb-6">
+				<div class="inline-flex items-center gap-2 bg-white border border-chroma-green/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-brand-ink shadow-sm mb-6">
 					<i class="fa-solid fa-sun text-chroma-yellow" aria-hidden="true"></i>
 					<span><?php esc_html_e('Summer Transition Program', 'chroma-excellence'); ?></span>
 				</div>
-
-				<?php if ($age_range): ?>
-					<p class="text-xs font-bold uppercase tracking-[0.2em] text-chroma-green mb-4"><?php echo esc_html($age_range); ?></p>
-				<?php endif; ?>
-
-				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink leading-tight mb-6"><?php echo esc_html($hero_title); ?></h1>
-				<p class="text-lg text-brand-ink/80 leading-relaxed max-w-2xl"><?php echo wp_kses_post($hero_description); ?></p>
-
-				<div class="flex flex-wrap gap-4 mt-10">
-					<a href="#rising-prek-funding" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-green text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-brand-ink transition-colors">
+				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6 leading-tight"><?php echo esc_html($hero_title); ?></h1>
+				<p class="text-lg text-brand-ink/80 mb-8 leading-relaxed">
+					<?php echo wp_kses_post($hero_description); ?>
+				</p>
+				<div class="flex flex-wrap gap-4">
+					<a href="#funding" class="px-8 py-4 bg-chroma-green text-white text-xs font-bold uppercase tracking-widest rounded-full hover:bg-brand-ink transition-colors shadow-lg">
 						<?php esc_html_e('View Funding Options', 'chroma-excellence'); ?>
 					</a>
-					<a href="<?php echo esc_url($schedule_tour_url); ?>" class="inline-flex items-center justify-center px-8 py-4 rounded-full border border-brand-ink/10 bg-white text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-chroma-green hover:text-chroma-green transition-colors">
-						<?php esc_html_e('Schedule a Tour', 'chroma-excellence'); ?>
-					</a>
-					<?php if ($has_lesson_plan): ?>
-						<button type="button"
-							class="chroma-pdf-trigger inline-flex items-center justify-center px-8 py-4 rounded-full border border-brand-ink/10 bg-white text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-chroma-green hover:text-chroma-green transition-colors cursor-pointer"
-							data-pdf-url="<?php echo esc_url($lesson_plan_url); ?>"
-							data-pdf-title="<?php echo esc_attr(sprintf(__('%s Curriculum Guide', 'chroma-excellence'), get_the_title())); ?>">
-							<?php esc_html_e('View Guide', 'chroma-excellence'); ?>
-						</button>
-					<?php endif; ?>
 				</div>
 			</div>
-
-			<div class="rising-prek-shell rounded-[3rem] border border-brand-ink/5 shadow-soft p-4 lg:p-5 rising-prek-hero-panel">
-				<div class="relative h-[420px] lg:h-[500px] rounded-[2.5rem] overflow-hidden border-4 border-white shadow-2xl">
-					<?php if ($hero_image_markup): ?>
-						<?php echo $hero_image_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					<?php else: ?>
-						<div class="w-full h-full bg-gradient-to-br from-chroma-greenLight via-white to-brand-cream flex items-center justify-center p-10 text-center">
-							<div>
-								<div class="w-20 h-20 rounded-full bg-white shadow-soft mx-auto mb-6 flex items-center justify-center text-chroma-green text-3xl">
-									<i class="fa-solid fa-users" aria-hidden="true"></i>
-								</div>
-								<p class="font-serif text-3xl text-brand-ink mb-3"><?php esc_html_e('Pre-K confidence grows through routine.', 'chroma-excellence'); ?></p>
-								<p class="text-brand-ink/70 max-w-sm"><?php esc_html_e('Add a featured image to this program post for a fully visual hero while preserving the same layout and performance profile.', 'chroma-excellence'); ?></p>
+			<div class="rising-prek-shell relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rising-prek-hero-panel">
+				<?php if ($hero_image_markup): ?>
+					<?php echo $hero_image_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php else: ?>
+					<div class="w-full h-full bg-gradient-to-br from-chroma-greenLight via-white to-brand-cream flex items-center justify-center p-10 text-center">
+						<div>
+							<div class="w-20 h-20 rounded-full bg-white shadow-soft mx-auto mb-6 flex items-center justify-center text-chroma-green text-3xl">
+								<i class="fa-solid fa-users" aria-hidden="true"></i>
 							</div>
+							<p class="font-serif text-3xl text-brand-ink mb-3"><?php esc_html_e('Teacher-guided summer transitions.', 'chroma-excellence'); ?></p>
+							<p class="text-brand-ink/70 max-w-sm"><?php esc_html_e('Add a featured image to this program post to match the original landing layout exactly.', 'chroma-excellence'); ?></p>
 						</div>
-					<?php endif; ?>
-				</div>
+					</div>
+				<?php endif; ?>
 			</div>
 		</div>
 	</section>
 
-	<section id="rising-prek-funding" class="py-20 bg-brand-cream scroll-mt-28" aria-labelledby="rising-prek-funding-title">
+	<section id="funding" class="py-20 bg-brand-cream">
 		<div class="max-w-7xl mx-auto px-4 lg:px-6">
-			<div class="text-center max-w-3xl mx-auto mb-14">
-				<p class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3"><?php esc_html_e('Program Tracks', 'chroma-excellence'); ?></p>
-				<h2 id="rising-prek-funding-title" class="font-serif text-3xl md:text-4xl font-bold text-brand-ink"><?php esc_html_e('State-Funded and Private Options', 'chroma-excellence'); ?></h2>
-				<p class="text-brand-ink/80 mt-4"><?php esc_html_e('Both tracks lead to the same Chroma summer bridge experience, giving families more than one way to secure a calm, confident start to Pre-K.', 'chroma-excellence'); ?></p>
+			<div class="text-center mb-16">
+				<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('Program Tracks', 'chroma-excellence'); ?></span>
+				<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink"><?php esc_html_e('State-Funded & Private Options', 'chroma-excellence'); ?></h2>
+				<p class="text-brand-ink/80 mt-4 max-w-2xl mx-auto"><?php esc_html_e('We believe every child deserves a strong start. To serve our community, Chroma offers two distinct funding tracks for the exact same elite summer curriculum.', 'chroma-excellence'); ?></p>
 			</div>
 
-			<div class="grid md:grid-cols-2 gap-8 lg:gap-10">
+			<div class="grid md:grid-cols-2 gap-8 lg:gap-12">
 				<?php foreach ($funding_cards as $card): ?>
-					<article class="bg-white rounded-[2.5rem] shadow-soft border-t-8 <?php echo esc_attr($card['accent_class']); ?> p-8 lg:p-10">
-						<div class="inline-flex items-center rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.2em] mb-5 <?php echo esc_attr($card['chip_class']); ?>">
-							<?php echo esc_html($card['eyebrow']); ?>
+					<article class="bg-white p-10 rounded-[3rem] shadow-soft border-t-8 <?php echo esc_attr($card['accent_class']); ?>">
+						<div class="text-3xl mb-4 <?php echo esc_attr($card['icon_color']); ?>">
+							<i class="<?php echo esc_attr($card['icon_class']); ?>" aria-hidden="true"></i>
 						</div>
-						<h3 class="font-serif text-2xl font-bold text-brand-ink mb-4"><?php echo esc_html($card['title']); ?></h3>
-						<p class="text-brand-ink/80 leading-relaxed mb-6"><?php echo esc_html($card['copy']); ?></p>
-						<ul class="space-y-3 text-sm text-brand-ink/85 mb-8">
+						<h3 class="font-serif text-2xl font-bold mb-4"><?php echo esc_html($card['title']); ?></h3>
+						<p class="text-brand-ink/80 mb-6 leading-relaxed"><?php echo wp_kses_post($card['copy']); ?></p>
+						<ul class="space-y-3 mb-8 text-sm text-brand-ink/80">
 							<?php foreach ($card['points'] as $point): ?>
-								<li class="flex items-start gap-3">
+								<li class="flex gap-3">
 									<i class="fa-solid fa-check text-chroma-green mt-1" aria-hidden="true"></i>
 									<span><?php echo esc_html($point); ?></span>
 								</li>
 							<?php endforeach; ?>
 						</ul>
-						<a href="<?php echo esc_url($contact_url); ?>" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brand-ink hover:text-chroma-green transition-colors">
-							<span><?php echo esc_html($card['link_text']); ?></span>
-							<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+						<a href="<?php echo esc_url($contact_url); ?>" class="inline-block font-bold uppercase tracking-widest text-xs hover:text-brand-ink transition-colors <?php echo esc_attr($card['link_color']); ?>">
+							<?php echo esc_html($card['link_text']); ?> &rarr;
 						</a>
 					</article>
 				<?php endforeach; ?>
@@ -299,64 +229,48 @@ while (have_posts()):
 		</div>
 	</section>
 
-	<section class="py-24 bg-white border-t border-brand-ink/5" aria-labelledby="rising-prek-focus-title">
-		<div class="max-w-6xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-14 items-center">
-			<div class="bg-brand-cream rounded-[2.5rem] p-8 lg:p-10 border border-brand-ink/5 shadow-soft order-2 lg:order-1">
-				<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('Rising Pre-K Focus Profile', 'chroma-excellence'); ?></h3>
-				<p class="text-sm text-brand-ink/75 mb-8"><?php esc_html_e('This summer bridge intentionally favors the routines and emotional safety children need most before entering a more structured classroom environment.', 'chroma-excellence'); ?></p>
-
-				<ul class="space-y-5" aria-label="<?php esc_attr_e('Program focus scores by developmental area', 'chroma-excellence'); ?>">
-					<?php foreach ($focus_scores as $score): ?>
-						<li>
-							<div class="flex items-baseline justify-between gap-4 mb-2">
-								<div>
-									<p class="font-bold text-brand-ink"><?php echo esc_html($score['label']); ?></p>
-									<p class="text-sm text-brand-ink/70"><?php echo esc_html($score['description']); ?></p>
-								</div>
-								<p class="text-sm font-bold text-brand-ink whitespace-nowrap"><?php echo esc_html((string) $score['value']); ?>%</p>
-							</div>
-							<div class="rising-prek-score__bar" aria-hidden="true">
-								<span class="rising-prek-score__fill <?php echo esc_attr($score['bar_class']); ?>" style="<?php echo esc_attr('--score-width:' . $score['value'] . '%;'); ?>"></span>
-							</div>
+	<section class="py-24 bg-white border-t border-brand-ink/5">
+		<div class="max-w-6xl mx-auto px-4 lg:px-6">
+			<div class="grid lg:grid-cols-2 gap-16 items-center">
+				<div class="bg-brand-cream rounded-[3rem] p-8 shadow-soft border border-brand-ink/5 order-2 lg:order-1 rising-prek-chart-shell">
+					<canvas id="risingPrekChart" role="img" aria-label="<?php esc_attr_e('Radar chart showing the Rising Pre-K Prismpath focus areas: 95% Social, 90% Emotional, 70% Creative, 60% Academic, 60% Physical.', 'chroma-excellence'); ?>">
+						<?php esc_html_e('A radar chart illustrating our curriculum heavy focus on Social and Emotional routines for Pre-K.', 'chroma-excellence'); ?>
+					</canvas>
+				</div>
+				<div class="order-1 lg:order-2">
+					<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('Prismpath™ Focus', 'chroma-excellence'); ?></span>
+					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6"><?php esc_html_e('Routines & Resilience.', 'chroma-excellence'); ?></h2>
+					<p class="text-brand-ink/80 text-lg mb-6"><?php echo wp_kses_post(__('Transitioning into a structured Pre-K is a big leap. Our summer bridge focuses heavily on <strong>Social</strong> and <strong>Emotional</strong> development, ensuring children learn how to share, follow classroom routines, and separate from parents with confidence.', 'chroma-excellence')); ?></p>
+					<ul class="space-y-3 text-sm text-brand-ink/80">
+						<li class="flex gap-3 items-center">
+							<i class="fa-solid fa-users text-chroma-green" aria-hidden="true"></i>
+							<span><strong><?php esc_html_e('Social:', 'chroma-excellence'); ?></strong> <?php esc_html_e('Taking turns, sharing, and group dynamics.', 'chroma-excellence'); ?></span>
 						</li>
-					<?php endforeach; ?>
-				</ul>
-			</div>
-
-			<div class="order-1 lg:order-2">
-				<p class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3"><?php esc_html_e('Prismpath Focus', 'chroma-excellence'); ?></p>
-				<h2 id="rising-prek-focus-title" class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-6"><?php esc_html_e('Routines and resilience first.', 'chroma-excellence'); ?></h2>
-				<p class="text-lg text-brand-ink/80 leading-relaxed mb-6"><?php esc_html_e('The Rising Pre-K page is centered on the transition parents worry about most: learning how school feels. That means social confidence, safe separations, classroom flow, and gentle exposure to academic building blocks.', 'chroma-excellence'); ?></p>
-				<ul class="space-y-4 text-sm text-brand-ink/85">
-					<li class="flex items-start gap-4">
-						<i class="fa-solid fa-users text-chroma-green mt-1" aria-hidden="true"></i>
-						<span><strong><?php esc_html_e('Social:', 'chroma-excellence'); ?></strong> <?php esc_html_e('Taking turns, sharing, listening in groups, and building peer confidence.', 'chroma-excellence'); ?></span>
-					</li>
-					<li class="flex items-start gap-4">
-						<i class="fa-solid fa-heart text-chroma-red mt-1" aria-hidden="true"></i>
-						<span><strong><?php esc_html_e('Emotional:', 'chroma-excellence'); ?></strong> <?php esc_html_e('Comfort with separation, emotional naming, and calm transitions through the day.', 'chroma-excellence'); ?></span>
-					</li>
-					<li class="flex items-start gap-4">
-						<i class="fa-solid fa-shapes text-chroma-blue mt-1" aria-hidden="true"></i>
-						<span><strong><?php esc_html_e('Academic:', 'chroma-excellence'); ?></strong> <?php esc_html_e('Alphabet exposure, counting concepts, and fine-motor development woven into play.', 'chroma-excellence'); ?></span>
-					</li>
-				</ul>
+						<li class="flex gap-3 items-center">
+							<i class="fa-solid fa-heart text-chroma-red" aria-hidden="true"></i>
+							<span><strong><?php esc_html_e('Emotional:', 'chroma-excellence'); ?></strong> <?php esc_html_e('Safe separation and expressing feelings.', 'chroma-excellence'); ?></span>
+						</li>
+						<li class="flex gap-3 items-center">
+							<i class="fa-solid fa-shapes text-chroma-blue" aria-hidden="true"></i>
+							<span><strong><?php esc_html_e('Academic:', 'chroma-excellence'); ?></strong> <?php esc_html_e('Foundational alphabet and number exposure.', 'chroma-excellence'); ?></span>
+						</li>
+					</ul>
+				</div>
 			</div>
 		</div>
 	</section>
 
-	<section class="py-24 bg-chroma-blueDark text-white relative overflow-hidden" aria-labelledby="rising-prek-curriculum-title">
-		<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.7) 1px, transparent 0); background-size: 32px 32px;" aria-hidden="true"></div>
-		<div class="relative z-10 max-w-7xl mx-auto px-4 lg:px-6">
-			<div class="text-center max-w-3xl mx-auto mb-14">
-				<p class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3"><?php esc_html_e('Curriculum Detail', 'chroma-excellence'); ?></p>
-				<h2 id="rising-prek-curriculum-title" class="font-serif text-3xl md:text-4xl font-bold"><?php esc_html_e('What we teach in 6 weeks', 'chroma-excellence'); ?></h2>
-				<p class="text-white/80 mt-4"><?php esc_html_e('The content is tuned to the exact behaviors and foundational skills Pre-K teachers look for when children walk in on the first day.', 'chroma-excellence'); ?></p>
+	<section class="py-24 bg-chroma-blueDark text-white relative overflow-hidden">
+		<div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;" aria-hidden="true"></div>
+		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10">
+			<div class="text-center mb-16">
+				<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('Curriculum Detail', 'chroma-excellence'); ?></span>
+				<h2 class="text-3xl md:text-4xl font-serif font-bold"><?php esc_html_e('What We Teach in 6 Weeks', 'chroma-excellence'); ?></h2>
+				<p class="text-white/80 mt-4 max-w-2xl mx-auto"><?php esc_html_e('Our summer curriculum is highly targeted to build the exact skills Pre-K teachers look for on day one.', 'chroma-excellence'); ?></p>
 			</div>
-
 			<div class="grid md:grid-cols-3 gap-8">
 				<?php foreach ($curriculum_cards as $card): ?>
-					<article class="bg-white/5 border border-white/10 rounded-[2rem] p-8">
+					<article class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors">
 						<div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6 <?php echo esc_attr($card['icon_bg']); ?> <?php echo esc_attr($card['icon_color']); ?>">
 							<i class="<?php echo esc_attr($card['icon_class']); ?>" aria-hidden="true"></i>
 						</div>
@@ -365,23 +279,85 @@ while (have_posts()):
 					</article>
 				<?php endforeach; ?>
 			</div>
-
-			<div class="mt-14 bg-white/5 border border-white/10 rounded-[2rem] p-8 lg:p-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-				<div>
-					<h3 class="font-serif text-2xl font-bold mb-2"><?php esc_html_e('Ready to choose a campus for summer?', 'chroma-excellence'); ?></h3>
-					<p class="text-white/80"><?php esc_html_e('This template stays inside the main Chroma experience, so families can move naturally from program discovery into location browsing or tour scheduling.', 'chroma-excellence'); ?></p>
-				</div>
-				<div class="flex flex-wrap gap-4">
-					<a href="<?php echo esc_url($locations_url); ?>" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-white text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:bg-brand-cream transition-colors">
-						<?php esc_html_e('View Locations', 'chroma-excellence'); ?>
-					</a>
-					<a href="<?php echo esc_url($schedule_tour_url); ?>" class="inline-flex items-center justify-center px-8 py-4 rounded-full border border-white/20 text-white text-xs font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-brand-ink transition-colors">
-						<?php esc_html_e('Book Tour', 'chroma-excellence'); ?>
-					</a>
-				</div>
-			</div>
 		</div>
 	</section>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function () {
+			const canvas = document.getElementById('risingPrekChart');
+
+			if (!canvas) {
+				return;
+			}
+
+			const createChart = function () {
+				if (typeof Chart === 'undefined') {
+					return;
+				}
+
+				new Chart(canvas, {
+					type: 'radar',
+					data: {
+						labels: ['Physical', 'Emotional', 'Social', 'Academic', 'Creative'],
+						datasets: [{
+							label: 'Rising Pre-K Focus',
+							data: [60, 90, 95, 60, 70],
+							backgroundColor: 'rgba(141, 163, 153, 0.2)',
+							borderColor: '#8DA399',
+							pointBackgroundColor: '#fff',
+							pointBorderColor: '#8DA399',
+							borderWidth: 2
+						}]
+					},
+					options: {
+						responsive: true,
+						maintainAspectRatio: false,
+						scales: {
+							r: {
+								suggestedMin: 0,
+								suggestedMax: 100,
+								ticks: { display: false }
+							}
+						},
+						plugins: {
+							legend: { display: false }
+						}
+					}
+				});
+			};
+
+			const loadChartLibrary = function () {
+				if (typeof Chart !== 'undefined') {
+					createChart();
+					return;
+				}
+
+				const script = document.createElement('script');
+				script.src = '<?php echo esc_url(get_template_directory_uri() . '/assets/js/chart.min.js'); ?>';
+				script.async = true;
+				script.onload = createChart;
+				document.body.appendChild(script);
+			};
+
+			if ('IntersectionObserver' in window) {
+				const observer = new IntersectionObserver(function (entries) {
+					entries.forEach(function (entry) {
+						if (!entry.isIntersecting) {
+							return;
+						}
+
+						observer.disconnect();
+						loadChartLibrary();
+					});
+				}, { rootMargin: '100px 0px' });
+
+				observer.observe(canvas);
+				return;
+			}
+
+			loadChartLibrary();
+		});
+	</script>
 
 <?php endwhile; ?>
 
