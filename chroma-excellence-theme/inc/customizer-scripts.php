@@ -84,6 +84,8 @@ add_action('customize_register', 'chroma_scripts_customizer_settings');
 if (!function_exists('chroma_sanitize_scripts')) {
     function chroma_sanitize_scripts($input)
     {
+        $input = chroma_strip_disallowed_customizer_markup($input);
+
         if (current_user_can('unfiltered_html')) {
             return $input;
         }
@@ -127,6 +129,46 @@ if (!function_exists('chroma_contains_third_party_target')) {
     }
 }
 
+if (!function_exists('chroma_is_canonical_mutator_script')) {
+    function chroma_is_canonical_mutator_script($script_content)
+    {
+        if (!is_string($script_content) || trim($script_content) === '') {
+            return false;
+        }
+
+        if (!preg_match('/canonical/i', $script_content)) {
+            return false;
+        }
+
+        return (bool) preg_match(
+            '/querySelector(?:All)?\s*\(|createElement\s*\(|setAttribute\s*\(|appendChild\s*\(|insertAdjacentHTML\s*\(|document\.head|location\.(?:origin|pathname|href)|rel\s*=\s*["\']canonical["\']/i',
+            $script_content
+        );
+    }
+}
+
+if (!function_exists('chroma_strip_disallowed_customizer_markup')) {
+    function chroma_strip_disallowed_customizer_markup($html)
+    {
+        if (!is_string($html) || trim($html) === '') {
+            return $html;
+        }
+
+        $html = preg_replace('/<link\b[^>]*\brel\s*=\s*(["\'])canonical\1[^>]*>/i', '', $html);
+
+        return preg_replace_callback('/<script\b[^>]*>.*?<\/script>/is', function ($matches) {
+            $script_tag = $matches[0];
+            $inline = preg_replace('/^<script\b[^>]*>|<\/script>$/i', '', $script_tag);
+
+            if (chroma_is_canonical_mutator_script($inline)) {
+                return '';
+            }
+
+            return $script_tag;
+        }, $html);
+    }
+}
+
 /**
  * Dedupe duplicate script tags across header/footer customizer fields.
  */
@@ -135,6 +177,11 @@ if (!function_exists('chroma_dedupe_customizer_scripts')) {
     {
         if (!is_string($html) || trim($html) === '') {
             return $html;
+        }
+
+        $html = chroma_strip_disallowed_customizer_markup($html);
+        if (trim($html) === '') {
+            return '';
         }
 
         static $seen = array(
@@ -168,6 +215,10 @@ if (!function_exists('chroma_dedupe_customizer_scripts')) {
             }
 
             $inline = preg_replace('/^<script\b[^>]*>|<\/script>$/i', '', $script_tag);
+            if (chroma_is_canonical_mutator_script($inline)) {
+                return '';
+            }
+
             if (!chroma_contains_third_party_target($inline)) {
                 return $script_tag;
             }

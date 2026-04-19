@@ -294,7 +294,13 @@ function chroma_get_context_meta_description() {
     if (is_singular()) {
         $post = get_post();
         if ($post) {
-            $description = get_post_meta($post->ID, 'meta_description', true);
+            if ($post->post_type === 'program' && empty($description)) {
+                $description = get_post_meta($post->ID, 'program_meta_description', true);
+            }
+
+            if (empty($description)) {
+                $description = get_post_meta($post->ID, 'meta_description', true);
+            }
             if (empty($description)) {
                 $description = get_the_excerpt($post);
             }
@@ -303,9 +309,27 @@ function chroma_get_context_meta_description() {
             }
         }
     } elseif (is_home() || is_front_page()) {
-        $description = get_bloginfo('description');
+        if (is_home()) {
+            $posts_page_id = (int) get_option('page_for_posts');
+            if ($posts_page_id > 0) {
+                $description = get_post_meta($posts_page_id, 'meta_description', true);
+                if (empty($description)) {
+                    $description = get_the_excerpt($posts_page_id);
+                }
+            }
+        }
+
+        if (empty($description)) {
+            $description = get_bloginfo('description');
+        }
     } elseif (is_archive()) {
         $description = trim(strip_tags((string) get_the_archive_description()));
+
+        if (empty($description) && is_post_type_archive('city')) {
+            $description = 'Explore Chroma communities across Georgia and find local campuses, programs, and tour information near your family.';
+        } elseif (empty($description) && is_post_type_archive('program')) {
+            $description = 'Explore Chroma early learning programs for every age, from infant care and toddler classrooms to GA Pre-K, after-school, and seasonal camps.';
+        }
     }
 
     if (empty($description)) {
@@ -340,6 +364,92 @@ function chroma_shared_meta_description() {
     }
 }
 add_action('wp_head', 'chroma_shared_meta_description', 2);
+
+if (!function_exists('chroma_is_spanish_context')) {
+    function chroma_is_spanish_context() {
+        return class_exists('Chroma_Multilingual_Manager')
+            && method_exists('Chroma_Multilingual_Manager', 'is_spanish')
+            && Chroma_Multilingual_Manager::is_spanish();
+    }
+}
+
+if (!function_exists('chroma_get_route_specific_title')) {
+    function chroma_get_route_specific_title() {
+        $is_es = chroma_is_spanish_context();
+
+        if (is_page('parent-portal')) {
+            return 'Parent Portal | Chroma';
+        }
+
+        if (is_front_page()) {
+            return $is_es
+                ? 'Chroma Academy | Guarderia y preescolar en Atlanta'
+                : 'Chroma Academy | Top Daycare & Preschool in Atlanta';
+        }
+
+        if (is_home()) {
+            return $is_es
+                ? 'Blog de Chroma | Consejos para familias'
+                : 'Chroma Blog | Parenting Tips & Early Learning';
+        }
+
+        if (is_post_type_archive('city')) {
+            return $is_es
+                ? 'Comunidades de Chroma | Cuidado infantil en Georgia'
+                : 'Our Communities | Chroma Early Learning';
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('chroma_force_known_route_titles')) {
+    function chroma_force_known_route_titles($title) {
+        $override = chroma_get_route_specific_title();
+        return $override !== '' ? $override : $title;
+    }
+}
+add_filter('pre_get_document_title', 'chroma_force_known_route_titles', PHP_INT_MAX);
+add_filter('wpseo_title', 'chroma_force_known_route_titles', PHP_INT_MAX);
+
+if (!function_exists('chroma_get_route_specific_meta_description')) {
+    function chroma_get_route_specific_meta_description() {
+        $is_es = chroma_is_spanish_context();
+
+        if (is_page('parent-portal')) {
+            return 'Secure family portal for tuition, daily reports, classroom updates, and school resources.';
+        }
+
+        if (is_front_page()) {
+            return $is_es
+                ? 'Chroma Academy ofrece guarderia y preescolar de alta calidad en Metro Atlanta con un modelo de aprendizaje propio y visitas disponibles.'
+                : 'Chroma Academy offers top-rated daycare and preschool across Metro Atlanta with a proprietary learning model and easy tour scheduling.';
+        }
+
+        if (is_home()) {
+            return $is_es
+                ? 'Lee consejos de crianza, aprendizaje temprano y desarrollo infantil del equipo de Chroma para familias de Metro Atlanta.'
+                : 'Read parenting tips, early learning guidance, and child development articles from the Chroma team for Metro Atlanta families.';
+        }
+
+        if (is_post_type_archive('city')) {
+            return $is_es
+                ? 'Explora las comunidades de Chroma en Georgia y encuentra campus, programas e informacion para visitar la ubicacion mas cercana a tu familia.'
+                : 'Explore Chroma communities across Georgia and find campuses, programs, and tour information near your family.';
+        }
+
+        return '';
+    }
+}
+
+if (!function_exists('chroma_force_known_route_meta_descriptions')) {
+    function chroma_force_known_route_meta_descriptions($description) {
+        $override = chroma_get_route_specific_meta_description();
+        return $override !== '' ? $override : $description;
+    }
+}
+add_filter('wpseo_metadesc', 'chroma_force_known_route_meta_descriptions', PHP_INT_MAX);
+add_filter('wpseo_opengraph_desc', 'chroma_force_known_route_meta_descriptions', PHP_INT_MAX);
 
 /**
  * Output Twitter and Open Graph meta tags

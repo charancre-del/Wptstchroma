@@ -787,7 +787,7 @@ function chroma_get_standard_sitemap_urls()
 {
     $urls = [];
     $base = rtrim(home_url('/'), '/');
-    $post_types = apply_filters('chroma_sitemap_post_types', ['page', 'post', 'location', 'program', 'city', 'team_member']);
+    $post_types = apply_filters('chroma_sitemap_post_types', ['page', 'post', 'location', 'program', 'city']);
 
     $posts = get_posts([
         'post_type' => $post_types,

@@ -27,6 +27,8 @@ class Chroma_Canonical_Enforcer
 
         // Add our canonical
         add_action('wp_head', [$this, 'output_canonical'], 1);
+        add_filter('wp_robots', [$this, 'filter_404_robots'], 20);
+        add_filter('wpseo_robots', [$this, 'filter_404_wpseo_robots'], 20);
 
         // Redirect non-canonical URLs
         add_action('template_redirect', [$this, 'enforce_canonical'], 1);
@@ -233,6 +235,11 @@ class Chroma_Canonical_Enforcer
             return;
         }
 
+        // 404s should stay non-indexable and should not self-canonicalize.
+        if (is_404()) {
+            return;
+        }
+
         // If Yoast SEO is active, let it handle the canonical to avoid duplicates
         if (defined('WPSEO_VERSION')) {
             return;
@@ -249,6 +256,44 @@ class Chroma_Canonical_Enforcer
             $this->canonical_rendered = true;
             do_action('chroma_canonical_output_done', $canonical);
         }
+    }
+
+    /**
+     * Force 404 pages to remain noindex,follow.
+     *
+     * @param array $robots
+     * @return array
+     */
+    public function filter_404_robots($robots)
+    {
+        if (!is_404()) {
+            return $robots;
+        }
+
+        if (!is_array($robots)) {
+            $robots = [];
+        }
+
+        unset($robots['index'], $robots['nofollow']);
+        $robots['noindex'] = true;
+        $robots['follow'] = true;
+
+        return $robots;
+    }
+
+    /**
+     * Force Yoast 404 responses to stay noindex,follow when Yoast owns robots output.
+     *
+     * @param string $robots
+     * @return string
+     */
+    public function filter_404_wpseo_robots($robots)
+    {
+        if (!is_404()) {
+            return $robots;
+        }
+
+        return 'noindex,follow';
     }
 
     /**

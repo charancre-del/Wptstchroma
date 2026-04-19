@@ -531,8 +531,12 @@ class Chroma_Multilingual_Manager
      */
     public function localize_seo_title($title) {
         if (!self::is_spanish()) return $title;
-        
-        $post_id = get_the_ID();
+
+        if (!is_singular()) {
+            return $title;
+        }
+
+        $post_id = get_queried_object_id();
         if (!$post_id) return $title;
         
         $es_seo_title = get_post_meta($post_id, '_chroma_es_seo_title', true);
@@ -549,8 +553,12 @@ class Chroma_Multilingual_Manager
      */
     public function localize_meta_description() {
         if (!self::is_spanish()) return;
-        
-        $post_id = get_the_ID();
+
+        if (!is_singular()) {
+            return;
+        }
+
+        $post_id = get_queried_object_id();
         if (!$post_id) return;
         
         $es_meta_desc = get_post_meta($post_id, '_chroma_es_meta_description', true);

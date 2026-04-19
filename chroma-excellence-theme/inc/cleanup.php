@@ -167,15 +167,39 @@ remove_action('wp_head', 'wp_generator');
 /**
  * Disable RSS feeds
  */
+function chroma_send_gone_response($title, $message)
+{
+        nocache_headers();
+        status_header(410);
+        header('Content-Type: text/html; charset=' . get_bloginfo('charset'));
+        header('X-Robots-Tag: noindex, follow', true);
+
+        echo '<!doctype html><html><head><meta charset="' . esc_attr(get_bloginfo('charset')) . '">';
+        echo '<meta name="robots" content="noindex,follow">';
+        echo '<title>' . esc_html($title) . '</title></head><body>';
+        echo '<h1>' . esc_html($title) . '</h1>';
+        echo '<p>' . wp_kses_post($message) . '</p>';
+        echo '</body></html>';
+        exit;
+}
+
 function chroma_disable_feeds()
 {
-        wp_die(__('No feed available. Please visit the <a href="' . esc_url(home_url('/')) . '">homepage</a>!', 'chroma-excellence'));
+        chroma_send_gone_response(
+                __('Feed Unavailable', 'chroma-excellence'),
+                sprintf(
+                        __('No feed is available for this site. Please visit the <a href="%s">homepage</a>.', 'chroma-excellence'),
+                        esc_url(home_url('/'))
+                )
+        );
 }
 add_action('do_feed', 'chroma_disable_feeds', 1);
 add_action('do_feed_rdf', 'chroma_disable_feeds', 1);
 add_action('do_feed_rss', 'chroma_disable_feeds', 1);
 add_action('do_feed_rss2', 'chroma_disable_feeds', 1);
 add_action('do_feed_atom', 'chroma_disable_feeds', 1);
+add_action('do_feed_rss2_comments', 'chroma_disable_feeds', 1);
+add_action('do_feed_atom_comments', 'chroma_disable_feeds', 1);
 
 /**
  * Disable emojis to reduce extraneous HTTP requests and inline scripts.
@@ -223,41 +247,93 @@ function chroma_disable_emojis_dns_prefetch($urls, $relation_type)
         );
 }
 /**
- * Enforce canonical URLs via PHP for better SEO and performance.
- * Replaces the brittle JS-based canonical hack.
+ * Retire legacy team-member query URLs so they cannot resolve as homepage content.
  */
-function chroma_enforce_canonical()
+function chroma_block_legacy_team_member_queries()
 {
-        // Plugin canonical is primary. Theme canonical is fallback-only.
-        if ((class_exists('Chroma_Canonical_Enforcer') && get_option('chroma_seo_enable_canonical', true))
-                || did_action('chroma_canonical_output_done')) {
+        if (is_admin() || wp_doing_ajax()) {
                 return;
         }
 
-        if (is_singular()) {
-                $canonical_url = get_permalink();
-        } elseif (is_front_page()) {
-                $canonical_url = home_url('/');
-        } elseif (is_category() || is_tag() || is_tax()) {
-                $canonical_url = get_term_link(get_queried_object());
-        } elseif (is_post_type_archive()) {
-                $canonical_url = get_post_type_archive_link(get_query_var('post_type'));
-        } else {
-                $canonical_url = home_url($_SERVER['REQUEST_URI']);
+        $post_type = isset($_GET['post_type']) ? sanitize_key(wp_unslash($_GET['post_type'])) : '';
+        $post_id = isset($_GET['p']) ? absint(wp_unslash($_GET['p'])) : 0;
+
+        if ($post_type !== 'team_member' || $post_id < 1) {
+                return;
         }
 
-        if (!is_wp_error($canonical_url) && $canonical_url) {
-                $filtered_canonical = apply_filters('wpseo_canonical', $canonical_url);
-                if (is_string($filtered_canonical) && $filtered_canonical !== '') {
-                        $canonical_url = $filtered_canonical;
-                }
-
-                $canonical_url = strtok($canonical_url, '?');
-                if (!preg_match('/\.(html?|xml|json|php)$/i', $canonical_url)) {
-                        $canonical_url = trailingslashit($canonical_url);
-                }
-                echo '<link rel="canonical" href="' . esc_url($canonical_url) . '" />' . "\n";
-                do_action('chroma_canonical_output_done', $canonical_url);
-        }
+        chroma_send_gone_response(
+                __('Page Removed', 'chroma-excellence'),
+                __('This legacy team-member URL is no longer available.', 'chroma-excellence')
+        );
 }
-add_action('wp_head', 'chroma_enforce_canonical', 2);
+add_action('template_redirect', 'chroma_block_legacy_team_member_queries', -50);
+
+/**
+ * Normalize robots.txt output so crawl directives and sitemap ownership stay consistent.
+ */
+function chroma_normalize_robots_txt($output, $public)
+{
+        $existing_lines = preg_split('/\R/', (string) $output) ?: [];
+        $clean_lines = [];
+        $line_index = [];
+
+        foreach ($existing_lines as $line) {
+                $line = trim((string) $line);
+                if ($line === '') {
+                        continue;
+                }
+
+                if (preg_match('/^sitemap\s*:/i', $line)) {
+                        continue;
+                }
+
+                if (preg_match('#^disallow\s*:\s*/(?:items|feed|comments/feed)/?$#i', $line)) {
+                        continue;
+                }
+
+                $normalized_key = strtolower(preg_replace('/\s+/', ' ', $line));
+                if (isset($line_index[$normalized_key])) {
+                        continue;
+                }
+
+                $clean_lines[] = $line;
+                $line_index[$normalized_key] = true;
+        }
+
+        $required_lines = [
+                'User-agent: *',
+                'Disallow: /wp-admin/',
+                'Allow: /wp-admin/admin-ajax.php',
+                'Allow: /wp-json/chroma-agent/',
+                'Allow: /wp-json/chroma-agent/v1/',
+                'Allow: /wp-json/chroma-agent/v1/geo-feed',
+                'Allow: /llm.txt',
+                'Allow: /llms.txt',
+                'Disallow: /items/',
+                'Disallow: /feed/',
+                'Disallow: /comments/feed/',
+                'Sitemap: ' . esc_url_raw(home_url('/sitemap.xml')),
+                'Sitemap: ' . esc_url_raw(home_url('/sitemap_index.xml')),
+                'Sitemap: ' . esc_url_raw(home_url('/sitemap-spanish.xml')),
+                'Sitemap: ' . esc_url_raw(home_url('/sitemap-combos.xml')),
+                'Sitemap: ' . esc_url_raw(home_url('/sitemap-combos-es.xml')),
+                'Sitemap: ' . esc_url_raw(home_url('/sitemap-near-me.xml')),
+                'Sitemap: ' . esc_url_raw(home_url('/sitemap-near-me-es.xml')),
+                'Sitemap: ' . esc_url_raw(home_url('/ai-sitemap.xml')),
+                'Sitemap: ' . esc_url_raw(home_url('/llm-sitemap.xml')),
+        ];
+
+        foreach ($required_lines as $line) {
+                $normalized_key = strtolower(preg_replace('/\s+/', ' ', $line));
+                if (isset($line_index[$normalized_key])) {
+                        continue;
+                }
+
+                $clean_lines[] = $line;
+                $line_index[$normalized_key] = true;
+        }
+
+        return implode("\n", $clean_lines) . "\n";
+}
+add_filter('robots_txt', 'chroma_normalize_robots_txt', 999, 2);

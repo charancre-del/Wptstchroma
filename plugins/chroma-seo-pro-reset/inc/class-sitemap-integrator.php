@@ -202,7 +202,7 @@ class Chroma_Sitemap_Integrator
     {
         $entries = [];
         $base = rtrim(home_url('/'), '/');
-        $post_types = ['page', 'location', 'program', 'city', 'post', 'team_member'];
+        $post_types = ['page', 'location', 'program', 'city', 'post'];
 
         $posts = get_posts([
             'post_type' => $post_types,
@@ -525,7 +525,7 @@ class Chroma_Spanish_Sitemap_Provider extends WP_Sitemaps_Provider
     }
 
     private $per_page = 2000;
-    private $post_types = ['page', 'location', 'program', 'city', 'post', 'team_member'];
+    private $post_types = ['page', 'location', 'program', 'city', 'post'];
     private $excluded_paths = [
         'employers-2',
         'es/employers-2',
