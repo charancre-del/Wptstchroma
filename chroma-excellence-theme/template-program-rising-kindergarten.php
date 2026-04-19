@@ -11,65 +11,28 @@ if (!defined('ABSPATH')) {
 	exit;
 }
 
-$rising_k_preload_id = get_queried_object_id();
-$rising_k_preload_url = '';
+$rising_k_preload_url = 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=1200&auto=format&fit=crop';
 
-if ($rising_k_preload_id) {
-	$rising_k_image_override = trim((string) get_post_meta($rising_k_preload_id, 'program_hero_image', true));
-	if ($rising_k_image_override !== '') {
-		$rising_k_preload_url = $rising_k_image_override;
-	} elseif (has_post_thumbnail($rising_k_preload_id)) {
-		$rising_k_preload_url = (string) get_the_post_thumbnail_url($rising_k_preload_id, 'full');
-	}
-}
-
-if ($rising_k_preload_url !== '') {
-	add_action(
-		'wp_head',
-		static function () use ($rising_k_preload_url) {
-			echo '<link rel="preload" as="image" href="' . esc_url($rising_k_preload_url) . '" fetchpriority="high">' . "\n";
-		},
-		2
-	);
-}
+add_action(
+	'wp_head',
+	static function () use ($rising_k_preload_url) {
+		echo '<link rel="preload" as="image" href="' . esc_url($rising_k_preload_url) . '" fetchpriority="high">' . "\n";
+	},
+	2
+);
 
 get_header();
 
 while (have_posts()):
 	the_post();
 
-	$program_id = get_the_ID();
-
-	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: __('Step into Kindergarten with absolute confidence.', 'chroma-excellence');
-	$hero_description = chroma_get_translated_meta($program_id, 'program_hero_description', true) ?: __('Stop the summer slide before it starts. Our <strong>Rising Kindergarten Summer Program</strong> is a specialized 6-week curriculum designed to solidify early reading, mathematical reasoning, and vital executive function skills, ensuring your child is 100% prepared for day one of elementary school.', 'chroma-excellence');
-	$hero_image_override = trim((string) chroma_get_translated_meta($program_id, 'program_hero_image', true));
-
-	if ($hero_image_override === '') {
-		$hero_image_override = trim((string) get_post_meta($program_id, 'program_hero_image', true));
-	}
-
-	$hero_image_markup = '';
-	if ($hero_image_override !== '') {
-		$hero_image_markup = sprintf(
-			'<img src="%1$s" alt="%2$s" class="w-full h-full object-cover" fetchpriority="high" loading="eager" decoding="async" sizes="(min-width: 1024px) 640px, 100vw" />',
-			esc_url($hero_image_override),
-			esc_attr__('Five-year-old child concentrating while writing letters in a workbook', 'chroma-excellence')
-		);
-	} elseif (has_post_thumbnail($program_id)) {
-		$hero_image_markup = wp_get_attachment_image(
-			get_post_thumbnail_id($program_id),
-			'full',
-			false,
-			array(
-				'class' => 'w-full h-full object-cover',
-				'fetchpriority' => 'high',
-				'loading' => 'eager',
-				'decoding' => 'async',
-				'sizes' => '(min-width: 1024px) 640px, 100vw',
-				'alt' => esc_attr__('Five-year-old child concentrating while writing letters in a workbook', 'chroma-excellence'),
-			)
-		);
-	}
+	$hero_title = __('Step into Kindergarten with absolute confidence.', 'chroma-excellence');
+	$hero_description = __('Stop the &ldquo;summer slide&rdquo; before it starts. Our <strong>Rising Kindergarten Summer Program</strong> is a specialized 6-week curriculum designed to solidify early reading, mathematical reasoning, and vital executive function skills, ensuring your child is 100% prepared for day one of elementary school.', 'chroma-excellence');
+	$hero_image_markup = sprintf(
+		'<img src="%1$s" alt="%2$s" class="w-full h-full object-cover" fetchpriority="high" loading="eager" decoding="async" sizes="(min-width: 1024px) 640px, 100vw" />',
+		esc_url($rising_k_preload_url),
+		esc_attr__('Five-year-old child concentrating while writing letters in a workbook', 'chroma-excellence')
+	);
 
 	$funding_cards = array(
 		array(
@@ -160,7 +123,7 @@ while (have_posts()):
 		}
 	</style>
 
-	<section class="relative pt-20 pb-20 bg-white overflow-hidden">
+	<section class="relative pb-20 bg-white overflow-hidden">
 		<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chroma-blueLight/60 to-transparent" aria-hidden="true"></div>
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
 			<div>
@@ -179,19 +142,7 @@ while (have_posts()):
 				</div>
 			</div>
 			<div class="rising-k-shell relative h-[500px] rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rising-k-hero-panel">
-				<?php if ($hero_image_markup): ?>
-					<?php echo $hero_image_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-				<?php else: ?>
-					<div class="w-full h-full bg-gradient-to-br from-chroma-blueLight via-white to-brand-cream flex items-center justify-center p-10 text-center">
-						<div>
-							<div class="w-20 h-20 rounded-full bg-white shadow-soft mx-auto mb-6 flex items-center justify-center text-chroma-blue text-3xl">
-								<i class="fa-solid fa-pencil" aria-hidden="true"></i>
-							</div>
-							<p class="font-serif text-3xl text-brand-ink mb-3"><?php esc_html_e('Kindergarten readiness begins in summer.', 'chroma-excellence'); ?></p>
-							<p class="text-brand-ink/70 max-w-sm"><?php esc_html_e('Add a featured image to this program post to match the original landing layout exactly.', 'chroma-excellence'); ?></p>
-						</div>
-					</div>
-				<?php endif; ?>
+				<?php echo $hero_image_markup; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 			</div>
 		</div>
 	</section>
@@ -206,7 +157,7 @@ while (have_posts()):
 
 			<div class="grid md:grid-cols-2 gap-8 lg:gap-12">
 				<?php foreach ($funding_cards as $card): ?>
-					<article class="bg-white p-10 rounded-[3rem] shadow-soft border-t-8 <?php echo esc_attr($card['accent_class']); ?>">
+					<div class="bg-white p-10 rounded-[3rem] shadow-soft border-t-8 <?php echo esc_attr($card['accent_class']); ?>">
 						<div class="text-3xl mb-4 <?php echo esc_attr($card['icon_color']); ?>">
 							<i class="<?php echo esc_attr($card['icon_class']); ?>" aria-hidden="true"></i>
 						</div>
@@ -223,7 +174,7 @@ while (have_posts()):
 						<a href="<?php echo esc_url($contact_url); ?>" class="inline-block font-bold uppercase tracking-widest text-xs hover:text-brand-ink transition-colors <?php echo esc_attr($card['link_color']); ?>">
 							<?php echo esc_html($card['link_text']); ?> &rarr;
 						</a>
-					</article>
+					</div>
 				<?php endforeach; ?>
 			</div>
 		</div>
@@ -233,8 +184,8 @@ while (have_posts()):
 		<div class="max-w-6xl mx-auto px-4 lg:px-6">
 			<div class="grid lg:grid-cols-2 gap-16 items-center">
 				<div class="bg-brand-cream rounded-[3rem] p-8 shadow-soft border border-brand-ink/5 order-2 lg:order-1 rising-k-chart-shell">
-					<canvas id="risingKindergartenChart" role="img" aria-label="<?php esc_attr_e('Radar chart showing the Rising Kindergarten Prismpath focus areas: 95% Academic, 80% Social, 75% Emotional, 60% Creative, and 50% Physical.', 'chroma-excellence'); ?>">
-						<?php esc_html_e('A radar chart illustrating our curriculum heavy focus on Academic readiness and Executive Function for Kindergarten.', 'chroma-excellence'); ?>
+					<canvas id="risingKinderChart" role="img" aria-label="<?php esc_attr_e('Radar chart showing the Rising Kindergarten Prismpath focus areas: 95% Academic, 80% Social, 75% Emotional, 60% Creative, and 50% Physical.', 'chroma-excellence'); ?>">
+						<?php esc_html_e('A radar chart illustrating our curriculum\'s heavy focus on Academic readiness and Executive Function for Kindergarten.', 'chroma-excellence'); ?>
 					</canvas>
 				</div>
 				<div class="order-1 lg:order-2">
@@ -270,13 +221,13 @@ while (have_posts()):
 			</div>
 			<div class="grid md:grid-cols-3 gap-8">
 				<?php foreach ($curriculum_cards as $card): ?>
-					<article class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors">
+					<div class="bg-white/5 p-8 rounded-3xl border border-white/10 hover:bg-white/10 transition-colors">
 						<div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6 <?php echo esc_attr($card['icon_bg']); ?> <?php echo esc_attr($card['icon_color']); ?>">
 							<i class="<?php echo esc_attr($card['icon_class']); ?>" aria-hidden="true"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold mb-3"><?php echo esc_html($card['title']); ?></h3>
 						<p class="text-sm text-white/80 leading-relaxed"><?php echo esc_html($card['copy']); ?></p>
-					</article>
+					</div>
 				<?php endforeach; ?>
 			</div>
 		</div>
@@ -284,7 +235,7 @@ while (have_posts()):
 
 	<script>
 		document.addEventListener('DOMContentLoaded', function () {
-			const canvas = document.getElementById('risingKindergartenChart');
+			const canvas = document.getElementById('risingKinderChart');
 
 			if (!canvas) {
 				return;
