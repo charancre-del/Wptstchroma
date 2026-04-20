@@ -352,6 +352,10 @@ function chroma_shared_meta_description() {
         return;
     }
 
+    if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+        return;
+    }
+
     static $rendered = false;
     if ($rendered) {
         return;
@@ -405,6 +409,10 @@ if (!function_exists('chroma_get_route_specific_title')) {
 
 if (!function_exists('chroma_force_known_route_titles')) {
     function chroma_force_known_route_titles($title) {
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return $title;
+        }
+
         $override = chroma_get_route_specific_title();
         return $override !== '' ? $override : $title;
     }
@@ -444,6 +452,10 @@ if (!function_exists('chroma_get_route_specific_meta_description')) {
 
 if (!function_exists('chroma_force_known_route_meta_descriptions')) {
     function chroma_force_known_route_meta_descriptions($description) {
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return $description;
+        }
+
         $override = chroma_get_route_specific_meta_description();
         return $override !== '' ? $override : $description;
     }
@@ -456,6 +468,10 @@ add_filter('wpseo_opengraph_desc', 'chroma_force_known_route_meta_descriptions',
  */
 function chroma_output_social_meta_tags() {
     if (is_admin() || is_404() || is_search() || is_feed() || is_robots() || is_trackback()) {
+        return;
+    }
+
+    if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
         return;
     }
 

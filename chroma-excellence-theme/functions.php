@@ -260,6 +260,7 @@ if (is_admin()) {
 require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
+require_once CHROMA_THEME_DIR . '/inc/seo-runtime.php';
 // require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
 // Customizers - Admin or Preview Only
 if (is_admin() || is_customize_preview()) {
@@ -952,16 +953,6 @@ add_filter('pre_option_chroma_seo_redirect_canonical', 'chroma_disable_custom_ca
  */
 function chroma_optimize_title_length($title_parts)
 {
-    // Truncate very long titles
-    if (isset($title_parts['title']) && mb_strlen($title_parts['title']) > 50) {
-        $title_parts['title'] = mb_substr($title_parts['title'], 0, 47) . '...';
-    }
-
-    // Use shorter site name suffix on blog posts
-    if (is_single() && isset($title_parts['site'])) {
-        $title_parts['site'] = 'Chroma';
-    }
-
     return $title_parts;
 }
 add_filter('document_title_parts', 'chroma_optimize_title_length', 10);

@@ -20,6 +20,19 @@ class Chroma_Canonical_Enforcer
      */
     private $canonical_rendered = false;
 
+    /**
+     * Get the current request path without query params.
+     *
+     * @return string
+     */
+    private function get_request_path()
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+
+        return is_string($path) ? $path : '';
+    }
+
     public function __construct()
     {
         // Remove WordPress default canonical
@@ -93,11 +106,19 @@ class Chroma_Canonical_Enforcer
         // Start with current URL
         $url = home_url($wp->request);
 
+        $request_path = $this->get_request_path();
+        if ($request_path !== '' && function_exists('chroma_get_dynamic_route_canonical_path')) {
+            $dynamic_path = chroma_get_dynamic_route_canonical_path($request_path);
+            if ($dynamic_path !== '') {
+                return $this->normalize_canonical_url(home_url($dynamic_path));
+            }
+        }
+
         // Handle special cases
         if (get_query_var('chroma_combo')) {
             $program_slug = get_query_var('combo_program');
             $city_slug = get_query_var('combo_city');
-            $state = get_query_var('combo_state');
+            $state = strtolower((string) get_query_var('combo_state'));
             $url = home_url("/{$program_slug}-in-{$city_slug}-{$state}/");
         } elseif (is_front_page()) {
             $url = home_url('/');
@@ -114,11 +135,6 @@ class Chroma_Canonical_Enforcer
             if ($term && !empty($term->term_id)) {
                 $url = get_term_link($term);
             }
-        }
-
-        $filtered = apply_filters('wpseo_canonical', $url);
-        if (is_string($filtered) && $filtered !== '') {
-            $url = $filtered;
         }
 
         return $this->normalize_canonical_url($url);
@@ -225,6 +241,10 @@ class Chroma_Canonical_Enforcer
             return;
         }
 
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return;
+        }
+
         // QA portal is app-shell driven and handles its own route behavior.
         if ($this->is_qa_route_request()) {
             return;
@@ -302,6 +322,10 @@ class Chroma_Canonical_Enforcer
     public function enforce_canonical()
     {
         if (!get_option('chroma_seo_redirect_canonical', true)) {
+            return;
+        }
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
             return;
         }
 

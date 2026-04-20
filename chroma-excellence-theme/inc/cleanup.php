@@ -34,7 +34,10 @@ function chroma_redirect_attachment_pages()
                 if ($post && $post->post_parent) {
                         wp_safe_redirect(get_permalink($post->post_parent), 301);
                 } else {
-                        wp_safe_redirect(home_url(), 301);
+                        chroma_send_gone_response(
+                                __('Attachment Unavailable', 'chroma-excellence'),
+                                __('This attachment URL is no longer available.', 'chroma-excellence')
+                        );
                 }
                 exit;
         }
@@ -47,7 +50,10 @@ add_action('template_redirect', 'chroma_redirect_attachment_pages');
 function chroma_disable_author_archives()
 {
         if (is_author()) {
-                wp_safe_redirect(home_url(), 301);
+                chroma_send_gone_response(
+                        __('Archive Unavailable', 'chroma-excellence'),
+                        __('Author archive pages are not available on this site.', 'chroma-excellence')
+                );
                 exit;
         }
 }
@@ -163,6 +169,8 @@ add_filter('xmlrpc_enabled', '__return_false');
  * Remove WordPress version from head
  */
 remove_action('wp_head', 'wp_generator');
+remove_action('wp_head', 'feed_links', 2);
+remove_action('wp_head', 'feed_links_extra', 3);
 
 /**
  * Disable RSS feeds
@@ -270,6 +278,71 @@ function chroma_block_legacy_team_member_queries()
 add_action('template_redirect', 'chroma_block_legacy_team_member_queries', -50);
 
 /**
+ * Keep career detail pages out of the index while preserving crawl paths.
+ *
+ * @param array $robots
+ * @return array
+ */
+function chroma_noindex_career_robots($robots)
+{
+        if (!is_singular('career')) {
+                return $robots;
+        }
+
+        if (!is_array($robots)) {
+                $robots = [];
+        }
+
+        unset($robots['index'], $robots['nofollow']);
+        $robots['noindex'] = true;
+        $robots['follow'] = true;
+
+        return $robots;
+}
+add_filter('wp_robots', 'chroma_noindex_career_robots', 30);
+
+/**
+ * Mirror career noindex directives when a plugin owns robots output.
+ *
+ * @param string $robots
+ * @return string
+ */
+function chroma_noindex_career_wpseo_robots($robots)
+{
+        if (!is_singular('career')) {
+                return $robots;
+        }
+
+        return 'noindex,follow';
+}
+add_filter('wpseo_robots', 'chroma_noindex_career_wpseo_robots', 30);
+
+/**
+ * Add an X-Robots-Tag header for career detail pages so server-side noindex wins.
+ */
+function chroma_send_career_x_robots_header()
+{
+        if (headers_sent() || !is_singular('career')) {
+                return;
+        }
+
+        header('X-Robots-Tag: noindex, follow', true);
+}
+add_action('send_headers', 'chroma_send_career_x_robots_header', 20);
+
+/**
+ * Keep non-indexable or unsupported post types out of the unified sitemap.
+ *
+ * @param array $post_types
+ * @return array
+ */
+function chroma_filter_sitemap_post_types($post_types)
+{
+        return array_values(array_diff((array) $post_types, ['career', 'team_member', 'attachment']));
+}
+add_filter('chroma_sitemap_post_types', 'chroma_filter_sitemap_post_types', 20);
+
+/**
  * Normalize robots.txt output so crawl directives and sitemap ownership stay consistent.
  */
 function chroma_normalize_robots_txt($output, $public)
@@ -305,23 +378,11 @@ function chroma_normalize_robots_txt($output, $public)
                 'User-agent: *',
                 'Disallow: /wp-admin/',
                 'Allow: /wp-admin/admin-ajax.php',
-                'Allow: /wp-json/chroma-agent/',
-                'Allow: /wp-json/chroma-agent/v1/',
                 'Allow: /wp-json/chroma-agent/v1/geo-feed',
-                'Allow: /llm.txt',
-                'Allow: /llms.txt',
                 'Disallow: /items/',
                 'Disallow: /feed/',
                 'Disallow: /comments/feed/',
                 'Sitemap: ' . esc_url_raw(home_url('/sitemap.xml')),
-                'Sitemap: ' . esc_url_raw(home_url('/sitemap_index.xml')),
-                'Sitemap: ' . esc_url_raw(home_url('/sitemap-spanish.xml')),
-                'Sitemap: ' . esc_url_raw(home_url('/sitemap-combos.xml')),
-                'Sitemap: ' . esc_url_raw(home_url('/sitemap-combos-es.xml')),
-                'Sitemap: ' . esc_url_raw(home_url('/sitemap-near-me.xml')),
-                'Sitemap: ' . esc_url_raw(home_url('/sitemap-near-me-es.xml')),
-                'Sitemap: ' . esc_url_raw(home_url('/ai-sitemap.xml')),
-                'Sitemap: ' . esc_url_raw(home_url('/llm-sitemap.xml')),
         ];
 
         foreach ($required_lines as $line) {

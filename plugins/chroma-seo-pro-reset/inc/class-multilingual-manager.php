@@ -288,6 +288,63 @@ class Chroma_Multilingual_Manager
     }
 
     /**
+     * Get current request path without query parameters.
+     *
+     * @return string
+     */
+    private static function get_current_request_path()
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+
+        return is_string($path) ? $path : '';
+    }
+
+    /**
+     * Build normalized alternates for dynamic combo and near-me routes.
+     *
+     * @return array
+     */
+    private static function get_dynamic_route_alternates()
+    {
+        $path = self::get_current_request_path();
+        if ($path === '') {
+            return [];
+        }
+
+        $canonical_path = '';
+        if (function_exists('chroma_get_dynamic_route_canonical_path')) {
+            $canonical_path = chroma_get_dynamic_route_canonical_path($path);
+        }
+
+        if ($canonical_path === '') {
+            if (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+                $canonical_path = '/' . (!empty($matches[1]) ? 'es/' : '') . sanitize_title($matches[2]) . '-in-' . sanitize_title($matches[3]) . '-' . strtolower($matches[4]) . '/';
+            } elseif (preg_match('#^/(es/)?([a-z0-9-]+)-near-me/?$#i', $path, $matches)) {
+                $canonical_path = '/' . (!empty($matches[1]) ? 'es/' : '') . sanitize_title($matches[2]) . '-near-me/';
+            } elseif (preg_match('#^/(es/)?([a-z0-9-]+)-near-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+                $canonical_path = '/' . (!empty($matches[1]) ? 'es/' : '') . sanitize_title($matches[2]) . '-near-' . sanitize_title($matches[3]) . '-' . strtolower($matches[4]) . '/';
+            }
+        }
+
+        if ($canonical_path === '') {
+            return [];
+        }
+
+        $en_path = preg_replace('#^/es/#', '/', $canonical_path);
+        if (!is_string($en_path) || $en_path === '') {
+            $en_path = '/';
+        }
+
+        $es_path = $en_path === '/' ? '/es/' : '/es' . $en_path;
+
+        return [
+            'en' => home_url($en_path),
+            'es' => home_url($es_path),
+        ];
+    }
+
+    /**
      * Get alternate URLs (EN/ES) for a post or current page
      * 
      * @param int|null $post_id
@@ -296,6 +353,11 @@ class Chroma_Multilingual_Manager
     public static function get_alternates($post_id = null)
     {
         global $wp;
+
+        $dynamic_alternates = self::get_dynamic_route_alternates();
+        if (!empty($dynamic_alternates['en'])) {
+            return $dynamic_alternates;
+        }
 
         // 1. Determine the base English URL based on the current context
         if ($post_id) {
@@ -532,6 +594,10 @@ class Chroma_Multilingual_Manager
     public function localize_seo_title($title) {
         if (!self::is_spanish()) return $title;
 
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return $title;
+        }
+
         if (!is_singular()) {
             return $title;
         }
@@ -553,6 +619,10 @@ class Chroma_Multilingual_Manager
      */
     public function localize_meta_description() {
         if (!self::is_spanish()) return;
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return;
+        }
 
         if (!is_singular()) {
             return;

@@ -154,6 +154,10 @@ if (!function_exists('chroma_strip_disallowed_customizer_markup')) {
             return $html;
         }
 
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return $html;
+        }
+
         $html = preg_replace('/<link\b[^>]*\brel\s*=\s*(["\'])canonical\1[^>]*>/i', '', $html);
 
         return preg_replace_callback('/<script\b[^>]*>.*?<\/script>/is', function ($matches) {
@@ -176,6 +180,10 @@ if (!function_exists('chroma_dedupe_customizer_scripts')) {
     function chroma_dedupe_customizer_scripts($html)
     {
         if (!is_string($html) || trim($html) === '') {
+            return $html;
+        }
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
             return $html;
         }
 
