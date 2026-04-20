@@ -2,18 +2,17 @@
 /**
  * Curriculum Radar Chart
  * Template Part: Curriculum Chart
- * Interactive radar chart showing Prismpath™ curriculum focus by age
  *
  * @package Chroma_Excellence
  */
 
 $profiles = chroma_home_curriculum_profiles();
+$curriculum_content = chroma_home_curriculum_content();
 
 if (empty($profiles['labels']) || empty($profiles['profiles'])) {
         return;
 }
 
-$labels = $profiles['labels'];
 $profile_list = array_values($profiles['profiles']);
 $first = $profile_list[0];
 ?>
@@ -21,26 +20,27 @@ $first = $profile_list[0];
 <section id="curriculum" class="py-20 bg-brand-cream border-y border-chroma-blue/10" data-section="curriculum">
         <div class="max-w-6xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-12 items-center">
                 <div class="space-y-5">
-                        <span
-                                class="text-chroma-blue font-bold tracking-[0.2em] text-[11px] uppercase"><?php _e('The Prismpath™ Curriculum', 'chroma-excellence'); ?></span>
+                        <span class="text-chroma-blue font-bold tracking-[0.2em] text-[11px] uppercase">
+                                <?php echo esc_html($curriculum_content['eyebrow']); ?>
+                        </span>
                         <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink">
-                                <?php _e('A curriculum that shifts as your child grows', 'chroma-excellence'); ?></h2>
+                                <?php echo esc_html($curriculum_content['heading']); ?>
+                        </h2>
                         <p class="text-brand-ink text-sm md:text-base">
-                                <?php _e('Our Prismpath™ framework balances five pillars – physical, emotional, social, academic, and creative development. The mix changes at each age so your child gets exactly what they need, when they need it.', 'chroma-excellence'); ?>
+                                <?php echo esc_html($curriculum_content['subheading']); ?>
                         </p>
                         <div class="flex flex-wrap gap-2 text-xs" data-curriculum-buttons>
-                                <?php foreach ($profiles['profiles'] as $index => $profile):
+                                <?php foreach ($profiles['profiles'] as $index => $profile): ?>
+                                        <?php
                                         $label = $profile['label'] ?? ucfirst($profile['key']);
-
-                                        // Separate emoji from text (emoji at start of string)
                                         $emoji = '';
                                         $text = $label;
+
                                         if (preg_match('/^([\x{1F300}-\x{1F9FF}]|[\x{2600}-\x{26FF}]|[\x{2700}-\x{27BF}])\s*/u', $label, $matches)) {
                                                 $emoji = $matches[0];
                                                 $text = trim(substr($label, strlen($emoji)));
                                         }
-                                        ?>
-                                        <?php
+
                                         $is_active = 0 === $index;
                                         $button_classes = $is_active
                                                 ? 'bg-chroma-blue text-white shadow-soft'
@@ -48,8 +48,10 @@ $first = $profile_list[0];
                                         ?>
                                         <button class="px-4 py-2 rounded-full font-semibold border border-chroma-blue/20 <?php echo esc_attr($button_classes); ?>"
                                                 data-curriculum-button="<?php echo esc_attr($profile['key']); ?>">
-                                                <?php if ($emoji): ?><span
-                                                                class="inline-block mr-1"><?php echo esc_html($emoji); ?></span><?php endif; ?><?php echo esc_html($text); ?>
+                                                <?php if ($emoji): ?>
+                                                        <span class="inline-block mr-1"><?php echo esc_html($emoji); ?></span>
+                                                <?php endif; ?>
+                                                <?php echo esc_html($text); ?>
                                         </button>
                                 <?php endforeach; ?>
                         </div>
@@ -64,7 +66,8 @@ $first = $profile_list[0];
                 <div>
                         <div class="bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 p-6">
                                 <div class="relative h-[340px] md:h-[380px] aspect-square mx-auto">
-                                        <canvas data-curriculum-chart aria-label="Curriculum focus radar chart"
+                                        <canvas data-curriculum-chart
+                                                aria-label="<?php echo esc_attr($curriculum_content['chart_aria_label']); ?>"
                                                 role="img"></canvas>
                                 </div>
                         </div>
