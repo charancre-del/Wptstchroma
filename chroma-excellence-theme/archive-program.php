@@ -57,22 +57,29 @@ $programs_query = chroma_cached_query(
 					$delay_counter = 0;
 					while ($programs_query->have_posts()):
 						$programs_query->the_post();
+						$program_id = get_the_ID();
+						$program_title = get_the_title($program_id);
+						$program_permalink = chroma_get_localized_url(get_permalink($program_id));
 
 						// Get program meta
-						$age_range = chroma_get_translated_meta(get_the_ID(), 'program_age_range');
-						$features = chroma_get_translated_meta(get_the_ID(), 'program_features');
-						$cta_text = chroma_get_translated_meta(get_the_ID(), 'program_cta_text') ?: __('Schedule Tour', 'chroma-excellence');
-						$cta_link = chroma_get_translated_meta(get_the_ID(), 'program_cta_link') ?: '#tour';
-						$color_scheme = get_post_meta(get_the_ID(), 'program_color_scheme', true) ?: 'red';
+						$age_range = chroma_get_translated_meta($program_id, 'program_age_range');
+						$features = chroma_get_translated_meta($program_id, 'program_features');
+						$cta_text = chroma_get_translated_meta($program_id, 'program_cta_text') ?: __('Schedule Tour', 'chroma-excellence');
+						$cta_link = chroma_get_translated_meta($program_id, 'program_cta_link') ?: '#tour';
+						$color_scheme = get_post_meta($program_id, 'program_color_scheme', true) ?: 'red';
 
 						// Parse features into array
 						$features_array = $features ? array_filter(array_map('trim', explode("\n", $features))) : array();
 
 						// Get featured image
-						$thumbnail_url = get_the_post_thumbnail_url(get_the_ID(), 'large');
+						$thumbnail_url = get_the_post_thumbnail_url($program_id, 'large');
 						if (!$thumbnail_url) {
 							$thumbnail_url = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=600&auto=format&fit=crop';
 						}
+
+						$program_excerpt = has_excerpt($program_id)
+							? get_the_excerpt($program_id)
+							: wp_trim_words(wp_strip_all_tags((string) get_post_field('post_content', $program_id)), 20);
 
 						// Set delay class for staggered animation
 						$delay_classes = array('', 'delay-100', 'delay-200');
@@ -94,20 +101,20 @@ $programs_query = chroma_cached_query(
 						<!-- Program Card -->
 						<div
 							class="relative group bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition-all hover:-translate-y-1 flex flex-col h-full fade-in-up <?php echo esc_attr($delay_class); ?>">
-							<a href="<?php echo chroma_get_localized_url(get_permalink()); ?>" class="absolute inset-0 z-0"
-								aria-label="View details for <?php the_title_attribute(); ?>"></a>
-							<a href="<?php echo chroma_get_localized_url(get_permalink()); ?>"
+							<a href="<?php echo esc_url($program_permalink); ?>" class="absolute inset-0 z-0"
+								aria-label="<?php echo esc_attr(sprintf(__('View details for %s', 'chroma-excellence'), $program_title)); ?>"></a>
+							<a href="<?php echo esc_url($program_permalink); ?>"
 								class="h-48 rounded-[2rem] overflow-hidden mb-6 relative block group-hover:opacity-90 transition-opacity">
 								<div
 									class="absolute inset-0 bg-<?php echo esc_attr($colors['light']); ?> group-hover:bg-transparent transition-colors duration-500 z-10">
 								</div>
-								<?php if (has_post_thumbnail()): ?>
-									<?php the_post_thumbnail('large', array(
+								<?php if (has_post_thumbnail($program_id)): ?>
+									<?php echo get_the_post_thumbnail($program_id, 'large', array(
 										'class' => 'w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700',
-										'alt' => get_the_title(),
+										'alt' => $program_title,
 									)); ?>
 								<?php else: ?>
-									<img src="<?php echo esc_url($thumbnail_url); ?>" alt="<?php echo esc_attr(get_the_title()); ?>"
+									<img src="<?php echo esc_url($thumbnail_url); ?>" alt="<?php echo esc_attr($program_title); ?>"
 										class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
 								<?php endif; ?>
 
@@ -120,14 +127,14 @@ $programs_query = chroma_cached_query(
 							</a>
 
 							<h2 class="font-serif text-2xl font-bold text-brand-ink mb-2">
-								<a href="<?php echo chroma_get_localized_url(get_permalink()); ?>"
+								<a href="<?php echo esc_url($program_permalink); ?>"
 									class="hover:text-<?php echo esc_attr($colors['main']); ?> transition-colors">
-									<?php the_title(); ?>
+									<?php echo esc_html($program_title); ?>
 								</a>
 							</h2>
 
 							<p class="text-sm text-brand-ink/90 mb-6 flex-grow">
-								<?php echo has_excerpt() ? get_the_excerpt() : wp_trim_words(get_the_content(), 20); ?>
+								<?php echo esc_html($program_excerpt); ?>
 							</p>
 
 							<?php if (!empty($features_array)): ?>
@@ -142,7 +149,7 @@ $programs_query = chroma_cached_query(
 							<?php endif; ?>
 
 							<a href="<?php echo chroma_get_localized_url($cta_link); ?>"
-								aria-label="<?php echo esc_attr($cta_text . ' for ' . get_the_title()); ?>"
+								aria-label="<?php echo esc_attr($cta_text . ' for ' . $program_title); ?>"
 								class="relative z-10 w-full py-3 rounded-xl border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-wider text-center hover:bg-<?php echo esc_attr($colors['main']); ?> hover:text-white hover:border-<?php echo esc_attr($colors['main']); ?> transition-colors">
 								<?php echo esc_html($cta_text); ?>
 							</a>

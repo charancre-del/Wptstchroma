@@ -49,6 +49,8 @@ $programs = $data_service->get_programs();
                     $delay_counter = 0;
                     foreach ($programs as $program):
                         $program_id = $program->ID;
+                        $program_title = get_the_title($program_id);
+                        $program_permalink = get_permalink($program_id);
 
                         // Get program meta from memory
                         $age_range = $data_service->get_translated_meta($program_id, 'program_age_range');
@@ -65,6 +67,10 @@ $programs = $data_service->get_programs();
                         if (!$thumbnail_url) {
                             $thumbnail_url = 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=600&auto=format&fit=crop';
                         }
+
+                        $program_excerpt = has_excerpt($program_id)
+                            ? get_the_excerpt($program_id)
+                            : wp_trim_words(wp_strip_all_tags((string) get_post_field('post_content', $program_id)), 20);
 
                         // Set delay class for staggered animation
                         $delay_classes = array('', 'delay-100', 'delay-200');
@@ -86,8 +92,8 @@ $programs = $data_service->get_programs();
                         <!-- Program Card -->
                         <div
                             class="relative group bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition-all hover:-translate-y-1 flex flex-col h-full fade-in-up <?php echo esc_attr($delay_class); ?>">
-                            <a href="<?php echo get_permalink($program_id); ?>" class="absolute inset-0 z-0"
-                                aria-label="View details for <?php echo esc_attr($program->post_title); ?>"></a>
+                            <a href="<?php echo esc_url($program_permalink); ?>" class="absolute inset-0 z-0"
+                                aria-label="View details for <?php echo esc_attr($program_title); ?>"></a>
                             <div class="h-48 rounded-[2rem] overflow-hidden mb-6 relative">
                                 <div
                                     class="absolute inset-0 bg-<?php echo esc_attr($colors['light']); ?> group-hover:bg-transparent transition-colors duration-500 z-10">
@@ -95,11 +101,11 @@ $programs = $data_service->get_programs();
                                 <?php if (has_post_thumbnail($program_id)): ?>
                                     <?php echo get_the_post_thumbnail($program_id, 'large', array(
                                         'class' => 'w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700',
-                                        'alt' => $program->post_title,
+                                        'alt' => $program_title,
                                     )); ?>
                                 <?php else: ?>
                                     <img src="<?php echo esc_url($thumbnail_url); ?>"
-                                        alt="<?php echo esc_attr($program->post_title); ?>"
+                                        alt="<?php echo esc_attr($program_title); ?>"
                                         class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" />
                                 <?php endif; ?>
 
@@ -112,10 +118,10 @@ $programs = $data_service->get_programs();
                             </div>
 
                             <h3 class="font-serif text-2xl font-bold text-brand-ink mb-2">
-                                <?php echo esc_html($program->post_title); ?></h3>
+                                <?php echo esc_html($program_title); ?></h3>
 
                             <p class="text-sm text-brand-ink/90 mb-6 flex-grow">
-                                <?php echo has_excerpt() ? get_the_excerpt() : wp_trim_words(get_the_content(), 20); ?>
+                                <?php echo esc_html($program_excerpt); ?>
                             </p>
 
                             <?php if (!empty($features_array)): ?>

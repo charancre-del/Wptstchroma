@@ -9,6 +9,13 @@
 
 <footer class="bg-brand-ink text-white py-12 px-4 lg:px-6">
 	<div class="max-w-7xl mx-auto">
+		<?php
+		$is_virtual_seo_route = (bool) (
+			get_query_var('chroma_near_me')
+			|| get_query_var('chroma_service_area')
+			|| get_query_var('chroma_combo')
+		);
+		?>
 		<!-- Top Section -->
 		<div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
 			<!-- Logo and Description -->
@@ -77,51 +84,53 @@
 				</div>
 			</div>
 
-			<!-- Latest News -->
-			<div class="md:col-span-1 lg:col-span-1">
-				<h3 class="font-bold text-sm mb-4"><?php _e('Latest Blogs', 'chroma-excellence'); ?></h3>
-				<?php
-				$footer_blog_query = chroma_cached_query(
-					array(
-						'post_type' => 'post',
-						'posts_per_page' => 2,
-						'ignore_sticky_posts' => 1,
-					),
-					'footer_blog',
-					DAY_IN_SECONDS
-				);
+			<?php if (!$is_virtual_seo_route): ?>
+				<!-- Latest News -->
+				<div class="md:col-span-1 lg:col-span-1">
+					<h3 class="font-bold text-sm mb-4"><?php _e('Latest Blogs', 'chroma-excellence'); ?></h3>
+					<?php
+					$footer_blog_query = chroma_cached_query(
+						array(
+							'post_type' => 'post',
+							'posts_per_page' => 2,
+							'ignore_sticky_posts' => 1,
+						),
+						'footer_blog',
+						DAY_IN_SECONDS
+					);
 
-				if ($footer_blog_query->have_posts()): ?>
-					<div class="grid grid-cols-2 gap-4">
-						<?php while ($footer_blog_query->have_posts()):
-							$footer_blog_query->the_post(); ?>
-							<a href="<?php the_permalink(); ?>" class="group block">
-								<div class="aspect-video relative rounded-lg overflow-hidden bg-brand-ink/10 mb-2">
-									<?php if (has_post_thumbnail()): ?>
-										<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105')); ?>
-									<?php else: ?>
+					if ($footer_blog_query->have_posts()): ?>
+						<div class="grid grid-cols-2 gap-4">
+							<?php while ($footer_blog_query->have_posts()):
+								$footer_blog_query->the_post(); ?>
+								<a href="<?php the_permalink(); ?>" class="group block">
+									<div class="aspect-video relative rounded-lg overflow-hidden bg-brand-ink/10 mb-2">
+										<?php if (has_post_thumbnail()): ?>
+											<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105')); ?>
+										<?php else: ?>
+											<div
+												class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
+												<i class="fa-solid fa-newspaper text-xl"></i>
+											</div>
+										<?php endif; ?>
 										<div
-											class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
-											<i class="fa-solid fa-newspaper text-xl"></i>
+											class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300">
 										</div>
-									<?php endif; ?>
-									<div
-										class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300">
 									</div>
-								</div>
-								<h4
-									class="text-[10px] font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
-									<?php the_title(); ?>
-								</h4>
-								<span class="text-[9px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
-							</a>
-						<?php endwhile; ?>
-					</div>
-					<?php wp_reset_postdata(); ?>
-				<?php else: ?>
-					<p class="text-xs text-white/60"><?php _e('No recent updates.', 'chroma-excellence'); ?></p>
-				<?php endif; ?>
-			</div>
+									<h4
+										class="text-[10px] font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
+										<?php the_title(); ?>
+									</h4>
+									<span class="text-[9px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
+								</a>
+							<?php endwhile; ?>
+						</div>
+						<?php wp_reset_postdata(); ?>
+					<?php else: ?>
+						<p class="text-xs text-white/60"><?php _e('No recent updates.', 'chroma-excellence'); ?></p>
+					<?php endif; ?>
+				</div>
+			<?php endif; ?>
 		</div>
 
 		<!-- Footer SEO Text (Tier 12 - SS) -->

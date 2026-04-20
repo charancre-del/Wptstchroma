@@ -10,6 +10,10 @@ get_header();
 
 // Get Data Service
 $data_service = Chroma_Data_Service::get_instance();
+$archive_page_id = get_queried_object_id();
+$archive_subtitle = ($archive_page_id && has_excerpt($archive_page_id))
+	? get_the_excerpt($archive_page_id)
+	: get_theme_mod('chroma_locations_archive_subtitle', 'Serving families across Metro Atlanta with the same high standards of safety, curriculum, and care at every single location.');
 
 // Get all location regions from memory
 $all_regions = $data_service->get_regions();
@@ -71,7 +75,7 @@ function chroma_get_region_color_mem($term_id)
 			</h1>
 
 			<p class="text-lg text-brand-ink/80 max-w-2xl mx-auto mb-10 fade-in-up" style="animation-delay: 0.2s;">
-				<?php echo has_excerpt() ? get_the_excerpt() : esc_html(get_theme_mod('chroma_locations_archive_subtitle', 'Serving families across Metro Atlanta with the same high standards of safety, curriculum, and care at every single location.')); ?>
+				<?php echo esc_html($archive_subtitle); ?>
 			</p>
 
 			<!-- Filter Bar -->
@@ -158,6 +162,7 @@ function chroma_get_region_color_mem($term_id)
 
 						$ages_served = $data_service->get_meta($location_id, 'location_ages_served') ?: 'Infant - 12y';
 						$special_programs_raw = $data_service->get_meta($location_id, 'location_special_programs');
+						$location_permalink = get_permalink($location_id);
 
 						if ($special_programs_raw) {
 							$special_programs = array_map('trim', explode(',', $special_programs_raw));
@@ -210,11 +215,11 @@ function chroma_get_region_color_mem($term_id)
 								</div>
 
 								<div class="grid grid-cols-2 gap-3 mt-auto">
-									<a href="<?php the_permalink(); ?>"
+									<a href="<?php echo esc_url($location_permalink); ?>"
 										class="flex items-center justify-center py-3 rounded-xl bg-brand-ink/5 text-brand-ink text-xs font-bold uppercase tracking-wider hover:bg-brand-ink hover:text-white transition-colors">
 										View Campus
 									</a>
-									<a href="<?php the_permalink(); ?>#tour"
+									<a href="<?php echo esc_url($location_permalink . '#tour'); ?>"
 										class="flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
 										Book Tour
 									</a>

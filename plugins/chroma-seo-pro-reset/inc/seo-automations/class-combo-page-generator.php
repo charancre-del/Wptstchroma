@@ -91,26 +91,8 @@ class Chroma_Combo_Page_Generator
         // Find nearest location in this city/state
         $location = $this->find_location_in_city($city_slug, $state);
 
-        // Setup global post for template compatibility
-        global $post, $wp_query;
-        $post = $program;
-        setup_postdata($post);
-
-        // Configure main query to look like a singular program
-        $wp_query->is_page = false;
-        $wp_query->is_single = true;
-        $wp_query->is_singular = true;
-        $wp_query->is_home = false;
-        $wp_query->is_archive = false;
-        $wp_query->is_404 = false;
-        $wp_query->queried_object = $program;
-        $wp_query->queried_object_id = $program->ID;
-        $wp_query->post = $program;
-
-        // Initializing variables for header checks
-        $wp_query->posts = [$program];
-        $wp_query->post_count = 1;
-        $wp_query->found_posts = 1;
+        // Treat combo routes as true virtual pages instead of masquerading as program singles.
+        $this->prepare_virtual_page_query_state();
 
         // Prepare data for Schema (must happen before get_header)
         $city_name = ucwords(str_replace('-', ' ', $city_slug));
@@ -128,7 +110,7 @@ class Chroma_Combo_Page_Generator
         });
 
         // Force Canonical (Closure method to ensure context)
-        $combo_canonical = home_url("/{$program_slug}-in-{$city_slug}-{$state}/");
+        $combo_canonical = home_url("/{$program_slug}-in-{$city_slug}-" . strtolower($state) . "/");
 
         // High priority filter for Yoast Canonical AND OpenGraph URL
         foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $filter) {
@@ -174,6 +156,37 @@ class Chroma_Combo_Page_Generator
         echo $this->get_combo_page_html($program, $city_slug, $state, $location);
         get_footer();
         exit;
+    }
+
+    /**
+     * Keep combo routes from inheriting singular-program query flags.
+     *
+     * OTTO and other SEO layers should see these as virtual landing pages that
+     * own their own route, not as the underlying program single.
+     */
+    private function prepare_virtual_page_query_state()
+    {
+        global $post, $wp_query;
+
+        if ($wp_query instanceof WP_Query) {
+            $wp_query->is_page = false;
+            $wp_query->is_single = false;
+            $wp_query->is_singular = false;
+            $wp_query->is_home = false;
+            $wp_query->is_front_page = false;
+            $wp_query->is_archive = false;
+            $wp_query->is_search = false;
+            $wp_query->is_feed = false;
+            $wp_query->is_404 = false;
+            $wp_query->queried_object = null;
+            $wp_query->queried_object_id = 0;
+            $wp_query->post = null;
+            $wp_query->posts = [];
+            $wp_query->post_count = 0;
+            $wp_query->found_posts = 0;
+        }
+
+        $post = null;
     }
 
     /**

@@ -31,6 +31,13 @@ $locations_query = chroma_cached_query(
 );
 $published_locations = wp_count_posts('location');
 $locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
+$archive_description = trim(wp_strip_all_tags(get_the_archive_description()));
+$archive_subtitle = $archive_description !== ''
+	? $archive_description
+	: get_theme_mod(
+		'chroma_locations_archive_subtitle',
+		__('Serving families across Metro Atlanta with the same high standards of safety, curriculum, and care at every single location.', 'chroma-excellence')
+	);
 
 // Guard against stale cached empty query objects.
 if (0 === (int) $locations_query->post_count && $locations_count > 0) {
@@ -71,7 +78,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 			</h1>
 
 			<p class="text-lg text-brand-ink/90 max-w-2xl mx-auto mb-10 fade-in-up" style="animation-delay: 0.2s;">
-				<?php echo has_excerpt() ? get_the_excerpt() : esc_html(get_theme_mod('chroma_locations_archive_subtitle', __('Serving families across Metro Atlanta with the same high standards of safety, curriculum, and care at every single location.', 'chroma-excellence'))); ?>
+				<?php echo esc_html($archive_subtitle); ?>
 			</p>
 
 			<!-- Filter Bar -->
@@ -119,6 +126,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 						$location_id = get_the_ID();
 						$location_fields = chroma_get_location_fields($location_id);
 						$location_name = get_the_title();
+						$location_permalink = get_permalink($location_id);
 
 						// Get location meta
 						$city = $location_fields['city'];
@@ -179,7 +187,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 								class="bg-white rounded-[2rem] p-6 shadow-card border border-<?php echo esc_attr($is_featured ? $colors['border'] . ' border-opacity-50' : 'brand-ink/5'); ?> hover:border-<?php echo esc_attr($colors['border']); ?>/30 transition-all hover:-translate-y-1 h-full flex flex-col relative overflow-hidden">
 
 								<!-- Overlay Link for entire card -->
-								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-10"
+								<a href="<?php echo esc_url($location_permalink); ?>" class="absolute inset-0 z-10"
 									aria-label="<?php printf(esc_attr__('View %s', 'chroma-excellence'), esc_attr($location_name)); ?>"></a>
 
 								<div
@@ -226,7 +234,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 								$booking_link = chroma_get_translated_meta($location_id, 'location_tour_booking_link');
 								?>
 								<div class="grid grid-cols-2 gap-3 mt-auto relative z-20">
-									<a href="<?php the_permalink(); ?>"
+									<a href="<?php echo esc_url($location_permalink); ?>"
 										class="flex items-center justify-center py-3 rounded-xl bg-brand-ink/5 text-brand-ink text-xs font-bold uppercase tracking-wider hover:bg-brand-ink hover:text-white transition-colors">
 										<?php _e('View Campus', 'chroma-excellence'); ?>
 									</a>
@@ -236,7 +244,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 											<?php _e('Book Tour', 'chroma-excellence'); ?>
 										</a>
 									<?php else: ?>
-										<a href="<?php the_permalink(); ?>#contact"
+										<a href="<?php echo esc_url($location_permalink . '#contact'); ?>"
 											class="flex items-center justify-center py-3 rounded-xl border border-<?php echo esc_attr($colors['border']); ?> text-<?php echo esc_attr($colors['text']); ?> text-xs font-bold uppercase tracking-wider hover:bg-<?php echo esc_attr($colors['text']); ?> hover:text-white transition-colors">
 											<?php _e('Contact Us', 'chroma-excellence'); ?>
 										</a>

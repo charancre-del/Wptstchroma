@@ -76,8 +76,17 @@ class Chroma_Near_Me_Pages
         $city_slug = sanitize_title(get_query_var('near_city'));
         $state = strtoupper(sanitize_text_field(get_query_var('near_state')));
 
-        $this->prepare_virtual_page_query_state();
+        $page_title = $this->build_page_title($keyword, $city_slug, $state);
+        $description = $this->build_meta_description($keyword, $city_slug, $state);
+
+        $this->prepare_virtual_page_query_state($page_title, $description);
         $this->register_seo_overrides($keyword, $city_slug, $state);
+
+        add_filter('body_class', function ($classes) {
+            $classes[] = 'near-me-page';
+            return $classes;
+        });
+
         $this->render_near_me_page($keyword, $city_slug, $state);
         exit;
     }
@@ -88,13 +97,22 @@ class Chroma_Near_Me_Pages
      * The route is rendered manually in template_redirect, so WordPress may still
      * think the request is the homepage unless we clear those flags before wp_head.
      */
-    private function prepare_virtual_page_query_state()
+    private function prepare_virtual_page_query_state($title = '', $description = '')
     {
-        global $wp_query;
+        global $post, $wp_query;
 
         if (!($wp_query instanceof WP_Query)) {
             return;
         }
+
+        $virtual_post = (object) [
+            'ID' => 0,
+            'post_type' => 'page',
+            'post_status' => 'publish',
+            'post_title' => (string) $title,
+            'post_excerpt' => (string) $description,
+            'post_name' => self::REWRITE_TAG,
+        ];
 
         $wp_query->is_home = false;
         $wp_query->is_front_page = false;
@@ -102,11 +120,17 @@ class Chroma_Near_Me_Pages
         $wp_query->is_404 = false;
         $wp_query->is_search = false;
         $wp_query->is_feed = false;
-        $wp_query->is_page = false;
+        $wp_query->is_page = true;
         $wp_query->is_single = false;
-        $wp_query->is_singular = false;
-        $wp_query->queried_object = null;
+        $wp_query->is_singular = true;
+        $wp_query->queried_object = $virtual_post;
         $wp_query->queried_object_id = 0;
+        $wp_query->post = $virtual_post;
+        $wp_query->posts = [$virtual_post];
+        $wp_query->post_count = 1;
+        $wp_query->found_posts = 1;
+
+        $post = $virtual_post;
     }
 
     /**
