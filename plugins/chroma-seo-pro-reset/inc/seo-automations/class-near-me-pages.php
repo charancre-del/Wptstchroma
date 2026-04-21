@@ -78,8 +78,9 @@ class Chroma_Near_Me_Pages
 
         $page_title = $this->build_page_title($keyword, $city_slug, $state);
         $description = $this->build_meta_description($keyword, $city_slug, $state);
+        $canonical = $this->build_canonical_url($keyword, $city_slug, $state);
 
-        $this->prepare_virtual_page_query_state($page_title, $description);
+        $this->prepare_virtual_page_query_state($page_title, $description, $canonical);
         $this->register_seo_overrides($keyword, $city_slug, $state);
 
         add_filter('body_class', function ($classes) {
@@ -97,7 +98,7 @@ class Chroma_Near_Me_Pages
      * The route is rendered manually in template_redirect, so WordPress may still
      * think the request is the homepage unless we clear those flags before wp_head.
      */
-    private function prepare_virtual_page_query_state($title = '', $description = '')
+    private function prepare_virtual_page_query_state($title = '', $description = '', $canonical = '')
     {
         global $post, $wp_query;
 
@@ -105,13 +106,16 @@ class Chroma_Near_Me_Pages
             return;
         }
 
+        $route_slug = $this->get_virtual_route_slug($canonical);
+
         $virtual_post = (object) [
             'ID' => 0,
             'post_type' => 'page',
             'post_status' => 'publish',
             'post_title' => (string) $title,
             'post_excerpt' => (string) $description,
-            'post_name' => self::REWRITE_TAG,
+            'post_name' => $route_slug,
+            'guid' => (string) $canonical,
         ];
 
         $wp_query->is_home = false;
@@ -125,12 +129,45 @@ class Chroma_Near_Me_Pages
         $wp_query->is_singular = true;
         $wp_query->queried_object = $virtual_post;
         $wp_query->queried_object_id = 0;
+        $wp_query->query_vars['pagename'] = $route_slug;
+        $wp_query->query_vars['name'] = $route_slug;
+        $wp_query->query['pagename'] = $route_slug;
+        $wp_query->query['name'] = $route_slug;
         $wp_query->post = $virtual_post;
         $wp_query->posts = [$virtual_post];
         $wp_query->post_count = 1;
         $wp_query->found_posts = 1;
 
         $post = $virtual_post;
+    }
+
+    /**
+     * Derive the public-facing route slug from the canonical URL.
+     *
+     * @param string $canonical
+     * @return string
+     */
+    private function get_virtual_route_slug($canonical = '')
+    {
+        $path = is_string($canonical) ? wp_parse_url($canonical, PHP_URL_PATH) : '';
+
+        if (!is_string($path) || $path === '') {
+            $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+            $path = wp_parse_url($request_uri, PHP_URL_PATH);
+        }
+
+        if (!is_string($path) || $path === '') {
+            return self::REWRITE_TAG;
+        }
+
+        $path = trim($path, '/');
+        if ($path === '') {
+            return self::REWRITE_TAG;
+        }
+
+        $segments = explode('/', $path);
+
+        return (string) end($segments);
     }
 
     /**
@@ -425,7 +462,7 @@ class Chroma_Near_Me_Pages
 
         <?php
         // Output schema
-        $this->output_schema($keyword_label, $locations);
+        $this->output_schema($keyword_label, $keyword, $city_slug, $state);
 
         get_footer();
     }
@@ -530,35 +567,23 @@ class Chroma_Near_Me_Pages
     /**
      * Output schema
      */
-    private function output_schema($keyword, $locations)
+    private function output_schema($keyword_label, $keyword, $city_slug = '', $state = '')
     {
-        $items = [];
-        foreach ($locations as $i => $loc) {
-            $items[] = [
-                '@type' => 'ListItem',
-                'position' => $i + 1,
-                'item' => [
-                    '@type' => 'LocalBusiness',
-                    'name' => $loc['title'],
-                    'address' => [
-                        '@type' => 'PostalAddress',
-                        'streetAddress' => $loc['address'],
-                        'addressLocality' => $loc['city'],
-                        'addressRegion' => $loc['state'],
-                        'postalCode' => $loc['zip'],
-                        'addressCountry' => 'US',
-                    ],
-                    'url' => $loc['url']
-                ]
-            ];
-        }
+        $canonical = $this->build_canonical_url($keyword, $city_slug, $state);
+        $description = $this->build_meta_description($keyword, $city_slug, $state);
+        $page_title = $this->build_page_title($keyword, $city_slug, $state);
 
         $schema = [
             '@context' => 'https://schema.org',
-            '@type' => 'ItemList',
-            'name' => $keyword . ' Locations',
-            'numberOfItems' => count($locations),
-            'itemListElement' => $items
+            '@type' => 'CollectionPage',
+            '@id' => trailingslashit($canonical) . '#collectionpage',
+            'name' => $page_title,
+            'description' => $description,
+            'url' => $canonical,
+            'about' => [
+                '@type' => 'Thing',
+                'name' => $keyword_label,
+            ],
         ];
 
         Chroma_Schema_Registry::register($schema, ['source' => 'near-me-pages']);

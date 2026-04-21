@@ -21,7 +21,7 @@ $cities_query = chroma_cached_query(
         'update_post_term_cache' => false,
         'no_found_rows' => true,
     ],
-    'cities_archive',
+    'cities_archive_v2',
     7 * DAY_IN_SECONDS
 );
 
