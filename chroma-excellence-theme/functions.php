@@ -261,6 +261,7 @@ require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
 require_once CHROMA_THEME_DIR . '/inc/archive-root-query-context.php';
+require_once CHROMA_THEME_DIR . '/inc/seo-profile.php';
 require_once CHROMA_THEME_DIR . '/inc/seo-runtime.php';
 // require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
 // Customizers - Admin or Preview Only
@@ -797,6 +798,15 @@ function chroma_get_standard_sitemap_urls()
         'post_status' => 'publish',
     ]);
 
+    $front_page_id = (int) get_option('page_on_front');
+    if ($front_page_id > 0) {
+        $front_lastmod = get_the_modified_date('c', $front_page_id) ?: gmdate('c');
+        $urls[] = [
+            'loc' => $base . '/es/',
+            'lastmod' => $front_lastmod,
+        ];
+    }
+
     foreach ($posts as $post) {
         $permalink = get_permalink($post->ID);
         if (!$permalink)
@@ -816,7 +826,18 @@ function chroma_get_standard_sitemap_urls()
             ];
         }
     }
-    return $urls;
+
+    $unique_urls = [];
+    foreach ($urls as $entry) {
+        $loc = isset($entry['loc']) ? (string) $entry['loc'] : '';
+        if ($loc === '') {
+            continue;
+        }
+
+        $unique_urls[$loc] = $entry;
+    }
+
+    return array_values($unique_urls);
 }
 
 /**
@@ -863,7 +884,18 @@ function chroma_get_dynamic_route_canonical_path($path)
             $segments[] = 'es';
         }
 
-        $segments[] = sanitize_title($matches[2]) . '-in-' . sanitize_title($matches[3]) . '-' . strtolower($matches[4]);
+        $program_slug = sanitize_title($matches[2]);
+        $city_slug = sanitize_title($matches[3]);
+        $state = strtolower($matches[4]);
+
+        if (function_exists('chroma_seo_resolve_virtual_city_context')) {
+            $city_context = chroma_seo_resolve_virtual_city_context($city_slug, $state);
+            if (is_array($city_context) && !empty($city_context['canonical_slug'])) {
+                $city_slug = sanitize_title((string) $city_context['canonical_slug']);
+            }
+        }
+
+        $segments[] = $program_slug . '-in-' . $city_slug . '-' . $state;
         return '/' . implode('/', $segments) . '/';
     }
 
@@ -883,7 +915,18 @@ function chroma_get_dynamic_route_canonical_path($path)
             $segments[] = 'es';
         }
 
-        $segments[] = sanitize_title($matches[2]) . '-near-' . sanitize_title($matches[3]) . '-' . strtolower($matches[4]);
+        $keyword = sanitize_title($matches[2]);
+        $city_slug = sanitize_title($matches[3]);
+        $state = strtolower($matches[4]);
+
+        if (function_exists('chroma_seo_resolve_virtual_city_context')) {
+            $city_context = chroma_seo_resolve_virtual_city_context($city_slug, $state);
+            if (is_array($city_context) && !empty($city_context['canonical_slug'])) {
+                $city_slug = sanitize_title((string) $city_context['canonical_slug']);
+            }
+        }
+
+        $segments[] = $keyword . '-near-' . $city_slug . '-' . $state;
         return '/' . implode('/', $segments) . '/';
     }
 

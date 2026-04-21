@@ -235,6 +235,13 @@ function chroma_get_twitter_handle() {
  * @return string
  */
 function chroma_get_context_base_url() {
+    if (function_exists('chroma_resolve_current_seo_profile')) {
+        $profile = chroma_resolve_current_seo_profile();
+        if (!empty($profile['canonical'])) {
+            return (string) $profile['canonical'];
+        }
+    }
+
     global $wp;
 
     $request_path = (isset($wp) && isset($wp->request)) ? (string) $wp->request : '';
@@ -289,9 +296,10 @@ function chroma_get_context_canonical_url() {
  * @return string
  */
 function chroma_get_context_meta_description() {
-    $description = '';
+    $profile = function_exists('chroma_resolve_current_seo_profile') ? chroma_resolve_current_seo_profile() : [];
+    $description = isset($profile['meta_description']) ? (string) $profile['meta_description'] : '';
 
-    if (is_singular()) {
+    if ($description === '' && is_singular()) {
         $post = get_post();
         if ($post) {
             if ($post->post_type === 'program' && empty($description)) {
@@ -308,7 +316,7 @@ function chroma_get_context_meta_description() {
                 $description = wp_trim_words(wp_strip_all_tags($post->post_content), 30, '...');
             }
         }
-    } elseif (is_home() || is_front_page()) {
+    } elseif ($description === '' && (is_home() || is_front_page())) {
         if (is_home()) {
             $posts_page_id = (int) get_option('page_for_posts');
             if ($posts_page_id > 0) {
@@ -322,7 +330,7 @@ function chroma_get_context_meta_description() {
         if (empty($description)) {
             $description = get_bloginfo('description');
         }
-    } elseif (is_archive()) {
+    } elseif ($description === '' && is_archive()) {
         $description = trim(strip_tags((string) get_the_archive_description()));
 
         if (empty($description) && is_post_type_archive('city')) {
@@ -379,40 +387,13 @@ if (!function_exists('chroma_is_spanish_context')) {
 
 if (!function_exists('chroma_get_route_specific_title')) {
     function chroma_get_route_specific_title() {
-        $is_es = chroma_is_spanish_context();
-
-        if (is_page('parent-portal')) {
-            return 'Parent Portal | Chroma';
-        }
-
-        if (is_front_page()) {
-            return $is_es
-                ? 'Chroma Academy | Guarderia y preescolar en Atlanta'
-                : 'Chroma Academy | Top Daycare & Preschool in Atlanta';
-        }
-
-        if (is_home()) {
-            return $is_es
-                ? 'Blog de Chroma | Consejos para familias'
-                : 'Chroma Blog | Parenting Tips & Early Learning';
-        }
-
-        if (is_post_type_archive('city')) {
-            return $is_es
-                ? 'Comunidades de Chroma | Cuidado infantil en Georgia'
-                : 'Our Communities | Chroma Early Learning';
-        }
-
-        return '';
+        $profile = function_exists('chroma_resolve_current_seo_profile') ? chroma_resolve_current_seo_profile() : [];
+        return isset($profile['title']) ? (string) $profile['title'] : '';
     }
 }
 
 if (!function_exists('chroma_force_known_route_titles')) {
     function chroma_force_known_route_titles($title) {
-        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
-            return $title;
-        }
-
         $override = chroma_get_route_specific_title();
         return $override !== '' ? $override : $title;
     }
@@ -422,40 +403,13 @@ add_filter('wpseo_title', 'chroma_force_known_route_titles', PHP_INT_MAX);
 
 if (!function_exists('chroma_get_route_specific_meta_description')) {
     function chroma_get_route_specific_meta_description() {
-        $is_es = chroma_is_spanish_context();
-
-        if (is_page('parent-portal')) {
-            return 'Secure family portal for tuition, daily reports, classroom updates, and school resources.';
-        }
-
-        if (is_front_page()) {
-            return $is_es
-                ? 'Chroma Academy ofrece guarderia y preescolar de alta calidad en Metro Atlanta con un modelo de aprendizaje propio y visitas disponibles.'
-                : 'Chroma Academy offers top-rated daycare and preschool across Metro Atlanta with a proprietary learning model and easy tour scheduling.';
-        }
-
-        if (is_home()) {
-            return $is_es
-                ? 'Lee consejos de crianza, aprendizaje temprano y desarrollo infantil del equipo de Chroma para familias de Metro Atlanta.'
-                : 'Read parenting tips, early learning guidance, and child development articles from the Chroma team for Metro Atlanta families.';
-        }
-
-        if (is_post_type_archive('city')) {
-            return $is_es
-                ? 'Explora las comunidades de Chroma en Georgia y encuentra campus, programas e informacion para visitar la ubicacion mas cercana a tu familia.'
-                : 'Explore Chroma communities across Georgia and find campuses, programs, and tour information near your family.';
-        }
-
-        return '';
+        $profile = function_exists('chroma_resolve_current_seo_profile') ? chroma_resolve_current_seo_profile() : [];
+        return isset($profile['meta_description']) ? (string) $profile['meta_description'] : '';
     }
 }
 
 if (!function_exists('chroma_force_known_route_meta_descriptions')) {
     function chroma_force_known_route_meta_descriptions($description) {
-        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
-            return $description;
-        }
-
         $override = chroma_get_route_specific_meta_description();
         return $override !== '' ? $override : $description;
     }

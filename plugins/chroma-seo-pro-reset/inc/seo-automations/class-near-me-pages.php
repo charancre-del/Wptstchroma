@@ -67,29 +67,103 @@ class Chroma_Near_Me_Pages
      */
     public function handle_near_me_page()
     {
-        $keyword = get_query_var(self::REWRITE_TAG);
+        $keyword = sanitize_title((string) get_query_var(self::REWRITE_TAG));
 
-        if (!$keyword) {
+        if ($keyword === '' || !in_array($keyword, $this->keywords, true)) {
             return;
         }
 
         $city_slug = sanitize_title(get_query_var('near_city'));
         $state = strtoupper(sanitize_text_field(get_query_var('near_state')));
+        $city_context = $this->resolve_city_context($city_slug, $state);
 
-        $page_title = $this->build_page_title($keyword, $city_slug, $state);
-        $description = $this->build_meta_description($keyword, $city_slug, $state);
-        $canonical = $this->build_canonical_url($keyword, $city_slug, $state);
+        if ($city_slug !== '' && !is_array($city_context)) {
+            global $wp_query;
+            $wp_query->set_404();
+            status_header(404);
+            return;
+        }
+
+        $profile = $this->get_route_profile($keyword, $city_slug, $state, $city_context);
+        $canonical = (string) ($profile['canonical'] ?? '');
+
+        if ($canonical === '') {
+            global $wp_query;
+            $wp_query->set_404();
+            status_header(404);
+            return;
+        }
+
+        $canonical_path = (string) wp_parse_url($canonical, PHP_URL_PATH);
+        $request_path = function_exists('chroma_seo_get_request_path') ? chroma_seo_get_request_path() : '/';
+        if ($canonical_path !== '' && $canonical_path !== $request_path) {
+            wp_safe_redirect($canonical, 301);
+            exit;
+        }
+
+        $page_title = (string) ($profile['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
+        $description = (string) ($profile['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
 
         $this->prepare_virtual_page_query_state($page_title, $description, $canonical);
-        $this->register_seo_overrides($keyword, $city_slug, $state);
+        $this->register_seo_overrides($keyword, $city_slug, $state, $city_context);
 
         add_filter('body_class', function ($classes) {
             $classes[] = 'near-me-page';
             return $classes;
         });
 
-        $this->render_near_me_page($keyword, $city_slug, $state);
+        $this->render_near_me_page($keyword, $city_context, $state);
         exit;
+    }
+
+    /**
+     * Resolve and validate a virtual near-me city slug.
+     *
+     * @param string $city_slug
+     * @param string $state
+     * @return array|null
+     */
+    private function resolve_city_context($city_slug, $state = '')
+    {
+        $city_slug = sanitize_title((string) $city_slug);
+        if ($city_slug === '') {
+            return null;
+        }
+
+        if (function_exists('chroma_seo_resolve_virtual_city_context')) {
+            $resolved = chroma_seo_resolve_virtual_city_context($city_slug, $state);
+            if (is_array($resolved)) {
+                return $resolved;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Build a consistent route profile for near-me pages.
+     *
+     * @param string $keyword
+     * @param string $city_slug
+     * @param string $state
+     * @param array|null $city_context
+     * @return array
+     */
+    private function get_route_profile($keyword, $city_slug = '', $state = '', $city_context = null)
+    {
+        $keyword = sanitize_title((string) $keyword);
+        $city_slug = sanitize_title((string) $city_slug);
+        $state = strtoupper((string) $state);
+
+        if (is_array($city_context) && function_exists('chroma_seo_build_near_me_profile')) {
+            return chroma_seo_build_near_me_profile($keyword, $city_context, function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en');
+        }
+
+        if ($city_slug === '' && function_exists('chroma_seo_build_near_me_profile')) {
+            return chroma_seo_build_near_me_profile($keyword, null, function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en');
+        }
+
+        return [];
     }
 
     /**
@@ -173,11 +247,12 @@ class Chroma_Near_Me_Pages
     /**
      * Register route-level SEO overrides so theme and plugin head output stay aligned.
      */
-    private function register_seo_overrides($keyword, $city_slug = '', $state = '')
+    private function register_seo_overrides($keyword, $city_slug = '', $state = '', $city_context = null)
     {
-        $title = $this->build_page_title($keyword, $city_slug, $state);
-        $description = $this->build_meta_description($keyword, $city_slug, $state);
-        $canonical = $this->build_canonical_url($keyword, $city_slug, $state);
+        $profile = $this->get_route_profile($keyword, $city_slug, $state, $city_context);
+        $title = (string) ($profile['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
+        $description = (string) ($profile['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
+        $canonical = (string) ($profile['canonical'] ?? $this->build_canonical_url($keyword, $city_slug, $state));
 
         add_filter('pre_get_document_title', function ($current) use ($title) {
             return $title;
@@ -207,6 +282,11 @@ class Chroma_Near_Me_Pages
      */
     private function build_page_title($keyword, $city_slug = '', $state = '')
     {
+        $profile = $this->get_route_profile($keyword, $city_slug, $state);
+        if (!empty($profile['title'])) {
+            return (string) $profile['title'];
+        }
+
         $keyword_label = ucwords(str_replace('-', ' ', (string) $keyword));
 
         if ($city_slug !== '' && $state !== '') {
@@ -222,6 +302,11 @@ class Chroma_Near_Me_Pages
      */
     private function build_meta_description($keyword, $city_slug = '', $state = '')
     {
+        $profile = $this->get_route_profile($keyword, $city_slug, $state);
+        if (!empty($profile['meta_description'])) {
+            return (string) $profile['meta_description'];
+        }
+
         $keyword_label = strtolower(str_replace('-', ' ', (string) $keyword));
 
         if ($city_slug !== '' && $state !== '') {
@@ -245,6 +330,11 @@ class Chroma_Near_Me_Pages
      */
     private function build_canonical_url($keyword, $city_slug = '', $state = '')
     {
+        $profile = $this->get_route_profile($keyword, $city_slug, $state);
+        if (!empty($profile['canonical'])) {
+            return (string) $profile['canonical'];
+        }
+
         $segments = [];
         if ($this->is_spanish_request()) {
             $segments[] = 'es';
@@ -315,18 +405,24 @@ class Chroma_Near_Me_Pages
     /**
      * Render near me page
      */
-    private function render_near_me_page($keyword, $city_slug = '', $state = '')
+    private function render_near_me_page($keyword, $city_context = null, $state = '')
     {
         $keyword_label = ucwords(str_replace('-', ' ', $keyword));
         $locations = $this->get_locations_with_geo();
+        $city_slug = is_array($city_context) ? (string) ($city_context['canonical_slug'] ?? '') : '';
 
         // If city-specific, filter/sort by that city
         $city_name = '';
         if ($city_slug && $state) {
-            $city_name = ucwords(str_replace('-', ' ', $city_slug));
-            $page_title = $keyword_label . ' Near ' . $city_name . ', ' . $state;
+            if (function_exists('chroma_seo_get_city_display_name')) {
+                $city_name = chroma_seo_get_city_display_name($city_context, function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en');
+            }
+            if ($city_name === '') {
+                $city_name = ucwords(str_replace('-', ' ', $city_slug));
+            }
+            $page_title = $this->build_page_title($keyword, $city_slug, $state);
         } else {
-            $page_title = $keyword_label . ' ' . __('Near Me', 'chroma-excellence');
+            $page_title = $this->build_page_title($keyword, '', '');
         }
 
         get_header();
@@ -462,7 +558,7 @@ class Chroma_Near_Me_Pages
 
         <?php
         // Output schema
-        $this->output_schema($keyword_label, $keyword, $city_slug, $state);
+        $this->output_schema($keyword_label, $keyword, $city_slug, $state, $city_context);
 
         get_footer();
     }
@@ -567,11 +663,12 @@ class Chroma_Near_Me_Pages
     /**
      * Output schema
      */
-    private function output_schema($keyword_label, $keyword, $city_slug = '', $state = '')
+    private function output_schema($keyword_label, $keyword, $city_slug = '', $state = '', $city_context = null)
     {
-        $canonical = $this->build_canonical_url($keyword, $city_slug, $state);
-        $description = $this->build_meta_description($keyword, $city_slug, $state);
-        $page_title = $this->build_page_title($keyword, $city_slug, $state);
+        $profile = $this->get_route_profile($keyword, $city_slug, $state, $city_context);
+        $canonical = (string) ($profile['canonical'] ?? $this->build_canonical_url($keyword, $city_slug, $state));
+        $description = (string) ($profile['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
+        $page_title = (string) ($profile['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
 
         $schema = [
             '@context' => 'https://schema.org',
@@ -595,7 +692,7 @@ class Chroma_Near_Me_Pages
     public static function get_sitemap_urls()
     {
         $urls = [];
-        $keywords = ['daycare', 'preschool', 'childcare', 'pre-k'];
+        $keywords = ['daycare', 'preschool', 'childcare', 'pre-k', 'infant-care'];
 
         // Generic
         foreach ($keywords as $kw) {
@@ -603,10 +700,17 @@ class Chroma_Near_Me_Pages
         }
 
         // City-specific
-        $cities = Chroma_Combo_Page_Generator::get_all_cities();
+        $cities = function_exists('chroma_seo_get_virtual_city_records')
+            ? chroma_seo_get_virtual_city_records()
+            : Chroma_Combo_Page_Generator::get_all_cities();
         foreach ($keywords as $kw) {
             foreach ($cities as $city) {
-                $urls[] = home_url('/' . $kw . '-near-' . sanitize_title($city['city']) . '-' . strtolower($city['state']) . '/');
+                $city_slug = sanitize_title((string) ($city['canonical_slug'] ?? ($city['city_slug'] ?? $city['city'] ?? '')));
+                $state = strtolower((string) ($city['state'] ?? 'GA'));
+                if ($city_slug === '') {
+                    continue;
+                }
+                $urls[] = home_url('/' . $kw . '-near-' . $city_slug . '-' . $state . '/');
             }
         }
 
@@ -662,7 +766,7 @@ class Chroma_Near_Me_Pages
     public static function get_all_pages()
     {
         $pages = [];
-        $keywords = ['daycare', 'preschool', 'childcare', 'pre-k'];
+        $keywords = ['daycare', 'preschool', 'childcare', 'pre-k', 'infant-care'];
 
         // Generic Pages
         foreach ($keywords as $kw) {
@@ -685,7 +789,7 @@ class Chroma_Near_Me_Pages
                     $pages[] = [
                         'type' => 'City-Specific',
                         'title' => "$kw_label Near " . $city['city'],
-                        'url' => home_url('/' . $kw . '-near-' . sanitize_title($city['city']) . '-' . strtolower($city['state']) . '/'),
+                        'url' => home_url('/' . $kw . '-near-' . sanitize_title($city['city_slug'] ?? $city['city']) . '-' . strtolower($city['state']) . '/'),
                         'city' => $city['city'],
                         'state' => $city['state']
                     ];

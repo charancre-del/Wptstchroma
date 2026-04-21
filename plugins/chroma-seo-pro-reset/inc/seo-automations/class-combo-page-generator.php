@@ -88,20 +88,55 @@ class Chroma_Combo_Page_Generator
             return;
         }
 
-        // Find nearest location in this city/state
-        $location = $this->find_location_in_city($city_slug, $state);
+        $city_context = function_exists('chroma_seo_resolve_virtual_city_context')
+            ? chroma_seo_resolve_virtual_city_context($city_slug, $state)
+            : null;
+
+        if (!is_array($city_context)) {
+            global $wp_query;
+            $wp_query->set_404();
+            status_header(404);
+            return;
+        }
+
+        $language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
+        $combo_profile = function_exists('chroma_seo_build_combo_profile')
+            ? chroma_seo_build_combo_profile($program, $city_context, $language)
+            : [];
+
+        $canonical_path = (string) wp_parse_url((string) ($combo_profile['canonical'] ?? ''), PHP_URL_PATH);
+        $request_path = function_exists('chroma_seo_get_request_path') ? chroma_seo_get_request_path() : '/';
+        if ($canonical_path !== '' && $canonical_path !== $request_path) {
+            wp_safe_redirect((string) $combo_profile['canonical'], 301);
+            exit;
+        }
+
+        // Prefer an explicitly mapped location before falling back to a city/state search.
+        $location = null;
+        if (!empty($city_context['location_id'])) {
+            $location = get_post((int) $city_context['location_id']);
+            if (!($location instanceof WP_Post) || $location->post_type !== 'location') {
+                $location = null;
+            }
+        }
+
+        if (!$location) {
+            $location = $this->find_location_in_city((string) $city_context['city_name'], (string) $city_context['state']);
+        }
 
         // Treat combo routes as true virtual pages instead of masquerading as program singles.
         $this->prepare_virtual_page_query_state();
 
         // Prepare data for Schema (must happen before get_header)
-        $city_name = ucwords(str_replace('-', ' ', $city_slug));
+        $city_name = function_exists('chroma_seo_get_city_display_name')
+            ? chroma_seo_get_city_display_name($city_context, $language)
+            : ucwords(str_replace('-', ' ', $city_slug));
         $loc_address = $location ? get_post_meta($location->ID, 'location_address', true) : '';
         $loc_zip = $location ? get_post_meta($location->ID, 'location_zip', true) : '';
         $age_range = get_post_meta($program->ID, 'program_age_range', true);
 
         // Add Schema
-        $this->output_schema($program, $city_name, $state, $location, $loc_address, $loc_zip, $age_range);
+        $this->output_schema($program, $city_name, (string) $city_context['state'], $location, $loc_address, $loc_zip, $age_range);
 
         // Add Body Class
         add_filter('body_class', function ($classes) {
@@ -110,7 +145,7 @@ class Chroma_Combo_Page_Generator
         });
 
         // Force Canonical (Closure method to ensure context)
-        $combo_canonical = home_url("/{$program_slug}-in-{$city_slug}-" . strtolower($state) . "/");
+        $combo_canonical = (string) ($combo_profile['canonical'] ?? home_url("/{$program_slug}-in-{$city_context['canonical_slug']}-" . strtolower((string) $city_context['state']) . "/"));
 
         // High priority filter for Yoast Canonical AND OpenGraph URL
         foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $filter) {
@@ -121,15 +156,7 @@ class Chroma_Combo_Page_Generator
 
         // Dynamic SEO Title (30-60 chars target)
         $program_title = get_the_title($program);
-        $seo_title = "{$program_title} in {$city_name}, {$state} | Chroma";
-
-        // Truncate if too long (max 60 chars)
-        if (strlen($seo_title) > 60) {
-            $seo_title = "{$program_title} in {$city_name} | Chroma";
-        }
-        if (strlen($seo_title) > 60) {
-            $seo_title = substr($seo_title, 0, 57) . '...';
-        }
+        $seo_title = (string) ($combo_profile['title'] ?? "{$program_title} in {$city_name}, {$state} | Chroma");
 
         add_filter('wpseo_title', function ($current) use ($seo_title) {
             return $seo_title;
@@ -140,7 +167,7 @@ class Chroma_Combo_Page_Generator
         }, PHP_INT_MAX);
 
         // Dynamic Meta Description (60-160 chars target)
-        $meta_desc = $this->generate_combo_meta_description($program, $city_name, $state, $age_range);
+        $meta_desc = (string) ($combo_profile['meta_description'] ?? $this->generate_combo_meta_description($program, $city_name, (string) $city_context['state'], $age_range));
 
         add_filter('wpseo_metadesc', function ($current) use ($meta_desc) {
             return $meta_desc;
@@ -153,7 +180,7 @@ class Chroma_Combo_Page_Generator
         // Render the page
         status_header(200);
         get_header();
-        echo $this->get_combo_page_html($program, $city_slug, $state, $location);
+        echo $this->get_combo_page_html($program, (string) $city_context['canonical_slug'], (string) $city_context['state'], $location);
         get_footer();
         exit;
     }
@@ -229,6 +256,18 @@ class Chroma_Combo_Page_Generator
      */
     public function generate_combo_meta_description($program, $city_name, $state, $age_range)
     {
+        if (function_exists('chroma_seo_build_combo_profile')) {
+            $city_context = function_exists('chroma_seo_resolve_virtual_city_context')
+                ? chroma_seo_resolve_virtual_city_context(sanitize_title($city_name), $state)
+                : null;
+            if (is_array($city_context)) {
+                $profile = chroma_seo_build_combo_profile($program, $city_context, function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en');
+                if (!empty($profile['meta_description'])) {
+                    return (string) $profile['meta_description'];
+                }
+            }
+        }
+
         $program_title = get_the_title($program);
         $program_slug = $program->post_name;
 
@@ -284,7 +323,13 @@ class Chroma_Combo_Page_Generator
             return '<div class="py-20 text-center">System validation error: Invalid Program Object.</div>';
         }
 
-        $city_name = ucwords(str_replace('-', ' ', $city_slug));
+        $lang = function_exists('chroma_detect_current_language') ? chroma_detect_current_language() : 'en';
+        $city_context = function_exists('chroma_seo_resolve_virtual_city_context')
+            ? chroma_seo_resolve_virtual_city_context($city_slug, $state)
+            : null;
+        $city_name = is_array($city_context) && function_exists('chroma_seo_get_city_display_name')
+            ? chroma_seo_get_city_display_name($city_context, $lang)
+            : ucwords(str_replace('-', ' ', $city_slug));
 
         // Get program details
         $age_range = get_post_meta($program->ID, 'program_age_range', true);
@@ -351,8 +396,6 @@ class Chroma_Combo_Page_Generator
         }
 
         // Spanish Override
-        $lang = function_exists('chroma_detect_current_language') ? chroma_detect_current_language() : 'en';
-
         if ($lang === 'es' && !empty($combo_custom_data)) {
             if (!empty($combo_custom_data['neighborhoods_es'])) {
                 $neighborhoods = $combo_custom_data['neighborhoods_es'];
@@ -801,6 +844,16 @@ class Chroma_Combo_Page_Generator
      */
     public function find_city_page($city_slug, $state)
     {
+        if (function_exists('chroma_seo_resolve_virtual_city_context')) {
+            $city_context = chroma_seo_resolve_virtual_city_context($city_slug, $state);
+            if (is_array($city_context) && !empty($city_context['city_page_id'])) {
+                $city_post = get_post((int) $city_context['city_page_id']);
+                if ($city_post instanceof WP_Post) {
+                    return $city_post;
+                }
+            }
+        }
+
         $city_normalized = str_replace('-', ' ', $city_slug);
 
         $cities = get_posts([
@@ -875,18 +928,42 @@ class Chroma_Combo_Page_Generator
     {
         $combos = [];
 
-        $programs = get_posts(['post_type' => 'program', 'posts_per_page' => -1]);
+        $programs = get_posts([
+            'post_type' => 'program',
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+        ]);
         $cities = self::get_all_cities();
 
         foreach ($programs as $prog) {
             foreach ($cities as $city) {
+                $city_context = function_exists('chroma_seo_resolve_virtual_city_context')
+                    ? chroma_seo_resolve_virtual_city_context((string) ($city['city_slug'] ?? ''), (string) ($city['state'] ?? ''))
+                    : null;
+                if (!is_array($city_context)) {
+                    continue;
+                }
+
+                $profile = function_exists('chroma_seo_build_combo_profile')
+                    ? chroma_seo_build_combo_profile($prog, $city_context, 'en')
+                    : [];
+                if (!empty($profile) && (empty($profile['indexable']) || empty($profile['sitemap_include']))) {
+                    continue;
+                }
+
+                $url = (string) ($profile['canonical'] ?? '');
+                if ($url === '') {
+                    $url = home_url('/' . $prog->post_name . '-in-' . $city_context['canonical_slug'] . '-' . strtolower((string) $city_context['state']) . '/');
+                }
+
                 $combos[] = [
                     'program' => $prog,
-                    'city' => $city['city'],
-                    'state' => $city['state'],
-                    'url' => home_url('/' . $prog->post_name . '-in-' . sanitize_title($city['city']) . '-' . strtolower($city['state']) . '/'),
-                    'city_page_id' => $city['city_page_id'] ?? null,
-                    'location_id' => $city['location_id'] ?? null
+                    'city' => $city_context['city_name'],
+                    'city_slug' => $city_context['canonical_slug'],
+                    'state' => $city_context['state'],
+                    'url' => $url,
+                    'city_page_id' => $city_context['city_page_id'] ?? null,
+                    'location_id' => $city_context['location_id'] ?? null,
                 ];
             }
         }
@@ -895,7 +972,7 @@ class Chroma_Combo_Page_Generator
     }
 
     /**
-     * Add published combo URLs to unified /sitemap.xml.
+     * Add valid combo URLs to unified /sitemap.xml.
      *
      * @param array $urls
      * @return array
@@ -906,26 +983,12 @@ class Chroma_Combo_Page_Generator
             $urls = [];
         }
 
-        if (!class_exists('Chroma_Combo_Page_Data')) {
-            return $urls;
-        }
-
         $lastmod = gmdate('c');
         $base = rtrim(home_url('/'), '/');
         $combos = self::get_all_combos();
 
         foreach ($combos as $combo) {
             if (empty($combo['program']) || empty($combo['city']) || empty($combo['state']) || empty($combo['url'])) {
-                continue;
-            }
-
-            $saved_data = Chroma_Combo_Page_Data::get(
-                $combo['program']->post_name,
-                sanitize_title($combo['city']),
-                $combo['state']
-            );
-            $status = $saved_data['status'] ?? 'auto';
-            if ($status !== 'published' && $status !== 'publish') {
                 continue;
             }
 
@@ -960,6 +1023,19 @@ class Chroma_Combo_Page_Generator
      */
     public static function get_all_cities()
     {
+        if (function_exists('chroma_seo_get_virtual_city_records')) {
+        $records = chroma_seo_get_virtual_city_records();
+        return array_map(static function ($record) {
+            return [
+                'city' => $record['city_name'],
+                'city_slug' => $record['canonical_slug'],
+                'state' => $record['state'],
+                'location_id' => $record['location_id'] ?? null,
+                'city_page_id' => $record['city_page_id'] ?? null,
+            ];
+        }, $records);
+        }
+
         $cities = [];
 
         // Source 1: City CPT (PRIMARY SOURCE)
@@ -1036,22 +1112,17 @@ class Chroma_Combo_Page_Generator
 
         $combos = self::get_all_combos();
         foreach ($combos as $combo) {
-            $saved_data = Chroma_Combo_Page_Data::get($combo['program']->post_name, sanitize_title($combo['city']), $combo['state']);
-            $status = $saved_data['status'] ?? 'auto';
-
-            if ($status === 'published' || $status === 'publish') {
-                $url = $combo['url'];
-                if ($lang === 'es') {
-                    $url = str_replace(home_url('/'), home_url('/es/'), $url);
-                }
-
-                echo '<url>' . "\n";
-                echo '  <loc>' . esc_url($url) . '</loc>' . "\n";
-                echo '  <lastmod>' . date('c') . '</lastmod>' . "\n";
-                echo '  <changefreq>weekly</changefreq>' . "\n";
-                echo '  <priority>0.8</priority>' . "\n";
-                echo '</url>' . "\n";
+            $url = $combo['url'];
+            if ($lang === 'es') {
+                $url = str_replace(home_url('/'), home_url('/es/'), $url);
             }
+
+            echo '<url>' . "\n";
+            echo '  <loc>' . esc_url($url) . '</loc>' . "\n";
+            echo '  <lastmod>' . date('c') . '</lastmod>' . "\n";
+            echo '  <changefreq>weekly</changefreq>' . "\n";
+            echo '  <priority>0.8</priority>' . "\n";
+            echo '</url>' . "\n";
         }
 
         echo '</urlset>';
@@ -1648,20 +1719,16 @@ class Chroma_Combo_Sitemap_Provider extends WP_Sitemaps_Provider
 
         $published = [];
         foreach ($combos as $combo) {
-            $saved_data = Chroma_Combo_Page_Data::get($combo['program']->post_name, sanitize_title($combo['city']), $combo['state']);
-            $status = $saved_data['status'] ?? 'auto';
-            if ($status === 'published' || $status === 'publish') {
-                $url = $combo['url'];
-                if ($this->lang === 'es') {
-                    $url = str_replace(home_url('/'), home_url('/es/'), $url);
-                }
-                $published[] = [
-                    'loc' => $url,
-                    'lastmod' => date('c'),
-                    'changefreq' => 'weekly',
-                    'priority' => 0.8,
-                ];
+            $url = $combo['url'];
+            if ($this->lang === 'es') {
+                $url = str_replace(home_url('/'), home_url('/es/'), $url);
             }
+            $published[] = [
+                'loc' => $url,
+                'lastmod' => date('c'),
+                'changefreq' => 'weekly',
+                'priority' => 0.8,
+            ];
         }
 
         $per_page = 2000;
@@ -1672,13 +1739,6 @@ class Chroma_Combo_Sitemap_Provider extends WP_Sitemaps_Provider
     public function get_max_num_pages($object_subtype = '')
     {
         $combos = Chroma_Combo_Page_Generator::get_all_combos();
-        $count = 0;
-        foreach ($combos as $combo) {
-            $saved_data = Chroma_Combo_Page_Data::get($combo['program']->post_name, sanitize_title($combo['city']), $combo['state']);
-            $status = $saved_data['status'] ?? 'auto';
-            if ($status === 'published' || $status === 'publish')
-                $count++;
-        }
-        return ceil($count / 2000);
+        return ceil(count($combos) / 2000);
     }
 }
