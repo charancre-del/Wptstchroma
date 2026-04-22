@@ -15,6 +15,7 @@ import {
     useReportVersion,
     useReportVersions,
     useRestoreReportVersion,
+    useRestoreReportVersionSelection,
 } from '@hooks/useQueries';
 
 const IMPORTANT_REPORT_FIELDS = [
@@ -25,6 +26,14 @@ const IMPORTANT_REPORT_FIELDS = [
     [ 'overall_rating', 'Overall Rating' ],
     [ 'status', 'Status' ],
     [ 'closing_notes', 'Closing Notes' ],
+];
+
+const RESPONSE_FIELDS = [
+    [ 'rating', 'Rating' ],
+    [ 'notes', 'Notes' ],
+    [ 'evidence_type', 'Evidence' ],
+    [ 'previous_rating', 'Previous Rating' ],
+    [ 'previous_notes', 'Previous Notes' ],
 ];
 
 const formatDateTime = ( value ) => {
@@ -135,6 +144,31 @@ const compareReportFields = ( previousSnapshot, currentSnapshot ) => {
     }, [] );
 };
 
+const normalizeCompareValue = ( value ) => {
+    if ( value === null || value === undefined ) {
+        return '';
+    }
+
+    return String( value ).trim();
+};
+
+const humanizeKey = ( value ) =>
+    String( value || '' )
+        .replace( /[_-]+/g, ' ' )
+        .replace( /\s+/g, ' ' )
+        .trim()
+        .replace( /\b\w/g, ( character ) => character.toUpperCase() );
+
+const formatCompareValue = ( value, field = '' ) => {
+    const normalized = normalizeCompareValue( value );
+
+    if ( normalized === '' ) {
+        return field.includes( 'rating' ) ? 'N/A' : '(empty)';
+    }
+
+    return normalized;
+};
+
 const compareResponses = ( previousSnapshot, currentSnapshot ) => {
     const previousResponses = getSnapshotPayload( previousSnapshot ).responses || {};
     const currentResponses = getSnapshotPayload( currentSnapshot ).responses || {};
@@ -147,16 +181,32 @@ const compareResponses = ( previousSnapshot, currentSnapshot ) => {
         const itemKeys = new Set( [ ...Object.keys( previousItems ), ...Object.keys( currentItems ) ] );
 
         itemKeys.forEach( ( itemKey ) => {
-            const previousRating = previousItems[ itemKey ]?.rating || '';
-            const currentRating = currentItems[ itemKey ]?.rating || '';
+            const previousItem = previousItems[ itemKey ] || {};
+            const currentItem = currentItems[ itemKey ] || {};
+            const differences = RESPONSE_FIELDS.reduce( ( responseChanges, [ field, label ] ) => {
+                const previousValue = normalizeCompareValue( previousItem[ field ] );
+                const currentValue = normalizeCompareValue( currentItem[ field ] );
 
-            if ( previousRating !== currentRating ) {
+                if ( previousValue !== currentValue ) {
+                    responseChanges.push( {
+                        key: field,
+                        label,
+                        previousValue: formatCompareValue( previousValue, field ),
+                        currentValue: formatCompareValue( currentValue, field ),
+                    } );
+                }
+
+                return responseChanges;
+            }, [] );
+
+            if ( differences.length ) {
                 changes.push( {
                     key: `${ sectionKey }/${ itemKey }`,
                     sectionKey,
                     itemKey,
-                    previousRating: previousRating || 'N/A',
-                    currentRating: currentRating || 'N/A',
+                    sectionLabel: humanizeKey( sectionKey ),
+                    itemLabel: humanizeKey( itemKey ),
+                    differences,
                 } );
             }
         } );
@@ -209,6 +259,12 @@ const DetailModal = ( { title, open, onClose, children } ) => {
     );
 };
 
+const CompareValue = ( { value } ) => (
+    <div className="rounded-2xl bg-white/80 px-3 py-2 text-sm text-brand-ink whitespace-pre-wrap break-words border border-brand-ink/5">
+        { value }
+    </div>
+);
+
 const VersionHistoryPanel = ( {
     reportId,
     currentVersion: currentVersionProp,
@@ -225,6 +281,7 @@ const VersionHistoryPanel = ( {
 
     const versionsQuery = useReportVersions( reportId );
     const restoreMutation = useRestoreReportVersion();
+    const restoreSelectionMutation = useRestoreReportVersionSelection();
 
     const currentVersion = Math.max(
         Number( versionsQuery.data?.current_version || 0 ),
@@ -285,6 +342,39 @@ const VersionHistoryPanel = ( {
         }
 
         return error?.message || 'Failed to restore the selected version.';
+    };
+
+    const handleSelectionRestore = async ( selection ) => {
+        if ( ! reportId || ! compareVersion ) {
+            return;
+        }
+
+        try {
+            await restoreSelectionMutation.mutateAsync( {
+                id: reportId,
+                version: compareVersion,
+                currentVersion,
+                updatedAt: currentUpdatedAt,
+                selection,
+            } );
+
+            if ( onRestoreSuccess ) {
+                await onRestoreSuccess( compareVersion );
+            }
+
+            addToast( {
+                type: 'success',
+                message:
+                    selection.target_type === 'report_field'
+                        ? 'Saved report value restored.'
+                        : 'Saved checklist item restored.',
+            } );
+        } catch ( error ) {
+            addToast( {
+                type: 'error',
+                message: getRestoreErrorMessage( error ),
+            } );
+        }
     };
 
     const handleRestoreConfirm = async () => {
@@ -469,7 +559,7 @@ const VersionHistoryPanel = ( {
                             </div>
                             <div className="rounded-2xl border border-brand-ink/10 bg-white px-4 py-4">
                                 <div className="text-xs font-bold uppercase tracking-wide text-brand-ink/50">
-                                    Checklist Ratings Changed
+                                    Checklist Items Changed
                                 </div>
                                 <div className="mt-2 text-2xl font-bold text-brand-ink">
                                     { compareSummary.responseChanges.length }
@@ -492,13 +582,34 @@ const VersionHistoryPanel = ( {
                                     <div className="mt-3 space-y-3">
                                         { compareSummary.reportChanges.map( ( change ) => (
                                             <div key={ change.field } className="rounded-2xl bg-brand-cream/40 px-3 py-3">
-                                                <div className="text-xs font-bold uppercase tracking-wide text-brand-ink/50">
-                                                    { change.label }
+                                                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                                    <div className="text-xs font-bold uppercase tracking-wide text-brand-ink/50">
+                                                        { change.label }
+                                                    </div>
+                                                    { canRestore ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={ () =>
+                                                                handleSelectionRestore( {
+                                                                    target_type: 'report_field',
+                                                                    field: change.field,
+                                                                } )
+                                                            }
+                                                            disabled={
+                                                                isBusy || restoreSelectionMutation.isPending
+                                                            }
+                                                            className="rounded-2xl border border-amber-300 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-50 transition-all disabled:opacity-50"
+                                                        >
+                                                            Restore saved value
+                                                        </button>
+                                                    ) : null }
                                                 </div>
-                                                <div className="mt-2 text-sm text-brand-ink/70">
-                                                    <span className="font-medium text-brand-ink">{ change.previousValue }</span>
-                                                    <span className="mx-2 text-brand-ink/40">{ '->' }</span>
-                                                    <span className="font-medium text-brand-ink">{ change.currentValue }</span>
+                                                <div className="mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-start">
+                                                    <CompareValue value={ change.previousValue } />
+                                                    <div className="self-center justify-self-center text-brand-ink/40 text-sm font-bold">
+                                                        { '->' }
+                                                    </div>
+                                                    <CompareValue value={ change.currentValue } />
                                                 </div>
                                             </div>
                                         ) ) }
@@ -511,30 +622,56 @@ const VersionHistoryPanel = ( {
                             <div className="rounded-2xl border border-brand-ink/10 bg-white px-4 py-4">
                                 <h4 className="font-bold text-brand-ink">Checklist Changes</h4>
                                 { compareSummary.responseChanges.length ? (
-                                    <div className="mt-3 space-y-2">
-                                        { compareSummary.responseChanges.slice( 0, 25 ).map( ( change ) => (
+                                    <div className="mt-3 space-y-3">
+                                        { compareSummary.responseChanges.map( ( change ) => (
                                             <div
                                                 key={ change.key }
                                                 className="rounded-2xl bg-brand-cream/40 px-3 py-3 text-sm text-brand-ink/75"
                                             >
-                                                <div className="font-semibold text-brand-ink">
-                                                    { change.sectionKey } / { change.itemKey }
+                                                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                                                    <div className="font-semibold text-brand-ink">
+                                                        { change.sectionLabel } / { change.itemLabel }
+                                                    </div>
+                                                    { canRestore ? (
+                                                        <button
+                                                            type="button"
+                                                            onClick={ () =>
+                                                                handleSelectionRestore( {
+                                                                    target_type: 'response',
+                                                                    section_key: change.sectionKey,
+                                                                    item_key: change.itemKey,
+                                                                } )
+                                                            }
+                                                            disabled={
+                                                                isBusy || restoreSelectionMutation.isPending
+                                                            }
+                                                            className="rounded-2xl border border-amber-300 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-50 transition-all disabled:opacity-50"
+                                                        >
+                                                            Restore saved item
+                                                        </button>
+                                                    ) : null }
                                                 </div>
-                                                <div className="mt-1">
-                                                    { change.previousRating }
-                                                    <span className="mx-2 text-brand-ink/40">{ '->' }</span>
-                                                    { change.currentRating }
+                                                <div className="mt-3 space-y-3">
+                                                    { change.differences.map( ( difference ) => (
+                                                        <div key={ difference.key } className="space-y-2">
+                                                            <div className="text-xs font-bold uppercase tracking-wide text-brand-ink/50">
+                                                                { difference.label }
+                                                            </div>
+                                                            <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:items-start">
+                                                                <CompareValue value={ difference.previousValue } />
+                                                                <div className="self-center justify-self-center text-brand-ink/40 text-sm font-bold">
+                                                                    { '->' }
+                                                                </div>
+                                                                <CompareValue value={ difference.currentValue } />
+                                                            </div>
+                                                        </div>
+                                                    ) ) }
                                                 </div>
                                             </div>
                                         ) ) }
-                                        { compareSummary.responseChanges.length > 25 ? (
-                                            <p className="text-xs text-brand-ink/55">
-                                                Showing the first 25 checklist changes out of { compareSummary.responseChanges.length }.
-                                            </p>
-                                        ) : null }
                                     </div>
                                 ) : (
-                                    <p className="mt-3 text-sm text-brand-ink/60">No checklist rating changes detected.</p>
+                                    <p className="mt-3 text-sm text-brand-ink/60">No checklist changes detected.</p>
                                 ) }
                             </div>
 

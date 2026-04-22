@@ -731,6 +731,12 @@
 .self-start {
         align-self: flex-start;
 }
+.self-center {
+        align-self: center;
+}
+.justify-self-center {
+        justify-self: center;
+}
 .overflow-auto {
         overflow: auto;
 }
@@ -753,6 +759,9 @@
 }
 .whitespace-pre-wrap {
         white-space: pre-wrap;
+}
+.break-words {
+        overflow-wrap: break-word;
 }
 .rounded {
         border-radius: 0.25rem;
@@ -2033,6 +2042,9 @@
         }
         .md\:grid-cols-3 {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .md\:grid-cols-\[minmax\(0\2c 1fr\)_auto_minmax\(0\2c 1fr\)\] {
+                grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
         }
         .md\:flex-row {
                 flex-direction: row;
