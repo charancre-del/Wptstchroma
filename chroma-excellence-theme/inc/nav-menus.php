@@ -121,6 +121,67 @@ function chroma_get_nav_cache_key($prefix, $is_es)
 }
 
 /**
+ * Virtual SEO routes use synthetic query objects that can break wp_nav_menu's
+ * current-item resolution. Render assigned menu links directly for those requests.
+ */
+function chroma_is_virtual_nav_request()
+{
+	return (string) get_query_var('chroma_near_me') !== ''
+		|| (string) get_query_var('chroma_combo') !== ''
+		|| (string) get_query_var('geo_page') !== ''
+		|| (string) get_query_var('geo_city') !== '';
+}
+
+/**
+ * Render top-level menu items without invoking wp_nav_menu context logic.
+ *
+ * @param string $location
+ * @param string $link_class
+ * @return bool
+ */
+function chroma_render_flat_menu_location($location, $link_class)
+{
+	$locations = get_nav_menu_locations();
+	if (empty($locations[$location])) {
+		return false;
+	}
+
+	$items = wp_get_nav_menu_items((int) $locations[$location], [
+		'update_post_term_cache' => false,
+	]);
+
+	if (empty($items) || is_wp_error($items)) {
+		return false;
+	}
+
+	usort($items, static function ($left, $right) {
+		return ((int) ($left->menu_order ?? 0)) <=> ((int) ($right->menu_order ?? 0));
+	});
+
+	foreach ($items as $item) {
+		if ((int) ($item->menu_item_parent ?? 0) !== 0) {
+			continue;
+		}
+
+		$url = isset($item->url) ? (string) $item->url : '';
+		if ($url !== '' && strpos($url, home_url()) !== false) {
+			$parts = explode('#', $url, 2);
+			$path = user_trailingslashit($parts[0]);
+			$url = $path . (isset($parts[1]) ? '#' . $parts[1] : '');
+		}
+		if ($url === '') {
+			$url = '#';
+		}
+
+		echo '<a href="' . esc_url($url) . '" class="' . esc_attr($link_class) . '">';
+		echo esc_html(isset($item->title) ? (string) $item->title : '');
+		echo '</a>';
+	}
+
+	return true;
+}
+
+/**
  * Primary Navigation with Tailwind classes
  */
 function chroma_primary_nav()
@@ -139,6 +200,15 @@ function chroma_primary_nav()
 
 	ob_start();
 	$location = $is_es ? 'primary_es' : 'primary';
+
+	if (chroma_is_virtual_nav_request() && chroma_render_flat_menu_location($location, 'hover:text-chroma-blue transition')) {
+		$output = ob_get_clean();
+		if ($cache_enabled) {
+			set_transient($cache_key, $output, DAY_IN_SECONDS);
+		}
+		echo $output;
+		return;
+	}
 
 	wp_nav_menu(array(
 		'theme_location' => $location,
@@ -201,6 +271,15 @@ function chroma_footer_nav()
 
 	ob_start();
 	$location = $is_es ? 'footer_es' : 'footer';
+
+	if (chroma_is_virtual_nav_request() && chroma_render_flat_menu_location($location, 'block hover:text-white transition')) {
+		$output = ob_get_clean();
+		if ($cache_enabled) {
+			set_transient($cache_key, $output, DAY_IN_SECONDS);
+		}
+		echo $output;
+		return;
+	}
 
 	wp_nav_menu(array(
 		'theme_location' => $location,
@@ -405,6 +484,15 @@ function chroma_mobile_nav()
 
 	ob_start();
 	$location = $is_es ? 'primary_es' : 'primary';
+
+	if (chroma_is_virtual_nav_request() && chroma_render_flat_menu_location($location, 'block py-3 border-b border-brand-ink/5 text-lg font-semibold text-brand-ink hover:text-chroma-blue transition')) {
+		$output = ob_get_clean();
+		if ($cache_enabled) {
+			set_transient($cache_key, $output, DAY_IN_SECONDS);
+		}
+		echo $output;
+		return;
+	}
 
 	wp_nav_menu(array(
 		'theme_location' => $location,
