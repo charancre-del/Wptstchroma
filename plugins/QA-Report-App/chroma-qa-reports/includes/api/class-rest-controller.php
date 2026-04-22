@@ -285,6 +285,12 @@ class REST_Controller
             'callback' => [$this, 'restore_report_version'],
             'permission_callback' => [$this, 'check_edit_reports_permission'],
         ]);
+
+        \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/versions/(?P<version>\d+)/restore-selection', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'restore_report_version_selection'],
+            'permission_callback' => [$this, 'check_edit_reports_permission'],
+        ]);
     }
 
     /**
@@ -2540,6 +2546,76 @@ class REST_Controller
             return new \WP_Error('not_found', 'Report not found', ['status' => 404]);
         }
 
+        $concurrency_check = $this->validate_report_restore_concurrency($request, $report);
+        if (\is_wp_error($concurrency_check)) {
+            return $concurrency_check;
+        }
+
+        $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, $version);
+        if (!$snapshot) {
+            return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
+        }
+
+        $success = \ChromaQA\Models\Report_Snapshot::restore($report_id, $version);
+
+        if (!$success) {
+            return new \WP_Error('restore_failed', 'Failed to restore version', ['status' => 500]);
+        }
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'message' => "Report restored to version {$version}",
+            'new_version' => \ChromaQA\Models\Report_Snapshot::get_latest_version($report_id),
+        ]);
+    }
+
+    /**
+     * Restore a single field or checklist item from a previous version into the current report.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function restore_report_version_selection($request)
+    {
+        $report_id = (int) $request['id'];
+        $version = (int) $request['version'];
+
+        $report = Report::find($report_id);
+        if (!$report) {
+            return new \WP_Error('not_found', 'Report not found', ['status' => 404]);
+        }
+
+        $concurrency_check = $this->validate_report_restore_concurrency($request, $report);
+        if (\is_wp_error($concurrency_check)) {
+            return $concurrency_check;
+        }
+
+        $snapshot = $this->get_version_snapshot_or_live($report, $version);
+        if (!$snapshot || empty($snapshot['snapshot_data']) || !is_array($snapshot['snapshot_data'])) {
+            return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
+        }
+
+        $target_type = \sanitize_key((string) $request->get_param('target_type'));
+        if ($target_type === 'report_field') {
+            return $this->restore_version_report_field($request, $report, $version, $snapshot['snapshot_data']);
+        }
+
+        if ($target_type === 'response') {
+            return $this->restore_version_response_item($request, $report, $version, $snapshot['snapshot_data']);
+        }
+
+        return new \WP_Error('invalid_target', __('Invalid restore target.', 'chroma-qa-reports'), ['status' => 400]);
+    }
+
+    /**
+     * Validate concurrency for version restore actions.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @param Report          $report  Report model.
+     * @return true|WP_Error
+     */
+    private function validate_report_restore_concurrency($request, $report)
+    {
         $if_unmodified_since = $request->get_header('If-Unmodified-Since');
         if ($if_unmodified_since && $report->updated_at) {
             $client_timestamp = strtotime($if_unmodified_since);
@@ -2581,22 +2657,164 @@ class REST_Controller
             }
         }
 
-        $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, $version);
-        if (!$snapshot) {
-            return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
+        return true;
+    }
+
+    /**
+     * Resolve a snapshot row or the current live snapshot for the requested version.
+     *
+     * @param Report $report  Report model.
+     * @param int    $version Version number.
+     * @return array|null
+     */
+    private function get_version_snapshot_or_live($report, $version)
+    {
+        $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot((int) $report->id, $version);
+        if ($snapshot) {
+            return $snapshot;
         }
 
-        $success = \ChromaQA\Models\Report_Snapshot::restore($report_id, $version);
+        if ($version === (int) $report->version_id) {
+            return $this->build_live_snapshot_response($report);
+        }
 
-        if (!$success) {
-            return new \WP_Error('restore_failed', 'Failed to restore version', ['status' => 500]);
+        return null;
+    }
+
+    /**
+     * Restore a single top-level report field from a snapshot.
+     *
+     * @param WP_REST_Request $request       Request object.
+     * @param Report          $report        Report model.
+     * @param int             $version       Source version number.
+     * @param array           $snapshot_data Snapshot payload.
+     * @return WP_REST_Response|WP_Error
+     */
+    private function restore_version_report_field($request, $report, $version, $snapshot_data)
+    {
+        $field = \sanitize_key((string) $request->get_param('field'));
+        $allowed_fields = [
+            'school_id',
+            'report_type',
+            'inspection_date',
+            'previous_report_id',
+            'overall_rating',
+            'status',
+            'closing_notes',
+        ];
+
+        if (!in_array($field, $allowed_fields, true)) {
+            return new \WP_Error('invalid_field', __('That field cannot be restored individually.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
+        $source_report = is_array($snapshot_data['report'] ?? null) ? $snapshot_data['report'] : [];
+        $source_value = $source_report[$field] ?? null;
+
+        switch ($field) {
+            case 'school_id':
+                $school_id = (int) $source_value;
+                $school = $school_id > 0 ? School::find($school_id) : null;
+                if ($school_id <= 0 || !$school) {
+                    return new \WP_Error('invalid_school', __('The saved version references an invalid school.', 'chroma-qa-reports'), ['status' => 400]);
+                }
+                if ($school->status !== 'active') {
+                    return new \WP_Error('inactive_school', __('Cannot restore an inactive school onto this report.', 'chroma-qa-reports'), ['status' => 400]);
+                }
+                $report->school_id = $school_id;
+                break;
+            case 'report_type':
+                $report->report_type = \sanitize_text_field((string) $source_value);
+                break;
+            case 'inspection_date':
+                $inspection_date = \sanitize_text_field((string) $source_value);
+                $date_check = $this->validate_inspection_date($inspection_date);
+                if (\is_wp_error($date_check)) {
+                    return $date_check;
+                }
+                $report->inspection_date = $inspection_date;
+                break;
+            case 'previous_report_id':
+                $report->previous_report_id = !empty($source_value) ? (int) $source_value : null;
+                break;
+            case 'overall_rating':
+                $report->overall_rating = \sanitize_text_field((string) $source_value);
+                break;
+            case 'status':
+                $restored_status = \sanitize_text_field((string) $source_value);
+                if ($restored_status === Report::STATUS_APPROVED && $report->status !== Report::STATUS_APPROVED && !\current_user_can('cqa_approve_reports')) {
+                    return new \WP_Error('forbidden', __('You do not have permission to restore this report to approved status.', 'chroma-qa-reports'), ['status' => 403]);
+                }
+                $report->status = $restored_status;
+                break;
+            case 'closing_notes':
+                $report->closing_notes = \sanitize_textarea_field((string) $source_value);
+                break;
+        }
+
+        if (!$report->save(sprintf('Restored %s from version %d', str_replace('_', ' ', $field), $version), \ChromaQA\Models\Report_Snapshot::TYPE_RESTORE)) {
+            return new \WP_Error('restore_failed', __('Failed to restore the selected field.', 'chroma-qa-reports'), ['status' => 500]);
         }
 
         return new \WP_REST_Response([
             'success' => true,
-            'message' => "Report restored to version {$version}",
-            'new_version' => \ChromaQA\Models\Report_Snapshot::get_latest_version($report_id),
-        ]);
+            'target_type' => 'report_field',
+            'field' => $field,
+            'version_id' => (int) $report->version_id,
+            'updated_at' => $report->updated_at,
+            'message' => sprintf(__('Restored %s from version %d.', 'chroma-qa-reports'), str_replace('_', ' ', $field), $version),
+        ], 200);
+    }
+
+    /**
+     * Restore a single checklist response item from a snapshot.
+     *
+     * @param WP_REST_Request $request       Request object.
+     * @param Report          $report        Report model.
+     * @param int             $version       Source version number.
+     * @param array           $snapshot_data Snapshot payload.
+     * @return WP_REST_Response|WP_Error
+     */
+    private function restore_version_response_item($request, $report, $version, $snapshot_data)
+    {
+        $section_key = \sanitize_text_field((string) $request->get_param('section_key'));
+        $item_key = \sanitize_text_field((string) $request->get_param('item_key'));
+
+        if ($section_key === '' || $item_key === '') {
+            return new \WP_Error('invalid_item', __('A section key and item key are required.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
+        $snapshot_responses = is_array($snapshot_data['responses'] ?? null) ? $snapshot_data['responses'] : [];
+        $source_item = is_array($snapshot_responses[$section_key][$item_key] ?? null) ? $snapshot_responses[$section_key][$item_key] : [];
+
+        $payload = [
+            $section_key => [
+                $item_key => [
+                    'rating' => \sanitize_text_field((string) ($source_item['rating'] ?? Checklist_Response::RATING_NA)),
+                    'notes' => \sanitize_textarea_field((string) ($source_item['notes'] ?? '')),
+                    'evidence_type' => \sanitize_text_field((string) ($source_item['evidence_type'] ?? 'observation')),
+                    'previous_rating' => \sanitize_text_field((string) ($source_item['previous_rating'] ?? '')),
+                    'previous_notes' => \sanitize_textarea_field((string) ($source_item['previous_notes'] ?? '')),
+                ],
+            ],
+        ];
+
+        if (!Checklist_Response::bulk_save((int) $report->id, $payload)) {
+            return new \WP_Error('restore_failed', __('Failed to restore the selected checklist item.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        if (!$report->save(sprintf('Restored checklist item %s/%s from version %d', $section_key, $item_key, $version), \ChromaQA\Models\Report_Snapshot::TYPE_RESTORE)) {
+            return new \WP_Error('restore_failed', __('Failed to version the restored checklist item.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'target_type' => 'response',
+            'section_key' => $section_key,
+            'item_key' => $item_key,
+            'version_id' => (int) $report->version_id,
+            'updated_at' => $report->updated_at,
+            'message' => sprintf(__('Restored checklist item %s/%s from version %d.', 'chroma-qa-reports'), $section_key, $item_key, $version),
+        ], 200);
     }
 
     /**

@@ -1,6 +1,6 @@
 /**
  * Report Version History
- * 
+ *
  * Handles loading, displaying, comparing, and restoring report versions.
  */
 (function ($) {
@@ -11,11 +11,11 @@
         container: null,
         versions: [],
         currentVersion: null,
+        activeComparisonVersion: null,
 
         init: function () {
             this.container = $('#cqa-version-history .cqa-version-list');
 
-            // Get report ID from URL
             const urlParams = new URLSearchParams(window.location.search);
             this.reportId = urlParams.get('id');
 
@@ -51,25 +51,26 @@
 
             let html = '<ul class="cqa-versions">';
 
-            versions.slice(0, 10).forEach(function (v) {
-                const date = new Date(v.created_at);
+            versions.slice(0, 10).forEach(function (versionRow) {
+                const date = new Date(versionRow.created_at);
                 const timeAgo = VersionHistory.timeAgo(date);
-                const isCurrent = VersionHistory.currentVersion === parseInt(v.version_number, 10);
+                const versionNumber = parseInt(versionRow.version_number, 10);
+                const isCurrent = VersionHistory.currentVersion === versionNumber;
 
                 html += `
-                    <li class="cqa-version-item ${isCurrent ? 'current' : ''}" data-version="${v.version_number}">
+                    <li class="cqa-version-item ${isCurrent ? 'current' : ''}" data-version="${versionNumber}">
                         <div class="cqa-version-header">
-                            <strong>v${v.version_number}</strong>
+                            <strong>v${versionNumber}</strong>
                             <span class="cqa-version-time">${timeAgo}</span>
                         </div>
                         <div class="cqa-version-meta">
-                            ${v.change_summary || 'Report updated'}
-                            ${v.user_name ? '<span class="cqa-version-user">by ' + v.user_name + '</span>' : ''}
+                            ${VersionHistory.escapeHtml(versionRow.change_summary || 'Report updated')}
+                            ${versionRow.user_name ? '<span class="cqa-version-user">by ' + VersionHistory.escapeHtml(versionRow.user_name) + '</span>' : ''}
                         </div>
                         <div class="cqa-version-actions">
                             ${!isCurrent ? `
-                                <button type="button" class="cqa-btn-compare" data-version="${v.version_number}">Compare</button>
-                                <button type="button" class="cqa-btn-restore" data-version="${v.version_number}">Restore</button>
+                                <button type="button" class="cqa-btn-compare" data-version="${versionNumber}">Compare</button>
+                                <button type="button" class="cqa-btn-restore" data-version="${versionNumber}">Restore</button>
                             ` : '<span class="cqa-current-tag">Current</span>'}
                         </div>
                     </li>
@@ -87,7 +88,6 @@
         },
 
         createCompareModal: function () {
-            // Add modal HTML if not exists
             if (!$('#cqa-compare-modal').length) {
                 const modal = `
                     <div id="cqa-compare-modal" class="cqa-modal" style="display:none;">
@@ -104,11 +104,35 @@
                 `;
                 $('body').append(modal);
 
-                // Close modal events
                 $(document).on('click', '.cqa-modal-close, .cqa-modal', function (e) {
                     if (e.target === this) {
                         $('#cqa-compare-modal').fadeOut(200);
                     }
+                });
+
+                $(document).on('click', '.cqa-btn-restore-field', function () {
+                    const $button = $(this);
+                    VersionHistory.restoreSelection(
+                        {
+                            version: $button.data('version'),
+                            target_type: 'report_field',
+                            field: $button.data('field')
+                        },
+                        $button
+                    );
+                });
+
+                $(document).on('click', '.cqa-btn-restore-response', function () {
+                    const $button = $(this);
+                    VersionHistory.restoreSelection(
+                        {
+                            version: $button.data('version'),
+                            target_type: 'response',
+                            section_key: $button.data('section'),
+                            item_key: $button.data('item')
+                        },
+                        $button
+                    );
                 });
             }
         },
@@ -133,18 +157,20 @@
             const self = this;
             const currentVersion = this.currentVersion || this.versions[0]?.version_number;
 
-            if (!currentVersion) return;
+            if (!currentVersion) {
+                return;
+            }
 
+            this.activeComparisonVersion = version;
             $('#cqa-compare-modal').fadeIn(200);
             $('#cqa-compare-body').html('<p class="cqa-loading">Loading comparison...</p>');
 
-            // Fetch both versions for comparison
             Promise.all([
                 this.fetchVersion(currentVersion),
                 this.fetchVersion(version)
             ]).then(function ([current, old]) {
                 self.renderComparison(current, old, currentVersion, version);
-            }).catch(function (err) {
+            }).catch(function () {
                 $('#cqa-compare-body').html('<p class="cqa-error">Failed to load comparison</p>');
             });
         },
@@ -165,29 +191,26 @@
 
             let html = `
                 <div class="cqa-compare-header-bar">
-                    <span class="cqa-compare-label old">v${oldVer}</span>
-                    <span class="cqa-compare-arrow">→</span>
-                    <span class="cqa-compare-label current">v${currentVer} (Current)</span>
+                    <span class="cqa-compare-label old">v${this.escapeHtml(String(oldVer))}</span>
+                    <span class="cqa-compare-arrow">&rarr;</span>
+                    <span class="cqa-compare-label current">v${this.escapeHtml(String(currentVer))} (Current)</span>
                 </div>
             `;
 
-            // Compare report fields
             const reportChanges = this.compareObjects(oldData.report || {}, currentData.report || {});
             if (reportChanges.length) {
                 html += '<div class="cqa-compare-section"><h4>Report Details</h4>';
-                html += this.renderChanges(reportChanges);
+                html += this.renderChanges(reportChanges, oldVer);
                 html += '</div>';
             }
 
-            // Compare responses
             const responseChanges = this.compareResponses(oldData.responses || {}, currentData.responses || {});
             if (responseChanges.length) {
                 html += '<div class="cqa-compare-section"><h4>Checklist Responses</h4>';
-                html += this.renderResponseChanges(responseChanges);
+                html += this.renderResponseChanges(responseChanges, oldVer);
                 html += '</div>';
             }
 
-            // Compare photos
             const photoChanges = this.comparePhotos(oldData.photos || [], currentData.photos || []);
             if (photoChanges.added.length || photoChanges.removed.length) {
                 html += '<div class="cqa-compare-section"><h4>Photos</h4>';
@@ -209,16 +232,27 @@
 
         compareObjects: function (oldObj, newObj) {
             const changes = [];
-            const importantFields = ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'status', 'closing_notes'];
+            const fieldLabels = {
+                school_id: 'School',
+                report_type: 'Report Type',
+                inspection_date: 'Inspection Date',
+                previous_report_id: 'Compared Saved Report',
+                overall_rating: 'Overall Rating',
+                status: 'Status',
+                closing_notes: 'Closing Notes'
+            };
+            const self = this;
 
-            importantFields.forEach(function (field) {
-                const oldVal = oldObj[field] || '';
-                const newVal = newObj[field] || '';
+            Object.keys(fieldLabels).forEach(function (field) {
+                const oldVal = self.normalizeCompareValue(oldObj[field]);
+                const newVal = self.normalizeCompareValue(newObj[field]);
+
                 if (oldVal !== newVal) {
                     changes.push({
-                        field: field.replace(/_/g, ' '),
-                        old: oldVal || '(empty)',
-                        new: newVal || '(empty)'
+                        key: field,
+                        field: fieldLabels[field],
+                        old: oldVal,
+                        new: newVal
                     });
                 }
             });
@@ -228,23 +262,47 @@
 
         compareResponses: function (oldResp, newResp) {
             const changes = [];
-            const allSections = new Set([...Object.keys(oldResp), ...Object.keys(newResp)]);
+            const self = this;
+            const responseFields = {
+                rating: 'Rating',
+                notes: 'Notes',
+                evidence_type: 'Evidence',
+                previous_rating: 'Previous Rating',
+                previous_notes: 'Previous Notes'
+            };
+            const allSections = new Set([].concat(Object.keys(oldResp), Object.keys(newResp)));
 
             allSections.forEach(function (section) {
                 const oldItems = oldResp[section] || {};
                 const newItems = newResp[section] || {};
-                const allItems = new Set([...Object.keys(oldItems), ...Object.keys(newItems)]);
+                const allItems = new Set([].concat(Object.keys(oldItems), Object.keys(newItems)));
 
                 allItems.forEach(function (item) {
-                    const oldRating = oldItems[item]?.rating || '';
-                    const newRating = newItems[item]?.rating || '';
+                    const oldEntry = oldItems[item] || {};
+                    const newEntry = newItems[item] || {};
+                    const differences = [];
 
-                    if (oldRating !== newRating) {
+                    Object.keys(responseFields).forEach(function (field) {
+                        const oldValue = self.normalizeCompareValue(oldEntry[field]);
+                        const newValue = self.normalizeCompareValue(newEntry[field]);
+
+                        if (oldValue !== newValue) {
+                            differences.push({
+                                key: field,
+                                label: responseFields[field],
+                                old: oldValue,
+                                new: newValue
+                            });
+                        }
+                    });
+
+                    if (differences.length) {
                         changes.push({
                             section: section,
                             item: item,
-                            oldRating: oldRating || 'N/A',
-                            newRating: newRating || 'N/A'
+                            sectionLabel: self.humanizeKey(section),
+                            itemLabel: self.humanizeKey(item),
+                            differences: differences
                         });
                     }
                 });
@@ -254,48 +312,122 @@
         },
 
         comparePhotos: function (oldPhotos, newPhotos) {
-            const oldIds = new Set((oldPhotos || []).map(p => p.id));
-            const newIds = new Set((newPhotos || []).map(p => p.id));
+            const oldIds = new Set((oldPhotos || []).map(function (photo) {
+                return photo.id;
+            }));
+            const newIds = new Set((newPhotos || []).map(function (photo) {
+                return photo.id;
+            }));
 
             return {
-                added: [...newIds].filter(id => !oldIds.has(id)),
-                removed: [...oldIds].filter(id => !newIds.has(id))
+                added: Array.from(newIds).filter(function (id) {
+                    return !oldIds.has(id);
+                }),
+                removed: Array.from(oldIds).filter(function (id) {
+                    return !newIds.has(id);
+                })
             };
         },
 
-        renderChanges: function (changes) {
+        renderChanges: function (changes, version) {
+            const self = this;
             let html = '<ul class="cqa-change-list">';
-            changes.forEach(function (c) {
+
+            changes.forEach(function (change) {
                 html += `
-                    <li>
-                        <strong>${c.field}:</strong>
-                        <span class="cqa-old-value">${c.old}</span>
-                        <span class="cqa-change-arrow">→</span>
-                        <span class="cqa-new-value">${c.new}</span>
+                    <li class="cqa-change-item">
+                        <div class="cqa-change-item-header">
+                            <strong class="cqa-change-item-title">${self.escapeHtml(change.field)}</strong>
+                            <button
+                                type="button"
+                                class="button button-small cqa-btn-restore-field"
+                                data-version="${self.escapeAttribute(version)}"
+                                data-field="${self.escapeAttribute(change.key)}"
+                            >Restore saved value</button>
+                        </div>
+                        <div class="cqa-change-subrow">
+                            <span class="cqa-old-value cqa-value-block">${self.formatCompareText(change.old)}</span>
+                            <span class="cqa-change-arrow">&rarr;</span>
+                            <span class="cqa-new-value cqa-value-block">${self.formatCompareText(change.new)}</span>
+                        </div>
                     </li>
                 `;
             });
+
             html += '</ul>';
             return html;
         },
 
-        renderResponseChanges: function (changes) {
+        renderResponseChanges: function (changes, version) {
+            const self = this;
             let html = '<ul class="cqa-change-list">';
-            changes.slice(0, 20).forEach(function (c) {
+
+            changes.forEach(function (change) {
+                let diffHtml = '';
+                change.differences.forEach(function (difference) {
+                    diffHtml += `
+                        <div class="cqa-change-subrow">
+                            <span class="cqa-diff-label">${self.escapeHtml(difference.label)}:</span>
+                            <span class="cqa-old-value cqa-value-block">${self.formatCompareText(difference.old, difference.key)}</span>
+                            <span class="cqa-change-arrow">&rarr;</span>
+                            <span class="cqa-new-value cqa-value-block">${self.formatCompareText(difference.new, difference.key)}</span>
+                        </div>
+                    `;
+                });
+
                 html += `
-                    <li>
-                        <strong>${c.section} / ${c.item}:</strong>
-                        <span class="cqa-old-value">${c.oldRating}</span>
-                        <span class="cqa-change-arrow">→</span>
-                        <span class="cqa-new-value">${c.newRating}</span>
+                    <li class="cqa-change-item">
+                        <div class="cqa-change-item-header">
+                            <strong class="cqa-change-item-title">${self.escapeHtml(change.sectionLabel)} / ${self.escapeHtml(change.itemLabel)}</strong>
+                            <button
+                                type="button"
+                                class="button button-small cqa-btn-restore-response"
+                                data-version="${self.escapeAttribute(version)}"
+                                data-section="${self.escapeAttribute(change.section)}"
+                                data-item="${self.escapeAttribute(change.item)}"
+                            >Restore saved item</button>
+                        </div>
+                        ${diffHtml}
                     </li>
                 `;
             });
-            if (changes.length > 20) {
-                html += `<li class="cqa-more-changes">...and ${changes.length - 20} more changes</li>`;
-            }
+
             html += '</ul>';
             return html;
+        },
+
+        restoreSelection: function (payload, $button) {
+            const self = this;
+            const version = parseInt(payload.version, 10);
+            const originalText = $button.text();
+
+            if (!version) {
+                alert('Unable to restore from that version.');
+                return;
+            }
+
+            $button.prop('disabled', true).text('Restoring...');
+
+            $.ajax({
+                url: cqaAdmin.restUrl + 'reports/' + this.reportId + '/versions/' + version + '/restore-selection',
+                type: 'POST',
+                data: Object.assign({}, payload, {
+                    version_id: this.currentVersion || ''
+                }),
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader('X-WP-Nonce', cqaAdmin.nonce);
+                    if (self.currentVersion) {
+                        xhr.setRequestHeader('X-CQA-Version', String(self.currentVersion));
+                    }
+                }
+            }).done(function (response) {
+                self.currentVersion = parseInt(response.version_id, 10) || self.currentVersion;
+                self.loadVersions();
+                self.showComparison(version);
+            }).fail(function (xhr) {
+                alert('Failed to restore: ' + (xhr.responseJSON?.message || 'Unknown error'));
+                $button.prop('disabled', false).text(originalText);
+            });
         },
 
         restoreVersion: function (version) {
@@ -308,8 +440,14 @@
             $.ajax({
                 url: cqaAdmin.restUrl + 'reports/' + this.reportId + '/restore/' + version,
                 type: 'POST',
+                data: {
+                    version_id: this.currentVersion || ''
+                },
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader('X-WP-Nonce', cqaAdmin.nonce);
+                    if (self.currentVersion) {
+                        xhr.setRequestHeader('X-CQA-Version', String(self.currentVersion));
+                    }
                 }
             }).done(function (response) {
                 if (response.success) {
@@ -322,9 +460,48 @@
             });
         },
 
+        normalizeCompareValue: function (value) {
+            if (value === null || value === undefined) {
+                return '';
+            }
+
+            return String(value).trim();
+        },
+
+        humanizeKey: function (value) {
+            return String(value || '')
+                .replace(/[_-]+/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .replace(/\b\w/g, function (character) {
+                    return character.toUpperCase();
+                });
+        },
+
+        formatCompareText: function (value, field) {
+            const normalized = this.normalizeCompareValue(value);
+            const displayValue = normalized === ''
+                ? (field && field.indexOf('rating') !== -1 ? 'N/A' : '(empty)')
+                : normalized;
+
+            return this.escapeHtml(displayValue).replace(/\n/g, '<br>');
+        },
+
+        escapeHtml: function (value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        },
+
+        escapeAttribute: function (value) {
+            return this.escapeHtml(value);
+        },
+
         timeAgo: function (date) {
             const seconds = Math.floor((new Date() - date) / 1000);
-
             const intervals = [
                 { label: 'year', seconds: 31536000 },
                 { label: 'month', seconds: 2592000 },
@@ -343,6 +520,10 @@
             return 'Just now';
         }
     };
+
+    if (typeof window !== 'undefined') {
+        window.CQAVersionHistory = VersionHistory;
+    }
 
     $(document).ready(function () {
         VersionHistory.init();
