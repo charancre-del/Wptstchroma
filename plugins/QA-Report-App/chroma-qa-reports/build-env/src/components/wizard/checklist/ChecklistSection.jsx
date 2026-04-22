@@ -1,5 +1,6 @@
 import React from 'react';
 import ChecklistItem from '../ChecklistItem';
+import { hasChecklistItemValue } from '@utils/checklistResponses';
 
 const getEffectiveItemResponse = ( item, sectionResponses, allResponses ) => {
     const itemKey = item.key || item.id;
@@ -25,7 +26,7 @@ const ChecklistSection = ( { section, responses, allResponses, onResponseChange,
     // Calculate progress for this section
     const totalItems = section.items.length;
     const answeredItems = section.items.filter(
-        ( item ) => getEffectiveItemResponse( item, responses, allResponses )?.rating
+        ( item ) => hasChecklistItemValue( item, getEffectiveItemResponse( item, responses, allResponses ) )
     ).length;
     const progress = Math.round( ( answeredItems / totalItems ) * 100 );
 

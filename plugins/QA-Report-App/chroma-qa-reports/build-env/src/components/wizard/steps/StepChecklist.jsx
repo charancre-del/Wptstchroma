@@ -4,6 +4,7 @@ import apiFetch from '@api/client';
 import ChecklistSection from '@components/wizard/checklist/ChecklistSection';
 import { ListChecks, AlertTriangle } from 'lucide-react';
 import { useReportWizardStore } from '@stores/index';
+import { hasChecklistItemValue } from '@utils/checklistResponses';
 
 const getLinkedSourceResponse = ( item, allResponses ) => {
     if ( ! item?.shared_with ) {
@@ -39,6 +40,7 @@ const StepChecklist = ( { draft, readOnly = false } ) => {
 
     // Determine checklist type from draft or default to 'tier1'
     const checklistType = draft.report_type || 'tier1';
+    const schoolId = Number( draft.school_id ) || null;
 
     // Fetch Checklist Definition
     const {
@@ -46,8 +48,11 @@ const StepChecklist = ( { draft, readOnly = false } ) => {
         isLoading,
         error,
     } = useQuery( {
-        queryKey: [ 'checklist', checklistType ],
-        queryFn: () => apiFetch( `checklists/${ checklistType }` ),
+        queryKey: [ 'checklist', checklistType, schoolId ],
+        queryFn: () =>
+            apiFetch( `checklists/${ checklistType }`, {
+                params: schoolId ? { school_id: schoolId } : {},
+            } ),
         staleTime: Infinity, // Definitions rarely change
     } );
 
@@ -131,7 +136,7 @@ const StepChecklist = ( { draft, readOnly = false } ) => {
             total += section.items.length;
             section.items.forEach( ( item ) => {
                 const effectiveResponse = getEffectiveItemResponse( item, sectionResponses, responses );
-                if ( effectiveResponse?.rating ) {
+                if ( hasChecklistItemValue( item, effectiveResponse ) ) {
                     answered++;
                 }
             } );
@@ -175,7 +180,7 @@ const StepChecklist = ( { draft, readOnly = false } ) => {
                         { checklistDef.title || 'Inspection Checklist' }
                     </h2>
                     <p className="text-sm text-gray-500">
-                        { completion.answered } of { completion.total } items rated
+                        { completion.answered } of { completion.total } items completed
                     </p>
                 </div>
                 <div className="text-right">

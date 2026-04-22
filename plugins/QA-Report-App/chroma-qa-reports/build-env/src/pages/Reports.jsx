@@ -98,9 +98,13 @@ export function ReportsPage() {
     );
 
     const handleApprove = useCallback(
-        async ( reportId ) => {
+        async ( report ) => {
             try {
-                await approveMutation.mutateAsync( reportId );
+                await approveMutation.mutateAsync( {
+                    id: report.id,
+                    version_id: report.version_id,
+                    updated_at: report.updated_at,
+                } );
                 addToast( { type: 'success', message: 'Report approved successfully' } );
             } catch ( approveError ) {
                 addToast( { type: 'error', message: approveError.message || 'Failed to approve report' } );
@@ -110,7 +114,7 @@ export function ReportsPage() {
     );
 
     const handleRevert = useCallback(
-        async ( reportId ) => {
+        async ( report ) => {
             if (
                 ! confirm(
                     'Are you sure you want to revert this report to draft? It will be removed from approved status and become editable again.'
@@ -119,7 +123,11 @@ export function ReportsPage() {
                 return;
             }
             try {
-                await revertMutation.mutateAsync( reportId );
+                await revertMutation.mutateAsync( {
+                    id: report.id,
+                    version_id: report.version_id,
+                    updated_at: report.updated_at,
+                } );
                 addToast( { type: 'success', message: 'Report reverted to draft successfully' } );
             } catch ( revertError ) {
                 addToast( { type: 'error', message: revertError.message || 'Failed to revert report' } );
@@ -281,7 +289,7 @@ export function ReportsPage() {
                                 </DropdownMenu.Item>
                                 { row.original.status === 'submitted' && capabilities?.cqa_approve_reports && (
                                     <DropdownMenu.Item
-                                        onClick={ () => handleApprove( row.original.id ) }
+                                        onClick={ () => handleApprove( row.original ) }
                                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-green-600 hover:bg-green-50 cursor-pointer"
                                     >
                                         <CheckCircle className="w-4 h-4 text-green-500" />
@@ -301,7 +309,7 @@ export function ReportsPage() {
                                 ) }
                                 { row.original.status === 'approved' && capabilities?.cqa_approve_reports && (
                                     <DropdownMenu.Item
-                                        onClick={ () => handleRevert( row.original.id ) }
+                                        onClick={ () => handleRevert( row.original ) }
                                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-600 hover:bg-amber-50 cursor-pointer"
                                     >
                                         <Clock className="w-4 h-4 text-amber-500" />

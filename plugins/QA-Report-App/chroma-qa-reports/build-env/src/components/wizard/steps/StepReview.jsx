@@ -60,8 +60,16 @@ export function StepReview( { isViewMode = false, readOnly = false } ) {
             issues.push( { field: 'date', message: 'Visit date not set' } );
         }
 
+        // Count nested checklist items, not just top-level sections.
+        const responseCount = Object.values( responses || {} ).reduce( ( total, section ) => {
+            if ( typeof section !== 'object' || section === null ) {
+                return total;
+            }
+
+            return total + Object.keys( section ).length;
+        }, 0 );
+
         // Required: at least some checklist responses
-        const responseCount = Object.keys( responses ).length;
         if ( responseCount === 0 ) {
             issues.push( { field: 'checklist', message: 'No checklist items completed' } );
         } else if ( responseCount < 10 ) {

@@ -3,6 +3,10 @@ import { MessageSquare, Camera, Loader2, Link2, Layers3 } from 'lucide-react';
 import { useReportWizardStore } from '@stores/index';
 import apiFetch from '@api/client';
 import { compressImage } from '../../utils/image';
+import {
+    getEnrollmentValues,
+    serializeEnrollmentNotes,
+} from '../../utils/checklistResponses';
 import PhotoThumbnail from '../common/PhotoThumbnail';
 import useUIStore from '../../stores/useUIStore';
 
@@ -25,7 +29,11 @@ const ChecklistItem = ( { item, sectionKey, response, allResponses = {}, onChang
     const itemKey = item.key || item.id;
     const { label, description, weight } = item;
     const { notes = '' } = response;
+    const isEnrollment = item.type === 'enrollment';
     const [ currentNotes, setCurrentNotes ] = useState( notes );
+    const enrollmentValues = useMemo( () => getEnrollmentValues( response ), [ response ] );
+    const [ currentEnrolled, setCurrentEnrolled ] = useState( enrollmentValues.enrolled );
+    const [ currentPresent, setCurrentPresent ] = useState( enrollmentValues.present );
     const sourceResponse = useMemo( () => {
         if ( ! item?.shared_with ) {
             return null;
@@ -42,6 +50,11 @@ const ChecklistItem = ( { item, sectionKey, response, allResponses = {}, onChang
     useEffect( () => {
         setCurrentNotes( notes || '' );
     }, [ notes ] );
+
+    useEffect( () => {
+        setCurrentEnrolled( enrollmentValues.enrolled );
+        setCurrentPresent( enrollmentValues.present );
+    }, [ enrollmentValues.enrolled, enrollmentValues.present ] );
 
     const handleFileSelect = async ( e ) => {
         const files = e.target.files;
@@ -209,39 +222,103 @@ const ChecklistItem = ( { item, sectionKey, response, allResponses = {}, onChang
                         </span>
                     </div>
                 ) : (
-                    <div className="flex items-center bg-gray-50 p-1 rounded-lg border border-gray-100 self-start">
-                        { [
-                            { val: 'yes', label: 'Yes', color: 'bg-green-500' },
-                            { val: 'sometimes', label: 'Sometimes', color: 'bg-amber-500' },
-                            { val: 'no', label: 'No', color: 'bg-red-500' },
-                            { val: 'na', label: 'N/A', color: 'bg-gray-400' },
-                        ].map( ( option ) => (
-                            <button
-                                key={ option.val }
-                                onClick={ () =>
-                                    ! readOnly && onChange( itemKey, { ...response, rating: option.val } )
-                                }
-                                className={ `
-                                    px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all
-                                    ${
-                                        effectiveRating === option.val
-                                            ? `${ option.color } text-white shadow-sm scale-110`
-                                            : 'text-gray-400 hover:text-gray-600 hover:bg-white'
+                    isEnrollment ? (
+                        <div className="grid grid-cols-2 gap-2 self-start min-w-[220px]">
+                            <label className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                                Enrolled
+                                <input
+                                    type="number"
+                                    min="0"
+                                    inputMode="numeric"
+                                    value={ currentEnrolled }
+                                    readOnly={ readOnly }
+                                    onChange={ ( e ) => {
+                                        if ( readOnly ) {
+                                            return;
+                                        }
+
+                                        const nextEnrolled = e.target.value;
+                                        setCurrentEnrolled( nextEnrolled );
+                                        onChange( itemKey, {
+                                            ...response,
+                                            enrolled: nextEnrolled,
+                                            present: currentPresent,
+                                            rating: '',
+                                            notes: serializeEnrollmentNotes( {
+                                                enrolled: nextEnrolled,
+                                                present: currentPresent,
+                                            } ),
+                                        } );
+                                    } }
+                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 outline-none focus:ring-1 focus:ring-cqa-primary focus:border-cqa-primary disabled:bg-gray-50"
+                                />
+                            </label>
+                            <label className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                                Present
+                                <input
+                                    type="number"
+                                    min="0"
+                                    inputMode="numeric"
+                                    value={ currentPresent }
+                                    readOnly={ readOnly }
+                                    onChange={ ( e ) => {
+                                        if ( readOnly ) {
+                                            return;
+                                        }
+
+                                        const nextPresent = e.target.value;
+                                        setCurrentPresent( nextPresent );
+                                        onChange( itemKey, {
+                                            ...response,
+                                            enrolled: currentEnrolled,
+                                            present: nextPresent,
+                                            rating: '',
+                                            notes: serializeEnrollmentNotes( {
+                                                enrolled: currentEnrolled,
+                                                present: nextPresent,
+                                            } ),
+                                        } );
+                                    } }
+                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-800 outline-none focus:ring-1 focus:ring-cqa-primary focus:border-cqa-primary disabled:bg-gray-50"
+                                />
+                            </label>
+                        </div>
+                    ) : (
+                        <div className="flex items-center bg-gray-50 p-1 rounded-lg border border-gray-100 self-start">
+                            { [
+                                { val: 'yes', label: 'Yes', color: 'bg-green-500' },
+                                { val: 'sometimes', label: 'Sometimes', color: 'bg-amber-500' },
+                                { val: 'no', label: 'No', color: 'bg-red-500' },
+                                { val: 'na', label: 'N/A', color: 'bg-gray-400' },
+                            ].map( ( option ) => (
+                                <button
+                                    key={ option.val }
+                                    onClick={ () =>
+                                        ! readOnly && onChange( itemKey, { ...response, rating: option.val } )
                                     }
-                                    ${ readOnly && effectiveRating !== option.val ? 'opacity-30 cursor-default' : '' }
-                                ` }
-                            >
-                                { option.label }
-                            </button>
-                        ) ) }
-                    </div>
+                                    className={ `
+                                        px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all
+                                        ${
+                                            effectiveRating === option.val
+                                                ? `${ option.color } text-white shadow-sm scale-110`
+                                                : 'text-gray-400 hover:text-gray-600 hover:bg-white'
+                                        }
+                                        ${ readOnly && effectiveRating !== option.val ? 'opacity-30 cursor-default' : '' }
+                                    ` }
+                                >
+                                    { option.label }
+                                </button>
+                            ) ) }
+                        </div>
+                    )
                 ) }
             </div>
 
             { /* Additional Inputs (Notes / Photos) */ }
             <div className="flex flex-col gap-3">
                 { /* Notes Toggle / Input */ }
-                <div className="relative">
+                { ! isEnrollment ? (
+                    <div className="relative">
                     <MessageSquare size={ 16 } className="absolute top-3 left-3 text-gray-400" />
                     <textarea
                         className={ `w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm outline-none transition-shadow ${
@@ -266,7 +343,8 @@ const ChecklistItem = ( { item, sectionKey, response, allResponses = {}, onChang
                             }
                         } }
                     />
-                </div>
+                    </div>
+                ) : null }
 
                 { /* Photo Evidence Bar */ }
                 <div className="flex items-center justify-between min-h-[40px] pt-1 border-t border-gray-50">
