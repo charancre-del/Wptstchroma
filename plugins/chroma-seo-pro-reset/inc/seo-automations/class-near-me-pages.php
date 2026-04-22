@@ -366,14 +366,282 @@ class Chroma_Near_Me_Pages
     }
 
     /**
+     * Translate the near-me keyword into a visible label.
+     *
+     * @param string $keyword
+     * @param string $language
+     * @return string
+     */
+    private function get_keyword_label($keyword, $language = 'en')
+    {
+        $labels = [
+            'daycare' => ['en' => 'Daycare', 'es' => 'Guarderia'],
+            'preschool' => ['en' => 'Preschool', 'es' => 'Preescolar'],
+            'childcare' => ['en' => 'Childcare', 'es' => 'Cuidado infantil'],
+            'pre-k' => ['en' => 'Pre-K', 'es' => 'Pre-K'],
+            'infant-care' => ['en' => 'Infant Care', 'es' => 'Cuidado para bebes'],
+        ];
+
+        $keyword = sanitize_title((string) $keyword);
+
+        return (string) ($labels[$keyword][$language] ?? ucwords(str_replace('-', ' ', $keyword)));
+    }
+
+    /**
+     * Normalize relationship meta into a unique list of location IDs.
+     *
+     * @param mixed $raw
+     * @return array<int>
+     */
+    private function normalize_location_ids($raw)
+    {
+        if (is_array($raw)) {
+            $values = $raw;
+        } elseif (is_string($raw)) {
+            $raw = trim($raw);
+            if ($raw === '') {
+                return [];
+            }
+
+            if ($raw[0] === '[') {
+                $decoded = json_decode($raw, true);
+                $values = is_array($decoded) ? $decoded : preg_split('/[\s,]+/', $raw);
+            } else {
+                $values = preg_split('/[\s,]+/', $raw);
+            }
+        } else {
+            $values = [$raw];
+        }
+
+        $ids = [];
+        foreach ((array) $values as $value) {
+            $id = (int) $value;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * Pull curated location relationships from the city record when available.
+     *
+     * @param array|null $city_context
+     * @return array<int>
+     */
+    private function get_city_related_location_ids($city_context)
+    {
+        if (!is_array($city_context)) {
+            return [];
+        }
+
+        $location_ids = [];
+
+        if (!empty($city_context['location_id'])) {
+            $location_ids[] = (int) $city_context['location_id'];
+        }
+
+        $city_page_id = (int) ($city_context['city_page_id'] ?? 0);
+        if ($city_page_id > 0) {
+            foreach (['city_nearby_locations', 'related_location_ids'] as $meta_key) {
+                $location_ids = array_merge(
+                    $location_ids,
+                    $this->normalize_location_ids(function_exists('chroma_get_translated_meta')
+                        ? chroma_get_translated_meta($city_page_id, $meta_key)
+                        : get_post_meta($city_page_id, $meta_key, true))
+                );
+            }
+        }
+
+        return array_values(array_unique(array_filter(array_map('intval', $location_ids))));
+    }
+
+    /**
+     * Rank locations for a city-specific near-me route.
+     *
+     * @param array $locations
+     * @param array|null $city_context
+     * @param string $state
+     * @return array
+     */
+    private function rank_locations_for_city(array $locations, $city_context = null, $state = '')
+    {
+        if (!is_array($city_context) || empty($locations)) {
+            return array_values($locations);
+        }
+
+        $state = strtoupper((string) $state);
+        $canonical_slug = sanitize_title((string) ($city_context['canonical_slug'] ?? ''));
+        $city_name = strtolower(trim((string) ($city_context['city_name'] ?? '')));
+        $preferred_ids = $this->get_city_related_location_ids($city_context);
+
+        $location_map = [];
+        foreach ($locations as $location) {
+            $location_map[(int) $location['id']] = $location;
+        }
+
+        $ordered = [];
+        foreach ($preferred_ids as $location_id) {
+            if (isset($location_map[$location_id])) {
+                $ordered[] = $location_map[$location_id];
+                unset($location_map[$location_id]);
+            }
+        }
+
+        $scored = [];
+        foreach ($location_map as $location) {
+            $score = 0;
+            $location_city = strtolower(trim((string) ($location['city'] ?? '')));
+            $location_state = strtoupper((string) ($location['state'] ?? ''));
+            $location_title = strtolower((string) ($location['title'] ?? ''));
+
+            if ($location_city !== '' && $location_city === $city_name) {
+                $score += 1000;
+            }
+
+            if ($canonical_slug !== '' && sanitize_title($location_city) === $canonical_slug) {
+                $score += 400;
+            }
+
+            if ($canonical_slug !== '' && strpos($location_title, str_replace('-', ' ', $canonical_slug)) !== false) {
+                $score += 180;
+            }
+
+            if ($state !== '' && $location_state === $state) {
+                $score += 80;
+            }
+
+            if (!empty($location['address']) && $canonical_slug !== '' && strpos(strtolower((string) $location['address']), str_replace('-', ' ', $canonical_slug)) !== false) {
+                $score += 60;
+            }
+
+            $location['_near_me_score'] = $score;
+            $scored[] = $location;
+        }
+
+        usort($scored, static function ($left, $right) {
+            if ($left['_near_me_score'] === $right['_near_me_score']) {
+                return strcasecmp((string) ($left['title'] ?? ''), (string) ($right['title'] ?? ''));
+            }
+
+            return $right['_near_me_score'] <=> $left['_near_me_score'];
+        });
+
+        foreach ($scored as $location) {
+            unset($location['_near_me_score']);
+            $ordered[] = $location;
+        }
+
+        return $ordered;
+    }
+
+    /**
+     * Build route-aware supporting copy for near-me pages.
+     *
+     * @param string     $keyword
+     * @param array|null $city_context
+     * @param array      $locations
+     * @param string     $language
+     * @return array<string, string>
+     */
+    private function build_route_copy($keyword, $city_context = null, array $locations = [], $language = 'en')
+    {
+        $keyword_label = $this->get_keyword_label($keyword, $language);
+        $keyword_lower = function_exists('mb_strtolower') ? mb_strtolower($keyword_label, 'UTF-8') : strtolower($keyword_label);
+        $count = count($locations);
+
+        if (!is_array($city_context)) {
+            if ($language === 'es') {
+                return [
+                    'hero' => sprintf('Explora opciones de %s en Georgia con campus de Chroma, informacion de recorridos y programas para distintas etapas tempranas.', $keyword_lower),
+                    'section_title' => sprintf('Campus de Chroma para %s', $keyword_lower),
+                    'section_body' => sprintf('Revisamos nuestros campus mas cercanos para ayudarte a comparar opciones de %s y elegir el mejor ajuste para tu familia.', $keyword_lower),
+                ];
+            }
+
+            return [
+                'hero' => sprintf('Find trusted %s options near you. Explore Chroma campuses, curriculum highlights, and tour details for families across Georgia.', $keyword_lower),
+                'section_title' => sprintf('Chroma Campuses for %s', $keyword_label),
+                'section_body' => sprintf('Compare our nearby campuses, review program fit, and find the right %s environment for your family.', $keyword_lower),
+            ];
+        }
+
+        $city_name = function_exists('chroma_seo_get_city_display_name')
+            ? chroma_seo_get_city_display_name($city_context, $language)
+            : (string) ($city_context['city_name'] ?? '');
+        $state = strtoupper((string) ($city_context['state'] ?? 'GA'));
+        $campus_names = array_values(array_filter(array_map(static function ($location) {
+            return trim((string) ($location['title'] ?? ''));
+        }, array_slice($locations, 0, 3))));
+
+        $city_page_id = (int) ($city_context['city_page_id'] ?? 0);
+        $county = '';
+        $neighborhoods = [];
+        if ($city_page_id > 0) {
+            $county = trim((string) (function_exists('chroma_get_translated_meta')
+                ? chroma_get_translated_meta($city_page_id, 'city_county')
+                : get_post_meta($city_page_id, 'city_county', true)));
+
+            $neighborhoods_raw = function_exists('chroma_get_translated_meta')
+                ? chroma_get_translated_meta($city_page_id, 'city_neighborhoods')
+                : get_post_meta($city_page_id, 'city_neighborhoods', true);
+
+            if (is_array($neighborhoods_raw)) {
+                $neighborhoods = array_values(array_filter(array_map('trim', $neighborhoods_raw)));
+            } elseif (is_string($neighborhoods_raw) && trim($neighborhoods_raw) !== '') {
+                $neighborhoods = array_values(array_filter(array_map('trim', explode(',', $neighborhoods_raw))));
+            }
+        }
+
+        $campus_fragment = '';
+        if (!empty($campus_names)) {
+            $campus_fragment = $language === 'es'
+                ? ' Incluye campus como ' . implode(', ', $campus_names) . '.'
+                : ' That includes campuses like ' . implode(', ', $campus_names) . '.';
+        }
+
+        $neighborhood_fragment = '';
+        if (!empty($neighborhoods)) {
+            $list = implode(', ', array_slice($neighborhoods, 0, 3));
+            $neighborhood_fragment = $language === 'es'
+                ? ' Familias de zonas como ' . $list . ' suelen comenzar aqui.'
+                : ' Families from neighborhoods like ' . $list . ' often start here.';
+        }
+
+        $county_fragment = '';
+        if ($county !== '') {
+            $county_fragment = $language === 'es'
+                ? ' con apoyo para familias en ' . $county . ' County'
+                : ' for families across ' . $county . ' County';
+        }
+
+        if ($language === 'es') {
+            return [
+                'hero' => sprintf('Explora %s cerca de %s, %s. Destacamos %d opciones de campus de Chroma%s.', $keyword_lower, $city_name, $state, $count, $campus_fragment),
+                'section_title' => sprintf('%s cerca de %s', $keyword_label, $city_name),
+                'section_body' => sprintf('Seleccionamos campus de Chroma cercanos a %s, %s%s para que puedas comparar ubicacion, programas y proximidad antes de programar un recorrido.', $city_name, $state, $county_fragment) . $neighborhood_fragment,
+            ];
+        }
+
+        return [
+            'hero' => sprintf('Explore %s near %s, %s. We highlighted %d Chroma campus options%s.', $keyword_lower, $city_name, $state, $count, $campus_fragment),
+            'section_title' => sprintf('%s Near %s', $keyword_label, $city_name),
+            'section_body' => sprintf('We selected Chroma campuses close to %s, %s%s so you can compare location, program fit, and convenience before you book a tour.', $city_name, $state, $county_fragment) . $neighborhood_fragment,
+        ];
+    }
+
+    /**
      * Get all locations with geo data
      */
-    private function get_locations_with_geo()
+    private function get_locations_with_geo($city_context = null, $state = '')
     {
         $locations = get_posts([
             'post_type' => 'location',
-            'posts_per_page' => -1,
-            'post_status' => 'publish'
+            'posts_per_page' => 100,
+            'post_status' => 'publish',
+            'orderby' => 'title',
+            'order' => 'ASC',
         ]);
 
         $result = [];
@@ -399,7 +667,10 @@ class Chroma_Near_Me_Pages
             ];
         }
 
-        return $result;
+        $result = $this->rank_locations_for_city($result, $city_context, $state);
+        $limit = is_array($city_context) ? 6 : 12;
+
+        return array_slice($result, 0, $limit);
     }
 
     /**
@@ -407,15 +678,16 @@ class Chroma_Near_Me_Pages
      */
     private function render_near_me_page($keyword, $city_context = null, $state = '')
     {
-        $keyword_label = ucwords(str_replace('-', ' ', $keyword));
-        $locations = $this->get_locations_with_geo();
+        $language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
+        $keyword_label = $this->get_keyword_label($keyword, $language);
+        $locations = $this->get_locations_with_geo($city_context, $state);
         $city_slug = is_array($city_context) ? (string) ($city_context['canonical_slug'] ?? '') : '';
 
         // If city-specific, filter/sort by that city
         $city_name = '';
         if ($city_slug && $state) {
             if (function_exists('chroma_seo_get_city_display_name')) {
-                $city_name = chroma_seo_get_city_display_name($city_context, function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en');
+                $city_name = chroma_seo_get_city_display_name($city_context, $language);
             }
             if ($city_name === '') {
                 $city_name = ucwords(str_replace('-', ' ', $city_slug));
@@ -424,6 +696,11 @@ class Chroma_Near_Me_Pages
         } else {
             $page_title = $this->build_page_title($keyword, '', '');
         }
+
+        $route_copy = $this->build_route_copy($keyword, $city_context, $locations, $language);
+        $section_title = (string) ($route_copy['section_title'] ?? '');
+        $section_body = (string) ($route_copy['section_body'] ?? '');
+        $hero_copy = (string) ($route_copy['hero'] ?? '');
 
         get_header();
         ?>
@@ -445,7 +722,7 @@ class Chroma_Near_Me_Pages
                     </h1>
 
                     <p class="text-lg text-brand-ink/80 max-w-2xl mx-auto mb-10">
-                        <?php printf(esc_html__('Find high-quality %s programs near you. Serving Atlanta families with premium curriculum and care.', 'chroma-excellence'), esc_html(strtolower($keyword_label))); ?>
+                        <?php echo esc_html($hero_copy); ?>
                     </p>
 
                     <div id="nearest-highlight"
@@ -458,6 +735,18 @@ class Chroma_Near_Me_Pages
                         <strong id="nearest-name" class="font-serif text-brand-ink"></strong>
                         <span id="nearest-distance" class="text-xs font-bold text-chroma-blue"></span>
                     </div>
+                </div>
+            </section>
+
+            <!-- Route Context -->
+            <section class="py-10 bg-brand-cream border-y border-brand-ink/5">
+                <div class="max-w-5xl mx-auto px-4 lg:px-6 text-center">
+                    <h2 class="font-serif text-3xl text-brand-ink mb-4">
+                        <?php echo esc_html($section_title); ?>
+                    </h2>
+                    <p class="text-brand-ink/70 max-w-3xl mx-auto leading-relaxed">
+                        <?php echo esc_html($section_body); ?>
+                    </p>
                 </div>
             </section>
 
@@ -553,7 +842,7 @@ class Chroma_Near_Me_Pages
 
         <!-- Location data for JS -->
         <script type="application/json" id="locations-data">
-                            <?php echo json_encode($locations); ?>
+                            <?php echo wp_json_encode($locations); ?>
                         </script>
 
         <?php

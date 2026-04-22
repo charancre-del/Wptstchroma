@@ -438,13 +438,17 @@ class Chroma_Combo_Page_Generator
 
         // Safe Translation Preparation
         // Cast to string to prevent object errors
-        $t_prog_title = (string) $program->post_title;
+        $t_prog_title = function_exists('chroma_seo_get_program_label')
+            ? (string) chroma_seo_get_program_label($program, $lang)
+            : (string) $program->post_title;
         $t_city_name = (string) $city_name;
         $t_age_range = (string) $age_range;
 
         // Define translated strings - strictly using variables
         $str_now_enrolling = sprintf(__('Now Enrolling: %s', 'chroma-excellence'), $t_age_range);
-        $str_premier_title = sprintf(__('Premier %s in', 'chroma-excellence'), $t_prog_title);
+        $str_premier_title = $lang === 'es'
+            ? sprintf('%s destacado en', $t_prog_title)
+            : sprintf(__('Premier %s in', 'chroma-excellence'), $t_prog_title);
         $str_schedule_visit = __('Schedule Visit', 'chroma-excellence');
         $str_serving_families = sprintf(__('Serving %s Families', 'chroma-excellence'), $t_city_name);
         $str_why_choose = sprintf(__('Why %s Parents Choose Our %s', 'chroma-excellence'), $t_city_name, $t_prog_title);

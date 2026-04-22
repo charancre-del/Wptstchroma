@@ -50,30 +50,30 @@ while (have_posts()):
     $page_id = get_the_ID();
     $asset_base = trailingslashit(CHROMA_THEME_URI . '/assets/images/early-start');
 
-    $hero_badge = get_post_meta($page_id, 'early_start_hero_badge', true) ?: __('Specialized Pediatric Therapy', 'chroma-excellence');
-    $hero_title = get_post_meta($page_id, 'early_start_hero_title', true) ?: __('Every child blooms at their own pace.', 'chroma-excellence');
-    $hero_description = get_post_meta($page_id, 'early_start_hero_description', true) ?: __('Chroma Early Start is our dedicated therapeutic division, providing Speech, Occupational, and ABA therapies. We seamlessly bridge the gap between clinical intervention and early childhood education.', 'chroma-excellence');
-    $primary_cta_text = get_post_meta($page_id, 'early_start_primary_cta_text', true) ?: __('Explore Early Start', 'chroma-excellence');
-    $primary_cta_url = get_post_meta($page_id, 'early_start_primary_cta_url', true) ?: 'https://earlystart.chromaela.com';
-    $secondary_cta_text = get_post_meta($page_id, 'early_start_secondary_cta_text', true) ?: __('Visit Early Start Site', 'chroma-excellence');
-    $secondary_cta_url = get_post_meta($page_id, 'early_start_secondary_cta_url', true) ?: 'https://earlystart.chromaela.com';
-    $hero_image = get_post_meta($page_id, 'early_start_hero_image', true) ?: $asset_base . 'hero-therapy.jpg';
+    $hero_badge = chroma_get_translated_meta($page_id, 'early_start_hero_badge', true) ?: __('Specialized Pediatric Therapy', 'chroma-excellence');
+    $hero_title = chroma_get_translated_meta($page_id, 'early_start_hero_title', true) ?: __('Every child blooms at their own pace.', 'chroma-excellence');
+    $hero_description = chroma_get_translated_meta($page_id, 'early_start_hero_description', true) ?: __('Chroma Early Start is our dedicated therapeutic division, providing Speech, Occupational, and ABA therapies. We seamlessly bridge the gap between clinical intervention and early childhood education.', 'chroma-excellence');
+    $primary_cta_text = chroma_get_translated_meta($page_id, 'early_start_primary_cta_text', true) ?: __('Explore Early Start', 'chroma-excellence');
+    $primary_cta_url = chroma_get_translated_meta($page_id, 'early_start_primary_cta_url', true) ?: 'https://earlystart.chromaela.com';
+    $secondary_cta_text = chroma_get_translated_meta($page_id, 'early_start_secondary_cta_text', true) ?: __('Visit Early Start Site', 'chroma-excellence');
+    $secondary_cta_url = chroma_get_translated_meta($page_id, 'early_start_secondary_cta_url', true) ?: 'https://earlystart.chromaela.com';
+    $hero_image = chroma_get_translated_meta($page_id, 'early_start_hero_image', true) ?: $asset_base . 'hero-therapy.jpg';
 
-    $synergy_eyebrow = get_post_meta($page_id, 'early_start_synergy_eyebrow', true) ?: __('The Chroma Advantage', 'chroma-excellence');
-    $synergy_title = get_post_meta($page_id, 'early_start_synergy_title', true) ?: __('Where Therapy Meets Education.', 'chroma-excellence');
-    $synergy_intro_one = get_post_meta($page_id, 'early_start_synergy_intro_one', true) ?: __('Traditionally, parents have to juggle preschool drop-offs with driving across town to therapy clinics. Chroma Early Start solves this.', 'chroma-excellence');
-    $synergy_intro_two = get_post_meta($page_id, 'early_start_synergy_intro_two', true) ?: __('By integrating our Early Start therapists directly with our Early Learning Academy teachers, we create a unified, collaborative care plan for your child. Strategies used in therapy are reinforced in the classroom, leading to faster, more sustainable progress.', 'chroma-excellence');
+    $synergy_eyebrow = chroma_get_translated_meta($page_id, 'early_start_synergy_eyebrow', true) ?: __('The Chroma Advantage', 'chroma-excellence');
+    $synergy_title = chroma_get_translated_meta($page_id, 'early_start_synergy_title', true) ?: __('Where Therapy Meets Education.', 'chroma-excellence');
+    $synergy_intro_one = chroma_get_translated_meta($page_id, 'early_start_synergy_intro_one', true) ?: __('Traditionally, parents have to juggle preschool drop-offs with driving across town to therapy clinics. Chroma Early Start solves this.', 'chroma-excellence');
+    $synergy_intro_two = chroma_get_translated_meta($page_id, 'early_start_synergy_intro_two', true) ?: __('By integrating our Early Start therapists directly with our Early Learning Academy teachers, we create a unified, collaborative care plan for your child. Strategies used in therapy are reinforced in the classroom, leading to faster, more sustainable progress.', 'chroma-excellence');
     $synergy_bullets = [
-        get_post_meta($page_id, 'early_start_synergy_bullet_one', true) ?: __('Reduced transitions and travel for parents', 'chroma-excellence'),
-        get_post_meta($page_id, 'early_start_synergy_bullet_two', true) ?: __('Real-time collaboration between teachers and clinicians', 'chroma-excellence'),
-        get_post_meta($page_id, 'early_start_synergy_bullet_three', true) ?: __('Inclusive, neurodiversity-affirming environments', 'chroma-excellence'),
+        chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_one', true) ?: __('Reduced transitions and travel for parents', 'chroma-excellence'),
+        chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_two', true) ?: __('Real-time collaboration between teachers and clinicians', 'chroma-excellence'),
+        chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_three', true) ?: __('Inclusive, neurodiversity-affirming environments', 'chroma-excellence'),
     ];
-    $push_title = get_post_meta($page_id, 'early_start_push_title', true) ?: __('Push-In Therapy', 'chroma-excellence');
-    $push_description = get_post_meta($page_id, 'early_start_push_description', true) ?: __('Therapists support children right inside their Chroma Academy classrooms.', 'chroma-excellence');
-    $pull_title = get_post_meta($page_id, 'early_start_pull_title', true) ?: __('Pull-Out Therapy', 'chroma-excellence');
-    $pull_description = get_post_meta($page_id, 'early_start_pull_description', true) ?: __('Dedicated sensory gyms and quiet clinic spaces for focused, one-on-one sessions.', 'chroma-excellence');
-    $synergy_image_one = get_post_meta($page_id, 'early_start_synergy_image_one', true) ?: $asset_base . 'synergy-classroom.jpg';
-    $synergy_image_two = get_post_meta($page_id, 'early_start_synergy_image_two', true) ?: $asset_base . 'synergy-sensory.jpg';
+    $push_title = chroma_get_translated_meta($page_id, 'early_start_push_title', true) ?: __('Push-In Therapy', 'chroma-excellence');
+    $push_description = chroma_get_translated_meta($page_id, 'early_start_push_description', true) ?: __('Therapists support children right inside their Chroma Academy classrooms.', 'chroma-excellence');
+    $pull_title = chroma_get_translated_meta($page_id, 'early_start_pull_title', true) ?: __('Pull-Out Therapy', 'chroma-excellence');
+    $pull_description = chroma_get_translated_meta($page_id, 'early_start_pull_description', true) ?: __('Dedicated sensory gyms and quiet clinic spaces for focused, one-on-one sessions.', 'chroma-excellence');
+    $synergy_image_one = chroma_get_translated_meta($page_id, 'early_start_synergy_image_one', true) ?: $asset_base . 'synergy-classroom.jpg';
+    $synergy_image_two = chroma_get_translated_meta($page_id, 'early_start_synergy_image_two', true) ?: $asset_base . 'synergy-sensory.jpg';
 
     $services_title = get_post_meta($page_id, 'early_start_services_title', true) ?: __('Our Core Clinical Services', 'chroma-excellence');
     $services_description = get_post_meta($page_id, 'early_start_services_description', true) ?: __('Comprehensive pediatric therapies tailored to your child\'s unique developmental profile.', 'chroma-excellence');

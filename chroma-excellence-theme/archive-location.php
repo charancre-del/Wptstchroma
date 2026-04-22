@@ -31,13 +31,22 @@ $locations_query = chroma_cached_query(
 );
 $published_locations = wp_count_posts('location');
 $locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
+$archive_language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
+$archive_title_default = $archive_language === 'es'
+	? 'Encuentra tu <span class="text-chroma-green italic">comunidad Chroma</span> - Nuestras ubicaciones'
+	: 'Find your <span class="text-chroma-green italic">Chroma Community</span> - Our Locations';
+$archive_subtitle_default = $archive_language === 'es'
+	? 'Apoyamos a familias en Metro Atlanta con los mismos altos estandares de seguridad, curriculo y cuidado en cada campus.'
+	: 'Serving families across Metro Atlanta with the same high standards of safety, curriculum, and care at every single location.';
+$archive_title = $archive_language === 'es'
+	? get_theme_mod('chroma_locations_archive_title_es', __($archive_title_default, 'chroma-excellence'))
+	: get_theme_mod('chroma_locations_archive_title', __($archive_title_default, 'chroma-excellence'));
 $archive_description = trim(wp_strip_all_tags(get_the_archive_description()));
 $archive_subtitle = $archive_description !== ''
 	? $archive_description
-	: get_theme_mod(
-		'chroma_locations_archive_subtitle',
-		__('Serving families across Metro Atlanta with the same high standards of safety, curriculum, and care at every single location.', 'chroma-excellence')
-	);
+	: ($archive_language === 'es'
+		? get_theme_mod('chroma_locations_archive_subtitle_es', __($archive_subtitle_default, 'chroma-excellence'))
+		: get_theme_mod('chroma_locations_archive_subtitle', __($archive_subtitle_default, 'chroma-excellence')));
 
 // Guard against stale cached empty query objects.
 if (0 === (int) $locations_query->post_count && $locations_count > 0) {
@@ -74,7 +83,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 
 			<h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6 fade-in-up"
 				style="animation-delay: 0.1s;">
-				<?php echo wp_kses_post(get_theme_mod('chroma_locations_archive_title', __('Find your <span class="text-chroma-green italic">Chroma Community</span> - Our Locations', 'chroma-excellence'))); ?>
+				<?php echo wp_kses_post($archive_title); ?>
 			</h1>
 
 			<p class="text-lg text-brand-ink/90 max-w-2xl mx-auto mb-10 fade-in-up" style="animation-delay: 0.2s;">

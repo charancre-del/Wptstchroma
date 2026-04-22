@@ -11,6 +11,13 @@ if (!defined('ABSPATH')) {
 
 $camp_year = (int) current_time('Y');
 $schedule_tour_url = home_url('/schedule-tour/');
+$camp_language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
+$camp_hero_title = $camp_language === 'es'
+	? 'Un verano de <span class="text-chroma-yellow italic">descubrimiento.</span>'
+	: 'A Summer of <span class="text-chroma-yellow italic">Discovery.</span>';
+$camp_hero_description = $camp_language === 'es'
+	? 'Cuando no hay clases, comienza la aventura. Explora temas semanales, excursiones, proyectos STEM y dias de agua en nuestros campus de Metro Atlanta para edades de 5 a 12 anos.'
+	: 'When school is out, the adventure begins. Explore weekly themes, field trips, STEM projects, and splash-day fun across our Metro Atlanta campuses for ages 5 to 12.';
 
 $normalize_location_name = static function ($name) {
 	$name = trim((string) $name);
@@ -193,11 +200,11 @@ get_header();
 				</div>
 
 				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink leading-tight mb-6">
-					<?php echo wp_kses_post(__('A Summer of <span class="text-chroma-yellow italic">Discovery.</span>', 'chroma-excellence')); ?>
+					<?php echo wp_kses_post($camp_hero_title); ?>
 				</h1>
 
 				<p class="text-lg text-brand-ink/70 max-w-xl mb-8">
-					<?php _e('When school is out, the adventure begins. Explore weekly themes, field trips, STEM projects, and splash-day fun across our Metro Atlanta campuses for ages 5 to 12.', 'chroma-excellence'); ?>
+					<?php echo esc_html($camp_hero_description); ?>
 				</p>
 
 				<div class="flex flex-wrap gap-3 mb-8">
