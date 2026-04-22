@@ -325,16 +325,19 @@ class Chroma_Primary_Nav_Walker extends Walker_Nav_Menu
 			$classes .= ' text-chroma-red';
 		}
 
-		$url = $item->url;
+		$url = isset($item->url) ? (string) $item->url : '';
 		// Enforce trailing slash for internal links
-		if (strpos($url, home_url()) !== false) {
+		if ($url !== '' && strpos($url, home_url()) !== false) {
 			$parts = explode('#', $url, 2);
 			$path = user_trailingslashit($parts[0]);
 			$url = $path . (isset($parts[1]) ? '#' . $parts[1] : '');
 		}
+		if ($url === '') {
+			$url = '#';
+		}
 
 		$output .= '<a href="' . esc_url($url) . '" class="' . esc_attr($classes) . '">';
-		$output .= esc_html($item->title);
+		$output .= esc_html(isset($item->title) ? (string) $item->title : '');
 		$output .= '</a>';
 	}
 
@@ -361,16 +364,19 @@ class Chroma_Footer_Nav_Walker extends Walker_Nav_Menu
 
 	function start_el(&$output, $item, $depth = 0, $args = null, $id = 0)
 	{
-		$url = $item->url;
+		$url = isset($item->url) ? (string) $item->url : '';
 		// Enforce trailing slash for internal links
-		if (strpos($url, home_url()) !== false) {
+		if ($url !== '' && strpos($url, home_url()) !== false) {
 			$parts = explode('#', $url, 2);
 			$path = user_trailingslashit($parts[0]);
 			$url = $path . (isset($parts[1]) ? '#' . $parts[1] : '');
 		}
+		if ($url === '') {
+			$url = '#';
+		}
 
 		$output .= '<a href="' . esc_url($url) . '" class="block hover:text-white transition">';
-		$output .= esc_html($item->title);
+		$output .= esc_html(isset($item->title) ? (string) $item->title : '');
 		$output .= '</a>';
 	}
 
@@ -476,16 +482,19 @@ class Chroma_Mobile_Nav_Walker extends Walker_Nav_Menu
 			$classes .= ' text-chroma-blue';
 		}
 
-		$url = $item->url;
+		$url = isset($item->url) ? (string) $item->url : '';
 		// Enforce trailing slash for internal links
-		if (strpos($url, home_url()) !== false) {
+		if ($url !== '' && strpos($url, home_url()) !== false) {
 			$parts = explode('#', $url, 2);
 			$path = user_trailingslashit($parts[0]);
 			$url = $path . (isset($parts[1]) ? '#' . $parts[1] : '');
 		}
+		if ($url === '') {
+			$url = '#';
+		}
 
 		$output .= '<a href="' . esc_url($url) . '" class="' . esc_attr($classes) . '">';
-		$output .= esc_html($item->title);
+		$output .= esc_html(isset($item->title) ? (string) $item->title : '');
 		$output .= '</a>';
 	}
 
