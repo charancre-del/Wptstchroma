@@ -1366,10 +1366,7 @@ class REST_Controller
     public function get_checklist(WP_REST_Request $request)
     {
         $type = $request['type'];
-        $school_id = (int) $request->get_param('school_id');
-        $checklist = $school_id > 0
-            ? Checklist_Manager::get_full_checklist_for_school($type, $school_id)
-            : Checklist_Manager::get_checklist_for_type($type);
+        $checklist = Checklist_Manager::get_checklist_for_type($type);
 
         // Ensure compatibility between new (name) and old (title) property names
         if (isset($checklist['sections']) && is_array($checklist['sections'])) {
