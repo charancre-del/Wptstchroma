@@ -744,33 +744,114 @@ function chroma_home_program_wizard_options()
 function chroma_home_curriculum_profiles()
 {
         $defaults = chroma_home_default_curriculum_profiles();
-        $profiles = chroma_home_get_theme_mod_json('chroma_home_curriculum_profiles_json', $defaults['profiles']);
+        $token = chroma_get_last_changed('programs');
+        $cache_key = 'home_curriculum_profiles:' . $token;
+        $cached = wp_cache_get($cache_key, 'chroma');
 
-        $profiles = array_map(
-                function ($profile) {
-                        $color = $profile['color'] ?? '';
-                        if (!sanitize_hex_color($color)) {
-                                $color = '#4A6C7C';
+        if (false !== $cached) {
+                return $cached;
+        }
+
+        $sanitize_profile = static function ($profile) {
+                $color = $profile['color'] ?? '';
+                if (!sanitize_hex_color($color)) {
+                        $color = '#4A6C7C';
+                }
+
+                $raw_data = is_array($profile['data'] ?? null) ? $profile['data'] : array();
+                $data = array();
+
+                for ($i = 0; $i < 5; $i++) {
+                        $value = isset($raw_data[$i]) ? (int) $raw_data[$i] : 50;
+                        $data[] = max(0, min(100, $value));
+                }
+
+                return array(
+                        'key' => sanitize_title($profile['key'] ?? ''),
+                        'label' => sanitize_text_field($profile['label'] ?? ''),
+                        'title' => sanitize_text_field($profile['title'] ?? ''),
+                        'description' => sanitize_textarea_field($profile['description'] ?? ''),
+                        'color' => $color,
+                        'data' => $data,
+                );
+        };
+
+        $programs = get_posts(array(
+                'post_type' => 'program',
+                'posts_per_page' => 50,
+                'post_status' => 'publish',
+                'orderby' => 'menu_order',
+                'order' => 'ASC',
+                'no_found_rows' => true,
+                'update_post_meta_cache' => true,
+        ));
+
+        $profiles = array();
+        if (!empty($programs)) {
+                $color_map = array(
+                        'red' => '#D67D6B',
+                        'blue' => '#4A6C7C',
+                        'yellow' => '#E6BE75',
+                        'blueDark' => '#2F4858',
+                        'green' => '#8DA399',
+                        'orange' => '#C26524',
+                        'teal' => '#4A6C7C',
+                );
+                $used_keys = array();
+
+                foreach ($programs as $program) {
+                        $post_id = (int) $program->ID;
+                        $slug = get_post_field('post_name', $post_id);
+                        $anchor_slug = get_post_meta($post_id, 'program_anchor_slug', true);
+                        $key = sanitize_title($anchor_slug ?: $slug ?: $post_id);
+
+                        if ($key === '') {
+                                $key = 'program-' . $post_id;
                         }
 
-                        $data = array_map('floatval', $profile['data'] ?? array());
+                        if (isset($used_keys[$key])) {
+                                $key .= '-' . $post_id;
+                        }
+                        $used_keys[$key] = true;
 
-                        return array(
-                                'key' => sanitize_title($profile['key'] ?? ''),
-                                'label' => sanitize_text_field($profile['label'] ?? ''),
-                                'title' => sanitize_text_field($profile['title'] ?? ''),
-                                'description' => sanitize_textarea_field($profile['description'] ?? ''),
-                                'color' => $color,
-                                'data' => $data,
-                        );
-                },
-                $profiles
-        );
+                        $program_title = get_the_title($post_id);
+                        $prism_title = chroma_get_translated_meta($post_id, 'program_prism_title', true) ?: $program_title;
+                        $prism_description = chroma_get_translated_meta($post_id, 'program_prism_description', true);
+                        $program_excerpt = has_excerpt($post_id)
+                                ? get_the_excerpt($post_id)
+                                : wp_trim_words(wp_strip_all_tags((string) get_post_field('post_content', $post_id)), 28);
+                        $color_scheme = get_post_meta($post_id, 'program_color_scheme', true) ?: 'blue';
 
-        return array(
+                        $profiles[] = $sanitize_profile(array(
+                                'key' => $key,
+                                'label' => $program_title,
+                                'title' => $prism_title,
+                                'description' => $prism_description ?: $program_excerpt,
+                                'color' => $color_map[$color_scheme] ?? '#4A6C7C',
+                                'data' => array(
+                                        get_post_meta($post_id, 'program_prism_physical', true) ?: 50,
+                                        get_post_meta($post_id, 'program_prism_emotional', true) ?: 50,
+                                        get_post_meta($post_id, 'program_prism_social', true) ?: 50,
+                                        get_post_meta($post_id, 'program_prism_academic', true) ?: 50,
+                                        get_post_meta($post_id, 'program_prism_creative', true) ?: 50,
+                                ),
+                        ));
+                }
+        }
+
+        if (empty($profiles)) {
+                $profiles = chroma_home_get_theme_mod_json('chroma_home_curriculum_profiles_json', $defaults['profiles']);
+                $profiles = array_map($sanitize_profile, $profiles);
+        }
+
+        $result = array(
                 'labels' => $defaults['labels'],
                 'profiles' => $profiles,
         );
+
+        wp_cache_set($cache_key, $result, 'chroma', DAY_IN_SECONDS);
+
+        return $result;
 }
 
 /**
