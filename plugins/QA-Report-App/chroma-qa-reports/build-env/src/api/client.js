@@ -103,8 +103,9 @@ export const apiFetch = async ( endpoint, options = {} ) => {
 
             // 409: Conflict (Optimistic Locking)
             if ( response.status === 409 ) {
-                // Return data so UI can show "Modified by [User]"
-                throw new ApiError( 'Conflict', 409, 'conflict', data );
+                const errorMessage = data.message || data.error?.message || 'Conflict';
+                const errorCode = data.code || data.error?.code || 'conflict';
+                throw new ApiError( errorMessage, 409, errorCode, data );
             }
 
             // Other errors

@@ -263,6 +263,60 @@ export function useRestoreReportVersionSelection() {
     } );
 }
 
+function normalizeReportMutationInput( report ) {
+    return typeof report === 'object' ? report : { id: report };
+}
+
+function buildStatusChangeRequestConfig( report ) {
+    const normalizedReport = normalizeReportMutationInput( report );
+
+    return {
+        headers: normalizedReport.version_id ? { 'X-CQA-Version': normalizedReport.version_id } : {},
+        ifUnmodifiedSince: normalizedReport.updated_at || normalizedReport.updatedAt || undefined,
+    };
+}
+
+async function performStatusChange( report, status ) {
+    const normalizedReport = normalizeReportMutationInput( report );
+    const endpoint = `/reports/${ normalizedReport.id }`;
+    const body = { status, save_mode: 'status_change' };
+
+    try {
+        return await apiClient.put( endpoint, body, buildStatusChangeRequestConfig( normalizedReport ) );
+    } catch ( error ) {
+        if ( error?.status !== 409 || ! normalizedReport.id ) {
+            throw error;
+        }
+
+        let latestReport;
+
+        try {
+            latestReport = await apiClient.get( `/reports/${ normalizedReport.id }` );
+        } catch {
+            throw error;
+        }
+
+        if ( ! latestReport || typeof latestReport !== 'object' ) {
+            throw error;
+        }
+
+        if ( latestReport.status === status ) {
+            return latestReport;
+        }
+
+        const canRetry =
+            ( status === 'submitted' && latestReport.status === 'draft' ) ||
+            ( status === 'approved' && latestReport.status === 'submitted' ) ||
+            ( status === 'draft' && latestReport.status === 'approved' );
+
+        if ( ! canRetry ) {
+            throw error;
+        }
+
+        return apiClient.put( endpoint, body, buildStatusChangeRequestConfig( latestReport ) );
+    }
+}
+
 /**
  * Submit a report for review
  */
@@ -270,20 +324,7 @@ export function useSubmitReport() {
     const queryClient = useQueryClient();
 
     return useMutation( {
-        // Use PUT with status='submitted' instead of non-existent RPC endpoint
-        mutationFn: ( report ) =>
-            apiClient.put(
-                `/reports/${ typeof report === 'object' ? report.id : report }`,
-                { status: 'submitted', save_mode: 'status_change' },
-                {
-                    headers:
-                        typeof report === 'object' && report.version_id
-                            ? { 'X-CQA-Version': report.version_id }
-                            : {},
-                    ifUnmodifiedSince:
-                        typeof report === 'object' ? report.updated_at || undefined : undefined,
-                }
-            ),
+        mutationFn: ( report ) => performStatusChange( report, 'submitted' ),
         onSuccess: ( _, report ) => {
             const id = typeof report === 'object' ? report.id : report;
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
@@ -300,19 +341,7 @@ export function useApproveReport() {
     const queryClient = useQueryClient();
 
     return useMutation( {
-        mutationFn: ( report ) =>
-            apiClient.put(
-                `/reports/${ typeof report === 'object' ? report.id : report }`,
-                { status: 'approved', save_mode: 'status_change' },
-                {
-                    headers:
-                        typeof report === 'object' && report.version_id
-                            ? { 'X-CQA-Version': report.version_id }
-                            : {},
-                    ifUnmodifiedSince:
-                        typeof report === 'object' ? report.updated_at || undefined : undefined,
-                }
-            ),
+        mutationFn: ( report ) => performStatusChange( report, 'approved' ),
         onSuccess: ( _, report ) => {
             const id = typeof report === 'object' ? report.id : report;
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
@@ -329,19 +358,7 @@ export function useRevertToDraft() {
     const queryClient = useQueryClient();
 
     return useMutation( {
-        mutationFn: ( report ) =>
-            apiClient.put(
-                `/reports/${ typeof report === 'object' ? report.id : report }`,
-                { status: 'draft', save_mode: 'status_change' },
-                {
-                    headers:
-                        typeof report === 'object' && report.version_id
-                            ? { 'X-CQA-Version': report.version_id }
-                            : {},
-                    ifUnmodifiedSince:
-                        typeof report === 'object' ? report.updated_at || undefined : undefined,
-                }
-            ),
+        mutationFn: ( report ) => performStatusChange( report, 'draft' ),
         onSuccess: ( _, report ) => {
             const id = typeof report === 'object' ? report.id : report;
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
