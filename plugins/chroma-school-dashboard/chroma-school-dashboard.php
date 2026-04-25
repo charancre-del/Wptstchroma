@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 
 define('CHROMA_SCHOOL_DB_PATH', plugin_dir_path(__FILE__));
 define('CHROMA_SCHOOL_DB_URL', plugin_dir_url(__FILE__));
-define('CHROMA_SCHOOL_VERSION', '1.0.2');
+define('CHROMA_SCHOOL_VERSION', '1.0.3');
 
 // Autoloader or includes
 require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-post-type.php';
@@ -44,7 +44,7 @@ add_action('plugins_loaded', 'chroma_school_dashboard_init');
 // Ensure rules are flushed on version increment
 function chroma_school_maybe_flush()
 {
-    $current_ver = '1.0.2'; // Increment to force flush
+    $current_ver = '1.0.3'; // Increment to force flush
     if (get_option('chroma_school_version') !== $current_ver) {
         flush_rewrite_rules(true); // Hard flush to be sure
         update_option('chroma_school_version', $current_ver);

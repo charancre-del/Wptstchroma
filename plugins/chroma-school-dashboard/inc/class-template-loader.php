@@ -13,7 +13,7 @@ class Chroma_School_Template_Loader
 
     public function add_rewrite_rules()
     {
-        add_rewrite_rule('^tv/([^/]*)/?', 'index.php?post_type=chroma_school&name=$matches[1]&chroma_view=tv', 'top');
+        add_rewrite_rule('^tv/([^/]+)/?$', 'index.php?post_type=chroma_school&name=$matches[1]&chroma_view=tv', 'top');
     }
 
     public function add_query_vars($vars)
@@ -27,7 +27,8 @@ class Chroma_School_Template_Loader
         if (get_query_var('chroma_view') === 'tv') {
             $plugin_template = CHROMA_SCHOOL_DB_PATH . 'templates/tv-dashboard.php';
             if (file_exists($plugin_template)) {
-                return $plugin_template;
+                include $plugin_template;
+                exit;
             }
         }
         return $template;

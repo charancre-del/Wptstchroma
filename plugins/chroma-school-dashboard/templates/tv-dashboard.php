@@ -3,13 +3,52 @@
  * TV Dashboard Template
  */
 
-// Get current school data
-$school_id = get_the_ID();
+// Resolve the current school from the queried object first, then fall back to the URL slug.
+$queried_object = get_queried_object();
+$school_post = ($queried_object instanceof WP_Post && $queried_object->post_type === 'chroma_school')
+    ? $queried_object
+    : null;
+
+if (!$school_post) {
+    $school_slug = get_query_var('name');
+
+    if ($school_slug) {
+        $school_post = get_page_by_path(sanitize_title($school_slug), OBJECT, 'chroma_school');
+    }
+}
+
+if (!$school_post instanceof WP_Post) {
+    status_header(404);
+    nocache_headers();
+    ?>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>TV Dashboard Not Found</title>
+    </head>
+    <body>
+        <p>TV dashboard not found.</p>
+    </body>
+    </html>
+    <?php
+    exit;
+}
+
+$school_id = (int) $school_post->ID;
 $config = get_post_meta($school_id, '_chroma_school_config', true) ?: [];
 
 // Minimal PHP - just config
-$school_name = get_the_title();
+$school_name = get_the_title($school_id);
 $slug = get_post_field('post_name', $school_id);
+$music_url = get_post_meta($school_id, '_chroma_school_music_url', true);
+$outfit_regular = esc_url(get_theme_file_uri('/assets/webfonts/Outfit-Regular.woff2'));
+$outfit_medium = esc_url(get_theme_file_uri('/assets/webfonts/Outfit-Medium.woff2'));
+$outfit_bold = esc_url(get_theme_file_uri('/assets/webfonts/Outfit-Bold.woff2'));
+$playfair_semibold = esc_url(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-SemiBold.woff2'));
+$playfair_bold = esc_url(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-Bold.woff2'));
+$playfair_extrabold = esc_url(get_theme_file_uri('/assets/webfonts/PlayfairDisplay-ExtraBold.woff2'));
 
 // Config for JS
 $js_config = [
@@ -17,7 +56,7 @@ $js_config = [
     'lat' => $config['lat'] ?? '',
     'lon' => $config['lon'] ?? '',
     'apiUrl' => get_rest_url(), // Ensure we have the base URL
-    'musicUrl' => $config['music_url'] ?? ''
+    'musicUrl' => $music_url ?: ($config['music_url'] ?? '')
 ];
 ?>
 <!DOCTYPE html>
@@ -33,42 +72,42 @@ $js_config = [
         /* Local Font Load for standalone TV Dashboard */
         @font-face {
             font-family: 'Outfit';
-            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Regular.woff2') format('woff2');
+            src: url('<?php echo $outfit_regular; ?>') format('woff2');
             font-weight: 400;
             font-display: swap;
         }
 
         @font-face {
             font-family: 'Outfit';
-            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Medium.woff2') format('woff2');
+            src: url('<?php echo $outfit_medium; ?>') format('woff2');
             font-weight: 500;
             font-display: swap;
         }
 
         @font-face {
             font-family: 'Outfit';
-            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/Outfit-Bold.woff2') format('woff2');
+            src: url('<?php echo $outfit_bold; ?>') format('woff2');
             font-weight: 700;
             font-display: swap;
         }
 
         @font-face {
             font-family: 'Playfair Display';
-            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/PlayfairDisplay-SemiBold.woff2') format('woff2');
+            src: url('<?php echo $playfair_semibold; ?>') format('woff2');
             font-weight: 600;
             font-display: swap;
         }
 
         @font-face {
             font-family: 'Playfair Display';
-            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/PlayfairDisplay-Bold.woff2') format('woff2');
+            src: url('<?php echo $playfair_bold; ?>') format('woff2');
             font-weight: 700;
             font-display: swap;
         }
 
         @font-face {
             font-family: 'Playfair Display';
-            src: url('/wp-content/themes/chroma-excellence-theme/assets/webfonts/PlayfairDisplay-ExtraBold.woff2') format('woff2');
+            src: url('<?php echo $playfair_extrabold; ?>') format('woff2');
             font-weight: 800;
             font-display: swap;
         }
@@ -211,7 +250,10 @@ $js_config = [
                 <div id="weather-widget" class="text-right" style="display: none;">
                     <div class="flex items-center justify-end gap-3 text-brand-ink">
                         <i id="weather-icon" class="fa-solid fa-sun text-4xl text-chroma-yellow"></i>
-                        <span id="weather-temp" class="text-5xl font-bold tracking-tighter">--°</span>
+                        <div class="text-right">
+                            <span id="weather-temp" class="text-5xl font-bold tracking-tighter block">--&deg;</span>
+                            <span id="weather-desc" class="text-xs font-bold uppercase tracking-widest text-brand-ink/40 block mt-1">Weather</span>
+                        </div>
                     </div>
                 </div>
 
@@ -237,7 +279,7 @@ $js_config = [
                         class="w-10 h-10 rounded-xl bg-brand-cream border border-brand-ink/5 flex items-center justify-center text-chroma-blue text-xl">
                         <i class="fa-regular fa-calendar"></i>
                     </div>
-                    <h2 class="font-serif text-2xl font-bold text-brand-ink">Today</h2>
+                    <h2 id="today-heading" class="font-serif text-2xl font-bold text-brand-ink">Today</h2>
                 </div>
                 <div id="today-container" class="space-y-4">
                     <!-- Loading Skeleton -->

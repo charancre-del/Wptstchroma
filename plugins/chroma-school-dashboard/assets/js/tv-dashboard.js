@@ -18,11 +18,13 @@ document.addEventListener('DOMContentLoaded', function () {
         clock: document.getElementById('clock'),
         ampm: document.getElementById('ampm'),
         date: document.getElementById('current-date'),
+        welcome: document.getElementById('welcome-message'),
         weatherTemp: document.getElementById('weather-temp'),
         weatherDesc: document.getElementById('weather-desc'),
         weatherIcon: document.getElementById('weather-icon'),
         weatherContainer: document.getElementById('weather-widget'),
         notices: document.getElementById('notices-container'),
+        todayHeading: document.getElementById('today-heading'),
         today: document.getElementById('today-container'),
         slide1: document.getElementById('slide-layer-1'),
         slide2: document.getElementById('slide-layer-2'),
@@ -312,6 +314,23 @@ document.addEventListener('DOMContentLoaded', function () {
      */
     function updateUI(data) {
         const c = data.content;
+
+        if (c.music_url) {
+            config.musicUrl = c.music_url;
+        }
+
+        if (els.welcome) {
+            els.welcome.textContent = c.welcome_override || 'Welcome to Chroma';
+        }
+
+        if (els.slideshowTitle) {
+            els.slideshowTitle.textContent = c.slideshow_title || 'Highlights';
+        }
+
+        if (els.todayHeading) {
+            const todayTitle = (c.today && !Array.isArray(c.today) && c.today.title) ? c.today.title : 'Today';
+            els.todayHeading.textContent = todayTitle;
+        }
 
         // Notices (Header)
         if (els.notices) {
