@@ -112,7 +112,6 @@ $js_config = [
             font-display: swap;
         }
     </style>
-    <?php wp_print_styles(['chroma-tv-dashboard-css', 'chroma-tv-font-awesome']); ?>
 
     <style>
         body {
@@ -200,6 +199,7 @@ $js_config = [
             }
         }
     </style>
+    <?php wp_head(); ?>
 </head>
 
 <body class="bg-brand-cream text-brand-ink antialiased h-screen w-screen flex flex-col p-6 lg:p-10 selection:bg-none">
@@ -366,7 +366,7 @@ $js_config = [
     <script>
         window.ChromaConfig = <?php echo json_encode($js_config); ?>;
     </script>
-    <?php wp_print_scripts(['chroma-tv-pdfjs', 'chroma-tv-dashboard-js']); ?>
+    <?php wp_footer(); ?>
 </body>
 
 </html>
