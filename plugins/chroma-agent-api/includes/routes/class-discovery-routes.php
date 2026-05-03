@@ -3,6 +3,7 @@
 namespace ChromaAgentAPI\Routes;
 
 use ChromaAgentAPI\Auth;
+use ChromaAgentAPI\Field_Registry;
 use ChromaAgentAPI\Utils;
 use WP_REST_Request;
 
@@ -76,7 +77,16 @@ class Discovery_Routes
                     'write_policy_route' => '/wp-json/' . self::NS . '/write-policy',
                     'geo_contract_route' => '/wp-json/' . self::NS . '/geo-contract',
                 ],
+                'route_families' => [
+                    'theme_extensions' => Theme_Extension_Routes::describe(),
+                    'seo_operations' => SEO_Operation_Routes::describe(),
+                    'portal' => Portal_Routes::describe(),
+                    'schools' => School_Routes::describe(),
+                    'forms_leads' => Form_Routes::describe(),
+                    'maintenance' => Maintenance_Routes::describe(),
+                ],
                 'scopes' => Auth::current_key()['scopes'] ?? [],
+                'known_scopes' => Field_Registry::all_scopes(),
             ],
         ]);
     }
@@ -97,6 +107,12 @@ class Discovery_Routes
                 'seo_meta_allowlist' => Utils::get_seo_meta_allowlist(),
                 'content_meta_write_policy' => Content_Routes::describe_meta_write_policy(),
                 'geo_feed_contract' => Geo_Routes::describe_contract(),
+                'theme_extension_contract' => Theme_Extension_Routes::describe(),
+                'seo_operations_contract' => SEO_Operation_Routes::describe(),
+                'portal_contract' => Portal_Routes::describe(),
+                'school_contract' => School_Routes::describe(),
+                'form_contract' => Form_Routes::describe(),
+                'maintenance_contract' => Maintenance_Routes::describe(),
             ],
         ]);
     }

@@ -184,7 +184,8 @@ class Utils
             ];
         }
 
-        return self::normalize_allowlist($saved);
+        $expanded = array_merge($saved, Field_Registry::flatten_group_fields(Field_Registry::theme_customizer_groups()));
+        return self::normalize_allowlist($expanded);
     }
 
     public static function get_seo_option_allowlist(): array
@@ -215,7 +216,14 @@ class Utils
             $saved = [];
         }
 
-        return self::normalize_allowlist(array_merge($defaults, $saved));
+        $expanded = array_merge(
+            $defaults,
+            $saved,
+            Field_Registry::flatten_group_fields(Field_Registry::seo_option_groups()),
+            Field_Registry::school_options()
+        );
+
+        return self::normalize_allowlist($expanded);
     }
 
     public static function get_seo_meta_allowlist(): array
@@ -244,7 +252,8 @@ class Utils
             $saved = [];
         }
 
-        return self::normalize_allowlist(array_merge($defaults, $saved));
+        $expanded = array_merge($defaults, $saved, Field_Registry::seo_meta_fields());
+        return self::normalize_allowlist($expanded);
     }
 
     public static function normalize_allowlist(array $values): array

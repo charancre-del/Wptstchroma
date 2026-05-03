@@ -76,6 +76,32 @@ class Snapshot_Store
             return true;
         }
 
+        if ($target_type === 'post_meta') {
+            [$post_id, $meta_key] = self::split_compound_target_key($target_key);
+            if ($post_id <= 0 || $meta_key === '') {
+                return new \WP_Error('caa_snapshot_invalid_target', 'Invalid post meta snapshot target.', ['status' => 400]);
+            }
+            if ($old_value === null) {
+                delete_post_meta($post_id, $meta_key);
+            } else {
+                update_post_meta($post_id, $meta_key, $old_value);
+            }
+            return true;
+        }
+
+        if ($target_type === 'term_meta') {
+            [$term_id, $meta_key] = self::split_compound_target_key($target_key);
+            if ($term_id <= 0 || $meta_key === '') {
+                return new \WP_Error('caa_snapshot_invalid_target', 'Invalid term meta snapshot target.', ['status' => 400]);
+            }
+            if ($old_value === null) {
+                delete_term_meta($term_id, $meta_key);
+            } else {
+                update_term_meta($term_id, $meta_key, $old_value);
+            }
+            return true;
+        }
+
         return new \WP_Error('caa_snapshot_invalid_type', 'Unsupported snapshot target type.', ['status' => 400]);
     }
 
@@ -100,5 +126,14 @@ class Snapshot_Store
         );
 
         return is_array($rows) ? $rows : [];
+    }
+
+    private static function split_compound_target_key(string $target_key): array
+    {
+        $parts = explode(':', $target_key, 2);
+        if (count($parts) !== 2) {
+            return [0, ''];
+        }
+        return [(int) $parts[0], (string) $parts[1]];
     }
 }

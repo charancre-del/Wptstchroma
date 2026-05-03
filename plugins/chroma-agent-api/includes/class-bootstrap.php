@@ -34,8 +34,14 @@ class Bootstrap
         Routes\Key_Routes::register();
         Routes\Content_Routes::register();
         Routes\Theme_Routes::register();
+        Routes\Theme_Extension_Routes::register();
         Routes\SEO_Routes::register();
+        Routes\SEO_Operation_Routes::register();
         Routes\Media_Routes::register();
+        Routes\Form_Routes::register();
+        Routes\Portal_Routes::register();
+        Routes\School_Routes::register();
+        Routes\Maintenance_Routes::register();
         Routes\Audit_Routes::register();
         Routes\Geo_Routes::register();
     }
@@ -43,10 +49,12 @@ class Bootstrap
     private static function load_dependencies(): void
     {
         require_once CHROMA_AGENT_API_DIR . 'includes/class-diff.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/class-field-registry.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-rate-limiter.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-key-store.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-auth.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-audit-log.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/class-route-utils.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-snapshot-store.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-cli.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/class-admin.php';
@@ -55,8 +63,14 @@ class Bootstrap
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-key-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-content-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-theme-routes.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-theme-extension-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-seo-routes.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-seo-operation-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-media-routes.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-form-routes.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-portal-routes.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-school-routes.php';
+        require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-maintenance-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-audit-routes.php';
         require_once CHROMA_AGENT_API_DIR . 'includes/routes/class-geo-routes.php';
     }
