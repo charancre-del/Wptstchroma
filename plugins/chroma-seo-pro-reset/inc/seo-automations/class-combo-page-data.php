@@ -60,12 +60,17 @@ class Chroma_Combo_Page_Data
             'custom_intro' => '',
             'custom_benefits' => [],
             'faqs' => [],
+            'seo_title' => '',
+            'meta_description' => '',
             
             // Spanish Translation Fields
             'neighborhoods_es' => [],
             'major_road_es' => '',
             'local_employers_es' => '',
             'custom_intro_es' => '',
+            'seo_title_es' => '',
+            'meta_description_es' => '',
+            'robots' => '',
             
             'status' => 'auto', // auto, draft, published
             'last_ai_update' => null,

@@ -6,6 +6,7 @@ use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Diff;
 use ChromaAgentAPI\Field_Registry;
 use ChromaAgentAPI\Route_Utils;
+use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_Query;
 use WP_REST_Request;
@@ -37,6 +38,25 @@ class SEO_Operation_Routes
             'methods' => 'GET',
             'callback' => [__CLASS__, 'list_actions'],
             'permission_callback' => [__CLASS__, 'read_permission'],
+        ]);
+
+        register_rest_route(self::NS, '/seo/virtual-pages', [
+            'methods' => 'GET',
+            'callback' => [__CLASS__, 'list_virtual_pages'],
+            'permission_callback' => [__CLASS__, 'read_permission'],
+        ]);
+
+        register_rest_route(self::NS, '/seo/virtual-pages/(?P<type>[a-z0-9_-]+)/(?P<key>[^/]+)', [
+            [
+                'methods' => 'GET',
+                'callback' => [__CLASS__, 'get_virtual_page'],
+                'permission_callback' => [__CLASS__, 'read_permission'],
+            ],
+            [
+                'methods' => 'PATCH,POST',
+                'callback' => [__CLASS__, 'set_virtual_page'],
+                'permission_callback' => [__CLASS__, 'write_permission'],
+            ],
         ]);
 
         register_rest_route(self::NS, '/seo/actions/(?P<action>[a-z0-9_-]+)', [
@@ -459,7 +479,152 @@ class SEO_Operation_Routes
             'option_groups' => Field_Registry::seo_option_groups(),
             'actions' => Field_Registry::seo_action_catalog(),
             'translation_fields' => self::translation_fields(),
+            'virtual_page_seo' => [
+                'routes' => [
+                    'GET /seo/virtual-pages',
+                    'GET /seo/virtual-pages/{type}/{key}',
+                    'PATCH /seo/virtual-pages/{type}/{key}',
+                ],
+                'scope' => 'read:seo/write:seo',
+                'fields' => Field_Registry::virtual_page_seo_fields(),
+                'key_formats' => [
+                    'combo' => 'program_slug:city_slug:STATE',
+                    'county' => 'county_slug',
+                    'zip' => '12345',
+                ],
+            ],
         ];
+    }
+
+    public static function list_virtual_pages(WP_REST_Request $request)
+    {
+        $items = [];
+
+        if (class_exists('\Chroma_Combo_Page_Generator')) {
+            foreach ((array) \Chroma_Combo_Page_Generator::get_all_combos() as $combo) {
+                if (empty($combo['program']) || !($combo['program'] instanceof \WP_Post)) {
+                    continue;
+                }
+
+                $program_slug = (string) $combo['program']->post_name;
+                $city_slug = sanitize_title((string) ($combo['city_slug'] ?? $combo['city'] ?? ''));
+                $state = strtoupper(sanitize_text_field((string) ($combo['state'] ?? '')));
+                $data = class_exists('\Chroma_Virtual_Page_SEO_Data')
+                    ? \Chroma_Virtual_Page_SEO_Data::get_combo($program_slug, $city_slug, $state)
+                    : [];
+
+                $items[] = [
+                    'type' => 'combo',
+                    'key' => $program_slug . ':' . $city_slug . ':' . $state,
+                    'label' => get_the_title($combo['program']) . ' in ' . (string) ($combo['city'] ?? $city_slug) . ', ' . $state,
+                    'url' => (string) ($combo['url'] ?? ''),
+                    'data' => $data,
+                ];
+            }
+        }
+
+        if (class_exists('\Chroma_Virtual_Page_SEO_Data')) {
+            foreach (\Chroma_Virtual_Page_SEO_Data::service_area_candidates() as $item) {
+                $items[] = [
+                    'type' => (string) $item['type'],
+                    'key' => (string) $item['area_name'],
+                    'label' => (string) $item['label'],
+                    'url' => (string) $item['url'],
+                    'data' => (array) $item['data'],
+                ];
+            }
+        }
+
+        return rest_ensure_response([
+            'success' => true,
+            'fields' => Field_Registry::virtual_page_seo_fields(),
+            'data' => $items,
+        ]);
+    }
+
+    public static function get_virtual_page(WP_REST_Request $request)
+    {
+        $descriptor = self::virtual_page_descriptor($request);
+        if (is_wp_error($descriptor)) {
+            return $descriptor;
+        }
+
+        return rest_ensure_response([
+            'success' => true,
+            'type' => $descriptor['type'],
+            'key' => $descriptor['key'],
+            'fields' => Field_Registry::virtual_page_seo_fields(),
+            'data' => self::read_virtual_page_data($descriptor),
+        ]);
+    }
+
+    public static function set_virtual_page(WP_REST_Request $request)
+    {
+        if (!class_exists('\Chroma_Virtual_Page_SEO_Data')) {
+            return new \WP_Error('caa_virtual_page_seo_missing', 'Virtual page SEO storage is not available.', ['status' => 501]);
+        }
+
+        $descriptor = self::virtual_page_descriptor($request);
+        if (is_wp_error($descriptor)) {
+            return $descriptor;
+        }
+
+        $payload = Route_Utils::payload($request);
+        $dry_run = Route_Utils::dry_run($payload);
+        $raw_updates = Route_Utils::updates_from_request($request);
+        unset($raw_updates['type'], $raw_updates['key'], $raw_updates['program_slug'], $raw_updates['city_slug'], $raw_updates['state'], $raw_updates['area_type'], $raw_updates['area_name']);
+        [$updates, $blocked] = Route_Utils::partition_updates(
+            $raw_updates,
+            Field_Registry::virtual_page_seo_fields()
+        );
+
+        $before = self::read_virtual_page_data($descriptor);
+        $sanitized = \Chroma_Virtual_Page_SEO_Data::sanitize_updates($updates);
+        $after = array_merge($before, $sanitized);
+        if (!$dry_run && !empty($sanitized)) {
+            $after['last_updated'] = current_time('timestamp');
+        }
+
+        $snapshot_ids = [];
+        if (!$dry_run && !empty($sanitized)) {
+            $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                Auth::current_key_id(),
+                'write:seo',
+                'virtual_page_seo',
+                $descriptor['snapshot_key'],
+                $before,
+                $after
+            );
+
+            if ($descriptor['type'] === 'combo') {
+                \Chroma_Virtual_Page_SEO_Data::save_combo(
+                    $descriptor['program_slug'],
+                    $descriptor['city_slug'],
+                    $descriptor['state'],
+                    $sanitized
+                );
+            } else {
+                \Chroma_Virtual_Page_SEO_Data::save_service_area(
+                    $descriptor['type'],
+                    $descriptor['area_name'],
+                    $sanitized
+                );
+            }
+        }
+
+        $diff = Diff::compare($before, $after);
+        Route_Utils::log_write($request, 'write:seo', 'virtual_page_seo', $descriptor['snapshot_key'], $dry_run, $before, $after, $diff);
+
+        return rest_ensure_response([
+            'success' => true,
+            'dry_run' => $dry_run,
+            'type' => $descriptor['type'],
+            'key' => $descriptor['key'],
+            'blocked_keys' => $blocked,
+            'snapshot_ids' => $snapshot_ids,
+            'diff' => $diff,
+            'data' => $dry_run ? $after : self::read_virtual_page_data($descriptor),
+        ]);
     }
 
     private static function fetch_llm_data(WP_REST_Request $request)
@@ -1215,6 +1380,18 @@ class SEO_Operation_Routes
 
     private static function combo_get_data(WP_REST_Request $request)
     {
+        $payload = Route_Utils::payload($request);
+        $program_slug = sanitize_title((string) ($payload['program_slug'] ?? $request->get_param('program_slug')));
+        $city_slug = sanitize_title((string) ($payload['city_slug'] ?? $request->get_param('city_slug')));
+        $state = strtoupper(sanitize_text_field((string) ($payload['state'] ?? $request->get_param('state'))));
+
+        if ($program_slug !== '' && $city_slug !== '' && $state !== '' && class_exists('\Chroma_Combo_Page_Data')) {
+            return rest_ensure_response([
+                'success' => true,
+                'data' => \Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state),
+            ]);
+        }
+
         return rest_ensure_response([
             'success' => true,
             'data' => [
@@ -1228,6 +1405,30 @@ class SEO_Operation_Routes
 
     private static function combo_save_data(WP_REST_Request $request)
     {
+        $payload = Route_Utils::payload($request);
+        $program_slug = sanitize_title((string) ($payload['program_slug'] ?? ''));
+        $city_slug = sanitize_title((string) ($payload['city_slug'] ?? ''));
+        $state = strtoupper(sanitize_text_field((string) ($payload['state'] ?? '')));
+
+        if ($program_slug !== '' && $city_slug !== '' && $state !== '' && class_exists('\Chroma_Combo_Page_Data') && class_exists('\Chroma_Virtual_Page_SEO_Data')) {
+            $descriptor = [
+                'type' => 'combo',
+                'key' => $program_slug . ':' . $city_slug . ':' . $state,
+                'program_slug' => $program_slug,
+                'city_slug' => $city_slug,
+                'state' => $state,
+                'snapshot_key' => 'combo:' . $program_slug . ':' . $city_slug . ':' . $state,
+            ];
+            return self::set_virtual_page_from_descriptor($request, $descriptor, array_merge([
+                'neighborhoods',
+                'major_road',
+                'local_employers',
+                'county',
+                'custom_intro',
+                'status',
+            ], Field_Registry::virtual_page_seo_fields()));
+        }
+
         $allowed = ['chroma_combo_auto_publish', 'chroma_seo_manual_cities', 'chroma_seo_manual_cities_raw'];
         return Route_Utils::write_options($request, Route_Utils::updates_from_request($request), $allowed, 'write:seo', 'combo_data', false);
     }
@@ -1290,6 +1491,124 @@ class SEO_Operation_Routes
                 'competitor_domain' => wp_parse_url($competitor, PHP_URL_HOST),
                 'same_tld' => substr((string) wp_parse_url($our, PHP_URL_HOST), -4) === substr((string) wp_parse_url($competitor, PHP_URL_HOST), -4),
             ],
+        ]);
+    }
+
+    private static function virtual_page_descriptor(WP_REST_Request $request)
+    {
+        $type = sanitize_key((string) $request['type']);
+        $key = rawurldecode((string) $request['key']);
+
+        if ($type === 'service_area') {
+            $payload = Route_Utils::payload($request);
+            $type = sanitize_key((string) ($payload['area_type'] ?? ''));
+        }
+
+        if ($type === 'combo') {
+            $parts = array_map('trim', explode(':', $key));
+            if (count($parts) !== 3) {
+                return new \WP_Error('caa_virtual_page_key_invalid', 'Combo key must be program_slug:city_slug:STATE.', ['status' => 400]);
+            }
+
+            $program_slug = sanitize_title($parts[0]);
+            $city_slug = sanitize_title($parts[1]);
+            $state = strtoupper(sanitize_text_field($parts[2]));
+
+            if ($program_slug === '' || $city_slug === '' || $state === '') {
+                return new \WP_Error('caa_virtual_page_key_invalid', 'Combo key contains empty parts.', ['status' => 400]);
+            }
+
+            return [
+                'type' => 'combo',
+                'key' => $program_slug . ':' . $city_slug . ':' . $state,
+                'program_slug' => $program_slug,
+                'city_slug' => $city_slug,
+                'state' => $state,
+                'snapshot_key' => 'combo:' . $program_slug . ':' . $city_slug . ':' . $state,
+            ];
+        }
+
+        if (in_array($type, ['county', 'zip'], true)) {
+            $area_name = $type === 'zip'
+                ? preg_replace('/[^0-9]/', '', $key)
+                : sanitize_title($key);
+
+            if ($area_name === '') {
+                return new \WP_Error('caa_virtual_page_key_invalid', 'Virtual page key is required.', ['status' => 400]);
+            }
+
+            return [
+                'type' => $type,
+                'key' => $area_name,
+                'area_name' => $area_name,
+                'snapshot_key' => 'service_area:' . $type . ':' . $area_name,
+            ];
+        }
+
+        return new \WP_Error('caa_virtual_page_type_invalid', 'Virtual page type must be combo, county, or zip.', ['status' => 400]);
+    }
+
+    private static function read_virtual_page_data(array $descriptor): array
+    {
+        if (!class_exists('\Chroma_Virtual_Page_SEO_Data')) {
+            return [];
+        }
+
+        if ($descriptor['type'] === 'combo') {
+            return \Chroma_Virtual_Page_SEO_Data::get_combo(
+                $descriptor['program_slug'],
+                $descriptor['city_slug'],
+                $descriptor['state']
+            );
+        }
+
+        return \Chroma_Virtual_Page_SEO_Data::get_service_area(
+            $descriptor['type'],
+            $descriptor['area_name']
+        );
+    }
+
+    private static function set_virtual_page_from_descriptor(WP_REST_Request $request, array $descriptor, array $allowed_fields)
+    {
+        $payload = Route_Utils::payload($request);
+        $dry_run = Route_Utils::dry_run($payload);
+        $raw_updates = Route_Utils::updates_from_request($request);
+        unset($raw_updates['type'], $raw_updates['key'], $raw_updates['program_slug'], $raw_updates['city_slug'], $raw_updates['state'], $raw_updates['area_type'], $raw_updates['area_name']);
+        [$updates, $blocked] = Route_Utils::partition_updates($raw_updates, $allowed_fields);
+
+        $before = $descriptor['type'] === 'combo' && class_exists('\Chroma_Combo_Page_Data')
+            ? \Chroma_Combo_Page_Data::get($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state'])
+            : self::read_virtual_page_data($descriptor);
+        $after = $before;
+        $stored_updates = [];
+        foreach ($updates as $key => $value) {
+            $stored_updates[$key] = Route_Utils::sanitize_value_for_storage((string) $key, $value);
+            $after[$key] = $stored_updates[$key];
+        }
+        if (!$dry_run && !empty($updates)) {
+            $after['last_updated'] = current_time('timestamp');
+        }
+
+        $snapshot_ids = [];
+        if (!$dry_run && !empty($updates)) {
+            $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'virtual_page_seo', $descriptor['snapshot_key'], $before, $after);
+            if ($descriptor['type'] === 'combo' && class_exists('\Chroma_Combo_Page_Data')) {
+                \Chroma_Combo_Page_Data::save($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state'], $stored_updates);
+            }
+        }
+
+        $diff = Diff::compare($before, $after);
+        Route_Utils::log_write($request, 'write:seo', 'virtual_page_seo', $descriptor['snapshot_key'], $dry_run, $before, $after, $diff);
+
+        return rest_ensure_response([
+            'success' => true,
+            'dry_run' => $dry_run,
+            'type' => $descriptor['type'],
+            'key' => $descriptor['key'],
+            'blocked_keys' => $blocked,
+            'snapshot_ids' => $snapshot_ids,
+            'diff' => $diff,
+            'data' => $dry_run ? $after : \Chroma_Combo_Page_Data::get($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state']),
         ]);
     }
 

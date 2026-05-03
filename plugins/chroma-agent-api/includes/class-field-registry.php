@@ -542,6 +542,17 @@ class Field_Registry
         ];
     }
 
+    public static function virtual_page_seo_fields(): array
+    {
+        return [
+            'seo_title',
+            'meta_description',
+            'seo_title_es',
+            'meta_description_es',
+            'robots',
+        ];
+    }
+
     public static function seo_action_catalog(): array
     {
         $implemented = $catalog = [
