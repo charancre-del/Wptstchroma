@@ -30,12 +30,15 @@ function chroma_register_location_cpt()
 		'label' => __('Location', 'chroma-excellence'),
 		'labels' => $labels,
 		'supports' => array('title', 'editor', 'thumbnail', 'excerpt'),
+		'taxonomies' => array('location_region'),
 		'public' => true,
 		'menu_position' => 21,
 		'menu_icon' => 'dashicons-location',
 		'has_archive' => 'locations',
 		'rewrite' => array('slug' => 'locations'),
 		'show_in_rest' => true,
+		'rest_base' => 'location',
+		'rest_controller_class' => 'WP_REST_Posts_Controller',
 	);
 
 	register_post_type('location', $args);
@@ -70,6 +73,8 @@ function chroma_register_location_taxonomy()
 			'show_ui' => true,
 			'show_admin_column' => true,
 			'show_in_rest' => true,
+			'rest_base' => 'location_region',
+			'rest_controller_class' => 'WP_REST_Terms_Controller',
 			'publicly_queryable' => false,
 			'query_var' => false,
 			'rewrite' => false,
@@ -79,8 +84,40 @@ function chroma_register_location_taxonomy()
 			),
 		)
 	);
+
+	register_taxonomy_for_object_type('location_region', 'location');
 }
 add_action('init', 'chroma_register_location_taxonomy', 1);
+
+/**
+ * Register REST-visible term meta for location regions.
+ */
+function chroma_register_location_region_term_meta()
+{
+	$meta_keys = array(
+		'region_color_bg',
+		'region_color_text',
+		'region_color_border',
+	);
+
+	foreach ($meta_keys as $meta_key) {
+		register_term_meta(
+			'location_region',
+			$meta_key,
+			array(
+				'type' => 'string',
+				'single' => true,
+				'sanitize_callback' => 'sanitize_text_field',
+				'show_in_rest' => true,
+				'auth_callback' => function () {
+					return current_user_can('manage_categories');
+				},
+				'default' => '',
+			)
+		);
+	}
+}
+add_action('init', 'chroma_register_location_region_term_meta', 2);
 
 /**
  * Add admin columns
@@ -290,6 +327,8 @@ function chroma_render_location_custom_fields_meta_box($post)
 	$director_signature = get_post_meta($post->ID, 'location_director_signature', true);
 	$maps_embed = get_post_meta($post->ID, 'location_maps_embed', true);
 	$tour_booking_link = get_post_meta($post->ID, 'location_tour_booking_link', true);
+	$summer_camp_calendar_url = get_post_meta($post->ID, 'location_summer_camp_calendar_url', true);
+	$summer_camp_calendar_attachment_id = get_post_meta($post->ID, 'location_summer_camp_calendar_attachment_id', true);
 	$school_pickups = get_post_meta($post->ID, 'location_school_pickups', true);
 	$seo_content_title = get_post_meta($post->ID, 'location_seo_content_title', true);
 	$seo_content_text = get_post_meta($post->ID, 'location_seo_content_text', true);
@@ -647,6 +686,106 @@ function chroma_render_location_custom_fields_meta_box($post)
 	</div>
 
 	<div class="chroma-meta-section">
+		<h4><?php _e('Summer Camp Calendar', 'chroma-excellence'); ?></h4>
+
+		<div class="chroma-meta-field">
+			<label for="location_summer_camp_calendar_url"><?php _e('Summer Camp Calendar PDF', 'chroma-excellence'); ?></label>
+			<input type="url" id="location_summer_camp_calendar_url" name="location_summer_camp_calendar_url"
+				class="chroma-media-field" data-preview-type="file"
+				value="<?php echo esc_attr($summer_camp_calendar_url); ?>" placeholder="https://..." style="width: calc(100% - 260px); display: inline-block;" />
+			<input type="hidden" id="location_summer_camp_calendar_attachment_id" name="location_summer_camp_calendar_attachment_id"
+				value="<?php echo esc_attr($summer_camp_calendar_attachment_id); ?>" />
+			<button type="button" id="location_summer_camp_calendar_upload" class="button chroma-upload-button" data-field="location_summer_camp_calendar_url"
+				data-attachment-field="location_summer_camp_calendar_attachment_id" data-media-type="application/pdf"
+				data-preview-type="file" data-uploader-title="Select Summer Camp Calendar PDF"
+				data-button-text="Use this PDF" style="margin-left: 5px;">
+				<i class="fa-solid fa-file-pdf"></i> <?php _e('Upload PDF', 'chroma-excellence'); ?>
+			</button>
+			<button type="button" id="location_summer_camp_calendar_clear" class="button chroma-clear-button" data-field="location_summer_camp_calendar_url"
+				data-attachment-field="location_summer_camp_calendar_attachment_id" style="margin-left: 5px;">
+				<i class="fa-solid fa-times"></i> <?php _e('Clear', 'chroma-excellence'); ?>
+			</button>
+			<div class="chroma-image-preview" id="location_summer_camp_calendar_preview"></div>
+			<small><?php _e('This PDF is used by the Summer Camp landing page for the campus-specific "View Calendar" button.', 'chroma-excellence'); ?></small>
+		</div>
+	</div>
+	<script>
+		(function () {
+			const bindUploader = function () {
+				const uploadButton = document.getElementById('location_summer_camp_calendar_upload');
+				const clearButton = document.getElementById('location_summer_camp_calendar_clear');
+				const urlField = document.getElementById('location_summer_camp_calendar_url');
+				const attachmentField = document.getElementById('location_summer_camp_calendar_attachment_id');
+				const preview = document.getElementById('location_summer_camp_calendar_preview');
+
+				if (!uploadButton || !clearButton || !urlField || !attachmentField || !preview || uploadButton.dataset.boundUploader === '1') {
+					return;
+				}
+
+				const mediaWindow = (window.top && window.top.wp && window.top.wp.media) ? window.top : window;
+				if (!mediaWindow.wp || !mediaWindow.wp.media) {
+					return;
+				}
+
+				const renderPreview = function (url) {
+					if (!url) {
+						preview.innerHTML = '';
+						return;
+					}
+
+					const parts = url.split('/');
+					const fileName = parts[parts.length - 1] || url;
+					preview.innerHTML =
+						'<div style="margin-top:10px;padding:10px 12px;border:1px solid #ddd;border-radius:4px;background:#f8f8f8;">' +
+							'<strong>Selected file:</strong> ' +
+							'<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + fileName + '</a>' +
+						'</div>';
+				};
+
+				uploadButton.dataset.boundUploader = '1';
+				renderPreview(urlField.value);
+
+				uploadButton.addEventListener('click', function (event) {
+					event.preventDefault();
+
+					const frame = mediaWindow.wp.media({
+						title: 'Select Summer Camp Calendar PDF',
+						button: {
+							text: 'Use this PDF'
+						},
+						multiple: false,
+						library: {
+							type: ['application/pdf']
+						}
+					});
+
+					frame.on('select', function () {
+						const attachment = frame.state().get('selection').first().toJSON();
+						urlField.value = attachment.url || '';
+						attachmentField.value = attachment.id || '';
+						renderPreview(urlField.value);
+					});
+
+					frame.open();
+				});
+
+				clearButton.addEventListener('click', function (event) {
+					event.preventDefault();
+					urlField.value = '';
+					attachmentField.value = '';
+					renderPreview('');
+				});
+			};
+
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', bindUploader);
+			} else {
+				bindUploader();
+			}
+		}());
+	</script>
+
+	<div class="chroma-meta-section">
 		<h4><?php _e('School Pickups', 'chroma-excellence'); ?></h4>
 
 		<div class="chroma-meta-field">
@@ -736,6 +875,8 @@ function chroma_save_location_custom_fields($post_id)
 		'location_director_signature',
 		'location_maps_embed',
 		'location_tour_booking_link',
+		'location_summer_camp_calendar_url',
+		'location_summer_camp_calendar_attachment_id',
 		'location_school_pickups',
 		'location_seo_content_title',
 		'location_seo_content_text',
@@ -779,14 +920,19 @@ function chroma_save_location_custom_fields($post_id)
 				$value = wp_kses($value, $allowed_tags);
 			} elseif ($field === 'location_email') {
 				$value = sanitize_email($value);
-			} elseif ($field === 'location_tour_booking_link' || $field === 'location_gmb_url') {
+			} elseif ($field === 'location_tour_booking_link' || $field === 'location_gmb_url' || $field === 'location_summer_camp_calendar_url') {
 				$value = esc_url_raw($value);
+			} elseif ($field === 'location_summer_camp_calendar_attachment_id') {
+				$value = absint($value);
 			} else {
 				$value = sanitize_text_field($value);
 			}
 			update_post_meta($post_id, $field, $value);
 		}
 	}
+
+	$calendar_url = get_post_meta($post_id, 'location_summer_camp_calendar_url', true);
+	update_post_meta($post_id, 'summer_camp_calendar_url', esc_url_raw((string) $calendar_url));
 
 	// Save checkbox field for quality_rated
 	$quality_rated = isset($_POST['location_quality_rated']) ? '1' : '';

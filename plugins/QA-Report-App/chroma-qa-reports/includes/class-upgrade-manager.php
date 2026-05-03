@@ -46,8 +46,21 @@ class Upgrade_Manager
         }
 
         // Version 1.2.0: Consolidate Options (FIX-306)
-        if (version_compare($current_version, '1.2.0', '<')) {
-            self::migration_v1_2_consolidate_options();
+        // Removed undefined migration_v1_2_consolidate_options method call
+
+        // Version 1.3.1: Snapshot integrity hardening
+        if (version_compare($current_version, '1.3.1', '<')) {
+            self::migration_v1_3_1_harden_report_snapshots();
+        }
+
+        // Version 1.3.2: Snapshot typing and autosave retention
+        if (version_compare($current_version, '1.3.2', '<')) {
+            self::migration_v1_3_2_snapshot_types();
+        }
+
+        // Version 1.4.0: monday.com sync defaults
+        if (version_compare($current_version, '1.4.0', '<')) {
+            self::migration_v1_4_0_monday_defaults();
         }
 
         // Update version option
@@ -75,5 +88,83 @@ class Upgrade_Manager
                 ['%d']
             );
         }
+    }
+
+    /**
+     * Migration: ensure every live report has a current-version snapshot row.
+     *
+     * @return void
+     */
+    private static function migration_v1_3_1_harden_report_snapshots()
+    {
+        global $wpdb;
+
+        $reports_table = $wpdb->prefix . 'cqa_reports';
+        $snapshots_table = $wpdb->prefix . 'cqa_report_snapshots';
+
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $snapshots_table));
+        if ($table_exists !== $snapshots_table) {
+            return;
+        }
+
+        $report_ids = $wpdb->get_col(
+            "SELECT r.id
+             FROM {$reports_table} r
+             LEFT JOIN {$snapshots_table} s
+               ON s.report_id = r.id
+              AND s.version_number = r.version_id
+             WHERE s.id IS NULL"
+        );
+
+        foreach ($report_ids as $report_id) {
+            \ChromaQA\Models\Report_Snapshot::create_snapshot((int) $report_id, 'Backfilled current version snapshot');
+        }
+    }
+
+    /**
+     * Migration: classify snapshots and prune autosave noise safely.
+     *
+     * @return void
+     */
+    private static function migration_v1_3_2_snapshot_types()
+    {
+        global $wpdb;
+
+        $snapshots_table = $wpdb->prefix . 'cqa_report_snapshots';
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $snapshots_table));
+        if ($table_exists !== $snapshots_table) {
+            return;
+        }
+
+        $column_exists = $wpdb->get_var("SHOW COLUMNS FROM {$snapshots_table} LIKE 'snapshot_type'");
+        // Note: We intentionally stripped out the manual bulk UPDATE query here.
+        // It was scanning the entire table without indexes, causing fatal timeouts.
+        // MySQL `DEFAULT` logic handles the value population seamlessly.
+
+        // Note: We intentionally skip running prune_old_versions for every report here
+        // to prevent `max_execution_time` timeouts (500 errors) on large databases block plugins_loaded.
+        // Old autosaves will be naturally pruned the next time a report is saved via Report_Snapshot::create_snapshot.
+    }
+
+    /**
+     * Migration: seed monday.com settings defaults safely.
+     *
+     * @return void
+     */
+    private static function migration_v1_4_0_monday_defaults()
+    {
+        $settings = get_option('cqa_settings', []);
+        if (!is_array($settings)) {
+            $settings = [];
+        }
+
+        $defaults = [
+            'monday_enabled' => 'no',
+            'monday_api_token' => '',
+            'monday_auto_sync_on_approval' => 'yes',
+            'monday_default_status_label' => 'Not Started',
+        ];
+
+        update_option('cqa_settings', array_merge($defaults, $settings));
     }
 }

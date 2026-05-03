@@ -23,7 +23,7 @@ class Activator
         self::set_default_options();
 
         // Flush rewrite rules
-        flush_rewrite_rules();
+        delete_option('rewrite_rules');
 
         // Set activation flag for admin notice
         // Set activation flag for admin notice
@@ -57,6 +57,14 @@ class Activator
             acquired_date DATE DEFAULT NULL,
             status VARCHAR(50) DEFAULT 'active',
             drive_folder_id VARCHAR(100) DEFAULT '',
+            monday_board_id VARCHAR(50) DEFAULT '',
+            monday_board_name VARCHAR(255) DEFAULT '',
+            monday_status_column_id VARCHAR(100) DEFAULT '',
+            monday_priority_column_id VARCHAR(100) DEFAULT '',
+            monday_date_column_id VARCHAR(100) DEFAULT '',
+            monday_notes_column_id VARCHAR(100) DEFAULT '',
+            monday_person_column_id VARCHAR(100) DEFAULT '',
+            monday_default_person_id VARCHAR(50) DEFAULT '',
             classroom_config LONGTEXT DEFAULT '',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -78,6 +86,10 @@ class Activator
             closing_notes LONGTEXT DEFAULT '',
             status VARCHAR(50) DEFAULT 'draft',
             version_id BIGINT(20) UNSIGNED DEFAULT 1,
+            monday_group_id VARCHAR(50) DEFAULT '',
+            monday_last_synced_at DATETIME DEFAULT NULL,
+            monday_sync_status VARCHAR(50) DEFAULT '',
+            monday_sync_error LONGTEXT DEFAULT '',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
@@ -144,13 +156,30 @@ class Activator
             report_id BIGINT(20) UNSIGNED NOT NULL,
             version_number INT UNSIGNED NOT NULL,
             snapshot_data LONGTEXT NOT NULL,
+            snapshot_type VARCHAR(50) DEFAULT 'manual',
             change_summary VARCHAR(255) DEFAULT '',
             user_id BIGINT(20) UNSIGNED NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY (id),
             KEY report_id (report_id),
             KEY version_number (version_number),
-            KEY report_version (report_id, version_number)
+            KEY snapshot_type (snapshot_type),
+            UNIQUE KEY report_version (report_id, version_number)
+        ) $charset_collate;";
+
+        $sql_monday_syncs = "CREATE TABLE {$prefix}monday_poi_syncs (
+            id BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+            report_id BIGINT(20) UNSIGNED NOT NULL,
+            poi_key VARCHAR(191) NOT NULL,
+            monday_item_id VARCHAR(50) NOT NULL,
+            monday_group_id VARCHAR(50) DEFAULT '',
+            last_synced_hash VARCHAR(64) DEFAULT '',
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            UNIQUE KEY report_poi (report_id, poi_key),
+            KEY report_id (report_id),
+            KEY monday_item_id (monday_item_id)
         ) $charset_collate;";
 
         // Run table creation
@@ -160,6 +189,7 @@ class Activator
         dbDelta($sql_photos);
         dbDelta($sql_ai_summaries);
         dbDelta($sql_snapshots);
+        dbDelta($sql_monday_syncs);
 
         // Add deleted_at column to photos for soft-delete (if not exists)
         $photos_table = $prefix . 'photos';
@@ -168,8 +198,158 @@ class Activator
             $wpdb->query("ALTER TABLE {$photos_table} ADD COLUMN deleted_at DATETIME DEFAULT NULL");
         }
 
+        self::ensure_snapshot_constraints();
+        self::ensure_snapshot_type_column();
+        self::ensure_school_monday_columns();
+        self::ensure_report_monday_columns();
+
         // Store DB version
         update_option('cqa_db_version', CQA_VERSION);
+    }
+
+    /**
+     * Ensure snapshot versions are unique per report.
+     *
+     * @return void
+     */
+    private static function ensure_snapshot_constraints()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_report_snapshots';
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
+        if ($table_exists !== $table) {
+            return;
+        }
+
+        $index = $wpdb->get_row("SHOW INDEX FROM {$table} WHERE Key_name = 'report_version'", ARRAY_A);
+
+        if ($index && isset($index['Non_unique']) && (int) $index['Non_unique'] === 0) {
+            return;
+        }
+
+        self::dedupe_snapshot_versions($table);
+
+        if ($index) {
+            $wpdb->query("ALTER TABLE {$table} DROP INDEX report_version");
+        }
+
+        $wpdb->query("ALTER TABLE {$table} ADD UNIQUE KEY report_version (report_id, version_number)");
+
+    }
+
+    /**
+     * Ensure snapshot rows support retention by type.
+     *
+     * @return void
+     */
+    private static function ensure_snapshot_type_column()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_report_snapshots';
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table));
+        if ($table_exists !== $table) {
+            return;
+        }
+
+        $column_exists = $wpdb->get_var("SHOW COLUMNS FROM {$table} LIKE 'snapshot_type'");
+        if (!$column_exists) {
+            $wpdb->query("ALTER TABLE {$table} ADD COLUMN snapshot_type VARCHAR(50) DEFAULT 'manual' AFTER snapshot_data");
+        }
+
+        // The UPDATE query was removed here to prevent `max_execution_time` timeouts on large tables.
+        // MySQL handles default value backfilling automatically via the ALTER TABLE DEFAULT syntax above.
+
+        $index = $wpdb->get_row("SHOW INDEX FROM {$table} WHERE Key_name = 'snapshot_type'", ARRAY_A);
+        if (!$index) {
+            $wpdb->query("ALTER TABLE {$table} ADD KEY snapshot_type (snapshot_type)");
+        }
+    }
+
+    /**
+     * Remove duplicate snapshot rows so the unique constraint can be added safely.
+     *
+     * @param string $table Snapshot table name.
+     * @return void
+     */
+    private static function dedupe_snapshot_versions($table)
+    {
+        global $wpdb;
+
+        $duplicates = $wpdb->get_results(
+            "SELECT report_id, version_number, MAX(id) AS keep_id
+             FROM {$table}
+             GROUP BY report_id, version_number
+             HAVING COUNT(*) > 1",
+            ARRAY_A
+        );
+
+        foreach ($duplicates as $duplicate) {
+            $wpdb->query($wpdb->prepare(
+                "DELETE FROM {$table}
+                 WHERE report_id = %d
+                   AND version_number = %d
+                   AND id <> %d",
+                (int) $duplicate['report_id'],
+                (int) $duplicate['version_number'],
+                (int) $duplicate['keep_id']
+            ));
+        }
+    }
+
+    /**
+     * Ensure monday.com mapping columns exist on schools.
+     *
+     * @return void
+     */
+    private static function ensure_school_monday_columns()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_schools';
+        $columns = [
+            'monday_board_id' => "ALTER TABLE {$table} ADD COLUMN monday_board_id VARCHAR(50) DEFAULT '' AFTER drive_folder_id",
+            'monday_board_name' => "ALTER TABLE {$table} ADD COLUMN monday_board_name VARCHAR(255) DEFAULT '' AFTER monday_board_id",
+            'monday_status_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_status_column_id VARCHAR(100) DEFAULT '' AFTER monday_board_name",
+            'monday_priority_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_priority_column_id VARCHAR(100) DEFAULT '' AFTER monday_status_column_id",
+            'monday_date_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_date_column_id VARCHAR(100) DEFAULT '' AFTER monday_priority_column_id",
+            'monday_notes_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_notes_column_id VARCHAR(100) DEFAULT '' AFTER monday_date_column_id",
+            'monday_person_column_id' => "ALTER TABLE {$table} ADD COLUMN monday_person_column_id VARCHAR(100) DEFAULT '' AFTER monday_notes_column_id",
+            'monday_default_person_id' => "ALTER TABLE {$table} ADD COLUMN monday_default_person_id VARCHAR(50) DEFAULT '' AFTER monday_person_column_id",
+        ];
+
+        foreach ($columns as $column => $sql) {
+            $exists = $wpdb->get_var("SHOW COLUMNS FROM {$table} LIKE '{$column}'");
+            if (!$exists) {
+                $wpdb->query($sql);
+            }
+        }
+    }
+
+    /**
+     * Ensure monday.com sync metadata columns exist on reports.
+     *
+     * @return void
+     */
+    private static function ensure_report_monday_columns()
+    {
+        global $wpdb;
+
+        $table = $wpdb->prefix . 'cqa_reports';
+        $columns = [
+            'monday_group_id' => "ALTER TABLE {$table} ADD COLUMN monday_group_id VARCHAR(50) DEFAULT '' AFTER version_id",
+            'monday_last_synced_at' => "ALTER TABLE {$table} ADD COLUMN monday_last_synced_at DATETIME DEFAULT NULL AFTER monday_group_id",
+            'monday_sync_status' => "ALTER TABLE {$table} ADD COLUMN monday_sync_status VARCHAR(50) DEFAULT '' AFTER monday_last_synced_at",
+            'monday_sync_error' => "ALTER TABLE {$table} ADD COLUMN monday_sync_error LONGTEXT DEFAULT '' AFTER monday_sync_status",
+        ];
+
+        foreach ($columns as $column => $sql) {
+            $exists = $wpdb->get_var("SHOW COLUMNS FROM {$table} LIKE '{$column}'");
+            if (!$exists) {
+                $wpdb->query($sql);
+            }
+        }
     }
 
     /**
@@ -291,6 +471,10 @@ class Activator
             'google_client_secret' => '',
             'gemini_api_key' => '',
             'drive_root_folder' => '',
+            'monday_enabled' => 'no',
+            'monday_api_token' => '',
+            'monday_auto_sync_on_approval' => 'yes',
+            'monday_default_status_label' => 'Not Started',
             'company_name' => 'Chroma Early Learning Academy',
             'reports_per_school' => 2,
         ];

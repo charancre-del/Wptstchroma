@@ -60,7 +60,7 @@ function chroma_header_customizer_settings($wp_customize)
 
 	// Book a Tour Button URL
 	$wp_customize->add_setting('chroma_book_tour_url', array(
-		'default' => home_url('/contact#tour'),
+		'default' => home_url('/contact-us/#tour'),
 		'sanitize_callback' => 'esc_url_raw',
 		'transport' => 'refresh',
 	));
@@ -71,22 +71,8 @@ function chroma_header_customizer_settings($wp_customize)
 		'section' => 'chroma_header_settings',
 		'type' => 'url',
 		'input_attrs' => array(
-			'placeholder' => home_url('/contact#tour'),
+			'placeholder' => home_url('/contact-us/#tour'),
 		),
-	));
-
-	// Header Scripts
-	$wp_customize->add_setting('chroma_header_scripts', array(
-		'default' => '',
-		'sanitize_callback' => 'chroma_sanitize_raw_html',
-		'transport' => 'refresh',
-	));
-
-	$wp_customize->add_control('chroma_header_scripts', array(
-		'label' => __('Header Scripts', 'chroma-excellence'),
-		'description' => __('Scripts to be output before </head>.', 'chroma-excellence'),
-		'section' => 'chroma_header_settings',
-		'type' => 'textarea',
 	));
 
 	// Logo Width (Desktop)

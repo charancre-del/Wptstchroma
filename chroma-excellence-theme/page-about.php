@@ -16,6 +16,7 @@ while (have_posts()):
 	// Hero Section
 	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: __('Established 2015', 'chroma-excellence');
 	$hero_title = chroma_get_translated_meta($page_id, 'about_hero_title') ?: __('More than a school. <span class="text-chroma-yellow italic">A second home.</span>', 'chroma-excellence');
+	$hero_title = html_entity_decode((string) $hero_title, ENT_QUOTES, get_bloginfo('charset') ?: 'UTF-8');
 	$hero_description = chroma_get_translated_meta($page_id, 'about_hero_description') ?: __('We founded Chroma on a simple belief: Early education should be a perfect blend of rigorous cognitive development and the comforting warmth of family.', 'chroma-excellence');
 	$hero_image = chroma_get_translated_meta($page_id, 'about_hero_image') ?: 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1000&auto=format&fit=crop';
 
@@ -28,14 +29,24 @@ while (have_posts()):
 	$story_paragraph2 = chroma_get_translated_meta($page_id, 'about_story_paragraph2') ?: __('Over the last decade, we have grown into a network of 19+ campuses across Metro Atlanta, yet each location retains the intimacy and personal touch of that very first school. We are locally owned, operated by educators, and driven by the success of our families.', 'chroma-excellence');
 	$story_image = chroma_get_translated_meta($page_id, 'about_story_image') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
 
-	$stat1_value = chroma_get_translated_meta($page_id, 'about_stat1_value') ?: '19+';
-	$stat1_label = chroma_get_translated_meta($page_id, 'about_stat1_label') ?: __('Locations', 'chroma-excellence');
-	$stat2_value = chroma_get_translated_meta($page_id, 'about_stat2_value') ?: '2k+';
-	$stat2_label = chroma_get_translated_meta($page_id, 'about_stat2_label') ?: __('Students', 'chroma-excellence');
+	$about_stat1_fallback_value = chroma_get_translated_meta($page_id, 'about_stat1_value') ?: '19+';
+	$about_stat2_fallback_value = chroma_get_translated_meta($page_id, 'about_stat2_value') ?: '2k+';
 	$stat3_value = chroma_get_translated_meta($page_id, 'about_stat3_value') ?: '450+';
 	$stat3_label = chroma_get_translated_meta($page_id, 'about_stat3_label') ?: __('Educators', 'chroma-excellence');
 	$stat4_value = chroma_get_translated_meta($page_id, 'about_stat4_value') ?: '100%';
 	$stat4_label = chroma_get_translated_meta($page_id, 'about_stat4_label') ?: __('Licensed', 'chroma-excellence');
+
+	$published_locations = wp_count_posts('location');
+	$locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
+	$families_served_stat = function_exists('chroma_home_get_stat_by_key') ? chroma_home_get_stat_by_key('families_served') : null;
+
+	$stat1_value = (string) $locations_count;
+	if ($stat1_value === '') {
+		$stat1_value = (string) $about_stat1_fallback_value;
+	}
+	$stat1_label = __('Locations', 'chroma-excellence');
+	$stat2_value = !empty($families_served_stat['value']) ? (string) $families_served_stat['value'] : (string) $about_stat2_fallback_value;
+	$stat2_label = __('Families Served', 'chroma-excellence');
 
 	// Educators Section
 	$educators_title = chroma_get_translated_meta($page_id, 'about_educators_title') ?: __('The Heart of Chroma.', 'chroma-excellence');
@@ -92,6 +103,7 @@ while (have_posts()):
 	$philanthropy_title = chroma_get_translated_meta($page_id, 'about_philanthropy_title') ?: __('Giving back to our future.', 'chroma-excellence');
 	$philanthropy_subtitle = chroma_get_translated_meta($page_id, 'about_philanthropy_subtitle') ?: __('Foundations For Learning Inc.', 'chroma-excellence');
 	$philanthropy_description = chroma_get_translated_meta($page_id, 'about_philanthropy_description') ?: __('At Chroma, our commitment extends beyond our classroom walls. Through our partnership with <strong>Foundations For Learning Inc.</strong>, we work to ensure that quality early education is accessible to every child in our community.', 'chroma-excellence');
+	$philanthropy_description = html_entity_decode((string) $philanthropy_description, ENT_QUOTES, get_bloginfo('charset') ?: 'UTF-8');
 	$philanthropy_image = chroma_get_translated_meta($page_id, 'about_philanthropy_image') ?: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop';
 
 	$philanthropy_bullet1_icon = chroma_get_translated_meta($page_id, 'about_philanthropy_bullet1_icon') ?: 'fa-solid fa-hand-holding-heart';
@@ -110,10 +122,12 @@ while (have_posts()):
 		array(
 			'post_type'      => 'team_member',
 			'posts_per_page' => -1,
-			'orderby'        => 'menu_order',
-			'order'          => 'ASC',
+			'orderby'        => array(
+				'menu_order' => 'ASC',
+				'title'      => 'ASC',
+			),
 		),
-		'team_members_about',
+		'team',
 		7 * DAY_IN_SECONDS
 	);
 	?>
@@ -235,6 +249,7 @@ while (have_posts()):
 						<?php echo esc_html($educators_title); ?>
 					</h2>
 					<p class="text-brand-ink/80"><?php echo esc_html($educators_description); ?></p>
+					<p class="text-sm text-brand-ink/70 mt-3"><?php _e('Our educators also collaborate with licensed clinicians to support classroom learning in real time.', 'chroma-excellence'); ?></p>
 				</div>
 
 				<div class="grid md:grid-cols-3 gap-8">

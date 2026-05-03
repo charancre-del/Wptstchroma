@@ -95,6 +95,7 @@ function chroma_team_member_render_meta_box($post)
 {
     wp_nonce_field('chroma_team_member_save', 'chroma_team_member_nonce');
     $value = get_post_meta($post->ID, 'team_member_title', true);
+    $order_value = (int) get_post_field('menu_order', $post->ID);
     ?>
     <p>
         <label for="team_member_title"
@@ -104,6 +105,14 @@ function chroma_team_member_render_meta_box($post)
         <span class="description"
             style="display:block; margin-top:5px;"><?php _e('e.g. "Executive Director" or "Lead Teacher"', 'chroma-excellence'); ?></span>
     </p>
+    <p>
+        <label for="team_member_order"
+            style="font-weight:bold; display:block; margin-bottom:5px;"><?php _e('Display Order', 'chroma-excellence'); ?></label>
+        <input type="number" id="team_member_order" name="team_member_order" value="<?php echo esc_attr($order_value); ?>"
+            min="0" step="1" class="small-text">
+        <span class="description"
+            style="display:block; margin-top:5px;"><?php _e('Lower numbers appear first (left to right, then next row).', 'chroma-excellence'); ?></span>
+    </p>
     <?php
 }
 
@@ -112,7 +121,11 @@ function chroma_team_member_render_meta_box($post)
  */
 function chroma_team_member_save_meta_box($post_id)
 {
-    if (!isset($_POST['chroma_team_member_nonce']) || !wp_verify_nonce($_POST['chroma_team_member_nonce'], 'chroma_team_member_save')) {
+    if (get_post_type($post_id) !== 'team_member') {
+        return;
+    }
+
+    if (!isset($_POST['chroma_team_member_nonce']) || !wp_verify_nonce(wp_unslash($_POST['chroma_team_member_nonce']), 'chroma_team_member_save')) {
         return;
     }
 
@@ -125,7 +138,23 @@ function chroma_team_member_save_meta_box($post_id)
     }
 
     if (isset($_POST['team_member_title'])) {
-        update_post_meta($post_id, 'team_member_title', sanitize_text_field($_POST['team_member_title']));
+        update_post_meta($post_id, 'team_member_title', sanitize_text_field(wp_unslash($_POST['team_member_title'])));
+    }
+
+    if (isset($_POST['team_member_order'])) {
+        $menu_order = absint(wp_unslash($_POST['team_member_order']));
+        $current_order = (int) get_post_field('menu_order', $post_id);
+
+        if ($menu_order !== $current_order) {
+            remove_action('save_post', 'chroma_team_member_save_meta_box');
+            wp_update_post(
+                array(
+                    'ID' => $post_id,
+                    'menu_order' => $menu_order,
+                )
+            );
+            add_action('save_post', 'chroma_team_member_save_meta_box');
+        }
     }
 }
 add_action('save_post', 'chroma_team_member_save_meta_box');
@@ -138,6 +167,7 @@ function chroma_team_member_admin_columns($columns)
     $new_columns = array();
     $new_columns['cb'] = $columns['cb'];
     $new_columns['title'] = __('Name', 'chroma-excellence');
+    $new_columns['menu_order'] = __('Order', 'chroma-excellence');
     $new_columns['role'] = __('Title', 'chroma-excellence');
     $new_columns['date'] = $columns['date'];
 
@@ -151,6 +181,9 @@ add_filter('manage_team_member_posts_columns', 'chroma_team_member_admin_columns
 function chroma_team_member_admin_column_content($column, $post_id)
 {
     switch ($column) {
+        case 'menu_order':
+            echo (int) get_post_field('menu_order', $post_id);
+            break;
         case 'role':
             $title = get_post_meta($post_id, 'team_member_title', true);
             echo $title ? esc_html($title) : '—';
@@ -158,6 +191,36 @@ function chroma_team_member_admin_column_content($column, $post_id)
     }
 }
 add_action('manage_team_member_posts_custom_column', 'chroma_team_member_admin_column_content', 10, 2);
+
+/**
+ * Make Team Member "Order" column sortable.
+ */
+function chroma_team_member_sortable_columns($columns)
+{
+    $columns['menu_order'] = 'menu_order';
+    return $columns;
+}
+add_filter('manage_edit-team_member_sortable_columns', 'chroma_team_member_sortable_columns');
+
+/**
+ * Default Team Member admin list ordering to menu order.
+ */
+function chroma_team_member_admin_default_order($query)
+{
+    if (!is_admin() || !$query->is_main_query()) {
+        return;
+    }
+
+    if ($query->get('post_type') !== 'team_member') {
+        return;
+    }
+
+    if (!$query->get('orderby')) {
+        $query->set('orderby', 'menu_order title');
+        $query->set('order', 'ASC');
+    }
+}
+add_action('pre_get_posts', 'chroma_team_member_admin_default_order');
 
 /**
  * Seed default team members to populate About page cards.

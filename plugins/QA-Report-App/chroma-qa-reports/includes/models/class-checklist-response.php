@@ -195,6 +195,10 @@ class Checklist_Response
         $table = self::get_table_name();
 
         if (empty($responses)) {
+            if ($force_replace) {
+                return $wpdb->delete($table, ['report_id' => $report_id], ['%d']) !== false;
+            }
+
             return false;
         }
 

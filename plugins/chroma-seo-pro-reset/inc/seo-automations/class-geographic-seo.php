@@ -226,6 +226,13 @@ class Chroma_Geographic_SEO
             'posts_per_page' => -1,
             'post_status' => 'publish'
         ]);
+
+        $this->prepare_virtual_page_query_state();
+
+        add_filter('body_class', function ($classes) {
+            $classes[] = 'service-area-page';
+            return $classes;
+        });
         
         get_header();
         
@@ -237,6 +244,33 @@ class Chroma_Geographic_SEO
         
         get_footer();
         exit;
+    }
+
+    /**
+     * Keep service-area routes from inheriting front-page or singular query flags.
+     */
+    private function prepare_virtual_page_query_state() {
+        global $post, $wp_query;
+
+        if ($wp_query instanceof WP_Query) {
+            $wp_query->is_page = false;
+            $wp_query->is_single = false;
+            $wp_query->is_singular = false;
+            $wp_query->is_home = false;
+            $wp_query->is_front_page = false;
+            $wp_query->is_archive = false;
+            $wp_query->is_search = false;
+            $wp_query->is_feed = false;
+            $wp_query->is_404 = false;
+            $wp_query->queried_object = null;
+            $wp_query->queried_object_id = 0;
+            $wp_query->post = null;
+            $wp_query->posts = [];
+            $wp_query->post_count = 0;
+            $wp_query->found_posts = 0;
+        }
+
+        $post = null;
     }
     
     /**

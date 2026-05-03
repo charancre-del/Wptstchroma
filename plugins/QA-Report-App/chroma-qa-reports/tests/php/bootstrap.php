@@ -9,9 +9,40 @@
 define('CQA_TESTS_DIR', __DIR__);
 define('CQA_PLUGIN_DIR', dirname(dirname(__DIR__)) . '/');
 define('CQA_VERSION', '1.0.1');
+if (!defined('ARRAY_A')) {
+    define('ARRAY_A', 'ARRAY_A');
+}
+if (!defined('OBJECT')) {
+    define('OBJECT', 'OBJECT');
+}
 
 // Load Composer autoloader
 require_once CQA_PLUGIN_DIR . 'vendor/autoload.php';
+
+// Register the plugin autoloader used in production.
+spl_autoload_register(function ($class) {
+    $prefix = 'ChromaQA\\';
+    $base_dir = CQA_PLUGIN_DIR . 'includes/';
+
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+
+    $relative_class = substr($class, $len);
+    $path_parts = explode('\\', $relative_class);
+    $class_file = 'class-' . strtolower(str_replace('_', '-', array_pop($path_parts))) . '.php';
+
+    $file = $base_dir;
+    if (!empty($path_parts)) {
+        $file .= strtolower(implode('/', $path_parts)) . '/';
+    }
+    $file .= $class_file;
+
+    if (file_exists($file)) {
+        require_once $file;
+    }
+});
 
 // Bootstrap Brain Monkey for WordPress function mocking
 \Brain\Monkey\setUp();
@@ -61,6 +92,34 @@ if (!function_exists('wp_parse_args')) {
             return array_merge($defaults, $parsed_args);
         }
         return $parsed_args;
+    }
+}
+
+if (!function_exists('wp_json_encode')) {
+    function wp_json_encode($value, $flags = 0, $depth = 512) {
+        return json_encode($value, $flags, $depth);
+    }
+}
+
+if (!function_exists('current_time')) {
+    function current_time($type = 'mysql') {
+        if ($type === 'mysql') {
+            return '2026-04-10 12:00:00';
+        }
+
+        return time();
+    }
+}
+
+if (!function_exists('get_current_user_id')) {
+    function get_current_user_id() {
+        return 99;
+    }
+}
+
+if (!function_exists('get_option')) {
+    function get_option($name, $default = false) {
+        return $default;
     }
 }
 

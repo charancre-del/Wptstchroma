@@ -15,7 +15,7 @@ $author_id = get_the_author_meta('ID');
 $author_name = get_the_author();
 $author_title = get_the_author_meta('description') ?: __('Contributor', 'chroma-excellence');
 $author_avatar = get_avatar_url($author_id, array('size' => 150));
-$featured_image = get_the_post_thumbnail_url($post_id, 'full');
+$featured_image_id = get_post_thumbnail_id($post_id);
 
 // Get related posts (same category, exclude current)
 $related_args = array(
@@ -132,7 +132,7 @@ $related_query = new WP_Query($related_args);
           <span class="w-2 h-2 bg-chroma-blue rounded-full"></span> <?php echo esc_html($primary_category); ?>
           <span class="text-brand-ink/70">•</span> <?php echo esc_html($post_date); ?>
         </div>
-        <h1 class="font-serif text-4xl md:text-6xl text-brand-ink mb-8 leading-tight"><?php the_title(); ?></h1>
+        <h1 class="font-serif font-bold text-4xl md:text-6xl text-brand-ink mb-8 leading-tight"><?php the_title(); ?></h1>
         <div class="flex items-center justify-center gap-4">
           <img src="<?php echo esc_url($author_avatar); ?>"
             class="w-12 h-12 rounded-full object-cover border-2 border-white shadow-md"
@@ -144,10 +144,23 @@ $related_query = new WP_Query($related_args);
         </div>
       </header>
 
-      <?php if ($featured_image): ?>
+      <?php if ($featured_image_id): ?>
         <div class="max-w-5xl mx-auto px-4 lg:px-6 mb-12">
-          <img src="<?php echo esc_url($featured_image); ?>" alt="<?php the_title_attribute(); ?>"
-            class="w-full h-auto rounded-3xl shadow-lg">
+          <?php
+          echo wp_get_attachment_image(
+            $featured_image_id,
+            'full',
+            false,
+            array(
+              'class' => 'w-full h-auto rounded-3xl shadow-lg no-lazy',
+              'loading' => 'eager',
+              'fetchpriority' => 'high',
+              'decoding' => 'sync',
+              'sizes' => '(max-width: 1280px) 100vw, 1280px',
+              'alt' => get_the_title(),
+            )
+          );
+          ?>
         </div>
       <?php endif; ?>
 

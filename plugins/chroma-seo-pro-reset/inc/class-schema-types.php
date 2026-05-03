@@ -172,6 +172,39 @@ class Chroma_Schema_Types
                     'label' => 'Longitude',
                     'description' => 'The longitude of the business location.'
                 ],
+                'aggregateRating' => [
+                    'type' => 'repeater',
+                    'label' => 'Aggregate Rating',
+                    'description' => 'Aggregate rating for the location.',
+                    'subfields' => [
+                        '@type' => ['type' => 'text', 'label' => 'Type (AggregateRating)'],
+                        'ratingValue' => ['type' => 'text', 'label' => 'Rating Value (e.g., 4.9)'],
+                        'reviewCount' => ['type' => 'text', 'label' => 'Review Count']
+                    ]
+                ],
+                'address' => [
+                    'type' => 'repeater',
+                    'label' => 'Postal Address',
+                    'description' => 'Detailed address for the business.',
+                    'subfields' => [
+                        '@type' => ['type' => 'text', 'label' => 'Type (PostalAddress)'],
+                        'streetAddress' => ['type' => 'text', 'label' => 'Street Address'],
+                        'addressLocality' => ['type' => 'text', 'label' => 'City'],
+                        'addressRegion' => ['type' => 'text', 'label' => 'State/Region'],
+                        'postalCode' => ['type' => 'text', 'label' => 'Postal Code'],
+                        'addressCountry' => ['type' => 'text', 'label' => 'Country']
+                    ]
+                ],
+                'geo' => [
+                    'type' => 'repeater',
+                    'label' => 'Geo Coordinates',
+                    'description' => 'Geo coordinates for the business.',
+                    'subfields' => [
+                        '@type' => ['type' => 'text', 'label' => 'Type (GeoCoordinates)'],
+                        'latitude' => ['type' => 'text', 'label' => 'Latitude'],
+                        'longitude' => ['type' => 'text', 'label' => 'Longitude']
+                    ]
+                ],
                 'url' => [
                     'type' => 'text',
                     'label' => 'Website URL',

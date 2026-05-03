@@ -6,48 +6,6 @@
  * @since 1.0.0
  */
 
-// Tier 21: Traffic Recycling 404 (Smart Redirect)
-if (!is_admin()) {
-    $current_uri = $_SERVER['REQUEST_URI'];
-    $uri_parts = explode('/', trim($current_uri, '/'));
-    $potential_slug = end($uri_parts);
-    
-    // Clean slug
-    $clean_slug = preg_replace('/[^a-z0-9]+/', ' ', strtolower($potential_slug));
-    
-    // 1. Direct Page Match (if exact slug exists but was accessed via weird path)
-    $page = get_page_by_path($potential_slug, OBJECT, ['page', 'program', 'location']);
-    if ($page && isset($page->ID)) {
-        wp_redirect(get_permalink($page->ID), 301);
-        exit;
-    }
-
-    // 2. Keyword Matching Strategy
-    $map = [
-        'career' => 'careers',
-        'jobs' => 'careers',
-        'hiring' => 'careers',
-        'price' => 'tuition',
-        'cost' => 'tuition',
-        'rates' => 'tuition',
-        'enroll' => 'schedule-tour',
-        'tour' => 'schedule-tour',
-        'visit' => 'schedule-tour',
-        'start' => 'programs',
-        'class' => 'programs'
-    ];
-
-    foreach ($map as $key => $target_slug) {
-        if (strpos($clean_slug, $key) !== false) {
-             // Find target ID
-             $target_page = get_page_by_path($target_slug);
-             if ($target_page) {
-                 wp_redirect(get_permalink($target_page->ID), 301);
-                 exit;
-             }
-        }
-    }
-}
 ?>
 <!DOCTYPE html>
 <html <?php language_attributes(); ?>>
@@ -82,7 +40,7 @@ if (!is_admin()) {
     <div class="flex flex-wrap justify-center gap-4">
       <a href="<?php echo esc_url(home_url('/')); ?>"
         class="px-8 py-3 bg-brand-ink text-white font-bold rounded-full uppercase tracking-widest text-xs hover:bg-chroma-blue transition-colors"><?php _e('Go Home', 'chroma-excellence'); ?></a>
-      <?php $locations_url = function_exists('chroma_smart_link') ? chroma_smart_link('locations') : home_url('/locations'); ?>
+      <?php $locations_url = function_exists('chroma_smart_link') ? chroma_smart_link('locations') : home_url('/locations/'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
         class="px-8 py-3 bg-white border border-brand-ink/10 text-brand-ink font-bold rounded-full uppercase tracking-widest text-xs hover:border-chroma-blue hover:text-chroma-blue transition-colors"><?php _e('Find a School', 'chroma-excellence'); ?></a>
     </div>

@@ -6,9 +6,11 @@
  * @since 1.0.0
  */
 
-get_header();
-
 $page_id = get_the_ID();
+$has_usable_link = static function ($url) {
+	$url = trim((string) $url);
+	return $url !== '' && $url !== '#';
+};
 
 // Hero Section
 $hero_badge = chroma_get_translated_meta($page_id, 'parents_hero_badge') ?: __('Parent Dashboard', 'chroma-excellence');
@@ -203,6 +205,24 @@ if (empty($gallery_images)) {
 		'https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=800&auto=format&fit=crop'
 	);
 }
+
+$has_parents_pdf_viewer = false;
+if ($has_usable_link(chroma_get_translated_meta($page_id, 'parents_resource_handbook_url') ?: '#')) {
+	$has_parents_pdf_viewer = true;
+}
+
+foreach ($menus as $menu) {
+	if ($has_usable_link($menu['url'])) {
+		$has_parents_pdf_viewer = true;
+		break;
+	}
+}
+
+if ($has_parents_pdf_viewer && function_exists('chroma_enqueue_pdf_assets')) {
+	chroma_enqueue_pdf_assets();
+}
+
+get_header();
 ?>
 
 <main id="primary" class="site-main" role="main">
@@ -236,20 +256,28 @@ if (empty($gallery_images)) {
 					<?php foreach ($resources as $resource): 
 						$is_pdf = in_array($resource['name'], array('handbook'));
 						$is_external_portal = in_array($resource['name'], array('procare', 'tuition', 'enrollment', 'prekga', 'waitlist'));
+						$resource_has_url = $has_usable_link($resource['url']);
 						
-						$link_class = 'bg-white p-8 rounded-[2rem] shadow-card hover:-translate-y-1 transition-transform group border border-brand-ink/5 flex flex-col items-center text-center';
+						$link_class = 'bg-white p-8 rounded-[2rem] shadow-card transition-transform group border border-brand-ink/5 flex flex-col items-center text-center';
 						$attrs = '';
 						
-						if ($is_pdf) {
-							$link_class .= ' chroma-pdf-trigger';
-							$attrs = 'data-pdf-url="' . esc_url($resource['url']) . '" data-pdf-title="' . esc_attr($resource['title']) . '"';
-						} elseif ($is_external_portal) {
-							$attrs = 'target="_blank"';
+						if ($resource_has_url) {
+							$link_class .= ' hover:-translate-y-1';
+							if ($is_pdf) {
+								$link_class .= ' chroma-pdf-trigger';
+								$attrs = 'data-pdf-url="' . esc_url($resource['url']) . '" data-pdf-title="' . esc_attr($resource['title']) . '"';
+							} elseif ($is_external_portal) {
+								$attrs = 'target="_blank" rel="noopener noreferrer"';
+							}
+						} else {
+							$link_class .= ' opacity-60 cursor-default';
 						}
 					?>
-						<a href="<?php echo esc_url($resource['url']); ?>" 
-						   class="<?php echo esc_attr($link_class); ?>"
-						   <?php echo $attrs; ?>>
+						<<?php echo $resource_has_url ? 'a' : 'div'; ?>
+							<?php if ($resource_has_url): ?>href="<?php echo esc_url($resource['url']); ?>"<?php endif; ?>
+							class="<?php echo esc_attr($link_class); ?>"
+							<?php if ($attrs): ?><?php echo $attrs; ?><?php endif; ?>
+							<?php if (!$resource_has_url): ?>aria-disabled="true"<?php endif; ?>>
 							<div
 								class="w-16 h-16 bg-<?php echo esc_attr($resource['colorClass']); ?>/10 rounded-2xl flex items-center justify-center text-3xl mb-4 text-<?php echo esc_attr($resource['colorClass']); ?> group-hover:bg-<?php echo esc_attr($resource['colorClass']); ?> group-hover:text-white transition-colors">
 								<i class="<?php echo esc_attr($resource['icon']); ?>"></i>
@@ -260,7 +288,7 @@ if (empty($gallery_images)) {
 							<p class="text-xs text-brand-ink/80">
 								<?php echo esc_html($resource['description']); ?>
 							</p>
-						</a>
+						</<?php echo $resource_has_url ? 'a' : 'div'; ?>>
 					<?php endforeach; ?>
 				</div>
 			</div>
@@ -392,10 +420,11 @@ if (empty($gallery_images)) {
 						</h3>
 						<div class="space-y-4">
 							<?php foreach ($menus as $index => $menu): ?>
-								<button type="button"
-									class="chroma-pdf-trigger w-full flex items-center justify-between p-4 rounded-xl bg-brand-cream hover:bg-<?php echo esc_attr($menu['bgClass']); ?> transition-colors group text-left"
-									data-pdf-url="<?php echo esc_url($menu['url']); ?>"
-									data-pdf-title="<?php echo esc_attr($menu['title']); ?>">
+								<?php $menu_has_url = $has_usable_link($menu['url']); ?>
+								<<?php echo $menu_has_url ? 'button' : 'div'; ?>
+									<?php if ($menu_has_url): ?>type="button" data-pdf-url="<?php echo esc_url($menu['url']); ?>" data-pdf-title="<?php echo esc_attr($menu['title']); ?>"<?php endif; ?>
+									class="w-full flex items-center justify-between p-4 rounded-xl bg-brand-cream transition-colors group text-left <?php echo $menu_has_url ? 'chroma-pdf-trigger hover:bg-' . esc_attr($menu['bgClass']) : 'opacity-60 cursor-default'; ?>"
+									<?php if (!$menu_has_url): ?>aria-disabled="true"<?php endif; ?>>
 									<div class="flex items-center gap-4">
 										<div
 											class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-<?php echo esc_attr($menu['color']); ?> shadow-sm">
@@ -411,7 +440,7 @@ if (empty($gallery_images)) {
 									</div>
 									<i
 										class="fa-solid fa-eye text-brand-ink/20 group-hover:text-<?php echo esc_attr($menu['color']); ?>"></i>
-								</button>
+								</<?php echo $menu_has_url ? 'button' : 'div'; ?>>
 							<?php endforeach; ?>
 						</div>
 					</div>

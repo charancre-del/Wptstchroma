@@ -130,7 +130,7 @@ class Chroma_Schema_Registry
         $allow_duplicate = isset($options['allow_duplicate']) ? $options['allow_duplicate'] : false;
         if (!$allow_duplicate && isset(self::$registered_types[$type])) {
             // Already have this type - skip unless it's an allowed duplicate type
-            $allowed_multiples = ['ImageObject', 'ListItem', 'Question', 'Answer', 'Review', 'Service'];
+            $allowed_multiples = ['ImageObject', 'ListItem', 'Question', 'Answer', 'Review', 'Service', 'Event'];
             if (!in_array($type, $allowed_multiples)) {
                 self::$blocked[] = [
                     'type' => $type,

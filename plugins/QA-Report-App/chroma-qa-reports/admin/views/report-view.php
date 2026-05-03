@@ -917,7 +917,38 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
         border-bottom: 1px solid var(--cqa-gray-50, #f9fafb);
         font-size: 13px;
     }
-    
+
+    .cqa-change-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .cqa-change-item-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .cqa-change-item-title {
+        color: var(--cqa-gray-800, #1f2937);
+    }
+
+    .cqa-change-subrow {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .cqa-diff-label {
+        min-width: 110px;
+        font-weight: 600;
+        color: var(--cqa-gray-600, #4b5563);
+    }
+
     .cqa-change-list li:last-child {
         border-bottom: none;
     }
@@ -936,7 +967,14 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
         padding: 2px 6px;
         border-radius: 3px;
     }
-    
+
+    .cqa-value-block {
+        display: inline-block;
+        max-width: 100%;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+
     .cqa-change-arrow {
         color: var(--cqa-gray-400);
         margin: 0 6px;
@@ -966,6 +1004,18 @@ $auto_print = isset($_GET['print']) && $_GET['print'] == '1';
     .cqa-loading {
         text-align: center;
         color: var(--cqa-gray-500);
+    }
+
+    @media (max-width: 640px) {
+        .cqa-change-item-header,
+        .cqa-change-subrow {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .cqa-diff-label {
+            min-width: 0;
+        }
     }
  
     @media (max-width: 1024px) {

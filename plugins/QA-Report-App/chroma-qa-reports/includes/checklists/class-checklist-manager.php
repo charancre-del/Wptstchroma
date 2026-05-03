@@ -48,6 +48,140 @@ class Checklist_Manager {
     }
 
     /**
+     * Get overlap rules for the combined Tier 1 + Tier 2 checklist.
+     *
+     * These rules preserve existing response keys for backward compatibility
+     * while allowing the UI to stop asking inspectors to answer the same thing twice.
+     *
+     * @return array
+     */
+    private static function get_combined_overlap_rules() {
+        return [
+            'physical_environment/bottles_labeled' => [
+                'source_section_key' => 'classrooms',
+                'source_item_key'    => 'bottles_labeled',
+                'type'               => 'exact_duplicate',
+            ],
+            'physical_environment/belongings_stored' => [
+                'source_section_key' => 'classrooms',
+                'source_item_key'    => 'staff_belongings',
+                'type'               => 'exact_duplicate',
+            ],
+            'physical_environment/laundry_clean' => [
+                'source_section_key' => 'kitchen_laundry',
+                'source_item_key'    => 'laundry_room',
+                'type'               => 'exact_duplicate',
+            ],
+            'relationships_interactions/calm_climate' => [
+                'source_section_key' => 'classrooms',
+                'source_item_key'    => 'climate',
+                'type'               => 'exact_duplicate',
+            ],
+            'professionalism/dress_code' => [
+                'source_section_key' => 'lobby_office_staff',
+                'source_item_key'    => 'dress_code',
+                'type'               => 'exact_duplicate',
+            ],
+            'physical_environment/routines_followed' => [
+                'source_section_key' => 'classrooms',
+                'source_item_key'    => 'handwashing_diapering',
+                'type'               => 'linked_refinement',
+            ],
+            'physical_environment/crib_spacing' => [
+                'source_section_key' => 'sleep_nap',
+                'source_item_key'    => 'crib_only_sleep',
+                'type'               => 'linked_refinement',
+            ],
+            'physical_environment/security_operational' => [
+                'source_section_key' => 'lobby_office_staff',
+                'source_item_key'    => 'security_wifi',
+                'type'               => 'linked_refinement',
+            ],
+            'leadership_files/files_locked' => [
+                'source_section_key' => 'lobby_office_staff',
+                'source_item_key'    => 'files_locked',
+                'type'               => 'linked_refinement',
+            ],
+            'classroom_environment/process_art' => [
+                'source_section_key' => 'classrooms',
+                'source_item_key'    => 'process_art',
+                'type'               => 'linked_refinement',
+            ],
+        ];
+    }
+
+    /**
+     * Apply tier and overlap metadata to the combined checklist.
+     *
+     * @param array $checklist Combined checklist definition.
+     * @return array
+     */
+    private static function annotate_combined_checklist( $checklist ) {
+        if ( empty( $checklist['sections'] ) || ! is_array( $checklist['sections'] ) ) {
+            return $checklist;
+        }
+
+        $labels = [];
+        foreach ( $checklist['sections'] as &$section ) {
+            $section['tier'] = isset( $section['tier'] ) ? (int) $section['tier'] : 1;
+
+            if ( empty( $section['items'] ) || ! is_array( $section['items'] ) ) {
+                continue;
+            }
+
+            foreach ( $section['items'] as &$item ) {
+                $item['tier'] = (int) $section['tier'];
+                $item['root_key'] = $section['key'] . '/' . $item['key'];
+                $item['entry_mode'] = 'standalone';
+                $labels[ $item['root_key'] ] = $item['label'] ?? self::humanize_key( $item['key'] ?? '' );
+            }
+            unset( $item );
+        }
+        unset( $section );
+
+        $overlap_rules = self::get_combined_overlap_rules();
+
+        foreach ( $checklist['sections'] as &$section ) {
+            if ( empty( $section['items'] ) || ! is_array( $section['items'] ) ) {
+                continue;
+            }
+
+            foreach ( $section['items'] as &$item ) {
+                $item_path = $section['key'] . '/' . $item['key'];
+                if ( ! isset( $overlap_rules[ $item_path ] ) ) {
+                    continue;
+                }
+
+                $rule = $overlap_rules[ $item_path ];
+                $root_key = $rule['source_section_key'] . '/' . $rule['source_item_key'];
+
+                $item['root_key'] = $root_key;
+                $item['overlap_type'] = $rule['type'];
+                $item['entry_mode'] = $rule['type'] === 'exact_duplicate' ? 'shared_exact' : 'linked_refinement';
+                $item['shared_with'] = [
+                    'section_key' => $rule['source_section_key'],
+                    'item_key'    => $rule['source_item_key'],
+                    'label'       => $labels[ $root_key ] ?? self::humanize_key( $rule['source_item_key'] ),
+                ];
+            }
+            unset( $item );
+        }
+        unset( $section );
+
+        return $checklist;
+    }
+
+    /**
+     * Humanize a checklist key for fallback display labels.
+     *
+     * @param string $key Checklist key.
+     * @return string
+     */
+    private static function humanize_key( $key ) {
+        return ucwords( str_replace( '_', ' ', (string) $key ) );
+    }
+
+    /**
      * Get the combined Tier 1 + Tier 2 checklist.
      *
      * @return array
@@ -60,6 +194,14 @@ class Checklist_Manager {
             $combined = $tier1;
             $combined['name'] = 'Tier 1 + Tier 2 QA & Compliance Checklist';
             $combined['description'] = 'Full QA inspection with Continuous Quality Improvement add-on';
+
+            // Mark the Tier 1 sections explicitly in the combined checklist.
+            if ( ! empty( $combined['sections'] ) && is_array( $combined['sections'] ) ) {
+                foreach ( $combined['sections'] as &$section ) {
+                    $section['tier'] = 1;
+                }
+                unset( $section );
+            }
             
             // Append Tier 2 sections
             foreach ( $tier2['sections'] as $section ) {
@@ -67,7 +209,7 @@ class Checklist_Manager {
                 $combined['sections'][] = $section;
             }
 
-            self::$cache['combined'] = $combined;
+            self::$cache['combined'] = self::annotate_combined_checklist( $combined );
         }
         return self::$cache['combined'];
     }

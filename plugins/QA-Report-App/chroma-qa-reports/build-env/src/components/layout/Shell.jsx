@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import useUIStore from '@stores/useUIStore';
 import useAuthStore from '@stores/useAuthStore';
@@ -10,27 +10,30 @@ import OfflineBanner from '../common/OfflineBanner';
 const Shell = () => {
     const { isSidebarOpen } = useUIStore();
     const { isAuthenticated, isLoading } = useAuthStore();
-    const navigate = useNavigate();
-    const location = useLocation();
 
     // AUDIT FIX: Security Guard
-    useEffect(() => {
-        if (!isLoading && !isAuthenticated) {
-            // Redirect to WP login or show message? 
+    useEffect( () => {
+        if ( ! isLoading && ! isAuthenticated ) {
+            // Redirect to WP login or show message?
             // For an embedded WP app, usually we just show a "Please Log In" state or rely on WP auth cookies.
             // If the user isn't authenticated in the store, it means the API /me call failed or hasn't run.
             // But App.jsx handles the initial fetch.
             // here we just ensure we don't render content.
         }
-    }, [isLoading, isAuthenticated]);
+    }, [ isLoading, isAuthenticated ] );
 
-    if (!isAuthenticated && !isLoading) {
+    if ( ! isAuthenticated && ! isLoading ) {
         return (
             <div className="flex h-screen items-center justify-center bg-brand-cream">
                 <div className="text-center p-8 bg-white shadow-xl rounded-2xl border border-brand-ink/5">
                     <h2 className="text-xl font-serif font-bold text-chroma-red mb-2">Access Denied</h2>
                     <p className="text-brand-ink/60 mb-4">You must be logged in to access this application.</p>
-                    <a href="/wp-login.php" className="px-6 py-2 bg-brand-ink text-white rounded-full hover:bg-brand-ink/80 transition-all font-bold text-sm">Go to Login</a>
+                    <a
+                        href="/wp-login.php"
+                        className="px-6 py-2 bg-brand-ink text-white rounded-full hover:bg-brand-ink/80 transition-all font-bold text-sm"
+                    >
+                        Go to Login
+                    </a>
                 </div>
             </div>
         );
@@ -41,14 +44,14 @@ const Shell = () => {
             <ConflictModal />
             <SessionExpiredModal />
 
-            {/* Sidebar Container */}
+            { /* Sidebar Container */ }
             <div className="flex-shrink-0 z-20">
                 <div className="sticky top-8 h-[calc(100vh-32px)]">
-                    <Sidebar isOpen={isSidebarOpen} />
+                    <Sidebar isOpen={ isSidebarOpen } />
                 </div>
             </div>
 
-            {/* Main Content */}
+            { /* Main Content */ }
             <main className="flex-1 relative flex flex-col min-w-0">
                 <OfflineBanner />
                 <div className="w-full p-4 md:p-6">

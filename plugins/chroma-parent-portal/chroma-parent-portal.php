@@ -15,6 +15,16 @@ define('CHROMA_PORTAL_VERSION', '1.0.3'); // Force refresh for logo/PDF fixes
 define('CHROMA_PORTAL_PATH', plugin_dir_path(__FILE__));
 define('CHROMA_PORTAL_URL', plugin_dir_url(__FILE__));
 
+function chroma_parent_portal_is_public_page()
+{
+    if (is_front_page()) {
+        return false;
+    }
+
+    $post = get_post();
+    return is_page('parent-portal') || ($post && has_shortcode($post->post_content, 'chroma_parent_portal'));
+}
+
 // Force Viewport for Full App feel
 add_action('wp_head', function () {
     if (is_page('parent-portal')) {
@@ -24,8 +34,7 @@ add_action('wp_head', function () {
 
 // Disable Theme Customizer Scripts and Booking Modals on Portal Page
 add_action('wp', function () {
-    global $post;
-    $is_portal = !is_front_page() && (is_page('parent-portal') || ($post && has_shortcode($post->post_content, 'chroma_parent_portal')));
+    $is_portal = chroma_parent_portal_is_public_page();
 
     if ($is_portal) {
         // 1. Remove Hooked Actions
@@ -43,6 +52,44 @@ add_action('wp', function () {
         nocache_headers();
     }
 }, 1);
+
+add_action('wp', function () {
+    if (!chroma_parent_portal_is_public_page()) {
+        return;
+    }
+
+    add_filter('wp_robots', function ($robots) {
+        if (!is_array($robots)) {
+            $robots = [];
+        }
+
+        unset($robots['index'], $robots['follow']);
+        $robots['noindex'] = true;
+        $robots['nofollow'] = true;
+
+        return $robots;
+    }, 20);
+
+    add_filter('wpseo_robots', function ($robots) {
+        return 'noindex,nofollow';
+    }, 20);
+
+    add_filter('pre_get_document_title', function ($title) {
+        return 'Parent Portal | Chroma';
+    }, PHP_INT_MAX);
+
+    add_filter('wpseo_title', function ($title) {
+        return 'Parent Portal | Chroma';
+    }, PHP_INT_MAX);
+
+    add_filter('wpseo_metadesc', function ($description) {
+        return 'Secure family portal for tuition, daily reports, classroom updates, and school resources.';
+    }, PHP_INT_MAX);
+
+    add_filter('wpseo_opengraph_desc', function ($description) {
+        return 'Secure family portal for tuition, daily reports, classroom updates, and school resources.';
+    }, PHP_INT_MAX);
+}, 5);
 
 /**
  * Ignore stale wp_rest nonces for public/token parent-portal routes.
@@ -194,7 +241,7 @@ add_shortcode('chroma_parent_portal', function () {
 
     // Fallback/Loading state that React will replace
     return '<div id="chroma-parent-portal-root" style="display: flex !important; flex-direction: column; justify-content: center; align-items: center; height: 100vh !important; width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 99999 !important; background: #FFEB3B; color: black; text-align: center; overflow: visible !important;">
-        <h1 style="font-size: 40px; margin: 0;">PHP LOADED</h1>
+        <div style="font-size: 40px; margin: 0; font-weight: 700;">PHP LOADED</div>
         <p style="font-size: 20px;">Waiting for React app to mount...</p>
         <p style="font-size: 14px; margin-top: 20px;">If this screen stays visible for more than 5 seconds, the App is broken.</p>
     </div>';

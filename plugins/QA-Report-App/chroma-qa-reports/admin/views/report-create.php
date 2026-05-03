@@ -70,6 +70,10 @@ $schools = School::all(['status' => 'active', 'limit' => -1]);
     <form id="cqa-report-form" method="post" enctype="multipart/form-data">
         <?php wp_nonce_field('cqa_save_report', 'cqa_report_nonce'); ?>
         <input type="hidden" name="report_id" id="report_id" value="<?php echo esc_attr($report_id); ?>">
+        <input type="hidden" name="report_version_id" id="report_version_id"
+            value="<?php echo esc_attr($report->version_id ?? 0); ?>">
+        <input type="hidden" name="report_updated_at" id="report_updated_at"
+            value="<?php echo esc_attr($report->updated_at ?? ''); ?>">
 
         <!-- Step 1: Setup -->
         <div class="cqa-wizard-panel active" data-step="1">

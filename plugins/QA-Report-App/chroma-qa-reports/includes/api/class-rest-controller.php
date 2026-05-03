@@ -12,7 +12,9 @@ use ChromaQA\Models\Report;
 use ChromaQA\Models\Checklist_Response;
 use ChromaQA\Models\Photo;
 use ChromaQA\Integrations\Google_Drive;
+use ChromaQA\Integrations\Monday;
 use ChromaQA\Checklists\Checklist_Manager;
+use ChromaQA\Services\Monday_Sync_Service;
 use ChromaQA\Utils\Docx_Parser;
 use ChromaQA\AI\Gemini_Service;
 use WP_REST_Server;
@@ -214,6 +216,43 @@ class REST_Controller
             ],
         ]);
 
+        // monday.com integration
+        \register_rest_route(self::NAMESPACE, '/monday/test', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'test_monday_connection'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/monday/workspaces', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_monday_workspaces'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/monday/boards', [
+            'methods' => WP_REST_Server::READABLE,
+            'callback' => [$this, 'get_monday_boards'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/monday/boards/setup', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'setup_monday_board'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/monday/boards/(?P<id>[\w-]+)/setup', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'setup_monday_board'],
+            'permission_callback' => [$this, 'check_settings_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE, '/reports/(?P<id>\d+)/sync-monday', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'sync_report_to_monday'],
+            'permission_callback' => [$this, 'check_edit_reports_permission'],
+        ]);
+
         // Dashboard Stats
         \register_rest_route(self::NAMESPACE , '/stats', [
             'methods' => WP_REST_Server::READABLE,
@@ -244,6 +283,12 @@ class REST_Controller
         \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/restore/(?P<version>\d+)', [
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => [$this, 'restore_report_version'],
+            'permission_callback' => [$this, 'check_edit_reports_permission'],
+        ]);
+
+        \register_rest_route(self::NAMESPACE , '/reports/(?P<id>\d+)/versions/(?P<version>\d+)/restore-selection', [
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => [$this, 'restore_report_version_selection'],
             'permission_callback' => [$this, 'check_edit_reports_permission'],
         ]);
     }
@@ -312,7 +357,16 @@ class REST_Controller
             $sanitized = [];
             foreach ($data as $key => $value) {
                 $key_label = is_string($key) ? $key : (string) $key;
-                if (is_string($key_label) && in_array(strtolower($key_label), $sensitive_keys, true)) {
+                $normalized_key = is_string($key_label) ? strtolower($key_label) : '';
+                $contains_sensitive_fragment = false;
+                foreach ($sensitive_keys as $fragment) {
+                    if ($normalized_key !== '' && strpos($normalized_key, $fragment) !== false) {
+                        $contains_sensitive_fragment = true;
+                        break;
+                    }
+                }
+
+                if ($contains_sensitive_fragment) {
                     $sanitized[$key] = '[REDACTED]';
                     continue;
                 }
@@ -542,10 +596,10 @@ class REST_Controller
 
         // 3. Compliance Breakdown (Approved Reports Ratings)
         $ratings = $wpdb->get_results("
-            SELECT rating, COUNT(*) as count 
+            SELECT overall_rating, COUNT(*) as count 
             FROM $reports_table 
-            WHERE status = 'approved' AND rating IS NOT NULL 
-            GROUP BY rating
+            WHERE status = 'approved' AND overall_rating IS NOT NULL 
+            GROUP BY overall_rating
         ");
 
         $compliance = [
@@ -555,7 +609,7 @@ class REST_Controller
         ];
 
         foreach ($ratings as $row) {
-            $key = strtolower(str_replace('Expectations', '', $row->rating));
+            $key = strtolower(str_replace('Expectations', '', $row->overall_rating));
             $key = trim(str_replace(' ', '_', $key));
 
             if ($key === 'exceeds' || $key === 'exceeds_expectations') {
@@ -587,9 +641,9 @@ class REST_Controller
                 DATE_FORMAT(inspection_date, '%b') as name,
                 DATE_FORMAT(inspection_date, '%m') as month_num,
                 AVG(CASE 
-                    WHEN rating IN ('exceeds', 'Exceeds Expectations', 'Exceeds') THEN 100
-                    WHEN rating IN ('meets', 'Meets Expectations', 'Meets') THEN 85
-                    WHEN rating IN ('needs_improvement', 'Needs Improvement') THEN 60
+                    WHEN overall_rating = 'exceeds' THEN 100
+                    WHEN overall_rating = 'meets' THEN 85
+                    WHEN overall_rating = 'needs_improvement' THEN 60
                     ELSE 40
                 END) as score
             FROM $reports_table
@@ -609,7 +663,7 @@ class REST_Controller
             FROM $reports_table r
             JOIN $schools_table s ON r.school_id = s.id
             WHERE r.status = 'approved' 
-            AND r.rating = 'Needs Improvement'
+            AND r.overall_rating = 'needs_improvement'
             AND r.inspection_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             LIMIT 3
         ");
@@ -768,6 +822,14 @@ class REST_Controller
         $school->acquired_date = \sanitize_text_field($request->get_param('acquired_date'));
         $school->status = \sanitize_text_field($request->get_param('status')) ?: 'active';
         $school->drive_folder_id = \sanitize_text_field($request->get_param('drive_folder_id'));
+        $school->monday_board_id = \sanitize_text_field($request->get_param('monday_board_id'));
+        $school->monday_board_name = \sanitize_text_field($request->get_param('monday_board_name'));
+        $school->monday_status_column_id = \sanitize_text_field($request->get_param('monday_status_column_id'));
+        $school->monday_priority_column_id = \sanitize_text_field($request->get_param('monday_priority_column_id'));
+        $school->monday_date_column_id = \sanitize_text_field($request->get_param('monday_date_column_id'));
+        $school->monday_notes_column_id = \sanitize_text_field($request->get_param('monday_notes_column_id'));
+        $school->monday_person_column_id = \sanitize_text_field($request->get_param('monday_person_column_id'));
+        $school->monday_default_person_id = \sanitize_text_field($request->get_param('monday_default_person_id'));
         $school->classroom_config = $request->get_param('classroom_config') ?: [];
 
         error_log('REST_Controller: create_school - Data: ' . print_r($request->get_params(), true));
@@ -807,6 +869,30 @@ class REST_Controller
         }
         if ($request->has_param('drive_folder_id')) {
             $school->drive_folder_id = \sanitize_text_field($request->get_param('drive_folder_id'));
+        }
+        if ($request->has_param('monday_board_id')) {
+            $school->monday_board_id = \sanitize_text_field($request->get_param('monday_board_id'));
+        }
+        if ($request->has_param('monday_board_name')) {
+            $school->monday_board_name = \sanitize_text_field($request->get_param('monday_board_name'));
+        }
+        if ($request->has_param('monday_status_column_id')) {
+            $school->monday_status_column_id = \sanitize_text_field($request->get_param('monday_status_column_id'));
+        }
+        if ($request->has_param('monday_priority_column_id')) {
+            $school->monday_priority_column_id = \sanitize_text_field($request->get_param('monday_priority_column_id'));
+        }
+        if ($request->has_param('monday_date_column_id')) {
+            $school->monday_date_column_id = \sanitize_text_field($request->get_param('monday_date_column_id'));
+        }
+        if ($request->has_param('monday_notes_column_id')) {
+            $school->monday_notes_column_id = \sanitize_text_field($request->get_param('monday_notes_column_id'));
+        }
+        if ($request->has_param('monday_person_column_id')) {
+            $school->monday_person_column_id = \sanitize_text_field($request->get_param('monday_person_column_id'));
+        }
+        if ($request->has_param('monday_default_person_id')) {
+            $school->monday_default_person_id = \sanitize_text_field($request->get_param('monday_default_person_id'));
         }
         if ($request->has_param('classroom_config')) {
             $school->classroom_config = $request->get_param('classroom_config');
@@ -900,7 +986,7 @@ class REST_Controller
     {
         $this->log_unexpected_payload_keys(
             $request,
-            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'photos', 'drive_files'],
+            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'photos', 'drive_files', 'save_mode'],
             'create_report'
         );
 
@@ -911,6 +997,8 @@ class REST_Controller
         }
 
         // Initialize Report
+        $snapshot_type = $this->get_snapshot_type_from_request($request);
+
         $report = new Report();
         $school_id = (int) $request->get_param('school_id');
 
@@ -957,7 +1045,7 @@ class REST_Controller
         $report->closing_notes = \sanitize_textarea_field($request->get_param('closing_notes'));
         $report->status = \sanitize_text_field($request->get_param('status')) ?: 'draft';
 
-        $result = $report->save();
+        $result = $report->save('', $snapshot_type);
 
         if (!$result) {
             return new WP_Error('create_failed', \__('Failed to create report.', 'chroma-qa-reports'), ['status' => 500]);
@@ -972,7 +1060,22 @@ class REST_Controller
         // [FIX] Save Checklist Responses
         $responses = $request->get_param('responses');
         if (!empty($responses) && is_array($responses)) {
-            \ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses);
+            if (!\ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses)) {
+                return new WP_Error('save_failed', __('Failed to save checklist responses.', 'chroma-qa-reports'), ['status' => 500]);
+            }
+        }
+
+        if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report created', $snapshot_type)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA Snapshot] Failed to refresh final create snapshot for report %d', (int) $report->id));
+            }
+        }
+
+        if ($report->status === Report::STATUS_APPROVED && Monday::auto_sync_on_approval()) {
+            $sync_result = Monday_Sync_Service::sync_report($report->id, 'approval');
+            if (is_wp_error($sync_result) && defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA Monday] Create approval sync failed for report %d: %s', (int) $report->id, $sync_result->get_error_message()));
+            }
         }
 
         return new WP_REST_Response($this->prepare_report_response($report), 201);
@@ -982,15 +1085,19 @@ class REST_Controller
     {
         $this->log_unexpected_payload_keys(
             $request,
-            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'summary_poi', 'version_id'],
+            ['school_id', 'report_type', 'inspection_date', 'previous_report_id', 'overall_rating', 'closing_notes', 'status', 'responses', 'summary_poi', 'version_id', 'save_mode'],
             'update_report'
         );
+
+        $snapshot_type = $this->get_snapshot_type_from_request($request);
 
         $report = Report::find($request['id']);
 
         if (!$report) {
             return new WP_Error('not_found', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
         }
+
+        $previous_status = $report->status;
 
         // === CONCURRENCY PROTECTION ===
         // 1. Timestamp based (Legacy)
@@ -1086,7 +1193,9 @@ class REST_Controller
             $report->status = $new_status;
         }
 
-        $report->save();
+        if (!$report->save('', $snapshot_type)) {
+            return new WP_Error('save_failed', __('Failed to update report.', 'chroma-qa-reports'), ['status' => 500]);
+        }
 
         // Process Photos
         $this->process_report_photos($report->id, $request);
@@ -1095,7 +1204,9 @@ class REST_Controller
         // [FIX] Save Checklist Responses
         $responses = $request->get_param('responses');
         if (!empty($responses) && is_array($responses)) {
-            \ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses);
+            if (!\ChromaQA\Models\Checklist_Response::bulk_save($report->id, $responses)) {
+                return new WP_Error('save_failed', __('Failed to save checklist responses.', 'chroma-qa-reports'), ['status' => 500]);
+            }
         }
 
         // Process AI Summary Updates (Plan of Improvement)
@@ -1161,7 +1272,26 @@ class REST_Controller
                     error_log(sprintf('[CQA DEBUG] update_report summary_poi normalized items=%d report_id=%d', count($poi_list), (int) $report->id));
                 }
 
-                $ai->save_summary($report->id, $updated_summary);
+                if (!$ai->save_summary($report->id, $updated_summary)) {
+                    return new WP_Error('summary_save_failed', __('Failed to save AI summary.', 'chroma-qa-reports'), ['status' => 500]);
+                }
+            }
+        }
+
+        if (!\ChromaQA\Models\Report_Snapshot::create_snapshot($report->id, 'Report updated', $snapshot_type)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA Snapshot] Failed to refresh final update snapshot for report %d', (int) $report->id));
+            }
+        }
+
+        if (
+            $previous_status !== Report::STATUS_APPROVED &&
+            $report->status === Report::STATUS_APPROVED &&
+            Monday::auto_sync_on_approval()
+        ) {
+            $sync_result = Monday_Sync_Service::sync_report($report->id, 'approval');
+            if (is_wp_error($sync_result) && defined('WP_DEBUG') && WP_DEBUG) {
+                error_log(sprintf('[CQA Monday] Approval sync failed for report %d: %s', (int) $report->id, $sync_result->get_error_message()));
             }
         }
 
@@ -1208,6 +1338,8 @@ class REST_Controller
             return new WP_Error('not_found', __('Report not found.', 'chroma-qa-reports'), ['status' => 404]);
         }
 
+        $previous_status = $report->status;
+
         if (!is_array($responses)) {
             return new WP_Error('invalid_data', \__('Invalid responses data.', 'chroma-qa-reports'), ['status' => 400]);
         }
@@ -1217,9 +1349,15 @@ class REST_Controller
             return new WP_Error('save_failed', __('Failed to save responses.', 'chroma-qa-reports'), ['status' => 500]);
         }
 
+        if (!$report->save('Checklist responses updated', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
+            return new WP_Error('save_failed', __('Failed to create a report version for checklist updates.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
         return new WP_REST_Response([
             'success' => true,
             'responses' => Checklist_Response::get_by_report_grouped($report_id),
+            'version_id' => $report->version_id,
+            'updated_at' => $report->updated_at,
         ], 200);
     }
 
@@ -1397,6 +1535,7 @@ class REST_Controller
         $folder_id = $school ? $school->drive_folder_id : null;
 
         $uploaded_photos = [];
+        $upload_errors = [];
         $photos = $files['photos'];
 
         // Normalize if single file
@@ -1473,8 +1612,39 @@ class REST_Controller
                         'view_url' => $photo->get_view_url(),
                     ];
                     $uploaded_photos[] = $photo_data;
+                } else {
+                    $upload_errors[] = sprintf(
+                        __('Failed to create attachment for %s.', 'chroma-qa-reports'),
+                        basename($file['name'] ?? __('photo', 'chroma-qa-reports'))
+                    );
                 }
+            } elseif (isset($movefile['error'])) {
+                $upload_errors[] = sprintf(
+                    __('%1$s: %2$s', 'chroma-qa-reports'),
+                    basename($file['name'] ?? __('photo', 'chroma-qa-reports')),
+                    $movefile['error']
+                );
+            } else {
+                $upload_errors[] = sprintf(
+                    __('%s could not be uploaded.', 'chroma-qa-reports'),
+                    basename($file['name'] ?? __('photo', 'chroma-qa-reports'))
+                );
             }
+        }
+
+        if (empty($uploaded_photos) && !empty($upload_errors)) {
+            return new WP_Error(
+                'upload_failed',
+                implode(' ', $upload_errors),
+                [
+                    'status' => 422,
+                    'errors' => $upload_errors,
+                ]
+            );
+        }
+
+        if (!empty($uploaded_photos) && !$report->save('Photos updated', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
+            return new WP_Error('save_failed', __('Photos uploaded but the report version could not be updated.', 'chroma-qa-reports'), ['status' => 500]);
         }
 
         // Return unified response
@@ -1482,6 +1652,9 @@ class REST_Controller
             'success' => true,
             'data' => $uploaded_photos, // For new React app
             'photos' => $uploaded_photos, // For older React app versions
+            'errors' => $upload_errors,
+            'version_id' => $report ? $report->version_id : null,
+            'updated_at' => $report ? $report->updated_at : null,
         ];
 
         // For Legacy jQuery uploader (which uploads one by one and expects response.id)
@@ -1508,12 +1681,21 @@ class REST_Controller
             $photo->section_key = \sanitize_text_field($request->get_param('section_key'));
         }
 
-        $photo->save();
+        if (!$photo->save()) {
+            return new WP_Error('save_failed', __('Failed to update photo.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        $report = Report::find($photo->report_id);
+        if ($report && !$report->save('Photo updated', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
+            return new WP_Error('save_failed', __('Photo updated but the report version could not be updated.', 'chroma-qa-reports'), ['status' => 500]);
+        }
 
         return new WP_REST_Response([
             'id' => $photo->id,
             'caption' => $photo->caption,
-            'section_key' => $photo->section_key
+            'section_key' => $photo->section_key,
+            'version_id' => $report ? $report->version_id : null,
+            'updated_at' => $report ? $report->updated_at : null,
         ], 200);
     }
 
@@ -1525,9 +1707,21 @@ class REST_Controller
             return new WP_Error('not_found', __('Photo not found.', 'chroma-qa-reports'), ['status' => 404]);
         }
 
-        $photo->delete();
+        $report = Report::find($photo->report_id);
 
-        return new WP_REST_Response(['success' => true], 200);
+        if (!$photo->delete()) {
+            return new WP_Error('delete_failed', __('Failed to delete photo.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        if ($report && !$report->save('Photo deleted', \ChromaQA\Models\Report_Snapshot::TYPE_MANUAL)) {
+            return new WP_Error('save_failed', __('Photo deleted but the report version could not be updated.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'version_id' => $report ? $report->version_id : null,
+            'updated_at' => $report ? $report->updated_at : null,
+        ], 200);
     }
 
     // ===== SETTINGS ENDPOINTS =====
@@ -1543,6 +1737,12 @@ class REST_Controller
                 'gemini_api_key' => \ChromaQA\Settings::get('gemini_api_key', \get_option('cqa_gemini_api_key')),
                 'gemini_model' => \ChromaQA\Settings::get('gemini_model', \get_option('cqa_gemini_model', 'gemini-1.5-flash')),
                 'enable_ai' => \ChromaQA\Settings::get('enable_ai', \get_option('cqa_enable_ai', 'yes')),
+                'monday_enabled' => \ChromaQA\Settings::get('monday_enabled', 'no'),
+                'monday_api_token' => \ChromaQA\Settings::get('monday_api_token', ''),
+                'monday_auto_sync_on_approval' => \ChromaQA\Settings::get('monday_auto_sync_on_approval', 'yes'),
+                'monday_default_status_label' => \ChromaQA\Settings::get('monday_default_status_label', Monday::DEFAULT_STATUS),
+                'monday_workspace_id' => \ChromaQA\Settings::get('monday_workspace_id', ''),
+                'monday_workspace_name' => \ChromaQA\Settings::get('monday_workspace_name', ''),
             ];
         } else {
             // Fallback to legacy options
@@ -1553,10 +1753,29 @@ class REST_Controller
                 'gemini_api_key' => \get_option('cqa_gemini_api_key'),
                 'gemini_model' => \get_option('cqa_gemini_model', 'gemini-1.5-flash'),
                 'enable_ai' => \get_option('cqa_enable_ai', 'yes'),
+                'monday_enabled' => \get_option('cqa_monday_enabled', 'no'),
+                'monday_api_token' => \get_option('cqa_monday_api_token', ''),
+                'monday_auto_sync_on_approval' => \get_option('cqa_monday_auto_sync_on_approval', 'yes'),
+                'monday_default_status_label' => \get_option('cqa_monday_default_status_label', Monday::DEFAULT_STATUS),
+                'monday_workspace_id' => \get_option('cqa_monday_workspace_id', ''),
+                'monday_workspace_name' => \get_option('cqa_monday_workspace_name', ''),
             ];
         }
 
         return new WP_REST_Response($settings, 200);
+    }
+
+    /**
+     * Resolve the snapshot category for a save request.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return string
+     */
+    private function get_snapshot_type_from_request(WP_REST_Request $request)
+    {
+        $save_mode = $request->get_param('save_mode');
+
+        return \ChromaQA\Models\Report_Snapshot::normalize_snapshot_type($save_mode);
     }
 
     public function update_settings(WP_REST_Request $request)
@@ -1569,6 +1788,12 @@ class REST_Controller
             'gemini_api_key',
             'gemini_model',
             'enable_ai',
+            'monday_enabled',
+            'monday_api_token',
+            'monday_auto_sync_on_approval',
+            'monday_default_status_label',
+            'monday_workspace_id',
+            'monday_workspace_name',
         ];
 
         foreach ($fields as $field) {
@@ -1576,7 +1801,7 @@ class REST_Controller
                 $value = \sanitize_text_field($params[$field]);
 
                 // Masking protection: If value is all asterisks or dots, do not overwrite existing
-                if (in_array($field, ['google_client_secret', 'gemini_api_key', 'google_developer_key'])) {
+                if (in_array($field, ['google_client_secret', 'gemini_api_key', 'google_developer_key', 'monday_api_token'], true)) {
                     if (preg_match('/^[\*•]+$/u', $value)) {
                         continue;
                     }
@@ -1595,6 +1820,122 @@ class REST_Controller
         }
 
         return new WP_REST_Response(['success' => true], 200);
+    }
+
+    /**
+     * Test monday connection with current settings.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function test_monday_connection(WP_REST_Request $request)
+    {
+        $result = Monday::test_connection();
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $result,
+        ], 200);
+    }
+
+    /**
+     * Fetch monday boards.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function get_monday_workspaces(WP_REST_Request $request)
+    {
+        $workspaces = Monday::get_workspaces();
+        if (is_wp_error($workspaces)) {
+            return $workspaces;
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $workspaces,
+        ], 200);
+    }
+
+    /**
+     * Fetch monday boards.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function get_monday_boards(WP_REST_Request $request)
+    {
+        $workspace_id = $request->get_param('workspace_id');
+        $boards = Monday::get_boards($workspace_id ?: null);
+        if (is_wp_error($boards)) {
+            return $boards;
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $boards,
+        ], 200);
+    }
+
+    /**
+     * Validate and create missing monday columns for a board.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function setup_monday_board(WP_REST_Request $request)
+    {
+        $board_id = (string) ($request['id'] ?: $request->get_param('boardId') ?: $request->get_param('board_id'));
+        if ($board_id === '') {
+            return new WP_Error(
+                'cqa_monday_board_missing',
+                __('A monday.com board ID is required to set up board columns.', 'chroma-qa-reports'),
+                ['status' => 422]
+            );
+        }
+
+        $mapping = [
+            'monday_status_column_id' => sanitize_text_field((string) $request->get_param('monday_status_column_id')),
+            'monday_priority_column_id' => sanitize_text_field((string) $request->get_param('monday_priority_column_id')),
+            'monday_date_column_id' => sanitize_text_field((string) $request->get_param('monday_date_column_id')),
+            'monday_notes_column_id' => sanitize_text_field((string) $request->get_param('monday_notes_column_id')),
+            'monday_person_column_id' => sanitize_text_field((string) $request->get_param('monday_person_column_id')),
+        ];
+
+        $result = Monday::ensure_board_columns($board_id, $mapping);
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $result,
+        ], 200);
+    }
+
+    /**
+     * Manually sync an approved report to monday.com.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function sync_report_to_monday(WP_REST_Request $request)
+    {
+        $result = Monday_Sync_Service::sync_report((int) $request['id'], 'manual');
+        if (is_wp_error($result)) {
+            return $result;
+        }
+
+        $report = Report::find((int) $request['id']);
+
+        return new WP_REST_Response([
+            'success' => true,
+            'data' => $result,
+            'report' => $report ? $this->prepare_report_response($report) : null,
+        ], 200);
     }
 
     public function generate_report_pdf(WP_REST_Request $request)
@@ -1871,6 +2212,14 @@ class REST_Controller
             'acquired_date' => $school->acquired_date,
             'status' => $school->status,
             'drive_folder_id' => $school->drive_folder_id,
+            'monday_board_id' => $school->monday_board_id,
+            'monday_board_name' => $school->monday_board_name,
+            'monday_status_column_id' => $school->monday_status_column_id,
+            'monday_priority_column_id' => $school->monday_priority_column_id,
+            'monday_date_column_id' => $school->monday_date_column_id,
+            'monday_notes_column_id' => $school->monday_notes_column_id,
+            'monday_person_column_id' => $school->monday_person_column_id,
+            'monday_default_person_id' => $school->monday_default_person_id,
             'classroom_config' => $school->classroom_config,
             'created_at' => $school->created_at,
             'last_inspection_date' => $school->last_inspection_date,
@@ -1914,6 +2263,10 @@ class REST_Controller
             'created_at' => $report->created_at,
             'updated_at' => $report->updated_at,
             'version_id' => $report->version_id,
+            'monday_group_id' => $report->monday_group_id,
+            'monday_last_synced_at' => $report->monday_last_synced_at,
+            'monday_sync_status' => $report->monday_sync_status,
+            'monday_sync_error' => $report->monday_sync_error,
             'school_name' => $report->get_school() ? $report->get_school()->name : 'Unknown School',
             'is_mine' => ($report->user_id == \get_current_user_id()),
         ];
@@ -2132,6 +2485,18 @@ class REST_Controller
 
         $versions = \ChromaQA\Models\Report_Snapshot::get_versions($report_id);
 
+        $has_current_snapshot = false;
+        foreach ($versions as $version_row) {
+            if ((int) ($version_row['version_number'] ?? 0) === (int) $report->version_id) {
+                $has_current_snapshot = true;
+                break;
+            }
+        }
+
+        if (!$has_current_snapshot && (int) $report->version_id > 0) {
+            array_unshift($versions, $this->build_live_version_row($report));
+        }
+
         return new \WP_REST_Response([
             'report_id' => $report_id,
             'current_version' => $report->version_id,
@@ -2157,6 +2522,10 @@ class REST_Controller
 
         $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, $version);
         if (!$snapshot) {
+            if ($version === (int) $report->version_id) {
+                return new \WP_REST_Response($this->build_live_snapshot_response($report));
+            }
+
             return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
         }
 
@@ -2179,6 +2548,11 @@ class REST_Controller
             return new \WP_Error('not_found', 'Report not found', ['status' => 404]);
         }
 
+        $concurrency_check = $this->validate_report_restore_concurrency($request, $report);
+        if (\is_wp_error($concurrency_check)) {
+            return $concurrency_check;
+        }
+
         $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, $version);
         if (!$snapshot) {
             return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
@@ -2195,5 +2569,315 @@ class REST_Controller
             'message' => "Report restored to version {$version}",
             'new_version' => \ChromaQA\Models\Report_Snapshot::get_latest_version($report_id),
         ]);
+    }
+
+    /**
+     * Restore a single field or checklist item from a previous version into the current report.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @return WP_REST_Response|WP_Error
+     */
+    public function restore_report_version_selection($request)
+    {
+        $report_id = (int) $request['id'];
+        $version = (int) $request['version'];
+
+        $report = Report::find($report_id);
+        if (!$report) {
+            return new \WP_Error('not_found', 'Report not found', ['status' => 404]);
+        }
+
+        $concurrency_check = $this->validate_report_restore_concurrency($request, $report);
+        if (\is_wp_error($concurrency_check)) {
+            return $concurrency_check;
+        }
+
+        $snapshot = $this->get_version_snapshot_or_live($report, $version);
+        if (!$snapshot || empty($snapshot['snapshot_data']) || !is_array($snapshot['snapshot_data'])) {
+            return new \WP_Error('not_found', 'Version not found', ['status' => 404]);
+        }
+
+        $target_type = \sanitize_key((string) $request->get_param('target_type'));
+        if ($target_type === 'report_field') {
+            return $this->restore_version_report_field($request, $report, $version, $snapshot['snapshot_data']);
+        }
+
+        if ($target_type === 'response') {
+            return $this->restore_version_response_item($request, $report, $version, $snapshot['snapshot_data']);
+        }
+
+        return new \WP_Error('invalid_target', __('Invalid restore target.', 'chroma-qa-reports'), ['status' => 400]);
+    }
+
+    /**
+     * Validate concurrency for version restore actions.
+     *
+     * @param WP_REST_Request $request Request object.
+     * @param Report          $report  Report model.
+     * @return true|WP_Error
+     */
+    private function validate_report_restore_concurrency($request, $report)
+    {
+        $if_unmodified_since = $request->get_header('If-Unmodified-Since');
+        if ($if_unmodified_since && $report->updated_at) {
+            $client_timestamp = strtotime($if_unmodified_since);
+            $server_timestamp = strtotime($report->updated_at);
+
+            if ($client_timestamp && $server_timestamp > $client_timestamp) {
+                $updated_by_user = \get_userdata($report->user_id);
+                $updated_by_name = $updated_by_user ? $updated_by_user->display_name : 'Another user';
+
+                return new \WP_Error(
+                    'CONFLICT',
+                    sprintf(
+                        __('Report was modified by %s at %s. Please reload and try again.', 'chroma-qa-reports'),
+                        $updated_by_name,
+                        \wp_date('g:i A', $server_timestamp)
+                    ),
+                    [
+                        'status' => 409,
+                        'updated_by' => $updated_by_name,
+                        'updated_at' => $report->updated_at,
+                    ]
+                );
+            }
+        }
+
+        $client_version = $request->get_header('X-CQA-Version') ?: $request->get_param('version_id');
+        if ($client_version !== null && $client_version !== '') {
+            $client_version = (int) $client_version;
+            if ($client_version !== (int) $report->version_id) {
+                return new \WP_Error(
+                    'CONCURRENCY_CONFLICT',
+                    __('This report has changed since you opened it. Refresh the report before restoring a version.', 'chroma-qa-reports'),
+                    [
+                        'status' => 409,
+                        'client_version' => $client_version,
+                        'server_version' => (int) $report->version_id,
+                    ]
+                );
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Resolve a snapshot row or the current live snapshot for the requested version.
+     *
+     * @param Report $report  Report model.
+     * @param int    $version Version number.
+     * @return array|null
+     */
+    private function get_version_snapshot_or_live($report, $version)
+    {
+        $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot((int) $report->id, $version);
+        if ($snapshot) {
+            return $snapshot;
+        }
+
+        if ($version === (int) $report->version_id) {
+            return $this->build_live_snapshot_response($report);
+        }
+
+        return null;
+    }
+
+    /**
+     * Restore a single top-level report field from a snapshot.
+     *
+     * @param WP_REST_Request $request       Request object.
+     * @param Report          $report        Report model.
+     * @param int             $version       Source version number.
+     * @param array           $snapshot_data Snapshot payload.
+     * @return WP_REST_Response|WP_Error
+     */
+    private function restore_version_report_field($request, $report, $version, $snapshot_data)
+    {
+        $field = \sanitize_key((string) $request->get_param('field'));
+        $allowed_fields = [
+            'school_id',
+            'report_type',
+            'inspection_date',
+            'previous_report_id',
+            'overall_rating',
+            'status',
+            'closing_notes',
+        ];
+
+        if (!in_array($field, $allowed_fields, true)) {
+            return new \WP_Error('invalid_field', __('That field cannot be restored individually.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
+        $source_report = is_array($snapshot_data['report'] ?? null) ? $snapshot_data['report'] : [];
+        $source_value = $source_report[$field] ?? null;
+
+        switch ($field) {
+            case 'school_id':
+                $school_id = (int) $source_value;
+                $school = $school_id > 0 ? School::find($school_id) : null;
+                if ($school_id <= 0 || !$school) {
+                    return new \WP_Error('invalid_school', __('The saved version references an invalid school.', 'chroma-qa-reports'), ['status' => 400]);
+                }
+                if ($school->status !== 'active') {
+                    return new \WP_Error('inactive_school', __('Cannot restore an inactive school onto this report.', 'chroma-qa-reports'), ['status' => 400]);
+                }
+                $report->school_id = $school_id;
+                break;
+            case 'report_type':
+                $report->report_type = \sanitize_text_field((string) $source_value);
+                break;
+            case 'inspection_date':
+                $inspection_date = \sanitize_text_field((string) $source_value);
+                $date_check = $this->validate_inspection_date($inspection_date);
+                if (\is_wp_error($date_check)) {
+                    return $date_check;
+                }
+                $report->inspection_date = $inspection_date;
+                break;
+            case 'previous_report_id':
+                $report->previous_report_id = !empty($source_value) ? (int) $source_value : null;
+                break;
+            case 'overall_rating':
+                $report->overall_rating = \sanitize_text_field((string) $source_value);
+                break;
+            case 'status':
+                $restored_status = \sanitize_text_field((string) $source_value);
+                if ($restored_status === Report::STATUS_APPROVED && $report->status !== Report::STATUS_APPROVED && !\current_user_can('cqa_approve_reports')) {
+                    return new \WP_Error('forbidden', __('You do not have permission to restore this report to approved status.', 'chroma-qa-reports'), ['status' => 403]);
+                }
+                $report->status = $restored_status;
+                break;
+            case 'closing_notes':
+                $report->closing_notes = \sanitize_textarea_field((string) $source_value);
+                break;
+        }
+
+        if (!$report->save(sprintf('Restored %s from version %d', str_replace('_', ' ', $field), $version), \ChromaQA\Models\Report_Snapshot::TYPE_RESTORE)) {
+            return new \WP_Error('restore_failed', __('Failed to restore the selected field.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'target_type' => 'report_field',
+            'field' => $field,
+            'version_id' => (int) $report->version_id,
+            'updated_at' => $report->updated_at,
+            'message' => sprintf(__('Restored %s from version %d.', 'chroma-qa-reports'), str_replace('_', ' ', $field), $version),
+        ], 200);
+    }
+
+    /**
+     * Restore a single checklist response item from a snapshot.
+     *
+     * @param WP_REST_Request $request       Request object.
+     * @param Report          $report        Report model.
+     * @param int             $version       Source version number.
+     * @param array           $snapshot_data Snapshot payload.
+     * @return WP_REST_Response|WP_Error
+     */
+    private function restore_version_response_item($request, $report, $version, $snapshot_data)
+    {
+        $section_key = \sanitize_text_field((string) $request->get_param('section_key'));
+        $item_key = \sanitize_text_field((string) $request->get_param('item_key'));
+
+        if ($section_key === '' || $item_key === '') {
+            return new \WP_Error('invalid_item', __('A section key and item key are required.', 'chroma-qa-reports'), ['status' => 400]);
+        }
+
+        $snapshot_responses = is_array($snapshot_data['responses'] ?? null) ? $snapshot_data['responses'] : [];
+        $source_item = is_array($snapshot_responses[$section_key][$item_key] ?? null) ? $snapshot_responses[$section_key][$item_key] : [];
+
+        $payload = [
+            $section_key => [
+                $item_key => [
+                    'rating' => \sanitize_text_field((string) ($source_item['rating'] ?? Checklist_Response::RATING_NA)),
+                    'notes' => \sanitize_textarea_field((string) ($source_item['notes'] ?? '')),
+                    'evidence_type' => \sanitize_text_field((string) ($source_item['evidence_type'] ?? 'observation')),
+                    'previous_rating' => \sanitize_text_field((string) ($source_item['previous_rating'] ?? '')),
+                    'previous_notes' => \sanitize_textarea_field((string) ($source_item['previous_notes'] ?? '')),
+                ],
+            ],
+        ];
+
+        if (!Checklist_Response::bulk_save((int) $report->id, $payload)) {
+            return new \WP_Error('restore_failed', __('Failed to restore the selected checklist item.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        if (!$report->save(sprintf('Restored checklist item %s/%s from version %d', $section_key, $item_key, $version), \ChromaQA\Models\Report_Snapshot::TYPE_RESTORE)) {
+            return new \WP_Error('restore_failed', __('Failed to version the restored checklist item.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        return new \WP_REST_Response([
+            'success' => true,
+            'target_type' => 'response',
+            'section_key' => $section_key,
+            'item_key' => $item_key,
+            'version_id' => (int) $report->version_id,
+            'updated_at' => $report->updated_at,
+            'message' => sprintf(__('Restored checklist item %s/%s from version %d.', 'chroma-qa-reports'), $section_key, $item_key, $version),
+        ], 200);
+    }
+
+    /**
+     * Build a synthetic current-version row when the live report version does not yet have a snapshot row.
+     *
+     * @param Report $report Report model.
+     * @return array
+     */
+    private function build_live_version_row($report)
+    {
+        $updated_by_user = \get_userdata($report->user_id);
+
+        return [
+            'id' => 'live-' . (int) $report->id . '-' . (int) $report->version_id,
+            'version_number' => (int) $report->version_id,
+            'change_summary' => __('Current live report state', 'chroma-qa-reports'),
+            'user_id' => (int) $report->user_id,
+            'created_at' => $report->updated_at ?: $report->created_at,
+            'user_name' => $updated_by_user ? $updated_by_user->display_name : '',
+        ];
+    }
+
+    /**
+     * Build a synthetic snapshot response for the current live report version.
+     *
+     * @param Report $report Report model.
+     * @return array
+     */
+    private function build_live_snapshot_response($report)
+    {
+        return [
+            'id' => 'live-' . (int) $report->id . '-' . (int) $report->version_id,
+            'report_id' => (int) $report->id,
+            'version_number' => (int) $report->version_id,
+            'snapshot_data' => [
+                'report' => [
+                    'id' => (int) $report->id,
+                    'school_id' => (int) $report->school_id,
+                    'user_id' => (int) $report->user_id,
+                    'report_type' => $report->report_type,
+                    'inspection_date' => $report->inspection_date,
+                    'previous_report_id' => $report->previous_report_id,
+                    'overall_rating' => $report->overall_rating,
+                    'closing_notes' => $report->closing_notes,
+                    'status' => $report->status,
+                    'version_id' => (int) $report->version_id,
+                    'created_at' => $report->created_at,
+                    'updated_at' => $report->updated_at,
+                ],
+                'responses' => \ChromaQA\Models\Checklist_Response::get_by_report_array($report->id),
+                'photos' => \ChromaQA\Models\Photo::get_by_report_array($report->id),
+                'ai_summary' => $report->get_ai_summary(),
+                'snapshot_meta' => [
+                    'captured_at' => \current_time('mysql'),
+                    'plugin_version' => defined('CQA_VERSION') ? CQA_VERSION : '1.0.0',
+                    'source' => 'live_report',
+                ],
+            ],
+            'change_summary' => __('Current live report state', 'chroma-qa-reports'),
+            'user_id' => (int) $report->user_id,
+            'created_at' => $report->updated_at ?: $report->created_at,
+        ];
     }
 }

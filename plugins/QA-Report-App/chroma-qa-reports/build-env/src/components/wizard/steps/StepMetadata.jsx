@@ -1,45 +1,51 @@
 import React from 'react';
 import { Calendar, FileType, FileText, AlertTriangle } from 'lucide-react';
 
-const StepMetadata = ({ draft, updateDraft, readOnly = false }) => {
-
-    const handleChange = (field, value) => {
-        if (readOnly) return;
-        updateDraft({ [field]: value });
+const StepMetadata = ( { draft, updateDraft, readOnly = false } ) => {
+    const handleChange = ( field, value ) => {
+        if ( readOnly ) {
+            return;
+        }
+        updateDraft( { [ field ]: value } );
     };
 
     return (
         <div className="space-y-8 animate-fade-in">
-
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Inspection Date */}
+                { /* Inspection Date */ }
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
-                        <Calendar size={16} /> Inspection Date
+                    <label
+                        htmlFor="inspection-date"
+                        className="block text-sm font-medium text-gray-700 flex items-center gap-2"
+                    >
+                        <Calendar size={ 16 } /> Inspection Date
                     </label>
                     <input
+                        id="inspection-date"
                         type="date"
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none disabled:bg-gray-50 disabled:text-gray-500"
-                        value={draft.inspection_date || ''}
-                        max={new Date().toISOString().split('T')[0]}
-                        onChange={(e) => handleChange('inspection_date', e.target.value)}
+                        value={ draft.inspection_date || '' }
+                        max={ new Date().toISOString().split( 'T' )[ 0 ] }
+                        onChange={ ( e ) => handleChange( 'inspection_date', e.target.value ) }
                         required
-                        disabled={readOnly}
+                        disabled={ readOnly }
                     />
                 </div>
 
-                {/* Report Type */}
+                { /* Report Type */ }
                 <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 flex items-center gap-2">
-                        <FileType size={16} /> Report Type
+                    <label
+                        htmlFor="report-type"
+                        className="block text-sm font-medium text-gray-700 flex items-center gap-2"
+                    >
+                        <FileType size={ 16 } /> Report Type
                     </label>
                     <select
+                        id="report-type"
                         className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-cqa-primary focus:border-cqa-primary outline-none bg-white disabled:bg-gray-50 disabled:text-gray-500"
-                        value={draft.report_type}
-                        onChange={(e) => handleChange('report_type', e.target.value)}
-                        disabled={readOnly}
+                        value={ draft.report_type }
+                        onChange={ ( e ) => handleChange( 'report_type', e.target.value ) }
+                        disabled={ readOnly }
                     >
                         <option value="tier1">Tier 1 (Standard)</option>
                         <option value="tier1_tier2">Tier 1 + Tier 2 (Comprehensive)</option>
@@ -48,29 +54,31 @@ const StepMetadata = ({ draft, updateDraft, readOnly = false }) => {
                 </div>
             </div>
 
-            {/* Linking Confirmation (Audit Guardrail) */}
+            { /* Linking Confirmation (Audit Guardrail) */ }
             <div className="bg-gray-50 p-4 rounded-md border border-gray-200">
-                <h4 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide text-xs">Configuration Summary</h4>
+                <h4 className="text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide text-xs">
+                    Configuration Summary
+                </h4>
                 <div className="flex flex-col gap-2 text-sm text-gray-600">
                     <div className="flex justify-between">
                         <span>School:</span>
-                        <span className="font-medium text-gray-900">{draft.school_name}</span>
+                        <span className="font-medium text-gray-900">{ draft.school_name }</span>
                     </div>
                     <div className="flex justify-between">
                         <span>Comparison Link:</span>
-                        {draft.previous_report_id ? (
+                        { draft.previous_report_id ? (
                             <span className="font-medium text-green-600 flex items-center gap-1">
-                                <FileText size={14} /> Linked to Report #{draft.previous_report_id} ({draft.previous_report_date})
+                                <FileText size={ 14 } /> Linked to Report #{ draft.previous_report_id } (
+                                { draft.previous_report_date })
                             </span>
                         ) : (
                             <span className="font-medium text-orange-600 flex items-center gap-1">
-                                <AlertTriangle size={14} /> No Comparison (Fresh Start)
+                                <AlertTriangle size={ 14 } /> No Comparison (Fresh Start)
                             </span>
-                        )}
+                        ) }
                     </div>
                 </div>
             </div>
-
         </div>
     );
 };

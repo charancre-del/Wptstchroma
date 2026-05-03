@@ -75,7 +75,10 @@ add_action('wp_enqueue_scripts', 'chroma_register_pdf_assets');
 add_action('wp_footer', 'chroma_render_pdf_modal');
 
 function chroma_register_pdf_assets() {
-    wp_register_script('chroma-pdf-viewer', get_template_directory_uri() . '/assets/js/chroma-pdf-viewer.js', array(), '1.0.0', true);
+    $viewer_path = get_template_directory() . '/assets/js/chroma-pdf-viewer.js';
+    $viewer_version = file_exists($viewer_path) ? (string) filemtime($viewer_path) : '1.0.0';
+
+    wp_register_script('chroma-pdf-viewer', get_template_directory_uri() . '/assets/js/chroma-pdf-viewer.js', array(), $viewer_version, true);
 
     // Eagerly enqueue if the current post content contains the shortcode
     global $post;
@@ -93,6 +96,11 @@ function chroma_enqueue_pdf_assets() {
     $config = array(
         'pdfJsUrl' => get_template_directory_uri() . '/assets/js/pdf/pdf.min.js',
         'pdfWorkerUrl' => get_template_directory_uri() . '/assets/js/pdf/pdf.worker.min.js'
+    );
+    wp_add_inline_script(
+        'chroma-pdf-viewer',
+        'window.chromaPdfConfig = ' . wp_json_encode($config) . ';',
+        'before'
     );
     wp_localize_script('chroma-pdf-viewer', 'chromaPdfConfig', $config);
     wp_enqueue_script('chroma-pdf-viewer');

@@ -280,7 +280,7 @@ while (have_posts()):
 						$hero_review_text = chroma_get_translated_meta(get_the_ID(), 'location_hero_review_text');
 						$hero_review_author = chroma_get_translated_meta(get_the_ID(), 'location_hero_review_author') ?: __('Parent Review', 'chroma-excellence');
 
-						if ($hero_review_text):
+						if (false && $hero_review_text):
 							?>
 							<div
 								class="hidden lg:block absolute bottom-6 left-6 bg-white/95 backdrop-blur-sm p-5 rounded-2xl shadow-float max-w-[200px] fade-in-up delay-300 z-20">

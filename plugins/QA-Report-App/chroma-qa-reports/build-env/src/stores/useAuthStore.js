@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import apiFetch from '@api/client';
 
-const useAuthStore = create((set, get) => ({
+const useAuthStore = create( ( set, get ) => ( {
     user: null,
     isAuthenticated: false,
     isLoading: true,
@@ -11,37 +11,37 @@ const useAuthStore = create((set, get) => ({
 
     // Fetch user info from /me
     fetchUser: async () => {
-        set({ isLoading: true });
+        set( { isLoading: true } );
         try {
-            const response = await apiFetch('me');
-            if (response.success) {
-                set({
+            const response = await apiFetch( 'me' );
+            if ( response.success ) {
+                set( {
                     user: response.data,
                     isAuthenticated: true,
                     capabilities: response.data.capabilities || {},
                     flags: response.data.flags || {},
                     isLoading: false,
                     error: null,
-                });
+                } );
             } else {
-                set({ error: 'Failed to load user', isAuthenticated: false, isLoading: false });
+                set( { error: 'Failed to load user', isAuthenticated: false, isLoading: false } );
             }
-        } catch (error) {
-            set({ error: error.message, isAuthenticated: false, isLoading: false });
+        } catch ( error ) {
+            set( { error: error.message, isAuthenticated: false, isLoading: false } );
         }
     },
 
     // Check specific capability
-    can: (capability) => {
+    can: ( capability ) => {
         const { capabilities } = get();
-        return capabilities[capability] === true;
+        return capabilities[ capability ] === true;
     },
 
     // Check specific feature flag
-    isFeatureEnabled: (feature) => {
+    isFeatureEnabled: ( feature ) => {
         const { flags } = get();
-        return flags[`cqa_flag_${feature}`] === true;
-    }
-}));
+        return flags[ `cqa_flag_${ feature }` ] === true;
+    },
+} ) );
 
 export default useAuthStore;

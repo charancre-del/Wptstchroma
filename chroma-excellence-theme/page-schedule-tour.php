@@ -106,6 +106,14 @@ if (false === $regions) {
     // Cache the processed regions
     wp_cache_set($cache_key, $regions, 'chroma', HOUR_IN_SECONDS);
 }
+
+$tour_language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
+$tour_hero_badge = $tour_language === 'es' ? 'Admisiones' : 'Admissions';
+$tour_hero_title = $tour_language === 'es' ? 'Ven a conocer la magia.' : 'Come see the magic.';
+$tour_hero_description = $tour_language === 'es'
+    ? 'Selecciona tu campus preferido para programar un recorrido privado con la directora. Estamos emocionados de conocerte.'
+    : "Select your preferred campus below to schedule a private walkthrough with the Director. We can't wait to meet you!";
+
 get_header();
 ?>
 
@@ -114,10 +122,9 @@ get_header();
     <section class="py-20 bg-white border-b border-brand-ink/5 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-12 items-center">
             <div class="text-center lg:text-left fade-in-up">
-                <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block">Admissions</span>
-                <h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6">Come see the magic.</h1>
-                <p class="text-lg text-brand-ink/60 mb-10 max-w-xl mx-auto lg:mx-0">Select your preferred campus
-                    below to schedule a private walkthrough with the Director. We can't wait to meet you!</p>
+                <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php echo esc_html($tour_hero_badge); ?></span>
+                <h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6"><?php echo esc_html($tour_hero_title); ?></h1>
+                <p class="text-lg text-brand-ink/60 mb-10 max-w-xl mx-auto lg:mx-0"><?php echo esc_html($tour_hero_description); ?></p>
 
                 <!-- Region Quick Links -->
                 <div class="flex flex-wrap justify-center lg:justify-start gap-3">

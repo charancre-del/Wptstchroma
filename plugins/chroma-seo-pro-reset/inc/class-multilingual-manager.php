@@ -85,7 +85,7 @@ class Chroma_Multilingual_Manager
      */
     public function output_hreflang_tags()
     {
-        if (!is_singular() && !is_home() && !is_front_page() && !get_query_var('chroma_combo')) {
+        if (!$this->is_hreflang_eligible_request()) {
             return;
         }
 
@@ -96,15 +96,41 @@ class Chroma_Multilingual_Manager
         }
 
         $alternates = self::get_alternates($post_id);
-        
-        if (empty($alternates['en']) || empty($alternates['es'])) {
+
+        if (empty($alternates['en'])) {
             return;
         }
 
         // x-default should point to the fallback (English)
         echo '<link rel="alternate" hreflang="x-default" href="' . esc_url($alternates['en']) . '" />' . "\n";
         echo '<link rel="alternate" hreflang="en-US" href="' . esc_url($alternates['en']) . '" />' . "\n";
-        echo '<link rel="alternate" hreflang="es-US" href="' . esc_url($alternates['es']) . '" />' . "\n";
+
+        if (!empty($alternates['es'])) {
+            echo '<link rel="alternate" hreflang="es-US" href="' . esc_url($alternates['es']) . '" />' . "\n";
+        }
+    }
+
+    /**
+     * Determine if current request should output hreflang tags.
+     *
+     * @return bool
+     */
+    private function is_hreflang_eligible_request()
+    {
+        if (is_admin() || is_404() || is_search() || is_feed() || is_trackback()) {
+            return false;
+        }
+
+        if (function_exists('is_robots') && is_robots()) {
+            return false;
+        }
+
+        // Attachments and author archives are redirected/noindex in this stack.
+        if (is_attachment() || is_author()) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -262,6 +288,63 @@ class Chroma_Multilingual_Manager
     }
 
     /**
+     * Get current request path without query parameters.
+     *
+     * @return string
+     */
+    private static function get_current_request_path()
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+
+        return is_string($path) ? $path : '';
+    }
+
+    /**
+     * Build normalized alternates for dynamic combo and near-me routes.
+     *
+     * @return array
+     */
+    private static function get_dynamic_route_alternates()
+    {
+        $path = self::get_current_request_path();
+        if ($path === '') {
+            return [];
+        }
+
+        $canonical_path = '';
+        if (function_exists('chroma_get_dynamic_route_canonical_path')) {
+            $canonical_path = chroma_get_dynamic_route_canonical_path($path);
+        }
+
+        if ($canonical_path === '') {
+            if (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+                $canonical_path = '/' . (!empty($matches[1]) ? 'es/' : '') . sanitize_title($matches[2]) . '-in-' . sanitize_title($matches[3]) . '-' . strtolower($matches[4]) . '/';
+            } elseif (preg_match('#^/(es/)?([a-z0-9-]+)-near-me/?$#i', $path, $matches)) {
+                $canonical_path = '/' . (!empty($matches[1]) ? 'es/' : '') . sanitize_title($matches[2]) . '-near-me/';
+            } elseif (preg_match('#^/(es/)?([a-z0-9-]+)-near-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+                $canonical_path = '/' . (!empty($matches[1]) ? 'es/' : '') . sanitize_title($matches[2]) . '-near-' . sanitize_title($matches[3]) . '-' . strtolower($matches[4]) . '/';
+            }
+        }
+
+        if ($canonical_path === '') {
+            return [];
+        }
+
+        $en_path = preg_replace('#^/es/#', '/', $canonical_path);
+        if (!is_string($en_path) || $en_path === '') {
+            $en_path = '/';
+        }
+
+        $es_path = $en_path === '/' ? '/es/' : '/es' . $en_path;
+
+        return [
+            'en' => home_url($en_path),
+            'es' => home_url($es_path),
+        ];
+    }
+
+    /**
      * Get alternate URLs (EN/ES) for a post or current page
      * 
      * @param int|null $post_id
@@ -270,6 +353,11 @@ class Chroma_Multilingual_Manager
     public static function get_alternates($post_id = null)
     {
         global $wp;
+
+        $dynamic_alternates = self::get_dynamic_route_alternates();
+        if (!empty($dynamic_alternates['en'])) {
+            return $dynamic_alternates;
+        }
 
         // 1. Determine the base English URL based on the current context
         if ($post_id) {
@@ -505,8 +593,16 @@ class Chroma_Multilingual_Manager
      */
     public function localize_seo_title($title) {
         if (!self::is_spanish()) return $title;
-        
-        $post_id = get_the_ID();
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return $title;
+        }
+
+        if (!is_singular()) {
+            return $title;
+        }
+
+        $post_id = get_queried_object_id();
         if (!$post_id) return $title;
         
         $es_seo_title = get_post_meta($post_id, '_chroma_es_seo_title', true);
@@ -523,8 +619,16 @@ class Chroma_Multilingual_Manager
      */
     public function localize_meta_description() {
         if (!self::is_spanish()) return;
-        
-        $post_id = get_the_ID();
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return;
+        }
+
+        if (!is_singular()) {
+            return;
+        }
+
+        $post_id = get_queried_object_id();
         if (!$post_id) return;
         
         $es_meta_desc = get_post_meta($post_id, '_chroma_es_meta_description', true);

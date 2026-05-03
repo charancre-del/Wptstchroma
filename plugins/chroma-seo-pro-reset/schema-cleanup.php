@@ -65,11 +65,11 @@ function is_invalid_type($type, $invalid_list) {
 /**
  * Clean schemas for a single post
  */
-function clean_post_schemas($post_id, $invalid_list, $dry_run = true) {
+function clean_post_schemas($post_id, $invalid_list, $dry_run = true, $backup_key = '') {
     $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
     
     if (empty($schemas) || !is_array($schemas)) {
-        return ['changed' => false, 'removed' => []];
+        return ['changed' => false, 'removed' => [], 'before' => 0, 'after' => 0];
     }
     
     $cleaned = [];
@@ -87,12 +87,21 @@ function clean_post_schemas($post_id, $invalid_list, $dry_run = true) {
     
     if (!empty($removed)) {
         if (!$dry_run) {
+            if (!empty($backup_key)) {
+                update_post_meta($post_id, $backup_key, $schemas);
+            }
             update_post_meta($post_id, '_chroma_post_schemas', $cleaned);
         }
-        return ['changed' => true, 'removed' => $removed, 'remaining' => count($cleaned)];
+        return [
+            'changed' => true,
+            'removed' => $removed,
+            'remaining' => count($cleaned),
+            'before' => count($schemas),
+            'after' => count($cleaned),
+        ];
     }
     
-    return ['changed' => false, 'removed' => []];
+    return ['changed' => false, 'removed' => [], 'before' => count($schemas), 'after' => count($schemas)];
 }
 
 /**
@@ -102,6 +111,11 @@ function run_schema_cleanup($dry_run = true) {
     global $INVALID_TYPES;
     
     echo $dry_run ? "=== DRY RUN MODE ===\n\n" : "=== EXECUTING CLEANUP ===\n\n";
+
+    $backup_key = '_chroma_post_schemas_backup_' . gmdate('Ymd_His');
+    if (!$dry_run) {
+        echo "Backup key for rollback: {$backup_key}\n\n";
+    }
     
     // Get all posts with schema meta
     global $wpdb;
@@ -113,9 +127,14 @@ function run_schema_cleanup($dry_run = true) {
     
     $total_cleaned = 0;
     $total_removed = 0;
+    $type_counts = [];
+    $total_before = 0;
+    $total_after = 0;
     
     foreach ($post_ids as $post_id) {
-        $result = clean_post_schemas($post_id, $INVALID_TYPES, $dry_run);
+        $result = clean_post_schemas($post_id, $INVALID_TYPES, $dry_run, $backup_key);
+        $total_before += (int) ($result['before'] ?? 0);
+        $total_after += (int) ($result['after'] ?? 0);
         
         if ($result['changed']) {
             $total_cleaned++;
@@ -123,19 +142,38 @@ function run_schema_cleanup($dry_run = true) {
             
             $title = get_the_title($post_id);
             $removed_types = implode(', ', $result['removed']);
+
+            foreach ($result['removed'] as $removed_type) {
+                if (!isset($type_counts[$removed_type])) {
+                    $type_counts[$removed_type] = 0;
+                }
+                $type_counts[$removed_type]++;
+            }
             
             echo "Post $post_id ($title):\n";
             echo "  - Removed: $removed_types\n";
-            echo "  - Remaining: {$result['remaining']} schemas\n\n";
+            echo "  - Schema count: {$result['before']} -> {$result['after']}\n\n";
         }
     }
     
     echo "=== SUMMARY ===\n";
     echo "Posts modified: $total_cleaned\n";
     echo "Schema types removed: $total_removed\n";
+    echo "Total schema objects: $total_before -> $total_after\n";
+
+    if (!empty($type_counts)) {
+        echo "\nRemoved by type:\n";
+        arsort($type_counts);
+        foreach ($type_counts as $type => $count) {
+            echo "  - {$type}: {$count}\n";
+        }
+    }
     
     if ($dry_run) {
         echo "\nThis was a DRY RUN. To execute, run with \$dry_run = false\n";
+    } else {
+        echo "\nRollback hint:\n";
+        echo "  Restore backup from meta key: {$backup_key}\n";
     }
 }
 

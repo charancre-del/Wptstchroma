@@ -14,6 +14,7 @@ if (!defined('ABSPATH')) {
 class Chroma_AMP_Blog
 {
     const ENDPOINT = 'amp';
+    const REWRITE_RULES_VERSION = 'v1';
     
     /**
      * Get theme colors - centralized source of truth
@@ -32,8 +33,10 @@ class Chroma_AMP_Blog
     }
     
     public function __construct() {
-        add_action('init', [$this, 'add_rewrite_endpoint']);
-        add_action('template_redirect', [$this, 'handle_amp_request']);
+        add_action('init', [$this, 'add_rewrite_endpoint'], 0);
+        add_action('init', [$this, 'maybe_flush_rewrite_rules'], 20);
+        add_filter('redirect_canonical', [$this, 'preserve_amp_endpoint'], 10, 2);
+        add_action('template_redirect', [$this, 'handle_amp_request'], 0);
         add_action('wp_head', [$this, 'add_amphtml_link']);
         add_filter('the_content', [$this, 'clean_content_for_amp'], 999);
     }
@@ -44,12 +47,60 @@ class Chroma_AMP_Blog
     public function add_rewrite_endpoint() {
         add_rewrite_endpoint(self::ENDPOINT, EP_PERMALINK);
     }
+
+    /**
+     * Flush rewrites once after AMP endpoint registration.
+     * Needed on existing installs where earlier flushes happened before endpoint registration.
+     */
+    public function maybe_flush_rewrite_rules() {
+        if (!is_admin() || wp_doing_ajax() || wp_doing_cron()) {
+            return;
+        }
+
+        if ((defined('REST_REQUEST') && REST_REQUEST) || (function_exists('wp_is_json_request') && wp_is_json_request())) {
+            return;
+        }
+
+        if (wp_installing()) {
+            return;
+        }
+
+        if (get_option('chroma_amp_rewrite_flushed') === self::REWRITE_RULES_VERSION) {
+            return;
+        }
+
+        flush_rewrite_rules(false);
+        update_option('chroma_amp_rewrite_flushed', self::REWRITE_RULES_VERSION);
+    }
+
+    /**
+     * Return true when current request is an AMP endpoint request.
+     */
+    private function is_amp_request() {
+        return null !== get_query_var(self::ENDPOINT, null);
+    }
+
+    /**
+     * Keep /amp/ requests from being canonical-redirected to non-AMP URLs.
+     */
+    public function preserve_amp_endpoint($redirect_url, $requested_url) {
+        if ($this->is_amp_request()) {
+            return false;
+        }
+
+        $path = wp_parse_url($requested_url, PHP_URL_PATH);
+        if (is_string($path) && preg_match('#/' . preg_quote(self::ENDPOINT, '#') . '/?$#', $path)) {
+            return false;
+        }
+
+        return $redirect_url;
+    }
     
     /**
      * Add amphtml link to regular blog posts
      */
     public function add_amphtml_link() {
-        if (!is_singular('post')) {
+        if (!is_singular('post') || $this->is_amp_request()) {
             return;
         }
         
@@ -61,10 +112,8 @@ class Chroma_AMP_Blog
      * Handle AMP request
      */
     public function handle_amp_request() {
-        global $wp_query;
-        
         // Check if AMP endpoint is requested
-        if (!isset($wp_query->query_vars[self::ENDPOINT])) {
+        if (!$this->is_amp_request()) {
             return;
         }
         
@@ -398,10 +447,8 @@ class Chroma_AMP_Blog
      * Clean content for AMP (filter version)
      */
     public function clean_content_for_amp($content) {
-        global $wp_query;
-        
         // Only apply on AMP pages
-        if (!isset($wp_query->query_vars[self::ENDPOINT])) {
+        if (!$this->is_amp_request()) {
             return $content;
         }
         

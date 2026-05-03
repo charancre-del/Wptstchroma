@@ -10,8 +10,8 @@ const config = window.cqaData || {
 };
 
 class ApiError extends Error {
-    constructor(message, status, code, data) {
-        super(message);
+    constructor( message, status, code, data ) {
+        super( message );
         this.status = status;
         this.code = code;
         this.data = data;
@@ -20,8 +20,10 @@ class ApiError extends Error {
 
 /**
  * Main Fetch Wrapper
+ * @param endpoint
+ * @param options
  */
-export const apiFetch = async (endpoint, options = {}) => {
+export const apiFetch = async ( endpoint, options = {} ) => {
     const isFormData = options.body instanceof FormData;
 
     // Default headers
@@ -33,56 +35,56 @@ export const apiFetch = async (endpoint, options = {}) => {
     // AUDIT FINDING #1: Strict JSON Payload
     // Only set Content-Type for JSON requests.
     // FormData uploads must NOT have Content-Type set (browser sets boundary).
-    if (!isFormData && options.body) {
-        headers['Content-Type'] = 'application/json';
+    if ( ! isFormData && options.body ) {
+        headers[ 'Content-Type' ] = 'application/json';
     }
 
     // AUDIT FINDING #3: Concurrency Locking
     // If 'ifUnmodifiedSince' option is passed, set the header
-    if (options.ifUnmodifiedSince) {
-        headers['If-Unmodified-Since'] = options.ifUnmodifiedSince;
+    if ( options.ifUnmodifiedSince ) {
+        headers[ 'If-Unmodified-Since' ] = options.ifUnmodifiedSince;
     }
 
     // Build URL with query params support
-    let url = `${config.restUrl.replace(/\/$/, '')}/${endpoint.replace(/^\//, '')}`;
+    let url = `${ config.restUrl.replace( /\/$/, '' ) }/${ endpoint.replace( /^\//, '' ) }`;
 
     // Handle params option (like axios)
-    if (options.params) {
+    if ( options.params ) {
         const searchParams = new URLSearchParams();
-        Object.entries(options.params).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && value !== '') {
-                searchParams.append(key, value);
+        Object.entries( options.params ).forEach( ( [ key, value ] ) => {
+            if ( value !== undefined && value !== null && value !== '' ) {
+                searchParams.append( key, value );
             }
-        });
+        } );
         const queryString = searchParams.toString();
-        if (queryString) {
-            url += (url.includes('?') ? '&' : '?') + queryString;
+        if ( queryString ) {
+            url += ( url.includes( '?' ) ? '&' : '?' ) + queryString;
         }
     }
 
     try {
-        const response = await fetch(url, {
+        const response = await fetch( url, {
             ...options,
             headers,
             credentials: 'same-origin',
-            body: isFormData ? options.body : JSON.stringify(options.body),
-        });
+            body: isFormData ? options.body : JSON.stringify( options.body ),
+        } );
 
         // Parse response safely (guard against empty/malformed JSON bodies)
         let data = {};
-        const contentType = response.headers.get('content-type') || '';
+        const contentType = response.headers.get( 'content-type' ) || '';
         const rawText = await response.text();
 
-        if (rawText) {
-            if (contentType.indexOf('application/json') !== -1) {
+        if ( rawText ) {
+            if ( contentType.indexOf( 'application/json' ) !== -1 ) {
                 try {
-                    data = JSON.parse(rawText);
-                } catch (parseError) {
+                    data = JSON.parse( rawText );
+                } catch ( parseError ) {
                     throw new ApiError(
-                        `Invalid JSON response (status ${response.status})`,
+                        `Invalid JSON response (status ${ response.status })`,
                         response.status,
                         'invalid_json_response',
-                        { responseText: rawText.slice(0, 300) }
+                        { responseText: rawText.slice( 0, 300 ) }
                     );
                 }
             } else {
@@ -91,64 +93,70 @@ export const apiFetch = async (endpoint, options = {}) => {
         }
 
         // Handle Errors based on Status
-        if (!response.ok) {
+        if ( ! response.ok ) {
             // 401: Session Expired
-            if (response.status === 401) {
+            if ( response.status === 401 ) {
                 // Trigger global session expired event (handled by AuthStore/UI)
-                window.dispatchEvent(new CustomEvent('cqa:session-expired'));
-                throw new ApiError('Session Expired', 401, 'session_expired');
+                window.dispatchEvent( new CustomEvent( 'cqa:session-expired' ) );
+                throw new ApiError( 'Session Expired', 401, 'session_expired' );
             }
 
             // 409: Conflict (Optimistic Locking)
-            if (response.status === 409) {
-                // Return data so UI can show "Modified by [User]"
-                throw new ApiError('Conflict', 409, 'conflict', data);
+            if ( response.status === 409 ) {
+                const errorMessage = data.message || data.error?.message || 'Conflict';
+                const errorCode = data.code || data.error?.code || 'conflict';
+                throw new ApiError( errorMessage, 409, errorCode, data );
             }
 
             // Other errors
             const errorMessage = data.message || data.error?.message || 'An unexpected error occurred';
             const errorCode = data.code || data.error?.code || 'unknown_error';
-            throw new ApiError(errorMessage, response.status, errorCode, data);
+            throw new ApiError( errorMessage, response.status, errorCode, data );
         }
 
         return data;
-    } catch (error) {
+    } catch ( error ) {
         // If it's already an ApiError, rethrow it
-        if (error instanceof ApiError) {
+        if ( error instanceof ApiError ) {
             throw error;
         }
 
         // Network errors
-        throw new ApiError(error.message, 0, 'network_error');
+        throw new ApiError( error.message, 0, 'network_error' );
     }
 };
 
 // Axios-like wrapper for compatibility with useQueries
 export const apiClient = {
-    get: (endpoint, config = {}) => apiFetch(endpoint, { ...config, method: 'GET' }),
-    post: (endpoint, data, config = {}) => apiFetch(endpoint, { ...config, method: 'POST', body: data }),
-    put: (endpoint, data, config = {}) => apiFetch(endpoint, { ...config, method: 'PUT', body: data }),
-    delete: (endpoint, config = {}) => apiFetch(endpoint, { ...config, method: 'DELETE' }),
+    get: ( endpoint, requestConfig = {} ) => apiFetch( endpoint, { ...requestConfig, method: 'GET' } ),
+    post: ( endpoint, data, requestConfig = {} ) =>
+        apiFetch( endpoint, { ...requestConfig, method: 'POST', body: data } ),
+    put: ( endpoint, data, requestConfig = {} ) =>
+        apiFetch( endpoint, { ...requestConfig, method: 'PUT', body: data } ),
+    delete: ( endpoint, requestConfig = {} ) => apiFetch( endpoint, { ...requestConfig, method: 'DELETE' } ),
 };
 
 /**
  * Pulse check to keep nonce alive during long sessions
  */
 let pulseInterval = null;
-export const startNoncePulse = (intervalMs = 300000) => { // Default 5 mins
-    if (pulseInterval) clearInterval(pulseInterval);
+export const startNoncePulse = ( intervalMs = 300000 ) => {
+    // Default 5 mins
+    if ( pulseInterval ) {
+        clearInterval( pulseInterval );
+    }
 
-    pulseInterval = setInterval(async () => {
+    pulseInterval = setInterval( async () => {
         try {
             // Ping /me - this updates the cookie/session and validates nonce
-            await apiFetch('/me');
-        } catch (e) {
-            if (e.status === 401) {
-                console.warn('[CQA] Pulse failed: Session expired');
-                clearInterval(pulseInterval);
+            await apiFetch( '/me' );
+        } catch ( e ) {
+            if ( e.status === 401 ) {
+                console.warn( '[CQA] Pulse failed: Session expired' );
+                clearInterval( pulseInterval );
             }
         }
-    }, intervalMs);
+    }, intervalMs );
 };
 
 export default apiFetch;

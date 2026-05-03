@@ -12,6 +12,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
+ * Allow limited inline HTML for About page rich text fields.
+ *
+ * @param string $value Raw field value.
+ * @return string
+ */
+function chroma_about_sanitize_inline_html( $value ) {
+	$allowed_tags = wp_kses_allowed_html( 'post' );
+	$allowed_tags['span'] = array(
+		'class' => true,
+	);
+
+	return wp_kses( (string) $value, $allowed_tags );
+}
+
+/**
  * Register About Page Meta Boxes
  */
 function chroma_about_page_meta_boxes() {
@@ -922,8 +937,8 @@ function chroma_save_about_page_meta( $post_id ) {
 		'chroma_about_hero_nonce' => array(
 			'about_hero_badge_text'  => 'sanitize_text_field',
 			'_chroma_es_about_hero_badge_text'  => 'sanitize_text_field',
-			'about_hero_title'       => 'sanitize_text_field',
-			'_chroma_es_about_hero_title'       => 'sanitize_text_field',
+			'about_hero_title'       => 'chroma_about_sanitize_inline_html',
+			'_chroma_es_about_hero_title'       => 'chroma_about_sanitize_inline_html',
 			'about_hero_description' => 'sanitize_textarea_field',
 			'_chroma_es_about_hero_description' => 'sanitize_textarea_field',
 			'about_hero_image'       => 'esc_url_raw',
@@ -1025,8 +1040,8 @@ function chroma_save_about_page_meta( $post_id ) {
 			'_chroma_es_about_philanthropy_title' => 'sanitize_text_field',
 			'about_philanthropy_subtitle' => 'sanitize_text_field',
 			'_chroma_es_about_philanthropy_subtitle' => 'sanitize_text_field',
-			'about_philanthropy_description' => 'sanitize_textarea_field',
-			'_chroma_es_about_philanthropy_description' => 'sanitize_textarea_field',
+			'about_philanthropy_description' => 'chroma_about_sanitize_inline_html',
+			'_chroma_es_about_philanthropy_description' => 'chroma_about_sanitize_inline_html',
 			'about_philanthropy_image' => 'esc_url_raw',
 			'about_philanthropy_bullet1_icon' => 'sanitize_text_field',
 			'about_philanthropy_bullet1_text' => 'sanitize_text_field',

@@ -25,9 +25,13 @@ require_once __DIR__ . '/class-combo-ai-generator.php';
 require_once __DIR__ . '/class-combo-internal-links.php';
 require_once __DIR__ . '/class-near-me-pages.php';
 
+new Chroma_Combo_Page_Generator();
+new Chroma_Near_Me_Pages();
+
 // Phase 3: Technical SEO
 require_once __DIR__ . '/class-dynamic-titles.php';
 require_once __DIR__ . '/class-canonical-enforcer.php';
+require_once __DIR__ . '/class-url-consolidator.php';
 require_once __DIR__ . '/class-author-tags.php';
 require_once __DIR__ . '/class-speculation-rules.php';
 require_once __DIR__ . '/class-indexnow.php';
@@ -45,7 +49,7 @@ require_once __DIR__ . '/class-schema-bulk-ops.php';
 /**
  * Register default options
  */
-add_action('after_setup_theme', function() {
+add_action('after_setup_theme', function () {
     // Set defaults if not already set
     $defaults = [
         'chroma_seo_show_related_locations' => true,
@@ -54,6 +58,7 @@ add_action('after_setup_theme', function() {
         'chroma_seo_show_footer_cities' => true,
         'chroma_seo_enable_dynamic_titles' => true,
         'chroma_seo_enable_canonical' => true,
+        'chroma_seo_redirect_canonical' => true,
         'chroma_seo_trailing_slash' => true,
         'chroma_seo_show_author_meta' => true,
         'chroma_seo_show_author_box' => true,
@@ -63,19 +68,36 @@ add_action('after_setup_theme', function() {
         'chroma_enable_speculation_rules' => 'yes',
         'chroma_enable_indexnow' => 'yes'
     ];
-    
+
     foreach ($defaults as $key => $default) {
         if (get_option($key) === false) {
             update_option($key, $default);
         }
+    }
+
+    // Canonical policy is explicitly locked for this stack: slash canonicals + redirects on.
+    if ((bool) get_option('chroma_seo_trailing_slash', true) !== true) {
+        update_option('chroma_seo_trailing_slash', true);
+    }
+    if ((bool) get_option('chroma_seo_redirect_canonical', true) !== true) {
+        update_option('chroma_seo_redirect_canonical', true);
     }
 });
 
 /**
  * Flush rewrite rules on activation (Plugin context)
  */
-register_activation_hook(__FILE__, function() {
+register_activation_hook(__FILE__, function () {
     flush_rewrite_rules();
 });
 
-
+/**
+ * One-time rewrite rules flush after code deployment.
+ * Bump the version suffix when rewrite rules change.
+ */
+add_action('init', function () {
+    if (!get_option('chroma_seo_flush_v5')) {
+        flush_rewrite_rules();
+        update_option('chroma_seo_flush_v5', true);
+    }
+}, 99);

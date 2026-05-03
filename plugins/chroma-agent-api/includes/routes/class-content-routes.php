@@ -261,7 +261,7 @@ class Content_Routes
 
         $meta = isset($params['meta']) && is_array($params['meta']) ? $params['meta'] : [];
         [$meta, $write_policy_blocks] = self::partition_meta_by_policy($meta);
-        $tax = isset($params['tax']) && is_array($params['tax']) ? $params['tax'] : [];
+        $tax = self::extract_tax_payload($params);
 
         if (!$dry_run && !empty($write_policy_blocks)) {
             return self::blocked_meta_response($write_policy_blocks);
@@ -384,7 +384,7 @@ class Content_Routes
 
         $meta = isset($params['meta']) && is_array($params['meta']) ? $params['meta'] : [];
         [$meta, $write_policy_blocks] = self::partition_meta_by_policy($meta);
-        $tax = isset($params['tax']) && is_array($params['tax']) ? $params['tax'] : [];
+        $tax = self::extract_tax_payload($params);
 
         if (!$dry_run && !empty($write_policy_blocks)) {
             return self::blocked_meta_response($write_policy_blocks);
@@ -627,6 +627,7 @@ class Content_Routes
     private static function apply_meta_and_tax(int $post_id, array $meta, array $tax, bool $verify = false): array
     {
         $mismatches = [];
+        $post_type = get_post_type($post_id);
 
         foreach ($meta as $key => $value) {
             $safe_key = sanitize_key((string) $key);
@@ -662,6 +663,24 @@ class Content_Routes
         foreach ($tax as $taxonomy => $terms) {
             $safe_tax = sanitize_key((string) $taxonomy);
             if (!taxonomy_exists($safe_tax)) {
+                if ($verify) {
+                    $mismatches['tax'][$safe_tax] = [
+                        'expected' => is_array($terms) ? array_values($terms) : [$terms],
+                        'actual' => [],
+                        'error' => 'invalid_taxonomy',
+                    ];
+                }
+                continue;
+            }
+
+            if (!$post_type || !is_object_in_taxonomy($post_type, $safe_tax)) {
+                if ($verify) {
+                    $mismatches['tax'][$safe_tax] = [
+                        'expected' => is_array($terms) ? array_values($terms) : [$terms],
+                        'actual' => [],
+                        'error' => 'taxonomy_not_registered_for_post_type',
+                    ];
+                }
                 continue;
             }
 
@@ -680,12 +699,28 @@ class Content_Routes
 
             $set_result = wp_set_object_terms($post_id, $clean_terms, $safe_tax, false);
 
-            if (!$verify || is_wp_error($set_result)) {
+            if (is_wp_error($set_result)) {
+                if ($verify) {
+                    $mismatches['tax'][$safe_tax] = [
+                        'expected' => $clean_terms,
+                        'actual' => [],
+                        'error' => $set_result->get_error_message(),
+                    ];
+                }
+                continue;
+            }
+
+            if (!$verify) {
                 continue;
             }
 
             $actual_terms = wp_get_object_terms($post_id, $safe_tax, ['fields' => 'ids']);
             if (is_wp_error($actual_terms)) {
+                $mismatches['tax'][$safe_tax] = [
+                    'expected' => array_map('intval', (array) $set_result),
+                    'actual' => [],
+                    'error' => $actual_terms->get_error_message(),
+                ];
                 continue;
             }
 
@@ -830,6 +865,21 @@ class Content_Routes
         $summary['taxonomies'] = $term_map;
 
         return $summary;
+    }
+
+    private static function extract_tax_payload(array $params): array
+    {
+        $tax = [];
+
+        if (isset($params['tax']) && is_array($params['tax'])) {
+            $tax = $params['tax'];
+        }
+
+        if (isset($params['taxonomies']) && is_array($params['taxonomies'])) {
+            $tax = array_merge($tax, $params['taxonomies']);
+        }
+
+        return $tax;
     }
 
     private static function get_payload(WP_REST_Request $request): array

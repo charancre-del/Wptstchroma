@@ -87,6 +87,10 @@ class Report
     public $closing_notes;
     public $status;
     public $version_id;
+    public $monday_group_id;
+    public $monday_last_synced_at;
+    public $monday_sync_status;
+    public $monday_sync_error;
     public $created_at;
     public $updated_at;
 
@@ -324,6 +328,10 @@ class Report
         $report->closing_notes = $row['closing_notes'];
         $report->status = $row['status'];
         $report->version_id = (int) ($row['version_id'] ?? 1);
+        $report->monday_group_id = $row['monday_group_id'] ?? '';
+        $report->monday_last_synced_at = $row['monday_last_synced_at'] ?? null;
+        $report->monday_sync_status = $row['monday_sync_status'] ?? '';
+        $report->monday_sync_error = $row['monday_sync_error'] ?? '';
         $report->created_at = $row['created_at'];
         $report->updated_at = $row['updated_at'];
         return $report;
@@ -333,17 +341,13 @@ class Report
      * Save the report.
      *
      * @param string $change_summary Optional description of what changed.
+     * @param string $snapshot_type Optional snapshot category.
      * @return bool|int
      */
-    public function save($change_summary = '')
+    public function save($change_summary = '', $snapshot_type = Report_Snapshot::TYPE_MANUAL)
     {
         global $wpdb;
         $table = self::get_table_name();
-
-        // Create snapshot before updating existing report
-        if ($this->id) {
-            Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report updated');
-        }
 
         $data = [
             'school_id' => $this->school_id,
@@ -363,6 +367,15 @@ class Report
             $result = $wpdb->update($table, $data, ['id' => $this->id], $format, ['%d']);
             if ($result !== false) {
                 $this->version_id = $data['version_id'];
+                $fresh = self::find($this->id);
+                if ($fresh) {
+                    $this->created_at = $fresh->created_at;
+                    $this->updated_at = $fresh->updated_at;
+                }
+
+                if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report updated', $snapshot_type) && defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log(sprintf('[CQA Snapshot] Failed to create snapshot for report update %d', (int) $this->id));
+                }
                 return $this->id;
             }
             return false;
@@ -371,6 +384,15 @@ class Report
             if ($result) {
                 $this->id = $wpdb->insert_id;
                 $this->version_id = $data['version_id'];
+                $fresh = self::find($this->id);
+                if ($fresh) {
+                    $this->created_at = $fresh->created_at;
+                    $this->updated_at = $fresh->updated_at;
+                }
+
+                if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report created', $snapshot_type) && defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log(sprintf('[CQA Snapshot] Failed to create snapshot for report create %d', (int) $this->id));
+                }
                 return $this->id;
             }
             return false;
@@ -443,6 +465,55 @@ class Report
             error_log('Report deletion failed: ' . $e->getMessage());
             return false;
         }
+    }
+
+    /**
+     * Update monday sync metadata without incrementing report version.
+     *
+     * @param array $meta monday sync metadata.
+     * @return bool
+     */
+    public function update_monday_sync_meta($meta)
+    {
+        if (!$this->id) {
+            return false;
+        }
+
+        global $wpdb;
+        $table = self::get_table_name();
+
+        $data = [];
+        $format = [];
+
+        if (array_key_exists('monday_group_id', $meta)) {
+            $data['monday_group_id'] = (string) $meta['monday_group_id'];
+            $format[] = '%s';
+            $this->monday_group_id = $data['monday_group_id'];
+        }
+
+        if (array_key_exists('monday_last_synced_at', $meta)) {
+            $data['monday_last_synced_at'] = $meta['monday_last_synced_at'];
+            $format[] = $meta['monday_last_synced_at'] === null ? '%s' : '%s';
+            $this->monday_last_synced_at = $meta['monday_last_synced_at'];
+        }
+
+        if (array_key_exists('monday_sync_status', $meta)) {
+            $data['monday_sync_status'] = (string) $meta['monday_sync_status'];
+            $format[] = '%s';
+            $this->monday_sync_status = $data['monday_sync_status'];
+        }
+
+        if (array_key_exists('monday_sync_error', $meta)) {
+            $data['monday_sync_error'] = (string) $meta['monday_sync_error'];
+            $format[] = '%s';
+            $this->monday_sync_error = $data['monday_sync_error'];
+        }
+
+        if (empty($data)) {
+            return true;
+        }
+
+        return $wpdb->update($table, $data, ['id' => $this->id], $format, ['%d']) !== false;
     }
 
     /**

@@ -157,6 +157,7 @@ function chroma_should_load_effects_bundle()
 {
         return is_front_page()
                 || is_page(array('about', 'locations', 'programs', 'schedule-tour', 'schedule-a-tour'))
+                || is_page_template('page-summer-camp.php')
                 || is_post_type_archive('location')
                 || is_post_type_archive('program')
                 || is_singular(array('location', 'program'))
@@ -169,6 +170,7 @@ function chroma_should_load_effects_bundle()
 function chroma_should_load_forms_bundle()
 {
         return is_page(array('contact', 'careers', 'schedule-tour', 'schedule-a-tour'))
+                || is_page_template('page-summer-camp.php')
                 || chroma_page_has_shortcode(array('chroma_contact_form', 'chroma_career_form', 'chroma_tour_form', 'contact-form-7'));
 }
 
@@ -180,8 +182,7 @@ function chroma_enqueue_assets()
         $script_dependencies = array();
         $skip_global_scripts = chroma_is_app_shell_route();
 
-        // Font Awesome (Subset)
-        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome-subset.css');
+        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome.css');
         wp_enqueue_style(
                 'chroma-font-awesome',
                 $fa_asset['url'],
@@ -265,12 +266,6 @@ function chroma_enqueue_assets()
                 textarea {
                         min-height: 48px !important;
                         font-size: 16px !important; /* Prevent iOS zoom */
-                }
-                
-                        /* Force CTA Button Visibility */
-                        header .container > a[href*='contact'] {
-                                display: flex !important;
-                        }
                 }
 
                 /* Accessibility: Increase contrast for muted text */
@@ -379,7 +374,13 @@ function chroma_enqueue_admin_assets($hook)
 
         // Custom admin script for media uploader
         $admin_js_asset = chroma_get_theme_asset('assets/js/admin.js');
-        wp_enqueue_script('chroma-admin', $admin_js_asset['url'], array('jquery'), $admin_js_asset['version'], true);
+        wp_enqueue_script(
+                'chroma-admin',
+                $admin_js_asset['url'],
+                array('jquery', 'media-editor', 'media-views'),
+                $admin_js_asset['version'],
+                true
+        );
 }
 add_action('admin_enqueue_scripts', 'chroma_enqueue_admin_assets');
 

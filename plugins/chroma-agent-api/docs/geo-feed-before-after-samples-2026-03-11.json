@@ -1,0 +1,473 @@
+[
+  {
+    "before": {
+      "id": 4406,
+      "campus_name": "Cherokee Academy by Chroma, Canton GA",
+      "slug": "cherokee-campus",
+      "url": "https://chromaela.com/locations/cherokee-campus/",
+      "address": {
+        "street": "1205 Upper Burris Road",
+        "city": "Canton",
+        "state": "GA",
+        "postal_code": "30114",
+        "country": "US"
+      },
+      "phone_number": "470-470-6589",
+      "email": "cherokeeacademy1@gmail.com",
+      "administrator_name": "Nadine Wainehouse",
+      "programs_offered": [],
+      "ages_accepted": "6w-12y",
+      "operating_hours": "6:30am-18:30pm",
+      "facility_highlights": {
+        "tagline": "Canton\u2019s home Bright Beginnings",
+        "description": "Discover exceptional childcare at Chroma Early Learning Academy in Canton, GA. Our STEAM-based curriculum, nurturing teachers, and safe, family-focused environment help children learn, grow, and thrive. Conveniently located on Upper Burris Road with school pickup from top Cherokee County elementary schools.",
+        "seo_title": "Canton GA Childcare: Chroma Academy Programs",
+        "seo_text": "\ud83d\udccd Neighborhoods, Areas Served & Nearby Schools \u2013 Canton, GA Cherokee Academy by Chroma is a trusted preschool and child care learning center in Canton, GA, providing quality early education and school-age child care for local families. We proudly serve neighborhoods including River Green, Towne Mill, Great Sky, Harmony on the Lakes, Bridgemill, and Mountain Brook, along with nearby communities such as Woodstock, Holly Springs, Ball Ground, and East Cherokee County. Our convenient location makes us an ideal choice for families near Clayton Elementary School, Knox Elementary School, Hasty Elementary Fine Arts Academy, Sixes Elementary School, and Liberty Elementary School, supporting children\u2019s academic, social, and emotional growth in a safe and nurturing environment."
+      },
+      "service_areas": [],
+      "coordinates": {
+        "latitude": "34.3468408",
+        "longitude": "-84.4919414"
+      },
+      "media": {
+        "video_tour_url": null,
+        "video_thumbnail_url": null,
+        "video_duration": null
+      },
+      "availability": {
+        "status": null,
+        "spots_available": null
+      },
+      "pricing": {
+        "min": null,
+        "max": null,
+        "currency": null,
+        "frequency": null
+      },
+      "aggregate_rating": {
+        "value": null,
+        "count": null,
+        "best": null,
+        "worst": null
+      },
+      "service_area_geo": {
+        "latitude": null,
+        "longitude": null,
+        "radius_miles": null,
+        "cities": [],
+        "state": null
+      },
+      "facility_profile": {
+        "is_event_venue": false,
+        "accepts_caps": false,
+        "accepts_ga_pre_k": false,
+        "security_cameras": false,
+        "amenities": []
+      },
+      "admissions": {
+        "enrollment_steps": []
+      },
+      "faqs": [
+        {
+          "question": "What is Cherokee Academy by Chroma ELA?",
+          "answer": "Cherokee Academy by Chroma ELA is a childcare and early learning center in Canton, GA that provides high-quality early childhood education in a nurturing and supportive environment."
+        },
+        {
+          "question": "Which areas does Cherokee Academy serve?",
+          "answer": "Cherokee Academy proudly serves families in Canton, Jasper, Waleska, and surrounding North Georgia communities."
+        }
+      ],
+      "events": [],
+      "open_house_date": null
+    },
+    "after_preview": {
+      "id": 4406,
+      "slug": "cherokee-campus",
+      "programs_offered": [
+        {
+          "id": 4326,
+          "name": "Camp ( Summer, Winter, Fall)",
+          "slug": "camp-summer-winter-fall",
+          "url": "https://chromaela.com/programs/camp-summer-winter-fall/"
+        },
+        {
+          "id": 4219,
+          "name": "Infant Care",
+          "slug": "infant-care",
+          "url": "https://chromaela.com/programs/infant-care/"
+        },
+        {
+          "id": 4327,
+          "name": "Parent&#8217;s Day Out",
+          "slug": "parents-day-out",
+          "url": "https://chromaela.com/programs/parents-day-out/"
+        },
+        {
+          "id": 4324,
+          "name": "Pre-K / GA Pre-K",
+          "slug": "ga-pre-k",
+          "url": "https://chromaela.com/programs/ga-pre-k/"
+        },
+        {
+          "id": 4323,
+          "name": "Pre-K Prep",
+          "slug": "pre-k-prep",
+          "url": "https://chromaela.com/programs/pre-k-prep/"
+        },
+        {
+          "id": 4322,
+          "name": "Preschool",
+          "slug": "preschool",
+          "url": "https://chromaela.com/programs/preschool/"
+        },
+        {
+          "id": 4325,
+          "name": "Schoolagers",
+          "slug": "after-school",
+          "url": "https://chromaela.com/programs/after-school/"
+        },
+        {
+          "id": 4293,
+          "name": "Toddlers",
+          "slug": "toddler-care",
+          "url": "https://chromaela.com/programs/toddler-care/"
+        }
+      ],
+      "phone_number": "470-470-6589",
+      "phone_display": "(470) 470-6589",
+      "phone_e164": "+14704706589",
+      "ages_accepted": "6w-12y",
+      "ages_normalized": {
+        "min_age_value": 6,
+        "min_age_unit": "weeks",
+        "max_age_value": 12,
+        "max_age_unit": "years",
+        "display": "6 weeks to 12 years"
+      },
+      "coordinates": {
+        "latitude": "34.3468408",
+        "longitude": "-84.4919414"
+      },
+      "coordinates_normalized": {
+        "latitude": 34.3468408,
+        "longitude": -84.4919414
+      },
+      "address": {
+        "street": "1205 Upper Burris Road",
+        "city": "Canton",
+        "state": "GA",
+        "postal_code": "30114",
+        "country": "US",
+        "formatted": "1205 Upper Burris Road, Canton, GA, 30114, US"
+      }
+    }
+  },
+  {
+    "before": {
+      "id": 4289,
+      "campus_name": "Downtown Duluth",
+      "slug": "pleasanthill-campus-duluth",
+      "url": "https://chromaela.com/locations/pleasanthill-campus-duluth/",
+      "address": {
+        "street": "3152 Creek Dr NW, Duluth, GA 30096, United States",
+        "city": "Duluth",
+        "state": null,
+        "postal_code": "30096",
+        "country": "US"
+      },
+      "phone_number": "470-470-3436",
+      "email": "pleasanthill@chromaela.com",
+      "administrator_name": "Ranae Johnson",
+      "programs_offered": [],
+      "ages_accepted": null,
+      "operating_hours": "06:30am- 18:30pm",
+      "facility_highlights": {
+        "tagline": "Pleasant Hill Campus, Duluth GA",
+        "description": "At Chroma Early Learning Academy, we provide a nurturing environment where your child's growth and development take center stage. Situated in the vibrant community of Pleasant Hill, GA, we offer innovative and personalized learning experiences designed to foster creativity and independence. Discover a place where education meets care.",
+        "seo_title": "Chroma Academy Childcare: Duluth, GA | Enroll Now",
+        "seo_text": "\ud83d\udccd Neighborhoods, Areas Served & Nearby Schools \u2013 Pleasant Hill / Duluth Campus, GA Chroma Early Learning Academy \u2013 Pleasant Hill / Duluth Campus provides trusted daycare, childcare, preschool, GA Pre-K, and school-age programs for families throughout Duluth, GA, and surrounding North Metro Atlanta communities. Our nurturing, secure early learning environment is designed to support children from infancy through school age, helping build strong academic, social, and emotional foundations. We proudly serve families from nearby neighborhoods and areas including Downtown Duluth, Pleasant Hill, Meadowcreek, Centerview, Sugarloaf, Buford, and Lawrenceville, making quality early education easily accessible for local parents. Chroma Duluth is also a convenient choice for families with children attending nearby schools such as Pleasant Hill Elementary School, Ferguson Elementary School, Meadowcreek Elementary School, Corley Elementary School, and Kanoheda Elementary School, offering dependable early education and childcare close to home. With experienced educators, engaging classrooms, and a strong focus on safety and development, Chroma Early Learning Academy \u2013 Pleasant Hill / Duluth Campus is a trusted partner for families seeking quality daycare and preschool programs in the Duluth area."
+      },
+      "service_areas": [],
+      "coordinates": {
+        "latitude": "33.9849116",
+        "longitude": "-84.1527615"
+      },
+      "media": {
+        "video_tour_url": null,
+        "video_thumbnail_url": null,
+        "video_duration": null
+      },
+      "availability": {
+        "status": null,
+        "spots_available": null
+      },
+      "pricing": {
+        "min": null,
+        "max": null,
+        "currency": null,
+        "frequency": null
+      },
+      "aggregate_rating": {
+        "value": null,
+        "count": null,
+        "best": null,
+        "worst": null
+      },
+      "service_area_geo": {
+        "latitude": null,
+        "longitude": null,
+        "radius_miles": null,
+        "cities": [],
+        "state": null
+      },
+      "facility_profile": {
+        "is_event_venue": false,
+        "accepts_caps": false,
+        "accepts_ga_pre_k": false,
+        "security_cameras": false,
+        "amenities": []
+      },
+      "admissions": {
+        "enrollment_steps": []
+      },
+      "faqs": [],
+      "events": [],
+      "open_house_date": null
+    },
+    "after_preview": {
+      "id": 4289,
+      "slug": "pleasanthill-campus-duluth",
+      "programs_offered": [
+        {
+          "id": 4326,
+          "name": "Camp ( Summer, Winter, Fall)",
+          "slug": "camp-summer-winter-fall",
+          "url": "https://chromaela.com/programs/camp-summer-winter-fall/"
+        },
+        {
+          "id": 4219,
+          "name": "Infant Care",
+          "slug": "infant-care",
+          "url": "https://chromaela.com/programs/infant-care/"
+        },
+        {
+          "id": 4327,
+          "name": "Parent&#8217;s Day Out",
+          "slug": "parents-day-out",
+          "url": "https://chromaela.com/programs/parents-day-out/"
+        },
+        {
+          "id": 4324,
+          "name": "Pre-K / GA Pre-K",
+          "slug": "ga-pre-k",
+          "url": "https://chromaela.com/programs/ga-pre-k/"
+        },
+        {
+          "id": 4323,
+          "name": "Pre-K Prep",
+          "slug": "pre-k-prep",
+          "url": "https://chromaela.com/programs/pre-k-prep/"
+        },
+        {
+          "id": 4322,
+          "name": "Preschool",
+          "slug": "preschool",
+          "url": "https://chromaela.com/programs/preschool/"
+        },
+        {
+          "id": 4325,
+          "name": "Schoolagers",
+          "slug": "after-school",
+          "url": "https://chromaela.com/programs/after-school/"
+        },
+        {
+          "id": 4293,
+          "name": "Toddlers",
+          "slug": "toddler-care",
+          "url": "https://chromaela.com/programs/toddler-care/"
+        }
+      ],
+      "phone_number": "470-470-3436",
+      "phone_display": "(470) 470-3436",
+      "phone_e164": "+14704703436",
+      "ages_accepted": null,
+      "ages_normalized": {
+        "min_age_value": null,
+        "min_age_unit": null,
+        "max_age_value": null,
+        "max_age_unit": null,
+        "display": null
+      },
+      "coordinates": {
+        "latitude": "33.9849116",
+        "longitude": "-84.1527615"
+      },
+      "coordinates_normalized": {
+        "latitude": 33.9849116,
+        "longitude": -84.1527615
+      },
+      "address": {
+        "street": "3152 Creek Dr NW, Duluth, GA 30096, United States",
+        "city": "Duluth",
+        "state": null,
+        "postal_code": "30096",
+        "country": "US",
+        "formatted": "3152 Creek Dr NW, Duluth, GA 30096, United States, Duluth, 30096, US"
+      }
+    }
+  },
+  {
+    "before": {
+      "id": 4410,
+      "campus_name": "Ellenwood Campus",
+      "slug": "ellenwood-campus",
+      "url": "https://chromaela.com/locations/ellenwood-campus/",
+      "address": {
+        "street": "2765 E Atlanta Rd",
+        "city": "Ellenwood",
+        "state": "GA",
+        "postal_code": "30294",
+        "country": "US"
+      },
+      "phone_number": "470-684-6067",
+      "email": "ellenwood@chromaela.com",
+      "administrator_name": "Marissa Davis",
+      "programs_offered": [],
+      "ages_accepted": "6w-12y",
+      "operating_hours": "06:30am- 18:30pm",
+      "facility_highlights": {
+        "tagline": "Safe, Camera-Equipped Daycare in Ellenwood, GA",
+        "description": "Discover high-quality childcare at Chroma Early Learning Academy \u2013 Ellenwood, where safety, structure, and nurturing learning come together. Our caring teachers, secure camera-equipped classrooms, and STEAM-based curriculum help children gain confidence, curiosity, and school-ready skills. Conveniently located near Panola Road and Fairview Road, we proudly serve families across DeKalb, Clayton, and Henry counties with school pickup from top local elementary schools.",
+        "seo_title": "Daycare, Preschool & GA Pre-K in Ellenwood, GA | Chroma Early Learning Academy",
+        "seo_text": "\ud83d\udccd Neighborhoods & Areas Served \u2013 Ellenwood, GA Chroma Early Learning Academy of Ellenwood offers trusted childcare, preschool, and GA Pre-K programs in a safe, nurturing environment for families throughout Ellenwood, GA and the surrounding communities. Our Ellenwood campus serves children from infants through school-age, with secure, camera-equipped classrooms and engaging early learning activities designed to support growth and development. We proudly serve neighborhoods across Ellenwood and southeastern Metro Atlanta, including families near Cedar Grove Elementary School, Fairview Elementary School, Austin Road Elementary School, Browns Mill Elementary School, East Clayton Elementary School, and Mount Zion Elementary School. Conveniently located near Panola Road and Fairview Road, we\u2019re an ideal choice for local families seeking quality childcare and preschool programs with supportive, experienced educators. Chroma Early Learning Academy"
+      },
+      "service_areas": [],
+      "coordinates": {
+        "latitude": "33.6152419",
+        "longitude": "-84.2444789"
+      },
+      "media": {
+        "video_tour_url": null,
+        "video_thumbnail_url": null,
+        "video_duration": null
+      },
+      "availability": {
+        "status": null,
+        "spots_available": null
+      },
+      "pricing": {
+        "min": null,
+        "max": null,
+        "currency": null,
+        "frequency": null
+      },
+      "aggregate_rating": {
+        "value": null,
+        "count": null,
+        "best": null,
+        "worst": null
+      },
+      "service_area_geo": {
+        "latitude": null,
+        "longitude": null,
+        "radius_miles": null,
+        "cities": [],
+        "state": null
+      },
+      "facility_profile": {
+        "is_event_venue": false,
+        "accepts_caps": false,
+        "accepts_ga_pre_k": false,
+        "security_cameras": false,
+        "amenities": []
+      },
+      "admissions": {
+        "enrollment_steps": []
+      },
+      "faqs": [],
+      "events": [],
+      "open_house_date": null
+    },
+    "after_preview": {
+      "id": 4410,
+      "slug": "ellenwood-campus",
+      "programs_offered": [
+        {
+          "id": 4326,
+          "name": "Camp ( Summer, Winter, Fall)",
+          "slug": "camp-summer-winter-fall",
+          "url": "https://chromaela.com/programs/camp-summer-winter-fall/"
+        },
+        {
+          "id": 4219,
+          "name": "Infant Care",
+          "slug": "infant-care",
+          "url": "https://chromaela.com/programs/infant-care/"
+        },
+        {
+          "id": 4327,
+          "name": "Parent&#8217;s Day Out",
+          "slug": "parents-day-out",
+          "url": "https://chromaela.com/programs/parents-day-out/"
+        },
+        {
+          "id": 4324,
+          "name": "Pre-K / GA Pre-K",
+          "slug": "ga-pre-k",
+          "url": "https://chromaela.com/programs/ga-pre-k/"
+        },
+        {
+          "id": 4323,
+          "name": "Pre-K Prep",
+          "slug": "pre-k-prep",
+          "url": "https://chromaela.com/programs/pre-k-prep/"
+        },
+        {
+          "id": 4322,
+          "name": "Preschool",
+          "slug": "preschool",
+          "url": "https://chromaela.com/programs/preschool/"
+        },
+        {
+          "id": 4325,
+          "name": "Schoolagers",
+          "slug": "after-school",
+          "url": "https://chromaela.com/programs/after-school/"
+        },
+        {
+          "id": 4293,
+          "name": "Toddlers",
+          "slug": "toddler-care",
+          "url": "https://chromaela.com/programs/toddler-care/"
+        }
+      ],
+      "phone_number": "470-684-6067",
+      "phone_display": "(470) 684-6067",
+      "phone_e164": "+14706846067",
+      "ages_accepted": "6w-12y",
+      "ages_normalized": {
+        "min_age_value": 6,
+        "min_age_unit": "weeks",
+        "max_age_value": 12,
+        "max_age_unit": "years",
+        "display": "6 weeks to 12 years"
+      },
+      "coordinates": {
+        "latitude": "33.6152419",
+        "longitude": "-84.2444789"
+      },
+      "coordinates_normalized": {
+        "latitude": 33.6152419,
+        "longitude": -84.2444789
+      },
+      "address": {
+        "street": "2765 E Atlanta Rd",
+        "city": "Ellenwood",
+        "state": "GA",
+        "postal_code": "30294",
+        "country": "US",
+        "formatted": "2765 E Atlanta Rd, Ellenwood, GA, 30294, US"
+      }
+    }
+  }
+]

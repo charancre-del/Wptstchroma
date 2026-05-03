@@ -59,6 +59,10 @@ class Chroma_Dynamic_Titles
         if (!get_option('chroma_seo_enable_dynamic_titles', true)) {
             return $title;
         }
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return $title;
+        }
         
         $patterns = $this->get_patterns();
         $new_title = '';

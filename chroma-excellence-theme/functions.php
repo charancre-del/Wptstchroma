@@ -177,7 +177,7 @@ function chroma_clear_query_cache($post_id)
         'location' => array('locations'),
         'program' => array('programs'),
         'city' => array('cities'),
-        'team_member' => array('team'),
+        'team_member' => array('team', 'team_members_about'),
     );
 
     if (isset($cache_prefixes[$post_type])) {
@@ -244,7 +244,7 @@ if (is_admin()) {
     require_once CHROMA_THEME_DIR . '/inc/about-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/curriculum-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/contact-page-meta.php';
-    require_once CHROMA_THEME_DIR . '/inc/early-start-page-meta.php';
+    require_once CHROMA_THEME_DIR . '/inc/early-start-program-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/stories-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/parents-page-meta.php';
     require_once CHROMA_THEME_DIR . '/inc/careers-page-meta.php';
@@ -260,6 +260,9 @@ if (is_admin()) {
 require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
+require_once CHROMA_THEME_DIR . '/inc/archive-root-query-context.php';
+require_once CHROMA_THEME_DIR . '/inc/seo-profile.php';
+require_once CHROMA_THEME_DIR . '/inc/seo-runtime.php';
 // require_once CHROMA_THEME_DIR . '/inc/about-seo.php';
 // Customizers - Admin or Preview Only
 if (is_admin() || is_customize_preview()) {
@@ -267,9 +270,44 @@ if (is_admin() || is_customize_preview()) {
     require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
-    require_once CHROMA_THEME_DIR . '/inc/customizer-seo.php';
+}
+
+/**
+ * Determine whether the current request is a normal frontend HTML request.
+ *
+ * Global header/footer scripts should load on rendered site pages, but not on
+ * REST, feeds, AJAX, cron, or other bootstrap paths where they add no value
+ * and can widen the blast radius of a bad include.
+ */
+function chroma_should_load_global_script_customizer()
+{
+    if (is_customize_preview()) {
+        return true;
+    }
+
+    if (is_admin()) {
+        return false;
+    }
+
+    if (wp_doing_ajax() || wp_doing_cron()) {
+        return false;
+    }
+
+    if ((defined('REST_REQUEST') && REST_REQUEST) || (function_exists('wp_is_json_request') && wp_is_json_request())) {
+        return false;
+    }
+
+    if (is_feed() || is_robots() || is_trackback() || is_embed()) {
+        return false;
+    }
+
+    return true;
+}
+
+if (chroma_should_load_global_script_customizer()) {
     require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
 }
+require_once CHROMA_THEME_DIR . '/inc/customizer-seo.php';
 
 // Legacy helper files (ACF plugin optional; helpers run on core WP functions only)
 require_once CHROMA_THEME_DIR . '/inc/acf-options.php';
@@ -489,9 +527,28 @@ add_filter('upload_mimes', 'chroma_mime_types');
  */
 function chroma_preload_lcp_image()
 {
-    // Using optimized logo as LCP candidate since specific hero image is missing
-    $logo_url = get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp';
-    echo '<link rel="preload" as="image" href="' . esc_url($logo_url) . '" fetchpriority="high">' . "\n";
+    // Front-page hero preload is handled in header.php.
+    if (is_front_page()) {
+        return;
+    }
+
+    // On single blog posts, preload the featured image (common LCP target).
+    if (is_singular('post') && has_post_thumbnail()) {
+        $thumb_id = get_post_thumbnail_id();
+        $thumb_url = wp_get_attachment_image_url($thumb_id, 'full');
+        if (!$thumb_url) {
+            return;
+        }
+
+        $srcset = wp_get_attachment_image_srcset($thumb_id, 'full');
+        $sizes = '(max-width: 1280px) 100vw, 1280px';
+
+        echo '<link rel="preload" as="image" href="' . esc_url($thumb_url) . '"';
+        if (!empty($srcset)) {
+            echo ' imagesrcset="' . esc_attr($srcset) . '" imagesizes="' . esc_attr($sizes) . '"';
+        }
+        echo ' fetchpriority="high">' . "\n";
+    }
 }
 add_action('wp_head', 'chroma_preload_lcp_image', 1);
 
@@ -555,21 +612,391 @@ function chroma_enforce_trailing_slash($url, $type)
 add_filter('user_trailingslashit', 'chroma_enforce_trailing_slash', 10, 2);
 
 /**
+ * Route Safety Net (Theme-level)
+ * If server/plugin rewrite rules are stale, map critical pretty URLs to query vars:
+ * - wp-sitemap URLs
+ * - combo pages
+ * - near-me pages
+ *
+ * IMPORTANT: Always MERGE into $query_vars and clear conflicting keys like
+ * 'pagename', 'name', 'error' so WordPress doesn't treat the URL as a page
+ * lookup and 404 before the actual handler fires.
+ */
+function chroma_force_sitemap_request_vars($query_vars)
+{
+    if (is_admin()) {
+        return $query_vars;
+    }
+
+    // If sitemap query vars are already set (e.g., by working rewrite rules), bail.
+    if (!empty($query_vars['sitemap']) || !empty($query_vars['sitemap-stylesheet'])) {
+        return $query_vars;
+    }
+
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = wp_parse_url($request_uri, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return $query_vars;
+    }
+
+    $path = '/' . ltrim($path, '/');
+    $inject = null;
+
+    // --- Sitemaps ---
+
+    if (preg_match('#/wp-sitemap\.xml$#i', $path)) {
+        $inject = ['sitemap' => 'index'];
+    } elseif (preg_match('#/wp-sitemap\.xsl$#i', $path)) {
+        $inject = ['sitemap-stylesheet' => 'sitemap'];
+    } elseif (preg_match('#/wp-sitemap-index\.xsl$#i', $path)) {
+        $inject = ['sitemap-stylesheet' => 'index'];
+    } elseif (preg_match('#/wp-sitemap-([a-z]+)-([a-z0-9_-]+)-([0-9]+)\.xml$#i', $path, $matches)) {
+        $inject = [
+            'sitemap' => strtolower($matches[1]),
+            'sitemap-subtype' => strtolower($matches[2]),
+            'paged' => max(1, (int) $matches[3]),
+        ];
+    } elseif (preg_match('#/wp-sitemap-([a-z]+)-([0-9]+)\.xml$#i', $path, $matches)) {
+        $inject = [
+            'sitemap' => strtolower($matches[1]),
+            'paged' => max(1, (int) $matches[2]),
+        ];
+    }
+
+    // --- Combo pages: /{program}-in-{city}-{state}/ and /es/{program}-in-{city}-{state}/ ---
+    elseif (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $inject = [
+            'chroma_combo' => 1,
+            'combo_program' => sanitize_title($matches[2]),
+            'combo_city' => sanitize_title($matches[3]),
+            'combo_state' => strtoupper($matches[4]),
+        ];
+        if (!empty($matches[1])) {
+            $inject['chroma_lang'] = 'es';
+        }
+    }
+
+    // --- Near-me pages: /{keyword}-near-me/ ---
+    elseif (preg_match('#^/(es/)?([a-z0-9-]+)-near-me/?$#i', $path, $matches)) {
+        $inject = [
+            'chroma_near_me' => sanitize_title($matches[2]),
+        ];
+        if (!empty($matches[1])) {
+            $inject['chroma_lang'] = 'es';
+        }
+    }
+
+    // --- Near-city pages: /{keyword}-near-{city}-{state}/ ---
+    elseif (preg_match('#^/(es/)?([a-z0-9-]+)-near-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $inject = [
+            'chroma_near_me' => sanitize_title($matches[2]),
+            'near_city' => sanitize_title($matches[3]),
+            'near_state' => strtoupper($matches[4]),
+        ];
+        if (!empty($matches[1])) {
+            $inject['chroma_lang'] = 'es';
+        }
+    }
+
+    if ($inject !== null) {
+        // CRITICAL: Remove conflicting vars so WP doesn't treat URL as a page lookup.
+        unset($query_vars['pagename'], $query_vars['name'], $query_vars['page'], $query_vars['error']);
+        return array_merge($query_vars, $inject);
+    }
+
+    return $query_vars;
+}
+add_filter('request', 'chroma_force_sitemap_request_vars', 0);
+
+/**
+ * Disable WordPress native sitemaps — we serve our own at /sitemap.xml.
+ */
+add_filter('wp_sitemaps_enabled', '__return_false');
+
+/**
+ * Single unified sitemap at /sitemap.xml.
+ *
+ * Completely bypasses WordPress's native sitemap system and its rewrite rules.
+ * Generates one flat XML sitemap containing ALL URLs:
+ * - Published posts, pages, locations, programs, cities
+ * - Combo pages (program-in-city-state)
+ * - Near-me pages
+ * - Spanish /es/ variants of everything above
+ */
+function chroma_serve_custom_sitemap()
+{
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = '/' . ltrim(strtok($request_uri, '?'), '/');
+
+    // Legacy aliases → redirect to /sitemap.xml
+    $legacy = [
+        '/sitemap_index.xml',
+        '/wp-sitemap.xml',
+        '/sitemap-combos.xml',
+        '/sitemap-combos-es.xml',
+        '/sitemap-spanish.xml',
+        '/sitemap-near-me.xml',
+        '/sitemap-near-me-es.xml',
+    ];
+    if (in_array($path, $legacy, true)) {
+        wp_safe_redirect(home_url('/sitemap.xml'), 301);
+        exit;
+    }
+
+    if ($path !== '/sitemap.xml') {
+        return;
+    }
+
+    // Prevent caching issues
+    nocache_headers();
+    header('Content-Type: application/xml; charset=UTF-8');
+    status_header(200);
+
+    echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
+    echo '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
+
+    // Central Registry: any component can add URLs here.
+    // Each entry should be an array like: ['loc' => '...', 'lastmod' => '...']
+    $urls = apply_filters('chroma_sitemap_urls', []);
+
+    // Also include standard posts/pages locally for simplicity
+    $standard_urls = chroma_get_standard_sitemap_urls();
+    $urls = array_merge($urls, $standard_urls);
+
+    // Filter out duplicates
+    $unique_urls = [];
+    foreach ($urls as $url_data) {
+        $loc = $url_data['loc'] ?? '';
+        if ($loc && !isset($unique_urls[$loc])) {
+            $unique_urls[$loc] = $url_data;
+            echo "  <url>\n";
+            echo "    <loc>" . esc_url($loc) . "</loc>\n";
+            if (!empty($url_data['lastmod'])) {
+                echo "    <lastmod>" . esc_html($url_data['lastmod']) . "</lastmod>\n";
+            }
+            echo "  </url>\n";
+        }
+    }
+
+    echo '</urlset>' . "\n";
+    exit;
+}
+add_action('template_redirect', 'chroma_serve_custom_sitemap', -999);
+
+/**
+ * Gets standard WordPress posts and pages for the sitemap.
+ */
+function chroma_get_standard_sitemap_urls()
+{
+    $urls = [];
+    $base = rtrim(home_url('/'), '/');
+    $post_types = apply_filters('chroma_sitemap_post_types', ['page', 'post', 'location', 'program', 'city']);
+
+    $posts = get_posts([
+        'post_type' => $post_types,
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+    ]);
+
+    $front_page_id = (int) get_option('page_on_front');
+    if ($front_page_id > 0) {
+        $front_lastmod = get_the_modified_date('c', $front_page_id) ?: gmdate('c');
+        $urls[] = [
+            'loc' => $base . '/es/',
+            'lastmod' => $front_lastmod,
+        ];
+    }
+
+    foreach ($posts as $post) {
+        $permalink = get_permalink($post->ID);
+        if (!$permalink)
+            continue;
+
+        $urls[] = [
+            'loc' => $permalink,
+            'lastmod' => get_the_modified_date('c', $post->ID),
+        ];
+
+        // Traditional Spanish prefix logic (simpler than reaching into Spanish provider)
+        $rel_path = trim(str_replace($base, '', $permalink), '/');
+        if ($rel_path && !str_starts_with($rel_path, 'es/')) {
+            $urls[] = [
+                'loc' => $base . '/es/' . $rel_path . '/',
+                'lastmod' => get_the_modified_date('c', $post->ID),
+            ];
+        }
+    }
+
+    $unique_urls = [];
+    foreach ($urls as $entry) {
+        $loc = isset($entry['loc']) ? (string) $entry['loc'] : '';
+        if ($loc === '') {
+            continue;
+        }
+
+        $unique_urls[$loc] = $entry;
+    }
+
+    return array_values($unique_urls);
+}
+
+/**
+ * Preserve dynamic SEO routes from core canonical redirects.
+ */
+function chroma_preserve_dynamic_route_redirects($redirect_url, $requested_url)
+{
+    $path = wp_parse_url((string) $requested_url, PHP_URL_PATH);
+    if (!is_string($path)) {
+        return $redirect_url;
+    }
+
+    if (preg_match('#/(wp-sitemap(?:-[^/]+)?\.xml|sitemap(?:_index)?\.xml|sitemap-[^/]+\.xml)$#i', $path)) {
+        return false;
+    }
+
+    if (preg_match('#^/(es/)?[a-z0-9-]+-in-[a-z-]+-[a-z]{2}/?$#i', $path)) {
+        return false;
+    }
+
+    if (preg_match('#^/(es/)?[a-z0-9-]+-near(?:-me|-[a-z-]+-[a-z]{2})/?$#i', $path)) {
+        return false;
+    }
+
+    return $redirect_url;
+}
+add_filter('redirect_canonical', 'chroma_preserve_dynamic_route_redirects', 1, 2);
+
+/**
+ * Build the canonical path for dynamic combo and near-me routes.
+ *
+ * @param string $path Request path.
+ * @return string
+ */
+function chroma_get_dynamic_route_canonical_path($path)
+{
+    if (!is_string($path) || $path === '') {
+        return '';
+    }
+
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-in-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $program_slug = sanitize_title($matches[2]);
+        $city_slug = sanitize_title($matches[3]);
+        $state = strtolower($matches[4]);
+
+        if (function_exists('chroma_seo_resolve_virtual_city_context')) {
+            $city_context = chroma_seo_resolve_virtual_city_context($city_slug, $state);
+            if (is_array($city_context) && !empty($city_context['canonical_slug'])) {
+                $city_slug = sanitize_title((string) $city_context['canonical_slug']);
+            }
+        }
+
+        $segments[] = $program_slug . '-in-' . $city_slug . '-' . $state;
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-near-me/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $segments[] = sanitize_title($matches[2]) . '-near-me';
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    if (preg_match('#^/(es/)?([a-z0-9-]+)-near-([a-z-]+)-([a-z]{2})/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $keyword = sanitize_title($matches[2]);
+        $city_slug = sanitize_title($matches[3]);
+        $state = strtolower($matches[4]);
+
+        if (function_exists('chroma_seo_resolve_virtual_city_context')) {
+            $city_context = chroma_seo_resolve_virtual_city_context($city_slug, $state);
+            if (is_array($city_context) && !empty($city_context['canonical_slug'])) {
+                $city_slug = sanitize_title((string) $city_context['canonical_slug']);
+            }
+        }
+
+        $segments[] = $keyword . '-near-' . $city_slug . '-' . $state;
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    return '';
+}
+
+/**
+ * Normalize dynamic combo and near-me routes to their slash canonical.
+ */
+function chroma_redirect_dynamic_route_canonical()
+{
+    if (is_admin() || wp_doing_ajax() || !isset($_SERVER['REQUEST_METHOD']) || $_SERVER['REQUEST_METHOD'] !== 'GET') {
+        return;
+    }
+
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = wp_parse_url($request_uri, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return;
+    }
+
+    $canonical_path = chroma_get_dynamic_route_canonical_path($path);
+    if ($canonical_path === '' || $canonical_path === $path) {
+        return;
+    }
+
+    $query = wp_parse_url($request_uri, PHP_URL_QUERY);
+    $target = home_url($canonical_path);
+    if (is_string($query) && $query !== '') {
+        $target .= '?' . $query;
+    }
+
+    wp_safe_redirect($target, 301);
+    exit;
+}
+add_action('template_redirect', 'chroma_redirect_dynamic_route_canonical', 0);
+
+/**
+ * Prevent custom canonical enforcer from redirecting dynamic routes to home.
+ */
+function chroma_disable_custom_canonical_redirect_for_dynamic_routes($pre_option, $option, $default)
+{
+    $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+    $path = wp_parse_url($request_uri, PHP_URL_PATH);
+    if (!is_string($path) || $path === '') {
+        return $pre_option;
+    }
+
+    if (preg_match('#/(wp-sitemap(?:-[^/]+)?\.xml|sitemap(?:_index)?\.xml|sitemap-[^/]+\.xml)$#i', $path)) {
+        return false;
+    }
+
+    if (preg_match('#^/(es/)?[a-z0-9-]+-in-[a-z-]+-[a-z]{2}/?$#i', $path)) {
+        return false;
+    }
+
+    if (preg_match('#^/(es/)?[a-z0-9-]+-near(?:-me|-[a-z-]+-[a-z]{2})/?$#i', $path)) {
+        return false;
+    }
+
+    return $pre_option;
+}
+add_filter('pre_option_chroma_seo_redirect_canonical', 'chroma_disable_custom_canonical_redirect_for_dynamic_routes', 10, 3);
+
+/**
  * Title Length Optimization for SEO
  * Ensures titles stay within recommended limits
  */
 function chroma_optimize_title_length($title_parts)
 {
-    // Truncate very long titles
-    if (isset($title_parts['title']) && mb_strlen($title_parts['title']) > 50) {
-        $title_parts['title'] = mb_substr($title_parts['title'], 0, 47) . '...';
-    }
-
-    // Use shorter site name suffix on blog posts
-    if (is_single() && isset($title_parts['site'])) {
-        $title_parts['site'] = 'Chroma';
-    }
-
     return $title_parts;
 }
 add_filter('document_title_parts', 'chroma_optimize_title_length', 10);

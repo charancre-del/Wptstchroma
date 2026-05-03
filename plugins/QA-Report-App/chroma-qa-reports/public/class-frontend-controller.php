@@ -14,6 +14,23 @@ namespace ChromaQA\Frontend;
  */
 class Frontend_Controller
 {
+    /**
+     * Public portal base slugs.
+     *
+     * Keep both values for backwards compatibility with older links that
+     * referenced the singular slug.
+     *
+     * @var string[]
+     */
+    private const ROUTE_BASES = ['qa-reports', 'qa-report'];
+
+    /**
+     * Rewrite rules schema version.
+     *
+     * Bump this when route rules change so active installs get a one-time
+     * rewrite flush without requiring manual permalink saves.
+     */
+    private const REWRITE_VERSION = '2';
 
     /**
      * Initialize front-end functionality.
@@ -21,6 +38,7 @@ class Frontend_Controller
     public static function init()
     {
         add_action('init', [self::class, 'register_rewrites']);
+        add_action('init', [self::class, 'maybe_flush_rewrite_rules'], 99);
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('CQA DEBUG: Frontend_Controller::init called');
         }
@@ -40,6 +58,8 @@ class Frontend_Controller
         add_filter('wp_sitemaps_add_provider', [self::class, 'exclude_from_sitemap'], 10, 2);
         add_filter('wpseo_exclude_from_sitemap_by_url', [self::class, 'yoast_exclude_urls']);
         add_filter('rank_math/sitemap/exclude_urls', [self::class, 'rankmath_exclude_urls']);
+        add_filter('redirect_canonical', [self::class, 'preserve_qa_route_canonical'], 1, 2);
+        add_filter('pre_option_chroma_seo_redirect_canonical', [self::class, 'disable_custom_canonical_on_qa_routes'], 10, 3);
 
         // Add noindex to QA pages
         add_action('wp_head', [self::class, 'add_noindex_meta']);
@@ -58,7 +78,9 @@ class Frontend_Controller
      */
     public static function yoast_exclude_urls($excluded)
     {
-        $excluded[] = home_url('/qa-reports/');
+        foreach (self::ROUTE_BASES as $base) {
+            $excluded[] = home_url('/' . $base . '/');
+        }
         return $excluded;
     }
 
@@ -67,7 +89,9 @@ class Frontend_Controller
      */
     public static function rankmath_exclude_urls($urls)
     {
-        $urls[] = home_url('/qa-reports/');
+        foreach (self::ROUTE_BASES as $base) {
+            $urls[] = home_url('/' . $base . '/');
+        }
         return $urls;
     }
 
@@ -89,15 +113,91 @@ class Frontend_Controller
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('CQA DEBUG: register_rewrites called');
         }
-        // Login Route
-        add_rewrite_rule('^qa-reports/login/?$', 'index.php?cqa_page=login', 'top');
+        foreach (self::ROUTE_BASES as $base) {
+            // Login Route
+            add_rewrite_rule('^' . $base . '/login/?$', 'index.php?cqa_page=login', 'top');
 
-        // Auth Callback
-        add_rewrite_rule('^qa-reports/auth/callback/?$', 'index.php?cqa_page=oauth_callback', 'top');
+            // Auth Callback
+            add_rewrite_rule('^' . $base . '/auth/callback/?$', 'index.php?cqa_page=oauth_callback', 'top');
 
-        // All other routes map to the React App (Dashboard)
-        add_rewrite_rule('^qa-reports/.*', 'index.php?cqa_page=dashboard', 'top');
-        add_rewrite_rule('^qa-reports/?$', 'index.php?cqa_page=dashboard', 'top');
+            // All other routes map to the React App (Dashboard)
+            add_rewrite_rule('^' . $base . '/.*', 'index.php?cqa_page=dashboard', 'top');
+            add_rewrite_rule('^' . $base . '/?$', 'index.php?cqa_page=dashboard', 'top');
+        }
+    }
+
+    /**
+     * Flush rewrite rules once after route changes.
+     */
+    public static function maybe_flush_rewrite_rules()
+    {
+        $stored_version = get_option('cqa_frontend_rewrite_version', '');
+        if ($stored_version === self::REWRITE_VERSION) {
+            return;
+        }
+
+        self::register_rewrites();
+        flush_rewrite_rules(false);
+        update_option('cqa_frontend_rewrite_version', self::REWRITE_VERSION, false);
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('CQA DEBUG: Frontend rewrite rules flushed to version ' . self::REWRITE_VERSION);
+        }
+    }
+
+    /**
+     * Prevent core canonical redirects from hijacking QA routes.
+     *
+     * @param string|false $redirect_url Redirect URL candidate.
+     * @param string $requested_url Current requested URL.
+     * @return string|false
+     */
+    public static function preserve_qa_route_canonical($redirect_url, $requested_url)
+    {
+        $path = wp_parse_url((string) $requested_url, PHP_URL_PATH);
+        if (!is_string($path)) {
+            $path = '';
+        }
+
+        if (self::is_qa_route_path($path)) {
+            return false;
+        }
+
+        return $redirect_url;
+    }
+
+    /**
+     * Disable custom canonical redirect option for QA routes only.
+     *
+     * @param mixed $pre_option Pre-option value.
+     * @param string $option Option key.
+     * @param mixed $default Default option value.
+     * @return mixed
+     */
+    public static function disable_custom_canonical_on_qa_routes($pre_option, $option, $default)
+    {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+        if (!is_string($path)) {
+            $path = '';
+        }
+
+        if (self::is_qa_route_path($path)) {
+            return false;
+        }
+
+        return $pre_option;
+    }
+
+    /**
+     * Whether the path is one of the public QA portal routes.
+     *
+     * @param string $path Request path.
+     * @return bool
+     */
+    private static function is_qa_route_path($path)
+    {
+        return is_string($path) && (bool) preg_match('#^/qa-reports?(?:/|$)#i', $path);
     }
 
     /**
@@ -130,8 +230,12 @@ class Frontend_Controller
         }
 
         $request_uri = isset($_SERVER['REQUEST_URI']) ? wp_unslash($_SERVER['REQUEST_URI']) : '';
-        if (is_string($request_uri) && strpos($request_uri, '/qa-reports') !== false) {
-            return false;
+        if (is_string($request_uri)) {
+            foreach (self::ROUTE_BASES as $base) {
+                if (strpos($request_uri, '/' . $base) !== false) {
+                    return false;
+                }
+            }
         }
 
         return $show;
@@ -238,8 +342,15 @@ class Frontend_Controller
      */
     private static function load_template($page)
     {
+        self::disable_theme_marketing_scripts();
+
+        if (!did_action('wp_enqueue_scripts')) {
+            do_action('wp_enqueue_scripts');
+        }
+
         // Enqueue assets
         self::enqueue_assets($page);
+        self::restrict_asset_queue($page);
 
         include CQA_PLUGIN_DIR . 'public/views/header.php';
 
@@ -250,7 +361,7 @@ class Frontend_Controller
         } else {
             // Render React App Container for all other routes
             ?>
-            <div class="wrap cqa-react-wrap" style="min-height: 80vh;">
+            <div class="cqa-react-wrap">
                 <div id="cqa-react-app" role="application">
                     <div class="cqa-loading-placeholder"
                         style="display: flex; align-items: center; justify-content: center; min-height: 400px;">
@@ -268,15 +379,141 @@ class Frontend_Controller
     }
 
     /**
+     * Limit QA portal output to the handles the portal actually needs.
+     *
+     * This prevents third-party themes/plugins from injecting unrelated CSS,
+     * widgets, or analytics just because they enqueue assets globally.
+     *
+     * @param string $page Current portal page.
+     * @return void
+     */
+    private static function restrict_asset_queue($page)
+    {
+        $allowed_styles = ['chroma-font-awesome', 'chroma-main'];
+        $allowed_scripts = [];
+
+        if ($page === 'login') {
+            $allowed_styles[] = 'cqa-frontend-styles';
+            $allowed_scripts = ['cqa-frontend'];
+        } else {
+            $allowed_styles[] = 'cqa-react-app';
+            $allowed_scripts = ['cqa-runtime-guard', 'cqa-react-app'];
+        }
+
+        self::restrict_wp_style_queue($allowed_styles);
+        self::restrict_wp_script_queue($allowed_scripts);
+    }
+
+    /**
+     * Restrict enqueued style handles to an allow-list and their dependencies.
+     *
+     * @param string[] $allowed_handles Allowed top-level handles.
+     * @return void
+     */
+    private static function restrict_wp_style_queue(array $allowed_handles)
+    {
+        global $wp_styles;
+
+        if (!($wp_styles instanceof \WP_Styles)) {
+            return;
+        }
+
+        $allowed = self::expand_dependency_handles($allowed_handles, $wp_styles->registered);
+        $queued = is_array($wp_styles->queue) ? $wp_styles->queue : [];
+
+        foreach ($queued as $handle) {
+            if (!isset($allowed[$handle])) {
+                wp_dequeue_style($handle);
+                wp_deregister_style($handle);
+            }
+        }
+    }
+
+    /**
+     * Restrict enqueued script handles to an allow-list and their dependencies.
+     *
+     * @param string[] $allowed_handles Allowed top-level handles.
+     * @return void
+     */
+    private static function restrict_wp_script_queue(array $allowed_handles)
+    {
+        global $wp_scripts;
+
+        if (!($wp_scripts instanceof \WP_Scripts)) {
+            return;
+        }
+
+        $allowed = self::expand_dependency_handles($allowed_handles, $wp_scripts->registered);
+        $queued = is_array($wp_scripts->queue) ? $wp_scripts->queue : [];
+
+        foreach ($queued as $handle) {
+            if (!isset($allowed[$handle])) {
+                wp_dequeue_script($handle);
+                wp_deregister_script($handle);
+            }
+        }
+    }
+
+    /**
+     * Expand a list of handles to include all recursively registered deps.
+     *
+     * @param string[] $handles Root handles to keep.
+     * @param array<string,\_WP_Dependency> $registered Registered dependency map.
+     * @return array<string,bool>
+     */
+    private static function expand_dependency_handles(array $handles, array $registered)
+    {
+        $allowed = [];
+        $stack = array_values(array_unique(array_filter($handles, 'is_string')));
+
+        while (!empty($stack)) {
+            $handle = array_pop($stack);
+
+            if ($handle === '' || isset($allowed[$handle])) {
+                continue;
+            }
+
+            $allowed[$handle] = true;
+
+            if (!isset($registered[$handle]) || empty($registered[$handle]->deps)) {
+                continue;
+            }
+
+            foreach ((array) $registered[$handle]->deps as $dep) {
+                if (is_string($dep) && $dep !== '' && !isset($allowed[$dep])) {
+                    $stack[] = $dep;
+                }
+            }
+        }
+
+        return $allowed;
+    }
+
+    /**
+     * Strip site-wide marketing widgets/scripts from the QA portal shell.
+     *
+     * The QA React app should render in a clean environment without global
+     * footer widgets, analytics snippets, or modal markup interfering with its
+     * layout, runtime, or accessibility.
+     *
+     * @return void
+     */
+    private static function disable_theme_marketing_scripts()
+    {
+        \remove_action('wp_head', 'chroma_output_header_scripts', 1);
+        \remove_action('wp_footer', 'chroma_output_footer_scripts', 99);
+        \remove_action('wp_footer', 'chroma_render_booking_modal');
+        \remove_action('wp_footer', 'chroma_render_pdf_modal');
+    }
+
+    /**
      * Enqueue front-end assets.
      */
     private static function enqueue_assets($page)
     {
-        // Enqueue styles
-        wp_enqueue_style('cqa-frontend-styles', CQA_PLUGIN_URL . 'public/css/frontend-styles.css', [], CQA_VERSION);
-
         // If Login page, load legacy logic
         if ($page === 'login') {
+            wp_enqueue_style('cqa-frontend-styles', CQA_PLUGIN_URL . 'public/css/frontend-styles.css', [], CQA_VERSION);
             wp_enqueue_script('cqa-frontend', CQA_PLUGIN_URL . 'public/js/frontend-app.js', ['jquery'], CQA_VERSION, true);
             wp_localize_script('cqa-frontend', 'cqaFrontend', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
@@ -294,6 +531,7 @@ class Frontend_Controller
             // React Styles
             wp_enqueue_style('cqa-react-app', CQA_PLUGIN_URL . 'build/index.css', [], $assets['version']);
             wp_add_inline_style('cqa-react-app', self::get_local_font_face_css());
+            wp_add_inline_style('cqa-react-app', self::get_react_shell_css());
 
             // React Script
             wp_enqueue_script(
@@ -363,6 +601,44 @@ class Frontend_Controller
 @font-face{font-family:'Playfair Display';src:url('{$playfair_bold}') format('woff2');font-weight:700;font-style:normal;font-display:swap;}
 @font-face{font-family:'DM Serif Display';src:url('{$playfair_semibold}') format('woff2');font-weight:400;font-style:normal;font-display:swap;}
 @font-face{font-family:'DM Serif Display';src:url('{$playfair_bold}') format('woff2');font-weight:400;font-style:italic;font-display:swap;}";
+    }
+
+    /**
+     * Minimal shell CSS for React QA routes.
+     *
+     * Keep this intentionally tiny so the React app controls its own layout
+     * without inheriting the legacy public portal styles.
+     *
+     * @return string
+     */
+    private static function get_react_shell_css()
+    {
+        return "
+html, body.cqa-frontend {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background: #f7f4ec;
+    color: #263238;
+}
+body.cqa-frontend {
+    width: 100%;
+    overflow-x: hidden;
+}
+.cqa-main,
+.cqa-react-wrap,
+#cqa-react-app {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+}
+#cqa-react-app {
+    display: block;
+}
+";
     }
 
     /**

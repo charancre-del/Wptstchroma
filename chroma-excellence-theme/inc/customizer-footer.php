@@ -166,19 +166,5 @@ function chroma_footer_customizer_settings($wp_customize)
 		),
 	));
 
-	// Footer Scripts
-	$wp_customize->add_setting('chroma_footer_scripts', array(
-		'default' => '',
-		'sanitize_callback' => 'chroma_sanitize_raw_html',
-		'transport' => 'refresh',
-	));
-
-	$wp_customize->add_control('chroma_footer_scripts', array(
-		'label' => __('Footer Scripts', 'chroma-excellence'),
-		'description' => __('Scripts to be output before </body>.', 'chroma-excellence'),
-		'section' => 'chroma_footer_settings',
-		'type' => 'textarea',
-	));
-
 }
 add_action('customize_register', 'chroma_footer_customizer_settings');

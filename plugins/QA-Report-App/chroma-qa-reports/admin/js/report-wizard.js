@@ -32,7 +32,8 @@
             'overall_rating',
             'closing_notes',
             'responses',
-            'status'
+            'status',
+            'version_id'
         ],
 
         /**
@@ -40,6 +41,9 @@
          */
         init: function () {
             this.reportId = $('#report_id').val() || null;
+            this.reportData.version_id = parseInt($('#report_version_id').val(), 10) || 0;
+            this.reportData.updated_at = $('#report_updated_at').val() || '';
+            this.reportData.previous_report_id = $('#previous_report_id').val() || null;
             this.bindEvents();
             this.loadSchoolReports();
             this.initAutosave();
@@ -176,18 +180,19 @@
             this.updateAutosaveStatus('saving');
 
             var data = this.buildReportPayload('draft');
+            var requestOptions = this.getSaveRequestOptions();
 
             var endpoint = this.reportId ? 'reports/' + this.reportId : 'reports';
             var method = this.reportId ? 'put' : 'post';
 
-            CQA.api[method](endpoint, data).done(function (report) {
-                self.reportId = report.id;
-                $('#report_id').val(report.id);
+            CQA.api[method](endpoint, data, requestOptions).done(function (report) {
+                self.syncReportState(report);
                 self.syncResponsesFromServer(report.id);
 
                 self.isDirty = false;
                 self.updateAutosaveStatus('saved');
-            }).fail(function () {
+            }).fail(function (xhr) {
+                self.handleSaveFailure(xhr, 'Failed to autosave.');
                 self.updateAutosaveStatus('error');
             }).always(function () {
                 self.isSaving = false;
@@ -243,6 +248,10 @@
                 status: status || 'draft'
             };
 
+            if (this.reportId && this.reportData.version_id) {
+                payload.version_id = this.reportData.version_id;
+            }
+
             if (
                 this.reportData.responses
                 && typeof this.reportData.responses === 'object'
@@ -292,6 +301,57 @@
                     console.warn('[CQA Wizard] Failed to refresh responses snapshot.');
                 }
             });
+        },
+
+        /**
+         * Keep local report identity and concurrency metadata in sync.
+         */
+        syncReportState: function (report) {
+            if (!report || !report.id) {
+                return;
+            }
+
+            this.reportId = report.id;
+            $('#report_id').val(report.id);
+
+            this.reportData.version_id = parseInt(report.version_id, 10) || this.reportData.version_id || 0;
+            this.reportData.updated_at = report.updated_at || this.reportData.updated_at || '';
+
+            $('#report_version_id').val(this.reportData.version_id || 0);
+            $('#report_updated_at').val(this.reportData.updated_at || '');
+        },
+
+        /**
+         * Build optimistic-lock headers for save requests.
+         */
+        getSaveRequestOptions: function () {
+            var headers = {};
+
+            if (this.reportData.version_id) {
+                headers['X-CQA-Version'] = String(this.reportData.version_id);
+            }
+
+            if (this.reportData.updated_at) {
+                headers['If-Unmodified-Since'] = this.reportData.updated_at;
+            }
+
+            return { headers: headers };
+        },
+
+        /**
+         * Normalize save failures and surface concurrency issues clearly.
+         */
+        handleSaveFailure: function (xhr, fallbackMessage) {
+            var code = xhr && xhr.responseJSON && xhr.responseJSON.code;
+            var msg = xhr && xhr.responseJSON && xhr.responseJSON.message
+                ? xhr.responseJSON.message
+                : fallbackMessage;
+
+            if (code === 'CONFLICT' || code === 'CONCURRENCY_CONFLICT') {
+                msg += ' Reload the report to continue.';
+            }
+
+            CQA.notify.error(msg);
         },
 
         /**
@@ -460,11 +520,18 @@
 
             // Upload to server
             var formData = new FormData();
-            formData.append('photo', file);
-            formData.append('report_id', this.reportId || 0);
+            formData.append('photos', file);
+
+            if (!this.reportId) {
+                this.saveDraft(function () {
+                    self.uploadPhoto(file);
+                });
+                $preview.remove();
+                return;
+            }
 
             $.ajax({
-                url: cqaAdmin.restUrl + 'photos',
+                url: cqaAdmin.restUrl + 'reports/' + this.reportId + '/photos',
                 method: 'POST',
                 data: formData,
                 processData: false,
@@ -822,23 +889,38 @@
          */
         loadSchoolReports: function () {
             var schoolId = $('#school_id').val();
+            var selectedPreviousId = this.reportData.previous_report_id || $('#previous_report_id').val() || '';
+            var currentReportId = parseInt(this.reportId, 10) || 0;
 
             if (!schoolId) {
                 $('#previous_report_id').html('<option value="">No comparison (first report)</option>');
+                this.reportData.previous_report_id = null;
                 return;
             }
 
             CQA.api.get('schools/' + schoolId + '/reports').done(function (reports) {
                 var options = '<option value="">No comparison (first report)</option>';
+                var hasSelectedPrevious = false;
 
                 reports.forEach(function (report) {
+                    if (currentReportId && parseInt(report.id, 10) === currentReportId) {
+                        return;
+                    }
+
                     var date = new Date(report.inspection_date).toLocaleDateString();
-                    options += '<option value="' + report.id + '">' +
+                    var isSelected = String(report.id) === String(selectedPreviousId);
+                    if (isSelected) {
+                        hasSelectedPrevious = true;
+                    }
+
+                    options += '<option value="' + report.id + '"' + (isSelected ? ' selected' : '') + '>' +
                         report.report_type + ' - ' + date +
                         ' (' + report.overall_rating + ')</option>';
                 });
 
                 $('#previous_report_id').html(options);
+                $('#previous_report_id').val(hasSelectedPrevious ? String(selectedPreviousId) : '');
+                Wizard.reportData.previous_report_id = hasSelectedPrevious ? String(selectedPreviousId) : null;
             });
         },
 
@@ -943,6 +1025,7 @@
             var self = this;
 
             var data = this.buildReportPayload('draft');
+            var requestOptions = this.getSaveRequestOptions();
 
             var $btn = $('#save-draft');
             CQA.loading.show($btn);
@@ -950,9 +1033,8 @@
             var endpoint = this.reportId ? 'reports/' + this.reportId : 'reports';
             var method = this.reportId ? 'put' : 'post';
 
-            CQA.api[method](endpoint, data).done(function (report) {
-                self.reportId = report.id;
-                $('#report_id').val(report.id);
+            CQA.api[method](endpoint, data, requestOptions).done(function (report) {
+                self.syncReportState(report);
                 self.syncResponsesFromServer(report.id);
 
                 self.isDirty = false;
@@ -963,8 +1045,7 @@
                     callback();
                 }
             }).fail(function (xhr) {
-                var msg = xhr.responseJSON?.message || 'Failed to save draft.';
-                CQA.notify.error(msg);
+                self.handleSaveFailure(xhr, 'Failed to save draft.');
             }).always(function () {
                 CQA.loading.hide($btn);
             });
@@ -983,6 +1064,7 @@
             }
 
             var data = this.buildReportPayload('submitted');
+            var requestOptions = this.getSaveRequestOptions();
 
             var $btn = $('#submit-report');
             CQA.loading.show($btn);
@@ -990,8 +1072,8 @@
             var endpoint = this.reportId ? 'reports/' + this.reportId : 'reports';
             var method = this.reportId ? 'put' : 'post';
 
-            CQA.api[method](endpoint, data).done(function (report) {
-                self.reportId = report.id;
+            CQA.api[method](endpoint, data, requestOptions).done(function (report) {
+                self.syncReportState(report);
                 self.syncResponsesFromServer(report.id);
 
                 self.isDirty = false;
@@ -1002,8 +1084,7 @@
                     window.location.href = cqaAdmin.adminUrl + '?page=chroma-qa-reports-view&id=' + report.id;
                 }, 1500);
             }).fail(function (xhr) {
-                var msg = xhr.responseJSON?.message || 'Failed to submit report.';
-                CQA.notify.error(msg);
+                self.handleSaveFailure(xhr, 'Failed to submit report.');
             }).always(function () {
                 CQA.loading.hide($btn);
             });

@@ -43,13 +43,29 @@ function chroma_register_program_cpt()
 
 	register_post_type('program', $args);
 
-	// Self-healing: Flush rewrite rules if slug changed or first run. v2 = forces new flush.
-	if (get_option('chroma_program_rewrite_flushed') !== 'v2') {
-		flush_rewrite_rules();
-		update_option('chroma_program_rewrite_flushed', 'v2');
-	}
 }
 add_action('init', 'chroma_register_program_cpt', 0);
+
+/**
+ * Refresh Program rewrites from a safe admin context instead of live requests.
+ *
+ * Flushing rewrites during frontend/REST bootstrap can trigger expensive work
+ * on every request if the version flag is missing or cannot be updated.
+ */
+function chroma_maybe_flush_program_rewrites_admin()
+{
+	if (!is_admin() || wp_doing_ajax() || wp_doing_cron()) {
+		return;
+	}
+
+	if (get_option('chroma_program_rewrite_flushed') === 'v2') {
+		return;
+	}
+
+	flush_rewrite_rules(false);
+	update_option('chroma_program_rewrite_flushed', 'v2');
+}
+add_action('admin_init', 'chroma_maybe_flush_program_rewrites_admin', 20);
 
 /**
  * Register Program-Location Relationship Taxonomy
@@ -619,6 +635,7 @@ function chroma_program_details_meta_box_render($post)
 			<option value="yellow" <?php selected($color_scheme, 'yellow'); ?>>Yellow - Preschool</option>
 			<option value="blueDark" <?php selected($color_scheme, 'blueDark'); ?>>Dark Blue - Pre-K Prep</option>
 			<option value="green" <?php selected($color_scheme, 'green'); ?>>Green - GA Pre-K</option>
+			<option value="orange" <?php selected($color_scheme, 'orange'); ?>>Orange - Kindergarten</option>
 		</select>
 		<div class="chroma-color-preview">
 			<div class="color-swatch" style="background-color: #D67D6B;" title="Red"></div>
@@ -626,6 +643,7 @@ function chroma_program_details_meta_box_render($post)
 			<div class="color-swatch" style="background-color: #E6BE75;" title="Yellow"></div>
 			<div class="color-swatch" style="background-color: #2F4858;" title="Dark Blue"></div>
 			<div class="color-swatch" style="background-color: #8DA399;" title="Green"></div>
+			<div class="color-swatch" style="background-color: #A8551E;" title="Orange"></div>
 		</div>
 		<small><?php _e('Color theme for the program card hover effects and badges', 'chroma-excellence'); ?></small>
 	</div>
@@ -688,6 +706,7 @@ function chroma_program_single_page_meta_box_render($post)
 	// Hero section
 	$hero_title = get_post_meta($post->ID, 'program_hero_title', true);
 	$hero_description = get_post_meta($post->ID, 'program_hero_description', true);
+	$hero_image = get_post_meta($post->ID, 'program_hero_image', true);
 
 	// Prismpath section
 	$prism_title = get_post_meta($post->ID, 'program_prism_title', true);
@@ -769,6 +788,13 @@ function chroma_program_single_page_meta_box_render($post)
 		<textarea id="program_hero_description" name="program_hero_description" rows="3"
 			placeholder="A peaceful, 'shoeless' environment..."><?php echo esc_textarea($hero_description); ?></textarea>
 		<small><?php _e('Description paragraph in hero section', 'chroma-excellence'); ?></small>
+	</div>
+
+	<div class="chroma-single-field">
+		<label for="program_hero_image"><?php _e('Hero Image URL (Override)', 'chroma-excellence'); ?></label>
+		<input type="text" id="program_hero_image" name="program_hero_image"
+			value="<?php echo esc_attr($hero_image); ?>" placeholder="https://example.com/hero-image.webp" />
+		<small><?php _e('Optional. Overrides the featured image on the single program page. Leave empty to use the featured image.', 'chroma-excellence'); ?></small>
 	</div>
 
 	<div class="chroma-section-divider">
@@ -904,6 +930,7 @@ function chroma_program_single_page_meta_box_save($post_id)
 	$fields = array(
 		'program_hero_title' => 'sanitize_text_field',
 		'program_hero_description' => 'sanitize_textarea_field',
+		'program_hero_image' => 'esc_url_raw',
 		'program_prism_title' => 'sanitize_text_field',
 		'program_prism_description' => 'sanitize_textarea_field',
 		'program_prism_focus_items' => 'sanitize_textarea_field',

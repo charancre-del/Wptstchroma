@@ -1,40 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import * as Dialog from '@radix-ui/react-dialog';
-import { LogIn, AlertCircle, RefreshCw, X } from 'lucide-react';
+import { LogIn, AlertCircle, RefreshCw } from 'lucide-react';
 
 /**
  * Session Expired Modal - shown on 401 response
- * 
+ *
  * Opens WP login in popup window, then refreshes nonce on success.
+ * @param root0
+ * @param root0.open
+ * @param root0.onClose
+ * @param root0.onSessionRestored
  */
-export function SessionExpiredModal({
-    open,
-    onClose,
-    onSessionRestored
-}) {
-    const [isLoggingIn, setIsLoggingIn] = useState(false);
-    const [loginWindow, setLoginWindow] = useState(null);
+export function SessionExpiredModal( { open, onClose, onSessionRestored } ) {
+    const [ isLoggingIn, setIsLoggingIn ] = useState( false );
+    const [ loginWindow, setLoginWindow ] = useState( null );
+
+    const verifySession = useCallback( async () => {
+        try {
+            const response = await fetch( `${ window.cqaData.adminUrl }admin-ajax.php?action=heartbeat`, {
+                credentials: 'same-origin',
+            } );
+
+            if ( response.ok ) {
+                onSessionRestored?.();
+            }
+        } catch ( error ) {
+            console.error( 'Session verification failed:', error );
+        }
+    }, [ onSessionRestored ] );
 
     // Check if login window was closed
-    useEffect(() => {
-        if (!loginWindow) return;
+    useEffect( () => {
+        if ( ! loginWindow ) {
+            return;
+        }
 
-        const checkClosed = setInterval(() => {
-            if (loginWindow.closed) {
-                setIsLoggingIn(false);
-                setLoginWindow(null);
-                clearInterval(checkClosed);
+        const checkClosed = setInterval( () => {
+            if ( loginWindow.closed ) {
+                setIsLoggingIn( false );
+                setLoginWindow( null );
+                clearInterval( checkClosed );
 
                 // Try to verify session was restored
                 verifySession();
             }
-        }, 500);
+        }, 500 );
 
-        return () => clearInterval(checkClosed);
-    }, [loginWindow]);
+        return () => clearInterval( checkClosed );
+    }, [ loginWindow, verifySession ] );
 
     const handleLogin = () => {
-        setIsLoggingIn(true);
+        setIsLoggingIn( true );
 
         // Open WP login in popup
         const width = 500;
@@ -43,29 +59,12 @@ export function SessionExpiredModal({
         const top = window.screen.height / 2 - height / 2;
 
         const popup = window.open(
-            `${window.cqaData.adminUrl}?interim-login=1`,
+            `${ window.cqaData.adminUrl }?interim-login=1`,
             'wp_login',
-            `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no`
+            `width=${ width },height=${ height },left=${ left },top=${ top },menubar=no,toolbar=no,location=no,status=no`
         );
 
-        setLoginWindow(popup);
-    };
-
-    const verifySession = async () => {
-        try {
-            // Fetch fresh nonce via heartbeat
-            const response = await fetch(
-                `${window.cqaData.adminUrl}admin-ajax.php?action=heartbeat`,
-                { credentials: 'same-origin' }
-            );
-
-            if (response.ok) {
-                // Session restored, refresh the page to get new nonce
-                onSessionRestored?.();
-            }
-        } catch (error) {
-            console.error('Session verification failed:', error);
-        }
+        setLoginWindow( popup );
     };
 
     const handleRefresh = () => {
@@ -73,7 +72,14 @@ export function SessionExpiredModal({
     };
 
     return (
-        <Dialog.Root open={open} onOpenChange={() => { }}>
+        <Dialog.Root
+            open={ open }
+            onOpenChange={ ( nextOpen ) => {
+                if ( ! nextOpen ) {
+                    onClose?.();
+                }
+            } }
+        >
             <Dialog.Portal>
                 <Dialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
                 <Dialog.Content className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-xl p-6 w-full max-w-md z-50">
@@ -82,26 +88,24 @@ export function SessionExpiredModal({
                             <AlertCircle className="w-8 h-8 text-amber-600" />
                         </div>
 
-                        <Dialog.Title className="text-xl font-semibold text-gray-900">
-                            Session Expired
-                        </Dialog.Title>
+                        <Dialog.Title className="text-xl font-semibold text-gray-900">Session Expired</Dialog.Title>
 
                         <Dialog.Description className="mt-2 text-gray-600">
                             Your session has expired. Please log in again to continue.
                             <br />
                             <span className="text-sm text-gray-500">
-                                Don't worry — your draft has been saved locally.
+                                Don&apos;t worry. Your draft has been saved locally.
                             </span>
                         </Dialog.Description>
                     </div>
 
                     <div className="mt-6 space-y-3">
                         <button
-                            onClick={handleLogin}
-                            disabled={isLoggingIn}
+                            onClick={ handleLogin }
+                            disabled={ isLoggingIn }
                             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50"
                         >
-                            {isLoggingIn ? (
+                            { isLoggingIn ? (
                                 <>
                                     <RefreshCw className="w-4 h-4 animate-spin" />
                                     Waiting for login...
@@ -111,11 +115,11 @@ export function SessionExpiredModal({
                                     <LogIn className="w-4 h-4" />
                                     Log In
                                 </>
-                            )}
+                            ) }
                         </button>
 
                         <button
-                            onClick={handleRefresh}
+                            onClick={ handleRefresh }
                             className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
                         >
                             <RefreshCw className="w-4 h-4" />

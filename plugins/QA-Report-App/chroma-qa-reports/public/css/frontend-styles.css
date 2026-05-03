@@ -36,13 +36,29 @@
 }
 
 /* Base */
+html,
 .cqa-frontend {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--cqa-gray-50);
     color: var(--cqa-gray-900);
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+}
+
+.cqa-frontend {
+    display: block;
+    margin: 0;
+    width: 100%;
+}
+
+body.cqa-frontend {
+    margin: 0;
+}
+
+.cqa-react-wrap,
+#cqa-react-app {
+    width: 100%;
+    max-width: none;
+    min-height: 100vh;
 }
 
 /* Header */
@@ -129,10 +145,11 @@
 /* Main */
 .cqa-main {
     flex: 1;
-    padding: 24px 20px;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 0;
+    max-width: none;
+    margin: 0;
     width: 100%;
+    min-width: 0;
 }
 
 /* Footer */

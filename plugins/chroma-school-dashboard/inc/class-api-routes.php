@@ -126,6 +126,7 @@ class Chroma_School_API_Routes
             'slideshow',
             'youtube',
             'slideshow_title',
+            'welcome_override',
             'chroma_cares',
             'celebrations',
             'music_url'

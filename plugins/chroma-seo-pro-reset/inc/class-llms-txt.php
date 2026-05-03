@@ -19,15 +19,8 @@ class Chroma_LLMs_Txt_Generator
      */
     public function init()
     {
-        // Remove virtual rewrite rules
-        // add_action('init', [$this, 'add_rewrite_rule']);
-        // add_filter('query_vars', [$this, 'add_query_var']);
-        // add_action('template_redirect', [$this, 'render_file']);
-
-        // Physical File Generation Hooks
-        add_action('admin_init', [$this, 'write_physical_file']); // Force check on admin load
-        add_action('save_post', [$this, 'write_physical_file']);
-        add_action('wp_ajax_chroma_save_llm_targeting', [$this, 'write_physical_file'], 20);
+        // LLM discovery ownership moved to chroma-agent-api plugin.
+        // Keep this class available for backward-compatible content generation only.
     }
 
     /**
@@ -119,10 +112,10 @@ class Chroma_LLMs_Txt_Generator
         
         $output .= "## Main Sections\n\n";
         $output .= "- [Home]({$url})\n";
-        $output .= "- [Locations]({$url}/locations)\n";
-        $output .= "- [Programs]({$url}/programs)\n";
-        $output .= "- [Blog]({$url}/stories)\n";
-        $output .= "- [Careers]({$url}/careers)\n\n";
+        $output .= "- [Locations]({$url}/locations/)\n";
+        $output .= "- [Programs]({$url}/programs/)\n";
+        $output .= "- [Blog]({$url}/stories/)\n";
+        $output .= "- [Careers]({$url}/careers/)\n\n";
 
         // Programs
         $output .= "## Programs (Curriculum)\n\n";
