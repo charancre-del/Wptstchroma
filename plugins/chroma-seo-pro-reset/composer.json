@@ -1,6 +1,7 @@
 {
     "name": "chroma/seo-pro-reset",
     "type": "wordpress-plugin",
+    "license": "proprietary",
     "authors": [
         {
             "name": "charancre-del",
