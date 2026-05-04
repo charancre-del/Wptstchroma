@@ -159,6 +159,30 @@ class Chroma_School_API_Routes
         return rest_ensure_response($data);
     }
 
+    public function get_weather_proxy($request)
+    {
+        $lat = $request->get_param('lat');
+        $lon = $request->get_param('lon');
+
+        if (!is_numeric($lat) || !is_numeric($lon)) {
+            return new WP_Error('invalid_coordinates', 'Latitude and longitude are required.', ['status' => 400]);
+        }
+
+        $lat = (float) $lat;
+        $lon = (float) $lon;
+
+        if ($lat < -90 || $lat > 90 || $lon < -180 || $lon > 180) {
+            return new WP_Error('invalid_coordinates', 'Latitude or longitude is out of range.', ['status' => 400]);
+        }
+
+        $weather = Chroma_Weather_Provider::get_weather($lat, $lon);
+        if (null === $weather) {
+            return new WP_Error('weather_unavailable', 'Weather is temporarily unavailable.', ['status' => 502]);
+        }
+
+        return rest_ensure_response($weather);
+    }
+
     /**
      * POST /auth/google
      * Verifies Google ID Token via Google API, finds matching Director, returns Session Token.
