@@ -213,6 +213,10 @@ class Chroma_Combo_AI_Generator
      */
     public function ajax_get_data() {
         check_ajax_referer('chroma_combo_ai', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
         
         $program_slug = sanitize_title($_POST['program_slug'] ?? '');
         $city_slug = sanitize_title($_POST['city_slug'] ?? '');

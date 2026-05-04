@@ -25,8 +25,7 @@ const getEffectiveResponse = ( item, sectionKey, groupedResponses ) => {
         return currentResponse;
     }
 
-    const sourceResponse =
-        groupedResponses?.[ item.shared_with.section_key ]?.[ item.shared_with.item_key ] || null;
+    const sourceResponse = groupedResponses?.[ item.shared_with.section_key ]?.[ item.shared_with.item_key ] || null;
 
     return {
         ...( currentResponse || {} ),
@@ -323,7 +322,11 @@ const PrintReport = () => {
                                 </div>
                                 <div className="space-y-4">
                                     { visibleItems.map( ( item ) => {
-                                        const currentResponse = getEffectiveResponse( item, section.key, checklist ) || {
+                                        const currentResponse = getEffectiveResponse(
+                                            item,
+                                            section.key,
+                                            checklist
+                                        ) || {
                                             rating: 'na',
                                             notes: '',
                                         };
@@ -371,7 +374,8 @@ const PrintReport = () => {
                                                                 }
                                                             ` }
                                                         >
-                                                            Current: { RATING_LABELS[ currentResponse.rating ] || 'N/A' }
+                                                            Current:{ ' ' }
+                                                            { RATING_LABELS[ currentResponse.rating ] || 'N/A' }
                                                         </span>
                                                         { previousReport && (
                                                             <>
@@ -403,15 +407,14 @@ const PrintReport = () => {
                                                                     Current Notes
                                                                 </div>
                                                                 <div className="leading-relaxed">
-                                                                    { currentResponse.notes || (
-                                                                        currentResponse.rating !== 'yes' ? (
+                                                                    { currentResponse.notes ||
+                                                                        ( currentResponse.rating !== 'yes' ? (
                                                                             <span className="italic">
                                                                                 No current notes provided.
                                                                             </span>
                                                                         ) : (
                                                                             'No notes.'
-                                                                        )
-                                                                    ) }
+                                                                        ) ) }
                                                                 </div>
                                                             </div>
                                                             { previousReport && (

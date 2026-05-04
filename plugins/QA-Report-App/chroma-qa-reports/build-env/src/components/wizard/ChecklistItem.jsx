@@ -218,9 +218,7 @@ const ChecklistItem = ( { item, sectionKey, response, allResponses = {}, onChang
                         ].map( ( option ) => (
                             <button
                                 key={ option.val }
-                                onClick={ () =>
-                                    ! readOnly && onChange( itemKey, { ...response, rating: option.val } )
-                                }
+                                onClick={ () => ! readOnly && onChange( itemKey, { ...response, rating: option.val } ) }
                                 className={ `
                                     px-3 py-1.5 rounded-md text-[10px] font-bold uppercase transition-all
                                     ${

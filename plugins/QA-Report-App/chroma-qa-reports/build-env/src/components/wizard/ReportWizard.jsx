@@ -137,14 +137,7 @@ const ReportWizard = () => {
                 setDraft( { school_id: parseInt( schoolId, 10 ) } );
             }
         }
-    }, [
-        existingReport,
-        hydrateReportFromServer,
-        id,
-        schoolParam,
-        stateSchoolId,
-        setDraft,
-    ] );
+    }, [ existingReport, hydrateReportFromServer, id, schoolParam, stateSchoolId, setDraft ] );
 
     // Step Definitions
     const steps = [
@@ -213,8 +206,7 @@ const ReportWizard = () => {
                 updated_at: savedReport.updated_at ?? reportState.updated_at,
                 version_id: savedReport.version_id ?? reportState.version_id,
                 monday_group_id: savedReport.monday_group_id ?? reportState.monday_group_id,
-                monday_last_synced_at:
-                    savedReport.monday_last_synced_at ?? reportState.monday_last_synced_at,
+                monday_last_synced_at: savedReport.monday_last_synced_at ?? reportState.monday_last_synced_at,
                 monday_sync_status: savedReport.monday_sync_status ?? reportState.monday_sync_status,
                 monday_sync_error: savedReport.monday_sync_error ?? reportState.monday_sync_error,
                 previous_report_id:
@@ -224,7 +216,18 @@ const ReportWizard = () => {
             } );
             setIsDirty( false );
         },
-        [ reportState.id, reportState.previous_report_id, reportState.status, reportState.updated_at, reportState.version_id, setDraft ]
+        [
+            reportState.id,
+            reportState.monday_group_id,
+            reportState.monday_last_synced_at,
+            reportState.monday_sync_error,
+            reportState.monday_sync_status,
+            reportState.previous_report_id,
+            reportState.status,
+            reportState.updated_at,
+            reportState.version_id,
+            setDraft,
+        ]
     );
 
     const handleSave = async () => {
@@ -371,18 +374,15 @@ const ReportWizard = () => {
         }
     };
 
-    const handleRestoreSuccess = React.useCallback(
-        async () => {
-            const refreshed = await refetchReport();
-            if ( refreshed.data ) {
-                hydrateReportFromServer( refreshed.data );
-                return;
-            }
+    const handleRestoreSuccess = React.useCallback( async () => {
+        const refreshed = await refetchReport();
+        if ( refreshed.data ) {
+            hydrateReportFromServer( refreshed.data );
+            return;
+        }
 
-            throw new Error( 'The restored report could not be reloaded automatically. Please refresh the page.' );
-        },
-        [ hydrateReportFromServer, refetchReport ]
-    );
+        throw new Error( 'The restored report could not be reloaded automatically. Please refresh the page.' );
+    }, [ hydrateReportFromServer, refetchReport ] );
 
     const handleSyncToMonday = async () => {
         if ( ! reportState?.id ) {
@@ -402,7 +402,9 @@ const ReportWizard = () => {
             }
             addToast( {
                 type: 'success',
-                message: `monday sync complete. Created ${ syncData.created || 0 }, updated ${ syncData.updated || 0 }, retired ${ syncData.retired || 0 }.`,
+                message: `monday sync complete. Created ${ syncData.created || 0 }, updated ${
+                    syncData.updated || 0
+                }, retired ${ syncData.retired || 0 }.`,
             } );
         } catch ( error ) {
             addToast( { type: 'error', message: error.message || 'Failed to sync report to monday.com.' } );
@@ -545,8 +547,8 @@ const ReportWizard = () => {
                             { mondaySyncMutation.isPending
                                 ? 'Syncing...'
                                 : reportState?.monday_sync_status === 'synced' && reportState?.monday_last_synced_at
-                                  ? 'Re-sync monday'
-                                  : 'Sync to monday' }
+                                ? 'Re-sync monday'
+                                : 'Sync to monday' }
                         </button>
                     ) }
                     { canDeleteDraft && (

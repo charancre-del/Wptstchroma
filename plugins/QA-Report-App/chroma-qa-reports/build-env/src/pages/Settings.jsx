@@ -1,5 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { Save, Lock, Bot, Database, Check, Link2, RefreshCcw, Wrench, AlertCircle, CheckCircle2, Building2 } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+    Save,
+    Lock,
+    Bot,
+    Database,
+    Check,
+    Link2,
+    RefreshCcw,
+    Wrench,
+    AlertCircle,
+    CheckCircle2,
+    Building2,
+} from 'lucide-react';
 import {
     useSettings,
     useUpdateSettings,
@@ -40,7 +52,7 @@ const Settings = () => {
     } );
     const [ schoolMappings, setSchoolMappings ] = useState( {} );
 
-    const schools = schoolsResponse?.data || [];
+    const schools = useMemo( () => schoolsResponse?.data || [], [ schoolsResponse?.data ] );
     const boards = mondayBoardsMutation.data?.data || [];
     const workspaces = mondayWorkspacesMutation.data?.data || [];
 
@@ -166,7 +178,9 @@ const Settings = () => {
             const count = result?.data?.length || 0;
             addToast( {
                 type: 'success',
-                message: `${ count } board${ count !== 1 ? 's' : '' } loaded${ wsId ? ' from selected workspace' : '' }.`,
+                message: `${ count } board${ count !== 1 ? 's' : '' } loaded${
+                    wsId ? ' from selected workspace' : ''
+                }.`,
             } );
         } catch ( error ) {
             addToast( { type: 'error', message: error.message || 'Failed to load monday.com boards.' } );
@@ -222,7 +236,10 @@ const Settings = () => {
                 message: `${ school.name } is now mapped to monday.com and required columns are ready.`,
             } );
         } catch ( error ) {
-            addToast( { type: 'error', message: error.message || `Failed to set up monday board for ${ school.name }.` } );
+            addToast( {
+                type: 'error',
+                message: error.message || `Failed to set up monday board for ${ school.name }.`,
+            } );
         }
     };
 
@@ -250,8 +267,11 @@ const Settings = () => {
                     </div>
                     <div className="p-6 space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Client ID</label>
+                            <label htmlFor="google_client_id" className="block text-sm font-medium text-gray-700 mb-1">
+                                Client ID
+                            </label>
                             <input
+                                id="google_client_id"
                                 type="text"
                                 name="google_client_id"
                                 value={ formData.google_client_id }
@@ -261,11 +281,17 @@ const Settings = () => {
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Client Secret</label>
+                            <label
+                                htmlFor="google_client_secret"
+                                className="block text-sm font-medium text-gray-700 mb-1"
+                            >
+                                Client Secret
+                            </label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={ 16 } />
                                 <input
                                     type="password"
+                                    id="google_client_secret"
                                     name="google_client_secret"
                                     value={ formData.google_client_secret }
                                     onChange={ handleChange }
@@ -293,9 +319,10 @@ const Settings = () => {
                                 <h3 className="text-sm font-medium text-gray-900">Enable AI Summaries</h3>
                                 <p className="text-xs text-gray-500">Allow AI to generate findings and POI.</p>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
+                            <label htmlFor="enable_ai" className="relative inline-flex items-center cursor-pointer">
                                 <span className="sr-only">Enable AI summaries</span>
                                 <input
+                                    id="enable_ai"
                                     type="checkbox"
                                     name="enable_ai"
                                     checked={ formData.enable_ai === 'yes' }
@@ -307,11 +334,20 @@ const Settings = () => {
                         </div>
                         { formData.enable_ai === 'yes' && (
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Gemini API Key</label>
+                                <label
+                                    htmlFor="gemini_api_key"
+                                    className="block text-sm font-medium text-gray-700 mb-1"
+                                >
+                                    Gemini API Key
+                                </label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={ 16 } />
+                                    <Lock
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                                        size={ 16 }
+                                    />
                                     <input
                                         type="password"
+                                        id="gemini_api_key"
                                         name="gemini_api_key"
                                         value={ formData.gemini_api_key }
                                         onChange={ handleChange }
@@ -340,9 +376,13 @@ const Settings = () => {
                                 <h3 className="text-sm font-medium text-gray-900">Enable monday Sync</h3>
                                 <p className="text-xs text-gray-500">Approved reports can sync POI to monday boards.</p>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
+                            <label
+                                htmlFor="monday_enabled"
+                                className="relative inline-flex items-center cursor-pointer"
+                            >
                                 <span className="sr-only">Enable monday sync</span>
                                 <input
+                                    id="monday_enabled"
                                     type="checkbox"
                                     name="monday_enabled"
                                     checked={ formData.monday_enabled === 'yes' }
@@ -354,11 +394,14 @@ const Settings = () => {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Admin API Token</label>
+                            <label htmlFor="monday_api_token" className="block text-sm font-medium text-gray-700 mb-1">
+                                Admin API Token
+                            </label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={ 16 } />
                                 <input
                                     type="password"
+                                    id="monday_api_token"
                                     name="monday_api_token"
                                     value={ formData.monday_api_token }
                                     onChange={ handleChange }
@@ -371,11 +414,17 @@ const Settings = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <h3 className="text-sm font-medium text-gray-900">Auto-sync on Approval</h3>
-                                <p className="text-xs text-gray-500">Automatically sync POI when a report is approved.</p>
+                                <p className="text-xs text-gray-500">
+                                    Automatically sync POI when a report is approved.
+                                </p>
                             </div>
-                            <label className="relative inline-flex items-center cursor-pointer">
+                            <label
+                                htmlFor="monday_auto_sync_on_approval"
+                                className="relative inline-flex items-center cursor-pointer"
+                            >
                                 <span className="sr-only">Auto-sync on approval</span>
                                 <input
+                                    id="monday_auto_sync_on_approval"
                                     type="checkbox"
                                     name="monday_auto_sync_on_approval"
                                     checked={ formData.monday_auto_sync_on_approval === 'yes' }
@@ -387,8 +436,10 @@ const Settings = () => {
                         </div>
 
                         <div className="rounded-lg border border-amber-100 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                            New monday items will start in <strong>{ formData.monday_default_status_label || 'Not Started' }</strong>.
-                            Re-sync keeps monday Status and Notes intact, and removed POI items move to <strong>Removed from QA Sync</strong>.
+                            New monday items will start in{ ' ' }
+                            <strong>{ formData.monday_default_status_label || 'Not Started' }</strong>. Re-sync keeps
+                            monday Status and Notes intact, and removed POI items move to{ ' ' }
+                            <strong>Removed from QA Sync</strong>.
                         </div>
 
                         { /* Step 1: Test Connection */ }
@@ -402,13 +453,16 @@ const Settings = () => {
                                 { mondayTestMutation.isPending ? 'Testing...' : 'Test Connection' }
                             </button>
                             { connectionStatus && (
-                                <span className={ `inline-flex items-center gap-1.5 text-sm font-medium ${
-                                    connectionStatus.type === 'success' ? 'text-emerald-700' : 'text-red-600'
-                                }` }>
-                                    { connectionStatus.type === 'success'
-                                        ? <CheckCircle2 size={ 16 } />
-                                        : <AlertCircle size={ 16 } />
-                                    }
+                                <span
+                                    className={ `inline-flex items-center gap-1.5 text-sm font-medium ${
+                                        connectionStatus.type === 'success' ? 'text-emerald-700' : 'text-red-600'
+                                    }` }
+                                >
+                                    { connectionStatus.type === 'success' ? (
+                                        <CheckCircle2 size={ 16 } />
+                                    ) : (
+                                        <AlertCircle size={ 16 } />
+                                    ) }
                                     { connectionStatus.message }
                                 </span>
                             ) }
@@ -422,8 +476,14 @@ const Settings = () => {
                             </div>
                             <div className="flex flex-wrap items-end gap-3">
                                 <div className="flex-1 min-w-[200px]">
-                                    <label className="block text-xs font-medium text-gray-600 mb-1">monday Workspace</label>
+                                    <label
+                                        htmlFor="monday_workspace_id"
+                                        className="block text-xs font-medium text-gray-600 mb-1"
+                                    >
+                                        monday Workspace
+                                    </label>
                                     <select
+                                        id="monday_workspace_id"
                                         value={ formData.monday_workspace_id || '' }
                                         onChange={ handleWorkspaceChange }
                                         className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm"
@@ -431,12 +491,12 @@ const Settings = () => {
                                         <option value="">
                                             { workspaces.length === 0
                                                 ? 'Click "Fetch Workspaces" first'
-                                                : 'Select workspace'
-                                            }
+                                                : 'Select workspace' }
                                         </option>
                                         { workspaces.map( ( ws ) => (
                                             <option key={ ws.id } value={ ws.id }>
-                                                { ws.name }{ ws.kind === 'open' ? '' : ` (${ ws.kind })` }
+                                                { ws.name }
+                                                { ws.kind === 'open' ? '' : ` (${ ws.kind })` }
                                             </option>
                                         ) ) }
                                     </select>
@@ -447,7 +507,10 @@ const Settings = () => {
                                     disabled={ mondayWorkspacesMutation.isPending || ! formData.monday_api_token }
                                     className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2 text-sm transition-colors"
                                 >
-                                    <RefreshCcw size={ 14 } className={ mondayWorkspacesMutation.isPending ? 'animate-spin' : '' } />
+                                    <RefreshCcw
+                                        size={ 14 }
+                                        className={ mondayWorkspacesMutation.isPending ? 'animate-spin' : '' }
+                                    />
                                     { mondayWorkspacesMutation.isPending ? 'Loading...' : 'Fetch Workspaces' }
                                 </button>
                             </div>
@@ -466,7 +529,10 @@ const Settings = () => {
                                 disabled={ mondayBoardsMutation.isPending || ! formData.monday_api_token }
                                 className="px-4 py-2 rounded-lg border border-amber-300 text-amber-800 hover:bg-amber-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
                             >
-                                <RefreshCcw size={ 14 } className={ mondayBoardsMutation.isPending ? 'animate-spin' : '' } />
+                                <RefreshCcw
+                                    size={ 14 }
+                                    className={ mondayBoardsMutation.isPending ? 'animate-spin' : '' }
+                                />
                                 { mondayBoardsMutation.isPending ? 'Loading Boards...' : 'Fetch Boards' }
                             </button>
                             { boards.length > 0 && (
@@ -507,7 +573,9 @@ const Settings = () => {
                     </div>
                     <div>
                         <h2 className="font-semibold text-gray-900">School Board Mapping</h2>
-                        <p className="text-xs text-gray-500">Attach each school to its monday board and create any missing columns.</p>
+                        <p className="text-xs text-gray-500">
+                            Attach each school to its monday board and create any missing columns.
+                        </p>
                     </div>
                 </div>
                 <div className="p-6 space-y-4">
@@ -544,13 +612,29 @@ const Settings = () => {
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">monday Board</label>
+                                            <label
+                                                htmlFor={ `monday_board_${ school.id }` }
+                                                className="block text-sm font-medium text-gray-700 mb-1"
+                                            >
+                                                monday Board
+                                            </label>
                                             <select
+                                                id={ `monday_board_${ school.id }` }
                                                 value={ mapping.monday_board_id || '' }
                                                 onChange={ ( e ) => {
-                                                    const board = boards.find( ( item ) => String( item.id ) === e.target.value );
-                                                    handleSchoolMappingChange( school.id, 'monday_board_id', e.target.value );
-                                                    handleSchoolMappingChange( school.id, 'monday_board_name', board?.name || '' );
+                                                    const board = boards.find(
+                                                        ( item ) => String( item.id ) === e.target.value
+                                                    );
+                                                    handleSchoolMappingChange(
+                                                        school.id,
+                                                        'monday_board_id',
+                                                        e.target.value
+                                                    );
+                                                    handleSchoolMappingChange(
+                                                        school.id,
+                                                        'monday_board_name',
+                                                        board?.name || ''
+                                                    );
                                                 } }
                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                                             >
@@ -566,12 +650,22 @@ const Settings = () => {
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">Default monday Person ID</label>
+                                            <label
+                                                htmlFor={ `monday_person_${ school.id }` }
+                                                className="block text-sm font-medium text-gray-700 mb-1"
+                                            >
+                                                Default monday Person ID
+                                            </label>
                                             <input
+                                                id={ `monday_person_${ school.id }` }
                                                 type="text"
                                                 value={ mapping.monday_default_person_id || '' }
                                                 onChange={ ( e ) =>
-                                                    handleSchoolMappingChange( school.id, 'monday_default_person_id', e.target.value )
+                                                    handleSchoolMappingChange(
+                                                        school.id,
+                                                        'monday_default_person_id',
+                                                        e.target.value
+                                                    )
                                                 }
                                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                                                 placeholder="Optional person ID"
@@ -597,4 +691,3 @@ const Settings = () => {
 };
 
 export default Settings;
-

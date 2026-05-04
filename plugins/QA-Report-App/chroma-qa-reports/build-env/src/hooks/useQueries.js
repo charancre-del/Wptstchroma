@@ -224,10 +224,14 @@ export function useRestoreReportVersion() {
 
     return useMutation( {
         mutationFn: ( { id, version, currentVersion, updatedAt } ) =>
-            apiClient.post( `/reports/${ id }/restore/${ version }`, {}, {
-                headers: currentVersion ? { 'X-CQA-Version': currentVersion } : {},
-                ifUnmodifiedSince: updatedAt || undefined,
-            } ),
+            apiClient.post(
+                `/reports/${ id }/restore/${ version }`,
+                {},
+                {
+                    headers: currentVersion ? { 'X-CQA-Version': currentVersion } : {},
+                    ifUnmodifiedSince: updatedAt || undefined,
+                }
+            ),
         onSuccess: ( _, variables ) => {
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( variables.id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( variables.id ) } );

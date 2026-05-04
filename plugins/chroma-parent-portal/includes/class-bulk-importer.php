@@ -5,6 +5,8 @@ if (!defined('ABSPATH')) {
 
 class Chroma_Portal_Bulk_Importer
 {
+    private const AJAX_NONCE = 'chroma_portal_bulk_importer_nonce';
+
     private $seed_dir;
 
     public function __construct()
@@ -62,6 +64,7 @@ class Chroma_Portal_Bulk_Importer
                     var totalToImport = 0;
                     var importedCount = 0;
                     var isImporting = false;
+                    var nonce = <?php echo wp_json_encode(wp_create_nonce(self::AJAX_NONCE)); ?>;
 
                     $('#run-scanner').on('click', function () {
                         runScan();
@@ -80,6 +83,7 @@ class Chroma_Portal_Bulk_Importer
 
                         $.post(ajaxurl, {
                             action: 'chroma_portal_run_seed',
+                            nonce: nonce,
                             mode: 'scan'
                         }, function (res) {
                             $('.spinner').removeClass('is-active');
@@ -138,6 +142,7 @@ class Chroma_Portal_Bulk_Importer
                             try {
                                 const res = await $.post(ajaxurl, {
                                     action: 'chroma_portal_run_seed',
+                                    nonce: nonce,
                                     mode: 'import_single',
                                     file: file
                                 }).promise();
@@ -179,7 +184,11 @@ class Chroma_Portal_Bulk_Importer
 
     public function ajax_run_seed()
     {
-        check_admin_referer(-1, false); // basic check
+        $nonce = isset($_POST['nonce']) ? sanitize_text_field(wp_unslash($_POST['nonce'])) : '';
+        if (!wp_verify_nonce($nonce, self::AJAX_NONCE)) {
+            wp_send_json_error('Invalid nonce');
+        }
+
         if (!current_user_can('manage_options')) {
             wp_send_json_error('Permission denied');
         }

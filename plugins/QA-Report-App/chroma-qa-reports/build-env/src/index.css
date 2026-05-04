@@ -4,29 +4,29 @@
 
 @layer base {
 
-    /* Force WordPress admin content area to be full width */
-    #wpwrap,
-    #wpcontent,
-    #wpbody,
-    #wpbody-content {
-        max-width: none !important;
-        width: auto !important;
-        padding-bottom: 0 !important;
-        float: none !important;
-    }
+	/* Force WordPress admin content area to be full width */
+	#wpwrap,
+	#wpcontent,
+	#wpbody,
+	#wpbody-content {
+		max-width: none !important;
+		width: auto !important;
+		padding-bottom: 0 !important;
+		float: none !important;
+	}
 
-    #wpbody-content>.wrap {
-        margin: 0 !important;
-        max-width: none !important;
-        padding: 0 !important;
-    }
+	#wpbody-content > .wrap {
+		margin: 0 !important;
+		max-width: none !important;
+		padding: 0 !important;
+	}
 
-    .cqa-react-wrap,
-    #cqa-react-app {
-        display: block;
-        margin: 0 !important;
-        padding: 0 !important;
-        max-width: none !important;
-        width: 100% !important;
-    }
+	.cqa-react-wrap,
+	#cqa-react-app {
+		display: block;
+		margin: 0 !important;
+		padding: 0 !important;
+		max-width: none !important;
+		width: 100% !important;
+	}
 }
