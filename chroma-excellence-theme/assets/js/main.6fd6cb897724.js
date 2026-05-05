@@ -27,6 +27,19 @@
     }
   };
 
+  const readJSONPayload = (container, selector, legacyAttribute, fallback) => {
+    const payload = container.querySelector(selector);
+    if (payload && payload.textContent.trim()) {
+      return safeParseJSON(payload.textContent, fallback);
+    }
+
+    if (legacyAttribute) {
+      return safeParseJSON(container.getAttribute(legacyAttribute) || '', fallback);
+    }
+
+    return fallback;
+  };
+
   /**
    * Component: Mobile Navigation
    * Loaded immediately as it's critical for mobile UX
@@ -97,7 +110,7 @@
    * Component: Program Wizard
    */
   const initProgramWizard = (wizard) => {
-    const options = safeParseJSON(wizard.getAttribute('data-options') || '[]', []);
+    const options = readJSONPayload(wizard, '[data-program-wizard-payload]', 'data-options', []);
     const optionButtons = wizard.querySelectorAll('[data-program-wizard-option]');
     const result = wizard.querySelector('[data-program-wizard-result]');
     const title = wizard.querySelector('[data-program-wizard-title]');
@@ -254,6 +267,7 @@
    * Component: Schedule Tabs
    */
   const initSchedule = (schedule) => {
+    readJSONPayload(schedule, '[data-schedule-tracks]', 'data-tracks', []);
     const panels = schedule.querySelectorAll('[data-schedule-panel]');
     const tabs = schedule.querySelectorAll('[data-schedule-tab]');
     const defaultKey = tabs[0]?.getAttribute('data-schedule-tab');

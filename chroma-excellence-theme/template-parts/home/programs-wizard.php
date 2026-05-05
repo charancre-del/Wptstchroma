@@ -52,7 +52,10 @@ function chroma_get_wizard_color_classes($key)
         </div>
 
         <div class="bg-white rounded-3xl p-6 md:p-8 border border-chroma-blue/10 shadow-soft fade-in-up"
-            data-program-wizard data-options='<?php echo esc_attr(wp_json_encode($options)); ?>'>
+            data-program-wizard>
+            <script type="application/json" data-program-wizard-payload>
+                <?php echo wp_json_encode($options, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
+            </script>
 
             <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" data-program-wizard-options>
                 <?php foreach ($options as $option):
