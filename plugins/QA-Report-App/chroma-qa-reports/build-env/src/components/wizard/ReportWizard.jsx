@@ -14,7 +14,7 @@ import {
     useDeleteReport,
     useSyncReportToMonday,
 } from '@hooks/useQueries';
-import { Eye, Printer, RefreshCcw, Trash2 } from 'lucide-react';
+import { CheckCircle, Eye, Printer, RefreshCcw, Trash2 } from 'lucide-react';
 
 // Steps
 import StepSchool from './steps/StepSchool';
@@ -151,7 +151,8 @@ const ReportWizard = () => {
 
     // Ensure state is correctly interpreted
     const stepNumber = parseInt( currentStep, 10 ) || 1;
-    const safeStep = Math.min( Math.max( stepNumber, 1 ), steps.length );
+    const safeStep =
+        isViewMode || draft.status === 'approved' ? steps.length : Math.min( Math.max( stepNumber, 1 ), steps.length );
     const currentStepDef = steps[ safeStep - 1 ];
     const CurrentComponent = currentStepDef ? currentStepDef.component : null;
 
@@ -192,6 +193,7 @@ const ReportWizard = () => {
 
     // Use current ID from hook or param
     const reportState = draft;
+    const currentReportStatus = reportState?.status || existingReport?.status;
     const effectivelyReadOnly = isViewMode || reportState.status === 'approved';
 
     const syncServerReportMeta = React.useCallback(
@@ -317,11 +319,12 @@ const ReportWizard = () => {
 
     const handleApprove = async () => {
         try {
-            await approveMutation.mutateAsync( {
+            const approvedReport = await approveMutation.mutateAsync( {
                 id,
                 version_id: reportState.version_id,
                 updated_at: reportState.updated_at,
             } );
+            syncServerReportMeta( approvedReport || { id, status: 'approved' } );
             addToast( { type: 'success', message: 'Report approved successfully!' } );
             navigate( '/reports' );
         } catch ( error ) {
@@ -448,11 +451,23 @@ const ReportWizard = () => {
     return (
         <div className="w-full bg-brand-cream/30 backdrop-blur-sm rounded-3xl shadow-sm border border-brand-ink/10 overflow-hidden min-h-[60vh] md:min-h-[600px] flex flex-col font-outfit">
             { /* Wizard Header */ }
-            <div className="bg-brand-cream/50 px-8 py-6 border-b border-brand-ink/5 flex justify-between items-center">
+            <div className="bg-brand-cream/50 px-8 py-6 border-b border-brand-ink/5 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
                 <h2 className="text-2xl font-serif font-bold text-brand-ink">{ wizardTitle }</h2>
-                <div className="text-sm text-brand-ink/60 font-medium">
-                    Step { safeStep } of { steps.length }:{ ' ' }
-                    <span className="text-brand-ink ml-1 font-bold">{ steps[ safeStep - 1 ]?.title }</span>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                    { isViewMode && currentReportStatus === 'submitted' && capabilities?.cqa_approve_reports && (
+                        <button
+                            onClick={ handleApprove }
+                            className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                            disabled={ approveMutation.isPending }
+                        >
+                            <CheckCircle className="w-4 h-4" />
+                            { approveMutation.isPending ? 'Approving...' : 'Approve Report' }
+                        </button>
+                    ) }
+                    <div className="text-sm text-brand-ink/60 font-medium">
+                        Step { safeStep } of { steps.length }:{ ' ' }
+                        <span className="text-brand-ink ml-1 font-bold">{ steps[ safeStep - 1 ]?.title }</span>
+                    </div>
                 </div>
             </div>
 
@@ -572,7 +587,7 @@ const ReportWizard = () => {
                         </button>
                     ) : (
                         <div className="flex gap-2">
-                            { isViewMode && existingReport?.status === 'submitted' && (
+                            { isViewMode && currentReportStatus === 'submitted' && (
                                 <button
                                     onClick={ () => navigate( `/edit/${ id }` ) }
                                     className="px-6 py-2.5 bg-brand-ink/10 hover:bg-brand-ink/20 text-brand-ink rounded-2xl font-bold text-sm transition-all flex items-center gap-2"
@@ -581,7 +596,7 @@ const ReportWizard = () => {
                                 </button>
                             ) }
                             { isViewMode &&
-                                existingReport?.status === 'submitted' &&
+                                currentReportStatus === 'submitted' &&
                                 capabilities?.cqa_approve_reports && (
                                     <button
                                         onClick={ handleApprove }
@@ -591,17 +606,15 @@ const ReportWizard = () => {
                                         { approveMutation.isPending ? 'Approving...' : 'Approve Report' }
                                     </button>
                                 ) }
-                            { isViewMode &&
-                                existingReport?.status === 'approved' &&
-                                capabilities?.cqa_approve_reports && (
-                                    <button
-                                        onClick={ handleRevert }
-                                        className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                                        disabled={ revertMutation.isPending }
-                                    >
-                                        { revertMutation.isPending ? 'Reverting...' : 'Revert to Draft' }
-                                    </button>
-                                ) }
+                            { isViewMode && currentReportStatus === 'approved' && capabilities?.cqa_approve_reports && (
+                                <button
+                                    onClick={ handleRevert }
+                                    className="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                    disabled={ revertMutation.isPending }
+                                >
+                                    { revertMutation.isPending ? 'Reverting...' : 'Revert to Draft' }
+                                </button>
+                            ) }
                             <button
                                 onClick={ isViewMode ? () => navigate( '/reports' ) : handleSubmit }
                                 className={ `px-6 py-2.5 ${
