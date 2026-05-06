@@ -668,6 +668,22 @@ function chroma_home_default_schedule_tracks()
         );
 }
 
+function chroma_home_program_summary($post_id)
+{
+        $excerpt = get_post_field('post_excerpt', $post_id, 'raw');
+
+        if ('' === trim((string) $excerpt)) {
+                $content = get_post_field('post_content', $post_id, 'raw');
+                $excerpt = wp_trim_words(wp_strip_all_tags(strip_shortcodes((string) $content)), 32, '');
+        }
+
+        $excerpt = html_entity_decode(wp_strip_all_tags((string) $excerpt), ENT_QUOTES, get_bloginfo('charset'));
+        $excerpt = preg_replace('/\s*Find\s+[^.?!\r\n]*?\s+Near\s+You.*$/iu', '', $excerpt);
+        $excerpt = preg_replace('/\s+/u', ' ', $excerpt);
+
+        return trim($excerpt);
+}
+
 /**
  * Age-based program wizard options - Pull from Program CPT
  */
@@ -718,7 +734,7 @@ function chroma_home_program_wizard_options()
                 $post_id = get_the_ID();
                 $icon = chroma_get_translated_meta($post_id, 'program_icon', true) ?: '📚';
                 $age_range = chroma_get_translated_meta($post_id, 'program_age_range', true) ?: '';
-                $excerpt = get_the_excerpt() ?: '';
+                $excerpt = chroma_home_program_summary($post_id);
                 $anchor_slug = get_post_field('post_name', $post_id);
                 $image_url = get_the_post_thumbnail_url($post_id, 'large') ?: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop';
                 $label = get_the_title();
@@ -926,7 +942,7 @@ function chroma_home_schedule_tracks()
                 $schedule_items = chroma_get_translated_meta($post_id, 'program_schedule_items', true);
                 $color_scheme = get_post_meta($post_id, 'program_color_scheme', true) ?: 'blue';
                 $program_title = get_the_title();
-                $description = get_the_excerpt() ?: '';
+                $description = chroma_home_program_summary($post_id);
 
                 $steps = array();
                 if (!empty($schedule_items)) {
