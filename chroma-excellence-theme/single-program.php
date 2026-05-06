@@ -291,11 +291,11 @@ while (have_posts()):
                         // Reset all
                         steps.forEach(b => {
                             b.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
-                            b.classList.add('bg-white', 'text-brand-ink/80');
+                            b.classList.add('bg-white', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
                         });
                         
                         // Active state
-                        this.classList.remove('bg-white', 'text-brand-ink/80');
+                        this.classList.remove('bg-white', 'text-brand-ink/70', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
                         this.classList.add('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
                         
                         // Update content

@@ -312,9 +312,10 @@
         const panel = this.closest('[data-schedule-panel]');
         if (!panel) return;
         panel.querySelectorAll('[data-schedule-step-trigger]').forEach(t => {
-          t.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'scale-105');
-          t.classList.add('bg-white', 'text-brand-ink/70');
+          t.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
+          t.classList.add('bg-white', 'text-brand-ink/70', 'hover:text-brand-ink', 'hover:bg-white/80');
         });
+        this.classList.remove('bg-white', 'text-brand-ink/70', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
         this.classList.add('bg-brand-ink', 'text-white', 'shadow-md', 'scale-105');
         const contentTitle = panel.querySelector('[data-content-title]');
         const contentCopy = panel.querySelector('[data-content-copy]');
