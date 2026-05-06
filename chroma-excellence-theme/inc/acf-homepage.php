@@ -681,7 +681,24 @@ function chroma_home_program_summary($post_id)
         $excerpt = preg_replace('/\s*Find\s+[^.?!\r\n]*?\s+Near\s+You.*$/iu', '', $excerpt);
         $excerpt = preg_replace('/\s+/u', ' ', $excerpt);
 
-        return trim($excerpt);
+        $excerpt = trim($excerpt);
+        if ('' !== $excerpt) {
+                return $excerpt;
+        }
+
+        $slug = get_post_field('post_name', $post_id);
+        $title = get_the_title($post_id);
+        foreach (chroma_home_default_program_wizard_options() as $option) {
+                $option_key = sanitize_title($option['key'] ?? '');
+                $option_label = sanitize_text_field($option['label'] ?? '');
+                if ($option_key === $slug || 0 === strcasecmp($option_label, $title)) {
+                        return sanitize_textarea_field($option['description'] ?? '');
+                }
+        }
+
+        return sprintf(
+                __('A nurturing, age-appropriate Chroma program designed to support your child\'s growth, confidence, and readiness.', 'chroma-excellence')
+        );
 }
 
 /**
@@ -690,7 +707,7 @@ function chroma_home_program_summary($post_id)
 function chroma_home_program_wizard_options()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_wizard_options:' . $token;
+        $cache_key = 'home_wizard_options:v2:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -761,7 +778,7 @@ function chroma_home_curriculum_profiles()
 {
         $defaults = chroma_home_default_curriculum_profiles();
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_curriculum_profiles:' . $token;
+        $cache_key = 'home_curriculum_profiles:v2:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -833,9 +850,7 @@ function chroma_home_curriculum_profiles()
                         $program_title = get_the_title($post_id);
                         $prism_title = chroma_get_translated_meta($post_id, 'program_prism_title', true) ?: $program_title;
                         $prism_description = chroma_get_translated_meta($post_id, 'program_prism_description', true);
-                        $program_excerpt = has_excerpt($post_id)
-                                ? get_the_excerpt($post_id)
-                                : wp_trim_words(wp_strip_all_tags((string) get_post_field('post_content', $post_id)), 28);
+                        $program_excerpt = chroma_home_program_summary($post_id);
                         $color_scheme = get_post_meta($post_id, 'program_color_scheme', true) ?: 'blue';
 
                         $profiles[] = $sanitize_profile(array(
@@ -876,7 +891,7 @@ function chroma_home_curriculum_profiles()
 function chroma_home_schedule_tracks()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_schedule_tracks:' . $token;
+        $cache_key = 'home_schedule_tracks:v2:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
