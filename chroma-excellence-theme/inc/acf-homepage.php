@@ -668,6 +668,71 @@ function chroma_home_default_schedule_tracks()
         );
 }
 
+function chroma_home_clean_program_copy($copy)
+{
+        $copy = wp_strip_all_tags(strip_shortcodes((string) $copy));
+        $charset = get_bloginfo('charset') ?: 'UTF-8';
+
+        for ($i = 0; $i < 3; $i++) {
+                $decoded = html_entity_decode(wp_specialchars_decode($copy, ENT_QUOTES), ENT_QUOTES | ENT_HTML5, $charset);
+                if ($decoded === $copy) {
+                        break;
+                }
+                $copy = $decoded;
+        }
+
+        $copy = preg_replace('/\x{00a0}/u', ' ', $copy);
+        $copy = preg_replace('/\s*Find\s+[^.?!\r\n]*?\s+Near\s+You[^\s.?!\r\n]*.*$/iu', '', $copy);
+        $copy = preg_replace('/\s*(?:&bull;|•)\s*[^.?!\r\n]*$/iu', '', $copy);
+        $copy = preg_replace('/\s+/u', ' ', $copy);
+
+        return trim($copy);
+}
+
+function chroma_home_program_fallback_summary($post_id)
+{
+        $slug = sanitize_title(get_post_field('post_name', $post_id));
+        $title = strtolower((string) get_the_title($post_id));
+        $summaries = array(
+                'infant-care' => __('A peaceful, shoeless infant classroom with responsive caregiving, safe sleep routines, and sensory discovery for early growth.', 'chroma-excellence'),
+                'infant' => __('A peaceful, shoeless infant classroom with responsive caregiving, safe sleep routines, and sensory discovery for early growth.', 'chroma-excellence'),
+                'toddlers' => __('Toddlers build language, movement, confidence, and social skills through guided play, routines, and hands-on exploration.', 'chroma-excellence'),
+                'toddler' => __('Toddlers build language, movement, confidence, and social skills through guided play, routines, and hands-on exploration.', 'chroma-excellence'),
+                'preschool' => __('Preschoolers explore early literacy, math, science, art, and friendship skills through purposeful centers and joyful classroom projects.', 'chroma-excellence'),
+                'pre-k-prep' => __('Three-year-olds strengthen independence, self-regulation, early writing, and small-group readiness before Pre-K.', 'chroma-excellence'),
+                'pre-k-ga-pre-k' => __('Pre-K blends kindergarten readiness, social-emotional learning, and joyful experiences aligned with Georgia early learning standards.', 'chroma-excellence'),
+                'ga-pre-k' => __('Pre-K blends kindergarten readiness, social-emotional learning, and joyful experiences aligned with Georgia early learning standards.', 'chroma-excellence'),
+                'prek' => __('Pre-K blends kindergarten readiness, social-emotional learning, and joyful experiences aligned with Georgia early learning standards.', 'chroma-excellence'),
+                'schoolagers' => __('School-age students get homework support, transportation from local schools, clubs, outdoor play, and creative enrichment.', 'chroma-excellence'),
+                'afterschool' => __('School-age students get homework support, transportation from local schools, clubs, outdoor play, and creative enrichment.', 'chroma-excellence'),
+                'camp' => __('Seasonal camp days bring field trips, creative projects, outdoor play, friendships, and flexible care during school breaks.', 'chroma-excellence'),
+                'kindergarten' => __('Kindergarten students grow through rigorous early reading, conceptual math, collaboration, creativity, and joyful mastery.', 'chroma-excellence'),
+                'rising-pre-k' => __('Rising Pre-K supports classroom confidence, early academics, independence, and routines for children preparing for Pre-K.', 'chroma-excellence'),
+                'rising-kindergarten' => __('Rising Kindergarten helps Pre-K graduates practice literacy, math, routines, and social skills before the next school year.', 'chroma-excellence'),
+                'parents-day-out' => __('Parent\'s Day Out offers a warm, playful classroom rhythm for short-day care, socialization, creativity, and early independence.', 'chroma-excellence'),
+        );
+
+        if (isset($summaries[$slug])) {
+                return $summaries[$slug];
+        }
+
+        foreach ($summaries as $key => $summary) {
+                if (false !== strpos($title, str_replace('-', ' ', $key))) {
+                        return $summary;
+                }
+        }
+
+        foreach (chroma_home_default_program_wizard_options() as $option) {
+                $option_key = sanitize_title($option['key'] ?? '');
+                $option_label = strtolower(sanitize_text_field($option['label'] ?? ''));
+                if ($option_key === $slug || ($option_label && false !== strpos($title, $option_label))) {
+                        return sanitize_textarea_field($option['description'] ?? '');
+                }
+        }
+
+        return __('A nurturing, age-appropriate Chroma program designed to support your child\'s growth, confidence, and readiness.', 'chroma-excellence');
+}
+
 function chroma_home_program_summary($post_id)
 {
         $excerpt = get_post_field('post_excerpt', $post_id, 'raw');
@@ -677,28 +742,12 @@ function chroma_home_program_summary($post_id)
                 $excerpt = wp_trim_words(wp_strip_all_tags(strip_shortcodes((string) $content)), 32, '');
         }
 
-        $excerpt = html_entity_decode(wp_strip_all_tags((string) $excerpt), ENT_QUOTES, get_bloginfo('charset'));
-        $excerpt = preg_replace('/\s*Find\s+[^.?!\r\n]*?\s+Near\s+You.*$/iu', '', $excerpt);
-        $excerpt = preg_replace('/\s+/u', ' ', $excerpt);
-
-        $excerpt = trim($excerpt);
+        $excerpt = chroma_home_clean_program_copy($excerpt);
         if ('' !== $excerpt) {
                 return $excerpt;
         }
 
-        $slug = get_post_field('post_name', $post_id);
-        $title = get_the_title($post_id);
-        foreach (chroma_home_default_program_wizard_options() as $option) {
-                $option_key = sanitize_title($option['key'] ?? '');
-                $option_label = sanitize_text_field($option['label'] ?? '');
-                if ($option_key === $slug || 0 === strcasecmp($option_label, $title)) {
-                        return sanitize_textarea_field($option['description'] ?? '');
-                }
-        }
-
-        return sprintf(
-                __('A nurturing, age-appropriate Chroma program designed to support your child\'s growth, confidence, and readiness.', 'chroma-excellence')
-        );
+        return chroma_home_program_fallback_summary($post_id);
 }
 
 /**
@@ -707,7 +756,7 @@ function chroma_home_program_summary($post_id)
 function chroma_home_program_wizard_options()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_wizard_options:v2:' . $token;
+        $cache_key = 'home_wizard_options:v3:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -736,7 +785,7 @@ function chroma_home_program_wizard_options()
                                 'key' => $key,
                                 'emoji' => sanitize_text_field($item['emoji'] ?? ''),
                                 'label' => sanitize_text_field($item['label'] ?? ''),
-                                'description' => sanitize_textarea_field($item['description'] ?? ''),
+                                'description' => sanitize_textarea_field(chroma_home_clean_program_copy($item['description'] ?? '')),
                                 'link' => chroma_get_localized_url(esc_url_raw($program_url . '#' . $link_target)),
                         );
                 }, $options);
@@ -778,7 +827,7 @@ function chroma_home_curriculum_profiles()
 {
         $defaults = chroma_home_default_curriculum_profiles();
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_curriculum_profiles:v2:' . $token;
+        $cache_key = 'home_curriculum_profiles:v3:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -891,7 +940,7 @@ function chroma_home_curriculum_profiles()
 function chroma_home_schedule_tracks()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_schedule_tracks:v2:' . $token;
+        $cache_key = 'home_schedule_tracks:v3:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
