@@ -54,14 +54,6 @@ $resources = array(
 		'colorClass' => 'chroma-red',
 	),
 	array(
-		'name' => 'prekga',
-		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_prekga_icon') ?: 'fa-solid fa-graduation-cap',
-		'title' => chroma_get_translated_meta($page_id, 'parents_resource_prekga_title') ?: __('GA Pre-K Enrollment', 'chroma-excellence'),
-		'description' => chroma_get_translated_meta($page_id, 'parents_resource_prekga_desc') ?: __('Lottery registration and required state forms.', 'chroma-excellence'),
-		'url' => chroma_get_translated_meta($page_id, 'parents_resource_prekga_url') ?: '#',
-		'colorClass' => 'brand-ink',
-	),
-	array(
 		'name' => 'waitlist',
 		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_waitlist_icon') ?: 'fa-solid fa-clock',
 		'title' => chroma_get_translated_meta($page_id, 'parents_resource_waitlist_title') ?: __('Join Waitlist', 'chroma-excellence'),
