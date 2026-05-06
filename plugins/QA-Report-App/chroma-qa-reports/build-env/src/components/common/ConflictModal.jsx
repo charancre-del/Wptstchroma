@@ -1,6 +1,6 @@
 import React from 'react';
 import useUIStore from '@stores/useUIStore';
-import { AlertTriangle, RefreshCw, Save } from 'lucide-react';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 const ConflictModal = () => {
     const { conflict, clearConflictModal } = useUIStore();
@@ -9,12 +9,7 @@ const ConflictModal = () => {
         return null;
     }
 
-    const { updatedBy, updatedAt, onOverwrite, onReload } = conflict;
-
-    const handleOverwrite = () => {
-        onOverwrite();
-        clearConflictModal();
-    };
+    const { updatedBy, updatedAt, onReload } = conflict;
 
     const handleReload = () => {
         onReload();
@@ -36,7 +31,8 @@ const ConflictModal = () => {
                                 { new Date( updatedAt ).toLocaleTimeString() }.
                             </p>
                             <p className="mt-2 text-sm text-gray-600">
-                                Your changes cannot be saved automatically. How would you like to proceed?
+                                Your changes cannot be saved automatically. Reload the report to continue from the
+                                latest server version.
                             </p>
                         </div>
                     </div>
@@ -49,18 +45,7 @@ const ConflictModal = () => {
                             <RefreshCw size={ 16 } />
                             Discard my changes & Load Server Version
                         </button>
-
-                        <button
-                            onClick={ handleOverwrite }
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors font-medium text-sm shadow-sm"
-                        >
-                            <Save size={ 16 } />
-                            Overwrite Server Version (Force Save)
-                        </button>
                     </div>
-                </div>
-                <div className="bg-gray-50 px-6 py-3 border-t border-gray-100 text-xs text-gray-500 text-center">
-                    Confirming &quot;Overwrite&quot; will replace the server version with your current draft.
                 </div>
             </div>
         </div>

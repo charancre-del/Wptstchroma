@@ -151,8 +151,7 @@ const ReportWizard = () => {
 
     // Ensure state is correctly interpreted
     const stepNumber = parseInt( currentStep, 10 ) || 1;
-    const safeStep =
-        isViewMode || draft.status === 'approved' ? steps.length : Math.min( Math.max( stepNumber, 1 ), steps.length );
+    const safeStep = Math.min( Math.max( stepNumber, 1 ), steps.length );
     const currentStepDef = steps[ safeStep - 1 ];
     const CurrentComponent = currentStepDef ? currentStepDef.component : null;
 
@@ -178,10 +177,24 @@ const ReportWizard = () => {
     const prevStep = () => {
         if ( currentStep > 1 ) {
             storePrevStep();
+        } else if ( isViewMode ) {
+            navigate( '/reports' );
         } else if ( confirm( 'Exit wizard? Unsaved changes will be lost.' ) ) {
             navigate( '/' );
         }
     };
+
+    const goToStep = React.useCallback(
+        ( stepId ) => {
+            if ( ! isViewMode && ! draft.school_id && stepId > 1 ) {
+                addToast( { type: 'error', message: 'Please select a school before moving to another section.' } );
+                return;
+            }
+
+            setCurrentStep( stepId );
+        },
+        [ addToast, draft.school_id, isViewMode, setCurrentStep ]
+    );
 
     const updateDraft = React.useCallback(
         ( updates ) => {
@@ -477,6 +490,33 @@ const ReportWizard = () => {
                     className="bg-cqa-brand-secondary h-1.5 transition-all duration-300 ease-in-out"
                     style={ { width: `${ ( safeStep / steps.length ) * 100 }%` } }
                 ></div>
+            </div>
+
+            { /* Section Tabs */ }
+            <div className="px-4 py-3 bg-white/70 border-b border-brand-ink/5">
+                <div className="flex flex-wrap gap-2">
+                    { steps.map( ( step ) => {
+                        const isActive = safeStep === step.id;
+                        const isDisabled = ! isViewMode && ! draft.school_id && step.id > 1;
+
+                        return (
+                            <button
+                                key={ step.id }
+                                type="button"
+                                onClick={ () => goToStep( step.id ) }
+                                disabled={ isDisabled }
+                                className={ `px-4 py-2 rounded-xl border text-sm font-bold transition-all ${
+                                    isActive
+                                        ? 'bg-brand-ink text-white border-brand-ink shadow-sm'
+                                        : 'bg-white text-brand-ink/60 border-brand-ink/10 hover:bg-brand-cream hover:border-brand-ink/20 hover:text-brand-ink'
+                                } disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-white disabled:hover:text-brand-ink/60` }
+                                aria-current={ isActive ? 'page' : undefined }
+                            >
+                                { step.title }
+                            </button>
+                        );
+                    } ) }
+                </div>
             </div>
 
             { /* Step Content */ }
