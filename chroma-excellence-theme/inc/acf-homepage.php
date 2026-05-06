@@ -827,7 +827,7 @@ function chroma_home_curriculum_profiles()
 {
         $defaults = chroma_home_default_curriculum_profiles();
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_curriculum_profiles:v3:' . $token;
+        $cache_key = 'home_curriculum_profiles:v4:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -902,19 +902,17 @@ function chroma_home_curriculum_profiles()
                         $program_excerpt = chroma_home_program_summary($post_id);
                         $color_scheme = get_post_meta($post_id, 'program_color_scheme', true) ?: 'blue';
 
+                        $prism_values = function_exists('chroma_program_prism_chart_values')
+                                ? chroma_program_prism_chart_values($post_id)
+                                : array(50, 50, 50, 50, 50);
+
                         $profiles[] = $sanitize_profile(array(
                                 'key' => $key,
                                 'label' => $program_title,
                                 'title' => $prism_title,
                                 'description' => $prism_description ?: $program_excerpt,
                                 'color' => $color_map[$color_scheme] ?? '#4A6C7C',
-                                'data' => array(
-                                        get_post_meta($post_id, 'program_prism_physical', true) ?: 50,
-                                        get_post_meta($post_id, 'program_prism_emotional', true) ?: 50,
-                                        get_post_meta($post_id, 'program_prism_social', true) ?: 50,
-                                        get_post_meta($post_id, 'program_prism_academic', true) ?: 50,
-                                        get_post_meta($post_id, 'program_prism_creative', true) ?: 50,
-                                ),
+                                'data' => $prism_values,
                         ));
                 }
         }
