@@ -351,6 +351,10 @@ class Route_Utils
             return $value;
         }
 
+        if (self::is_schema_document_key($key)) {
+            return self::sanitize_schema_document_for_storage($key, $value);
+        }
+
         if (substr($key, -5) === '_json') {
             if (is_string($value)) {
                 $decoded = json_decode($value, true);
@@ -381,6 +385,95 @@ class Route_Utils
         }
 
         return sanitize_text_field((string) $value);
+    }
+
+    private static function is_schema_document_key(string $key): bool
+    {
+        return in_array($key, [
+            '_chroma_post_schemas',
+            '_chroma_schema_data',
+            '_chroma_schema_override',
+        ], true);
+    }
+
+    private static function sanitize_schema_document_for_storage(string $key, $value)
+    {
+        if (is_string($value)) {
+            $decoded = json_decode(trim($value), true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $clean = self::strip_schema_internal_keys(Utils::sanitize_mixed_for_storage_preserve_keys($decoded));
+                if ($key === '_chroma_schema_override') {
+                    return wp_json_encode($clean, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                }
+
+                return self::normalize_schema_document_shape($key, $clean);
+            }
+
+            return wp_kses_post($value);
+        }
+
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (is_array($value)) {
+            $clean = self::strip_schema_internal_keys(Utils::sanitize_mixed_for_storage_preserve_keys($value));
+            if ($key === '_chroma_schema_override') {
+                return wp_json_encode($clean, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+            }
+
+            return self::normalize_schema_document_shape($key, $clean);
+        }
+
+        return $value;
+    }
+
+    private static function normalize_schema_document_shape(string $key, array $value): array
+    {
+        if ($key !== '_chroma_post_schemas') {
+            return $value;
+        }
+
+        if (self::array_is_list($value)) {
+            return $value;
+        }
+
+        if (isset($value['@type']) || isset($value['type']) || isset($value['@graph'])) {
+            return [$value];
+        }
+
+        return $value;
+    }
+
+    private static function strip_schema_internal_keys($value)
+    {
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        $clean = [];
+        foreach ($value as $key => $item) {
+            if (is_string($key) && $key !== '' && $key[0] === '_') {
+                continue;
+            }
+
+            $clean[$key] = self::strip_schema_internal_keys($item);
+        }
+
+        return $clean;
+    }
+
+    private static function array_is_list(array $value): bool
+    {
+        if ($value === []) {
+            return true;
+        }
+
+        return array_keys($value) === range(0, count($value) - 1);
     }
 
     public static function mask_secret_if_needed(string $key, $value)

@@ -5,6 +5,7 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Audit_Log;
 use ChromaAgentAPI\Diff;
+use ChromaAgentAPI\Route_Utils;
 use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_REST_Request;
@@ -576,7 +577,11 @@ class SEO_Routes
 
     private static function sanitize_meta_value_by_key(string $meta_key, $value)
     {
-        if (in_array($meta_key, ['_chroma_post_schemas', '_chroma_schema_data', '_chroma_schema_history', '_chroma_schema_errors', '_chroma_schema_override'], true)) {
+        if (in_array($meta_key, ['_chroma_post_schemas', '_chroma_schema_data', '_chroma_schema_override'], true)) {
+            return Route_Utils::sanitize_value_for_storage($meta_key, $value);
+        }
+
+        if (in_array($meta_key, ['_chroma_schema_history', '_chroma_schema_errors'], true)) {
             return Utils::sanitize_mixed_for_storage_preserve_keys($value);
         }
 

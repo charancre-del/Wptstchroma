@@ -1032,6 +1032,7 @@ class SEO_Operation_Routes
                 $candidate = [$decoded];
             }
         }
+        $candidate = Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', $candidate);
         if (!$dry_run) {
             update_post_meta($post_id, '_chroma_post_schemas', $candidate);
         }
@@ -1085,8 +1086,8 @@ class SEO_Operation_Routes
         $apply = Utils::truthy($payload['apply'] ?? (!$fix_mode ? false : true));
         $dry_run = Route_Utils::dry_run($payload);
         if ($apply && !$dry_run) {
-            update_post_meta($post_id, '_chroma_post_schemas', [$schema]);
-            update_post_meta($post_id, '_chroma_schema_data', $schema);
+            update_post_meta($post_id, '_chroma_post_schemas', Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', [$schema]));
+            update_post_meta($post_id, '_chroma_schema_data', Route_Utils::sanitize_value_for_storage('_chroma_schema_data', $schema));
             update_post_meta($post_id, '_chroma_schema_type', $schema['@type']);
         }
 
@@ -1670,14 +1671,17 @@ class SEO_Operation_Routes
             if (!is_array($schemas)) {
                 continue;
             }
+            $clean = Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', $schemas);
             $encoded = array_map('wp_json_encode', $schemas);
             $duplicates = count($encoded) - count(array_unique($encoded));
-            if ($duplicates > 0) {
+            $internal_keys_cleaned = is_array($clean) && wp_json_encode($schemas) !== wp_json_encode($clean);
+            if ($duplicates > 0 || $internal_keys_cleaned) {
                 $items[] = [
                     'post_id' => (int) $post->ID,
                     'title' => get_the_title($post),
                     'schema_count' => count($schemas),
                     'duplicate_count' => $duplicates,
+                    'has_internal_schema_keys' => $internal_keys_cleaned,
                 ];
             }
         }
@@ -1701,25 +1705,32 @@ class SEO_Operation_Routes
                 continue;
             }
 
+            $clean = Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', $schemas);
+            if (!is_array($clean)) {
+                $results[$post_id] = ['success' => false, 'error' => 'schemas_not_array_after_sanitize'];
+                continue;
+            }
+
             $seen = [];
-            $clean = [];
-            foreach ($schemas as $schema) {
+            $deduped = [];
+            foreach ($clean as $schema) {
                 $fingerprint = wp_json_encode($schema);
                 if (isset($seen[$fingerprint])) {
                     continue;
                 }
                 $seen[$fingerprint] = true;
-                $clean[] = $schema;
+                $deduped[] = $schema;
             }
 
             if (!Route_Utils::dry_run($payload)) {
-                update_post_meta($post_id, '_chroma_post_schemas', $clean);
+                update_post_meta($post_id, '_chroma_post_schemas', $deduped);
             }
 
             $results[$post_id] = [
                 'success' => true,
                 'before_count' => count($schemas),
-                'after_count' => count($clean),
+                'after_count' => count($deduped),
+                'cleaned_internal_keys' => wp_json_encode($schemas) !== wp_json_encode($clean),
             ];
         }
 

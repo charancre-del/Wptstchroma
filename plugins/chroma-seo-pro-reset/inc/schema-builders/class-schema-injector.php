@@ -750,6 +750,10 @@ class Chroma_Schema_Injector
         $graph = [];
 
         foreach ($schemas as $schema_index => $schema_data) {
+            if (function_exists('chroma_schema_strip_internal_keys')) {
+                $schema_data = chroma_schema_strip_internal_keys($schema_data);
+            }
+
             $prepared = self::prepare_modular_schema_input($schema_data);
             if (empty($prepared['type'])) {
                 continue;
@@ -785,6 +789,9 @@ class Chroma_Schema_Injector
             }
 
             $fields = $prepared['fields'];
+            if (function_exists('chroma_schema_strip_internal_keys')) {
+                $fields = chroma_schema_strip_internal_keys($fields);
+            }
             $schema_id = !empty($prepared['id']) ? $prepared['id'] : self::build_deterministic_schema_id($post_id, $schema_type, (int) $schema_index);
 
             $schema_output = [
@@ -1061,6 +1068,9 @@ class Chroma_Schema_Injector
             }
 
             $schema_output = self::normalize_modular_schema_output($schema_type, $schema_output, $fields, $post_id);
+            if (function_exists('chroma_schema_strip_internal_keys')) {
+                $schema_output = chroma_schema_strip_internal_keys($schema_output);
+            }
             if (!is_array($schema_output) || empty($schema_output)) {
                 continue;
             }
@@ -1114,6 +1124,10 @@ class Chroma_Schema_Injector
     {
         if (!is_array($schema_data)) {
             return ['type' => '', 'fields' => [], 'id' => ''];
+        }
+
+        if (function_exists('chroma_schema_strip_internal_keys')) {
+            $schema_data = chroma_schema_strip_internal_keys($schema_data);
         }
 
         // Native builder shape: ['type' => 'FAQPage', 'data' => [...]]
