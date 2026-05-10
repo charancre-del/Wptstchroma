@@ -42,9 +42,61 @@ class Chroma_Canonical_Enforcer
         add_action('wp_head', [$this, 'output_canonical'], 1);
         add_filter('wp_robots', [$this, 'filter_404_robots'], 20);
         add_filter('wpseo_robots', [$this, 'filter_404_wpseo_robots'], 20);
+        add_filter('redirect_canonical', [$this, 'preserve_program_permalink_requests'], 1, 2);
 
         // Redirect non-canonical URLs
         add_action('template_redirect', [$this, 'enforce_canonical'], 1);
+    }
+
+    /**
+     * Check whether the current request already matches the queried program slug.
+     *
+     * @return bool
+     */
+    private function is_current_program_permalink_request()
+    {
+        if (!is_singular('program')) {
+            return false;
+        }
+
+        $post = get_queried_object();
+        if (!$post instanceof WP_Post || $post->post_type !== 'program' || $post->post_name === '') {
+            return false;
+        }
+
+        $request_path = $this->get_request_path();
+        if ($request_path === '') {
+            return false;
+        }
+
+        $program_slug = 'programs';
+        $program_type = get_post_type_object('program');
+        if ($program_type && !empty($program_type->rewrite['slug'])) {
+            $program_slug = trim((string) $program_type->rewrite['slug'], '/');
+        }
+
+        $expected_paths = [
+            user_trailingslashit('/' . $program_slug . '/' . $post->post_name),
+            user_trailingslashit('/es/' . $program_slug . '/' . $post->post_name),
+        ];
+
+        return in_array(user_trailingslashit($request_path), $expected_paths, true);
+    }
+
+    /**
+     * Prevent core canonical redirects from moving valid program permalinks.
+     *
+     * @param string|false $redirect_url
+     * @param string       $requested_url
+     * @return string|false
+     */
+    public function preserve_program_permalink_requests($redirect_url, $requested_url)
+    {
+        if ($this->is_current_program_permalink_request()) {
+            return false;
+        }
+
+        return $redirect_url;
     }
 
     /**
@@ -351,6 +403,11 @@ class Chroma_Canonical_Enforcer
 
         // Never redirect virtual pages (combo pages, near-me pages, geographic SEO).
         if (get_query_var('chroma_combo') || get_query_var('chroma_near_me') || get_query_var('chroma_combo_sitemap') || get_query_var('chroma_service_area')) {
+            return;
+        }
+
+        // A valid program permalink should not be collapsed to a different program.
+        if ($this->is_current_program_permalink_request()) {
             return;
         }
 
