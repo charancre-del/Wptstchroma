@@ -68,6 +68,14 @@ $programs_query = chroma_cached_query(
 						$cta_link = chroma_get_translated_meta($program_id, 'program_cta_link') ?: '#tour';
 						$color_scheme = get_post_meta($program_id, 'program_color_scheme', true) ?: 'red';
 
+						$cta_path = wp_parse_url($cta_link, PHP_URL_PATH);
+						$program_path = wp_parse_url($program_permalink, PHP_URL_PATH);
+						$cta_is_program_link = is_string($cta_path) && preg_match('#/programs/[^/]+/?$#i', $cta_path);
+						$cta_is_learn_more = preg_match('/\blearn\s+more\b/i', wp_strip_all_tags((string) $cta_text));
+						if ($cta_is_learn_more || ($cta_is_program_link && is_string($program_path) && user_trailingslashit($cta_path) !== user_trailingslashit($program_path))) {
+							$cta_link = $program_permalink;
+						}
+
 						// Parse features into array
 						$features_array = $features ? array_filter(array_map('trim', explode("\n", $features))) : array();
 
