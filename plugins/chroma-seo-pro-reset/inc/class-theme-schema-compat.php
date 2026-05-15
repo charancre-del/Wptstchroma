@@ -107,6 +107,23 @@ function chroma_get_schema_val($post_id, $es_meta_key, $en_val) {
     return $en_val;
 }
 
+if (!function_exists('chroma_post_has_stored_schema_type_pro')) {
+    function chroma_post_has_stored_schema_type_pro($post_id, array $types) {
+        if (!function_exists('chroma_schema_store_has_any_type')) {
+            return false;
+        }
+
+        foreach (['_chroma_post_schemas', '_chroma_schema_data'] as $meta_key) {
+            $stored = get_post_meta($post_id, $meta_key, true);
+            if (!empty($stored) && chroma_schema_store_has_any_type($stored, $types)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 /**
  * Add LocalBusiness Schema to Location Pages
  */
@@ -125,12 +142,7 @@ function chroma_location_schema_pro()
     }
 
     // Suppress fallback only when builder/API schema has a real business replacement.
-    $builder_schemas = get_post_meta($location_id, '_chroma_post_schemas', true);
-    if (
-        !empty($builder_schemas)
-        && function_exists('chroma_schema_store_has_any_type')
-        && chroma_schema_store_has_any_type($builder_schemas, ['ChildCare', 'LocalBusiness', 'Preschool', 'EducationalOrganization'])
-    ) {
+    if (chroma_post_has_stored_schema_type_pro($location_id, ['ChildCare', 'LocalBusiness', 'Preschool', 'EducationalOrganization'])) {
         return;
     }
 
@@ -390,12 +402,7 @@ function chroma_city_schema_pro()
     }
 
     // Suppress fallback only when builder/API schema has a real service replacement.
-    $builder_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
-    if (
-        !empty($builder_schemas)
-        && function_exists('chroma_schema_store_has_any_type')
-        && chroma_schema_store_has_any_type($builder_schemas, ['Service'])
-    ) {
+    if (chroma_post_has_stored_schema_type_pro($post_id, ['Service'])) {
         return;
     }
 
@@ -482,12 +489,7 @@ function chroma_program_schema_pro()
     }
 
     // Suppress fallback only when builder/API schema has a real service replacement.
-    $builder_schemas = get_post_meta($program_id, '_chroma_post_schemas', true);
-    if (
-        !empty($builder_schemas)
-        && function_exists('chroma_schema_store_has_any_type')
-        && chroma_schema_store_has_any_type($builder_schemas, ['Service'])
-    ) {
+    if (chroma_post_has_stored_schema_type_pro($program_id, ['Service'])) {
         return;
     }
 
@@ -549,12 +551,7 @@ function chroma_city_faq_schema_output()
     }
 
     // Suppress fallback only when builder/API schema has a FAQ replacement.
-    $builder_schemas = get_post_meta(get_the_ID(), '_chroma_post_schemas', true);
-    if (
-        !empty($builder_schemas)
-        && function_exists('chroma_schema_store_has_any_type')
-        && chroma_schema_store_has_any_type($builder_schemas, ['FAQPage'])
-    ) {
+    if (chroma_post_has_stored_schema_type_pro(get_the_ID(), ['FAQPage'])) {
         return;
     }
 
@@ -652,12 +649,7 @@ if (!function_exists('chroma_organization_schema_pro')) {
         }
 
         // Suppress fallback only when builder/API schema has an organization replacement.
-        $builder_schemas = get_post_meta($homepage_id, '_chroma_post_schemas', true);
-        if (
-            !empty($builder_schemas)
-            && function_exists('chroma_schema_store_has_any_type')
-            && chroma_schema_store_has_any_type($builder_schemas, ['ChildCare', 'Organization', 'LocalBusiness', 'EducationalOrganization'])
-        ) {
+        if (chroma_post_has_stored_schema_type_pro($homepage_id, ['ChildCare', 'Organization', 'LocalBusiness', 'EducationalOrganization'])) {
             return;
         }
 
@@ -717,12 +709,7 @@ if (!function_exists('chroma_website_schema_pro')) {
         if ($override) return;
 
         // Suppress fallback only when builder/API schema has a WebSite replacement.
-        $builder_schemas = get_post_meta($homepage_id, '_chroma_post_schemas', true);
-        if (
-            !empty($builder_schemas)
-            && function_exists('chroma_schema_store_has_any_type')
-            && chroma_schema_store_has_any_type($builder_schemas, ['WebSite'])
-        ) {
+        if (chroma_post_has_stored_schema_type_pro($homepage_id, ['WebSite'])) {
             return;
         }
         if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {

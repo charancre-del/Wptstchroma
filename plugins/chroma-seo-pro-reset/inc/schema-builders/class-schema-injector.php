@@ -744,7 +744,10 @@ class Chroma_Schema_Injector
         $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
 
         if (empty($schemas) || !is_array($schemas)) {
-            return;
+            $schemas = self::normalize_legacy_schema_data(get_post_meta($post_id, '_chroma_schema_data', true));
+            if (empty($schemas)) {
+                return;
+            }
         }
 
         $graph = [];
@@ -1112,6 +1115,41 @@ class Chroma_Schema_Injector
                 Chroma_Schema_Registry::register($final_schema, ['source' => 'schema-injector-modular-legacy']);
             }
         }
+    }
+
+    /**
+     * Normalize legacy schema storage into the modular schema row list.
+     *
+     * @param mixed $schema_data
+     * @return array<int,array>
+     */
+    private static function normalize_legacy_schema_data($schema_data)
+    {
+        if (is_object($schema_data)) {
+            $schema_data = (array) $schema_data;
+        }
+
+        if (!is_array($schema_data) || empty($schema_data)) {
+            return [];
+        }
+
+        if (function_exists('chroma_schema_strip_internal_keys')) {
+            $schema_data = chroma_schema_strip_internal_keys($schema_data);
+        }
+
+        if (!empty($schema_data['@graph']) && is_array($schema_data['@graph'])) {
+            return array_values(array_filter($schema_data['@graph'], 'is_array'));
+        }
+
+        if (function_exists('chroma_schema_array_is_list') && chroma_schema_array_is_list($schema_data)) {
+            return array_values(array_filter($schema_data, 'is_array'));
+        }
+
+        if (!empty($schema_data['@type']) || !empty($schema_data['type'])) {
+            return [$schema_data];
+        }
+
+        return [];
     }
 
     /**
