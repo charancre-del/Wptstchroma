@@ -120,6 +120,14 @@ function chroma_home_get_theme_mod_json($key, $default = array())
 {
         $raw = chroma_get_theme_mod($key, '');
 
+        if (is_array($raw)) {
+                return $raw;
+        }
+
+        if (!is_string($raw)) {
+                return $default;
+        }
+
         if (empty($raw)) {
                 return $default;
         }
@@ -1085,7 +1093,9 @@ function chroma_home_faq_items()
         $items_json = chroma_get_translated_meta($post_id, 'home_faq_items_json', true);
 
         $items = array();
-        if ($items_json) {
+        if (is_array($items_json)) {
+                $items = $items_json;
+        } elseif (is_string($items_json) && $items_json !== '') {
                 $decoded = json_decode($items_json, true);
                 if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
                         $items = $decoded;
@@ -1098,9 +1108,13 @@ function chroma_home_faq_items()
 
         return array_map(
                 function ($item) {
+                        if (!is_array($item)) {
+                                $item = array();
+                        }
+
                         return array(
-                                'question' => sanitize_text_field($item['question'] ?? ''),
-                                'answer' => sanitize_textarea_field($item['answer'] ?? ''),
+                                'question' => sanitize_text_field(is_scalar($item['question'] ?? null) ? (string) $item['question'] : ''),
+                                'answer' => sanitize_textarea_field(is_scalar($item['answer'] ?? null) ? (string) $item['answer'] : ''),
                         );
                 },
                 $items
@@ -1113,6 +1127,8 @@ function chroma_home_faq()
         $post_id = chroma_get_home_page_id();
         $heading = chroma_get_translated_meta($post_id, 'home_faq_heading', true);
         $subheading = chroma_get_translated_meta($post_id, 'home_faq_subheading', true);
+        $heading = is_scalar($heading) ? (string) $heading : '';
+        $subheading = is_scalar($subheading) ? (string) $subheading : '';
 
         return array(
                 'heading' => sanitize_text_field($heading ?: chroma_get_theme_mod('chroma_home_faq_heading', $defaults['heading'])),
