@@ -95,13 +95,6 @@ class Chroma_Virtual_Page_SEO_Data
         $title = trim((string) ($data[$title_key] ?? ''));
         $description = trim((string) ($data[$desc_key] ?? ''));
 
-        if ($title === '' && $language === 'es') {
-            $title = trim((string) ($data['seo_title'] ?? ''));
-        }
-        if ($description === '' && $language === 'es') {
-            $description = trim((string) ($data['meta_description'] ?? ''));
-        }
-
         return [
             'title' => $title !== '' ? $title : (string) ($fallbacks['title'] ?? ''),
             'meta_description' => $description !== '' ? $description : (string) ($fallbacks['meta_description'] ?? ''),

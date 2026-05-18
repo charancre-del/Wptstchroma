@@ -995,7 +995,6 @@ class Chroma_Combo_Page_Generator
             $urls = [];
         }
 
-        $lastmod = gmdate('c');
         $base = rtrim(home_url('/'), '/');
         $combos = self::get_all_combos();
 
@@ -1005,6 +1004,7 @@ class Chroma_Combo_Page_Generator
             }
 
             $url = (string) $combo['url'];
+            $lastmod = $this->get_combo_sitemap_lastmod($combo);
             $urls[] = [
                 'loc' => $url,
                 'lastmod' => $lastmod,
@@ -1027,6 +1027,42 @@ class Chroma_Combo_Page_Generator
         }
 
         return $urls;
+    }
+
+    /**
+     * Stable lastmod for generated combo URLs.
+     *
+     * @param array $combo
+     * @return string
+     */
+    private function get_combo_sitemap_lastmod($combo)
+    {
+        $timestamps = [];
+
+        if (!empty($combo['program']) && $combo['program'] instanceof WP_Post && !empty($combo['program']->post_modified_gmt)) {
+            $timestamps[] = strtotime($combo['program']->post_modified_gmt);
+        }
+
+        if (class_exists('Chroma_Combo_Page_Data') && !empty($combo['program']) && $combo['program'] instanceof WP_Post) {
+            $saved = Chroma_Combo_Page_Data::get($combo['program']->post_name, sanitize_title((string) ($combo['city'] ?? '')), (string) ($combo['state'] ?? 'GA'));
+            if (!empty($saved['last_updated'])) {
+                $timestamps[] = (int) $saved['last_updated'];
+            }
+        }
+
+        if (!empty($combo['location_id'])) {
+            $location = get_post((int) $combo['location_id']);
+            if ($location instanceof WP_Post && !empty($location->post_modified_gmt)) {
+                $timestamps[] = strtotime($location->post_modified_gmt);
+            }
+        }
+
+        $timestamps = array_filter(array_map('intval', $timestamps));
+        if (!empty($timestamps)) {
+            return gmdate('c', max($timestamps));
+        }
+
+        return get_lastpostmodified('gmt') ? gmdate('c', strtotime(get_lastpostmodified('gmt'))) : gmdate('c');
     }
 
     /**

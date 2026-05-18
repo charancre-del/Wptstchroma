@@ -103,11 +103,11 @@ class Chroma_Sitemap_Integrator
         header('Content-Type: application/xml; charset=UTF-8');
         status_header(200);
 
-        $lastmod = gmdate('c');
         echo '<?xml version="1.0" encoding="UTF-8"?>' . "\n";
         echo '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">' . "\n";
         foreach ((array) $paths as $path) {
             $loc = esc_url(home_url((string) $path));
+            $lastmod = $this->get_sitemap_group_lastmod((string) $path);
             echo '  <sitemap>' . "\n";
             echo '    <loc>' . $loc . '</loc>' . "\n";
             echo '    <lastmod>' . esc_html($lastmod) . '</lastmod>' . "\n";
@@ -125,7 +125,6 @@ class Chroma_Sitemap_Integrator
     private function render_combo_sitemap($lang = 'en')
     {
         $entries = [];
-        $lastmod = gmdate('c');
 
         if (class_exists('Chroma_Combo_Page_Generator') && class_exists('Chroma_Combo_Page_Data')) {
             $combos = Chroma_Combo_Page_Generator::get_all_combos();
@@ -155,7 +154,7 @@ class Chroma_Sitemap_Integrator
 
                 $entries[] = [
                     'loc' => $url,
-                    'lastmod' => $lastmod,
+                    'lastmod' => $this->get_combo_lastmod($combo, $saved_data),
                 ];
             }
         }
@@ -171,7 +170,6 @@ class Chroma_Sitemap_Integrator
     private function render_near_me_sitemap($lang = 'en')
     {
         $entries = [];
-        $lastmod = gmdate('c');
 
         if (class_exists('Chroma_Near_Me_Pages') && method_exists('Chroma_Near_Me_Pages', 'get_sitemap_urls')) {
             $links = Chroma_Near_Me_Pages::get_sitemap_urls();
@@ -187,7 +185,7 @@ class Chroma_Sitemap_Integrator
 
                 $entries[] = [
                     'loc' => $url,
-                    'lastmod' => $lastmod,
+                    'lastmod' => $this->get_virtual_url_lastmod($url),
                 ];
             }
         }
@@ -434,17 +432,153 @@ class Chroma_Sitemap_Integrator
             ],
         ];
 
-        $last_mod = gmdate('c');
         foreach ($entries as $entry) {
             if ($this->sitemap_index_contains_any($sitemap_index, array_merge([$entry['primary']], $entry['aliases']))) {
                 continue;
             }
 
             $loc = esc_url(home_url($entry['primary']));
+            $last_mod = $this->get_sitemap_group_lastmod((string) $entry['primary']);
             $sitemap_index .= '<sitemap><loc>' . $loc . '</loc><lastmod>' . $last_mod . '</lastmod></sitemap>';
         }
 
         return $sitemap_index;
+    }
+
+    /**
+     * Resolve a stable sitemap-level lastmod from the content represented by a custom sitemap.
+     *
+     * @param string $path
+     * @return string
+     */
+    private function get_sitemap_group_lastmod($path)
+    {
+        $path = '/' . trim((string) $path, '/');
+
+        if ($path === '/sitemap-combos.xml' || $path === '/sitemap-combos-es.xml') {
+            return $this->get_latest_modified_for_post_types(['program', 'city', 'location']);
+        }
+
+        if ($path === '/sitemap-near-me.xml' || $path === '/sitemap-near-me-es.xml') {
+            return $this->get_latest_modified_for_post_types(['program', 'city', 'location']);
+        }
+
+        if ($path === '/sitemap-spanish.xml' || $path === '/sitemap.xml') {
+            return $this->get_latest_modified_for_post_types(['page', 'location', 'program', 'city', 'post']);
+        }
+
+        return $this->get_latest_modified_for_post_types(['page', 'location', 'program', 'city', 'post']);
+    }
+
+    /**
+     * Get lastmod for a program/city combo entry.
+     *
+     * @param array $combo
+     * @param array $saved_data
+     * @return string
+     */
+    private function get_combo_lastmod($combo, $saved_data)
+    {
+        $timestamps = [];
+
+        if (!empty($saved_data['last_updated'])) {
+            $timestamps[] = (int) $saved_data['last_updated'];
+        }
+
+        if (!empty($combo['program']) && $combo['program'] instanceof WP_Post && !empty($combo['program']->post_modified_gmt)) {
+            $timestamps[] = strtotime($combo['program']->post_modified_gmt);
+        }
+
+        if (!empty($combo['city'])) {
+            $timestamps = array_merge(
+                $timestamps,
+                $this->get_city_context_timestamps(sanitize_title((string) $combo['city']), (string) ($combo['state'] ?? 'GA'))
+            );
+        }
+
+        $timestamps = array_filter(array_map('intval', $timestamps));
+        return !empty($timestamps) ? gmdate('c', max($timestamps)) : $this->get_latest_modified_for_post_types(['program', 'city', 'location']);
+    }
+
+    /**
+     * Get a stable lastmod for a virtual near-me URL.
+     *
+     * @param string $url
+     * @return string
+     */
+    private function get_virtual_url_lastmod($url)
+    {
+        $path = wp_parse_url((string) $url, PHP_URL_PATH);
+        if (!is_string($path)) {
+            return $this->get_latest_modified_for_post_types(['program', 'city', 'location']);
+        }
+
+        $path = trim((string) preg_replace('#^/es(?=/|$)#', '', $path), '/');
+        if (preg_match('/^[a-z0-9-]+-near-([a-z0-9-]+)-([a-z]{2})$/', $path, $matches)) {
+            $timestamps = $this->get_city_context_timestamps(sanitize_title($matches[1]), strtoupper($matches[2]));
+            if (!empty($timestamps)) {
+                return gmdate('c', max($timestamps));
+            }
+        }
+
+        return $this->get_latest_modified_for_post_types(['program', 'city', 'location']);
+    }
+
+    /**
+     * Get timestamps for a virtual city context's backing records.
+     *
+     * @param string $city_slug
+     * @param string $state
+     * @return int[]
+     */
+    private function get_city_context_timestamps($city_slug, $state = 'GA')
+    {
+        if (!function_exists('chroma_seo_resolve_virtual_city_context')) {
+            return [];
+        }
+
+        $context = chroma_seo_resolve_virtual_city_context($city_slug, $state);
+        if (!is_array($context)) {
+            return [];
+        }
+
+        $timestamps = [];
+        foreach (['city_page_id', 'location_id'] as $key) {
+            $post_id = (int) ($context[$key] ?? 0);
+            if ($post_id <= 0) {
+                continue;
+            }
+
+            $post = get_post($post_id);
+            if ($post instanceof WP_Post && !empty($post->post_modified_gmt)) {
+                $timestamps[] = strtotime($post->post_modified_gmt);
+            }
+        }
+
+        return array_filter(array_map('intval', $timestamps));
+    }
+
+    /**
+     * Latest modified timestamp across post types.
+     *
+     * @param string[] $post_types
+     * @return string
+     */
+    private function get_latest_modified_for_post_types($post_types)
+    {
+        $posts = get_posts([
+            'post_type' => (array) $post_types,
+            'posts_per_page' => 1,
+            'post_status' => 'publish',
+            'orderby' => 'modified',
+            'order' => 'DESC',
+        ]);
+
+        if (!empty($posts) && $posts[0] instanceof WP_Post && !empty($posts[0]->post_modified_gmt)) {
+            return gmdate('c', strtotime($posts[0]->post_modified_gmt));
+        }
+
+        return gmdate('c');
     }
 
     /**

@@ -413,8 +413,9 @@ if (!function_exists('chroma_seo_get_program_label')) {
             'camp-summer-winter-fall' => ['en' => 'Seasonal Camps', 'es' => 'Campamentos estacionales'],
             'parents-day-out' => ['en' => "Parent's Day Out", 'es' => 'Día libre para padres'],
             'kindergarten' => ['en' => 'Kindergarten', 'es' => 'Kindergarten'],
-            'rising-pre-k' => ['en' => 'Rising Pre-K', 'es' => 'Rising Pre-K'],
-            'rising-kindergarten' => ['en' => 'Rising Kindergarten', 'es' => 'Rising Kindergarten'],
+            'kindergarten-1' => ['en' => 'Kindergarten', 'es' => 'Kindergarten'],
+            'rising-pre-k' => ['en' => 'Rising Pre-K', 'es' => 'Pre-K en ascenso'],
+            'rising-kindergarten' => ['en' => 'Rising Kindergarten', 'es' => 'Kindergarten en ascenso'],
         ];
 
         $slug = $program->post_name;
@@ -708,6 +709,28 @@ if (!function_exists('chroma_seo_build_singular_profile')) {
             }
         }
 
+        if ($post_type === 'program') {
+            $program_overrides = [
+                'rising-pre-k' => [
+                    'title' => 'Pre-K en ascenso | Programa de Chroma',
+                    'meta_description' => 'Prepara a tu hijo de 4 a 5 años para Pre-K con un programa alegre y práctico de Chroma Early Learning Academy. Conoce el programa y agenda una visita.',
+                ],
+                'rising-kindergarten' => [
+                    'title' => 'Kindergarten en ascenso | Programa de Chroma',
+                    'meta_description' => 'Ayuda a tu hijo a prepararse para kindergarten con aprendizaje basado en el juego, rutinas escolares y apoyo de maestros de Chroma Early Learning Academy.',
+                ],
+                'kindergarten-1' => [
+                    'title' => 'Programa de kindergarten | Chroma Early Learning Academy',
+                    'meta_description' => 'Descubre el programa de kindergarten de Chroma Early Learning Academy, diseñado para fortalecer la confianza, la curiosidad y la preparación para primer grado.',
+                ],
+            ];
+
+            if (isset($program_overrides[$post->post_name])) {
+                $title = $program_overrides[$post->post_name]['title'];
+                $meta_description = $program_overrides[$post->post_name]['meta_description'];
+            }
+        }
+
         return [
             'title' => chroma_seo_trim_title($title),
             'meta_description' => chroma_seo_trim_meta_description($meta_description),
@@ -768,11 +791,11 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
             ],
             'rising-pre-k' => [
                 'en' => "Rising Pre-K in {$city_name}, {$state}. Discover Chroma support for children preparing to enter Pre-K with confidence.",
-                'es' => "Rising Pre-K en {$city_name}, {$state}. Descubre cómo Chroma apoya a niños que se preparan para entrar a Pre-K con confianza.",
+                'es' => "Pre-K en ascenso en {$city_name}, {$state}. Descubre cómo Chroma apoya a niños que se preparan para entrar a Pre-K con confianza.",
             ],
             'rising-kindergarten' => [
                 'en' => "Rising Kindergarten in {$city_name}, {$state}. Explore summer readiness support for children preparing for elementary school at Chroma.",
-                'es' => "Rising Kindergarten en {$city_name}, {$state}. Explora el apoyo de preparación de verano para niños que se preparan para la primaria en Chroma.",
+                'es' => "Kindergarten en ascenso en {$city_name}, {$state}. Explora el apoyo de preparación de verano para niños que se preparan para la primaria en Chroma.",
             ],
         ];
 

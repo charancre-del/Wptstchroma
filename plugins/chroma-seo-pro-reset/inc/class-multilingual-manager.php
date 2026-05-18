@@ -337,10 +337,11 @@ class Chroma_Multilingual_Manager
         }
 
         $es_path = $en_path === '/' ? '/es/' : '/es' . $en_path;
+        $base_home = rtrim((string) get_option('home'), '/');
 
         return [
-            'en' => home_url($en_path),
-            'es' => home_url($es_path),
+            'en' => $base_home . $en_path,
+            'es' => $base_home . $es_path,
         ];
     }
 
@@ -365,29 +366,34 @@ class Chroma_Multilingual_Manager
         } elseif (is_singular()) {
             $en_url = get_permalink();
         } elseif (is_front_page() || is_home()) {
-            $en_url = rtrim(get_option('home'), '/');
+            $en_url = rtrim((string) get_option('home'), '/');
         } elseif (is_post_type_archive()) {
             $en_url = get_post_type_archive_link(get_query_var('post_type'));
         } elseif (is_category() || is_tag() || is_tax()) {
             $en_url = get_term_link(get_queried_object());
         } elseif (is_404()) {
-            $en_url = rtrim(get_option('home'), '/'); // 404s fallback to home
+            $en_url = rtrim((string) get_option('home'), '/'); // 404s fallback to home
         } else {
             // Check for COMBO pages or other custom requests using query vars or request uri
-            $en_url = home_url($wp->request);
+            $request = isset($wp->request) ? trim((string) $wp->request, '/') : '';
+            $en_url = rtrim((string) get_option('home'), '/') . ($request !== '' ? '/' . $request . '/' : '/');
         }
 
         // Safety: If get_permalink or others failed
         if (is_wp_error($en_url) || !$en_url) {
-            $en_url = rtrim(get_option('home'), '/');
+            $en_url = rtrim((string) get_option('home'), '/');
         }
 
         // 2. Clear out any /es/ segments to get "Pure English" base
         // This is critical to avoid /es/es/ or looping
-        $base_home = rtrim(get_option('home'), '/');
+        $base_home = rtrim((string) get_option('home'), '/');
         $en_url = str_replace($base_home . '/es/', $base_home . '/', $en_url);
         if (substr($en_url, -3) === '/es') {
              $en_url = substr($en_url, 0, -3);
+        }
+
+        if (strpos($en_url, $base_home . '/es/') === 0) {
+            $en_url = $base_home . '/' . ltrim(substr($en_url, strlen($base_home . '/es/')), '/');
         }
 
         // 3. Handle Manual Overrides for singular posts
@@ -594,16 +600,29 @@ class Chroma_Multilingual_Manager
     public function localize_seo_title($title) {
         if (!self::is_spanish()) return $title;
 
-        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
-            return $title;
-        }
-
         if (!is_singular()) {
             return $title;
         }
 
         $post_id = get_queried_object_id();
         if (!$post_id) return $title;
+
+        $post = get_post($post_id);
+        if ($post instanceof WP_Post && $post->post_type === 'program') {
+            $program_titles = [
+                'rising-pre-k' => 'Pre-K en ascenso | Programa de Chroma',
+                'rising-kindergarten' => 'Kindergarten en ascenso | Programa de Chroma',
+                'kindergarten-1' => 'Programa de kindergarten | Chroma Early Learning Academy',
+            ];
+
+            if (isset($program_titles[$post->post_name])) {
+                return $program_titles[$post->post_name];
+            }
+        }
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return $title;
+        }
         
         $es_seo_title = get_post_meta($post_id, '_chroma_es_seo_title', true);
         if ($es_seo_title) return $es_seo_title;
@@ -620,16 +639,31 @@ class Chroma_Multilingual_Manager
     public function localize_meta_description() {
         if (!self::is_spanish()) return;
 
-        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
-            return;
-        }
-
         if (!is_singular()) {
             return;
         }
 
         $post_id = get_queried_object_id();
         if (!$post_id) return;
+
+        $post = get_post($post_id);
+        if ($post instanceof WP_Post && $post->post_type === 'program') {
+            $program_descriptions = [
+                'rising-pre-k' => 'Prepara a tu hijo de 4 a 5 años para Pre-K con un programa alegre y práctico de Chroma Early Learning Academy. Conoce el programa y agenda una visita.',
+                'rising-kindergarten' => 'Ayuda a tu hijo a prepararse para kindergarten con aprendizaje basado en el juego, rutinas escolares y apoyo de maestros de Chroma Early Learning Academy.',
+                'kindergarten-1' => 'Descubre el programa de kindergarten de Chroma Early Learning Academy, diseñado para fortalecer la confianza, la curiosidad y la preparación para primer grado.',
+            ];
+
+            if (isset($program_descriptions[$post->post_name])) {
+                remove_action('wp_head', 'chroma_shared_meta_description', 2);
+                echo '<meta name="description" content="' . esc_attr($program_descriptions[$post->post_name]) . '" />' . "\n";
+                return;
+            }
+        }
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return;
+        }
         
         $es_meta_desc = get_post_meta($post_id, '_chroma_es_meta_description', true);
         if ($es_meta_desc) {
