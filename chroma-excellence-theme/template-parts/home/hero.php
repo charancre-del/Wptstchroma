@@ -12,8 +12,8 @@ $home_id = get_option('page_on_front');
 
 // Get hero image sources
 $hero_image = get_theme_mod('chroma_home_hero_image');
-$hero_video_path = get_template_directory() . '/assets/video/hero-classroom.mp4';
-$hero_video_url = get_template_directory_uri() . '/assets/video/hero-classroom.mp4';
+$hero_fallback_image_path = get_template_directory() . '/assets/images/early-start/synergy-classroom.jpg';
+$hero_fallback_image_url = get_template_directory_uri() . '/assets/images/early-start/synergy-classroom.jpg';
 $loc_count = wp_count_posts('location')->publish ?? 19;
 $location_pill = sprintf($hero['pill_format'], $loc_count);
 ?>
@@ -97,12 +97,11 @@ $location_pill = sprintf($hero['pill_format'], $loc_count);
                         'width' => '800',
                         'height' => '600'
                     )); ?>
-                <?php elseif (file_exists($hero_video_path)): ?>
-                    <!-- Priority 3: Hero video file -->
-                    <video autoplay muted playsinline loop class="w-full h-full object-cover" width="800" height="600"
-                        preload="auto">
-                        <source src="<?php echo esc_url($hero_video_url); ?>" type="video/mp4" />
-                    </video>
+                <?php elseif (file_exists($hero_fallback_image_path)): ?>
+                    <!-- Priority 3: Bundled fallback image -->
+                    <img src="<?php echo esc_url($hero_fallback_image_url); ?>" class="w-full h-full object-cover no-lazy"
+                        alt="<?php echo esc_attr($hero['image_alt']); ?>" width="800" height="600" fetchpriority="high" decoding="sync"
+                        data-no-lazy="1" data-no-async="1" />
                 <?php else: ?>
                     <!-- Fallback: Gradient background -->
                     <div

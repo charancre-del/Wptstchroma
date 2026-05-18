@@ -18,6 +18,137 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+/**
+ * Remove internal validator/API metadata before schema is exposed publicly.
+ *
+ * Schema.org properties do not use underscore-prefixed keys; those keys are
+ * reserved here for admin/API diagnostics and should never be emitted as JSON-LD.
+ *
+ * @param mixed $value
+ * @return mixed
+ */
+if (!function_exists('chroma_schema_strip_internal_keys')) {
+    function chroma_schema_strip_internal_keys($value) {
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (!is_array($value)) {
+            return $value;
+        }
+
+        $clean = [];
+        foreach ($value as $key => $item) {
+            if (is_string($key) && $key !== '' && $key[0] === '_') {
+                continue;
+            }
+
+            $clean[$key] = chroma_schema_strip_internal_keys($item);
+        }
+
+        return $clean;
+    }
+}
+
+if (!function_exists('chroma_schema_array_is_list')) {
+    function chroma_schema_array_is_list(array $value) {
+        if ($value === []) {
+            return true;
+        }
+
+        return array_keys($value) === range(0, count($value) - 1);
+    }
+}
+
+if (!function_exists('chroma_schema_normalize_type_name')) {
+    function chroma_schema_normalize_type_name($type) {
+        $type = trim((string) $type);
+        if ($type === '') {
+            return '';
+        }
+
+        if (strpos($type, 'schema.org/') !== false) {
+            $parts = explode('/', rtrim($type, '/'));
+            $type = (string) end($parts);
+        }
+
+        return strtolower($type);
+    }
+}
+
+/**
+ * Extract top-level schema types from stored builder rows, raw JSON-LD, or @graph.
+ *
+ * @param mixed $schema_value
+ * @return array
+ */
+if (!function_exists('chroma_schema_extract_top_level_types')) {
+    function chroma_schema_extract_top_level_types($schema_value) {
+        if (is_object($schema_value)) {
+            $schema_value = (array) $schema_value;
+        }
+
+        if (!is_array($schema_value)) {
+            return [];
+        }
+
+        $types = [];
+
+        if (chroma_schema_array_is_list($schema_value)) {
+            foreach ($schema_value as $item) {
+                $types = array_merge($types, chroma_schema_extract_top_level_types($item));
+            }
+            return array_values(array_unique(array_filter($types)));
+        }
+
+        foreach (['type', '@type'] as $type_key) {
+            if (empty($schema_value[$type_key])) {
+                continue;
+            }
+
+            $raw_types = is_array($schema_value[$type_key]) ? $schema_value[$type_key] : [$schema_value[$type_key]];
+            foreach ($raw_types as $type) {
+                $normalized = chroma_schema_normalize_type_name($type);
+                if ($normalized !== '') {
+                    $types[] = $normalized;
+                }
+            }
+        }
+
+        if (!empty($schema_value['@graph']) && is_array($schema_value['@graph'])) {
+            $types = array_merge($types, chroma_schema_extract_top_level_types($schema_value['@graph']));
+        }
+
+        return array_values(array_unique(array_filter($types)));
+    }
+}
+
+/**
+ * Determine whether stored schema already provides a replacement for a fallback.
+ *
+ * @param mixed $schema_value
+ * @param array $target_types
+ * @return bool
+ */
+if (!function_exists('chroma_schema_store_has_any_type')) {
+    function chroma_schema_store_has_any_type($schema_value, array $target_types) {
+        $stored_types = chroma_schema_extract_top_level_types($schema_value);
+        if (empty($stored_types)) {
+            return false;
+        }
+
+        $targets = [];
+        foreach ($target_types as $target_type) {
+            $normalized = chroma_schema_normalize_type_name($target_type);
+            if ($normalized !== '') {
+                $targets[] = $normalized;
+            }
+        }
+
+        return (bool) array_intersect($stored_types, $targets);
+    }
+}
+
 class Chroma_Schema_Registry
 {
     /**
@@ -82,6 +213,10 @@ class Chroma_Schema_Registry
                 'source' => $source
             ];
             return false;
+        }
+
+        if (function_exists('chroma_schema_strip_internal_keys')) {
+            $schema = chroma_schema_strip_internal_keys($schema);
         }
 
         if (empty($schema) || !is_array($schema)) {
@@ -208,7 +343,11 @@ class Chroma_Schema_Registry
         $graph = [];
         foreach (self::$schemas as $item) {
             $schema = $item['schema'];
-            
+
+            if (function_exists('chroma_schema_strip_internal_keys')) {
+                $schema = chroma_schema_strip_internal_keys($schema);
+            }
+
             // Add @context if missing
             if (!isset($schema['@context'])) {
                 $schema['@context'] = 'https://schema.org';

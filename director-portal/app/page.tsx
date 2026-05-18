@@ -40,7 +40,7 @@ export default function LoginPage() {
                     <span className="w-4 h-4 rounded-full bg-chroma-blue"></span>
                 </div>
                 <h1 className="font-serif text-3xl font-bold mb-2">Director Portal</h1>
-                <p className="text-brand-ink/60 mb-8">Sign in to manage your school's TV dashboard.</p>
+                <p className="text-brand-ink/60 mb-8">Sign in to manage your school&apos;s TV dashboard.</p>
 
                 <div className="flex justify-center">
                     <GoogleLogin

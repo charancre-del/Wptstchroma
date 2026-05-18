@@ -170,6 +170,7 @@ function chroma_should_load_effects_bundle()
 function chroma_should_load_forms_bundle()
 {
         return is_page(array('contact', 'careers', 'schedule-tour', 'schedule-a-tour'))
+                || is_singular('post')
                 || is_page_template('page-summer-camp.php')
                 || chroma_page_has_shortcode(array('chroma_contact_form', 'chroma_career_form', 'chroma_tour_form', 'contact-form-7'));
 }

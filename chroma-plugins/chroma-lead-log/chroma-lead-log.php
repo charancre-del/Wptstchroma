@@ -256,7 +256,7 @@ function chroma_lead_log_trigger_webhook($post_id, $post, $update)
 	// (though we are just reading here, not saving back to post)
 
 	// Check if webhook is configured
-	$webhook_url = get_option('chroma_lead_log_webhook_url');
+	$webhook_url = esc_url_raw(get_option('chroma_lead_log_webhook_url'));
 	if (empty($webhook_url)) {
 		return;
 	}
@@ -296,8 +296,12 @@ function chroma_lead_log_trigger_webhook($post_id, $post, $update)
 		'data' => $payload_data
 	);
 
+	if (!wp_http_validate_url($webhook_url) || strtolower((string) wp_parse_url($webhook_url, PHP_URL_SCHEME)) !== 'https') {
+		return;
+	}
+
 	// Send Request
-	$response = wp_remote_post($webhook_url, array(
+	$response = wp_safe_remote_post($webhook_url, array(
 		'body' => wp_json_encode($body),
 		'headers' => array('Content-Type' => 'application/json'),
 		'timeout' => 15,

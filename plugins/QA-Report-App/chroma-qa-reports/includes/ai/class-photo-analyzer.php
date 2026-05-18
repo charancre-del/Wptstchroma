@@ -58,11 +58,46 @@ class Photo_Analyzer {
     private static function get_image_data( $image_url ) {
         // Check if it's a local file
         if ( \file_exists( $image_url ) ) {
-            $content = \file_get_contents( $image_url );
-            $mime = \mime_content_type( $image_url );
+            $uploads = \wp_get_upload_dir();
+            $uploads_base = ! empty( $uploads['basedir'] ) ? \realpath( $uploads['basedir'] ) : false;
+            $real_path = \realpath( $image_url );
+
+            if ( ! $uploads_base || ! $real_path ) {
+                return new \WP_Error( 'invalid_image_path', 'Could not validate image path.' );
+            }
+
+            $uploads_base = \trailingslashit( \wp_normalize_path( $uploads_base ) );
+            $real_path = \wp_normalize_path( $real_path );
+
+            if ( 0 !== \strpos( $real_path, $uploads_base ) ) {
+                return new \WP_Error( 'invalid_image_path', 'Image path must be inside the uploads directory.' );
+            }
+
+            if ( ! \is_readable( $real_path ) ) {
+                return new \WP_Error( 'unreadable_image', 'Image file is not readable.' );
+            }
+
+            $mime = \mime_content_type( $real_path );
+            if ( ! $mime || 0 !== \strpos( $mime, 'image/' ) ) {
+                return new \WP_Error( 'invalid_image_type', 'Only image files can be analyzed.' );
+            }
+
+            $content = \file_get_contents( $real_path );
         } else {
             // Fetch remote image
-            $response = \wp_remote_get( $image_url );
+            $image_url = \esc_url_raw( $image_url );
+            if ( ! \wp_http_validate_url( $image_url ) ) {
+                return new \WP_Error( 'invalid_image_url', 'Image URL is not valid.' );
+            }
+
+            $response = \wp_safe_remote_get(
+                $image_url,
+                [
+                    'timeout'             => 15,
+                    'redirection'         => 3,
+                    'limit_response_size' => 5 * MB_IN_BYTES,
+                ]
+            );
             
             if ( \is_wp_error( $response ) ) {
                 return $response;
@@ -71,6 +106,10 @@ class Photo_Analyzer {
             $content = \wp_remote_retrieve_body( $response );
             $content_type = \wp_remote_retrieve_header( $response, 'content-type' );
             $mime = explode( ';', $content_type )[0];
+
+            if ( ! $mime || 0 !== \strpos( $mime, 'image/' ) ) {
+                return new \WP_Error( 'invalid_image_type', 'Remote URL did not return an image.' );
+            }
         }
 
         if ( empty( $content ) ) {

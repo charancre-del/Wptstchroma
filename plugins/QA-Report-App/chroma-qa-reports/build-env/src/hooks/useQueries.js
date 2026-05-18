@@ -224,10 +224,14 @@ export function useRestoreReportVersion() {
 
     return useMutation( {
         mutationFn: ( { id, version, currentVersion, updatedAt } ) =>
-            apiClient.post( `/reports/${ id }/restore/${ version }`, {}, {
-                headers: currentVersion ? { 'X-CQA-Version': currentVersion } : {},
-                ifUnmodifiedSince: updatedAt || undefined,
-            } ),
+            apiClient.post(
+                `/reports/${ id }/restore/${ version }`,
+                {},
+                {
+                    headers: currentVersion ? { 'X-CQA-Version': currentVersion } : {},
+                    ifUnmodifiedSince: updatedAt || undefined,
+                }
+            ),
         onSuccess: ( _, variables ) => {
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( variables.id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( variables.id ) } );
@@ -265,6 +269,54 @@ export function useRestoreReportVersionSelection() {
 
 function normalizeReportMutationInput( report ) {
     return typeof report === 'object' ? report : { id: report };
+}
+
+function getReportId( report ) {
+    return typeof report === 'object' ? report.id : report;
+}
+
+function patchReportInCache( cachedValue, reportId, patch ) {
+    if ( ! cachedValue || ! reportId || ! patch ) {
+        return cachedValue;
+    }
+
+    const shouldPatch = ( item ) => String( item?.id ) === String( reportId );
+    const mergeReport = ( item ) => ( shouldPatch( item ) ? { ...item, ...patch } : item );
+
+    if ( Array.isArray( cachedValue ) ) {
+        return cachedValue.map( mergeReport );
+    }
+
+    if ( Array.isArray( cachedValue.data ) ) {
+        return {
+            ...cachedValue,
+            data: cachedValue.data.map( mergeReport ),
+        };
+    }
+
+    if ( shouldPatch( cachedValue ) ) {
+        return {
+            ...cachedValue,
+            ...patch,
+        };
+    }
+
+    return cachedValue;
+}
+
+function syncReportStatusCaches( queryClient, report, updatedReport, fallbackStatus ) {
+    const reportId = getReportId( report );
+    const patch =
+        updatedReport && typeof updatedReport === 'object'
+            ? { ...updatedReport, status: updatedReport.status || fallbackStatus }
+            : { id: reportId, status: fallbackStatus };
+
+    queryClient.setQueriesData( { queryKey: [ 'reports', 'list' ] }, ( cachedValue ) =>
+        patchReportInCache( cachedValue, reportId, patch )
+    );
+    queryClient.setQueryData( queryKeys.reports.detail( reportId ), ( cachedValue ) =>
+        patchReportInCache( cachedValue, reportId, patch )
+    );
 }
 
 function buildStatusChangeRequestConfig( report ) {
@@ -325,8 +377,9 @@ export function useSubmitReport() {
 
     return useMutation( {
         mutationFn: ( report ) => performStatusChange( report, 'submitted' ),
-        onSuccess: ( _, report ) => {
-            const id = typeof report === 'object' ? report.id : report;
+        onSuccess: ( updatedReport, report ) => {
+            const id = getReportId( report );
+            syncReportStatusCaches( queryClient, report, updatedReport, 'submitted' );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
@@ -342,8 +395,9 @@ export function useApproveReport() {
 
     return useMutation( {
         mutationFn: ( report ) => performStatusChange( report, 'approved' ),
-        onSuccess: ( _, report ) => {
-            const id = typeof report === 'object' ? report.id : report;
+        onSuccess: ( updatedReport, report ) => {
+            const id = getReportId( report );
+            syncReportStatusCaches( queryClient, report, updatedReport, 'approved' );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );
@@ -359,8 +413,9 @@ export function useRevertToDraft() {
 
     return useMutation( {
         mutationFn: ( report ) => performStatusChange( report, 'draft' ),
-        onSuccess: ( _, report ) => {
-            const id = typeof report === 'object' ? report.id : report;
+        onSuccess: ( updatedReport, report ) => {
+            const id = getReportId( report );
+            syncReportStatusCaches( queryClient, report, updatedReport, 'draft' );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.detail( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.versions( id ) } );
             queryClient.invalidateQueries( { queryKey: queryKeys.reports.all } );

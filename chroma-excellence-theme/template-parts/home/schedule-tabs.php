@@ -16,8 +16,10 @@ if (empty($tracks)) {
 
 <section id="schedule" class="py-20 bg-brand-cream relative" data-section="schedule">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-chroma-red via-chroma-yellow to-chroma-blue opacity-40"></div>
-        <div class="max-w-6xl mx-auto px-4 lg:px-6" data-schedule
-                data-tracks='<?php echo esc_attr(wp_json_encode($tracks)); ?>'>
+        <div class="max-w-6xl mx-auto px-4 lg:px-6" data-schedule>
+                <script type="application/json" data-schedule-tracks>
+                        <?php echo wp_json_encode($tracks, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
+                </script>
                 <div class="text-center mb-12">
                         <span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-4 block">
                                 <?php echo esc_html($schedule_content['eyebrow']); ?>
@@ -57,12 +59,12 @@ if (empty($tracks)) {
                         $background_tint = !empty($track['background']) ? $track['background'] : 'bg-brand-cream';
                         ?>
                         <div class="<?php echo esc_attr($panel_classes); ?>" data-schedule-panel="<?php echo esc_attr($track['key']); ?>">
-                                <div class="rounded-[3rem] p-8 md:p-12 <?php echo esc_attr($background_tint); ?> text-center">
+                                <div class="rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 <?php echo esc_attr($background_tint); ?> text-center overflow-hidden">
                                         <div class="max-w-3xl mx-auto mb-8">
                                                 <h3 class="text-3xl font-serif text-brand-ink mb-4">
                                                         <?php echo esc_html($track['title']); ?>
                                                 </h3>
-                                                <p class="text-brand-ink leading-relaxed">
+                                                <p class="text-brand-ink leading-relaxed break-words">
                                                         <?php echo esc_html($track['description'] ?? ''); ?>
                                                 </p>
                                         </div>

@@ -1,4 +1,5 @@
 import { createRoot } from '@wordpress/element';
+import { MotionConfig } from 'framer-motion';
 import App from './App';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import './styles/main.scss';
@@ -7,7 +8,9 @@ const rootElement = document.getElementById('chroma-parent-portal-root');
 
 const PortalRoot = () => (
     <ErrorBoundary>
-        <App />
+        <MotionConfig reducedMotion="user">
+            <App />
+        </MotionConfig>
     </ErrorBoundary>
 );
 

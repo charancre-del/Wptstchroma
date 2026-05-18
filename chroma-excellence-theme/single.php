@@ -200,6 +200,32 @@ $related_query = new WP_Query($related_args);
         </div>
       </section>
     <?php endif; ?>
+
+    <section id="contact" class="bg-brand-cream py-20 border-t border-brand-ink/5">
+      <div class="max-w-4xl mx-auto px-4 lg:px-6">
+        <div class="text-center mb-10">
+          <p class="text-xs font-bold uppercase tracking-[0.2em] text-chroma-blue mb-3">
+            <?php esc_html_e('Contact Us', 'chroma-excellence'); ?>
+          </p>
+          <h2 class="font-serif text-3xl md:text-4xl font-bold text-brand-ink mb-4">
+            <?php esc_html_e('Have a question for Chroma?', 'chroma-excellence'); ?>
+          </h2>
+          <p class="text-brand-ink/75 max-w-2xl mx-auto">
+            <?php esc_html_e('Send us a note and our team will help connect you with the right campus or next step.', 'chroma-excellence'); ?>
+          </p>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-soft border border-brand-ink/5 p-4 md:p-8">
+          <?php
+          if (function_exists('chroma_contact_form_shortcode')) {
+            echo chroma_contact_form_shortcode(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+          } else {
+            echo do_shortcode('[chroma_contact_form]');
+          }
+          ?>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="bg-brand-ink text-white py-12 text-center text-sm opacity-60">

@@ -1,3 +1,5 @@
+@use "sass:color";
+
 // Corporate Luxury Palette
 $bg-color: #FDFBF7;
 $card-bg: #FFFFFF;
@@ -11,6 +13,21 @@ $sidebar-bg: #FFFFFF;
     --sidebar-width: 280px;
     --sidebar-collapsed-width: 80px;
     --transition-speed: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :root {
+        --transition-speed: 0.01ms;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+    }
 }
 
 body.portal-is-active {
@@ -205,7 +222,7 @@ body.portal-is-active {
     transition: all 0.2s;
 
     &:hover {
-        background: lighten($navy-brand, 10%);
+        background: color.adjust($navy-brand, $lightness: 10%);
     }
 }
 

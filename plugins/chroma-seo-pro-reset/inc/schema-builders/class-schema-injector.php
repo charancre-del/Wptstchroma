@@ -744,12 +744,19 @@ class Chroma_Schema_Injector
         $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
 
         if (empty($schemas) || !is_array($schemas)) {
-            return;
+            $schemas = self::normalize_legacy_schema_data(get_post_meta($post_id, '_chroma_schema_data', true));
+            if (empty($schemas)) {
+                return;
+            }
         }
 
         $graph = [];
 
         foreach ($schemas as $schema_index => $schema_data) {
+            if (function_exists('chroma_schema_strip_internal_keys')) {
+                $schema_data = chroma_schema_strip_internal_keys($schema_data);
+            }
+
             $prepared = self::prepare_modular_schema_input($schema_data);
             if (empty($prepared['type'])) {
                 continue;
@@ -785,6 +792,9 @@ class Chroma_Schema_Injector
             }
 
             $fields = $prepared['fields'];
+            if (function_exists('chroma_schema_strip_internal_keys')) {
+                $fields = chroma_schema_strip_internal_keys($fields);
+            }
             $schema_id = !empty($prepared['id']) ? $prepared['id'] : self::build_deterministic_schema_id($post_id, $schema_type, (int) $schema_index);
 
             $schema_output = [
@@ -1061,6 +1071,9 @@ class Chroma_Schema_Injector
             }
 
             $schema_output = self::normalize_modular_schema_output($schema_type, $schema_output, $fields, $post_id);
+            if (function_exists('chroma_schema_strip_internal_keys')) {
+                $schema_output = chroma_schema_strip_internal_keys($schema_output);
+            }
             if (!is_array($schema_output) || empty($schema_output)) {
                 continue;
             }
@@ -1105,6 +1118,41 @@ class Chroma_Schema_Injector
     }
 
     /**
+     * Normalize legacy schema storage into the modular schema row list.
+     *
+     * @param mixed $schema_data
+     * @return array<int,array>
+     */
+    private static function normalize_legacy_schema_data($schema_data)
+    {
+        if (is_object($schema_data)) {
+            $schema_data = (array) $schema_data;
+        }
+
+        if (!is_array($schema_data) || empty($schema_data)) {
+            return [];
+        }
+
+        if (function_exists('chroma_schema_strip_internal_keys')) {
+            $schema_data = chroma_schema_strip_internal_keys($schema_data);
+        }
+
+        if (!empty($schema_data['@graph']) && is_array($schema_data['@graph'])) {
+            return array_values(array_filter($schema_data['@graph'], 'is_array'));
+        }
+
+        if (function_exists('chroma_schema_array_is_list') && chroma_schema_array_is_list($schema_data)) {
+            return array_values(array_filter($schema_data, 'is_array'));
+        }
+
+        if (!empty($schema_data['@type']) || !empty($schema_data['type'])) {
+            return [$schema_data];
+        }
+
+        return [];
+    }
+
+    /**
      * Accept schema rows in both builder format and raw JSON-LD-like format.
      *
      * @param mixed $schema_data
@@ -1114,6 +1162,10 @@ class Chroma_Schema_Injector
     {
         if (!is_array($schema_data)) {
             return ['type' => '', 'fields' => [], 'id' => ''];
+        }
+
+        if (function_exists('chroma_schema_strip_internal_keys')) {
+            $schema_data = chroma_schema_strip_internal_keys($schema_data);
         }
 
         // Native builder shape: ['type' => 'FAQPage', 'data' => [...]]

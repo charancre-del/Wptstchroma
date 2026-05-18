@@ -649,15 +649,15 @@ function chroma_handle_career_submission()
     }
 
     // Webhook Integration
-    $webhook_url = get_option('chroma_career_webhook_url', '');
-    if (!empty($webhook_url)) {
+    $webhook_url = esc_url_raw(get_option('chroma_career_webhook_url', ''));
+    if (!empty($webhook_url) && wp_http_validate_url($webhook_url) && strtolower((string) wp_parse_url($webhook_url, PHP_URL_SCHEME)) === 'https') {
         $webhook_data = array(
             'form_name' => 'Job Application',
             'submitted_at' => current_time('mysql'),
             'data' => $submission_data
         );
 
-        wp_remote_post($webhook_url, array(
+        wp_safe_remote_post($webhook_url, array(
             'body' => wp_json_encode($webhook_data),
             'headers' => array('Content-Type' => 'application/json'),
             'timeout' => 15,

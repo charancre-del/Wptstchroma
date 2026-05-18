@@ -192,8 +192,16 @@ class Chroma_Combo_AI_Generator
             'local_employers' => sanitize_text_field($_POST['local_employers'] ?? ''),
             'county' => sanitize_text_field($_POST['county'] ?? ''),
             'custom_intro' => wp_kses_post($_POST['custom_intro'] ?? ''),
+            'seo_title' => sanitize_text_field($_POST['seo_title'] ?? ''),
+            'meta_description' => sanitize_textarea_field($_POST['meta_description'] ?? ''),
+            'seo_title_es' => sanitize_text_field($_POST['seo_title_es'] ?? ''),
+            'meta_description_es' => sanitize_textarea_field($_POST['meta_description_es'] ?? ''),
+            'robots' => sanitize_text_field($_POST['robots'] ?? ''),
             'status' => sanitize_text_field($_POST['status'] ?? 'draft')
         ];
+        if (class_exists('Chroma_Virtual_Page_SEO_Data')) {
+            $data = array_merge($data, Chroma_Virtual_Page_SEO_Data::sanitize_updates($data));
+        }
         
         Chroma_Combo_Page_Data::save($program_slug, $city_slug, $state, $data);
         
@@ -205,6 +213,10 @@ class Chroma_Combo_AI_Generator
      */
     public function ajax_get_data() {
         check_ajax_referer('chroma_combo_ai', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
         
         $program_slug = sanitize_title($_POST['program_slug'] ?? '');
         $city_slug = sanitize_title($_POST['city_slug'] ?? '');

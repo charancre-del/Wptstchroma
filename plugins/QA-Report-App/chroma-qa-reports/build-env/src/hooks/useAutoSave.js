@@ -118,37 +118,6 @@ const useAutoSave = ( draft, isDirty, onServerSaveSuccess = null ) => {
                 showConflictModal( {
                     updatedBy,
                     updatedAt,
-                    onOverwrite: async () => {
-                        // Force save without If-Unmodified-Since header
-                        try {
-                            const forceSaveResponse = await apiFetch( `reports/${ currentDraft.id }`, {
-                                method: 'PUT',
-                                body: {
-                                    status: currentDraft.status || 'draft',
-                                    school_id: currentDraft.school_id,
-                                    report_type: currentDraft.report_type,
-                                    inspection_date: currentDraft.inspection_date,
-                                    overall_rating: currentDraft.overall_rating,
-                                    closing_notes: currentDraft.closing_notes,
-                                    previous_report_id: currentDraft.previous_report_id,
-                                    save_mode: 'autosave',
-                                    responses: currentDraft.responses,
-                                    photos: currentDraft.photos,
-                                },
-                                // No ifUnmodifiedSince = force overwrite
-                            } );
-                            syncServerDraftMeta( forceSaveResponse );
-                            if ( typeof onServerSaveSuccess === 'function' ) {
-                                onServerSaveSuccess( forceSaveResponse );
-                            }
-                            showConflictModal( null ); // Close modal
-                            addToast( { type: 'success', message: 'Report saved (overwritten server version)' } );
-                            setLastSaved( new Date() );
-                        } catch ( forceSaveError ) {
-                            console.error( 'Force save failed:', forceSaveError );
-                            addToast( { type: 'error', message: 'Failed to force save. Please try again.' } );
-                        }
-                    },
                     onReload: () => {
                         window.location.reload();
                     },

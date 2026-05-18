@@ -144,6 +144,69 @@ function chroma_program_title_placeholder($title)
 add_filter('enter_title_here', 'chroma_program_title_placeholder');
 
 /**
+ * Program-specific Prismpath defaults used when a program has not yet saved
+ * chart meta. Keeps frontend charts useful while still allowing admin edits.
+ */
+function chroma_program_prism_default_values($program_id = 0)
+{
+	$slug = $program_id ? sanitize_title(get_post_field('post_name', $program_id)) : '';
+	$title = $program_id ? strtolower((string) get_the_title($program_id)) : '';
+	$defaults = array(
+		'infant-care' => array(90, 90, 40, 15, 40),
+		'infant' => array(90, 90, 40, 15, 40),
+		'toddlers' => array(85, 75, 65, 30, 70),
+		'toddler' => array(85, 75, 65, 30, 70),
+		'preschool' => array(75, 65, 70, 55, 80),
+		'pre-k-prep' => array(65, 60, 75, 75, 70),
+		'pre-k-ga-pre-k' => array(60, 60, 80, 90, 70),
+		'ga-pre-k' => array(60, 60, 80, 90, 70),
+		'prek' => array(60, 60, 80, 90, 70),
+		'kindergarten' => array(60, 70, 85, 95, 80),
+		'rising-pre-k' => array(60, 90, 95, 60, 70),
+		'rising-prek' => array(60, 90, 95, 60, 70),
+		'rising-kindergarten' => array(50, 75, 80, 95, 60),
+		'schoolagers' => array(50, 70, 85, 75, 80),
+		'afterschool' => array(50, 70, 85, 75, 80),
+		'camp' => array(85, 75, 85, 55, 90),
+		'parents-day-out' => array(75, 85, 70, 35, 80),
+	);
+
+	if (isset($defaults[$slug])) {
+		return $defaults[$slug];
+	}
+
+	foreach ($defaults as $key => $values) {
+		if ($title && false !== strpos($title, str_replace('-', ' ', $key))) {
+			return $values;
+		}
+	}
+
+	return array(50, 50, 50, 50, 50);
+}
+
+function chroma_program_prism_chart_values($program_id)
+{
+	$defaults = chroma_program_prism_default_values($program_id);
+	$meta_keys = array(
+		'program_prism_physical',
+		'program_prism_emotional',
+		'program_prism_social',
+		'program_prism_academic',
+		'program_prism_creative',
+	);
+	$values = array();
+
+	foreach ($meta_keys as $index => $meta_key) {
+		$raw_value = get_post_meta($program_id, $meta_key, true);
+		$values[] = ('' === trim((string) $raw_value))
+			? $defaults[$index]
+			: max(0, min(100, absint($raw_value)));
+	}
+
+	return $values;
+}
+
+/**
  * Register meta fields for Program anchors and SEO intro
  */
 function chroma_register_program_meta()
@@ -824,6 +887,8 @@ function chroma_program_single_page_meta_box_render($post)
 			<button type="button" class="button chroma-chart-preset" data-values="[75,65,70,55,80]">Preschool</button>
 			<button type="button" class="button chroma-chart-preset" data-values="[65,60,75,75,70]">Pre-K Prep</button>
 			<button type="button" class="button chroma-chart-preset" data-values="[60,60,80,90,70]">GA Pre-K</button>
+			<button type="button" class="button chroma-chart-preset" data-values="[60,90,95,60,70]">Rising Pre-K</button>
+			<button type="button" class="button chroma-chart-preset" data-values="[50,75,80,95,60]">Rising Kindergarten</button>
 			<button type="button" class="button chroma-chart-preset" data-values="[50,70,85,75,80]">After School</button>
 		</div>
 		<div class="chroma-chart-inputs">

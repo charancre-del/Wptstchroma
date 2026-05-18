@@ -27,11 +27,14 @@ while (have_posts()):
 	$prism_focus_items = chroma_get_translated_meta($program_id, 'program_prism_focus_items', true);
 
 	// Chart data
-	$prism_physical = get_post_meta($program_id, 'program_prism_physical', true) ?: '50';
-	$prism_emotional = get_post_meta($program_id, 'program_prism_emotional', true) ?: '50';
-	$prism_social = get_post_meta($program_id, 'program_prism_social', true) ?: '50';
-	$prism_academic = get_post_meta($program_id, 'program_prism_academic', true) ?: '50';
-	$prism_creative = get_post_meta($program_id, 'program_prism_creative', true) ?: '50';
+	$prism_values = function_exists('chroma_program_prism_chart_values')
+		? chroma_program_prism_chart_values($program_id)
+		: array(50, 50, 50, 50, 50);
+	$prism_physical = $prism_values[0];
+	$prism_emotional = $prism_values[1];
+	$prism_social = $prism_values[2];
+	$prism_academic = $prism_values[3];
+	$prism_creative = $prism_values[4];
 
 	// Schedule
 	$schedule_title = chroma_get_translated_meta($program_id, 'program_schedule_title', true) ?: __('A Rhythm, Not a Routine', 'chroma-excellence');
@@ -288,11 +291,11 @@ while (have_posts()):
                         // Reset all
                         steps.forEach(b => {
                             b.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
-                            b.classList.add('bg-white', 'text-brand-ink/80');
+                            b.classList.add('bg-white', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
                         });
                         
                         // Active state
-                        this.classList.remove('bg-white', 'text-brand-ink/80');
+                        this.classList.remove('bg-white', 'text-brand-ink/70', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
                         this.classList.add('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
                         
                         // Update content

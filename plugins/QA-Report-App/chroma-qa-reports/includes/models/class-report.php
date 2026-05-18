@@ -338,6 +338,83 @@ class Report
     }
 
     /**
+     * Get the school tier represented by a report type.
+     *
+     * @param string $report_type Report type.
+     * @return int
+     */
+    public static function get_tier_for_report_type($report_type)
+    {
+        return $report_type === self::TYPE_TIER1_TIER2 ? 2 : 1;
+    }
+
+    /**
+     * Get the latest submitted or approved report for a school.
+     *
+     * @param int $school_id School ID.
+     * @return Report|null
+     */
+    public static function get_latest_active_for_school($school_id)
+    {
+        global $wpdb;
+        $table = self::get_table_name();
+
+        $row = $wpdb->get_row(
+            $wpdb->prepare(
+                "SELECT r.* FROM {$table} r
+                WHERE r.school_id = %d
+                    AND r.status IN (%s, %s)
+                ORDER BY r.inspection_date DESC, r.created_at DESC, r.id DESC
+                LIMIT 1",
+                (int) $school_id,
+                self::STATUS_APPROVED,
+                self::STATUS_SUBMITTED
+            ),
+            \ARRAY_A
+        );
+
+        return $row ? self::from_row($row) : null;
+    }
+
+    /**
+     * Sync a school's tier to the latest submitted/approved report type.
+     *
+     * @param int $school_id School ID.
+     * @return bool
+     */
+    public static function sync_school_tier_from_latest_report($school_id)
+    {
+        $school_id = (int) $school_id;
+        if ($school_id <= 0) {
+            return false;
+        }
+
+        $latest_report = self::get_latest_active_for_school($school_id);
+        if (!$latest_report) {
+            return false;
+        }
+
+        global $wpdb;
+        $school_table = School::get_table_name();
+        $tier = self::get_tier_for_report_type($latest_report->report_type);
+        $current_tier = $wpdb->get_var(
+            $wpdb->prepare("SELECT tier FROM {$school_table} WHERE id = %d", $school_id)
+        );
+
+        if ($current_tier === null || (int) $current_tier === $tier) {
+            return true;
+        }
+
+        return $wpdb->update(
+            $school_table,
+            ['tier' => $tier],
+            ['id' => $school_id],
+            ['%d'],
+            ['%d']
+        ) !== false;
+    }
+
+    /**
      * Save the report.
      *
      * @param string $change_summary Optional description of what changed.
@@ -348,6 +425,12 @@ class Report
     {
         global $wpdb;
         $table = self::get_table_name();
+        $previous_school_id = 0;
+
+        if ($this->id) {
+            $previous_report = self::find($this->id);
+            $previous_school_id = $previous_report ? (int) $previous_report->school_id : 0;
+        }
 
         $data = [
             'school_id' => $this->school_id,
@@ -376,6 +459,11 @@ class Report
                 if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report updated', $snapshot_type) && defined('WP_DEBUG') && WP_DEBUG) {
                     error_log(sprintf('[CQA Snapshot] Failed to create snapshot for report update %d', (int) $this->id));
                 }
+
+                self::sync_school_tier_from_latest_report((int) $this->school_id);
+                if ($previous_school_id && $previous_school_id !== (int) $this->school_id) {
+                    self::sync_school_tier_from_latest_report($previous_school_id);
+                }
                 return $this->id;
             }
             return false;
@@ -393,6 +481,8 @@ class Report
                 if (!Report_Snapshot::create_snapshot($this->id, $change_summary ?: 'Report created', $snapshot_type) && defined('WP_DEBUG') && WP_DEBUG) {
                     error_log(sprintf('[CQA Snapshot] Failed to create snapshot for report create %d', (int) $this->id));
                 }
+
+                self::sync_school_tier_from_latest_report((int) $this->school_id);
                 return $this->id;
             }
             return false;

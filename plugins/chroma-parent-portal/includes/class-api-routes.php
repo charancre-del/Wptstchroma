@@ -68,14 +68,14 @@ class Chroma_Portal_API_Routes
         register_rest_route('chroma-portal/v1', '/system-check', [
             'methods' => 'GET',
             'callback' => [$this, 'debug_system_check'],
-            'permission_callback' => '__return_true'
+            'permission_callback' => [$this, 'is_admin_check']
         ]);
 
         // Cookie Test (Debug only)
         register_rest_route('chroma-portal/v1', '/cookie-test', [
             'methods' => 'GET',
             'callback' => [$this, 'debug_cookie_test'],
-            'permission_callback' => '__return_true'
+            'permission_callback' => [$this, 'is_admin_check']
         ]);
     }
 

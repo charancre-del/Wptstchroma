@@ -1,14 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-    AlertTriangle,
-    Clock3,
-    Eye,
-    GitCompare,
-    History,
-    Loader2,
-    RotateCcw,
-    ShieldAlert,
-} from 'lucide-react';
+import { AlertTriangle, Clock3, Eye, GitCompare, History, Loader2, RotateCcw, ShieldAlert } from 'lucide-react';
 import useUIStore from '@stores/useUIStore';
 import {
     useCompareReportVersions,
@@ -283,10 +274,8 @@ const VersionHistoryPanel = ( {
     const restoreMutation = useRestoreReportVersion();
     const restoreSelectionMutation = useRestoreReportVersionSelection();
 
-    const currentVersion = Math.max(
-        Number( versionsQuery.data?.current_version || 0 ),
-        Number( currentVersionProp || 0 )
-    ) || null;
+    const currentVersion =
+        Math.max( Number( versionsQuery.data?.current_version || 0 ), Number( currentVersionProp || 0 ) ) || null;
     const versions = versionsQuery.data?.versions || [];
 
     const compareQuery = useCompareReportVersions(
@@ -570,7 +559,8 @@ const VersionHistoryPanel = ( {
                                     Photo Changes
                                 </div>
                                 <div className="mt-2 text-2xl font-bold text-brand-ink">
-                                    { compareSummary.photoChanges.added.length + compareSummary.photoChanges.removed.length }
+                                    { compareSummary.photoChanges.added.length +
+                                        compareSummary.photoChanges.removed.length }
                                 </div>
                             </div>
                         </div>
@@ -581,7 +571,10 @@ const VersionHistoryPanel = ( {
                                 { compareSummary.reportChanges.length ? (
                                     <div className="mt-3 space-y-3">
                                         { compareSummary.reportChanges.map( ( change ) => (
-                                            <div key={ change.field } className="rounded-2xl bg-brand-cream/40 px-3 py-3">
+                                            <div
+                                                key={ change.field }
+                                                className="rounded-2xl bg-brand-cream/40 px-3 py-3"
+                                            >
                                                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                                                     <div className="text-xs font-bold uppercase tracking-wide text-brand-ink/50">
                                                         { change.label }
@@ -595,9 +588,7 @@ const VersionHistoryPanel = ( {
                                                                     field: change.field,
                                                                 } )
                                                             }
-                                                            disabled={
-                                                                isBusy || restoreSelectionMutation.isPending
-                                                            }
+                                                            disabled={ isBusy || restoreSelectionMutation.isPending }
                                                             className="rounded-2xl border border-amber-300 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-50 transition-all disabled:opacity-50"
                                                         >
                                                             Restore saved value
@@ -642,9 +633,7 @@ const VersionHistoryPanel = ( {
                                                                     item_key: change.itemKey,
                                                                 } )
                                                             }
-                                                            disabled={
-                                                                isBusy || restoreSelectionMutation.isPending
-                                                            }
+                                                            disabled={ isBusy || restoreSelectionMutation.isPending }
                                                             className="rounded-2xl border border-amber-300 px-3 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-50 transition-all disabled:opacity-50"
                                                         >
                                                             Restore saved item
@@ -766,15 +755,17 @@ const VersionHistoryPanel = ( {
                                         </p>
                                     </div>
                                 </div>
-                                <label className="mt-4 flex items-start gap-3">
+                                <label htmlFor="acknowledge_restore" className="mt-4 flex items-start gap-3">
                                     <input
+                                        id="acknowledge_restore"
                                         type="checkbox"
                                         checked={ acknowledgeRestore }
                                         onChange={ ( event ) => setAcknowledgeRestore( event.target.checked ) }
                                         className="mt-1 h-4 w-4 rounded border-brand-ink/20 text-chroma-red focus:ring-chroma-red"
                                     />
                                     <span>
-                                        I understand this restore will replace my current unsaved draft with the selected version.
+                                        I understand this restore will replace my current unsaved draft with the
+                                        selected version.
                                     </span>
                                 </label>
                             </div>
@@ -793,9 +784,7 @@ const VersionHistoryPanel = ( {
                                 type="button"
                                 onClick={ handleRestoreConfirm }
                                 disabled={
-                                    restoreMutation.isPending ||
-                                    isBusy ||
-                                    ( hasUnsavedChanges && ! acknowledgeRestore )
+                                    restoreMutation.isPending || isBusy || ( hasUnsavedChanges && ! acknowledgeRestore )
                                 }
                                 className="rounded-2xl bg-amber-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-amber-700 transition-all disabled:opacity-50 flex items-center gap-2"
                             >

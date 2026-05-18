@@ -331,12 +331,16 @@ class Chroma_LLM_Client
             if (!is_array($existing_schemas)) {
                 $existing_schemas = [];
             }
-            
+
+            $stored_result = function_exists('chroma_schema_strip_internal_keys')
+                ? chroma_schema_strip_internal_keys($result)
+                : $result;
+
             // Look for existing schema of this type to update instead of appending duplicate
             $updated = false;
             foreach ($existing_schemas as $index => &$schema) {
                 if (isset($schema['type']) && $schema['type'] === $schema_type) {
-                    $schema['data'] = $result;
+                    $schema['data'] = $stored_result;
                     $updated = true;
                     // Fix: Ensure we only update the FIRST matching schema to avoid updating multiple duplicates if they exist?
                     // For now, let's just update the first one and break.
@@ -349,7 +353,7 @@ class Chroma_LLM_Client
                 // valid new schema
                  $existing_schemas[] = [
                     'type' => $schema_type,
-                    'data' => $result
+                    'data' => $stored_result
                 ];
             }
 

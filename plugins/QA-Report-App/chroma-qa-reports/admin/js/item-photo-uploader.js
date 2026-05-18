@@ -345,6 +345,15 @@
                     @keyframes spin {
                         to { transform: rotate(360deg); }
                     }
+                    @media (prefers-reduced-motion: reduce) {
+                        .cqa-item-photo-thumb.uploading::before {
+                            animation: none !important;
+                        }
+                        #cqa-item-photo-modal,
+                        #cqa-item-photo-modal * {
+                            transition-duration: 0.01ms !important;
+                        }
+                    }
                 </style>
             `;
 

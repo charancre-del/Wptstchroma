@@ -66,7 +66,7 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
     const [ captionDrafts, setCaptionDrafts ] = useState( {} );
     const [ savingCaptions, setSavingCaptions ] = useState( {} );
 
-    const currentPhotos = photos || [];
+    const currentPhotos = useMemo( () => photos || [], [ photos ] );
     const latestPhotosRef = useRef( currentPhotos );
 
     useEffect( () => {
@@ -117,9 +117,9 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
             prev.map( ( photo ) =>
                 photo.id === pendingId
                     ? {
-                        ...photo,
-                        ...patch,
-                    }
+                          ...photo,
+                          ...patch,
+                      }
                     : photo
             )
         );
@@ -150,8 +150,6 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
             return;
         }
 
-        const reportId = draft.id;
-        const timestamp = Date.now();
         const knownFingerprints = new Set( [
             ...pendingPhotos.map( ( photo ) => photo.uploadFingerprint ).filter( Boolean ),
             ...currentPhotos.map( ( photo ) => photo.uploadFingerprint ).filter( Boolean ),
@@ -179,6 +177,9 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
         if ( uniqueFiles.length === 0 ) {
             return;
         }
+
+        const reportId = draft.id;
+        const timestamp = Date.now();
 
         const queuedPhotos = uniqueFiles.map( ( file, index ) => ( {
             id: `temp-${ timestamp }-${ index }-${ file.name }`,
@@ -231,7 +232,11 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
 
                 updateDraftVersionMeta( response );
 
-                const uploadedPhotos = Array.isArray( response.data ) ? response.data : response.data ? [ response.data ] : [];
+                const uploadedPhotos = Array.isArray( response.data )
+                    ? response.data
+                    : response.data
+                    ? [ response.data ]
+                    : [];
                 if ( uploadedPhotos.length > 0 ) {
                     mergePhotos(
                         uploadedPhotos.map( ( photo ) => ( {
@@ -289,7 +294,9 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
                     type: failedCount > 0 ? 'warning' : 'success',
                     message:
                         failedCount > 0
-                            ? `${ uploadedCount } photo${ uploadedCount !== 1 ? 's' : '' } uploaded, ${ failedCount } failed.`
+                            ? `${ uploadedCount } photo${
+                                  uploadedCount !== 1 ? 's' : ''
+                              } uploaded, ${ failedCount } failed.`
                             : `${ uploadedCount } photo${ uploadedCount !== 1 ? 's' : '' } uploaded.`,
                 } );
             } else if ( failedCount > 0 ) {
@@ -356,9 +363,9 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
             const updatedPhotos = ( latestPhotosRef.current || [] ).map( ( photo ) =>
                 String( photo.id ) === String( photoId )
                     ? {
-                        ...photo,
-                        caption: response.caption ?? nextCaption,
-                    }
+                          ...photo,
+                          caption: response.caption ?? nextCaption,
+                      }
                     : photo
             );
 
@@ -409,7 +416,8 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
                     <PhotoUploader onUpload={ handleUpload } />
                     { pendingPhotos.length > 0 && (
                         <p className="mt-3 text-sm text-gray-500">
-                            { pendingPhotos.length } photo{ pendingPhotos.length !== 1 ? 's are' : ' is' } queued, processing, or uploading.
+                            { pendingPhotos.length } photo{ pendingPhotos.length !== 1 ? 's are' : ' is' } queued,
+                            processing, or uploading.
                         </p>
                     ) }
                 </div>
@@ -428,11 +436,7 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
                             className="relative rounded-lg overflow-hidden border border-gray-200 bg-white shadow-sm"
                         >
                             <div className="aspect-square bg-gray-100 relative">
-                                <PhotoThumbnail
-                                    photo={ photo }
-                                    onDelete={ handleDelete }
-                                    readOnly={ readOnly }
-                                />
+                                <PhotoThumbnail photo={ photo } onDelete={ handleDelete } readOnly={ readOnly } />
 
                                 { isPending && statusText && (
                                     <div className="absolute inset-x-0 bottom-0 bg-black/65 text-white px-3 py-2">
@@ -459,7 +463,9 @@ const StepPhotos = ( { draft, updateDraft, readOnly = false, photos = [], setPho
                                         <input
                                             type="text"
                                             value={ captionValue }
-                                            onChange={ ( event ) => handleCaptionChange( photo.id, event.target.value ) }
+                                            onChange={ ( event ) =>
+                                                handleCaptionChange( photo.id, event.target.value )
+                                            }
                                             placeholder="Add caption"
                                             className="w-full rounded-md border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-cqa-primary focus:outline-none focus:ring-1 focus:ring-cqa-primary"
                                         />

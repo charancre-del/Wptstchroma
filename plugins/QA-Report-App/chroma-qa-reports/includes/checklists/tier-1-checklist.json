@@ -1,5 +1,5 @@
 {
-    "version": "2026.1",
+    "version": "2026.2",
     "name": "QA and Compliance Checklist",
     "description": "Tier 1 Standard QA Inspection Checklist",
     "sections": [
@@ -9,12 +9,7 @@
             "items": [
                 {
                     "key": "state_ratios",
-                    "label": "State Ratios Maintained",
-                    "type": "boolean"
-                },
-                {
-                    "key": "group_sizes",
-                    "label": "State Group Sizes Maintained",
+                    "label": "State Group Sizes and Classroom Ratios are Maintained",
                     "type": "boolean"
                 },
                 {
@@ -24,7 +19,7 @@
                 },
                 {
                     "key": "no_complaints",
-                    "label": "Lacks outstanding complaints/substantiated investigations",
+                    "label": "There are no outstanding complaints or active investigations in the most recent Licensing report",
                     "type": "rating_notes"
                 }
             ]
@@ -278,12 +273,6 @@
                     "label": "24\" corridor between each row of mats/cots-children in head-to-toe arrangement",
                     "type": "rating_notes",
                     "evidence": "observation"
-                },
-                {
-                    "key": "weekly_laundry",
-                    "label": "Each cot/crib has sheet/light cover/laundered weekly",
-                    "type": "rating_notes",
-                    "evidence": "observation"
                 }
             ]
         },
@@ -371,31 +360,19 @@
                 },
                 {
                     "key": "exterior_gates",
-                    "label": "Exterior gates securely fastened",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "interior_gates",
-                    "label": "Interior gates locked with carabiner",
+                    "label": "Exterior gates are secure and interior gates are locked with a carabiner",
                     "type": "rating_notes",
                     "evidence": "observation"
                 },
                 {
                     "key": "no_entrapment",
-                    "label": "No entrapment hazards",
+                    "label": "No entrapment or trip hazards observed",
                     "type": "rating_notes",
                     "evidence": "observation"
                 },
                 {
                     "key": "fencing",
                     "label": "Fencing in good repair",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "no_tripping",
-                    "label": "No evidence of tripping hazards",
                     "type": "rating_notes",
                     "evidence": "observation"
                 },
@@ -413,7 +390,7 @@
                 },
                 {
                     "key": "tree_hazards",
-                    "label": "No large roots as trip hazards, no low-hanging branches or protruding through fence",
+                    "label": "No large unpainted roots, low-hanging branches, or branches protruding through the fence",
                     "type": "rating_notes",
                     "evidence": "observation"
                 }
@@ -437,13 +414,7 @@
                 },
                 {
                     "key": "seatbelts",
-                    "label": "Seatbelts in working condition",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "seats_secured",
-                    "label": "Seats securely screwed into the floor",
+                    "label": "Seatbelts in working condition and seats are securely fastened to the body of the vehicle",
                     "type": "rating_notes",
                     "evidence": "observation"
                 },
@@ -468,6 +439,12 @@
                 {
                     "key": "first_aid_kit",
                     "label": "First Aid Kit complete",
+                    "type": "rating_notes",
+                    "evidence": "observation"
+                },
+                {
+                    "key": "booster_seat_dates",
+                    "label": "Any booster seats have a manufacturer's product date and, if an expiration date is given, it is within that time frame",
                     "type": "rating_notes",
                     "evidence": "observation"
                 },
@@ -568,68 +545,8 @@
             "name": "First Aid Kit Checklist",
             "items": [
                 {
-                    "key": "scissors_tweezers",
-                    "label": "Scissors - Tweezers",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "gauze_pads",
-                    "label": "Gauze Pads",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "adhesive_tape",
-                    "label": "Adhesive Tape",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "thermometer",
-                    "label": "Thermometer",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "bandaids",
-                    "label": "Band-Aids – assorted sizes",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "insect_sting",
-                    "label": "Insect Sting Preparation",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "antibacterial",
-                    "label": "Antibacterial Ointment",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "antiseptic",
-                    "label": "Antiseptic Cleaning Solution",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "gloves_cold_pack",
-                    "label": "Rubber Gloves – Cold Pack",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "triangular_bandage",
-                    "label": "Triangular Bandage (or bandana)",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "manual_mask_eyewear",
-                    "label": "First Aid Manual/Face Mask/Protective Eyewear",
+                    "key": "first_aid_kits_checked",
+                    "label": "First Aid Kits are routinely checked with the required list of items and with no expired creams or ointments",
                     "type": "rating_notes",
                     "evidence": "observation"
                 }

@@ -93,6 +93,9 @@ while (have_posts()):
 		? chroma_get_page_link('contact')
 		: home_url('/contact-us/');
 	$contact_url = chroma_get_localized_url($contact_url);
+	$chart_values = function_exists('chroma_program_prism_chart_values')
+		? chroma_program_prism_chart_values(get_the_ID())
+		: array(50, 75, 80, 95, 60);
 	?>
 
 	<style>
@@ -184,7 +187,7 @@ while (have_posts()):
 		<div class="max-w-6xl mx-auto px-4 lg:px-6">
 			<div class="grid lg:grid-cols-2 gap-16 items-center">
 				<div class="bg-brand-cream rounded-[3rem] p-8 shadow-soft border border-brand-ink/5 order-2 lg:order-1 rising-k-chart-shell">
-					<canvas id="risingKinderChart" role="img" aria-label="<?php esc_attr_e('Radar chart showing the Rising Kindergarten Prismpath focus areas: 95% Academic, 80% Social, 75% Emotional, 60% Creative, and 50% Physical.', 'chroma-excellence'); ?>">
+					<canvas id="risingKinderChart" role="img" aria-label="<?php echo esc_attr(sprintf(__('Radar chart showing the Rising Kindergarten Prismpath focus areas: %1$d%% Physical, %2$d%% Emotional, %3$d%% Social, %4$d%% Academic, and %5$d%% Creative.', 'chroma-excellence'), $chart_values[0], $chart_values[1], $chart_values[2], $chart_values[3], $chart_values[4])); ?>">
 						<?php esc_html_e('A radar chart illustrating our curriculum\'s heavy focus on Academic readiness and Executive Function for Kindergarten.', 'chroma-excellence'); ?>
 					</canvas>
 				</div>
@@ -252,7 +255,13 @@ while (have_posts()):
 						labels: ['Physical', 'Emotional', 'Social', 'Academic', 'Creative'],
 						datasets: [{
 							label: 'Rising K Focus',
-							data: [50, 75, 80, 95, 60],
+							data: [
+								<?php echo (int) $chart_values[0]; ?>,
+								<?php echo (int) $chart_values[1]; ?>,
+								<?php echo (int) $chart_values[2]; ?>,
+								<?php echo (int) $chart_values[3]; ?>,
+								<?php echo (int) $chart_values[4]; ?>
+							],
 							backgroundColor: 'rgba(74, 108, 124, 0.2)',
 							borderColor: '#4A6C7C',
 							pointBackgroundColor: '#fff',

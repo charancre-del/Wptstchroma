@@ -1,0 +1,112 @@
+{
+  "date": "2026-05-03",
+  "status": "implemented_with_runtime_pending",
+  "fixed": [
+    {
+      "id": "RA-H001",
+      "severity": "high",
+      "category": "assets",
+      "status": "fixed",
+      "evidence": "chroma-logo.png and chroma-logo-highres.png restored under chroma-excellence-theme/assets/images/"
+    },
+    {
+      "id": "RA-H002",
+      "severity": "high",
+      "category": "assets",
+      "status": "fixed",
+      "evidence": "hero.php now uses assets/images/early-start/synergy-classroom.jpg fallback; no tracked source references hero-classroom.mp4"
+    },
+    {
+      "id": "RA-H003",
+      "severity": "high",
+      "category": "security",
+      "status": "fixed",
+      "evidence": "Parent portal seed importer now creates, sends, and verifies chroma_portal_bulk_importer_nonce before manage_options"
+    },
+    {
+      "id": "RA-H004",
+      "severity": "high",
+      "category": "security",
+      "status": "fixed",
+      "evidence": "LLM bulk status and combo data AJAX endpoints now require manage_options"
+    },
+    {
+      "id": "RA-M001",
+      "severity": "medium",
+      "category": "accessibility",
+      "status": "fixed",
+      "evidence": "Reduced-motion support added across theme, school dashboard, parent portal, QA admin, and QA uploader surfaces"
+    }
+  ],
+  "verification": [
+    {
+      "command": "PHP lint across tracked owned PHP",
+      "status": "passed",
+      "summary": "336 files checked; all passed"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "chroma-excellence-theme",
+      "status": "passed",
+      "summary": "Theme CSS/revision build completed"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "plugins/chroma-school-dashboard",
+      "status": "passed",
+      "summary": "School dashboard JS/CSS build completed"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "plugins/chroma-parent-portal/build-env",
+      "status": "passed_with_warning",
+      "summary": "Build completed; vendor asset 490.js remains above recommended size"
+    },
+    {
+      "command": "npm run build",
+      "cwd": "plugins/QA-Report-App/chroma-qa-reports/build-env",
+      "status": "passed_with_warning",
+      "summary": "Build completed; cqa-ui-vendor chunk remains above recommended size"
+    },
+    {
+      "command": "npm test -- --runInBand",
+      "cwd": "plugins/QA-Report-App/chroma-qa-reports",
+      "status": "passed",
+      "summary": "2 test suites and 15 tests passed"
+    },
+    {
+      "command": "callback-aware AJAX security scan",
+      "status": "passed",
+      "summary": "76 hooks checked; 0 review items"
+    },
+    {
+      "command": "php tools/composer.phar validate --no-check-publish",
+      "status": "passed_with_warning",
+      "summary": "All three Composer manifests are valid; each warns that no license is specified"
+    },
+    {
+      "command": "npm run lint:js",
+      "cwd": "plugins/QA-Report-App/chroma-qa-reports/build-env",
+      "status": "passed",
+      "summary": "QA React JavaScript lint passes"
+    },
+    {
+      "command": "npm run lint:css",
+      "cwd": "plugins/QA-Report-App/chroma-qa-reports/build-env",
+      "status": "passed",
+      "summary": "QA React CSS lint passes with Tailwind-aware stylelint config"
+    }
+  ],
+  "pending": [
+    {
+      "id": "PENDING-WP-RUNTIME",
+      "status": "pending_runtime",
+      "reason": "No local WordPress URL or WP-CLI bootstrap available for REST, sitemap, SEO, portal, school TV, forms, and browser verification"
+    },
+    {
+      "id": "PENDING-BUILD-WARNINGS",
+      "status": "non_failing_warning",
+      "reason": "Browserslist data and large vendor chunks remain maintenance/performance items"
+    }
+  ]
+}

@@ -1,0 +1,381 @@
+{
+  "report": "repo-audit-second-pass",
+  "date": "20260504",
+  "branch": "claude/create-wordpress-theme-01N9YNziMjoPyBiwj3iLobdB",
+  "baseline_commit": "bac58e30d23b904be977d0d6d4eaad81d70d6b9e",
+  "target_baseline": "bac58e30d23b904be977d0d6d4eaad81d70d6b9e",
+  "mode": "audit_plus_safe_remediation",
+  "summary": {
+    "findings_total": 9,
+    "fixed": 6,
+    "open_major_upgrade_required": 1,
+    "runtime_pending": 1,
+    "inventory_rows": 3138
+  },
+  "verification": [
+    {
+      "command": "PHP lint: git ls-files *.php excluding vendor/node_modules -> php -l",
+      "status": "passed",
+      "evidence": "336 owned PHP files checked, 0 failures"
+    },
+    {
+      "command": "Composer validate: php tools/composer.phar validate --no-check-publish",
+      "status": "passed",
+      "evidence": "3 manifests checked and valid"
+    },
+    {
+      "command": "npm run build (chroma-excellence-theme)",
+      "status": "passed_with_warnings",
+      "evidence": "Build and asset rev passed; manifest wrote 8 entries; Browserslist/baseline data freshness warnings"
+    },
+    {
+      "command": "npm run build (plugins/chroma-school-dashboard)",
+      "status": "passed_with_warnings",
+      "evidence": "esbuild/tailwind build passed; Browserslist data freshness warning"
+    },
+    {
+      "command": "npm run lint (director-portal)",
+      "status": "passed_with_warnings",
+      "evidence": "Next lint passed; existing @next/next/no-img-element warning at app/dashboard/page.tsx:31"
+    },
+    {
+      "command": "npm run build (director-portal)",
+      "status": "passed_with_warnings",
+      "evidence": "Next 14.2.35 production build passed; same img performance warning"
+    },
+    {
+      "command": "npm run build (plugins/chroma-parent-portal/build-env)",
+      "status": "passed_with_warnings",
+      "evidence": "Build passed; Sass legacy API warning and 490.js asset size warning"
+    },
+    {
+      "command": "npm install && npm run lint:js (plugins/QA-Report-App/chroma-qa-reports/build-env)",
+      "status": "passed",
+      "evidence": "JS lint passed after installing lockfile-described dependencies"
+    },
+    {
+      "command": "npm run lint:css (plugins/QA-Report-App/chroma-qa-reports/build-env)",
+      "status": "passed",
+      "evidence": "CSS lint passed"
+    },
+    {
+      "command": "npm run build (plugins/QA-Report-App/chroma-qa-reports/build-env)",
+      "status": "passed_with_warnings",
+      "evidence": "Build passed; cqa-ui-vendor chunk size warning"
+    },
+    {
+      "command": "npm test -- --runInBand (plugins/QA-Report-App/chroma-qa-reports)",
+      "status": "passed",
+      "evidence": "2 suites, 15 tests passed"
+    },
+    {
+      "command": "node --check on owned source JS excluding dependency backups/build artifacts",
+      "status": "passed",
+      "evidence": "101 source JS files checked, 0 failures"
+    },
+    {
+      "command": "Theme asset manifest validation",
+      "status": "passed",
+      "evidence": "8 entries checked, 0 missing referenced files"
+    },
+    {
+      "command": "Callback-aware AJAX scanner",
+      "status": "reviewed",
+      "evidence": "76 AJAX hooks found; 7 candidates reviewed as delegated permission/OAuth-state callbacks; no confirmed unpatched gap"
+    },
+    {
+      "command": "REST route scanner",
+      "status": "reviewed",
+      "evidence": "32 route patterns found by scanner; parent portal debug routes hardened; remaining public flags reviewed as scanner limitations or intentional public routes"
+    }
+  ],
+  "npm_audit_summaries": [
+    {
+      "package": "chroma-excellence-theme",
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "moderate": 0,
+      "low": 0,
+      "status": "clean"
+    },
+    {
+      "package": "plugins/chroma-school-dashboard",
+      "total": 0,
+      "critical": 0,
+      "high": 0,
+      "moderate": 0,
+      "low": 0,
+      "status": "clean"
+    },
+    {
+      "package": "director-portal",
+      "total": 5,
+      "critical": 0,
+      "high": 4,
+      "moderate": 1,
+      "low": 0,
+      "status": "remaining_major_upgrade_required"
+    },
+    {
+      "package": "plugins/QA-Report-App/chroma-qa-reports",
+      "total": 4,
+      "critical": 0,
+      "high": 0,
+      "moderate": 0,
+      "low": 4,
+      "status": "remaining_major_upgrade_required"
+    },
+    {
+      "package": "plugins/QA-Report-App/chroma-qa-reports/build-env",
+      "total": 26,
+      "critical": 0,
+      "high": 16,
+      "moderate": 3,
+      "low": 7,
+      "status": "remaining_major_upgrade_required"
+    },
+    {
+      "package": "plugins/chroma-parent-portal/build-env",
+      "total": 30,
+      "critical": 0,
+      "high": 20,
+      "moderate": 3,
+      "low": 7,
+      "status": "remaining_major_upgrade_required"
+    },
+    {
+      "package": "lighthouse-automation",
+      "total": 1,
+      "critical": 0,
+      "high": 0,
+      "moderate": 1,
+      "low": 0,
+      "status": "remaining_major_upgrade_required"
+    }
+  ],
+  "findings": [
+    {
+      "id": "SP-001",
+      "severity": "high",
+      "category": "security",
+      "surface": "parent portal REST debug routes",
+      "status": "fixed",
+      "path": "plugins/chroma-parent-portal/includes/class-api-routes.php",
+      "line": 68,
+      "evidence": "/system-check and /cookie-test used __return_true permission callbacks before this pass.",
+      "repro": "Inspect route registration or request endpoints without admin auth in a WP runtime.",
+      "expected": "Debug endpoints require an administrator.",
+      "actual": "Before fix, the endpoints were public.",
+      "recommendation": "Keep debug routes behind is_admin_check and remove/debug-gate them in production if not needed."
+    },
+    {
+      "id": "SP-002",
+      "severity": "high",
+      "category": "security",
+      "surface": "QA photo analysis remote/local image input",
+      "status": "fixed",
+      "path": "plugins/QA-Report-App/chroma-qa-reports/includes/ai/class-photo-analyzer.php",
+      "line": 58,
+      "evidence": "Image analysis accepted local paths and remote URLs without uploads-directory containment, safe HTTP validation, response size limit, or content-type enforcement.",
+      "repro": "Call the photo analyzer with a local path outside uploads or a non-image URL.",
+      "expected": "Only readable uploads-directory image files or safe remote image URLs are analyzed.",
+      "actual": "Before fix, arbitrary local readable paths and unsafe remote URLs could be attempted.",
+      "recommendation": "Keep uploads-directory containment, wp_safe_remote_get, MIME checks, and response limits."
+    },
+    {
+      "id": "SP-003",
+      "severity": "medium",
+      "category": "security",
+      "surface": "forms/leads webhooks",
+      "status": "fixed",
+      "path": "chroma-plugins/chroma-contact-form/chroma-contact-form.php",
+      "line": 680,
+      "evidence": "Contact/career/acquisition/lead webhook senders accepted configured URLs without safe remote post and strict HTTPS validation.",
+      "repro": "Configure a non-HTTPS or unsafe webhook target, then submit the form.",
+      "expected": "Only valid HTTPS webhook URLs are posted through WordPress safe HTTP APIs.",
+      "actual": "Before fix, plain wp_remote_post was used after limited validation.",
+      "recommendation": "Continue using esc_url_raw, wp_http_validate_url, normalized HTTPS checks, and wp_safe_remote_post."
+    },
+    {
+      "id": "SP-004",
+      "severity": "medium",
+      "category": "security",
+      "surface": "careers feed fetch",
+      "status": "fixed",
+      "path": "plugins/chroma-seo-pro-reset/inc/class-careers-api.php",
+      "line": 31,
+      "evidence": "Careers feed URL option was fetched directly, allowing unexpected hosts if the option changed.",
+      "repro": "Set chroma_careers_feed_url to an untrusted host and trigger the careers feed fetch.",
+      "expected": "Careers feed fetch is restricted to a small allowed host list and safe HTTP fetching.",
+      "actual": "Before fix, the option was not host-allowlisted.",
+      "recommendation": "Keep the chroma_careers_allowed_feed_hosts filter narrow and audited."
+    },
+    {
+      "id": "SP-005",
+      "severity": "medium",
+      "category": "tooling",
+      "surface": "director portal lint/build",
+      "status": "fixed",
+      "path": "director-portal/package.json",
+      "line": 16,
+      "evidence": "Director portal lacked working committed lint dependencies/config and used a vulnerable older Next 14.0.3 line.",
+      "repro": "Run npm run lint or npm audit in director-portal on the baseline.",
+      "expected": "Lint/build run and critical Next advisory is remediated without major framework migration.",
+      "actual": "Before fix, lint tooling was incomplete and Next had a critical advisory in audit output.",
+      "recommendation": "Plan a separate Next 16 migration for remaining high/moderate advisories."
+    },
+    {
+      "id": "SP-006",
+      "severity": "low",
+      "category": "tooling",
+      "surface": "Composer metadata",
+      "status": "fixed",
+      "path": "plugins/chroma-seo-pro/composer.json",
+      "line": 1,
+      "evidence": "Composer validate warned that plugin manifests lacked license metadata.",
+      "repro": "Run composer validate --no-check-publish.",
+      "expected": "Composer manifests validate without warnings.",
+      "actual": "Before fix, license warnings were emitted.",
+      "recommendation": "Keep proprietary license metadata on private plugin Composer manifests."
+    },
+    {
+      "id": "SP-007",
+      "severity": "medium",
+      "category": "dependency",
+      "surface": "remaining JS dependency advisories",
+      "status": "open_major_upgrade_required",
+      "path": "director-portal/package.json",
+      "line": 16,
+      "evidence": "npm audit still reports advisories in director portal, QA build env, parent portal build env, QA Jest tooling, and Lighthouse automation after non-forced fixes.",
+      "repro": "Run npm audit --json in each listed package directory.",
+      "expected": "No dependency advisories, or documented framework migration work.",
+      "actual": "Remaining fixes require major upgrades such as Next 16, @wordpress/scripts 32, react-pdf 10, jest-environment-jsdom 30, and fast-xml-parser 5.",
+      "recommendation": "Handle as a dedicated dependency-modernization project with browser/runtime regression testing."
+    },
+    {
+      "id": "SP-008",
+      "severity": "medium",
+      "category": "runtime",
+      "surface": "WordPress runtime/API/browser checks",
+      "status": "runtime_pending",
+      "path": "",
+      "line": null,
+      "evidence": "No usable local WordPress URL, wp-config bootstrap, database, or staging credentials were present in the workspace for authenticated REST/browser checks.",
+      "repro": "Try to run REST discovery/resources, sitemap, portal, school dashboard, or forms smoke tests without a WordPress runtime.",
+      "expected": "Authenticated runtime smoke checks against a usable WP environment.",
+      "actual": "Static/build verification completed; runtime verification remains pending.",
+      "recommendation": "Run the pending WP smoke pack against staging/local WP with Agent API keys and a browser session."
+    },
+    {
+      "id": "SP-009",
+      "severity": "low",
+      "category": "workspace_hygiene",
+      "surface": "untracked scratch artifacts",
+      "status": "classified_uncommitted",
+      "path": "",
+      "line": null,
+      "evidence": "Untracked scratch files remain: chromaela.html, diff*.txt, full_diff.txt, old_cleanup.php, old_enforcer.php, temp_canonical.txt.",
+      "repro": "Run git status --short.",
+      "expected": "Ambiguous user scratch files are not deleted or committed by audit automation.",
+      "actual": "Files remain untracked and documented.",
+      "recommendation": "Owner should decide whether to delete, archive, or intentionally commit each scratch artifact."
+    }
+  ],
+  "fix_log": [
+    {
+      "file": ".gitignore",
+      "change": "Ignore local Composer audit tooling under tools/composer.phar and tools/composer-setup.php."
+    },
+    {
+      "file": "chroma-plugins/chroma-acquisitions-form/chroma-acquisitions-form.php",
+      "change": "Sanitize/validate webhook URL, require HTTPS, and use wp_safe_remote_post."
+    },
+    {
+      "file": "chroma-plugins/chroma-career-form/chroma-career-form.php",
+      "change": "Sanitize/validate webhook URL, require HTTPS, and use wp_safe_remote_post."
+    },
+    {
+      "file": "chroma-plugins/chroma-contact-form/chroma-contact-form.php",
+      "change": "Sanitize/validate webhook URL, require HTTPS, and use wp_safe_remote_post."
+    },
+    {
+      "file": "chroma-plugins/chroma-lead-log/chroma-lead-log.php",
+      "change": "Sanitize/validate lead webhook URL, require HTTPS, and use wp_safe_remote_post."
+    },
+    {
+      "file": "plugins/QA-Report-App/chroma-qa-reports/includes/ai/class-photo-analyzer.php",
+      "change": "Restrict local analysis to uploads images; validate safe remote image URLs; limit response size; enforce image MIME."
+    },
+    {
+      "file": "plugins/chroma-seo-pro-reset/inc/class-careers-api.php",
+      "change": "Sanitize careers feed URL, allowlist host, and fetch through wp_safe_remote_get."
+    },
+    {
+      "file": "plugins/chroma-parent-portal/includes/class-api-routes.php",
+      "change": "Require admin permission for debug-only REST routes."
+    },
+    {
+      "file": "plugins/chroma-seo-pro/composer.json",
+      "change": "Add proprietary license metadata."
+    },
+    {
+      "file": "plugins/chroma-seo-pro-reset/composer.json",
+      "change": "Add proprietary license metadata."
+    },
+    {
+      "file": "plugins/QA-Report-App/chroma-qa-reports/composer.json",
+      "change": "Add proprietary license metadata."
+    },
+    {
+      "file": "director-portal/package.json",
+      "change": "Upgrade Next within 14.x, add ESLint dependencies, and keep lint/build green."
+    },
+    {
+      "file": "director-portal/.eslintrc.json",
+      "change": "Add Next core-web-vitals lint config."
+    },
+    {
+      "file": "director-portal/app/page.tsx",
+      "change": "Escape apostrophe for React lint compliance."
+    },
+    {
+      "file": "package-lock files",
+      "change": "Apply non-forced npm audit updates where safe; remaining major upgrades documented."
+    }
+  ],
+  "changed_files": [
+    ".gitignore",
+    "chroma-excellence-theme/package-lock.json",
+    "chroma-plugins/chroma-acquisitions-form/chroma-acquisitions-form.php",
+    "chroma-plugins/chroma-career-form/chroma-career-form.php",
+    "chroma-plugins/chroma-contact-form/chroma-contact-form.php",
+    "chroma-plugins/chroma-lead-log/chroma-lead-log.php",
+    "director-portal/app/page.tsx",
+    "director-portal/next-env.d.ts",
+    "director-portal/package-lock.json",
+    "director-portal/package.json",
+    "lighthouse-automation/package-lock.json",
+    "plugins/QA-Report-App/chroma-qa-reports/build-env/package-lock.json",
+    "plugins/QA-Report-App/chroma-qa-reports/composer.json",
+    "plugins/QA-Report-App/chroma-qa-reports/includes/ai/class-photo-analyzer.php",
+    "plugins/QA-Report-App/chroma-qa-reports/package-lock.json",
+    "plugins/chroma-parent-portal/build-env/package-lock.json",
+    "plugins/chroma-parent-portal/includes/class-api-routes.php",
+    "plugins/chroma-school-dashboard/package-lock.json",
+    "plugins/chroma-school-dashboard/package.json",
+    "plugins/chroma-seo-pro-reset/composer.json",
+    "plugins/chroma-seo-pro-reset/inc/class-careers-api.php",
+    "plugins/chroma-seo-pro/composer.json"
+  ],
+  "untracked_classified_not_committed": [
+    "chromaela.html",
+    "diff.txt",
+    "diff_cleanup.txt",
+    "director-portal/.eslintrc.json",
+    "full_diff.txt",
+    "old_cleanup.php",
+    "old_enforcer.php",
+    "temp_canonical.txt"
+  ]
+}

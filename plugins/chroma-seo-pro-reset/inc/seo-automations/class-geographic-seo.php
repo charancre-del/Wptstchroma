@@ -19,6 +19,7 @@ class Chroma_Geographic_SEO
         add_action('init', [$this, 'add_service_area_rewrites']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_service_area_page']);
+        add_action('admin_menu', [$this, 'add_admin_page'], 30);
     }
     
     /**
@@ -233,6 +234,19 @@ class Chroma_Geographic_SEO
             $classes[] = 'service-area-page';
             return $classes;
         });
+
+        $canonical = $area_type === 'zip'
+            ? home_url('/daycare-' . $area_name . '/')
+            : home_url('/childcare-in-' . sanitize_title($area_name) . '-county/');
+        $fallbacks = $this->get_service_area_seo_fallbacks($area_type, $area_name, $canonical);
+        if (class_exists('Chroma_Virtual_Page_SEO_Data')) {
+            Chroma_Virtual_Page_SEO_Data::apply_filters(
+                Chroma_Virtual_Page_SEO_Data::resolve('service_area', [
+                    'area_type' => $area_type,
+                    'area_name' => $area_name,
+                ], $fallbacks)
+            );
+        }
         
         get_header();
         
@@ -246,6 +260,115 @@ class Chroma_Geographic_SEO
         exit;
     }
 
+    private function get_service_area_seo_fallbacks($area_type, $area_name, $canonical) {
+        if ($area_type === 'zip') {
+            return [
+                'title' => 'Daycare Near ' . $area_name . ' | Chroma Early Learning',
+                'meta_description' => 'Find quality early learning and childcare serving families near ' . $area_name . '. Explore Chroma locations, programs, and tour options.',
+                'canonical' => $canonical,
+            ];
+        }
+
+        $county_name = ucwords(str_replace('-', ' ', sanitize_title($area_name))) . ' County';
+        return [
+            'title' => 'Childcare in ' . $county_name . ' | Chroma Early Learning',
+            'meta_description' => 'Find quality childcare and early learning centers serving families in ' . $county_name . '. Explore Chroma locations, programs, and tour options.',
+            'canonical' => $canonical,
+        ];
+    }
+
+    public function add_admin_page() {
+        add_submenu_page(
+            'chroma-seo-dashboard',
+            'Virtual Page SEO',
+            'Virtual Page SEO',
+            'manage_options',
+            'chroma-virtual-page-seo',
+            [$this, 'render_admin_page']
+        );
+    }
+
+    public function render_admin_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+
+        if (!class_exists('Chroma_Virtual_Page_SEO_Data')) {
+            echo '<div class="wrap"><h1>Virtual Page SEO</h1><p>Virtual page SEO storage is not available.</p></div>';
+            return;
+        }
+
+        if (isset($_POST['chroma_virtual_page_seo_nonce']) && wp_verify_nonce(sanitize_text_field(wp_unslash($_POST['chroma_virtual_page_seo_nonce'])), 'chroma_virtual_page_seo_save')) {
+            $type = sanitize_key($_POST['area_type'] ?? '');
+            $area_name = $type === 'zip'
+                ? preg_replace('/[^0-9]/', '', (string) ($_POST['area_name'] ?? ''))
+                : sanitize_title($_POST['area_name'] ?? '');
+
+            if (in_array($type, ['county', 'zip'], true) && $area_name !== '') {
+                Chroma_Virtual_Page_SEO_Data::save_service_area($type, $area_name, [
+                    'seo_title' => sanitize_text_field($_POST['seo_title'] ?? ''),
+                    'meta_description' => sanitize_textarea_field($_POST['meta_description'] ?? ''),
+                    'seo_title_es' => sanitize_text_field($_POST['seo_title_es'] ?? ''),
+                    'meta_description_es' => sanitize_textarea_field($_POST['meta_description_es'] ?? ''),
+                    'robots' => sanitize_text_field($_POST['robots'] ?? ''),
+                ]);
+                echo '<div class="notice notice-success is-dismissible"><p>Virtual page SEO saved.</p></div>';
+            }
+        }
+
+        $items = Chroma_Virtual_Page_SEO_Data::service_area_candidates();
+        ?>
+        <div class="wrap">
+            <h1>Virtual Page SEO</h1>
+            <p>Edit SEO title and meta description overrides for county and ZIP virtual pages.</p>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th style="width: 180px;">Virtual Page</th>
+                        <th>SEO Overrides</th>
+                        <th style="width: 90px;">Preview</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($items)): ?>
+                        <tr><td colspan="3">No county or ZIP virtual pages were found from published locations.</td></tr>
+                    <?php endif; ?>
+                    <?php foreach ($items as $item): ?>
+                        <?php $data = $item['data']; ?>
+                        <tr>
+                            <td>
+                                <strong><?php echo esc_html($item['label']); ?></strong><br>
+                                <code><?php echo esc_html($item['type'] . ':' . $item['area_name']); ?></code>
+                            </td>
+                            <td>
+                                <form method="post">
+                                    <?php wp_nonce_field('chroma_virtual_page_seo_save', 'chroma_virtual_page_seo_nonce'); ?>
+                                    <input type="hidden" name="area_type" value="<?php echo esc_attr($item['type']); ?>">
+                                    <input type="hidden" name="area_name" value="<?php echo esc_attr($item['area_name']); ?>">
+                                    <p><input type="text" name="seo_title" class="large-text" maxlength="70" placeholder="SEO title" value="<?php echo esc_attr($data['seo_title']); ?>"></p>
+                                    <p><textarea name="meta_description" class="large-text" rows="2" maxlength="180" placeholder="Meta description"><?php echo esc_textarea($data['meta_description']); ?></textarea></p>
+                                    <p><input type="text" name="seo_title_es" class="large-text" maxlength="70" placeholder="SEO title (Spanish)" value="<?php echo esc_attr($data['seo_title_es']); ?>"></p>
+                                    <p><textarea name="meta_description_es" class="large-text" rows="2" maxlength="180" placeholder="Meta description (Spanish)"><?php echo esc_textarea($data['meta_description_es']); ?></textarea></p>
+                                    <p>
+                                        <select name="robots">
+                                            <option value="" <?php selected($data['robots'], ''); ?>>Default indexable</option>
+                                            <option value="index,follow" <?php selected($data['robots'], 'index,follow'); ?>>index,follow</option>
+                                            <option value="noindex,follow" <?php selected($data['robots'], 'noindex,follow'); ?>>noindex,follow</option>
+                                            <option value="noindex,nofollow" <?php selected($data['robots'], 'noindex,nofollow'); ?>>noindex,nofollow</option>
+                                        </select>
+                                        <button type="submit" class="button button-primary">Save</button>
+                                    </p>
+                                </form>
+                            </td>
+                            <td><a class="button button-small" href="<?php echo esc_url($item['url']); ?>" target="_blank">Preview</a></td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php
+    }
+    
     /**
      * Keep service-area routes from inheriting front-page or singular query flags.
      */

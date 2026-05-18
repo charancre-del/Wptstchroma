@@ -147,35 +147,43 @@ class Chroma_Combo_Page_Generator
         // Force Canonical (Closure method to ensure context)
         $combo_canonical = (string) ($combo_profile['canonical'] ?? home_url("/{$program_slug}-in-{$city_context['canonical_slug']}-" . strtolower((string) $city_context['state']) . "/"));
 
-        // High priority filter for Yoast Canonical AND OpenGraph URL
-        foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $filter) {
-            add_filter($filter, function ($current) use ($combo_canonical) {
-                return $combo_canonical;
-            }, PHP_INT_MAX);
-        }
-
         // Dynamic SEO Title (30-60 chars target)
         $program_title = get_the_title($program);
         $seo_title = (string) ($combo_profile['title'] ?? "{$program_title} in {$city_name}, {$state} | Chroma");
 
-        add_filter('wpseo_title', function ($current) use ($seo_title) {
-            return $seo_title;
-        }, PHP_INT_MAX);
-
-        add_filter('pre_get_document_title', function ($current) use ($seo_title) {
-            return $seo_title;
-        }, PHP_INT_MAX);
-
         // Dynamic Meta Description (60-160 chars target)
         $meta_desc = (string) ($combo_profile['meta_description'] ?? $this->generate_combo_meta_description($program, $city_name, (string) $city_context['state'], $age_range));
 
-        add_filter('wpseo_metadesc', function ($current) use ($meta_desc) {
-            return $meta_desc;
-        }, PHP_INT_MAX);
-
-        add_filter('wpseo_opengraph_desc', function ($current) use ($meta_desc) {
-            return $meta_desc;
-        }, PHP_INT_MAX);
+        if (class_exists('Chroma_Virtual_Page_SEO_Data')) {
+            $virtual_seo = Chroma_Virtual_Page_SEO_Data::resolve('combo', [
+                'program_slug' => $program_slug,
+                'city_slug' => (string) $city_context['canonical_slug'],
+                'state' => (string) $city_context['state'],
+            ], [
+                'title' => $seo_title,
+                'meta_description' => $meta_desc,
+                'canonical' => $combo_canonical,
+            ]);
+            Chroma_Virtual_Page_SEO_Data::apply_filters($virtual_seo);
+        } else {
+            foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $filter) {
+                add_filter($filter, function () use ($combo_canonical) {
+                    return $combo_canonical;
+                }, PHP_INT_MAX);
+            }
+            add_filter('wpseo_title', function () use ($seo_title) {
+                return $seo_title;
+            }, PHP_INT_MAX);
+            add_filter('pre_get_document_title', function () use ($seo_title) {
+                return $seo_title;
+            }, PHP_INT_MAX);
+            add_filter('wpseo_metadesc', function () use ($meta_desc) {
+                return $meta_desc;
+            }, PHP_INT_MAX);
+            add_filter('wpseo_opengraph_desc', function () use ($meta_desc) {
+                return $meta_desc;
+            }, PHP_INT_MAX);
+        }
 
         // Render the page
         status_header(200);
@@ -1272,7 +1280,7 @@ class Chroma_Combo_Page_Generator
                 <tbody>
                     <?php foreach ($display_combos as $i => $combo):
                         $program_slug = $combo['program']->post_name;
-                        $city_slug = sanitize_title($combo['city']);
+                        $city_slug = sanitize_title($combo['city_slug'] ?? $combo['city']);
                         $status = $combo['data']['status'];
                         $status_color = $status === 'published' ? '#00a32a' : ($status === 'draft' ? '#dba617' : '#999');
                         ?>
@@ -1455,6 +1463,37 @@ class Chroma_Combo_Page_Generator
                         <td><textarea id="edit-custom-intro" rows="3" style="width: 100%;"></textarea></td>
                     </tr>
                     <tr>
+                        <th>SEO Title</th>
+                        <td><input type="text" id="edit-seo-title" class="regular-text" style="width: 100%;"
+                                maxlength="70" placeholder="Custom browser and Yoast title"></td>
+                    </tr>
+                    <tr>
+                        <th>Meta Description</th>
+                        <td><textarea id="edit-meta-description" rows="3" style="width: 100%;"
+                                maxlength="180" placeholder="Custom search result description"></textarea></td>
+                    </tr>
+                    <tr>
+                        <th>SEO Title (Spanish)</th>
+                        <td><input type="text" id="edit-seo-title-es" class="regular-text" style="width: 100%;"
+                                maxlength="70"></td>
+                    </tr>
+                    <tr>
+                        <th>Meta Description (Spanish)</th>
+                        <td><textarea id="edit-meta-description-es" rows="3" style="width: 100%;"
+                                maxlength="180"></textarea></td>
+                    </tr>
+                    <tr>
+                        <th>Robots</th>
+                        <td>
+                            <select id="edit-robots">
+                                <option value="">Default indexable</option>
+                                <option value="index,follow">index,follow</option>
+                                <option value="noindex,follow">noindex,follow</option>
+                                <option value="noindex,nofollow">noindex,nofollow</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
                         <th>Status</th>
                         <td>
                             <select id="edit-status">
@@ -1515,6 +1554,11 @@ class Chroma_Combo_Page_Generator
                                 $('#edit-major-road').val(data.major_road || '');
                                 $('#edit-employers').val(data.local_employers || '');
                                 $('#edit-county').val(data.county || '');
+                                $('#edit-seo-title').val(data.seo_title || '');
+                                $('#edit-meta-description').val(data.meta_description || '');
+                                $('#edit-seo-title-es').val(data.seo_title_es || '');
+                                $('#edit-meta-description-es').val(data.meta_description_es || '');
+                                $('#edit-robots').val(data.robots || '');
                                 $('#edit-status').val(data.status || 'auto');
                             } else {
                                 $('#edit-custom-intro').val('');
@@ -1578,6 +1622,11 @@ class Chroma_Combo_Page_Generator
                             local_employers: $('#edit-employers').val(),
                             county: $('#edit-county').val(),
                             custom_intro: $('#edit-custom-intro').val(),
+                            seo_title: $('#edit-seo-title').val(),
+                            meta_description: $('#edit-meta-description').val(),
+                            seo_title_es: $('#edit-seo-title-es').val(),
+                            meta_description_es: $('#edit-meta-description-es').val(),
+                            robots: $('#edit-robots').val(),
                             status: $('#edit-status').val()
                         }, function(response) {
                             $btn.prop('disabled', false).text('Save');

@@ -14,10 +14,7 @@ const getEffectiveItemResponse = ( item, sectionResponses, allResponses ) => {
     return {
         ...response,
         rating: response.rating || sourceResponse.rating || '',
-        notes:
-            item.entry_mode === 'shared_exact'
-                ? response.notes || sourceResponse.notes || ''
-                : response.notes || '',
+        notes: item.entry_mode === 'shared_exact' ? response.notes || sourceResponse.notes || '' : response.notes || '',
     };
 };
 

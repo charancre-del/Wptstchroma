@@ -306,6 +306,10 @@ class Chroma_LLM_Bulk_Processor
      */
     public function ajax_get_status() {
         check_ajax_referer('chroma_seo_nonce', 'nonce');
+
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(['message' => 'Permission denied']);
+        }
         
         wp_send_json_success([
             'status' => self::get_status(),

@@ -42,9 +42,151 @@ class Chroma_Canonical_Enforcer
         add_action('wp_head', [$this, 'output_canonical'], 1);
         add_filter('wp_robots', [$this, 'filter_404_robots'], 20);
         add_filter('wpseo_robots', [$this, 'filter_404_wpseo_robots'], 20);
+        add_filter('redirect_canonical', [$this, 'preserve_program_permalink_requests'], 1, 2);
+        add_filter('old_slug_redirect_url', [$this, 'resolve_program_old_slug_redirect'], 10, 1);
 
         // Redirect non-canonical URLs
         add_action('template_redirect', [$this, 'enforce_canonical'], 1);
+    }
+
+    /**
+     * Check whether the current request already matches the queried program slug.
+     *
+     * @return bool
+     */
+    private function is_current_program_permalink_request()
+    {
+        if (!is_singular('program')) {
+            return false;
+        }
+
+        $post = get_queried_object();
+        if (!$post instanceof WP_Post || $post->post_type !== 'program' || $post->post_name === '') {
+            return false;
+        }
+
+        $request_path = $this->get_request_path();
+        if ($request_path === '') {
+            return false;
+        }
+
+        $program_slug = 'programs';
+        $program_type = get_post_type_object('program');
+        if ($program_type && !empty($program_type->rewrite['slug'])) {
+            $program_slug = trim((string) $program_type->rewrite['slug'], '/');
+        }
+
+        $expected_paths = [
+            user_trailingslashit('/' . $program_slug . '/' . $post->post_name),
+            user_trailingslashit('/es/' . $program_slug . '/' . $post->post_name),
+        ];
+
+        return in_array(user_trailingslashit($request_path), $expected_paths, true);
+    }
+
+    /**
+     * Prevent core canonical redirects from moving valid program permalinks.
+     *
+     * @param string|false $redirect_url
+     * @param string       $requested_url
+     * @return string|false
+     */
+    public function preserve_program_permalink_requests($redirect_url, $requested_url)
+    {
+        if ($this->is_current_program_permalink_request()) {
+            return false;
+        }
+
+        return $redirect_url;
+    }
+
+    /**
+     * Resolve WordPress old-slug redirects for programs by the requested slug.
+     *
+     * WordPress stores previous slugs in shared _wp_old_slug meta. If two program
+     * records have held the same slug, core can redirect the old URL to the wrong
+     * program. Prefer the program whose title/current slug matches the requested
+     * path before allowing core's default old-slug target.
+     *
+     * @param string|false $redirect_url
+     * @return string|false
+     */
+    public function resolve_program_old_slug_redirect($redirect_url)
+    {
+        $request_path = trim($this->get_request_path(), '/');
+        if ($request_path === '') {
+            return $redirect_url;
+        }
+
+        $program_slug = 'programs';
+        $program_type = get_post_type_object('program');
+        if ($program_type && !empty($program_type->rewrite['slug'])) {
+            $program_slug = trim((string) $program_type->rewrite['slug'], '/');
+        }
+
+        $pattern = '#^(es/)?' . preg_quote($program_slug, '#') . '/([^/]+)/?$#i';
+        if (!preg_match($pattern, $request_path, $matches)) {
+            return $redirect_url;
+        }
+
+        $is_spanish = !empty($matches[1]);
+        $requested_slug = sanitize_title((string) $matches[2]);
+        if ($requested_slug === '') {
+            return $redirect_url;
+        }
+
+        $candidates = get_posts([
+            'post_type' => 'program',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+            'meta_key' => '_wp_old_slug',
+            'meta_value' => $requested_slug,
+            'orderby' => 'modified',
+            'order' => 'DESC',
+            'suppress_filters' => true,
+        ]);
+
+        if (empty($candidates)) {
+            return $redirect_url;
+        }
+
+        $fallback = null;
+        foreach ($candidates as $candidate) {
+            if (!$candidate instanceof WP_Post) {
+                continue;
+            }
+
+            if ($fallback === null) {
+                $fallback = $candidate;
+            }
+
+            if (sanitize_title((string) $candidate->post_title) === $requested_slug) {
+                return $this->get_program_redirect_url($candidate, $program_slug, $is_spanish);
+            }
+
+            if (strpos((string) $candidate->post_name, $requested_slug . '-') === 0) {
+                return $this->get_program_redirect_url($candidate, $program_slug, $is_spanish);
+            }
+        }
+
+        return $fallback instanceof WP_Post ? $this->get_program_redirect_url($fallback, $program_slug, $is_spanish) : $redirect_url;
+    }
+
+    /**
+     * Build a program redirect URL, preserving Spanish route prefixes.
+     *
+     * @param WP_Post $post
+     * @param string  $program_slug
+     * @param bool    $is_spanish
+     * @return string
+     */
+    private function get_program_redirect_url(WP_Post $post, $program_slug, $is_spanish)
+    {
+        if ($is_spanish) {
+            return home_url('/es/' . trim((string) $program_slug, '/') . '/' . $post->post_name . '/');
+        }
+
+        return get_permalink($post);
     }
 
     /**
@@ -351,6 +493,11 @@ class Chroma_Canonical_Enforcer
 
         // Never redirect virtual pages (combo pages, near-me pages, geographic SEO).
         if (get_query_var('chroma_combo') || get_query_var('chroma_near_me') || get_query_var('chroma_combo_sitemap') || get_query_var('chroma_service_area')) {
+            return;
+        }
+
+        // A valid program permalink should not be collapsed to a different program.
+        if ($this->is_current_program_permalink_request()) {
             return;
         }
 

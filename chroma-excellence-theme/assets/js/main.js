@@ -18,13 +18,39 @@
   };
 
   // Helper: Safe JSON Parse
+  const jsonStartChars = ['{', '['];
+
   const safeParseJSON = (value, fallback) => {
-    try {
-      return JSON.parse(value);
-    } catch (e) {
-      console.warn('Failed to parse JSON payload', e);
+    if (typeof value !== 'string') {
       return fallback;
     }
+
+    const trimmed = value.trim();
+    if (!trimmed || jsonStartChars.indexOf(trimmed.charAt(0)) === -1) {
+      return fallback;
+    }
+
+    try {
+      return JSON.parse(trimmed);
+    } catch (e) {
+      return fallback;
+    }
+  };
+
+  const readJSONPayload = (container, selector, legacyAttribute, fallback) => {
+    const payload = container.querySelector(selector);
+    if (payload && payload.textContent.trim()) {
+      return safeParseJSON(payload.textContent, fallback);
+    }
+
+    if (legacyAttribute) {
+      const legacyValue = container.getAttribute(legacyAttribute);
+      if (legacyValue) {
+        return safeParseJSON(legacyValue, fallback);
+      }
+    }
+
+    return fallback;
   };
 
   /**
@@ -97,7 +123,7 @@
    * Component: Program Wizard
    */
   const initProgramWizard = (wizard) => {
-    const options = safeParseJSON(wizard.getAttribute('data-options') || '[]', []);
+    const options = readJSONPayload(wizard, '[data-program-wizard-payload]', 'data-options', []);
     const optionButtons = wizard.querySelectorAll('[data-program-wizard-option]');
     const result = wizard.querySelector('[data-program-wizard-result]');
     const title = wizard.querySelector('[data-program-wizard-title]');
@@ -116,7 +142,8 @@
       }
       if (image && selected.image) image.src = selected.image;
 
-      wizard.querySelector('[data-program-wizard-options]')?.classList.add('hidden');
+      const optionsGrid = wizard.querySelector('[data-program-wizard-options]');
+      if (optionsGrid) optionsGrid.classList.add('hidden');
       result.classList.remove('hidden');
       requestAnimationFrame(() => {
         result.classList.remove('opacity-0', 'translate-y-4');
@@ -130,7 +157,8 @@
       result.classList.remove('opacity-100', 'translate-y-0');
       setTimeout(() => {
         result.classList.add('hidden');
-        wizard.querySelector('[data-program-wizard-options]')?.classList.remove('hidden');
+        const optionsGrid = wizard.querySelector('[data-program-wizard-options]');
+        if (optionsGrid) optionsGrid.classList.remove('hidden');
       }, 500);
     };
 
@@ -141,7 +169,7 @@
         if (selected) showResult(selected);
       });
     });
-    resetBtn?.addEventListener('click', resetWizard);
+    if (resetBtn) resetBtn.addEventListener('click', resetWizard);
   };
 
   /**
@@ -194,11 +222,11 @@
           datasets: [{
             label: 'Focus',
             data: (defaultProfile && defaultProfile.data) || [],
-            borderColor: defaultProfile?.color || '#4A6C7C',
-            backgroundColor: `${defaultProfile?.color || '#4A6C7C'}33`,
+            borderColor: (defaultProfile && defaultProfile.color) || '#4A6C7C',
+            backgroundColor: `${(defaultProfile && defaultProfile.color) || '#4A6C7C'}33`,
             borderWidth: 2,
             pointBackgroundColor: '#ffffff',
-            pointBorderColor: defaultProfile?.color || '#4A6C7C',
+            pointBorderColor: (defaultProfile && defaultProfile.color) || '#4A6C7C',
             pointRadius: 4,
           }],
         },
@@ -254,9 +282,10 @@
    * Component: Schedule Tabs
    */
   const initSchedule = (schedule) => {
+    readJSONPayload(schedule, '[data-schedule-tracks]', 'data-tracks', []);
     const panels = schedule.querySelectorAll('[data-schedule-panel]');
     const tabs = schedule.querySelectorAll('[data-schedule-tab]');
-    const defaultKey = tabs[0]?.getAttribute('data-schedule-tab');
+    const defaultKey = tabs[0] ? tabs[0].getAttribute('data-schedule-tab') : '';
 
     const activate = (key) => {
       tabs.forEach(btn => {
@@ -283,9 +312,10 @@
         const panel = this.closest('[data-schedule-panel]');
         if (!panel) return;
         panel.querySelectorAll('[data-schedule-step-trigger]').forEach(t => {
-          t.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'scale-105');
-          t.classList.add('bg-white', 'text-brand-ink/70');
+          t.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
+          t.classList.add('bg-white', 'text-brand-ink/70', 'hover:text-brand-ink', 'hover:bg-white/80');
         });
+        this.classList.remove('bg-white', 'text-brand-ink/70', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
         this.classList.add('bg-brand-ink', 'text-white', 'shadow-md', 'scale-105');
         const contentTitle = panel.querySelector('[data-content-title]');
         const contentCopy = panel.querySelector('[data-content-copy]');
@@ -325,8 +355,8 @@
     const resetAutoplay = () => { clearInterval(autoplayInterval); startAutoplay(); };
 
     dots.forEach((dot, i) => dot.addEventListener('click', () => { goToSlide(i); resetAutoplay(); }));
-    prevBtn?.addEventListener('click', () => { goToSlide(currentIndex - 1); resetAutoplay(); });
-    nextBtn?.addEventListener('click', () => { goToSlide(currentIndex + 1); resetAutoplay(); });
+    if (prevBtn) prevBtn.addEventListener('click', () => { goToSlide(currentIndex - 1); resetAutoplay(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { goToSlide(currentIndex + 1); resetAutoplay(); });
 
     carousel.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
     carousel.addEventListener('mouseleave', startAutoplay);
@@ -362,8 +392,8 @@
     const start = () => { autoplayInterval = setInterval(() => update(currentIndex + 1), 5000); };
     const reset = () => { clearInterval(autoplayInterval); start(); };
 
-    prevBtn?.addEventListener('click', () => { update(currentIndex - 1); reset(); });
-    nextBtn?.addEventListener('click', () => { update(currentIndex + 1); reset(); });
+    if (prevBtn) prevBtn.addEventListener('click', () => { update(currentIndex - 1); reset(); });
+    if (nextBtn) nextBtn.addEventListener('click', () => { update(currentIndex + 1); reset(); });
     dots.forEach((dot, i) => dot.addEventListener('click', () => { update(i); reset(); }));
 
     carousel.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
@@ -438,7 +468,18 @@
       // Smooth Scroll
       document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
-          const target = document.querySelector(this.getAttribute('href'));
+          const hash = this.getAttribute('href') || '';
+          if (hash.length < 2) {
+            return;
+          }
+
+          let target = null;
+          try {
+            target = document.getElementById(decodeURIComponent(hash.slice(1)));
+          } catch (error) {
+            target = document.getElementById(hash.slice(1));
+          }
+
           if (target) {
             e.preventDefault();
             target.scrollIntoView({ behavior: 'smooth' });

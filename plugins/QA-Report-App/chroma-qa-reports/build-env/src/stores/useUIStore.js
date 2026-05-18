@@ -12,7 +12,7 @@ const useUIStore = create(
             setSessionExpired: ( value ) => set( { isSessionExpired: value } ),
 
             // Conflict Modal (409)
-            conflict: null, // { updatedBy, updatedAt, onOverwrite, onReload }
+            conflict: null, // { updatedBy, updatedAt, onReload }
             showConflictModal: ( conflictData ) => set( { conflict: conflictData } ),
             clearConflictModal: () => set( { conflict: null } ),
 

@@ -48,10 +48,15 @@ if (!function_exists('chroma_output_schema_override_pro')) {
         }
 
         $items = isset($decoded[0]) && is_array($decoded[0]) ? $decoded : [$decoded];
+        $emitted = false;
 
         foreach ($items as $schema_item) {
             if (!is_array($schema_item) || empty($schema_item)) {
                 continue;
+            }
+
+            if (function_exists('chroma_schema_strip_internal_keys')) {
+                $schema_item = chroma_schema_strip_internal_keys($schema_item);
             }
 
             if (!isset($schema_item['@context'])) {
@@ -59,14 +64,15 @@ if (!function_exists('chroma_output_schema_override_pro')) {
             }
 
             if (class_exists('Chroma_Schema_Registry') && isset($schema_item['@type'])) {
-                Chroma_Schema_Registry::register($schema_item, ['source' => $source]);
+                $emitted = Chroma_Schema_Registry::register($schema_item, ['source' => $source]) || $emitted;
                 continue;
             }
 
             echo '<script type="application/ld+json">' . wp_json_encode($schema_item, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
+            $emitted = true;
         }
 
-        return true;
+        return $emitted;
     }
 }
 
@@ -101,6 +107,23 @@ function chroma_get_schema_val($post_id, $es_meta_key, $en_val) {
     return $en_val;
 }
 
+if (!function_exists('chroma_post_has_stored_schema_type_pro')) {
+    function chroma_post_has_stored_schema_type_pro($post_id, array $types) {
+        if (!function_exists('chroma_schema_store_has_any_type')) {
+            return false;
+        }
+
+        foreach (['_chroma_post_schemas', '_chroma_schema_data'] as $meta_key) {
+            $stored = get_post_meta($post_id, $meta_key, true);
+            if (!empty($stored) && chroma_schema_store_has_any_type($stored, $types)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
+
 /**
  * Add LocalBusiness Schema to Location Pages
  */
@@ -118,9 +141,8 @@ function chroma_location_schema_pro()
         return;
     }
 
-    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated if user has built schema)
-    $builder_schemas = get_post_meta($location_id, '_chroma_post_schemas', true);
-    if (!empty($builder_schemas) && is_array($builder_schemas)) {
+    // Suppress fallback only when builder/API schema has a real business replacement.
+    if (chroma_post_has_stored_schema_type_pro($location_id, ['ChildCare', 'LocalBusiness', 'Preschool', 'EducationalOrganization'])) {
         return;
     }
 
@@ -379,9 +401,8 @@ function chroma_city_schema_pro()
         return;
     }
 
-    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
-    $builder_schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
-    if (!empty($builder_schemas) && is_array($builder_schemas)) {
+    // Suppress fallback only when builder/API schema has a real service replacement.
+    if (chroma_post_has_stored_schema_type_pro($post_id, ['Service'])) {
         return;
     }
 
@@ -467,9 +488,8 @@ function chroma_program_schema_pro()
         return;
     }
 
-    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
-    $builder_schemas = get_post_meta($program_id, '_chroma_post_schemas', true);
-    if (!empty($builder_schemas) && is_array($builder_schemas)) {
+    // Suppress fallback only when builder/API schema has a real service replacement.
+    if (chroma_post_has_stored_schema_type_pro($program_id, ['Service'])) {
         return;
     }
 
@@ -530,9 +550,8 @@ function chroma_city_faq_schema_output()
         return;
     }
 
-    // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
-    $builder_schemas = get_post_meta(get_the_ID(), '_chroma_post_schemas', true);
-    if (!empty($builder_schemas) && is_array($builder_schemas)) {
+    // Suppress fallback only when builder/API schema has a FAQ replacement.
+    if (chroma_post_has_stored_schema_type_pro(get_the_ID(), ['FAQPage'])) {
         return;
     }
 
@@ -629,9 +648,8 @@ if (!function_exists('chroma_organization_schema_pro')) {
             return;
         }
 
-        // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
-        $builder_schemas = get_post_meta($homepage_id, '_chroma_post_schemas', true);
-        if (!empty($builder_schemas) && is_array($builder_schemas)) {
+        // Suppress fallback only when builder/API schema has an organization replacement.
+        if (chroma_post_has_stored_schema_type_pro($homepage_id, ['ChildCare', 'Organization', 'LocalBusiness', 'EducationalOrganization'])) {
             return;
         }
 
@@ -690,9 +708,8 @@ if (!function_exists('chroma_website_schema_pro')) {
         $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
         if ($override) return;
 
-        // Check for Builder Schema (Sprint 9 Fix: Suppress auto-generated duplicates)
-        $builder_schemas = get_post_meta($homepage_id, '_chroma_post_schemas', true);
-        if (!empty($builder_schemas) && is_array($builder_schemas)) {
+        // Suppress fallback only when builder/API schema has a WebSite replacement.
+        if (chroma_post_has_stored_schema_type_pro($homepage_id, ['WebSite'])) {
             return;
         }
         if (class_exists('Chroma_Multilingual_Manager') && Chroma_Multilingual_Manager::is_spanish()) {

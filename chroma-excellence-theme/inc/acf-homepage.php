@@ -120,6 +120,14 @@ function chroma_home_get_theme_mod_json($key, $default = array())
 {
         $raw = chroma_get_theme_mod($key, '');
 
+        if (is_array($raw)) {
+                return $raw;
+        }
+
+        if (!is_string($raw)) {
+                return $default;
+        }
+
         if (empty($raw)) {
                 return $default;
         }
@@ -668,13 +676,95 @@ function chroma_home_default_schedule_tracks()
         );
 }
 
+function chroma_home_clean_program_copy($copy)
+{
+        $copy = wp_strip_all_tags(strip_shortcodes((string) $copy));
+        $charset = get_bloginfo('charset') ?: 'UTF-8';
+
+        for ($i = 0; $i < 3; $i++) {
+                $decoded = html_entity_decode(wp_specialchars_decode($copy, ENT_QUOTES), ENT_QUOTES | ENT_HTML5, $charset);
+                if ($decoded === $copy) {
+                        break;
+                }
+                $copy = $decoded;
+        }
+
+        $copy = preg_replace('/\x{00a0}/u', ' ', $copy);
+        $copy = preg_replace('/\s*Find\s+[^.?!\r\n]*?\s+Near\s+You[^\s.?!\r\n]*.*$/iu', '', $copy);
+        $copy = preg_replace('/\s*(?:&bull;|•)\s*[^.?!\r\n]*$/iu', '', $copy);
+        $copy = preg_replace('/\s+/u', ' ', $copy);
+
+        return trim($copy);
+}
+
+function chroma_home_program_fallback_summary($post_id)
+{
+        $slug = sanitize_title(get_post_field('post_name', $post_id));
+        $title = strtolower((string) get_the_title($post_id));
+        $summaries = array(
+                'infant-care' => __('A peaceful, shoeless infant classroom with responsive caregiving, safe sleep routines, and sensory discovery for early growth.', 'chroma-excellence'),
+                'infant' => __('A peaceful, shoeless infant classroom with responsive caregiving, safe sleep routines, and sensory discovery for early growth.', 'chroma-excellence'),
+                'toddlers' => __('Toddlers build language, movement, confidence, and social skills through guided play, routines, and hands-on exploration.', 'chroma-excellence'),
+                'toddler' => __('Toddlers build language, movement, confidence, and social skills through guided play, routines, and hands-on exploration.', 'chroma-excellence'),
+                'preschool' => __('Preschoolers explore early literacy, math, science, art, and friendship skills through purposeful centers and joyful classroom projects.', 'chroma-excellence'),
+                'pre-k-prep' => __('Three-year-olds strengthen independence, self-regulation, early writing, and small-group readiness before Pre-K.', 'chroma-excellence'),
+                'pre-k-ga-pre-k' => __('Pre-K blends kindergarten readiness, social-emotional learning, and joyful experiences aligned with Georgia early learning standards.', 'chroma-excellence'),
+                'ga-pre-k' => __('Pre-K blends kindergarten readiness, social-emotional learning, and joyful experiences aligned with Georgia early learning standards.', 'chroma-excellence'),
+                'prek' => __('Pre-K blends kindergarten readiness, social-emotional learning, and joyful experiences aligned with Georgia early learning standards.', 'chroma-excellence'),
+                'schoolagers' => __('School-age students get homework support, transportation from local schools, clubs, outdoor play, and creative enrichment.', 'chroma-excellence'),
+                'afterschool' => __('School-age students get homework support, transportation from local schools, clubs, outdoor play, and creative enrichment.', 'chroma-excellence'),
+                'camp' => __('Seasonal camp days bring field trips, creative projects, outdoor play, friendships, and flexible care during school breaks.', 'chroma-excellence'),
+                'kindergarten' => __('Kindergarten students grow through rigorous early reading, conceptual math, collaboration, creativity, and joyful mastery.', 'chroma-excellence'),
+                'rising-pre-k' => __('Rising Pre-K supports classroom confidence, early academics, independence, and routines for children preparing for Pre-K.', 'chroma-excellence'),
+                'rising-kindergarten' => __('Rising Kindergarten helps Pre-K graduates practice literacy, math, routines, and social skills before the next school year.', 'chroma-excellence'),
+                'parents-day-out' => __('Parent\'s Day Out offers a warm, playful classroom rhythm for short-day care, socialization, creativity, and early independence.', 'chroma-excellence'),
+        );
+
+        if (isset($summaries[$slug])) {
+                return $summaries[$slug];
+        }
+
+        foreach ($summaries as $key => $summary) {
+                if (false !== strpos($title, str_replace('-', ' ', $key))) {
+                        return $summary;
+                }
+        }
+
+        foreach (chroma_home_default_program_wizard_options() as $option) {
+                $option_key = sanitize_title($option['key'] ?? '');
+                $option_label = strtolower(sanitize_text_field($option['label'] ?? ''));
+                if ($option_key === $slug || ($option_label && false !== strpos($title, $option_label))) {
+                        return sanitize_textarea_field($option['description'] ?? '');
+                }
+        }
+
+        return __('A nurturing, age-appropriate Chroma program designed to support your child\'s growth, confidence, and readiness.', 'chroma-excellence');
+}
+
+function chroma_home_program_summary($post_id)
+{
+        $excerpt = get_post_field('post_excerpt', $post_id, 'raw');
+
+        if ('' === trim((string) $excerpt)) {
+                $content = get_post_field('post_content', $post_id, 'raw');
+                $excerpt = wp_trim_words(wp_strip_all_tags(strip_shortcodes((string) $content)), 32, '');
+        }
+
+        $excerpt = chroma_home_clean_program_copy($excerpt);
+        if ('' !== $excerpt) {
+                return $excerpt;
+        }
+
+        return chroma_home_program_fallback_summary($post_id);
+}
+
 /**
  * Age-based program wizard options - Pull from Program CPT
  */
 function chroma_home_program_wizard_options()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_wizard_options:' . $token;
+        $cache_key = 'home_wizard_options:v3:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -703,7 +793,7 @@ function chroma_home_program_wizard_options()
                                 'key' => $key,
                                 'emoji' => sanitize_text_field($item['emoji'] ?? ''),
                                 'label' => sanitize_text_field($item['label'] ?? ''),
-                                'description' => sanitize_textarea_field($item['description'] ?? ''),
+                                'description' => sanitize_textarea_field(chroma_home_clean_program_copy($item['description'] ?? '')),
                                 'link' => chroma_get_localized_url(esc_url_raw($program_url . '#' . $link_target)),
                         );
                 }, $options);
@@ -718,7 +808,7 @@ function chroma_home_program_wizard_options()
                 $post_id = get_the_ID();
                 $icon = chroma_get_translated_meta($post_id, 'program_icon', true) ?: '📚';
                 $age_range = chroma_get_translated_meta($post_id, 'program_age_range', true) ?: '';
-                $excerpt = get_the_excerpt() ?: '';
+                $excerpt = chroma_home_program_summary($post_id);
                 $anchor_slug = get_post_field('post_name', $post_id);
                 $image_url = get_the_post_thumbnail_url($post_id, 'large') ?: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop';
                 $label = get_the_title();
@@ -745,7 +835,7 @@ function chroma_home_curriculum_profiles()
 {
         $defaults = chroma_home_default_curriculum_profiles();
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_curriculum_profiles:' . $token;
+        $cache_key = 'home_curriculum_profiles:v4:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -817,10 +907,12 @@ function chroma_home_curriculum_profiles()
                         $program_title = get_the_title($post_id);
                         $prism_title = chroma_get_translated_meta($post_id, 'program_prism_title', true) ?: $program_title;
                         $prism_description = chroma_get_translated_meta($post_id, 'program_prism_description', true);
-                        $program_excerpt = has_excerpt($post_id)
-                                ? get_the_excerpt($post_id)
-                                : wp_trim_words(wp_strip_all_tags((string) get_post_field('post_content', $post_id)), 28);
+                        $program_excerpt = chroma_home_program_summary($post_id);
                         $color_scheme = get_post_meta($post_id, 'program_color_scheme', true) ?: 'blue';
+
+                        $prism_values = function_exists('chroma_program_prism_chart_values')
+                                ? chroma_program_prism_chart_values($post_id)
+                                : array(50, 50, 50, 50, 50);
 
                         $profiles[] = $sanitize_profile(array(
                                 'key' => $key,
@@ -828,13 +920,7 @@ function chroma_home_curriculum_profiles()
                                 'title' => $prism_title,
                                 'description' => $prism_description ?: $program_excerpt,
                                 'color' => $color_map[$color_scheme] ?? '#4A6C7C',
-                                'data' => array(
-                                        get_post_meta($post_id, 'program_prism_physical', true) ?: 50,
-                                        get_post_meta($post_id, 'program_prism_emotional', true) ?: 50,
-                                        get_post_meta($post_id, 'program_prism_social', true) ?: 50,
-                                        get_post_meta($post_id, 'program_prism_academic', true) ?: 50,
-                                        get_post_meta($post_id, 'program_prism_creative', true) ?: 50,
-                                ),
+                                'data' => $prism_values,
                         ));
                 }
         }
@@ -860,7 +946,7 @@ function chroma_home_curriculum_profiles()
 function chroma_home_schedule_tracks()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_schedule_tracks:' . $token;
+        $cache_key = 'home_schedule_tracks:v3:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -926,7 +1012,7 @@ function chroma_home_schedule_tracks()
                 $schedule_items = chroma_get_translated_meta($post_id, 'program_schedule_items', true);
                 $color_scheme = get_post_meta($post_id, 'program_color_scheme', true) ?: 'blue';
                 $program_title = get_the_title();
-                $description = get_the_excerpt() ?: '';
+                $description = chroma_home_program_summary($post_id);
 
                 $steps = array();
                 if (!empty($schedule_items)) {
@@ -1007,7 +1093,9 @@ function chroma_home_faq_items()
         $items_json = chroma_get_translated_meta($post_id, 'home_faq_items_json', true);
 
         $items = array();
-        if ($items_json) {
+        if (is_array($items_json)) {
+                $items = $items_json;
+        } elseif (is_string($items_json) && $items_json !== '') {
                 $decoded = json_decode($items_json, true);
                 if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
                         $items = $decoded;
@@ -1020,9 +1108,13 @@ function chroma_home_faq_items()
 
         return array_map(
                 function ($item) {
+                        if (!is_array($item)) {
+                                $item = array();
+                        }
+
                         return array(
-                                'question' => sanitize_text_field($item['question'] ?? ''),
-                                'answer' => sanitize_textarea_field($item['answer'] ?? ''),
+                                'question' => sanitize_text_field(is_scalar($item['question'] ?? null) ? (string) $item['question'] : ''),
+                                'answer' => sanitize_textarea_field(is_scalar($item['answer'] ?? null) ? (string) $item['answer'] : ''),
                         );
                 },
                 $items
@@ -1035,6 +1127,8 @@ function chroma_home_faq()
         $post_id = chroma_get_home_page_id();
         $heading = chroma_get_translated_meta($post_id, 'home_faq_heading', true);
         $subheading = chroma_get_translated_meta($post_id, 'home_faq_subheading', true);
+        $heading = is_scalar($heading) ? (string) $heading : '';
+        $subheading = is_scalar($subheading) ? (string) $subheading : '';
 
         return array(
                 'heading' => sanitize_text_field($heading ?: chroma_get_theme_mod('chroma_home_faq_heading', $defaults['heading'])),

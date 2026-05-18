@@ -28,10 +28,18 @@ class Chroma_Careers_API
         }
 
         // Use option for feed URL to avoid hardcoding in plugin
-        $url = get_option('chroma_careers_feed_url', 'https://app.acquire4hire.com/careers/list.json?id=4668');
+        $url = esc_url_raw(get_option('chroma_careers_feed_url', 'https://app.acquire4hire.com/careers/list.json?id=4668'));
+        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        $allowed_hosts = apply_filters('chroma_careers_allowed_feed_hosts', ['app.acquire4hire.com']);
+        $allowed_hosts = array_map('strtolower', array_filter((array) $allowed_hosts));
+
+        if (!wp_http_validate_url($url) || !in_array($host, $allowed_hosts, true)) {
+            chroma_debug_log(' Careers API blocked invalid feed URL.');
+            return array();
+        }
 
         // Fetch data with timeout
-        $response = wp_remote_get($url, array(
+        $response = wp_safe_remote_get($url, array(
             'timeout' => 15,
             'headers' => array(
                 'Accept' => 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
