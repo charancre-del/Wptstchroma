@@ -4374,7 +4374,7 @@ class Chroma_SEO_Dashboard
     {
         $last_sync = get_option('chroma_last_career_sync', 'Never');
         $last_count = get_option('chroma_last_career_sync_count', 0);
-        $feed_url = get_option('chroma_careers_feed_url', 'https://app.acquire4hire.com/careers/list.json?id=4668');
+        $feed_url = get_option('chroma_careers_feed_url', 'https://app.acquire4hire.com/feed/indeed.xml?id=4668');
         ?>
         <div class="chroma-seo-card">
             <h2>ðŸ’¼ Career Feed Synchronization</h2>
@@ -4397,10 +4397,10 @@ class Chroma_SEO_Dashboard
                 <?php settings_fields('chroma_careers_options'); ?>
                 <table class="form-table">
                     <tr>
-                        <th scope="row"><label for="chroma_careers_feed_url">External Feed URL (JSON/HTML)</label></th>
+                        <th scope="row"><label for="chroma_careers_feed_url">External Feed URL (XML/JSON/HTML)</label></th>
                         <td>
                             <input name="chroma_careers_feed_url" type="url" id="chroma_careers_feed_url" value="<?php echo esc_url($feed_url); ?>" class="regular-text">
-                            <p class="description">The URL of the Acquire4Hire career list. Usually ends in <code>list.json?id=XXXX</code>.</p>
+                            <p class="description">The URL of the Acquire4Hire career feed. Prefer structured XML feeds like <code>feed/indeed.xml?id=XXXX</code>; legacy JSON/HTML lists remain supported.</p>
                         </td>
                     </tr>
                 </table>

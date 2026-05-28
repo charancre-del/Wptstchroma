@@ -158,6 +158,25 @@ class Chroma_Career_Sync
             update_post_meta($post_id, '_career_location', sanitize_text_field((string) ($job['location'] ?? '')));
             update_post_meta($post_id, '_career_type', self::normalize_employment_type((string) ($job['type'] ?? 'FULL_TIME')));
             update_post_meta($post_id, '_career_date_posted', self::normalize_date_posted((string) ($job['date_posted'] ?? '')));
+
+            foreach ([
+                '_career_city'        => $job['city'] ?? '',
+                '_career_state'       => $job['state'] ?? '',
+                '_career_postal_code' => $job['postal_code'] ?? '',
+                '_career_country'     => $job['country'] ?? '',
+            ] as $meta_key => $meta_value) {
+                $meta_value = sanitize_text_field((string) $meta_value);
+                if ($meta_value !== '') {
+                    update_post_meta($post_id, $meta_key, $meta_value);
+                }
+            }
+
+            $salary = self::parse_salary((string) ($job['salary'] ?? ''));
+            if (!empty($salary)) {
+                update_post_meta($post_id, '_career_salary', $salary['amount']);
+                update_post_meta($post_id, '_career_salary_currency', $salary['currency']);
+                update_post_meta($post_id, '_career_salary_unit', $salary['unit']);
+            }
         }
 
         if (!empty($active_urls)) {
@@ -230,6 +249,48 @@ class Chroma_Career_Sync
         }
 
         return gmdate('Y-m-d', $timestamp);
+    }
+
+    /**
+     * Parse a provider salary string into existing career salary meta fields.
+     *
+     * @param string $raw_salary Raw salary string.
+     * @return array
+     */
+    private static function parse_salary($raw_salary)
+    {
+        $raw_salary = trim($raw_salary);
+        if ($raw_salary === '') {
+            return [];
+        }
+
+        if (!preg_match_all('/(?:\$|USD)?\s*([0-9]+(?:\.[0-9]+)?)/i', $raw_salary, $matches) || empty($matches[1])) {
+            return [];
+        }
+
+        $amounts = array_map('floatval', $matches[1]);
+        $amount = min($amounts);
+        if ($amount <= 0) {
+            return [];
+        }
+
+        $lower = strtolower($raw_salary);
+        $unit = 'YEAR';
+        if (preg_match('/\b(hour|hourly|hr)\b/', $lower)) {
+            $unit = 'HOUR';
+        } elseif (preg_match('/\b(day|daily)\b/', $lower)) {
+            $unit = 'DAY';
+        } elseif (preg_match('/\b(week|weekly)\b/', $lower)) {
+            $unit = 'WEEK';
+        } elseif (preg_match('/\b(month|monthly)\b/', $lower)) {
+            $unit = 'MONTH';
+        }
+
+        return [
+            'amount'   => $amount,
+            'currency' => 'USD',
+            'unit'     => $unit,
+        ];
     }
 
     /**

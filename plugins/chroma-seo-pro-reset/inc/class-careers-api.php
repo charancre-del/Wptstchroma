@@ -27,46 +27,113 @@ class Chroma_Careers_API
             return $cached_jobs;
         }
 
-        // Use option for feed URL to avoid hardcoding in plugin
-        $url = esc_url_raw(get_option('chroma_careers_feed_url', 'https://app.acquire4hire.com/careers/list.json?id=4668'));
-        $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        // Use option for feed URL to avoid hardcoding in plugin.
+        $primary_url = esc_url_raw(get_option('chroma_careers_feed_url', self::default_feed_url()));
+        if ($primary_url === '') {
+            $primary_url = self::default_feed_url();
+        }
+
         $allowed_hosts = apply_filters('chroma_careers_allowed_feed_hosts', ['app.acquire4hire.com']);
         $allowed_hosts = array_map('strtolower', array_filter((array) $allowed_hosts));
 
-        if (!wp_http_validate_url($url) || !in_array($host, $allowed_hosts, true)) {
-            chroma_debug_log(' Careers API blocked invalid feed URL.');
-            return array();
-        }
+        foreach (self::candidate_feed_urls($primary_url) as $url) {
+            $host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+            if (!wp_http_validate_url($url) || !in_array($host, $allowed_hosts, true)) {
+                chroma_debug_log(' Careers API blocked invalid feed URL.');
+                continue;
+            }
 
-        // Fetch data with timeout
-        $response = wp_safe_remote_get($url, array(
-            'timeout' => 15,
-            'headers' => array(
-                'Accept' => 'application/json,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            ),
-        ));
+            // Fetch data with timeout.
+            $response = wp_safe_remote_get($url, array(
+                'timeout' => 15,
+                'headers' => array(
+                    'Accept' => 'application/xml,application/json,text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                ),
+            ));
 
-        if (is_wp_error($response)) {
-            chroma_debug_log(' Careers API Error: ' . $response->get_error_message());
-            return array();
-        }
+            if (is_wp_error($response)) {
+                chroma_debug_log(' Careers API Error: ' . $response->get_error_message());
+                continue;
+            }
 
-        $body = wp_remote_retrieve_body($response);
-        if (empty($body)) {
-            return array();
-        }
+            $body = wp_remote_retrieve_body($response);
+            if (empty($body)) {
+                continue;
+            }
 
-        $jobs = self::parse_json_feed($body, $url);
-        if (empty($jobs)) {
-            $jobs = self::parse_html_feed($body, $url);
-        }
+            $jobs = self::parse_feed_body($body, $url);
+            if (empty($jobs)) {
+                continue;
+            }
 
-        // Cache for 1 hour
-        if (!empty($jobs)) {
+            // Cache for 1 hour.
             set_transient('chroma_careers_data', $jobs, HOUR_IN_SECONDS);
+            return $jobs;
         }
 
-        return $jobs;
+        return array();
+    }
+
+    /**
+     * Default to the structured feed. The old list.json endpoint now returns
+     * HTML and remains supported as a fallback for saved options.
+     *
+     * @return string
+     */
+    private static function default_feed_url()
+    {
+        return 'https://app.acquire4hire.com/feed/indeed.xml?id=4668';
+    }
+
+    /**
+     * Return feed candidates in preferred order.
+     *
+     * @param string $primary_url Configured feed URL.
+     * @return array
+     */
+    private static function candidate_feed_urls($primary_url)
+    {
+        $urls = array();
+        $primary_url = esc_url_raw((string) $primary_url);
+        if ($primary_url === '') {
+            return array(self::default_feed_url());
+        }
+
+        $host = strtolower((string) wp_parse_url($primary_url, PHP_URL_HOST));
+        $path = (string) wp_parse_url($primary_url, PHP_URL_PATH);
+        $query = (string) wp_parse_url($primary_url, PHP_URL_QUERY);
+
+        if ($host === 'app.acquire4hire.com' && stripos($path, '/careers/list.json') !== false) {
+            parse_str($query, $params);
+            if (!empty($params['id'])) {
+                $urls[] = 'https://app.acquire4hire.com/feed/indeed.xml?id=' . rawurlencode((string) $params['id']);
+            }
+        }
+
+        $urls[] = $primary_url;
+        return array_values(array_unique($urls));
+    }
+
+    /**
+     * Parse any supported feed body.
+     *
+     * @param string $body       Response body.
+     * @param string $source_url Feed URL.
+     * @return array
+     */
+    private static function parse_feed_body($body, $source_url)
+    {
+        $jobs = self::parse_json_feed($body, $source_url);
+        if (!empty($jobs)) {
+            return $jobs;
+        }
+
+        $jobs = self::parse_xml_feed($body, $source_url);
+        if (!empty($jobs)) {
+            return $jobs;
+        }
+
+        return self::parse_html_feed($body, $source_url);
     }
 
     /**
@@ -119,10 +186,74 @@ class Chroma_Careers_API
             $jobs[] = array(
                 'title' => sanitize_text_field($title),
                 'location' => sanitize_text_field($location),
-                'type' => sanitize_text_field(self::first_non_empty($row, array('type', 'employment_type', 'employmentType', 'job_type')) ?: 'FULL_TIME'),
+                'type' => sanitize_text_field(self::normalize_feed_job_type(self::first_non_empty($row, array('type', 'employment_type', 'employmentType', 'job_type')))),
                 'url' => self::normalize_url($url, $source_url),
                 'description' => self::first_non_empty($row, array('description', 'summary', 'excerpt')),
                 'date_posted' => self::first_non_empty($row, array('date_posted', 'posted_at', 'postedDate', 'published_at', 'date')),
+            );
+        }
+
+        return array_values(array_filter($jobs, function ($job) {
+            return !empty($job['title']) && !empty($job['url']);
+        }));
+    }
+
+    /**
+     * Parse structured Acquire4Hire/Indeed XML feeds.
+     *
+     * @param string $body       Response body.
+     * @param string $source_url Feed URL.
+     * @return array
+     */
+    private static function parse_xml_feed($body, $source_url)
+    {
+        if (!class_exists('DOMDocument') || !is_string($body) || stripos(ltrim($body), '<') !== 0) {
+            return array();
+        }
+
+        $dom = new DOMDocument();
+        libxml_use_internal_errors(true);
+        $loaded = $dom->loadXML($body, LIBXML_NOCDATA);
+        libxml_clear_errors();
+
+        if (!$loaded) {
+            return array();
+        }
+
+        $xpath = new DOMXPath($dom);
+        $job_nodes = $xpath->query('//job');
+        if (!$job_nodes || $job_nodes->length === 0) {
+            return array();
+        }
+
+        $jobs = array();
+        foreach ($job_nodes as $node) {
+            $title = self::xpath_text($xpath, './title', $node);
+            $url = self::xpath_text($xpath, './url', $node);
+            if ($title === '' || $url === '') {
+                continue;
+            }
+
+            $city = self::xpath_text($xpath, './city', $node);
+            $state = self::xpath_text($xpath, './state', $node);
+            $location = trim(implode(', ', array_filter(array($city, $state))));
+
+            $jobs[] = array(
+                'title' => sanitize_text_field($title),
+                'location' => sanitize_text_field($location),
+                'type' => sanitize_text_field(self::normalize_feed_job_type(self::xpath_text($xpath, './jobtype', $node))),
+                'url' => self::normalize_url($url, $source_url),
+                'description' => wp_kses_post(self::xpath_text($xpath, './description', $node)),
+                'date_posted' => sanitize_text_field(self::xpath_text($xpath, './date', $node)),
+                'salary' => sanitize_text_field(self::xpath_text($xpath, './salary', $node)),
+                'city' => sanitize_text_field($city),
+                'state' => sanitize_text_field($state),
+                'postal_code' => sanitize_text_field(self::xpath_text($xpath, './postalcode', $node)),
+                'country' => sanitize_text_field(self::xpath_text($xpath, './country', $node)),
+                'reference' => sanitize_text_field(self::xpath_text($xpath, './referencenumber', $node)),
+                'category' => sanitize_text_field(self::xpath_text($xpath, './category', $node)),
+                'education' => sanitize_text_field(self::xpath_text($xpath, './education', $node)),
+                'experience' => sanitize_text_field(self::xpath_text($xpath, './experience', $node)),
             );
         }
 
@@ -266,6 +397,53 @@ class Chroma_Careers_API
         }
 
         return '';
+    }
+
+    /**
+     * Read a text value from an XPath query.
+     *
+     * @param DOMXPath $xpath   XPath instance.
+     * @param string   $query   Relative or absolute XPath query.
+     * @param DOMNode  $context Optional context node.
+     * @return string
+     */
+    private static function xpath_text($xpath, $query, $context = null)
+    {
+        $nodes = $context ? $xpath->query($query, $context) : $xpath->query($query);
+        if (!$nodes || $nodes->length === 0) {
+            return '';
+        }
+
+        return trim((string) $nodes->item(0)->textContent);
+    }
+
+    /**
+     * Normalize provider employment type labels for display.
+     *
+     * @param string $raw_type Provider type label.
+     * @return string
+     */
+    private static function normalize_feed_job_type($raw_type)
+    {
+        $raw_type = trim((string) $raw_type);
+        if ($raw_type === '') {
+            return 'Full Time';
+        }
+
+        $compact = strtolower(preg_replace('/[^a-z]/i', '', $raw_type));
+        $map = array(
+            'fulltime' => 'Full Time',
+            'parttime' => 'Part Time',
+            'contract' => 'Contract',
+            'contractor' => 'Contract',
+            'temporary' => 'Temporary',
+            'temp' => 'Temporary',
+            'intern' => 'Intern',
+            'internship' => 'Intern',
+            'volunteer' => 'Volunteer',
+        );
+
+        return $map[$compact] ?? $raw_type;
     }
 
     /**
