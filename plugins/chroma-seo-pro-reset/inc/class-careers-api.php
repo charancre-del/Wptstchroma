@@ -140,17 +140,64 @@ class Chroma_Careers_API
      */
     private static function parse_html_feed($body, $source_url)
     {
+        $jobs = array();
+
         if (!class_exists('DOMDocument')) {
-            return array();
+            return self::parse_job_cards_from_html($body, $source_url);
         }
 
-        $jobs = array();
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
         $dom->loadHTML($body);
         libxml_clear_errors();
 
         $xpath = new DOMXPath($dom);
+        $html_base_url = self::html_base_url($xpath, $source_url);
+
+        $card_nodes = $xpath->query("//a[contains(concat(' ', normalize-space(@class), ' '), ' job-card ')]");
+        foreach ($card_nodes as $node) {
+            $title_node = $xpath->query(".//h3", $node)->item(0);
+            $location_node = $xpath->query(".//*[contains(concat(' ', normalize-space(@class), ' '), ' loc ')]", $node)->item(0);
+            $pay_node = $xpath->query(".//*[contains(concat(' ', normalize-space(@class), ' '), ' pay ')]", $node)->item(0);
+            $perk_nodes = $xpath->query(".//*[contains(concat(' ', normalize-space(@class), ' '), ' perk ')]", $node);
+
+            if (!$title_node) {
+                continue;
+            }
+
+            $perks = array();
+            foreach ($perk_nodes as $perk_node) {
+                $perk = trim($perk_node->textContent);
+                if ($perk !== '') {
+                    $perks[] = $perk;
+                }
+            }
+
+            $title = trim($title_node->textContent);
+            $job_url = self::normalize_url($node->getAttribute('href'), $html_base_url);
+            $location = $location_node ? trim($location_node->textContent) : '';
+            $pay = $pay_node ? trim($pay_node->textContent) : '';
+            $type = self::first_matching_perk($perks, array('Full Time', 'Part Time', 'Contract', 'Temporary', 'Intern', 'Volunteer'));
+
+            if ($title === '' || $job_url === '') {
+                continue;
+            }
+
+            $jobs[] = array(
+                'title' => sanitize_text_field($title),
+                'location' => sanitize_text_field(trim($location, " \t\n\r\0\x0B,")),
+                'type' => sanitize_text_field($type ?: 'FULL_TIME'),
+                'url' => $job_url,
+                'description' => sanitize_text_field(trim(implode(' ', array_filter(array($title, $location, $pay, implode(', ', $perks)))))),
+            );
+        }
+
+        if (!empty($jobs)) {
+            return array_values(array_filter($jobs, function ($job) {
+                return !empty($job['title']) && !empty($job['url']);
+            }));
+        }
+
         $job_nodes = $xpath->query("//div[contains(@class, 'job')]");
 
         foreach ($job_nodes as $node) {
@@ -171,6 +218,102 @@ class Chroma_Careers_API
                 'location' => sanitize_text_field(trim($location, " \t\n\r\0\x0B,")),
                 'type' => 'FULL_TIME',
                 'url' => $job_url,
+            );
+        }
+
+        return array_values(array_filter($jobs, function ($job) {
+            return !empty($job['title']) && !empty($job['url']);
+        }));
+    }
+
+    /**
+     * Determine the base URL used by relative links in an HTML feed.
+     *
+     * @param DOMXPath $xpath      Parsed feed XPath.
+     * @param string   $source_url Feed endpoint URL.
+     * @return string
+     */
+    private static function html_base_url($xpath, $source_url)
+    {
+        $canonical = $xpath->query("//link[translate(@rel, 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz') = 'canonical']/@href")->item(0);
+        if ($canonical && trim($canonical->nodeValue) !== '') {
+            return trim($canonical->nodeValue);
+        }
+
+        $og_url = $xpath->query("//meta[@property = 'og:url']/@content")->item(0);
+        if ($og_url && trim($og_url->nodeValue) !== '') {
+            return trim($og_url->nodeValue);
+        }
+
+        return $source_url;
+    }
+
+    /**
+     * Pick a recognizable employment type from the feed's perk tags.
+     *
+     * @param array $perks      Perk strings.
+     * @param array $candidates Accepted labels.
+     * @return string
+     */
+    private static function first_matching_perk($perks, $candidates)
+    {
+        foreach ((array) $perks as $perk) {
+            foreach ($candidates as $candidate) {
+                if (strcasecmp((string) $perk, (string) $candidate) === 0) {
+                    return (string) $perk;
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Lightweight fallback for hosts without DOMDocument.
+     *
+     * @param string $body       Response body.
+     * @param string $source_url Feed URL.
+     * @return array
+     */
+    private static function parse_job_cards_from_html($body, $source_url)
+    {
+        $jobs = array();
+        if (!is_string($body) || $body === '') {
+            return $jobs;
+        }
+
+        if (preg_match('/<link[^>]+rel=["\']canonical["\'][^>]+href=["\']([^"\']+)["\']/i', $body, $base_match)) {
+            $source_url = html_entity_decode($base_match[1], ENT_QUOTES);
+        }
+
+        if (!preg_match_all('/<a\b([^>]*\bclass=["\'][^"\']*\bjob-card\b[^"\']*["\'][^>]*)>(.*?)<\/a>/is', $body, $matches, PREG_SET_ORDER)) {
+            return $jobs;
+        }
+
+        foreach ($matches as $match) {
+            if (!preg_match('/\bhref=["\']([^"\']+)["\']/i', $match[1], $href_match)) {
+                continue;
+            }
+
+            $card = $match[2];
+            $title = preg_match('/<h3[^>]*>(.*?)<\/h3>/is', $card, $title_match) ? trim(wp_strip_all_tags($title_match[1])) : '';
+            $location = preg_match('/<[^>]+class=["\'][^"\']*\bloc\b[^"\']*["\'][^>]*>(.*?)<\/[^>]+>/is', $card, $loc_match) ? trim(wp_strip_all_tags($loc_match[1])) : '';
+            $pay = preg_match('/<[^>]+class=["\'][^"\']*\bpay\b[^"\']*["\'][^>]*>(.*?)<\/[^>]+>/is', $card, $pay_match) ? trim(wp_strip_all_tags($pay_match[1])) : '';
+
+            preg_match_all('/<span[^>]+class=["\'][^"\']*\bperk\b[^"\']*["\'][^>]*>(.*?)<\/span>/is', $card, $perk_matches);
+            $perks = array_map('trim', array_map('wp_strip_all_tags', $perk_matches[1] ?? array()));
+            $type = self::first_matching_perk($perks, array('Full Time', 'Part Time', 'Contract', 'Temporary', 'Intern', 'Volunteer'));
+
+            if ($title === '') {
+                continue;
+            }
+
+            $jobs[] = array(
+                'title' => sanitize_text_field($title),
+                'location' => sanitize_text_field(trim($location, " \t\n\r\0\x0B,")),
+                'type' => sanitize_text_field($type ?: 'FULL_TIME'),
+                'url' => self::normalize_url(html_entity_decode($href_match[1], ENT_QUOTES), $source_url),
+                'description' => sanitize_text_field(trim(implode(' ', array_filter(array($title, $location, $pay, implode(', ', $perks)))))),
             );
         }
 
