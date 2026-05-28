@@ -148,6 +148,10 @@ class Field_Registry
             ],
             'scripts' => [
                 'storage' => 'theme_mod',
+                'script_fields' => [
+                    'chroma_header_scripts',
+                    'chroma_footer_scripts',
+                ],
                 'fields' => [
                     'chroma_header_scripts',
                     'chroma_footer_scripts',

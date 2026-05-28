@@ -355,6 +355,10 @@ class Route_Utils
             return self::sanitize_schema_document_for_storage($key, $value);
         }
 
+        if (self::is_global_script_theme_mod($key)) {
+            return self::sanitize_global_script_markup((string) $value);
+        }
+
         if (substr($key, -5) === '_json') {
             if (is_string($value)) {
                 $decoded = json_decode($value, true);
@@ -385,6 +389,38 @@ class Route_Utils
         }
 
         return sanitize_text_field((string) $value);
+    }
+
+    private static function is_global_script_theme_mod(string $key): bool
+    {
+        return in_array($key, [
+            'chroma_header_scripts',
+            'chroma_footer_scripts',
+        ], true);
+    }
+
+    private static function sanitize_global_script_markup(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+
+        $value = str_replace(["\0", '<?', '?>'], ['', '&lt;?', '?&gt;'], $value);
+
+        if (function_exists('chroma_strip_disallowed_customizer_markup')) {
+            $value = chroma_strip_disallowed_customizer_markup($value);
+        }
+
+        if (
+            stripos($value, '<script') === false
+            && stripos($value, '<noscript') === false
+            && stripos($value, '<') === false
+        ) {
+            return "<script>\n" . $value . "\n</script>";
+        }
+
+        return $value;
     }
 
     private static function is_schema_document_key(string $key): bool

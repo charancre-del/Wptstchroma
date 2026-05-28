@@ -270,6 +270,7 @@ if (is_admin() || is_customize_preview()) {
     require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
+    require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
 }
 
 /**
