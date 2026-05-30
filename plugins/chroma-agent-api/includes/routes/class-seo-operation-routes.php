@@ -1595,6 +1595,8 @@ class SEO_Operation_Routes
             $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'virtual_page_seo', $descriptor['snapshot_key'], $before, $after);
             if ($descriptor['type'] === 'combo' && class_exists('\Chroma_Combo_Page_Data')) {
                 \Chroma_Combo_Page_Data::save($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state'], $stored_updates);
+            } elseif (class_exists('\Chroma_Virtual_Page_SEO_Data')) {
+                \Chroma_Virtual_Page_SEO_Data::save_service_area($descriptor['type'], $descriptor['area_name'], $stored_updates);
             }
         }
 
@@ -1609,7 +1611,7 @@ class SEO_Operation_Routes
             'blocked_keys' => $blocked,
             'snapshot_ids' => $snapshot_ids,
             'diff' => $diff,
-            'data' => $dry_run ? $after : \Chroma_Combo_Page_Data::get($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state']),
+            'data' => $dry_run ? $after : self::read_virtual_page_data($descriptor),
         ]);
     }
 
