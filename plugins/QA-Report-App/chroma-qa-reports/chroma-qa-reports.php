@@ -24,7 +24,9 @@ if (!defined('ABSPATH')) {
 }
 
 // Plugin constants
-define('CQA_DEBUG', true);
+if (!defined('CQA_DEBUG')) {
+    define('CQA_DEBUG', defined('WP_DEBUG') && WP_DEBUG);
+}
 define('CQA_VERSION', '1.4.0');
 define('CQA_PLUGIN_FILE', __FILE__);
 define('CQA_PLUGIN_DIR', plugin_dir_path(__FILE__));

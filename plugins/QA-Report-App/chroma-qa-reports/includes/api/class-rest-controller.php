@@ -832,12 +832,16 @@ class REST_Controller
         $school->monday_default_person_id = \sanitize_text_field($request->get_param('monday_default_person_id'));
         $school->classroom_config = $request->get_param('classroom_config') ?: [];
 
-        error_log('REST_Controller: create_school - Data: ' . print_r($request->get_params(), true));
+        if (defined('CQA_DEBUG') && CQA_DEBUG) {
+            error_log('REST_Controller: create_school - Data: ' . print_r($this->sanitize_log_data($request->get_params()), true));
+        }
 
         $result = $school->save();
 
         if (!$result) {
-            error_log('REST_Controller: create_school - SAVE FAILED');
+            if (defined('CQA_DEBUG') && CQA_DEBUG) {
+                error_log('REST_Controller: create_school - SAVE FAILED');
+            }
             return new WP_Error('create_failed', \__('Failed to create school. Check error logs.', 'chroma-qa-reports'), ['status' => 500]);
         }
 
