@@ -197,7 +197,11 @@ class Chroma_School_API_Routes
         }
 
         // 1. Verify Token with Google
-        $response = wp_remote_get('https://oauth2.googleapis.com/tokeninfo?id_token=' . $id_token);
+        $tokeninfo_url = add_query_arg(
+            ['id_token' => rawurlencode((string) $id_token)],
+            'https://oauth2.googleapis.com/tokeninfo'
+        );
+        $response = wp_remote_get($tokeninfo_url, ['timeout' => 10]);
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             return new WP_Error('invalid_token', 'Google Token invalid', ['status' => 401]);
         }
@@ -356,10 +360,17 @@ class Chroma_School_API_Routes
     {
         $school_id = $request['id'];
         $params = $request->get_json_params();
+        if (!is_array($params)) {
+            return new WP_Error('invalid_payload', 'JSON object payload required.', ['status' => 400]);
+        }
 
-        // LOGGING
-        $log = sprintf("[%s] PATCH School %s. Payload keys: %s\n", date('Y-m-d H:i:s'), $school_id, implode(',', array_keys($params)));
-        file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', $log, FILE_APPEND);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $upload_dir = wp_upload_dir();
+            if (empty($upload_dir['error']) && !empty($upload_dir['basedir'])) {
+                $log = sprintf("[%s] PATCH School %s. Payload keys: %s\n", current_time('mysql'), $school_id, implode(',', array_map('sanitize_key', array_keys($params))));
+                file_put_contents(trailingslashit($upload_dir['basedir']) . 'portal-api.log', $log, FILE_APPEND);
+            }
+        }
 
         // Whitelisted fields to update
         $allowed_keys = [
