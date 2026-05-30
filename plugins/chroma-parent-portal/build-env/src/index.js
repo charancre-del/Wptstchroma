@@ -95,7 +95,7 @@ if (rootElement) {
         // Periodically pulse styles if it's still height 0
         const pulse = setInterval(() => {
             if (rootElement.offsetHeight === 0) {
-                console.warn("Portal Height still 0, pulsing styles...");
+                debugLog("Portal Height still 0, pulsing styles...");
                 forceStyles();
             } else {
                 clearInterval(pulse);
@@ -104,8 +104,19 @@ if (rootElement) {
 
     } catch (e) {
         console.error("Portal Mount Fatal Error:", e);
-        rootElement.innerHTML = '<div style="color:red; padding:40px; background:white; position:fixed; inset:0; z-index:999999;"><h1>Portal Mount Failed</h1><p>' + e.message + '</p></div>';
+        const errorPanel = document.createElement('div');
+        errorPanel.style.cssText = 'color:#263238; padding:40px; background:#fff; position:fixed; inset:0; z-index:999999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; text-align:center;';
+
+        const heading = document.createElement('h1');
+        heading.textContent = 'Portal Mount Failed';
+
+        const message = document.createElement('p');
+        message.textContent = e && e.message ? e.message : 'The portal could not start. Please refresh and try again.';
+
+        errorPanel.appendChild(heading);
+        errorPanel.appendChild(message);
+        rootElement.replaceChildren(errorPanel);
     }
 } else {
-    console.warn("Portal Root Not Found. Ensure [chroma_parent_portal] shortcode is present.");
+    debugLog("Portal Root Not Found. Ensure [chroma_parent_portal] shortcode is present.");
 }
