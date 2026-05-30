@@ -198,6 +198,25 @@ add_action('save_post', 'chroma_clear_query_cache');
 add_action('delete_post', 'chroma_clear_query_cache');
 add_action('trash_post', 'chroma_clear_query_cache');
 
+/**
+ * Keep the Careers page dynamic so external job-feed availability and
+ * JobPosting schema are not frozen by page caches.
+ */
+function chroma_disable_careers_page_cache()
+{
+    if (is_admin() || wp_doing_ajax() || wp_doing_cron() || !is_page('careers')) {
+        return;
+    }
+
+    if (!defined('DONOTCACHEPAGE')) {
+        define('DONOTCACHEPAGE', true);
+    }
+
+    nocache_headers();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+}
+add_action('template_redirect', 'chroma_disable_careers_page_cache', -1000);
+
 
 
 /**

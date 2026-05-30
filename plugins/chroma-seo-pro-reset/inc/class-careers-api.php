@@ -111,6 +111,7 @@ class Chroma_Careers_API
         }
 
         $urls[] = $primary_url;
+        $urls[] = self::default_feed_url();
         return array_values(array_unique($urls));
     }
 
