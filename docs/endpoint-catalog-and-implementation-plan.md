@@ -186,9 +186,7 @@ This document is generated from code in this repository (`c:\Users\chara\Documen
 | `/locations.kml` | `index.php?chroma_kml=1` | `plugins/chroma-seo-pro-reset/inc/endpoints/kml-endpoint.php:31` |
 
 ### 1.4 Legacy/Backup Endpoint Definitions Present in Repo
-These are not plugin runtime files but still contain endpoint registrations and can cause confusion if copied back:
-- `old_controller.php`
-- `temp_old_controller.php`
+No legacy backup endpoint files remain tracked outside the active plugins.
 
 ## 2) Entire Implementation Plan (Secure API-Key Access for IDE Agent)
 
@@ -375,4 +373,4 @@ These are not plugin runtime files but still contain endpoint registrations and 
 ## 2.11 Risks and Notes
 - Namespace collision risk in `chroma/v1` already exists; keep new API under `chroma-agent/v1`.
 - Duplicate route declaration for `/chroma/v1/citation-facts` exists in both SEO plugin directories; keep only one active plugin copy in production.
-- Backup files `old_controller.php` and `temp_old_controller.php` contain stale endpoint code; avoid loading these files.
+- Legacy backup endpoint files were removed from tracking so audit inventories only reflect active plugin code.
