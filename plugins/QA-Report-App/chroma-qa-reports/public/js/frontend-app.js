@@ -20,6 +20,12 @@
             return;
         }
 
+        const debugLog = function () {
+            if (cqaFrontend.debug && window.console && typeof window.console.debug === 'function') {
+                window.console.debug.apply(window.console, arguments);
+            }
+        };
+
         const CQA = {
             init: function () {
                 // Global events (Dashboard, Reports List, etc.)
@@ -793,7 +799,7 @@
             },
 
             handleFiles: function (files, sectionKey) {
-                console.log('Handling files', files, 'section:', sectionKey);
+                debugLog('Handling files', files, 'section:', sectionKey);
                 const self = this;
                 const $gallery = $('#cqa-photo-gallery');
                 const photoId = Date.now();
@@ -836,16 +842,16 @@
             },
 
             handleItemFiles: function (inputElement, files, sectionKey, itemKey) {
-                console.log('Processing item files', files.length);
+                debugLog('Processing item files', files.length);
                 const self = this;
                 const $container = $(inputElement).closest('.cqa-item-notes');
                 const photoId = Date.now();
 
                 Array.from(files).forEach((file, idx) => {
                     if (file.type.startsWith('image/')) {
-                        console.log('Compressing file:', file.name);
+                        debugLog('Compressing file:', file.name);
                         self.compressImage(file, function (compressedDataUrl) {
-                            console.log('Compression complete, adding preview');
+                            debugLog('Compression complete, adding preview');
                             const uniqueId = photoId + '_' + idx;
                             const inputName = `item_photos[${sectionKey}][${itemKey}][]`;
                             const captionName = `item_photos_captions[${sectionKey}][${itemKey}][]`;
@@ -871,7 +877,7 @@
             },
 
             handleSectionFiles: function (inputElement, files, sectionKey) {
-                console.log('Processing section files for:', sectionKey);
+                debugLog('Processing section files for:', sectionKey);
                 // Use the main handleFiles with section key
                 this.handleFiles(files, sectionKey);
 
@@ -1532,7 +1538,7 @@
                     $.getScript('https://apis.google.com/js/api.js', function () {
                         gapi.load('picker', {
                             'callback': function () {
-                                console.log('CQA: Picker API loaded');
+                                debugLog('CQA: Picker API loaded');
                             }
                         });
                     });

@@ -518,6 +518,7 @@ class Frontend_Controller
             wp_localize_script('cqa-frontend', 'cqaFrontend', [
                 'ajaxUrl' => admin_url('admin-ajax.php'),
                 'homeUrl' => home_url('/qa-reports/'),
+                'debug' => defined('CQA_DEBUG') ? CQA_DEBUG : false,
                 'strings' => ['loading' => 'Logging in...', 'error' => 'Login failed']
             ]);
             return;

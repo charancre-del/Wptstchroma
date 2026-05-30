@@ -4,7 +4,7 @@
     "description": "Build pipeline for Director Portal and TV Display",
     "private": true,
     "scripts": {
-        "build:js": "esbuild assets/src/portal.jsx --bundle --minify --sourcemap --outfile=assets/dist/portal.js --define:process.env.NODE_ENV=\\\"production\\\" --external:react --external:react-dom",
+        "build:js": "esbuild --bundle ./assets/src/portal.jsx --minify --sourcemap --outfile=assets/dist/portal.js --define:process.env.NODE_ENV=\\\"production\\\" --external:react --external:react-dom",
         "build:css": "tailwindcss -i assets/src/portal.css -o assets/dist/portal.css --minify",
         "build": "npm run build:js && npm run build:css",
         "watch": "npm run build:js -- --watch & npm run build:css -- --watch"

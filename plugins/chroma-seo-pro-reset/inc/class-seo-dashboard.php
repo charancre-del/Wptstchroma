@@ -1078,7 +1078,9 @@ class Chroma_SEO_Dashboard
                         nonce: chroma_nonce,
                         post_id: id
                     }, function (response) {
-                        console.log('Schema Inspector AJAX Response:', response);
+                        if (window.chromaSeoDebug) {
+                            console.debug('Schema Inspector AJAX Response:', response);
+                        }
                         $('#chroma-inspector-spinner').removeClass('is-active');
                         if (response && response.success) {
                             $('#chroma-inspector-content').html(response.data.html);
@@ -3635,7 +3637,9 @@ class Chroma_SEO_Dashboard
                 });
 
                 function log(msg) {
-                    console.log('[Bulk Validator] ' + msg);
+                    if (window.chromaSeoDebug) {
+                        console.debug('[Bulk Validator] ' + msg);
+                    }
                 }
             });
         </script>

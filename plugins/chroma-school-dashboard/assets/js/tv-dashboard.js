@@ -6,6 +6,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     const config = window.ChromaConfig || {};
     if (!config.slug) return; // Not configured
+    const debugLog = (...args) => {
+        if (config.debug && window.console && typeof window.console.debug === 'function') {
+            window.console.debug(...args);
+        }
+    };
 
     // State
     let slideImages = window.slideImages || [];
@@ -187,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const url = config.musicUrl.trim();
         let html = '';
-        console.log('[Audio] Attempting to init with URL:', url);
+        debugLog('[Audio] Attempting to init with URL:', url);
 
         if (url.includes('youtube.com') || url.includes('youtu.be')) {
             let id = '';
@@ -228,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const src = `${base}${id || ''}?${params.toString()}`;
-                console.log('[Audio] YouTube Embed SRC:', src);
+                debugLog('[Audio] YouTube Embed SRC:', src);
                 html = `<iframe src="${src}" allow="autoplay; encrypted-media"></iframe>`;
             }
         } else {
@@ -239,7 +244,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (html) {
             els.audio.innerHTML = html;
-            console.log('[Audio] Player injected into container.');
+            debugLog('[Audio] Player injected into container.');
         }
     }
 
@@ -248,7 +253,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const overlay = document.getElementById('audio-trigger-overlay');
     if (overlay) {
         overlay.addEventListener('click', () => {
-            console.log('[Dashboard] Interaction detected. Starting systems...');
+            debugLog('[Dashboard] Interaction detected. Starting systems...');
             overlay.style.opacity = '0';
             setTimeout(() => overlay.remove(), 500);
 
@@ -545,7 +550,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const incoming = activeLayer === 1 ? els.slide2 : els.slide1;
             const outgoing = activeLayer === 1 ? els.slide1 : els.slide2;
 
-            console.log('[Slideshow] Transitioning to:', nextSrc);
+            debugLog('[Slideshow] Transitioning to:', nextSrc);
 
             // Prepare incoming
             incoming.style.backgroundImage = `url("${nextSrc}")`;

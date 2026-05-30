@@ -5,6 +5,11 @@ import ErrorBoundary from './components/common/ErrorBoundary';
 import './styles/main.scss';
 
 const rootElement = document.getElementById('chroma-parent-portal-root');
+const debugLog = (...args) => {
+    if (window.chromaPortalSettings?.debug && window.console && typeof window.console.debug === 'function') {
+        window.console.debug(...args);
+    }
+};
 
 const PortalRoot = () => (
     <ErrorBoundary>
@@ -16,7 +21,7 @@ const PortalRoot = () => (
 
 if (rootElement) {
     try {
-        console.log("=== Chroma Parent Portal: Starting Mount ===");
+        debugLog("=== Chroma Parent Portal: Starting Mount ===");
 
         const forceStyles = () => {
             // 1. Fix the root element itself
@@ -74,12 +79,12 @@ if (rootElement) {
         const root = createRoot(rootElement);
         root.render(<PortalRoot />);
 
-        console.log("=== Chroma Parent Portal: Render Triggered ===");
+        debugLog("=== Chroma Parent Portal: Render Triggered ===");
 
         // Re-apply styles after a delay to override theme late-loads
         setTimeout(() => {
             forceStyles();
-            console.log("Post-Mount Diagnostic:", {
+            debugLog("Post-Mount Diagnostic:", {
                 rootHeight: rootElement.offsetHeight,
                 rootWidth: rootElement.offsetWidth,
                 children: rootElement.children.length,
