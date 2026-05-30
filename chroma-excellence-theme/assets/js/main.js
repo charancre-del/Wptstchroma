@@ -439,41 +439,50 @@
     // 1. Critical Nav (Immediate)
     initMobileNav();
 
+    const initializeLazyComponent = (el, type) => {
+      if (type === 'wizard') initProgramWizard(el);
+      if (type === 'chart') initCurriculumChart(el);
+      if (type === 'schedule') initSchedule(el);
+      if (type === 'reviews') initReviewsCarousel(el);
+      if (type === 'location-carousel') initLocationCarousel(el);
+      if (type === 'accordions') initAccordions(el);
+    };
+
     // 2. Setup Intersection Observer for Lazy Components
-    const lazyObserver = new IntersectionObserver((entries) => {
+    const lazyObserver = 'IntersectionObserver' in window ? new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           const el = entry.target;
-          const type = el.dataset.lazyComponent;
-
-          if (type === 'wizard') initProgramWizard(el);
-          if (type === 'chart') initCurriculumChart(el);
-          if (type === 'schedule') initSchedule(el);
-          if (type === 'reviews') initReviewsCarousel(el);
-          if (type === 'location-carousel') initLocationCarousel(el);
-          if (type === 'accordions') initAccordions(el);
-
+          initializeLazyComponent(el, el.dataset.lazyComponent);
           lazyObserver.unobserve(el);
         }
       });
-    });
+    }) : null;
+
+    const observeOrInitialize = (el, type) => {
+      el.dataset.lazyComponent = type;
+      if (lazyObserver) {
+        lazyObserver.observe(el);
+        return;
+      }
+      initializeLazyComponent(el, type);
+    };
 
     // Identify and Observe components
-    document.querySelectorAll('[data-program-wizard]').forEach(el => { el.dataset.lazyComponent = 'wizard'; lazyObserver.observe(el); });
+    document.querySelectorAll('[data-program-wizard]').forEach(el => observeOrInitialize(el, 'wizard'));
 
     // Fix: Observe the parent container for the chart so initCurriculumChart can find siblings
     document.querySelectorAll('[data-curriculum-chart]').forEach(el => {
       const container = el.closest('section') || el.closest('.grid') || el.parentElement;
       if (container) {
-        container.dataset.lazyComponent = 'chart';
-        lazyObserver.observe(container);
+        observeOrInitialize(container, 'chart');
       }
     });
 
     document.querySelectorAll('[data-schedule]').forEach(initSchedule);
-    document.querySelectorAll('[data-reviews-carousel]').forEach(el => { el.dataset.lazyComponent = 'reviews'; lazyObserver.observe(el); });
-    document.querySelectorAll('[data-location-carousel]').forEach(el => { el.dataset.lazyComponent = 'location-carousel'; lazyObserver.observe(el); });
-    document.querySelectorAll('[data-accordion-group]').forEach(el => { el.dataset.lazyComponent = 'accordions'; lazyObserver.observe(el); });
+    document.querySelectorAll('[data-reviews-carousel]').forEach(el => observeOrInitialize(el, 'reviews'));
+    document.querySelectorAll('[data-location-carousel]').forEach(el => observeOrInitialize(el, 'location-carousel'));
+    document.querySelectorAll('[data-accordion-group]').forEach(el => observeOrInitialize(el, 'accordions'));
 
     // 3. Idle-load non-critical features
     runIdle(() => {
@@ -502,6 +511,11 @@
       });
 
       // Reveal Color Animation (already observer based in logic)
+      if (!('IntersectionObserver' in window)) {
+        document.querySelectorAll('[data-reveal-color]').forEach(img => img.classList.remove('grayscale'));
+        return;
+      }
+
       const revealObserver = new IntersectionObserver(entries => {
         entries.forEach(entry => {
           if (entry.isIntersecting) {

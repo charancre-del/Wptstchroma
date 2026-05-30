@@ -31,6 +31,11 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.appendChild(script);
     };
 
+    if (!('IntersectionObserver' in window)) {
+        loadMapAssets();
+        return;
+    }
+
     // Intersection Observer
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
