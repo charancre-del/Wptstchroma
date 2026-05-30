@@ -68,6 +68,45 @@ function chroma_maybe_flush_program_rewrites_admin()
 add_action('admin_init', 'chroma_maybe_flush_program_rewrites_admin', 20);
 
 /**
+ * Preserve legacy Kindergarten program URLs when WordPress has a duplicate slug.
+ *
+ * If a page or previously-created post reserved "kindergarten", WordPress keeps
+ * the actual program at "kindergarten-1". Without this explicit alias, core
+ * canonical guessing can send /programs/kindergarten/ to GA Pre-K.
+ */
+function chroma_redirect_legacy_kindergarten_program_slug()
+{
+	if (is_admin() || wp_doing_ajax() || wp_doing_cron()) {
+		return;
+	}
+
+	$method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
+	if (!in_array($method, array('GET', 'HEAD'), true)) {
+		return;
+	}
+
+	$request_path = trim((string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), '/');
+	$base_slug = function_exists('chroma_get_program_base_slug') ? chroma_get_program_base_slug() : 'programs';
+
+	if ($request_path !== trim($base_slug . '/kindergarten', '/')) {
+		return;
+	}
+
+	if (get_page_by_path('kindergarten', OBJECT, 'program')) {
+		return;
+	}
+
+	$program = get_page_by_path('kindergarten-1', OBJECT, 'program');
+	if (!$program || strcasecmp((string) get_the_title($program), 'Kindergarten') !== 0) {
+		return;
+	}
+
+	wp_safe_redirect(get_permalink($program), 301);
+	exit;
+}
+add_action('template_redirect', 'chroma_redirect_legacy_kindergarten_program_slug', 1);
+
+/**
  * Register Program-Location Relationship Taxonomy
  * Optimized for high-performance relationship queries vs REGEXP meta queries
  */

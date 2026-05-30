@@ -282,19 +282,33 @@
    * Component: Schedule Tabs
    */
   const initSchedule = (schedule) => {
+    if (schedule.dataset.scheduleInitialized === 'true') {
+      return;
+    }
+    schedule.dataset.scheduleInitialized = 'true';
+
     readJSONPayload(schedule, '[data-schedule-tracks]', 'data-tracks', []);
     const panels = schedule.querySelectorAll('[data-schedule-panel]');
     const tabs = schedule.querySelectorAll('[data-schedule-tab]');
     const defaultKey = tabs[0] ? tabs[0].getAttribute('data-schedule-tab') : '';
+    const activeTabClasses = ['bg-chroma-blue', 'text-white', 'shadow-soft'];
+    const inactiveTabClasses = ['text-gray-900', 'hover:text-chroma-blue'];
+    const activeStepClasses = ['bg-brand-ink', 'text-white', 'shadow-md', 'scale-105'];
+    const inactiveStepClasses = ['bg-white', 'text-brand-ink', 'hover:text-brand-ink', 'hover:bg-white/80'];
+
+    const resetClasses = (el, classes) => {
+      classes.forEach(className => el.classList.remove(className));
+    };
+
+    const applyClasses = (el, classes) => {
+      classes.forEach(className => el.classList.add(className));
+    };
 
     const activate = (key) => {
       tabs.forEach(btn => {
         const isActive = btn.getAttribute('data-schedule-tab') === key;
-        btn.classList.toggle('bg-chroma-blue', isActive);
-        btn.classList.toggle('text-white', isActive);
-        btn.classList.toggle('shadow-soft', isActive);
-        btn.classList.toggle('text-brand-ink/60', !isActive);
-        btn.classList.toggle('hover:text-chroma-blue', !isActive);
+        resetClasses(btn, [...activeTabClasses, ...inactiveTabClasses, 'text-brand-ink/60']);
+        applyClasses(btn, isActive ? activeTabClasses : inactiveTabClasses);
         btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       });
 
@@ -312,11 +326,11 @@
         const panel = this.closest('[data-schedule-panel]');
         if (!panel) return;
         panel.querySelectorAll('[data-schedule-step-trigger]').forEach(t => {
-          t.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
-          t.classList.add('bg-white', 'text-brand-ink/70', 'hover:text-brand-ink', 'hover:bg-white/80');
+          resetClasses(t, [...activeStepClasses, ...inactiveStepClasses, 'transform', 'text-brand-ink/70', 'text-brand-ink/80']);
+          applyClasses(t, inactiveStepClasses);
         });
-        this.classList.remove('bg-white', 'text-brand-ink/70', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
-        this.classList.add('bg-brand-ink', 'text-white', 'shadow-md', 'scale-105');
+        resetClasses(this, [...inactiveStepClasses, 'text-brand-ink/70', 'text-brand-ink/80']);
+        applyClasses(this, activeStepClasses);
         const contentTitle = panel.querySelector('[data-content-title]');
         const contentCopy = panel.querySelector('[data-content-copy]');
         if (contentTitle) contentTitle.textContent = this.getAttribute('data-title');
@@ -456,7 +470,7 @@
       }
     });
 
-    document.querySelectorAll('[data-schedule]').forEach(el => { el.dataset.lazyComponent = 'schedule'; lazyObserver.observe(el); });
+    document.querySelectorAll('[data-schedule]').forEach(initSchedule);
     document.querySelectorAll('[data-reviews-carousel]').forEach(el => { el.dataset.lazyComponent = 'reviews'; lazyObserver.observe(el); });
     document.querySelectorAll('[data-location-carousel]').forEach(el => { el.dataset.lazyComponent = 'location-carousel'; lazyObserver.observe(el); });
     document.querySelectorAll('[data-accordion-group]').forEach(el => { el.dataset.lazyComponent = 'accordions'; lazyObserver.observe(el); });
