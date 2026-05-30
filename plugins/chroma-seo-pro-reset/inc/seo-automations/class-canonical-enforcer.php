@@ -42,6 +42,8 @@ class Chroma_Canonical_Enforcer
         add_action('wp_head', [$this, 'output_canonical'], 1);
         add_filter('wp_robots', [$this, 'filter_404_robots'], 20);
         add_filter('wpseo_robots', [$this, 'filter_404_wpseo_robots'], 20);
+        add_filter('wpseo_canonical', [$this, 'filter_wpseo_empty_canonical'], 20);
+        add_filter('wpseo_opengraph_url', [$this, 'filter_wpseo_empty_canonical'], 20);
         add_filter('redirect_canonical', [$this, 'preserve_program_permalink_requests'], 1, 2);
         add_filter('old_slug_redirect_url', [$this, 'resolve_program_old_slug_redirect'], 10, 1);
 
@@ -418,6 +420,30 @@ class Chroma_Canonical_Enforcer
             $this->canonical_rendered = true;
             do_action('chroma_canonical_output_done', $canonical);
         }
+    }
+
+    /**
+     * Fill Yoast canonical gaps without overriding explicit Yoast or virtual-route canonicals.
+     *
+     * @param string $canonical Current Yoast canonical/OpenGraph URL.
+     * @return string
+     */
+    public function filter_wpseo_empty_canonical($canonical)
+    {
+        if (!empty($canonical)) {
+            return $canonical;
+        }
+
+        if (!get_option('chroma_seo_enable_canonical', true)) {
+            return $canonical;
+        }
+
+        if ($this->is_qa_route_request() || $this->is_sitemap_request() || is_404()) {
+            return $canonical;
+        }
+
+        $fallback = $this->get_canonical_url();
+        return !empty($fallback) ? $fallback : $canonical;
     }
 
     /**
