@@ -2440,7 +2440,7 @@ class REST_Controller
                     'name' => 'Create Report',
                     'short_name' => 'New Report',
                     'url' => admin_url('admin.php?page=chroma-qa-reports-create'),
-                    'icons' => [['src' => $plugin_url . 'assets/images/icon-new.png', 'sizes' => '96x96']]
+                    'icons' => [['src' => $plugin_url . 'assets/images/icon-96.png', 'sizes' => '96x96']]
                 ],
                 [
                     'name' => 'View Schools',

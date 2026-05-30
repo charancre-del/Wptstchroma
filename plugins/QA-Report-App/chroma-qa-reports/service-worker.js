@@ -123,9 +123,16 @@ async function networkFirst(request) {
             return cached;
         }
 
-        // Return offline page for HTML requests
-        if (request.headers.get('accept').includes('text/html')) {
-            return caches.match('/wp-content/plugins/chroma-qa-reports/offline.html');
+        // Return a self-contained offline page for HTML requests.
+        const acceptHeader = request.headers.get('accept') || '';
+        if (acceptHeader.includes('text/html')) {
+            return new Response(
+                '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QA Reports Offline</title></head><body><main style="font-family:system-ui,sans-serif;max-width:36rem;margin:4rem auto;padding:0 1.5rem;line-height:1.5"><h1>QA Reports is offline</h1><p>Please check your connection and try again.</p></main></body></html>',
+                {
+                    status: 503,
+                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                }
+            );
         }
 
         return new Response('Offline', { status: 503 });

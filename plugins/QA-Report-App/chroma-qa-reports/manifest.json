@@ -54,14 +54,6 @@
         "business",
         "productivity"
     ],
-    "screenshots": [
-        {
-            "src": "assets/images/screenshot-dashboard.png",
-            "sizes": "1280x720",
-            "type": "image/png",
-            "label": "QA Reports Dashboard"
-        }
-    ],
     "shortcuts": [
         {
             "name": "Create Report",
@@ -70,7 +62,7 @@
             "url": "/wp-admin/admin.php?page=chroma-qa-reports-create",
             "icons": [
                 {
-                    "src": "assets/images/icon-new.png",
+                    "src": "assets/images/icon-96.png",
                     "sizes": "96x96"
                 }
             ]
