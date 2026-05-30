@@ -7,7 +7,7 @@ import { saveLocalDraft } from '@utils/db';
 const AUTOSAVE_INTERVAL = 30000; // 30 seconds
 
 const useAutoSave = ( draft, isDirty, onServerSaveSuccess = null ) => {
-    const { showConflictModal, addToast } = useUIStore();
+    const { showConflictModal } = useUIStore();
     const [ lastSaved, setLastSaved ] = useState( null );
     const [ isSaving, setIsSaving ] = useState( false );
     const [ saveError, setSaveError ] = useState( null );
@@ -131,7 +131,7 @@ const useAutoSave = ( draft, isDirty, onServerSaveSuccess = null ) => {
         } finally {
             setIsSaving( false );
         }
-    }, [ addToast, buildAutosaveDraft, onServerSaveSuccess, showConflictModal, syncServerDraftMeta ] );
+    }, [ buildAutosaveDraft, onServerSaveSuccess, showConflictModal, syncServerDraftMeta ] );
 
     useEffect( () => {
         const interval = setInterval( performSave, AUTOSAVE_INTERVAL );

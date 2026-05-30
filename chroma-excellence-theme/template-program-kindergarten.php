@@ -364,19 +364,23 @@ while (have_posts()):
 	</section>
 
 	<script>
-		document.addEventListener('DOMContentLoaded', function () {
+		(function () {
+			const initKinderProgramChart = function () {
 			const chartCanvas = document.getElementById('kinderProgramChart');
 
 			if (!chartCanvas) {
 				return;
 			}
 
+			let chartInstance = null;
+			let chartLoading = false;
+
 			const createChart = function () {
-				if (typeof Chart === 'undefined') {
+				if (typeof window.Chart === 'undefined' || chartInstance) {
 					return;
 				}
 
-				new Chart(chartCanvas, {
+				chartInstance = new Chart(chartCanvas, {
 					type: 'radar',
 					data: {
 						labels: [
@@ -434,16 +438,38 @@ while (have_posts()):
 			};
 
 			const loadChartLibrary = function () {
-				if (typeof Chart !== 'undefined') {
+				if (typeof window.Chart !== 'undefined') {
 					createChart();
 					return;
 				}
 
+				const existingScript = document.querySelector('script[data-chroma-chartjs]');
+				if (existingScript) {
+					existingScript.addEventListener('load', createChart, { once: true });
+					return;
+				}
+
+				if (chartLoading) {
+					return;
+				}
+
+				chartLoading = true;
 				const script = document.createElement('script');
 				script.src = '<?php echo esc_url(get_template_directory_uri() . '/assets/js/chart.min.js'); ?>';
 				script.async = true;
+				script.defer = true;
+				script.dataset.chromaChartjs = 'true';
 				script.onload = createChart;
 				document.body.appendChild(script);
+			};
+
+			const loadChartWhenIdle = function () {
+				if ('requestIdleCallback' in window) {
+					window.requestIdleCallback(loadChartLibrary, { timeout: 1800 });
+					return;
+				}
+
+				window.setTimeout(loadChartLibrary, 1200);
 			};
 
 			if ('IntersectionObserver' in window) {
@@ -459,11 +485,19 @@ while (have_posts()):
 				}, { rootMargin: '100px 0px' });
 
 				observer.observe(chartCanvas);
+				loadChartWhenIdle();
 				return;
 			}
 
 			loadChartLibrary();
-		});
+			};
+
+			if (document.readyState === 'loading') {
+				document.addEventListener('DOMContentLoaded', initKinderProgramChart, { once: true });
+			} else {
+				initKinderProgramChart();
+			}
+		})();
 	</script>
 
 <?php endwhile; ?>

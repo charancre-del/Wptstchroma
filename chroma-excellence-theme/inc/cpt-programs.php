@@ -104,7 +104,7 @@ function chroma_redirect_legacy_kindergarten_program_slug()
 	wp_safe_redirect(get_permalink($program), 301);
 	exit;
 }
-add_action('template_redirect', 'chroma_redirect_legacy_kindergarten_program_slug', 1);
+add_action('template_redirect', 'chroma_redirect_legacy_kindergarten_program_slug', -1000);
 
 /**
  * Register Program-Location Relationship Taxonomy
