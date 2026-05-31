@@ -37,7 +37,11 @@ class Chroma_Course_Builder
             return;
         }
 
-        $description = get_the_excerpt($post_id) ?: wp_trim_words(get_the_content(), 55);
+        if (function_exists('chroma_schema_clean_program_description_pro')) {
+            $description = chroma_schema_clean_program_description_pro($post_id, get_post_meta($post_id, 'schema_prog_description', true));
+        } else {
+            $description = get_the_excerpt($post_id) ?: wp_trim_words(wp_strip_all_tags(strip_shortcodes(get_post_field('post_content', $post_id))), 35);
+        }
         
         // Course Schema (Parent)
         $course_schema = [

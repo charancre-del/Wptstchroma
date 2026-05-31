@@ -688,10 +688,14 @@ class Chroma_Schema_Injector
             case 'program':
                 // Service schema for programs
                 $program_name = get_the_title($post_id);
-                $program_desc = get_post_field('post_excerpt', $post_id);
-                if (empty($program_desc)) {
-                    $content = get_post_field('post_content', $post_id);
-                    $program_desc = wp_trim_words(strip_shortcodes($content), 55);
+                if (function_exists('chroma_schema_clean_program_description_pro')) {
+                    $program_desc = chroma_schema_clean_program_description_pro($post_id, get_post_meta($post_id, 'schema_prog_description', true));
+                } else {
+                    $program_desc = get_post_field('post_excerpt', $post_id);
+                    if (empty($program_desc)) {
+                        $content = get_post_field('post_content', $post_id);
+                        $program_desc = wp_trim_words(wp_strip_all_tags(strip_shortcodes($content)), 35);
+                    }
                 }
                 $age_range = get_post_meta($post_id, 'program_age_range', true);
 

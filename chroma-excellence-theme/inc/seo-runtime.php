@@ -32,6 +32,18 @@ if (!function_exists('chroma_get_otto_detection_signals')) {
             }
         }
 
+        foreach ((array) get_option('active_plugins', []) as $plugin_file) {
+            if (is_string($plugin_file) && preg_match('/searchatlas|otto/i', $plugin_file)) {
+                $signals['active_plugin:' . $plugin_file] = true;
+            }
+        }
+
+        foreach (array_keys((array) get_site_option('active_sitewide_plugins', [])) as $plugin_file) {
+            if (is_string($plugin_file) && preg_match('/searchatlas|otto/i', $plugin_file)) {
+                $signals['network_plugin:' . $plugin_file] = true;
+            }
+        }
+
         $option_candidates = [
             'searchatlas_api_key',
             'searchatlas_api_token',

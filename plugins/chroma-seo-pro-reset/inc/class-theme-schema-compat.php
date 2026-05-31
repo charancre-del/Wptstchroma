@@ -107,6 +107,56 @@ function chroma_get_schema_val($post_id, $es_meta_key, $en_val) {
     return $en_val;
 }
 
+if (!function_exists('chroma_schema_clean_program_description_pro')) {
+    /**
+     * Build a plain-text program schema description without injected internal-link copy.
+     *
+     * Program content can receive combo-page "Find [Program] Near You" links via
+     * content filters. Schema descriptions need the educational summary, not that
+     * navigational block.
+     *
+     * @param int $post_id Program post ID.
+     * @param mixed $candidate Preferred candidate text.
+     * @return string
+     */
+    function chroma_schema_clean_program_description_pro($post_id, $candidate = '') {
+        $values = [
+            $candidate,
+            get_post_meta($post_id, 'program_meta_description', true),
+            get_post_meta($post_id, 'program_short_description', true),
+            get_post_meta($post_id, 'program_hero_description', true),
+            get_post_meta($post_id, 'schema_prog_description', true),
+            get_post_field('post_excerpt', $post_id),
+            get_post_field('post_content', $post_id),
+        ];
+
+        $charset = get_bloginfo('charset') ?: 'UTF-8';
+
+        foreach ($values as $value) {
+            $text = wp_strip_all_tags(strip_shortcodes((string) $value));
+            for ($i = 0; $i < 3; $i++) {
+                $decoded = html_entity_decode(wp_specialchars_decode($text, ENT_QUOTES), ENT_QUOTES | ENT_HTML5, $charset);
+                if ($decoded === $text) {
+                    break;
+                }
+                $text = $decoded;
+            }
+
+            $text = preg_replace('/\x{00a0}/u', ' ', $text);
+            $text = preg_replace('/\s*Find\s+[^.?!\r\n]*?\s+Near\s+You[^\s.?!\r\n]*.*$/iu', '', $text);
+            $text = preg_replace('/\s*(?:&bull;|\x{2022}|\x{00e2}\x{20ac}\x{00a2})\s*[^.?!\r\n]*$/iu', '', $text);
+            $text = trim(preg_replace('/\s+/u', ' ', (string) $text));
+
+            if ($text !== '') {
+                return wp_trim_words($text, 35, '...');
+            }
+        }
+
+        $title = get_the_title($post_id);
+        return $title ? sprintf(__('%s program at Chroma Early Learning Academy.', 'chroma-excellence'), $title) : '';
+    }
+}
+
 if (!function_exists('chroma_post_has_stored_schema_type_pro')) {
     function chroma_post_has_stored_schema_type_pro($post_id, array $types) {
         if (!function_exists('chroma_schema_store_has_any_type')) {
@@ -496,7 +546,7 @@ function chroma_program_schema_pro()
     $en_name = get_post_meta($program_id, 'schema_prog_name', true) ?: get_the_title();
     $name = chroma_get_schema_val($program_id, '_chroma_es_title', $en_name);
 
-    $en_desc = get_post_meta($program_id, 'schema_prog_description', true) ?: get_the_excerpt();
+    $en_desc = chroma_schema_clean_program_description_pro($program_id, get_post_meta($program_id, 'schema_prog_description', true));
     $description = chroma_get_schema_val($program_id, '_chroma_es_excerpt', $en_desc);
 
     $service_type = get_post_meta($program_id, 'schema_prog_service_type', true) ?: 'Early Childhood Education';
