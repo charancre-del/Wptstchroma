@@ -56,7 +56,10 @@ document.addEventListener('DOMContentLoaded', function () {
     async function initPdfViewer(pdfUrl, container, qrSrc, title) {
         try {
             // Load PDF
-            pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+            pdfDoc = await pdfjsLib.getDocument({
+                url: pdfUrl,
+                isEvalSupported: false,
+            }).promise;
             pdfTotalPages = pdfDoc.numPages;
             pdfPageNum = 1;
 
