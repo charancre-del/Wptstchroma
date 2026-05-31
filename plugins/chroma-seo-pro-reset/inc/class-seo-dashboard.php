@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Advanced SEO/LLM Dashboard
  * Provides a centralized view of all SEO data
