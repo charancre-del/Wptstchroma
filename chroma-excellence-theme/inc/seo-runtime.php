@@ -220,6 +220,10 @@ if (!function_exists('chroma_should_use_local_seo_fallback')) {
 
         $use_fallback = $route_key !== '' && in_array($route_key, $fallback_routes, true);
 
+        if (!$use_fallback && is_post_type_archive(['location', 'program', 'city'])) {
+            $use_fallback = true;
+        }
+
         /**
          * Filter whether local SEO tags should remain active while an external
          * SEO runtime is detected.
