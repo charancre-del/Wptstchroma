@@ -6,7 +6,6 @@ import LessonPlanSection from './LessonPlanSection';
 import MealPlansSection from './MealPlansSection';
 import PDFCard from '../common/PDFCard';
 import UploadModal from '../common/UploadModal';
-import PDFViewerModal from '../common/PDFViewerModal';
 
 const DashboardGrid = ({ data, refreshData, onDocumentClick, onTabChange }) => {
     const { user } = useAuth();
