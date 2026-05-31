@@ -499,6 +499,7 @@ class Portal_Routes
     private static function meta_from_payload(array $payload): array
     {
         $meta = isset($payload['meta']) && is_array($payload['meta']) ? $payload['meta'] : [];
+        unset($meta['_cp_pin_hash'], $meta['_cp_pin_simple_hash']);
 
         foreach ([
             'file_id' => '_cp_pdf_file_id',

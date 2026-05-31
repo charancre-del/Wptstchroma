@@ -233,14 +233,14 @@ class Discovery_Routes
             self::route_entry('GET', '/leads/{id}', ['read:leads'], [], []),
             self::route_entry('POST', '/leads/{id}/retry-webhook', ['write:leads'], ['dry_run'], []),
 
-            self::route_entry('GET,POST', '/portal/content', ['read:portal', 'write:portal'], ['post_type', 'title', 'content', 'status', 'meta', 'terms'], ['_cp_pin_hash']),
-            self::route_entry('GET,PATCH,POST,DELETE', '/portal/content/{id}', ['read:portal', 'write:portal'], ['title', 'content', 'status', 'meta', 'terms'], ['_cp_pin_hash']),
+            self::route_entry('GET,POST', '/portal/content', ['read:portal', 'write:portal'], ['post_type', 'title', 'content', 'status', 'meta', 'terms'], ['_cp_pin_hash', '_cp_pin_simple_hash']),
+            self::route_entry('GET,PATCH,POST,DELETE', '/portal/content/{id}', ['read:portal', 'write:portal'], ['title', 'content', 'status', 'meta', 'terms'], ['_cp_pin_hash', '_cp_pin_simple_hash']),
             self::route_entry('GET', '/portal/taxonomies', ['read:portal'], [], []),
             self::route_entry('GET', '/portal/dashboard', ['read:portal'], [], []),
             self::route_entry('GET', '/portal/years', ['read:portal'], [], []),
             self::route_entry('GET', '/portal/taxonomies/{taxonomy}', ['read:portal'], [], []),
             self::route_entry('GET,POST', '/portal/bulk-import', ['read:portal', 'write:portal'], ['operation', 'payload', 'dry_run'], []),
-            self::route_entry('POST', '/portal/families/{id}/pin', ['write:portal'], ['pin', 'reset'], ['_cp_pin_hash']),
+            self::route_entry('POST', '/portal/families/{id}/pin', ['write:portal'], ['pin', 'reset'], ['_cp_pin_hash', '_cp_pin_simple_hash']),
 
             self::route_entry('GET', '/schools', ['read:schools'], [], []),
             self::route_entry('GET,PATCH,POST', '/schools/{id}', ['read:schools', 'write:schools'], ['title', 'slug', 'status', 'config'], []),
