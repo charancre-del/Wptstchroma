@@ -377,6 +377,31 @@ function chroma_shared_meta_description() {
 }
 add_action('wp_head', 'chroma_shared_meta_description', 2);
 
+/**
+ * Output a canonical link for local fallback SEO routes.
+ */
+function chroma_shared_fallback_canonical_link() {
+    if (is_admin() || is_404() || is_search() || is_feed() || is_robots() || is_trackback()) {
+        return;
+    }
+
+    if (!function_exists('chroma_should_use_local_seo_fallback') || !chroma_should_use_local_seo_fallback()) {
+        return;
+    }
+
+    static $rendered = false;
+    if ($rendered) {
+        return;
+    }
+
+    $url = chroma_get_context_canonical_url();
+    if ($url !== '') {
+        echo '<link rel="canonical" href="' . esc_url($url) . '">' . "\n";
+        $rendered = true;
+    }
+}
+add_action('wp_head', 'chroma_shared_fallback_canonical_link', 3);
+
 if (!function_exists('chroma_is_spanish_context')) {
     function chroma_is_spanish_context() {
         return class_exists('Chroma_Multilingual_Manager')

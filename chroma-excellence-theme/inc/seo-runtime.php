@@ -26,20 +26,20 @@ if (!function_exists('chroma_get_otto_detection_signals')) {
         ];
 
         foreach ($script_candidates as $candidate) {
-            if ($candidate !== '' && preg_match('/searchatlas|sa\.searchatlas\.com|otto(?:-pixel)?|data-otto/i', $candidate)) {
+            if ($candidate !== '' && preg_match('/searchatlas|sa\.searchatlas\.com|metasync|otto(?:-pixel)?|data-(?:metasync-)?otto/i', $candidate)) {
                 $signals['customizer_scripts'] = true;
                 break;
             }
         }
 
         foreach ((array) get_option('active_plugins', []) as $plugin_file) {
-            if (is_string($plugin_file) && preg_match('/searchatlas|otto/i', $plugin_file)) {
+            if (is_string($plugin_file) && preg_match('/searchatlas|metasync|otto/i', $plugin_file)) {
                 $signals['active_plugin:' . $plugin_file] = true;
             }
         }
 
         foreach (array_keys((array) get_site_option('active_sitewide_plugins', [])) as $plugin_file) {
-            if (is_string($plugin_file) && preg_match('/searchatlas|otto/i', $plugin_file)) {
+            if (is_string($plugin_file) && preg_match('/searchatlas|metasync|otto/i', $plugin_file)) {
                 $signals['network_plugin:' . $plugin_file] = true;
             }
         }
@@ -53,6 +53,9 @@ if (!function_exists('chroma_get_otto_detection_signals')) {
             'searchatlas_otto_pixel_uuid',
             'otto_pixel_uuid',
             'otto_uuid',
+            'metasync_options',
+            'metasync_api_key',
+            'metasync_otto_enabled',
         ];
 
         foreach ($option_candidates as $option_name) {
@@ -67,6 +70,7 @@ if (!function_exists('chroma_get_otto_detection_signals')) {
         $constants = [
             'SEARCHATLAS_VERSION',
             'SEARCHATLAS_PLUGIN_VERSION',
+            'METASYNC_VERSION',
             'OTTO_PIXEL_UUID',
         ];
 
@@ -81,6 +85,8 @@ if (!function_exists('chroma_get_otto_detection_signals')) {
             'SearchAtlasPlugin',
             'SearchAtlas_Plugin',
             'SearchAtlas_WordPress',
+            'MetaSync',
+            'MetaSync_Plugin',
         ];
 
         foreach ($classes as $class_name) {
@@ -134,11 +140,25 @@ if (!function_exists('chroma_get_seo_runtime_mode')) {
      */
     function chroma_get_seo_runtime_mode()
     {
-        $default_mode = chroma_detect_otto_runtime() ? 'otto_compatible' : 'local';
+        $detected_runtime = chroma_detect_otto_runtime();
+        $default_mode = $detected_runtime ? 'otto_compatible' : 'local';
         $stored_mode = get_option('chroma_seo_runtime_mode', $default_mode);
 
         if (!is_string($stored_mode) || !in_array($stored_mode, ['local', 'otto_compatible'], true)) {
             $stored_mode = $default_mode;
+        }
+
+        if ($detected_runtime && $stored_mode === 'local') {
+            $override_detected_runtime = (bool) apply_filters(
+                'chroma_seo_runtime_detected_mode_overrides_stored',
+                true,
+                $stored_mode,
+                $default_mode
+            );
+
+            if ($override_detected_runtime) {
+                $stored_mode = 'otto_compatible';
+            }
         }
 
         /**
@@ -167,6 +187,10 @@ if (!function_exists('chroma_is_otto_compatible_seo_mode')) {
     {
         $enabled = chroma_get_seo_runtime_mode() === 'otto_compatible';
 
+        if ($enabled && function_exists('chroma_should_use_local_seo_fallback') && chroma_should_use_local_seo_fallback()) {
+            $enabled = false;
+        }
+
         /**
          * Filter OTTO-compatible mode for the current request.
          *
@@ -174,5 +198,35 @@ if (!function_exists('chroma_is_otto_compatible_seo_mode')) {
          * @param string $mode
          */
         return (bool) apply_filters('chroma_is_otto_compatible_seo_mode', $enabled, chroma_get_seo_runtime_mode());
+    }
+}
+
+if (!function_exists('chroma_should_use_local_seo_fallback')) {
+    /**
+     * Keep local SEO output for routes that the external SEO runtime does not
+     * currently populate. This avoids global duplicate tags while preserving
+     * editable/fallback SEO for key custom theme routes.
+     *
+     * @return bool
+     */
+    function chroma_should_use_local_seo_fallback()
+    {
+        if (is_admin() || is_feed() || is_robots() || is_404() || is_search()) {
+            return false;
+        }
+
+        $fallback_routes = ['programs'];
+        $route_key = function_exists('chroma_seo_get_static_route_key') ? chroma_seo_get_static_route_key() : '';
+
+        $use_fallback = $route_key !== '' && in_array($route_key, $fallback_routes, true);
+
+        /**
+         * Filter whether local SEO tags should remain active while an external
+         * SEO runtime is detected.
+         *
+         * @param bool   $use_fallback
+         * @param string $route_key
+         */
+        return (bool) apply_filters('chroma_should_use_local_seo_fallback', $use_fallback, $route_key);
     }
 }

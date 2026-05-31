@@ -209,6 +209,16 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
                     'meta_description' => 'Encuentra recursos para padres, información de inscripción, detalles de matrícula y apoyo familiar de Chroma Early Learning Academy.',
                 ],
             ],
+            'programs' => [
+                'en' => [
+                    'title' => 'Programs | Chroma Early Learning Academy',
+                    'meta_description' => 'Explore Chroma early learning programs for every age, from infant care and toddlers to preschool, GA Pre-K, Kindergarten, and school-age care.',
+                ],
+                'es' => [
+                    'title' => 'Programas | Chroma Early Learning Academy',
+                    'meta_description' => 'Explora los programas de aprendizaje temprano de Chroma para cada edad, desde bebes y ninos pequenos hasta preescolar, GA Pre-K, Kindergarten y cuidado para escolares.',
+                ],
+            ],
             'contact-us' => [
                 'en' => [
                     'title' => 'Contact Us | Chroma Early Learning Academy',
