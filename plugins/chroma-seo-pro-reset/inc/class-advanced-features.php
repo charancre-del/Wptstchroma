@@ -267,6 +267,14 @@ class Chroma_Image_Analyzer
      * Analyze image and generate alt text
      */
     public static function analyze_image($image_url) {
+        $image_url = function_exists('chroma_seo_validate_remote_url')
+            ? chroma_seo_validate_remote_url($image_url, true)
+            : esc_url_raw($image_url, ['http', 'https']);
+
+        if (!$image_url) {
+            return new WP_Error('invalid_image_url', 'Invalid or blocked image URL');
+        }
+
         $api_key = get_option('chroma_openai_api_key', '');
         
         if (empty($api_key)) {

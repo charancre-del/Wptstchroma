@@ -380,6 +380,17 @@ class Route_Utils
             return sanitize_email((string) $value);
         }
 
+        if ($key === 'chroma_llm_base_url') {
+            $url = rtrim(esc_url_raw((string) $value, ['http', 'https']), '/');
+            if ($url === '') {
+                return '';
+            }
+            if (function_exists('chroma_seo_validate_remote_url')) {
+                return chroma_seo_validate_remote_url($url, true) ?: '';
+            }
+            return wp_http_validate_url($url) ? $url : '';
+        }
+
         if (strpos($key, 'url') !== false || strpos($key, 'link') !== false || strpos($key, 'image') !== false || strpos($key, 'photo') !== false || strpos($key, 'webhook') !== false) {
             return esc_url_raw((string) $value);
         }
