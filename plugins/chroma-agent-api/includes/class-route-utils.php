@@ -22,8 +22,15 @@ class Route_Utils
     public static function updates_from_request(WP_REST_Request $request): array
     {
         $payload = self::payload($request);
-        $updates = isset($payload['updates']) && is_array($payload['updates']) ? $payload['updates'] : $payload;
-        unset($updates['dry_run'], $updates['strict_write'], $updates['updates']);
+        if (isset($payload['updates']) && is_array($payload['updates'])) {
+            $updates = $payload['updates'];
+        } elseif (isset($payload['fields']) && is_array($payload['fields'])) {
+            $updates = $payload['fields'];
+        } else {
+            $updates = $payload;
+        }
+
+        unset($updates['dry_run'], $updates['strict_write'], $updates['updates'], $updates['fields']);
         return is_array($updates) ? $updates : [];
     }
 
