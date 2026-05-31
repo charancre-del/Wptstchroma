@@ -208,23 +208,27 @@ class Chroma_Careers_API
      */
     private static function parse_xml_feed($body, $source_url)
     {
-        if (!class_exists('DOMDocument') || !is_string($body) || stripos(ltrim($body), '<') !== 0) {
+        if (!is_string($body) || stripos(ltrim($body), '<') !== 0) {
             return array();
+        }
+
+        if (!class_exists('DOMDocument')) {
+            return self::parse_xml_feed_fallback($body, $source_url);
         }
 
         $dom = new DOMDocument();
         libxml_use_internal_errors(true);
-        $loaded = $dom->loadXML($body, LIBXML_NOCDATA);
+        $loaded = $dom->loadXML($body, LIBXML_NOCDATA | LIBXML_NONET);
         libxml_clear_errors();
 
         if (!$loaded) {
-            return array();
+            return self::parse_xml_feed_fallback($body, $source_url);
         }
 
         $xpath = new DOMXPath($dom);
         $job_nodes = $xpath->query('//job');
         if (!$job_nodes || $job_nodes->length === 0) {
-            return array();
+            return self::parse_xml_feed_fallback($body, $source_url);
         }
 
         $jobs = array();
@@ -261,6 +265,74 @@ class Chroma_Careers_API
         return array_values(array_filter($jobs, function ($job) {
             return !empty($job['title']) && !empty($job['url']);
         }));
+    }
+
+    /**
+     * Lightweight XML feed fallback for hosts without DOMDocument.
+     *
+     * @param string $body       XML response body.
+     * @param string $source_url Feed URL.
+     * @return array
+     */
+    private static function parse_xml_feed_fallback($body, $source_url)
+    {
+        $jobs = array();
+        if (!preg_match_all('/<job\b[^>]*>(.*?)<\/job>/is', $body, $matches)) {
+            return $jobs;
+        }
+
+        foreach ($matches[1] as $fragment) {
+            $title = self::xml_fragment_text($fragment, 'title');
+            $url = self::xml_fragment_text($fragment, 'url');
+            if ($title === '' || $url === '') {
+                continue;
+            }
+
+            $city = self::xml_fragment_text($fragment, 'city');
+            $state = self::xml_fragment_text($fragment, 'state');
+            $location = trim(implode(', ', array_filter(array($city, $state))));
+
+            $jobs[] = array(
+                'title' => sanitize_text_field($title),
+                'location' => sanitize_text_field($location),
+                'type' => sanitize_text_field(self::normalize_feed_job_type(self::xml_fragment_text($fragment, 'jobtype'))),
+                'url' => self::normalize_url($url, $source_url),
+                'description' => wp_kses_post(self::xml_fragment_text($fragment, 'description')),
+                'date_posted' => sanitize_text_field(self::xml_fragment_text($fragment, 'date')),
+                'salary' => sanitize_text_field(self::xml_fragment_text($fragment, 'salary')),
+                'city' => sanitize_text_field($city),
+                'state' => sanitize_text_field($state),
+                'postal_code' => sanitize_text_field(self::xml_fragment_text($fragment, 'postalcode')),
+                'country' => sanitize_text_field(self::xml_fragment_text($fragment, 'country')),
+                'reference' => sanitize_text_field(self::xml_fragment_text($fragment, 'referencenumber')),
+                'category' => sanitize_text_field(self::xml_fragment_text($fragment, 'category')),
+                'education' => sanitize_text_field(self::xml_fragment_text($fragment, 'education')),
+                'experience' => sanitize_text_field(self::xml_fragment_text($fragment, 'experience')),
+            );
+        }
+
+        return array_values(array_filter($jobs, function ($job) {
+            return !empty($job['title']) && !empty($job['url']);
+        }));
+    }
+
+    /**
+     * Extract and decode a simple child element from a feed job fragment.
+     *
+     * @param string $fragment XML fragment inside one <job> node.
+     * @param string $tag      Child tag name.
+     * @return string
+     */
+    private static function xml_fragment_text($fragment, $tag)
+    {
+        $tag = preg_quote((string) $tag, '/');
+        if (!preg_match('/<' . $tag . '\b[^>]*>(.*?)<\/' . $tag . '>/is', $fragment, $match)) {
+            return '';
+        }
+
+        $value = preg_replace('/^\s*<!\[CDATA\[(.*)\]\]>\s*$/is', '$1', (string) $match[1]);
+        $value = html_entity_decode((string) $value, ENT_QUOTES | ENT_XML1, 'UTF-8');
+        return trim($value);
     }
 
     /**
