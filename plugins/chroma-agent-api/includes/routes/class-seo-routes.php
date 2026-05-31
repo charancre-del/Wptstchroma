@@ -254,6 +254,7 @@ class SEO_Routes
         $after = [];
         $blocked = [];
         $write_mismatches = [];
+        $snapshot_ids = [];
 
         foreach ((array) $updates as $key => $value) {
             $meta_key = (string) $key;
@@ -268,6 +269,7 @@ class SEO_Routes
             if ($value === null) {
                 $after[$meta_key] = null;
                 if (!$dry_run) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':' . $meta_key, $old, null);
                     delete_post_meta($post_id, $meta_key);
                 }
                 continue;
@@ -277,6 +279,7 @@ class SEO_Routes
             $after[$meta_key] = $new;
 
             if (!$dry_run) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':' . $meta_key, $old, $new);
                 self::persist_meta_value($post_id, $meta_key, $new);
                 $saved = get_post_meta($post_id, $meta_key, true);
                 if (!self::meta_values_equivalent($new, $saved)) {
@@ -328,6 +331,7 @@ class SEO_Routes
             'post_id' => $post_id,
             'blocked_keys' => $blocked,
             'write_mismatches' => $write_mismatches,
+            'snapshot_ids' => $snapshot_ids,
             'diff' => $diff,
             'data' => $dry_run ? $after : $live,
         ]);
@@ -478,6 +482,7 @@ class SEO_Routes
         $after = [];
         $blocked = [];
         $write_mismatches = [];
+        $snapshot_ids = [];
 
         foreach ((array) $updates as $key => $value) {
             $meta_key = (string) $key;
@@ -492,6 +497,7 @@ class SEO_Routes
             if ($value === null) {
                 $after[$meta_key] = null;
                 if (!$dry_run) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':' . $meta_key, $old, null);
                     delete_post_meta($post_id, $meta_key);
                 }
                 continue;
@@ -501,6 +507,7 @@ class SEO_Routes
             $after[$meta_key] = $new;
 
             if (!$dry_run) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':' . $meta_key, $old, $new);
                 self::persist_meta_value($post_id, $meta_key, $new);
                 $saved = get_post_meta($post_id, $meta_key, true);
                 if (!self::meta_values_equivalent($new, $saved)) {
@@ -552,6 +559,7 @@ class SEO_Routes
             'post_id' => $post_id,
             'blocked_keys' => $blocked,
             'write_mismatches' => $write_mismatches,
+            'snapshot_ids' => $snapshot_ids,
             'diff' => $diff,
             'data' => $dry_run ? $after : $live,
         ]);

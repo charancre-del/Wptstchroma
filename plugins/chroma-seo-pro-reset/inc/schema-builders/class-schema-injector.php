@@ -754,6 +754,8 @@ class Chroma_Schema_Injector
             }
         }
 
+        $schemas = self::expand_schema_graph_documents($schemas);
+
         $graph = [];
 
         foreach ($schemas as $schema_index => $schema_data) {
@@ -1153,6 +1155,48 @@ class Chroma_Schema_Injector
         }
 
         return [];
+    }
+
+    /**
+     * Expand full JSON-LD documents stored inside _chroma_post_schemas.
+     *
+     * Some Agent API clients send a complete JSON-LD object like
+     * ['@context' => 'https://schema.org', '@graph' => [...]] instead of the
+     * Builder's row list. Render those existing records without requiring a
+     * re-save by flattening graph nodes into normal schema rows.
+     *
+     * @param array $schemas
+     * @return array<int,array>
+     */
+    private static function expand_schema_graph_documents(array $schemas)
+    {
+        $expanded = [];
+
+        foreach ($schemas as $schema) {
+            if (is_object($schema)) {
+                $schema = (array) $schema;
+            }
+
+            if (!is_array($schema)) {
+                continue;
+            }
+
+            if (!empty($schema['@graph']) && is_array($schema['@graph'])) {
+                foreach ($schema['@graph'] as $node) {
+                    if (is_object($node)) {
+                        $node = (array) $node;
+                    }
+                    if (is_array($node) && !empty($node)) {
+                        $expanded[] = $node;
+                    }
+                }
+                continue;
+            }
+
+            $expanded[] = $schema;
+        }
+
+        return $expanded;
     }
 
     /**

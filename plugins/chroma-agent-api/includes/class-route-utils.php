@@ -485,7 +485,11 @@ class Route_Utils
             return $value;
         }
 
-        if (isset($value['@type']) || isset($value['type']) || isset($value['@graph'])) {
+        if (isset($value['@graph']) && is_array($value['@graph'])) {
+            return array_values(array_filter($value['@graph'], 'is_array'));
+        }
+
+        if (isset($value['@type']) || isset($value['type'])) {
             return [$value];
         }
 

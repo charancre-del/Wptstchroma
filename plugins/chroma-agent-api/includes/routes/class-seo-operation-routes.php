@@ -963,7 +963,22 @@ class SEO_Operation_Routes
 
         $is_valid = empty($errors);
         $payload = Route_Utils::payload($request);
+        $snapshot_ids = [];
         if (!Route_Utils::dry_run($payload)) {
+            foreach ([
+                '_chroma_schema_validation_status' => $is_valid ? 'valid' : 'invalid',
+                '_chroma_last_validated' => time(),
+                '_chroma_schema_errors' => $is_valid ? null : $errors,
+            ] as $meta_key => $new_value) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                    Auth::current_key_id(),
+                    'write:seo',
+                    'post_meta',
+                    $post_id . ':' . $meta_key,
+                    get_post_meta($post_id, $meta_key, true),
+                    $new_value
+                );
+            }
             update_post_meta($post_id, '_chroma_schema_validation_status', $is_valid ? 'valid' : 'invalid');
             update_post_meta($post_id, '_chroma_last_validated', time());
             if ($is_valid) {
@@ -991,6 +1006,7 @@ class SEO_Operation_Routes
             'valid' => $is_valid,
             'schema_count' => $schema_count,
             'errors' => $errors,
+            'snapshot_ids' => $snapshot_ids,
         ]);
     }
 
@@ -1033,11 +1049,13 @@ class SEO_Operation_Routes
             }
         }
         $candidate = Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', $candidate);
+        $snapshot_ids = [];
         if (!$dry_run) {
+            $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':_chroma_post_schemas', $current, $candidate);
             update_post_meta($post_id, '_chroma_post_schemas', $candidate);
         }
         Route_Utils::log_write($request, 'write:seo', 'schema_sync', (string) $post_id, $dry_run, ['schemas' => $current], ['schemas' => $candidate], Diff::compare(['schemas' => $current], ['schemas' => $candidate]));
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'post_id' => $post_id, 'data' => ['schemas' => $candidate]]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'post_id' => $post_id, 'snapshot_ids' => $snapshot_ids, 'data' => ['schemas' => $candidate]]);
     }
 
     private static function test_llm_connection(WP_REST_Request $request)
@@ -1085,14 +1103,29 @@ class SEO_Operation_Routes
         $payload = Route_Utils::payload($request);
         $apply = Utils::truthy($payload['apply'] ?? (!$fix_mode ? false : true));
         $dry_run = Route_Utils::dry_run($payload);
+        $snapshot_ids = [];
         if ($apply && !$dry_run) {
-            update_post_meta($post_id, '_chroma_post_schemas', Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', [$schema]));
-            update_post_meta($post_id, '_chroma_schema_data', Route_Utils::sanitize_value_for_storage('_chroma_schema_data', $schema));
-            update_post_meta($post_id, '_chroma_schema_type', $schema['@type']);
+            $schema_rows = Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', [$schema]);
+            $schema_data = Route_Utils::sanitize_value_for_storage('_chroma_schema_data', $schema);
+            foreach ([
+                '_chroma_post_schemas' => $schema_rows,
+                '_chroma_schema_data' => $schema_data,
+                '_chroma_schema_type' => $schema['@type'],
+            ] as $meta_key => $new_value) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                    Auth::current_key_id(),
+                    'write:seo',
+                    'post_meta',
+                    $post_id . ':' . $meta_key,
+                    get_post_meta($post_id, $meta_key, true),
+                    $new_value
+                );
+                update_post_meta($post_id, $meta_key, $new_value);
+            }
         }
 
         Route_Utils::log_write($request, 'write:seo', 'generated_schema', (string) $post_id, $dry_run || !$apply, null, $schema, ['generated' => true]);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run || !$apply, 'post_id' => $post_id, 'data' => $schema, 'applied' => $apply && !$dry_run]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run || !$apply, 'post_id' => $post_id, 'snapshot_ids' => $snapshot_ids, 'data' => $schema, 'applied' => $apply && !$dry_run]);
     }
 
     private static function generate_llm_targeting(WP_REST_Request $request)
