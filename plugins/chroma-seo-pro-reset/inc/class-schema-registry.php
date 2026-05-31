@@ -50,6 +50,52 @@ if (!function_exists('chroma_schema_strip_internal_keys')) {
     }
 }
 
+/**
+ * Normalize Chroma-owned absolute URLs in public JSON-LD to the active site URL.
+ *
+ * Stored/API-loaded schema can legitimately contain production URLs when data is
+ * copied between environments. Keep storage untouched, but avoid leaking the
+ * wrong host when the site renders from staging or another migrated domain.
+ *
+ * @param mixed $value
+ * @return mixed
+ */
+if (!function_exists('chroma_schema_normalize_site_urls_for_output')) {
+    function chroma_schema_normalize_site_urls_for_output($value) {
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (is_array($value)) {
+            $normalized = [];
+            foreach ($value as $key => $item) {
+                $normalized[$key] = chroma_schema_normalize_site_urls_for_output($item);
+            }
+            return $normalized;
+        }
+
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+
+        $home = home_url('/');
+        $home_host = strtolower((string) wp_parse_url($home, PHP_URL_HOST));
+        if ($home_host === '' || in_array($home_host, ['chromaela.com', 'www.chromaela.com'], true)) {
+            return $value;
+        }
+
+        if (!preg_match('~^https?://(?:www\.)?chromaela\.com(?=/|$|[?#])~i', $value)) {
+            return $value;
+        }
+
+        return preg_replace(
+            '~^https?://(?:www\.)?chromaela\.com~i',
+            rtrim($home, '/'),
+            $value
+        );
+    }
+}
+
 if (!function_exists('chroma_schema_array_is_list')) {
     function chroma_schema_array_is_list(array $value) {
         if ($value === []) {
@@ -180,6 +226,13 @@ class Chroma_Schema_Registry
      * @var bool
      */
     private static $output_done = false;
+
+    /**
+     * Whether the current wp_head output buffer was started by this registry.
+     *
+     * @var bool
+     */
+    private static $head_buffer_active = false;
 
     /**
      * Initialize the registry
@@ -348,6 +401,10 @@ class Chroma_Schema_Registry
                 $schema = chroma_schema_strip_internal_keys($schema);
             }
 
+            if (function_exists('chroma_schema_normalize_site_urls_for_output')) {
+                $schema = chroma_schema_normalize_site_urls_for_output($schema);
+            }
+
             // Add @context if missing
             if (!isset($schema['@context'])) {
                 $schema['@context'] = 'https://schema.org';
@@ -360,6 +417,81 @@ class Chroma_Schema_Registry
         foreach ($graph as $schema) {
             echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
         }
+    }
+
+    /**
+     * Start a front-end head buffer so external JSON-LD emitters can be
+     * normalized on staging/migrated domains without editing their storage.
+     */
+    public static function begin_external_schema_url_normalization()
+    {
+        if (is_admin() || is_feed() || is_robots() || is_404()) {
+            return;
+        }
+
+        if (!function_exists('chroma_schema_normalize_site_urls_for_output')) {
+            return;
+        }
+
+        $home_host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        if ($home_host === '' || in_array($home_host, ['chromaela.com', 'www.chromaela.com'], true)) {
+            return;
+        }
+
+        self::$head_buffer_active = true;
+        ob_start([__CLASS__, 'normalize_external_schema_output']);
+    }
+
+    /**
+     * End the external schema normalization buffer.
+     */
+    public static function end_external_schema_url_normalization()
+    {
+        if (!self::$head_buffer_active) {
+            return;
+        }
+
+        self::$head_buffer_active = false;
+        if (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+    }
+
+    /**
+     * Normalize JSON-LD script blocks emitted by any head participant.
+     *
+     * @param string $html
+     * @return string
+     */
+    public static function normalize_external_schema_output($html)
+    {
+        if (!is_string($html) || stripos($html, 'application/ld+json') === false) {
+            return $html;
+        }
+
+        return (string) preg_replace_callback(
+            '/<script\b([^>]*)type=(["\'])application\/ld\+json\2([^>]*)>(.*?)<\/script>/is',
+            function ($matches) {
+                $json = trim((string) $matches[4]);
+                if ($json === '' || stripos($json, 'chromaela.com') === false) {
+                    return $matches[0];
+                }
+
+                $decoded = json_decode($json, true);
+                if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                    return $matches[0];
+                }
+
+                $decoded = chroma_schema_normalize_site_urls_for_output($decoded);
+                $encoded = wp_json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                if (!is_string($encoded) || $encoded === '') {
+                    return $matches[0];
+                }
+
+                return '<script' . $matches[1] . 'type=' . $matches[2] . 'application/ld+json' . $matches[2] . $matches[3] . '>' . $encoded . '</script>';
+            },
+            $html
+        );
     }
 
     /**
@@ -474,5 +606,5 @@ class Chroma_Schema_Registry
 
 // Initialize the registry
 add_action('init', ['Chroma_Schema_Registry', 'init']);
-
-
+add_action('wp_head', ['Chroma_Schema_Registry', 'begin_external_schema_url_normalization'], 0);
+add_action('wp_head', ['Chroma_Schema_Registry', 'end_external_schema_url_normalization'], PHP_INT_MAX);
