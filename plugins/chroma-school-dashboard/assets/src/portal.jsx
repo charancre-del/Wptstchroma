@@ -5,29 +5,81 @@ const { apiUrl: API_URL, googleClientId: GOOGLE_CLIENT_ID } = window.chromaPorta
 
 // --- COMPONENTS ---
 
-const MediaUploader = ({ value, onChange, label }) => {
-    const openMedia = () => {
-        const frame = wp.media({
-            title: 'Select Image',
-            multiple: false,
-            library: { type: 'image' }
-        });
+async function uploadPortalMedia(file, token) {
+    if (!file) {
+        throw new Error('Choose a file to upload.');
+    }
 
-        frame.on('select', () => {
-            const attachment = frame.state().get('selection').first().toJSON();
-            onChange(attachment.url);
-        });
+    if (!token) {
+        throw new Error('Your session expired. Please sign in again.');
+    }
 
-        frame.open();
+    const body = new FormData();
+    body.append('file', file);
+
+    const res = await fetch(`${API_URL}chroma/v1/portal/media`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+        throw new Error(data.message || 'Upload failed.');
+    }
+
+    return data;
+}
+
+const MediaUploader = ({ value, onChange, label, token, accept = 'image/*', helpText = 'Upload Image', onError }) => {
+    const [uploading, setUploading] = useState(false);
+    const inputRef = useRef(null);
+    const isPdf = accept.includes('pdf');
+
+    const chooseFile = () => {
+        if (inputRef.current) {
+            inputRef.current.click();
+        }
+    };
+
+    const handleFile = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        try {
+            setUploading(true);
+            const media = await uploadPortalMedia(file, token);
+            onChange(media.url);
+        } catch (error) {
+            if (onError) {
+                onError(error.message);
+            }
+        } finally {
+            setUploading(false);
+            event.target.value = '';
+        }
     };
 
     return (
         <div className="space-y-2">
             <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">{label}</label>
             <div className="flex items-center gap-4">
-                <div onClick={openMedia} className="flex-1 cursor-pointer group">
+                <button type="button" onClick={chooseFile} disabled={uploading} className="flex-1 cursor-pointer group text-left disabled:opacity-60">
                     <div className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 group-hover:border-chroma-blue group-hover:bg-chroma-blue/5 transition-all flex flex-col items-center justify-center min-h-[140px]">
-                        {value ? (
+                        {uploading ? (
+                            <>
+                                <i className="fa-solid fa-circle-notch fa-spin text-3xl text-chroma-blue mb-2"></i>
+                                <span className="text-xs font-bold text-chroma-blue uppercase">Uploading...</span>
+                            </>
+                        ) : value && isPdf ? (
+                            <div className="relative w-full h-full flex flex-col items-center">
+                                <i className="fa-solid fa-file-pdf text-4xl text-red-500 mb-3"></i>
+                                <span className="text-xs font-bold text-brand-ink">PDF Uploaded</span>
+                                <span className="text-[10px] text-brand-ink/50 truncate max-w-xs">{value.split('/').pop()}</span>
+                            </div>
+                        ) : value ? (
                             <div className="relative w-full h-full flex flex-col items-center">
                                 <img src={value} className="h-24 w-24 object-cover rounded-xl shadow-sm mb-3" />
                                 <span className="text-xs font-bold text-chroma-blue">Change Image</span>
@@ -35,17 +87,18 @@ const MediaUploader = ({ value, onChange, label }) => {
                         ) : (
                             <>
                                 <i className="fa-solid fa-cloud-arrow-up text-3xl text-gray-300 mb-2"></i>
-                                <span className="text-xs font-bold text-gray-400 uppercase">Upload or Select Image</span>
+                                <span className="text-xs font-bold text-gray-400 uppercase">{helpText}</span>
                             </>
                         )}
                     </div>
-                </div>
+                </button>
                 {value && (
                     <button type="button" onClick={() => onChange('')} className="p-3 text-red-400 hover:text-red-600 transition">
                         <i className="fa-solid fa-trash"></i>
                     </button>
                 )}
             </div>
+            <input ref={inputRef} type="file" accept={accept} onChange={handleFile} className="hidden" />
             <input type="hidden" name={label.toLowerCase().replace(' ', '_')} value={value} />
         </div>
     );
@@ -74,6 +127,51 @@ const FormSection = ({ title, icon, colorClass, children }) => (
         {children}
     </section>
 );
+
+const SlideUploader = ({ url, token, onChange, onError }) => {
+    const [uploading, setUploading] = useState(false);
+    const inputRef = useRef(null);
+
+    const handleFile = async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        try {
+            setUploading(true);
+            const media = await uploadPortalMedia(file, token);
+            onChange(media.url);
+        } catch (error) {
+            if (onError) {
+                onError(error.message);
+            }
+        } finally {
+            setUploading(false);
+            event.target.value = '';
+        }
+    };
+
+    return (
+        <>
+            <button
+                type="button"
+                onClick={() => inputRef.current && inputRef.current.click()}
+                disabled={uploading}
+                className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 cursor-pointer overflow-hidden flex items-center justify-center hover:border-chroma-red transition-all disabled:opacity-60 w-full"
+            >
+                {uploading ? (
+                    <i className="fa-solid fa-circle-notch fa-spin text-chroma-red"></i>
+                ) : url ? (
+                    <img src={url} className="w-full h-full object-cover" />
+                ) : (
+                    <i className="fa-solid fa-plus text-gray-300"></i>
+                )}
+            </button>
+            <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
+        </>
+    );
+};
 
 // --- MAIN APP ---
 
@@ -364,7 +462,13 @@ function App() {
                                     <input name="eom.role" defaultValue={c.eom?.role} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
                                 </div>
                             </div>
-                            <MediaUploader label="Teacher Photo" value={formState.eomPhoto} onChange={(url) => setFormState({ ...formState, eomPhoto: url })} />
+                            <MediaUploader
+                                label="Teacher Photo"
+                                value={formState.eomPhoto}
+                                token={user.token}
+                                onError={(message) => showToast(message, 'error')}
+                                onChange={(url) => setFormState({ ...formState, eomPhoto: url })}
+                            />
                             <div className="md:col-span-2 space-y-2">
                                 <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">A Little About Them</label>
                                 <textarea name="eom.blurb" defaultValue={c.eom?.blurb} rows="3" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
@@ -419,17 +523,15 @@ function App() {
                                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                                     {formState.slides.map((url, i) => (
                                         <div key={i} className="space-y-2">
-                                            <div onClick={() => {
-                                                const frame = wp.media({ multiple: false });
-                                                frame.on('select', () => {
-                                                    const url = frame.state().get('selection').first().toJSON().url;
-                                                    const news = [...formState.slides]; news[i] = url;
+                                            <SlideUploader
+                                                url={url}
+                                                token={user.token}
+                                                onError={(message) => showToast(message, 'error')}
+                                                onChange={(uploadedUrl) => {
+                                                    const news = [...formState.slides]; news[i] = uploadedUrl;
                                                     setFormState({ ...formState, slides: news });
-                                                });
-                                                frame.open();
-                                            }} className="aspect-square rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 cursor-pointer overflow-hidden flex items-center justify-center hover:border-chroma-red transition-all">
-                                                {url ? <img src={url} className="w-full h-full object-cover" /> : <i className="fa-solid fa-plus text-gray-300"></i>}
-                                            </div>
+                                                }}
+                                            />
                                             {url && <button type="button" onClick={() => {
                                                 const news = [...formState.slides]; news[i] = '';
                                                 setFormState({ ...formState, slides: news });
@@ -469,29 +571,15 @@ function App() {
                                         </button>
                                     )}
                                 </div>
-                                <div onClick={() => {
-                                    const frame = wp.media({ title: 'Select Newsletter PDF', multiple: false, library: { type: 'application/pdf' } });
-                                    frame.on('select', () => {
-                                        const url = frame.state().get('selection').first().toJSON().url;
-                                        setFormState({ ...formState, newsletterPdf: url });
-                                    });
-                                    frame.open();
-                                }} className="w-full p-6 rounded-xl border-2 border-dashed border-chroma-blueDark/20 bg-white cursor-pointer hover:border-chroma-blue hover:bg-chroma-blue/5 transition-all flex items-center justify-center gap-4">
-                                    {formState.newsletterPdf ? (
-                                        <>
-                                            <i className="fa-solid fa-file-pdf text-3xl text-red-500"></i>
-                                            <div className="text-left">
-                                                <p className="font-bold text-brand-ink">PDF Uploaded</p>
-                                                <p className="text-xs text-brand-ink/50 truncate max-w-xs">{formState.newsletterPdf.split('/').pop()}</p>
-                                            </div>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <i className="fa-solid fa-cloud-arrow-up text-2xl text-chroma-blueDark/30"></i>
-                                            <span className="font-bold text-brand-ink/50">Click to upload PDF</span>
-                                        </>
-                                    )}
-                                </div>
+                                <MediaUploader
+                                    label="Newsletter PDF"
+                                    value={formState.newsletterPdf}
+                                    token={user.token}
+                                    accept="application/pdf"
+                                    helpText="Upload PDF"
+                                    onError={(message) => showToast(message, 'error')}
+                                    onChange={(url) => setFormState({ ...formState, newsletterPdf: url })}
+                                />
                             </div>
                         </div>
                     </FormSection>

@@ -35,6 +35,12 @@ class Chroma_School_API_Routes
             'permission_callback' => [$this, 'check_director_permission']
         ]);
 
+        register_rest_route('chroma/v1', '/portal/media', [
+            'methods' => 'POST',
+            'callback' => [$this, 'upload_portal_media'],
+            'permission_callback' => [$this, 'check_director_permission']
+        ]);
+
         register_rest_route('chroma/v1', '/weather', [
             'methods' => 'GET',
             'callback' => [$this, 'get_weather_proxy'],
@@ -422,6 +428,87 @@ class Chroma_School_API_Routes
         }
 
         return rest_ensure_response(['success' => true]);
+    }
+
+    /**
+     * POST /portal/media
+     *
+     * Upload a director-selected image or PDF using the existing director token
+     * instead of spoofing a WordPress admin session.
+     */
+    public function upload_portal_media($request)
+    {
+        if (empty($_FILES['file']) || !is_array($_FILES['file'])) {
+            return new WP_Error('missing_file', 'A file upload is required.', ['status' => 400]);
+        }
+
+        $file = $_FILES['file'];
+        if (!empty($file['error'])) {
+            return new WP_Error('upload_error', 'The uploaded file could not be processed.', ['status' => 400]);
+        }
+
+        $allowed_mimes = [
+            'jpg|jpeg|jpe' => 'image/jpeg',
+            'png'          => 'image/png',
+            'gif'          => 'image/gif',
+            'webp'         => 'image/webp',
+            'pdf'          => 'application/pdf',
+        ];
+
+        $checked = wp_check_filetype_and_ext(
+            (string) ($file['tmp_name'] ?? ''),
+            (string) ($file['name'] ?? ''),
+            $allowed_mimes
+        );
+
+        if (empty($checked['type']) || !in_array($checked['type'], $allowed_mimes, true)) {
+            return new WP_Error('invalid_file_type', 'Only images and PDFs are allowed.', ['status' => 400]);
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+
+        $upload = wp_handle_upload($file, [
+            'test_form' => false,
+            'mimes'     => $allowed_mimes,
+        ]);
+
+        if (!empty($upload['error'])) {
+            return new WP_Error('upload_failed', sanitize_text_field($upload['error']), ['status' => 500]);
+        }
+
+        $attachment = [
+            'post_mime_type' => $upload['type'],
+            'post_title'     => sanitize_file_name(pathinfo((string) $file['name'], PATHINFO_FILENAME)),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+        ];
+
+        $attachment_id = wp_insert_attachment($attachment, $upload['file'], 0, true);
+        if (is_wp_error($attachment_id)) {
+            return $attachment_id;
+        }
+
+        if (!$attachment_id) {
+            return new WP_Error('attachment_failed', 'The uploaded file could not be added to the media library.', ['status' => 500]);
+        }
+
+        $metadata = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+        if (!is_wp_error($metadata)) {
+            wp_update_attachment_metadata($attachment_id, $metadata);
+        }
+
+        if ($this->current_user_school_id) {
+            update_post_meta($attachment_id, '_chroma_school_id', (int) $this->current_user_school_id);
+        }
+
+        return rest_ensure_response([
+            'id'        => (int) $attachment_id,
+            'url'       => esc_url_raw($upload['url']),
+            'mime_type' => sanitize_text_field($upload['type']),
+            'title'     => get_the_title($attachment_id),
+        ]);
     }
 
     /**
