@@ -90,18 +90,23 @@ if (!function_exists('chroma_schema_normalize_site_urls_for_output')) {
             'chromaearlylearning.com',
             'www.chromaearlylearning.com',
         ];
+        $home_root = rtrim($home, '/');
         $value_host = strtolower((string) wp_parse_url($value, PHP_URL_HOST));
-        if (!in_array($value_host, $owned_hosts, true)) {
-            return $value;
-        }
+        if (in_array($value_host, $owned_hosts, true)) {
+            if ($value_host === $home_host) {
+                return $value;
+            }
 
-        if ($value_host === $home_host) {
-            return $value;
+            return preg_replace(
+                '~^https?://(?:www\.)?(?:chromaela|chromaearlylearning)\.com~i',
+                $home_root,
+                $value
+            );
         }
 
         return preg_replace(
-            '~^https?://(?:www\.)?(?:chromaela|chromaearlylearning)\.com~i',
-            rtrim($home, '/'),
+            '~(?<![@\w.-])(?:https?://)?(?:www\.)?(?:chromaela|chromaearlylearning)\.com(?=$|[\/\s<>"\').,;:!?])~i',
+            $home_root,
             $value
         );
     }
@@ -476,7 +481,13 @@ class Chroma_Schema_Registry
      */
     public static function normalize_external_schema_output($html)
     {
-        if (!is_string($html) || stripos($html, 'application/ld+json') === false) {
+        if (!is_string($html)) {
+            return $html;
+        }
+
+        $html = self::normalize_external_social_url_meta($html);
+
+        if (stripos($html, 'application/ld+json') === false) {
             return $html;
         }
 
@@ -506,6 +517,45 @@ class Chroma_Schema_Registry
                 }
 
                 return '<script' . $matches[1] . 'type=' . $matches[2] . 'application/ld+json' . $matches[2] . $matches[3] . '>' . $encoded . '</script>';
+            },
+            $html
+        );
+    }
+
+    /**
+     * Normalize URL-bearing social meta tags emitted by third-party plugins.
+     *
+     * @param string $html
+     * @return string
+     */
+    private static function normalize_external_social_url_meta($html)
+    {
+        if (
+            stripos($html, 'chromaela.com') === false
+            && stripos($html, 'chromaearlylearning.com') === false
+        ) {
+            return $html;
+        }
+
+        $pattern = '/<meta\b(?=[^>]*(?:property|name)=(["\'])(og:url|twitter:url|twitter:domain)\1)([^>]*\bcontent=(["\'])(.*?)\4[^>]*)>/is';
+
+        return (string) preg_replace_callback(
+            $pattern,
+            static function ($matches) {
+                $meta_name = strtolower((string) $matches[2]);
+                $value = html_entity_decode((string) $matches[5], ENT_QUOTES, get_bloginfo('charset') ?: 'UTF-8');
+                $normalized = chroma_schema_normalize_site_urls_for_output($value);
+
+                if ($meta_name === 'twitter:domain') {
+                    $normalized_host = wp_parse_url($normalized, PHP_URL_HOST);
+                    $normalized = is_string($normalized_host) && $normalized_host !== '' ? $normalized_host : $normalized;
+                }
+
+                if ($normalized === $value) {
+                    return $matches[0];
+                }
+
+                return str_replace($matches[4] . $matches[5] . $matches[4], $matches[4] . esc_attr($normalized) . $matches[4], $matches[0]);
             },
             $html
         );

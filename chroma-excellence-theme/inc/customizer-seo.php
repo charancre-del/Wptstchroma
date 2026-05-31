@@ -234,11 +234,40 @@ function chroma_get_twitter_handle() {
  *
  * @return string
  */
+if (!function_exists('chroma_normalize_owned_url_to_current_site')) {
+    function chroma_normalize_owned_url_to_current_site($url) {
+        $url = (string) $url;
+        if ($url === '') {
+            return '';
+        }
+
+        $home = home_url('/');
+        $home_host = strtolower((string) wp_parse_url($home, PHP_URL_HOST));
+        $url_host = strtolower((string) wp_parse_url($url, PHP_URL_HOST));
+        $owned_hosts = [
+            'chromaela.com',
+            'www.chromaela.com',
+            'chromaearlylearning.com',
+            'www.chromaearlylearning.com',
+        ];
+
+        if ($home_host === '' || $url_host === '' || !in_array($url_host, $owned_hosts, true) || $url_host === $home_host) {
+            return $url;
+        }
+
+        return preg_replace(
+            '~^https?://(?:www\.)?(?:chromaela|chromaearlylearning)\.com~i',
+            rtrim($home, '/'),
+            $url
+        );
+    }
+}
+
 function chroma_get_context_base_url() {
     if (function_exists('chroma_resolve_current_seo_profile')) {
         $profile = chroma_resolve_current_seo_profile();
         if (!empty($profile['canonical'])) {
-            return (string) $profile['canonical'];
+            return chroma_normalize_owned_url_to_current_site((string) $profile['canonical']);
         }
     }
 
@@ -271,7 +300,7 @@ function chroma_get_context_base_url() {
         }
     }
 
-    return (string) $url;
+    return chroma_normalize_owned_url_to_current_site((string) $url);
 }
 
 /**
@@ -284,10 +313,10 @@ function chroma_get_context_canonical_url() {
     $filtered = apply_filters('wpseo_canonical', $url);
 
     if (is_string($filtered) && $filtered !== '') {
-        return $filtered;
+        return chroma_normalize_owned_url_to_current_site($filtered);
     }
 
-    return $url;
+    return chroma_normalize_owned_url_to_current_site($url);
 }
 
 /**
@@ -487,7 +516,7 @@ function chroma_output_social_meta_tags() {
 
     $social_url = apply_filters('wpseo_opengraph_url', $url);
     if (is_string($social_url) && $social_url !== '') {
-        $url = $social_url;
+        $url = chroma_normalize_owned_url_to_current_site($social_url);
     }
     
     if (empty($image) && function_exists('get_site_icon_url')) {
