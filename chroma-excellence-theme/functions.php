@@ -1083,5 +1083,9 @@ add_action('init', 'chroma_register_contact_form_shortcode');
  */
 function chroma_render_contact_form()
 {
+    if (function_exists('chroma_contact_form_shortcode')) {
+        return chroma_contact_form_shortcode();
+    }
+
     return do_shortcode('[chroma_tour_form]');
 }

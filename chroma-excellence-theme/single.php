@@ -217,7 +217,9 @@ $related_query = new WP_Query($related_args);
 
         <div class="bg-white rounded-3xl shadow-soft border border-brand-ink/5 p-4 md:p-8">
           <?php
-          if (function_exists('chroma_contact_form_shortcode')) {
+          if (function_exists('chroma_render_contact_form')) {
+            echo chroma_render_contact_form(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+          } elseif (function_exists('chroma_contact_form_shortcode')) {
             echo chroma_contact_form_shortcode(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
           } else {
             echo do_shortcode('[chroma_contact_form]');
