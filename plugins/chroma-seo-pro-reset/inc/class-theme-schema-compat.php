@@ -26,28 +26,14 @@ if (!defined('ABSPATH')) {
  */
 if (!function_exists('chroma_output_schema_override_pro')) {
     function chroma_output_schema_override_pro($post_id, $source = 'theme-compat-override') {
-        $override = get_post_meta($post_id, '_chroma_schema_override', true);
-        if (!is_string($override) || trim($override) === '') {
+        $items = function_exists('chroma_get_schema_override_items_pro')
+            ? chroma_get_schema_override_items_pro($post_id)
+            : [];
+
+        if (empty($items)) {
             return false;
         }
 
-        $raw = trim(wp_unslash($override));
-
-        // Backward compatibility: allow stored script wrapper, but parse JSON only.
-        if (stripos($raw, '<script') !== false) {
-            if (preg_match('/<script[^>]*application\/ld\+json[^>]*>(.*?)<\/script>/is', $raw, $matches)) {
-                $raw = trim($matches[1]);
-            } else {
-                return false;
-            }
-        }
-
-        $decoded = json_decode($raw, true);
-        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
-            return false;
-        }
-
-        $items = isset($decoded[0]) && is_array($decoded[0]) ? $decoded : [$decoded];
         $emitted = false;
 
         foreach ($items as $schema_item) {
@@ -73,6 +59,74 @@ if (!function_exists('chroma_output_schema_override_pro')) {
         }
 
         return $emitted;
+    }
+}
+
+/**
+ * Decode a stored manual schema override into usable JSON-LD items.
+ *
+ * Some older records contain scalar placeholders such as "1". Those values
+ * should not suppress generated or legacy API-loaded schema.
+ *
+ * @param int $post_id
+ * @return array<int,array>
+ */
+if (!function_exists('chroma_get_schema_override_items_pro')) {
+    function chroma_get_schema_override_items_pro($post_id) {
+        $override = get_post_meta($post_id, '_chroma_schema_override', true);
+        if (empty($override)) {
+            return [];
+        }
+
+        if (is_array($override)) {
+            $decoded = $override;
+        } elseif (is_string($override)) {
+            $raw = trim(wp_unslash($override));
+            if ($raw === '') {
+                return [];
+            }
+
+            // Backward compatibility: allow stored script wrapper, but parse JSON only.
+            if (stripos($raw, '<script') !== false) {
+                if (preg_match('/<script[^>]*application\/ld\+json[^>]*>(.*?)<\/script>/is', $raw, $matches)) {
+                    $raw = trim($matches[1]);
+                } else {
+                    return [];
+                }
+            }
+
+            $decoded = json_decode($raw, true);
+            if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                return [];
+            }
+        } else {
+            return [];
+        }
+
+        if (isset($decoded['@graph']) && is_array($decoded['@graph'])) {
+            $decoded = $decoded['@graph'];
+        }
+
+        $items = isset($decoded[0]) && is_array($decoded[0]) ? $decoded : [$decoded];
+        $valid = [];
+
+        foreach ($items as $schema_item) {
+            if (!is_array($schema_item) || empty($schema_item)) {
+                continue;
+            }
+
+            if (isset($schema_item['@type']) || isset($schema_item['@graph'])) {
+                $valid[] = $schema_item;
+            }
+        }
+
+        return $valid;
+    }
+}
+
+if (!function_exists('chroma_has_valid_schema_override_pro')) {
+    function chroma_has_valid_schema_override_pro($post_id) {
+        return !empty(chroma_get_schema_override_items_pro($post_id));
     }
 }
 
@@ -595,8 +649,7 @@ function chroma_city_faq_schema_output()
     }
 
     // Check for manual override
-    $override = get_post_meta(get_the_ID(), '_chroma_schema_override', true);
-    if ($override) {
+    if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_the_ID())) {
         return;
     }
 
@@ -755,8 +808,7 @@ if (!function_exists('chroma_website_schema_pro')) {
         if (!is_front_page()) return;
         $homepage_id = get_option('page_on_front');
         $url = home_url();
-        $override = get_post_meta($homepage_id, '_chroma_schema_override', true);
-        if ($override) return;
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro($homepage_id)) return;
 
         // Suppress fallback only when builder/API schema has a WebSite replacement.
         if (chroma_post_has_stored_schema_type_pro($homepage_id, ['WebSite'])) {

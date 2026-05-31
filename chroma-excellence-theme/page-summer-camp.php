@@ -148,6 +148,7 @@ if ($locations_query->have_posts()) {
 		} elseif (is_string($calendar_override) && $calendar_override !== '') {
 			$calendar_url = $calendar_override;
 		}
+		$calendar_url = function_exists('chroma_normalize_owned_url') ? chroma_normalize_owned_url($calendar_url) : $calendar_url;
 
 		$is_pdf_calendar = (bool) preg_match('/\.pdf(?:\?.*)?$/i', (string) $calendar_url);
 		if ($is_pdf_calendar) {

@@ -81,8 +81,14 @@ class Chroma_Breadcrumbs
 
         // Check for manual override (AI Fixed Schema)
         // If an override exists, we assume it handles breadcrumbs or the user wants to suppress themes breadcrumbs.
-        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_queried_object_id())) {
+            return;
+        }
+
+        if (
+            function_exists('chroma_post_has_stored_schema_type_pro')
+            && chroma_post_has_stored_schema_type_pro(get_queried_object_id(), ['BreadcrumbList'])
+        ) {
             return;
         }
 

@@ -83,8 +83,7 @@ class Chroma_Event_Schema_Builder
         }
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_queried_object_id())) {
             return;
         }
 

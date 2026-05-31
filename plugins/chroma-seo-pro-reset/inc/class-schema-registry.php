@@ -408,6 +408,14 @@ class Chroma_Schema_Registry
             return;
         }
 
+        $existing_head = '';
+        if (self::$head_buffer_active && ob_get_level() > 0) {
+            $existing_head = (string) ob_get_contents();
+        }
+        $head_already_has_breadcrumb = $existing_head !== ''
+            && stripos($existing_head, 'application/ld+json') !== false
+            && stripos($existing_head, 'BreadcrumbList') !== false;
+
         // Build schema graph
         $graph = [];
         foreach (self::$schemas as $item) {
@@ -419,6 +427,14 @@ class Chroma_Schema_Registry
 
             if (function_exists('chroma_schema_normalize_site_urls_for_output')) {
                 $schema = chroma_schema_normalize_site_urls_for_output($schema);
+            }
+
+            $type = isset($schema['@type']) ? $schema['@type'] : '';
+            if (is_array($type)) {
+                $type = reset($type);
+            }
+            if ($head_already_has_breadcrumb && $type === 'BreadcrumbList') {
+                continue;
             }
 
             // Add @context if missing

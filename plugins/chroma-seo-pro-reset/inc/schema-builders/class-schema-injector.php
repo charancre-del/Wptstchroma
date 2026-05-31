@@ -98,8 +98,7 @@ class Chroma_Schema_Injector
         }
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_queried_object_id())) {
             return;
         }
 
@@ -126,8 +125,7 @@ class Chroma_Schema_Injector
         }
 
         // Respect manual overrides.
-        $override = get_post_meta($post_id, '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro($post_id)) {
             return;
         }
 
@@ -285,8 +283,7 @@ class Chroma_Schema_Injector
         $target_id = is_front_page() ? get_option('page_on_front') : get_queried_object_id();
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta($target_id, '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro($target_id)) {
             return;
         }
 
@@ -342,8 +339,7 @@ class Chroma_Schema_Injector
         }
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_option('page_on_front'), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_option('page_on_front'))) {
             return;
         }
 
@@ -381,8 +377,14 @@ class Chroma_Schema_Injector
         $location_id = get_the_ID();
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta($location_id, '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro($location_id)) {
+            return;
+        }
+
+        if (
+            function_exists('chroma_post_has_stored_schema_type_pro')
+            && chroma_post_has_stored_schema_type_pro($location_id, ['ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness'])
+        ) {
             return;
         }
 
@@ -739,22 +741,26 @@ class Chroma_Schema_Injector
         }
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_queried_object_id())) {
             return;
         }
 
         $post_id = get_the_ID();
         $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+        $schemas = is_array($schemas) ? $schemas : [];
 
-        if (empty($schemas) || !is_array($schemas)) {
-            $schemas = self::normalize_legacy_schema_data(get_post_meta($post_id, '_chroma_schema_data', true));
+        if (!empty($schemas)) {
+            $schemas = self::expand_schema_graph_documents($schemas);
+            $schemas = self::filter_preparable_schema_rows($schemas);
+        }
+
+        if (empty($schemas)) {
+            $legacy_schemas = self::normalize_legacy_schema_data(get_post_meta($post_id, '_chroma_schema_data', true));
+            $schemas = self::filter_preparable_schema_rows(self::expand_schema_graph_documents($legacy_schemas));
             if (empty($schemas)) {
                 return;
             }
         }
-
-        $schemas = self::expand_schema_graph_documents($schemas);
 
         $graph = [];
 
@@ -771,8 +777,11 @@ class Chroma_Schema_Injector
             $schema_type = $prepared['type'];
 
             // Global Suppression Check (e.g. for external AI schema)
-            $override = get_post_meta($post_id, '_chroma_schema_override', true);
-            if ($override && ($schema_type === 'FAQPage' || $schema_type === 'BreadcrumbList')) {
+            if (
+                function_exists('chroma_has_valid_schema_override_pro')
+                && chroma_has_valid_schema_override_pro($post_id)
+                && ($schema_type === 'FAQPage' || $schema_type === 'BreadcrumbList')
+            ) {
                 continue;
             }
 
@@ -1120,6 +1129,29 @@ class Chroma_Schema_Injector
                 echo '<script type="application/ld+json">' . wp_json_encode($final_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
             }
         }
+    }
+
+    /**
+     * Keep only rows that can be converted into a schema type.
+     *
+     * @param mixed $schemas
+     * @return array<int,array>
+     */
+    private static function filter_preparable_schema_rows($schemas)
+    {
+        if (empty($schemas) || !is_array($schemas)) {
+            return [];
+        }
+
+        $valid = [];
+        foreach ($schemas as $schema) {
+            $prepared = self::prepare_modular_schema_input($schema);
+            if (!empty($prepared['type'])) {
+                $valid[] = $schema;
+            }
+        }
+
+        return $valid;
     }
 
     /**
