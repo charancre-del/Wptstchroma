@@ -1107,12 +1107,11 @@ class Chroma_Schema_Injector
                 }
                 // Registry will output at priority 99 - don't echo here
             } else {
-                // Fallback: also route through Registry for consistency
                 $final_schema = [
                     '@context' => 'https://schema.org',
                     '@graph' => $graph
                 ];
-                Chroma_Schema_Registry::register($final_schema, ['source' => 'schema-injector-modular-legacy']);
+                echo '<script type="application/ld+json">' . wp_json_encode($final_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
             }
         }
     }
