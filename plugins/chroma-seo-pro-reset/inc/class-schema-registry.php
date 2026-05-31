@@ -80,16 +80,27 @@ if (!function_exists('chroma_schema_normalize_site_urls_for_output')) {
 
         $home = home_url('/');
         $home_host = strtolower((string) wp_parse_url($home, PHP_URL_HOST));
-        if ($home_host === '' || in_array($home_host, ['chromaela.com', 'www.chromaela.com'], true)) {
+        if ($home_host === '') {
             return $value;
         }
 
-        if (!preg_match('~^https?://(?:www\.)?chromaela\.com(?=/|$|[?#])~i', $value)) {
+        $owned_hosts = [
+            'chromaela.com',
+            'www.chromaela.com',
+            'chromaearlylearning.com',
+            'www.chromaearlylearning.com',
+        ];
+        $value_host = strtolower((string) wp_parse_url($value, PHP_URL_HOST));
+        if (!in_array($value_host, $owned_hosts, true)) {
+            return $value;
+        }
+
+        if ($value_host === $home_host) {
             return $value;
         }
 
         return preg_replace(
-            '~^https?://(?:www\.)?chromaela\.com~i',
+            '~^https?://(?:www\.)?(?:chromaela|chromaearlylearning)\.com~i',
             rtrim($home, '/'),
             $value
         );
@@ -473,7 +484,13 @@ class Chroma_Schema_Registry
             '/<script\b([^>]*)type=(["\'])application\/ld\+json\2([^>]*)>(.*?)<\/script>/is',
             function ($matches) {
                 $json = trim((string) $matches[4]);
-                if ($json === '' || stripos($json, 'chromaela.com') === false) {
+                if (
+                    $json === ''
+                    || (
+                        stripos($json, 'chromaela.com') === false
+                        && stripos($json, 'chromaearlylearning.com') === false
+                    )
+                ) {
                     return $matches[0];
                 }
 
