@@ -323,6 +323,8 @@ class SEO_Operation_Routes
 
     public static function list_translations(WP_REST_Request $request)
     {
+        global $wpdb;
+
         $page = max(1, (int) $request->get_param('page'));
         $per_page = (int) $request->get_param('per_page');
         if ($per_page <= 0) {
@@ -334,24 +336,60 @@ class SEO_Operation_Routes
         if (is_string($post_type) && strpos($post_type, ',') !== false) {
             $post_type = array_filter(array_map('trim', explode(',', $post_type)));
         }
+        $post_type = is_array($post_type) ? $post_type : [(string) $post_type];
+        $post_type = array_values(array_filter(array_map('sanitize_key', $post_type), 'post_type_exists'));
+        if (empty($post_type)) {
+            return new \WP_Error('caa_invalid_post_type', 'No valid post types were requested.', ['status' => 400]);
+        }
 
-        $query = new WP_Query([
-            'post_type' => $post_type,
-            'post_status' => ['publish', 'draft', 'pending', 'private'],
-            'posts_per_page' => $per_page,
-            'paged' => $page,
-            's' => sanitize_text_field((string) $request->get_param('search')),
-            'meta_query' => [
-                'relation' => 'OR',
-                ['key' => '_chroma_es_title', 'compare' => 'EXISTS'],
-                ['key' => '_chroma_es_content', 'compare' => 'EXISTS'],
-                ['key' => '_chroma_es_excerpt', 'compare' => 'EXISTS'],
-            ],
-            'no_found_rows' => false,
-        ]);
+        $statuses = ['publish', 'draft', 'pending', 'private'];
+        $translation_keys = [
+            '_chroma_es_title',
+            '_chroma_es_content',
+            '_chroma_es_excerpt',
+        ];
+        $offset = ($page - 1) * $per_page;
+        $search = sanitize_text_field((string) $request->get_param('search'));
 
+        $post_type_placeholders = implode(',', array_fill(0, count($post_type), '%s'));
+        $status_placeholders = implode(',', array_fill(0, count($statuses), '%s'));
+        $meta_placeholders = implode(',', array_fill(0, count($translation_keys), '%s'));
+
+        $where = "p.post_type IN ($post_type_placeholders) AND p.post_status IN ($status_placeholders) AND pm.meta_key IN ($meta_placeholders)";
+        $where_args = array_merge($post_type, $statuses, $translation_keys);
+        if ($search !== '') {
+            $like = '%' . $wpdb->esc_like($search) . '%';
+            $where .= ' AND (p.post_title LIKE %s OR p.post_content LIKE %s OR p.post_excerpt LIKE %s)';
+            $where_args[] = $like;
+            $where_args[] = $like;
+            $where_args[] = $like;
+        }
+
+        $ids_sql = $wpdb->prepare(
+            "SELECT DISTINCT p.ID
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+             WHERE {$where}
+             ORDER BY p.post_modified_gmt DESC, p.ID DESC
+             LIMIT %d OFFSET %d",
+            array_merge($where_args, [$per_page, $offset])
+        );
+        $count_sql = $wpdb->prepare(
+            "SELECT COUNT(DISTINCT p.ID)
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+             WHERE {$where}",
+            $where_args
+        );
+
+        $total = (int) $wpdb->get_var($count_sql);
         $items = [];
-        foreach ((array) $query->posts as $post) {
+        foreach ((array) $wpdb->get_col($ids_sql) as $post_id) {
+            $post = get_post((int) $post_id);
+            if (!$post) {
+                continue;
+            }
+
             $items[] = [
                 'post_id' => (int) $post->ID,
                 'post_type' => (string) $post->post_type,
@@ -369,8 +407,8 @@ class SEO_Operation_Routes
             'pagination' => [
                 'page' => $page,
                 'per_page' => $per_page,
-                'total' => (int) $query->found_posts,
-                'total_pages' => (int) $query->max_num_pages,
+                'total' => $total,
+                'total_pages' => (int) ceil($total / $per_page),
             ],
         ]);
     }
