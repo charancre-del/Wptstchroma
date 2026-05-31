@@ -173,12 +173,12 @@ class REST_Controller
             [
                 'methods' => WP_REST_Server::EDITABLE,
                 'callback' => [$this, 'update_photo'],
-                'permission_callback' => [$this, 'check_read_permission'], // Simple check for now
+                'permission_callback' => [$this, 'check_edit_photo_permission'],
             ],
             [
                 'methods' => WP_REST_Server::DELETABLE,
                 'callback' => [$this, 'delete_photo'],
-                'permission_callback' => [$this, 'check_read_permission'], // Simple check for now
+                'permission_callback' => [$this, 'check_edit_photo_permission'],
             ],
         ]);
 
@@ -469,6 +469,41 @@ class REST_Controller
         return new \WP_Error(
             'cqa_permission_denied',
             'Permission denied. You must be logged in to edit reports.',
+            ['status' => 403]
+        );
+    }
+
+    public function check_edit_photo_permission($request)
+    {
+        if (\current_user_can('manage_options')) {
+            return true;
+        }
+
+        $photo = Photo::find((int) $request['id']);
+        if (!$photo) {
+            return new \WP_Error('cqa_photo_not_found', 'Photo not found.', ['status' => 404]);
+        }
+
+        $report = Report::find((int) $photo->report_id);
+        if (!$report) {
+            return new \WP_Error('cqa_report_not_found', 'Report not found.', ['status' => 404]);
+        }
+
+        if ($report->status === 'approved' && !\current_user_can('cqa_approve_reports')) {
+            return new \WP_Error(
+                'cqa_permission_denied_approved',
+                'Cannot edit approved report photos without approval permissions.',
+                ['status' => 403]
+            );
+        }
+
+        if (\is_user_logged_in()) {
+            return true;
+        }
+
+        return new \WP_Error(
+            'cqa_permission_denied',
+            'Permission denied. You must be logged in to edit report photos.',
             ['status' => 403]
         );
     }
