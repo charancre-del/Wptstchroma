@@ -6,6 +6,10 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 // Configure Worker (Global)
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
+const pdfOptions = {
+    isEvalSupported: false,
+};
+
 const PDFViewerModal = ({ file, onClose }) => {
     // Viewer state
     const [numPages, setNumPages] = useState(null);
@@ -106,6 +110,7 @@ const PDFViewerModal = ({ file, onClose }) => {
                 <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
                     <Document
                         file={file.pdf_url}
+                        options={pdfOptions}
                         onLoadSuccess={onDocumentLoadSuccess}
                         loading={<div style={{ color: 'white', marginTop: '100px' }}>Loading Document...</div>}
                     >
