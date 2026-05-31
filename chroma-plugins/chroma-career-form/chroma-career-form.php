@@ -574,7 +574,16 @@ function chroma_handle_career_submission()
                     require_once(ABSPATH . 'wp-admin/includes/file.php');
                 }
 
-                $upload_overrides = array('test_form' => false);
+                $upload_overrides = array(
+                    'test_form' => false,
+                    'mimes' => array(
+                        'pdf' => 'application/pdf',
+                        'doc' => 'application/msword',
+                        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'jpg|jpeg' => 'image/jpeg',
+                        'png' => 'image/png',
+                    ),
+                );
                 $movefile = wp_handle_upload($file, $upload_overrides);
 
                 if ($movefile && !isset($movefile['error'])) {

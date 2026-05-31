@@ -318,6 +318,7 @@ function chroma_handle_tour_submission()
 
     $redirect_fallback = home_url('/contact/');
     $redirect_target = !empty($_POST['chroma_tour_redirect']) ? esc_url_raw(wp_unslash($_POST['chroma_tour_redirect'])) : (wp_get_referer() ?: $redirect_fallback);
+    $redirect_url = wp_validate_redirect($redirect_target, $redirect_fallback);
 
     // Check success (GHL usually returns 200 or 201)
     if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) < 400) {
@@ -334,21 +335,9 @@ function chroma_handle_tour_submission()
             ));
         }
 
-        wp_safe_redirect(add_query_arg('tour_sent', '1', $redirect_target));
+        wp_safe_redirect(add_query_arg('tour_sent', '1', $redirect_url));
     } else {
-        // DEBUG: Die with detailed info
-        echo '<div style="background:#f00; color:#fff; padding:20px; text-align:left;">';
-        echo '<h1>Form Submission Failed</h1>';
-        echo '<p>Please report this error:</p>';
-        echo '<pre>';
-        if (is_wp_error($response)) {
-            echo 'WP Error: ' . $response->get_error_message();
-        } else {
-            echo 'Status Code: ' . wp_remote_retrieve_response_code($response) . "\n";
-            echo 'Response Body: ' . esc_html(wp_remote_retrieve_body($response));
-        }
-        echo '</pre></div>';
-        exit;
+        wp_safe_redirect(add_query_arg('tour_sent', '0', $redirect_url));
     }
 
     exit;
