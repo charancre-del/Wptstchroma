@@ -111,6 +111,8 @@ class Chroma_Virtual_Page_SEO_Data
         $canonical = (string) ($seo['canonical'] ?? '');
         $robots = trim((string) ($seo['robots'] ?? ''));
 
+        add_filter('chroma_should_use_local_seo_fallback', '__return_true', PHP_INT_MAX);
+
         if ($canonical !== '') {
             foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $filter) {
                 add_filter($filter, static function () use ($canonical) {

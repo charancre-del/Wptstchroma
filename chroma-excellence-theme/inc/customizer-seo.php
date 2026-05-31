@@ -423,6 +423,10 @@ function chroma_shared_fallback_canonical_link() {
         return;
     }
 
+    if (did_action('chroma_canonical_output_done')) {
+        return;
+    }
+
     $url = chroma_get_context_canonical_url();
     if ($url !== '') {
         echo '<link rel="canonical" href="' . esc_url($url) . '">' . "\n";
