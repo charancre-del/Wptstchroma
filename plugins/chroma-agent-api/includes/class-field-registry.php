@@ -29,7 +29,9 @@ class Field_Registry
             'write:leads',
             'read:maintenance',
             'write:maintenance',
+            'read:geo',
             'admin:keys',
+            'admin:audit',
         ];
     }
 
