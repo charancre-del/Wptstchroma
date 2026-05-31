@@ -133,6 +133,55 @@ function chroma_is_virtual_nav_request()
 }
 
 /**
+ * Normalize stored nav URLs that point at this site on another environment.
+ *
+ * WordPress menus can store absolute URLs. When staging is cloned from
+ * production, those menu items otherwise keep linking back to live.
+ *
+ * @param string $url
+ * @return string
+ */
+function chroma_normalize_nav_url($url)
+{
+	$url = trim((string) $url);
+	if ($url === '' || $url[0] === '#') {
+		return $url;
+	}
+
+	$parts = wp_parse_url($url);
+	if (empty($parts['host'])) {
+		return $url;
+	}
+
+	$current_host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+	$url_host = strtolower((string) $parts['host']);
+	$internal_hosts = array_filter(array_unique(array(
+		strtolower($current_host),
+		'chromaela.com',
+		'www.chromaela.com',
+	)));
+
+	if (!in_array($url_host, $internal_hosts, true)) {
+		return $url;
+	}
+
+	$path = isset($parts['path']) && $parts['path'] !== '' ? $parts['path'] : '/';
+	$path = user_trailingslashit($path);
+
+	if (!empty($parts['query'])) {
+		$path .= '?' . $parts['query'];
+	}
+
+	$normalized = home_url($path);
+
+	if (!empty($parts['fragment'])) {
+		$normalized .= '#' . $parts['fragment'];
+	}
+
+	return $normalized;
+}
+
+/**
  * Render top-level menu items without invoking wp_nav_menu context logic.
  *
  * @param string $location
@@ -164,11 +213,7 @@ function chroma_render_flat_menu_location($location, $link_class)
 		}
 
 		$url = isset($item->url) ? (string) $item->url : '';
-		if ($url !== '' && strpos($url, home_url()) !== false) {
-			$parts = explode('#', $url, 2);
-			$path = user_trailingslashit($parts[0]);
-			$url = $path . (isset($parts[1]) ? '#' . $parts[1] : '');
-		}
+		$url = chroma_normalize_nav_url($url);
 		if ($url === '') {
 			$url = '#';
 		}
@@ -405,12 +450,7 @@ class Chroma_Primary_Nav_Walker extends Walker_Nav_Menu
 		}
 
 		$url = isset($item->url) ? (string) $item->url : '';
-		// Enforce trailing slash for internal links
-		if ($url !== '' && strpos($url, home_url()) !== false) {
-			$parts = explode('#', $url, 2);
-			$path = user_trailingslashit($parts[0]);
-			$url = $path . (isset($parts[1]) ? '#' . $parts[1] : '');
-		}
+		$url = chroma_normalize_nav_url($url);
 		if ($url === '') {
 			$url = '#';
 		}
@@ -444,12 +484,7 @@ class Chroma_Footer_Nav_Walker extends Walker_Nav_Menu
 	function start_el(&$output, $item, $depth = 0, $args = null, $id = 0)
 	{
 		$url = isset($item->url) ? (string) $item->url : '';
-		// Enforce trailing slash for internal links
-		if ($url !== '' && strpos($url, home_url()) !== false) {
-			$parts = explode('#', $url, 2);
-			$path = user_trailingslashit($parts[0]);
-			$url = $path . (isset($parts[1]) ? '#' . $parts[1] : '');
-		}
+		$url = chroma_normalize_nav_url($url);
 		if ($url === '') {
 			$url = '#';
 		}
@@ -571,12 +606,7 @@ class Chroma_Mobile_Nav_Walker extends Walker_Nav_Menu
 		}
 
 		$url = isset($item->url) ? (string) $item->url : '';
-		// Enforce trailing slash for internal links
-		if ($url !== '' && strpos($url, home_url()) !== false) {
-			$parts = explode('#', $url, 2);
-			$path = user_trailingslashit($parts[0]);
-			$url = $path . (isset($parts[1]) ? '#' . $parts[1] : '');
-		}
+		$url = chroma_normalize_nav_url($url);
 		if ($url === '') {
 			$url = '#';
 		}
