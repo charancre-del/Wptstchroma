@@ -5,6 +5,7 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Audit_Log;
 use ChromaAgentAPI\Diff;
+use ChromaAgentAPI\Route_Utils;
 use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_REST_Request;
@@ -186,7 +187,7 @@ class Theme_Routes
             }
 
             $old = get_theme_mod($mod_name, null);
-            $new = Utils::sanitize_mixed_for_storage($value);
+            $new = Route_Utils::sanitize_value_for_storage($mod_name, $value);
 
             $before[$mod_name] = $old;
             $after[$mod_name] = $new;
