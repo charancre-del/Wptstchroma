@@ -234,12 +234,26 @@ function chroma_program_prism_chart_values($program_id)
 		'program_prism_creative',
 	);
 	$values = array();
+	$raw_values = array();
 
 	foreach ($meta_keys as $index => $meta_key) {
 		$raw_value = get_post_meta($program_id, $meta_key, true);
+		$raw_values[] = $raw_value;
 		$values[] = ('' === trim((string) $raw_value))
 			? $defaults[$index]
 			: max(0, min(100, absint($raw_value)));
+	}
+
+	$slug = sanitize_title(get_post_field('post_name', $program_id));
+	$uses_placeholder_values = in_array($slug, array('rising-pre-k', 'rising-kindergarten'), true)
+		&& array(50, 50, 50, 50, 50) === $values
+		&& array(50, 50, 50, 50, 50) !== $defaults
+		&& count(array_filter($raw_values, static function ($value) {
+			return '' !== trim((string) $value);
+		})) === count($meta_keys);
+
+	if ($uses_placeholder_values) {
+		return $defaults;
 	}
 
 	return $values;
