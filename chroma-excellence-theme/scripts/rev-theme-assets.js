@@ -20,6 +20,7 @@ const hashedNamePattern = (baseName, ext) =>
   new RegExp(`^${baseName.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\$&')}\\.[a-f0-9]{12}${ext.replace('.', '\\.')}$`);
 
 const manifest = {};
+const cleanStaleAssets = process.env.CHROMA_CLEAN_REV_ASSETS === '1';
 
 for (const relativeFile of ASSETS_TO_REV) {
   const sourcePath = path.join(THEME_ROOT, relativeFile);
@@ -35,10 +36,14 @@ for (const relativeFile of ASSETS_TO_REV) {
   const hashedFileName = `${base}.${hash}${ext}`;
   const hashedPath = path.join(sourceDir, hashedFileName);
 
-  // Clean stale hashed variants for the same logical asset.
-  for (const candidate of fs.readdirSync(sourceDir)) {
-    if (hashedNamePattern(base, ext).test(candidate) && candidate !== hashedFileName) {
-      fs.rmSync(path.join(sourceDir, candidate), { force: true });
+  // Keep older hashed variants by default so CDN-cached HTML does not request
+  // missing assets immediately after a deploy. Set CHROMA_CLEAN_REV_ASSETS=1
+  // for an intentional cleanup pass.
+  if (cleanStaleAssets) {
+    for (const candidate of fs.readdirSync(sourceDir)) {
+      if (hashedNamePattern(base, ext).test(candidate) && candidate !== hashedFileName) {
+        fs.rmSync(path.join(sourceDir, candidate), { force: true });
+      }
     }
   }
 
