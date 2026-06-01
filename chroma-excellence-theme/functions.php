@@ -884,6 +884,10 @@ function chroma_preserve_dynamic_route_redirects($redirect_url, $requested_url)
         return false;
     }
 
+    if (preg_match('#^/(es/)?daycare-\d{5}/?$#i', $path) || preg_match('#^/(es/)?childcare-in-[a-z0-9-]+-county/?$#i', $path)) {
+        return false;
+    }
+
     return $redirect_url;
 }
 add_filter('redirect_canonical', 'chroma_preserve_dynamic_route_redirects', 1, 2);
@@ -949,6 +953,26 @@ function chroma_get_dynamic_route_canonical_path($path)
         }
 
         $segments[] = $keyword . '-near-' . $city_slug . '-' . $state;
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    if (preg_match('#^/(es/)?daycare-(\d{5})/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $segments[] = 'daycare-' . $matches[2];
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    if (preg_match('#^/(es/)?childcare-in-([a-z0-9-]+)-county/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $segments[] = 'childcare-in-' . sanitize_title($matches[2]) . '-county';
         return '/' . implode('/', $segments) . '/';
     }
 

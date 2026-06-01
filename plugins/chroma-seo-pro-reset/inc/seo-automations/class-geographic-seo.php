@@ -19,6 +19,7 @@ class Chroma_Geographic_SEO
         add_action('init', [$this, 'add_service_area_rewrites']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_service_area_page']);
+        add_filter('chroma_sitemap_urls', [$this, 'add_service_areas_to_unified_sitemap']);
         add_action('admin_menu', [$this, 'add_admin_page'], 30);
     }
     
@@ -191,11 +192,23 @@ class Chroma_Geographic_SEO
             'index.php?chroma_service_area=county&area_name=$matches[1]',
             'top'
         );
+
+        add_rewrite_rule(
+            '^es/childcare-in-([a-z-]+)-county/?$',
+            'index.php?chroma_service_area=county&area_name=$matches[1]&chroma_lang=es',
+            'top'
+        );
         
         // ZIP pages: /daycare-30041/
         add_rewrite_rule(
             '^daycare-(\d{5})/?$',
             'index.php?chroma_service_area=zip&area_name=$matches[1]',
+            'top'
+        );
+
+        add_rewrite_rule(
+            '^es/daycare-(\d{5})/?$',
+            'index.php?chroma_service_area=zip&area_name=$matches[1]&chroma_lang=es',
             'top'
         );
     }
@@ -214,12 +227,24 @@ class Chroma_Geographic_SEO
      */
     public function handle_service_area_page() {
         $area_type = get_query_var('chroma_service_area');
+        $route = $this->detect_service_area_route_from_request();
+
+        if (!$area_type && !empty($route['type'])) {
+            $area_type = $route['type'];
+        }
         
         if (!$area_type) {
             return;
         }
         
         $area_name = sanitize_text_field(get_query_var('area_name'));
+        if ($area_name === '' && !empty($route['area_name'])) {
+            $area_name = sanitize_text_field($route['area_name']);
+        }
+
+        if ($area_name === '') {
+            return;
+        }
         
         // Get all locations
         $locations = get_posts([
@@ -260,6 +285,115 @@ class Chroma_Geographic_SEO
         
         get_footer();
         exit;
+    }
+
+    /**
+     * Add generated county and ZIP virtual pages to the flat /sitemap.xml.
+     *
+     * These pages are option-backed virtual routes, so they will never appear in
+     * the standard post/page sitemap. Registering them here keeps them covered
+     * without turning them into hidden WordPress pages.
+     *
+     * @param array $urls Existing sitemap entries.
+     * @return array
+     */
+    public function add_service_areas_to_unified_sitemap($urls) {
+        if (!is_array($urls)) {
+            $urls = [];
+        }
+
+        if (!class_exists('Chroma_Virtual_Page_SEO_Data')) {
+            return $urls;
+        }
+
+        $base = rtrim(home_url('/'), '/');
+        foreach (Chroma_Virtual_Page_SEO_Data::service_area_candidates() as $item) {
+            $url = isset($item['url']) ? (string) $item['url'] : '';
+            if ($url === '') {
+                continue;
+            }
+
+            $lastmod = $this->get_service_area_sitemap_lastmod($item);
+            $urls[] = [
+                'loc' => $url,
+                'lastmod' => $lastmod,
+            ];
+
+            $es_url = str_replace($base . '/', $base . '/es/', $url);
+            if ($es_url === $url) {
+                $path = (string) wp_parse_url($url, PHP_URL_PATH);
+                if ($path !== '') {
+                    $es_url = home_url('/es/' . ltrim($path, '/'));
+                }
+            }
+
+            if ($es_url !== $url) {
+                $urls[] = [
+                    'loc' => $es_url,
+                    'lastmod' => $lastmod,
+                ];
+            }
+        }
+
+        return $urls;
+    }
+
+    /**
+     * Recognize service-area routes even when rewrite rules have not been flushed.
+     *
+     * @return array{type:string,area_name:string}|array
+     */
+    private function detect_service_area_route_from_request() {
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+        if (!is_string($path) || $path === '') {
+            return [];
+        }
+
+        if (preg_match('#^/(?:es/)?daycare-(\d{5})/?$#i', $path, $matches)) {
+            return [
+                'type' => 'zip',
+                'area_name' => $matches[1],
+            ];
+        }
+
+        if (preg_match('#^/(?:es/)?childcare-in-([a-z0-9-]+)-county/?$#i', $path, $matches)) {
+            return [
+                'type' => 'county',
+                'area_name' => sanitize_title($matches[1]),
+            ];
+        }
+
+        return [];
+    }
+
+    /**
+     * Stable lastmod for option-backed service-area sitemap entries.
+     *
+     * @param array $item Service-area candidate.
+     * @return string
+     */
+    private function get_service_area_sitemap_lastmod($item) {
+        $timestamps = [];
+
+        if (!empty($item['data']['last_updated'])) {
+            $timestamps[] = (int) $item['data']['last_updated'];
+        }
+
+        $posts = get_posts([
+            'post_type' => 'location',
+            'posts_per_page' => 1,
+            'post_status' => 'publish',
+            'orderby' => 'modified',
+            'order' => 'DESC',
+        ]);
+
+        if (!empty($posts) && $posts[0] instanceof WP_Post && !empty($posts[0]->post_modified_gmt)) {
+            $timestamps[] = strtotime($posts[0]->post_modified_gmt);
+        }
+
+        $timestamps = array_filter(array_map('intval', $timestamps));
+        return !empty($timestamps) ? gmdate('c', max($timestamps)) : gmdate('c');
     }
 
     private function get_service_area_seo_fallbacks($area_type, $area_name, $canonical) {
