@@ -68,12 +68,166 @@ function chroma_maybe_flush_program_rewrites_admin()
 add_action('admin_init', 'chroma_maybe_flush_program_rewrites_admin', 20);
 
 /**
- * Preserve legacy Kindergarten program URLs when WordPress has a duplicate slug.
+ * Preserve the public Kindergarten program URL when WordPress has a duplicate slug.
  *
  * If a page or previously-created post reserved "kindergarten", WordPress keeps
- * the actual program at "kindergarten-1". Without this explicit alias, core
- * canonical guessing can send /programs/kindergarten/ to GA Pre-K.
+ * the actual program at "kindergarten-1". Keep the frontend URL at the clean
+ * /programs/kindergarten/ route while mapping the request to the real post.
  */
+function chroma_get_kindergarten_program_alias_post()
+{
+	$program = get_page_by_path('kindergarten-1', OBJECT, 'program');
+	if (!$program || strcasecmp((string) get_the_title($program), 'Kindergarten') !== 0) {
+		return null;
+	}
+
+	return $program;
+}
+
+function chroma_filter_kindergarten_program_permalink($post_link, $post)
+{
+	if (!$post || $post->post_type !== 'program' || $post->post_name !== 'kindergarten-1') {
+		return $post_link;
+	}
+
+	if (strcasecmp((string) get_the_title($post), 'Kindergarten') !== 0) {
+		return $post_link;
+	}
+
+	$base_slug = function_exists('chroma_get_program_base_slug') ? chroma_get_program_base_slug() : 'programs';
+	return home_url(user_trailingslashit(trim($base_slug, '/') . '/kindergarten'));
+}
+add_filter('post_type_link', 'chroma_filter_kindergarten_program_permalink', 10, 2);
+
+function chroma_map_kindergarten_program_request($query_vars)
+{
+	$base_slug = function_exists('chroma_get_program_base_slug') ? chroma_get_program_base_slug() : 'programs';
+	$requested_name = isset($query_vars['name']) ? (string) $query_vars['name'] : '';
+	$requested_type = isset($query_vars['post_type']) ? (string) $query_vars['post_type'] : '';
+
+	if ($requested_type === 'program' && $requested_name === 'kindergarten') {
+		$program = chroma_get_kindergarten_program_alias_post();
+		if ($program) {
+			$query_vars['name'] = $program->post_name;
+		}
+	}
+
+	$pagename = isset($query_vars['pagename']) ? trim((string) $query_vars['pagename'], '/') : '';
+	if ($pagename === trim($base_slug . '/kindergarten', '/')) {
+		$program = chroma_get_kindergarten_program_alias_post();
+		if ($program) {
+			unset($query_vars['pagename'], $query_vars['page']);
+			$query_vars['post_type'] = 'program';
+			$query_vars['name'] = $program->post_name;
+		}
+	}
+
+	return $query_vars;
+}
+add_filter('request', 'chroma_map_kindergarten_program_request', 1);
+
+function chroma_parse_kindergarten_program_alias_request($wp)
+{
+	if (!chroma_is_kindergarten_program_alias_request()) {
+		return;
+	}
+
+	$program = chroma_get_kindergarten_program_alias_post();
+	if (!$program) {
+		return;
+	}
+
+	$wp->query_vars = array_merge($wp->query_vars, array(
+		'post_type' => 'program',
+		'program' => $program->post_name,
+		'name' => $program->post_name,
+	));
+
+	unset($wp->query_vars['pagename'], $wp->query_vars['page'], $wp->query_vars['error']);
+}
+add_action('parse_request', 'chroma_parse_kindergarten_program_alias_request', 1);
+
+function chroma_is_kindergarten_program_alias_request()
+{
+	if (!isset($_SERVER['REQUEST_URI'])) {
+		return false;
+	}
+
+	$path = trim((string) wp_parse_url((string) $_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+	if ($path === '') {
+		return false;
+	}
+
+	$base_slug = function_exists('chroma_get_program_base_slug') ? chroma_get_program_base_slug() : 'programs';
+	$alias_paths = array(
+		trim($base_slug . '/kindergarten', '/'),
+		trim('es/' . $base_slug . '/kindergarten', '/'),
+	);
+
+	return in_array($path, $alias_paths, true);
+}
+
+function chroma_preserve_kindergarten_program_alias_redirects($redirect_url = false)
+{
+	if (chroma_is_kindergarten_program_alias_request() && chroma_get_kindergarten_program_alias_post()) {
+		return false;
+	}
+
+	return $redirect_url;
+}
+add_filter('redirect_canonical', 'chroma_preserve_kindergarten_program_alias_redirects', 0, 1);
+add_filter('old_slug_redirect_url', 'chroma_preserve_kindergarten_program_alias_redirects', 0, 1);
+
+function chroma_disable_custom_canonical_redirect_for_kindergarten_alias($pre_option, $option, $default)
+{
+	if (chroma_is_kindergarten_program_alias_request() && chroma_get_kindergarten_program_alias_post()) {
+		return false;
+	}
+
+	return $pre_option;
+}
+add_filter('pre_option_chroma_seo_redirect_canonical', 'chroma_disable_custom_canonical_redirect_for_kindergarten_alias', 9, 3);
+
+function chroma_render_kindergarten_program_alias()
+{
+	if (!chroma_is_kindergarten_program_alias_request()) {
+		return;
+	}
+
+	$program = chroma_get_kindergarten_program_alias_post();
+	if (!$program) {
+		return;
+	}
+
+	global $post, $wp_query;
+
+	$post = $program;
+	setup_postdata($post);
+
+	$wp_query->queried_object = $program;
+	$wp_query->queried_object_id = (int) $program->ID;
+	$wp_query->post = $program;
+	$wp_query->posts = array($program);
+	$wp_query->post_count = 1;
+	$wp_query->found_posts = 1;
+	$wp_query->max_num_pages = 1;
+	$wp_query->is_single = true;
+	$wp_query->is_singular = true;
+	$wp_query->is_404 = false;
+	$wp_query->is_page = false;
+	$wp_query->is_archive = false;
+	$wp_query->is_post_type_archive = false;
+
+	status_header(200);
+
+	$template = locate_template(array('single-program.php', 'single.php', 'index.php'));
+	if ($template !== '') {
+		include $template;
+		exit;
+	}
+}
+add_action('template_redirect', 'chroma_render_kindergarten_program_alias', -10000);
+
 function chroma_redirect_legacy_kindergarten_program_slug()
 {
 	if (is_admin() || wp_doing_ajax() || wp_doing_cron()) {
@@ -88,20 +242,15 @@ function chroma_redirect_legacy_kindergarten_program_slug()
 	$request_path = trim((string) wp_parse_url((string) ($_SERVER['REQUEST_URI'] ?? ''), PHP_URL_PATH), '/');
 	$base_slug = function_exists('chroma_get_program_base_slug') ? chroma_get_program_base_slug() : 'programs';
 
-	if ($request_path !== trim($base_slug . '/kindergarten', '/')) {
+	if ($request_path !== trim($base_slug . '/kindergarten-1', '/')) {
 		return;
 	}
 
-	if (get_page_by_path('kindergarten', OBJECT, 'program')) {
+	if (!chroma_get_kindergarten_program_alias_post()) {
 		return;
 	}
 
-	$program = get_page_by_path('kindergarten-1', OBJECT, 'program');
-	if (!$program || strcasecmp((string) get_the_title($program), 'Kindergarten') !== 0) {
-		return;
-	}
-
-	wp_safe_redirect(get_permalink($program), 301);
+	wp_safe_redirect(home_url(user_trailingslashit(trim($base_slug, '/') . '/kindergarten')), 301);
 	exit;
 }
 add_action('template_redirect', 'chroma_redirect_legacy_kindergarten_program_slug', -1000);

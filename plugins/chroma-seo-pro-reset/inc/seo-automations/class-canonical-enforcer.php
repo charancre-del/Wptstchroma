@@ -83,6 +83,11 @@ class Chroma_Canonical_Enforcer
             user_trailingslashit('/es/' . $program_slug . '/' . $post->post_name),
         ];
 
+        $permalink_path = wp_parse_url((string) get_permalink($post), PHP_URL_PATH);
+        if (is_string($permalink_path) && $permalink_path !== '') {
+            $expected_paths[] = user_trailingslashit($permalink_path);
+        }
+
         return in_array(user_trailingslashit($request_path), $expected_paths, true);
     }
 
@@ -135,6 +140,14 @@ class Chroma_Canonical_Enforcer
         $requested_slug = sanitize_title((string) $matches[2]);
         if ($requested_slug === '') {
             return $redirect_url;
+        }
+
+        if (
+            $requested_slug === 'kindergarten'
+            && function_exists('chroma_get_kindergarten_program_alias_post')
+            && chroma_get_kindergarten_program_alias_post() instanceof WP_Post
+        ) {
+            return false;
         }
 
         $candidates = get_posts([
