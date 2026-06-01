@@ -238,11 +238,7 @@ class Theme_Routes
 
     private static function payload(WP_REST_Request $request): array
     {
-        $payload = $request->get_json_params();
-        if (!is_array($payload)) {
-            $payload = $request->get_params();
-        }
-        return is_array($payload) ? $payload : [];
+        return Route_Utils::payload($request);
     }
 
     private static function read_options_by_keys(array $keys): array

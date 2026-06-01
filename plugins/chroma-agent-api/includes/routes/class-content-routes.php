@@ -5,6 +5,7 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Audit_Log;
 use ChromaAgentAPI\Diff;
+use ChromaAgentAPI\Route_Utils;
 use ChromaAgentAPI\Utils;
 use WP_Query;
 use WP_REST_Request;
@@ -884,12 +885,7 @@ class Content_Routes
 
     private static function get_payload(WP_REST_Request $request): array
     {
-        $params = $request->get_json_params();
-        if (!is_array($params)) {
-            $params = $request->get_params();
-        }
-
-        return is_array($params) ? $params : [];
+        return Route_Utils::payload($request);
     }
 
     private static function is_dry_run(array $params): bool

@@ -5,6 +5,7 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Audit_Log;
 use ChromaAgentAPI\Diff;
+use ChromaAgentAPI\Route_Utils;
 use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_REST_Request;
@@ -120,10 +121,7 @@ class Audit_Routes
 
     public static function rollback_snapshot(WP_REST_Request $request)
     {
-        $payload = $request->get_json_params();
-        if (!is_array($payload)) {
-            $payload = $request->get_params();
-        }
+        $payload = Route_Utils::payload($request);
 
         $dry_run = Utils::truthy($payload['dry_run'] ?? false);
         $snapshot_id = isset($payload['snapshot_id']) ? (int) $payload['snapshot_id'] : 0;

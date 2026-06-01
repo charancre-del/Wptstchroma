@@ -5,6 +5,7 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Audit_Log;
 use ChromaAgentAPI\Diff;
+use ChromaAgentAPI\Route_Utils;
 use ChromaAgentAPI\Utils;
 use WP_Query;
 use WP_REST_Request;
@@ -180,10 +181,7 @@ class Media_Routes
 
     public static function attach_media(WP_REST_Request $request)
     {
-        $payload = $request->get_json_params();
-        if (!is_array($payload)) {
-            $payload = $request->get_params();
-        }
+        $payload = Route_Utils::payload($request);
 
         $dry_run = Utils::truthy($payload['dry_run'] ?? false);
         $post_id = isset($payload['post_id']) ? (int) $payload['post_id'] : 0;

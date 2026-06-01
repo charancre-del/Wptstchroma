@@ -16,7 +16,26 @@ class Route_Utils
         if (!is_array($payload)) {
             $payload = $request->get_params();
         }
-        return is_array($payload) ? $payload : [];
+
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        return self::merge_control_params($request, $payload);
+    }
+
+    public static function merge_control_params(WP_REST_Request $request, array $payload): array
+    {
+        foreach (['dry_run', 'strict_write'] as $key) {
+            $param = $request->get_param($key);
+            if (Utils::truthy($param)) {
+                $payload[$key] = true;
+            } elseif (!array_key_exists($key, $payload) && $param !== null) {
+                $payload[$key] = $param;
+            }
+        }
+
+        return $payload;
     }
 
     public static function updates_from_request(WP_REST_Request $request): array
