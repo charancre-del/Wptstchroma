@@ -220,6 +220,10 @@ if (!function_exists('chroma_should_use_local_seo_fallback')) {
 
         $use_fallback = $route_key !== '' && in_array($route_key, $fallback_routes, true);
 
+        if (!$use_fallback && is_singular('post')) {
+            $use_fallback = true;
+        }
+
         if (!$use_fallback && is_post_type_archive(['location', 'program', 'city'])) {
             $use_fallback = true;
         }
