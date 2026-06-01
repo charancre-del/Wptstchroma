@@ -216,6 +216,30 @@ function chroma_home_infer_stat_key($stat, $index = 0)
         return $fallback_keys[$index] ?? 'stat_' . ($index + 1);
 }
 
+function chroma_home_get_location_count()
+{
+        $counts = post_type_exists('location') ? wp_count_posts('location') : null;
+        return isset($counts->publish) ? max(0, (int) $counts->publish) : 0;
+}
+
+function chroma_home_normalize_location_count_copy($text, $location_count = null)
+{
+        $text = (string) $text;
+        $location_count = $location_count === null ? chroma_home_get_location_count() : (int) $location_count;
+
+        if ($text === '' || $location_count < 1) {
+                return $text;
+        }
+
+        return (string) preg_replace_callback(
+                '/\b\d+\+\s+((?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations))\b/i',
+                static function ($matches) use ($location_count) {
+                        return $location_count . '+ ' . $matches[1];
+                },
+                $text
+        );
+}
+
 function chroma_home_stats()
 {
         $post_id = chroma_get_home_page_id();
@@ -249,11 +273,18 @@ function chroma_home_stats()
         // Define color cycle for stats (red, yellow, blue, green)
         $colors = array('chroma-red', 'chroma-yellow', 'chroma-blue', 'chroma-green');
         $index = 0;
+        $location_count = chroma_home_get_location_count();
 
         foreach ($stats as $stat) {
+                $key = chroma_home_infer_stat_key($stat, $index);
+                $value = sanitize_text_field($stat['value'] ?? '');
+                if ($key === 'locations') {
+                        $value = chroma_format_location_count_text($value, $location_count);
+                }
+
                 $cleaned[] = array(
-                        'key' => chroma_home_infer_stat_key($stat, $index),
-                        'value' => sanitize_text_field($stat['value'] ?? ''),
+                        'key' => $key,
+                        'value' => $value,
                         'label' => sanitize_text_field($stat['label'] ?? ''),
                         'color' => $colors[$index % count($colors)],
                 );
@@ -1134,7 +1165,7 @@ function chroma_home_faq_items()
 
                         return array(
                                 'question' => sanitize_text_field(is_scalar($item['question'] ?? null) ? (string) $item['question'] : ''),
-                                'answer' => sanitize_textarea_field(is_scalar($item['answer'] ?? null) ? (string) $item['answer'] : ''),
+                                'answer' => sanitize_textarea_field(chroma_home_normalize_location_count_copy(is_scalar($item['answer'] ?? null) ? (string) $item['answer'] : '')),
                         );
                 },
                 $items
@@ -1170,7 +1201,7 @@ function chroma_format_location_count_text($text, $location_count)
         }
 
         if (preg_match('/^\s*\d+\+\s+/u', $text)) {
-                return preg_replace('/^\s*\d+\+/u', $location_count . '+', $text, 1);
+                return (string) preg_replace('/^\s*\d+\+/u', $location_count . '+', $text, 1);
         }
 
         return sprintf(__('%d+ neighborhood locations across Metro Atlanta', 'chroma-excellence'), $location_count);

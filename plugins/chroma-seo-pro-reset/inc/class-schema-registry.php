@@ -112,6 +112,87 @@ if (!function_exists('chroma_schema_normalize_site_urls_for_output')) {
     }
 }
 
+/**
+ * Get the current published Location count for dynamic public facts.
+ *
+ * Stored/API-loaded schema can contain stale marketing counts such as "23+".
+ * Keep the stored record intact, but render the current count so JSON-LD does
+ * not drift from the public site after locations are added.
+ *
+ * @return int
+ */
+if (!function_exists('chroma_schema_get_published_location_count')) {
+    function chroma_schema_get_published_location_count() {
+        static $count = null;
+
+        if ($count !== null) {
+            return $count;
+        }
+
+        $count = 0;
+        if (post_type_exists('location')) {
+            $counts = wp_count_posts('location');
+            if (isset($counts->publish)) {
+                $count = (int) $counts->publish;
+            }
+        }
+
+        return $count;
+    }
+}
+
+/**
+ * Normalize dynamic site facts inside schema output.
+ *
+ * @param mixed $value
+ * @return mixed
+ */
+if (!function_exists('chroma_schema_normalize_dynamic_site_facts_for_output')) {
+    function chroma_schema_normalize_dynamic_site_facts_for_output($value) {
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (is_array($value)) {
+            $normalized = [];
+            foreach ($value as $key => $item) {
+                $normalized[$key] = chroma_schema_normalize_dynamic_site_facts_for_output($item);
+            }
+            return $normalized;
+        }
+
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+
+        $location_count = chroma_schema_get_published_location_count();
+        if ($location_count < 1 || !preg_match('/\b\d+\+\s+(?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations)\b/i', $value)) {
+            return $value;
+        }
+
+        return preg_replace_callback(
+            '/\b\d+\+\s+((?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations))\b/i',
+            static function ($matches) use ($location_count) {
+                return $location_count . '+ ' . $matches[1];
+            },
+            $value
+        );
+    }
+}
+
+/**
+ * Check raw JSON-LD HTML for dynamic facts that should be normalized.
+ *
+ * @param string $html
+ * @return bool
+ */
+if (!function_exists('chroma_schema_output_contains_dynamic_site_fact')) {
+    function chroma_schema_output_contains_dynamic_site_fact($html) {
+        return is_string($html)
+            && preg_match('/\b\d+\+\s+(?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations)\b/i', $html);
+    }
+}
+
 if (!function_exists('chroma_schema_array_is_list')) {
     function chroma_schema_array_is_list(array $value) {
         if ($value === []) {
@@ -429,6 +510,10 @@ class Chroma_Schema_Registry
                 $schema = chroma_schema_normalize_site_urls_for_output($schema);
             }
 
+            if (function_exists('chroma_schema_normalize_dynamic_site_facts_for_output')) {
+                $schema = chroma_schema_normalize_dynamic_site_facts_for_output($schema);
+            }
+
             $type = isset($schema['@type']) ? $schema['@type'] : '';
             if (is_array($type)) {
                 $type = reset($type);
@@ -516,6 +601,10 @@ class Chroma_Schema_Registry
                     || (
                         stripos($json, 'chromaela.com') === false
                         && stripos($json, 'chromaearlylearning.com') === false
+                        && (
+                            !function_exists('chroma_schema_output_contains_dynamic_site_fact')
+                            || !chroma_schema_output_contains_dynamic_site_fact($json)
+                        )
                     )
                 ) {
                     return $matches[0];
@@ -527,6 +616,9 @@ class Chroma_Schema_Registry
                 }
 
                 $decoded = chroma_schema_normalize_site_urls_for_output($decoded);
+                if (function_exists('chroma_schema_normalize_dynamic_site_facts_for_output')) {
+                    $decoded = chroma_schema_normalize_dynamic_site_facts_for_output($decoded);
+                }
                 $encoded = wp_json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
                 if (!is_string($encoded) || $encoded === '') {
                     return $matches[0];
