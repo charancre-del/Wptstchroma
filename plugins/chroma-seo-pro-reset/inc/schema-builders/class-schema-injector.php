@@ -1465,6 +1465,10 @@ class Chroma_Schema_Injector
             $schema = self::normalize_review_schema($schema, $post_id);
         }
 
+        if (in_array($schema_type, ['Article', 'BlogPosting', 'NewsArticle'], true)) {
+            $schema = self::normalize_article_schema($schema, $post_id);
+        }
+
         if ($schema_type === 'Service') {
             $schema = self::normalize_service_schema($schema);
         }
@@ -1648,6 +1652,125 @@ class Chroma_Schema_Injector
         }
 
         unset($schema['author_name'], $schema['itemReviewed_name']);
+        return $schema;
+    }
+
+    /**
+     * Normalize Article-like schema from API/builder rows.
+     *
+     * @param array $schema
+     * @param int   $post_id
+     * @return array
+     */
+    private static function normalize_article_schema($schema, $post_id)
+    {
+        if (empty($schema['headline'])) {
+            $schema['headline'] = get_the_title($post_id);
+        }
+
+        if (empty($schema['description'])) {
+            $description = get_the_excerpt($post_id);
+            if (empty($description)) {
+                $description = wp_trim_words(wp_strip_all_tags(get_post_field('post_content', $post_id)), 35);
+            }
+            if (!empty($description)) {
+                $schema['description'] = $description;
+            }
+        }
+
+        if (empty($schema['datePublished'])) {
+            $schema['datePublished'] = get_the_date('c', $post_id);
+        }
+
+        if (empty($schema['dateModified'])) {
+            $schema['dateModified'] = get_the_modified_date('c', $post_id);
+        }
+
+        if (!empty($schema['author']) && is_string($schema['author'])) {
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $schema['author'],
+            ];
+        }
+
+        if (empty($schema['author']) && !empty($schema['author_name'])) {
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $schema['author_name'],
+            ];
+        }
+
+        if (empty($schema['author'])) {
+            $author_id = (int) get_post_field('post_author', $post_id);
+            $author_name = $author_id > 0 ? get_the_author_meta('display_name', $author_id) : '';
+            if (empty($author_name)) {
+                $author_name = get_bloginfo('name');
+            }
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $author_name,
+            ];
+            if ($author_id > 0) {
+                $schema['author']['url'] = get_author_posts_url($author_id);
+            }
+        }
+
+        if (!empty($schema['author']) && is_array($schema['author']) && empty($schema['author']['@type']) && !empty($schema['author']['name'])) {
+            $schema['author']['@type'] = 'Person';
+        }
+
+        if (!empty($schema['publisher']) && is_string($schema['publisher'])) {
+            $schema['publisher'] = [
+                '@type' => 'Organization',
+                'name' => $schema['publisher'],
+            ];
+        }
+
+        if (empty($schema['publisher']) || !is_array($schema['publisher'])) {
+            $schema['publisher'] = [
+                '@type' => 'Organization',
+                'name' => get_bloginfo('name'),
+                'url' => home_url('/'),
+            ];
+        } elseif (empty($schema['publisher']['@type'])) {
+            $schema['publisher']['@type'] = 'Organization';
+        }
+
+        if (empty($schema['publisher']['logo'])) {
+            $logo = get_theme_mod('custom_logo') ? wp_get_attachment_image_url(get_theme_mod('custom_logo'), 'full') : '';
+            if (!empty($logo)) {
+                $schema['publisher']['logo'] = [
+                    '@type' => 'ImageObject',
+                    'url' => $logo,
+                ];
+            }
+        }
+
+        if (!empty($schema['image']) && is_string($schema['image'])) {
+            $schema['image'] = [
+                '@type' => 'ImageObject',
+                'url' => $schema['image'],
+            ];
+        }
+
+        if (empty($schema['image'])) {
+            $image = get_the_post_thumbnail_url($post_id, 'full');
+            if (!empty($image)) {
+                $schema['image'] = [
+                    '@type' => 'ImageObject',
+                    'url' => $image,
+                ];
+            }
+        }
+
+        if (empty($schema['mainEntityOfPage'])) {
+            $schema['mainEntityOfPage'] = [
+                '@type' => 'WebPage',
+                '@id' => get_permalink($post_id),
+            ];
+        }
+
+        unset($schema['author_name']);
         return $schema;
     }
 
