@@ -444,8 +444,7 @@ class REST_Controller
         }
 
         $id = (int) $request['id'];
-        $report_model = new \ChromaQA\Models\Report();
-        $report = $report_model->get($id);
+        $report = \ChromaQA\Models\Report::find($id);
 
         if (!$report) {
             return new \WP_Error('cqa_report_not_found', 'Report not found', ['status' => 404]);
