@@ -697,9 +697,26 @@ function chroma_home_clean_program_copy($copy)
         return trim($copy);
 }
 
+function chroma_home_program_public_key($post_id)
+{
+        $anchor_slug = sanitize_title((string) get_post_meta($post_id, 'program_anchor_slug', true));
+        if ($anchor_slug !== '' && $anchor_slug !== 'program_anchor_slug') {
+                return $anchor_slug;
+        }
+
+        $permalink_path = (string) wp_parse_url((string) get_permalink($post_id), PHP_URL_PATH);
+        $public_slug = sanitize_title(basename(untrailingslashit($permalink_path)));
+        if ($public_slug !== '') {
+                return $public_slug;
+        }
+
+        $post_slug = sanitize_title((string) get_post_field('post_name', $post_id));
+        return $post_slug !== '' ? $post_slug : 'program-' . (int) $post_id;
+}
+
 function chroma_home_program_fallback_summary($post_id)
 {
-        $slug = sanitize_title(get_post_field('post_name', $post_id));
+        $slug = chroma_home_program_public_key($post_id);
         $title = strtolower((string) get_the_title($post_id));
         $summaries = array(
                 'infant-care' => __('A peaceful, shoeless infant classroom with responsive caregiving, safe sleep routines, and sensory discovery for early growth.', 'chroma-excellence'),
@@ -764,7 +781,7 @@ function chroma_home_program_summary($post_id)
 function chroma_home_program_wizard_options()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_wizard_options:v3:' . $token;
+        $cache_key = 'home_wizard_options:v4:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -809,7 +826,7 @@ function chroma_home_program_wizard_options()
                 $icon = chroma_get_translated_meta($post_id, 'program_icon', true) ?: '📚';
                 $age_range = chroma_get_translated_meta($post_id, 'program_age_range', true) ?: '';
                 $excerpt = chroma_home_program_summary($post_id);
-                $anchor_slug = get_post_field('post_name', $post_id);
+                $anchor_slug = chroma_home_program_public_key($post_id);
                 $image_url = get_the_post_thumbnail_url($post_id, 'large') ?: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop';
                 $label = get_the_title();
                 if ($age_range) {
@@ -835,7 +852,7 @@ function chroma_home_curriculum_profiles()
 {
         $defaults = chroma_home_default_curriculum_profiles();
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_curriculum_profiles:v4:' . $token;
+        $cache_key = 'home_curriculum_profiles:v5:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -891,8 +908,11 @@ function chroma_home_curriculum_profiles()
 
                 foreach ($programs as $program) {
                         $post_id = (int) $program->ID;
-                        $slug = get_post_field('post_name', $post_id);
-                        $anchor_slug = get_post_meta($post_id, 'program_anchor_slug', true);
+                        $slug = chroma_home_program_public_key($post_id);
+                        $anchor_slug = sanitize_title((string) get_post_meta($post_id, 'program_anchor_slug', true));
+                        if ($anchor_slug === 'program_anchor_slug') {
+                                $anchor_slug = '';
+                        }
                         $key = sanitize_title($anchor_slug ?: $slug ?: $post_id);
 
                         if ($key === '') {
@@ -946,7 +966,7 @@ function chroma_home_curriculum_profiles()
 function chroma_home_schedule_tracks()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_schedule_tracks:v3:' . $token;
+        $cache_key = 'home_schedule_tracks:v4:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -1002,7 +1022,7 @@ function chroma_home_schedule_tracks()
         while ($programs->have_posts()) {
                 $programs->the_post();
                 $post_id = get_the_ID();
-                $anchor_slug = get_post_field('post_name', $post_id);
+                $anchor_slug = chroma_home_program_public_key($post_id);
                 $key = $anchor_slug;
                 if (isset($used_keys[$key]))
                         $key .= '-' . $post_id;
