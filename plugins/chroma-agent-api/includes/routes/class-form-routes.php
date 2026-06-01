@@ -6,6 +6,7 @@ use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Diff;
 use ChromaAgentAPI\Field_Registry;
 use ChromaAgentAPI\Route_Utils;
+use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_Query;
 use WP_REST_Request;
@@ -168,6 +169,7 @@ class Form_Routes
         $payload = Route_Utils::payload($request);
         $dry_run = Route_Utils::dry_run($payload);
         $before = ['webhook_sent' => get_post_meta((int) $post->ID, '_chroma_webhook_sent', true)];
+        $snapshot_ids = [];
 
         if (!$dry_run) {
             delete_post_meta((int) $post->ID, '_chroma_webhook_sent');
@@ -178,11 +180,22 @@ class Form_Routes
 
         $after = ['webhook_sent' => get_post_meta((int) $post->ID, '_chroma_webhook_sent', true)];
         $diff = Diff::compare($before, $after);
+        if (!$dry_run && $before !== $after) {
+            $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                Auth::current_key_id(),
+                'write:leads',
+                'post_meta',
+                (int) $post->ID . ':_chroma_webhook_sent',
+                $before['webhook_sent'] === '' ? null : $before['webhook_sent'],
+                $after['webhook_sent'] === '' ? null : $after['webhook_sent']
+            );
+        }
         Route_Utils::log_write($request, 'write:leads', 'lead_retry_webhook', (string) $post->ID, $dry_run, $before, $after, $diff);
 
         return rest_ensure_response([
             'success' => true,
             'dry_run' => $dry_run,
+            'snapshot_ids' => $snapshot_ids,
             'data' => [
                 'lead_id' => (int) $post->ID,
                 'retried' => true,
