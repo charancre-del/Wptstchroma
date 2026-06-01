@@ -5,6 +5,7 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Diff;
 use ChromaAgentAPI\Route_Utils;
+use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_REST_Request;
 
@@ -89,6 +90,7 @@ class Maintenance_Routes
         $dry_run = Route_Utils::dry_run($payload);
         $before = self::read_attachment((int) $attachment->ID);
         $after = $before;
+        $snapshot_ids = [];
 
         $post_update = ['ID' => (int) $attachment->ID];
         if (array_key_exists('title', $payload)) {
@@ -118,6 +120,9 @@ class Maintenance_Routes
                 wp_update_post($post_update);
             }
             if (array_key_exists('alt', $payload)) {
+                if ($before['alt'] !== $after['alt']) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:media', 'post_meta', (int) $attachment->ID . ':_wp_attachment_image_alt', $before['alt'], $after['alt']);
+                }
                 update_post_meta((int) $attachment->ID, '_wp_attachment_image_alt', $after['alt']);
             }
             if (array_key_exists('post_parent', $payload)) {
@@ -131,7 +136,7 @@ class Maintenance_Routes
 
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:media', 'media_metadata', (string) $attachment->ID, $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'diff' => $diff, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => $snapshot_ids, 'diff' => $diff, 'data' => $after]);
     }
 
     public static function flush_cache(WP_REST_Request $request)
@@ -156,7 +161,7 @@ class Maintenance_Routes
         $after = ['flushed' => true, 'group' => $group];
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:maintenance', 'cache_flush', $group !== '' ? $group : 'all', $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
     }
 
     public static function refresh_sitemaps(WP_REST_Request $request)
@@ -172,7 +177,7 @@ class Maintenance_Routes
         $after = ['rewrite_rules' => 'flushed'];
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:maintenance', 'sitemaps_refresh', 'global', $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
     }
 
     public static function refresh_geo_feed(WP_REST_Request $request)
@@ -188,7 +193,7 @@ class Maintenance_Routes
         $after = ['geo_feed_cache' => 'cleared'];
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:maintenance', 'geo_feed_refresh', 'global', $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
     }
 
     public static function describe(): array

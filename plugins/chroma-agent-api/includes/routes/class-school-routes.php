@@ -6,6 +6,7 @@ use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Diff;
 use ChromaAgentAPI\Field_Registry;
 use ChromaAgentAPI\Route_Utils;
+use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_Query;
 use WP_REST_Request;
@@ -139,6 +140,7 @@ class School_Routes
         $payload = Route_Utils::payload($request);
         $dry_run = Route_Utils::dry_run($payload);
         $before = self::prepare_school_detail($school);
+        $snapshot_ids = [];
 
         $postarr = ['ID' => (int) $school->ID];
         if (array_key_exists('title', $payload)) {
@@ -171,7 +173,7 @@ class School_Routes
             }
             $diff = Diff::compare($before, $after);
             Route_Utils::log_write($request, 'write:schools', 'school', (string) $school->ID, true, $before, $after, $diff);
-            return rest_ensure_response(['success' => true, 'dry_run' => true, 'diff' => $diff, 'data' => $after]);
+            return rest_ensure_response(['success' => true, 'dry_run' => true, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
         }
 
         if (count($postarr) > 1) {
@@ -182,13 +184,18 @@ class School_Routes
         }
 
         foreach ($option_updates as $key => $value) {
-            update_option($key, Route_Utils::sanitize_value_for_storage($key, $value), false);
+            $old_option = get_option($key, null);
+            $new_option = Route_Utils::sanitize_value_for_storage($key, $value);
+            if ($old_option !== $new_option) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:schools', 'option', $key, $old_option, $new_option);
+            }
+            update_option($key, $new_option, false);
         }
 
         $after = self::prepare_school_detail(get_post((int) $school->ID));
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:schools', 'school', (string) $school->ID, false, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'diff' => $diff, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => false, 'snapshot_ids' => $snapshot_ids, 'diff' => $diff, 'data' => $after]);
     }
 
     public static function get_school_tv(WP_REST_Request $request)
@@ -221,6 +228,7 @@ class School_Routes
         $before = [];
         $after = [];
         $blocked = [];
+        $snapshot_ids = [];
 
         foreach ($updates as $key => $value) {
             $normalized = sanitize_key((string) $key);
@@ -234,6 +242,9 @@ class School_Routes
             $after[$normalized] = Route_Utils::sanitize_value_for_storage($meta_key, $value);
 
             if (!$dry_run) {
+                if ($before[$normalized] !== $after[$normalized]) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:schools', 'post_meta', (int) $school->ID . ':' . $meta_key, $before[$normalized], $after[$normalized]);
+                }
                 update_post_meta((int) $school->ID, $meta_key, $after[$normalized]);
             }
         }
@@ -252,6 +263,7 @@ class School_Routes
             'success' => true,
             'dry_run' => $dry_run,
             'blocked_keys' => $blocked,
+            'snapshot_ids' => $snapshot_ids,
             'diff' => $diff,
             'data' => $dry_run ? $after : self::get_school_tv($request)->get_data()['data'],
         ]);
@@ -284,6 +296,7 @@ class School_Routes
 
         $payload = Route_Utils::payload($request);
         $dry_run = Route_Utils::dry_run($payload);
+        $snapshot_ids = [];
         $config = is_array($payload['config'] ?? null) ? $payload['config'] : [];
         $director_email = array_key_exists('director_email', $payload)
             ? sanitize_email((string) $payload['director_email'])
@@ -306,6 +319,12 @@ class School_Routes
         ];
 
         if (!$dry_run) {
+            if ($before['config'] !== $after['config']) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:schools', 'post_meta', (int) $school->ID . ':_chroma_school_config', $before['config'], $after['config']);
+            }
+            if ($before['director_email'] !== $after['director_email']) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:schools', 'post_meta', (int) $school->ID . ':_chroma_school_director_email', $before['director_email'], $after['director_email']);
+            }
             update_post_meta((int) $school->ID, '_chroma_school_config', $sanitized_config);
             update_post_meta((int) $school->ID, '_chroma_school_director_email', $director_email);
             update_post_meta((int) $school->ID, '_chroma_school_last_updated', time());
@@ -313,7 +332,7 @@ class School_Routes
 
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:schools', 'school_config', (string) $school->ID, $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'diff' => $diff, 'data' => $dry_run ? $after : self::get_school_config($request)->get_data()['data']]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => $snapshot_ids, 'diff' => $diff, 'data' => $dry_run ? $after : self::get_school_config($request)->get_data()['data']]);
     }
 
     public static function get_weather_probe(WP_REST_Request $request)
