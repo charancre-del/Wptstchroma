@@ -15,6 +15,9 @@ while (have_posts()):
 	$age_range = chroma_get_translated_meta($program_id, 'program_age_range', true);
 	$color_scheme = get_post_meta($program_id, 'program_color_scheme', true) ?: 'red';
 	$lesson_plan_url = get_post_meta($program_id, 'program_lesson_plan_file', true);
+	if (function_exists('chroma_normalize_owned_url')) {
+		$lesson_plan_url = chroma_normalize_owned_url($lesson_plan_url);
+	}
 	$has_lesson_plan = trim((string) $lesson_plan_url) !== '' && trim((string) $lesson_plan_url) !== '#';
 
 	// Hero section

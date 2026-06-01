@@ -19,6 +19,9 @@ while (have_posts()):
 	$program_id = get_the_ID();
 	$age_range = chroma_get_translated_meta($program_id, 'program_age_range', true) ?: __('5 Years (Private)', 'chroma-excellence');
 	$lesson_plan_url = get_post_meta($program_id, 'program_lesson_plan_file', true);
+	if (function_exists('chroma_normalize_owned_url')) {
+		$lesson_plan_url = chroma_normalize_owned_url($lesson_plan_url);
+	}
 	$has_lesson_plan = trim((string) $lesson_plan_url) !== '' && trim((string) $lesson_plan_url) !== '#';
 
 	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: __('The ultimate foundation for 1st grade.', 'chroma-excellence');
