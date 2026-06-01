@@ -244,8 +244,8 @@ class Discovery_Routes
 
             self::route_entry('GET', '/schools', ['read:schools'], [], []),
             self::route_entry('GET,PATCH,POST', '/schools/{id}', ['read:schools', 'write:schools'], ['title', 'slug', 'status', 'config'], []),
-            self::route_entry('GET,PATCH,POST', '/schools/{id}/tv', ['read:schools', 'write:schools'], ['config'], []),
-            self::route_entry('GET,PATCH,POST', '/schools/{id}/config', ['read:schools', 'write:schools'], ['director_email', 'newsletter', 'employee_of_month', 'slideshow', 'announcements', 'today', 'qr', 'menu', 'youtube', 'music', 'welcome_override'], []),
+            self::route_entry('GET,PATCH,POST', '/schools/{id}/tv', ['read:schools', 'write:schools'], Field_Registry::school_content_keys(), []),
+            self::route_entry('GET,PATCH,POST', '/schools/{id}/config', ['read:schools', 'write:schools'], ['config', 'director_email', 'chroma_global_cares', 'chroma_global_alert', 'chroma_google_client_id'], []),
             self::route_entry('GET', '/schools/weather', ['read:schools'], [], []),
 
             self::route_entry('POST', '/cache/flush', ['write:maintenance'], ['target'], []),

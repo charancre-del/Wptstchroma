@@ -103,7 +103,7 @@ class Form_Routes
 
         return Route_Utils::write_options(
             $request,
-            Route_Utils::updates_from_request($request),
+            self::normalize_form_updates($canonical, Route_Utils::updates_from_request($request)),
             (array) ($config['fields'] ?? []),
             'write:forms',
             'form_settings'
@@ -230,6 +230,51 @@ class Form_Routes
         }
 
         return [$requested, null];
+    }
+
+    private static function normalize_form_updates(string $canonical, array $updates): array
+    {
+        $prefixes = [
+            'contact' => 'chroma_contact',
+            'career' => 'chroma_career',
+            'acquisition' => 'chroma_acquisition',
+            'tour' => 'chroma_tour',
+            'lead-log' => 'chroma_lead_log',
+        ];
+        $prefix = $prefixes[$canonical] ?? '';
+        if ($prefix === '') {
+            return $updates;
+        }
+
+        $aliases = [
+            'fields_json' => "{$prefix}_fields",
+            'fields' => "{$prefix}_fields",
+            'webhook_url' => "{$prefix}_webhook_url",
+            'email_recipient' => "{$prefix}_email_recipient",
+            'ghl_form_id' => "{$prefix}_form_id",
+            'form_id' => "{$prefix}_form_id",
+            'ghl_form_name' => "{$prefix}_form_name",
+            'form_name' => "{$prefix}_form_name",
+            'ghl_form_height' => "{$prefix}_form_height",
+            'form_height' => "{$prefix}_form_height",
+            'lazy_load' => "{$prefix}_lazy_load",
+            'delay' => "{$prefix}_lazy_delay",
+            'lazy_delay' => "{$prefix}_lazy_delay",
+        ];
+
+        if ($canonical === 'lead-log') {
+            $aliases = [
+                'webhook_url' => "{$prefix}_webhook_url",
+            ];
+        }
+
+        $normalized = [];
+        foreach ($updates as $key => $value) {
+            $key = (string) $key;
+            $normalized[$aliases[$key] ?? $key] = $value;
+        }
+
+        return $normalized;
     }
 
     private static function require_lead(int $lead_id)
