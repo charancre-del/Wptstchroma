@@ -1140,6 +1140,22 @@ function chroma_home_faq()
         );
 }
 
+function chroma_format_location_count_text($text, $location_count)
+{
+        $text = (string) $text;
+        $location_count = max(0, (int) $location_count);
+
+        if ($text === '' || $location_count === 0) {
+                return $text;
+        }
+
+        if (preg_match('/^\s*\d+\+\s+/u', $text)) {
+                return preg_replace('/^\s*\d+\+/u', $location_count . '+', $text, 1);
+        }
+
+        return sprintf(__('%d+ neighborhood locations across Metro Atlanta', 'chroma-excellence'), $location_count);
+}
+
 function chroma_home_locations_preview()
 {
         $token = chroma_get_last_changed('locations');
@@ -1151,7 +1167,6 @@ function chroma_home_locations_preview()
         }
 
         $post_id = chroma_get_home_page_id();
-        $heading = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_heading', true) ?: chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
         $subheading = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_subheading', true) ?: chroma_get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work.'));
         $cta_label = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_cta_label', true) ?: chroma_get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
         $cta_link = chroma_get_localized_url(esc_url_raw(chroma_get_theme_mod('chroma_home_locations_cta_link', '/locations/')));
@@ -1165,6 +1180,9 @@ function chroma_home_locations_preview()
                 'update_post_meta_cache' => true,
                 'no_found_rows' => true,
         ));
+        $location_count = count($locations);
+        $heading_template = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_heading', true) ?: chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
+        $heading = chroma_format_location_count_text($heading_template, $location_count);
 
         $map_points = array();
         $featured = array();
