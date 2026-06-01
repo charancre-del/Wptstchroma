@@ -30,6 +30,7 @@ class Chroma_School_Portal_Loader
             $plugin_template = CHROMA_SCHOOL_DB_PATH . 'templates/portal-dashboard.php';
 
             if (file_exists($plugin_template)) {
+                $this->setup_portal_document_filters();
                 include($plugin_template);
                 exit;
             }
@@ -38,6 +39,7 @@ class Chroma_School_Portal_Loader
             $theme_template = locate_template(['page-portal.php', 'page-director-portal.php']);
 
             if ($theme_template) {
+                $this->setup_portal_document_filters();
                 include($theme_template);
                 exit;
             }
@@ -46,6 +48,32 @@ class Chroma_School_Portal_Loader
             exit;
         }
         return $template;
+    }
+
+    private function setup_portal_document_filters()
+    {
+        $title = __('Director Portal | Chroma Early Learning', 'chroma-school-dashboard');
+        $canonical = home_url('/portal/');
+
+        add_filter('pre_get_document_title', static function () use ($title) {
+            return $title;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_title', static function () use ($title) {
+            return $title;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_canonical', static function () use ($canonical) {
+            return $canonical;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_opengraph_url', static function () use ($canonical) {
+            return $canonical;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_robots', static function () {
+            return 'noindex,nofollow,noarchive,nosnippet';
+        }, PHP_INT_MAX);
     }
 
     public function enqueue_portal_assets()

@@ -247,6 +247,8 @@ class Chroma_Geographic_SEO
                 ], $fallbacks)
             );
         }
+
+        $this->register_service_area_schema($area_type, $area_name, $locations, $fallbacks);
         
         get_header();
         
@@ -275,6 +277,99 @@ class Chroma_Geographic_SEO
             'meta_description' => 'Find quality childcare and early learning centers serving families in ' . $county_name . '. Explore Chroma locations, programs, and tour options.',
             'canonical' => $canonical,
         ];
+    }
+
+    /**
+     * Register schema for county and ZIP virtual pages before wp_head runs.
+     *
+     * These routes have no post ID, so they cannot rely on stored post meta or
+     * normal singular builders. Registering here keeps them indexable virtual
+     * SEO pages with structured data.
+     */
+    private function register_service_area_schema($area_type, $area_name, $locations, $fallbacks) {
+        if (!class_exists('Chroma_Schema_Registry')) {
+            return;
+        }
+
+        $canonical = isset($fallbacks['canonical']) ? (string) $fallbacks['canonical'] : home_url('/');
+        $title = isset($fallbacks['title']) ? (string) $fallbacks['title'] : get_bloginfo('name');
+        $description = isset($fallbacks['meta_description']) ? (string) $fallbacks['meta_description'] : '';
+        $area_label = $area_type === 'zip'
+            ? (string) $area_name
+            : ucwords(str_replace('-', ' ', sanitize_title($area_name))) . ' County';
+
+        $items = [];
+        $position = 1;
+        foreach ((array) $locations as $location) {
+            if (!$location instanceof WP_Post) {
+                continue;
+            }
+
+            $city = get_post_meta($location->ID, 'location_city', true);
+            $state = get_post_meta($location->ID, 'location_state', true) ?: 'GA';
+            $zip = get_post_meta($location->ID, 'location_zip', true) ?: get_post_meta($location->ID, 'location_zip_code', true);
+            $street = get_post_meta($location->ID, 'location_address', true) ?: get_post_meta($location->ID, 'location_street_address', true);
+            $phone = get_post_meta($location->ID, 'location_phone', true);
+
+            $place = [
+                '@type' => ['ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness'],
+                'name' => get_the_title($location),
+                'url' => get_permalink($location),
+            ];
+
+            if ($phone) {
+                $place['telephone'] = $phone;
+            }
+
+            if ($street || $city || $state || $zip) {
+                $place['address'] = array_filter([
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => $street,
+                    'addressLocality' => $city,
+                    'addressRegion' => $state,
+                    'postalCode' => $zip,
+                    'addressCountry' => 'US',
+                ]);
+            }
+
+            $items[] = [
+                '@type' => 'ListItem',
+                'position' => $position++,
+                'item' => $place,
+            ];
+        }
+
+        $schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'CollectionPage',
+            '@id' => trailingslashit($canonical) . '#service-area',
+            'name' => $title,
+            'description' => $description,
+            'url' => $canonical,
+            'about' => [
+                '@type' => 'Service',
+                'name' => $area_type === 'zip' ? 'Daycare near ' . $area_label : 'Childcare in ' . $area_label,
+                'areaServed' => [
+                    '@type' => $area_type === 'zip' ? 'PostalCodeRangeSpecification' : 'AdministrativeArea',
+                    'name' => $area_label,
+                ],
+                'provider' => [
+                    '@type' => 'EducationalOrganization',
+                    'name' => get_bloginfo('name'),
+                    'url' => home_url('/'),
+                ],
+            ],
+        ];
+
+        if (!empty($items)) {
+            $schema['mainEntity'] = [
+                '@type' => 'ItemList',
+                'name' => 'Chroma locations serving ' . $area_label,
+                'itemListElement' => $items,
+            ];
+        }
+
+        Chroma_Schema_Registry::register($schema, ['source' => 'geographic-service-area']);
     }
 
     public function add_admin_page() {
