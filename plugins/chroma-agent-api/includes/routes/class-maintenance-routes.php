@@ -187,10 +187,14 @@ class Maintenance_Routes
         $before = ['geo_feed_cache' => 'stale'];
 
         if (!$dry_run) {
+            delete_transient('chroma_agent_geo_feed_v3');
             delete_transient('chroma_geo_feed');
         }
 
-        $after = ['geo_feed_cache' => 'cleared'];
+        $after = [
+            'geo_feed_cache' => 'cleared',
+            'cache_keys' => ['chroma_agent_geo_feed_v3', 'chroma_geo_feed'],
+        ];
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:maintenance', 'geo_feed_refresh', 'global', $dry_run, $before, $after, $diff);
         return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
