@@ -222,6 +222,17 @@ function chroma_home_get_location_count()
         return isset($counts->publish) ? max(0, (int) $counts->publish) : 0;
 }
 
+function chroma_home_format_location_stat_value($fallback_value, $location_count)
+{
+        $location_count = max(0, (int) $location_count);
+
+        if ($location_count > 0) {
+                return $location_count . '+';
+        }
+
+        return sanitize_text_field($fallback_value);
+}
+
 function chroma_home_normalize_location_count_copy($text, $location_count = null)
 {
         $text = (string) $text;
@@ -279,7 +290,7 @@ function chroma_home_stats()
                 $key = chroma_home_infer_stat_key($stat, $index);
                 $value = sanitize_text_field($stat['value'] ?? '');
                 if ($key === 'locations') {
-                        $value = chroma_format_location_count_text($value, $location_count);
+                        $value = chroma_home_format_location_stat_value($value, $location_count);
                 }
 
                 $cleaned[] = array(

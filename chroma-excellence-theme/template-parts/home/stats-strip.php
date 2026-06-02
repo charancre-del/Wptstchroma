@@ -6,7 +6,7 @@
 
 $is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
 $location_token = function_exists('chroma_get_last_changed') ? chroma_get_last_changed('locations') : '';
-$cache_key = 'chroma_home_stats_strip_' . ($is_es ? 'es' : 'en') . ':' . md5((string) $location_token);
+$cache_key = 'chroma_home_stats_strip_v2_' . ($is_es ? 'es' : 'en') . ':' . md5((string) $location_token);
 $use_cache = !is_customize_preview();
 $cached = $use_cache ? get_transient($cache_key) : false;
 
