@@ -100,11 +100,65 @@ class Chroma_School_Portal_Loader
         // Compiled Portal JS
         wp_enqueue_script('chroma-portal-js', $js_url, ['react', 'react-dom'], $js_version, true);
 
+        $google_config = $this->get_google_client_config();
+
         // Pass config to JS
         wp_localize_script('chroma-portal-js', 'chromaPortalConfig', [
             'apiUrl' => get_rest_url(),
-            'googleClientId' => trim(get_option('chroma_google_client_id', '')),
+            'googleClientId' => $google_config['client_id'],
+            'googleClientWarning' => $google_config['warning'],
         ]);
+    }
+
+    /**
+     * Resolve the Google client ID for the current host.
+     *
+     * Staging domains need their own OAuth Web Client in Google Console. Loading
+     * a production-only client on staging makes Google Identity Services log a
+     * hard browser error and renders a dead login button.
+     *
+     * @return array{client_id:string,warning:string}
+     */
+    private function get_google_client_config(): array
+    {
+        $client_id = trim((string) get_option('chroma_google_client_id', ''));
+        $host = '';
+        if (function_exists('wp_parse_url')) {
+            $host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+        }
+
+        $is_staging = $host !== '' && (
+            stripos($host, '-staging.wpdns.site') !== false
+            || stripos($host, 'staging.') === 0
+            || stripos($host, '.staging.') !== false
+        );
+
+        if (!$is_staging) {
+            return [
+                'client_id' => $client_id,
+                'warning' => '',
+            ];
+        }
+
+        $staging_client_id = trim((string) get_option('chroma_staging_google_client_id', ''));
+        if ($staging_client_id !== '') {
+            return [
+                'client_id' => $staging_client_id,
+                'warning' => '',
+            ];
+        }
+
+        if ($client_id === '') {
+            return [
+                'client_id' => '',
+                'warning' => 'Google Sign-In is not configured for this staging site.',
+            ];
+        }
+
+        return [
+            'client_id' => '',
+            'warning' => 'Google Sign-In needs a staging OAuth client before this portal can be tested here.',
+        ];
     }
 
     /**

@@ -1,7 +1,11 @@
 const { useState, useEffect, useRef } = React;
 
 // Use global config passed from WordPress
-const { apiUrl: API_URL, googleClientId: GOOGLE_CLIENT_ID } = window.chromaPortalConfig || {};
+const {
+    apiUrl: API_URL,
+    googleClientId: GOOGLE_CLIENT_ID,
+    googleClientWarning: GOOGLE_CLIENT_WARNING
+} = window.chromaPortalConfig || {};
 
 // --- COMPONENTS ---
 
@@ -412,7 +416,11 @@ function App() {
                 <p className="text-brand-ink/50 text-xl font-medium mb-12">Sign in to manage your school's display.</p>
 
                 <div className="bg-white p-12 rounded-[2.5rem] shadow-card border border-chroma-blue/10">
-                    {GOOGLE_CLIENT_ID ? (
+                    {GOOGLE_CLIENT_WARNING ? (
+                        <div className="text-amber-700 font-bold p-6 bg-amber-50 rounded-2xl border border-amber-100">
+                            {GOOGLE_CLIENT_WARNING}
+                        </div>
+                    ) : GOOGLE_CLIENT_ID ? (
                         <>
                             {loginError && <div className="mb-8 bg-red-50 text-red-600 p-4 rounded-2xl text-sm font-bold shadow-sm">{loginError}</div>}
                             <div id="googleBtn" className="flex justify-center scale-110"></div>
