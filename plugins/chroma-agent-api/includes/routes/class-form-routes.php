@@ -85,12 +85,15 @@ class Form_Routes
         }
 
         $fields = (array) ($config['fields'] ?? []);
+        [$data, $defaults_applied] = self::read_effective_form_settings($canonical, $fields);
+
         return rest_ensure_response([
             'success' => true,
             'form' => $canonical,
             'fields' => $fields,
             'secret_fields' => array_values(array_intersect($fields, Field_Registry::secret_option_keys())),
-            'data' => Route_Utils::read_options($fields),
+            'defaults_applied' => $defaults_applied,
+            'data' => $data,
         ]);
     }
 
@@ -230,6 +233,80 @@ class Form_Routes
         }
 
         return [$requested, null];
+    }
+
+    private static function read_effective_form_settings(string $canonical, array $fields): array
+    {
+        $defaults = self::form_defaults($canonical);
+        $data = [];
+        $defaults_applied = [];
+
+        foreach ($fields as $field) {
+            $field = (string) $field;
+            $value = get_option($field, null);
+            if ($value === null && array_key_exists($field, $defaults)) {
+                $value = $defaults[$field];
+                $defaults_applied[] = $field;
+            }
+
+            $data[$field] = Route_Utils::mask_secret_if_needed($field, $value);
+        }
+
+        return [$data, $defaults_applied];
+    }
+
+    private static function form_defaults(string $canonical): array
+    {
+        $fields_default = static function (string $function): ?string {
+            if (!function_exists($function)) {
+                return null;
+            }
+
+            $fields = call_user_func($function);
+            return is_array($fields) ? wp_json_encode($fields) : null;
+        };
+
+        $defaults = [
+            'contact' => [
+                'chroma_contact_fields' => $fields_default('chroma_contact_default_fields'),
+                'chroma_contact_webhook_url' => '',
+                'chroma_contact_email_recipient' => get_option('admin_email'),
+                'chroma_contact_form_id' => 'ibinKhrBmF0n4S5tFcz6',
+                'chroma_contact_form_height' => 779,
+                'chroma_contact_form_name' => 'Contact Us- Chroma Early Learning',
+                'chroma_contact_lazy_load' => true,
+                'chroma_contact_lazy_delay' => 2000,
+            ],
+            'career' => [
+                'chroma_career_fields' => $fields_default('chroma_career_default_fields'),
+                'chroma_career_webhook_url' => '',
+                'chroma_career_email_recipient' => 'careers@chromaela.com',
+                'chroma_career_form_id' => 'WYGFB2WBYuti6S6ys30H',
+                'chroma_career_form_height' => 522,
+                'chroma_career_form_name' => 'Careers Form - Chroma Early Learning',
+                'chroma_career_lazy_load' => true,
+                'chroma_career_lazy_delay' => 2000,
+            ],
+            'acquisition' => [
+                'chroma_acquisition_fields' => $fields_default('chroma_acquisition_default_fields'),
+                'chroma_acquisition_webhook_url' => '',
+                'chroma_acquisition_email_recipient' => 'acquisitions@chromaela.com',
+            ],
+            'tour' => [
+                'chroma_tour_form_id' => '848tl2LjoZVsUIhhNOxd',
+                'chroma_tour_form_height' => 1125,
+                'chroma_tour_form_name' => 'PARENT INFORMATION - Chroma Early Learning',
+                'chroma_tour_lazy_load' => true,
+                'chroma_tour_lazy_delay' => 2000,
+            ],
+            'lead-log' => [
+                'chroma_lead_log_webhook_url' => '',
+            ],
+        ];
+
+        return array_filter($defaults[$canonical] ?? [], static function ($value): bool {
+            return $value !== null;
+        });
     }
 
     private static function normalize_form_updates(string $canonical, array $updates): array
