@@ -264,16 +264,16 @@ class Chroma_Geographic_SEO
             ? home_url('/daycare-' . $area_name . '/')
             : home_url('/childcare-in-' . sanitize_title($area_name) . '-county/');
         $fallbacks = $this->get_service_area_seo_fallbacks($area_type, $area_name, $canonical);
+        $resolved_seo = $fallbacks;
         if (class_exists('Chroma_Virtual_Page_SEO_Data')) {
-            Chroma_Virtual_Page_SEO_Data::apply_filters(
-                Chroma_Virtual_Page_SEO_Data::resolve('service_area', [
-                    'area_type' => $area_type,
-                    'area_name' => $area_name,
-                ], $fallbacks)
-            );
+            $resolved_seo = Chroma_Virtual_Page_SEO_Data::resolve('service_area', [
+                'area_type' => $area_type,
+                'area_name' => $area_name,
+            ], $fallbacks);
+            Chroma_Virtual_Page_SEO_Data::apply_filters($resolved_seo);
         }
 
-        $this->register_service_area_schema($area_type, $area_name, $locations, $fallbacks);
+        $this->register_service_area_schema($area_type, $area_name, $locations, $resolved_seo);
         
         get_header();
         
@@ -397,7 +397,17 @@ class Chroma_Geographic_SEO
     }
 
     private function get_service_area_seo_fallbacks($area_type, $area_name, $canonical) {
+        $language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
+
         if ($area_type === 'zip') {
+            if ($language === 'es') {
+                return [
+                    'title' => 'Cuidado infantil cerca de ' . $area_name . ' | Chroma Early Learning',
+                    'meta_description' => 'Encuentra cuidado infantil y aprendizaje temprano de calidad para familias cerca de ' . $area_name . '. Explora ubicaciones, programas y opciones para agendar un tour.',
+                    'canonical' => $canonical,
+                ];
+            }
+
             return [
                 'title' => 'Daycare Near ' . $area_name . ' | Chroma Early Learning',
                 'meta_description' => 'Find quality early learning and childcare serving families near ' . $area_name . '. Explore Chroma locations, programs, and tour options.',
@@ -405,7 +415,17 @@ class Chroma_Geographic_SEO
             ];
         }
 
-        $county_name = ucwords(str_replace('-', ' ', sanitize_title($area_name))) . ' County';
+        $county_base = ucwords(str_replace('-', ' ', sanitize_title($area_name)));
+        $county_name = $county_base . ' County';
+        if ($language === 'es') {
+            $county_name_es = 'el Condado de ' . $county_base;
+            return [
+                'title' => 'Cuidado infantil en ' . $county_name_es . ' | Chroma Early Learning',
+                'meta_description' => 'Encuentra centros de cuidado infantil y aprendizaje temprano de calidad para familias en ' . $county_name_es . '. Explora ubicaciones, programas y opciones para agendar un tour.',
+                'canonical' => $canonical,
+            ];
+        }
+
         return [
             'title' => 'Childcare in ' . $county_name . ' | Chroma Early Learning',
             'meta_description' => 'Find quality childcare and early learning centers serving families in ' . $county_name . '. Explore Chroma locations, programs, and tour options.',
