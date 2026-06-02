@@ -5,6 +5,7 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Audit_Log;
 use ChromaAgentAPI\Diff;
+use ChromaAgentAPI\Field_Registry;
 use ChromaAgentAPI\Route_Utils;
 use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
@@ -60,9 +61,15 @@ class Audit_Routes
 
         $key = Auth::current_key();
         $scopes = is_array($key['scopes'] ?? null) ? $key['scopes'] : [];
-        $write_allowed = in_array('write:theme', $scopes, true) || in_array('write:seo', $scopes, true);
+        $write_scopes = array_values(array_filter(
+            Field_Registry::all_scopes(),
+            static function (string $scope): bool {
+                return strpos($scope, 'write:') === 0;
+            }
+        ));
+        $write_allowed = count(array_intersect($write_scopes, $scopes)) > 0;
         if (!$write_allowed) {
-            return new \WP_Error('caa_scope_denied', 'Rollback requires write:theme or write:seo scope.', ['status' => 403]);
+            return new \WP_Error('caa_scope_denied', 'Rollback requires admin:audit plus a domain write scope.', ['status' => 403]);
         }
 
         return true;

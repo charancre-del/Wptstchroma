@@ -117,6 +117,22 @@ class Maintenance_Routes
 
         if (!$dry_run) {
             if (count($post_update) > 1) {
+                foreach ([
+                    'post_title' => 'title',
+                    'post_excerpt' => 'caption',
+                    'post_content' => 'description',
+                ] as $post_field => $response_field) {
+                    if (array_key_exists($post_field, $post_update) && $before[$response_field] !== $after[$response_field]) {
+                        $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                            Auth::current_key_id(),
+                            'write:media',
+                            'attachment_field',
+                            (int) $attachment->ID . ':' . $post_field,
+                            $before[$response_field],
+                            $after[$response_field]
+                        );
+                    }
+                }
                 wp_update_post($post_update);
             }
             if (array_key_exists('alt', $payload)) {
@@ -126,9 +142,30 @@ class Maintenance_Routes
                 update_post_meta((int) $attachment->ID, '_wp_attachment_image_alt', $after['alt']);
             }
             if (array_key_exists('post_parent', $payload)) {
+                if ($before['post_parent'] !== $after['post_parent']) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                        Auth::current_key_id(),
+                        'write:media',
+                        'attachment_field',
+                        (int) $attachment->ID . ':post_parent',
+                        $before['post_parent'],
+                        $after['post_parent']
+                    );
+                }
                 wp_update_post(['ID' => (int) $attachment->ID, 'post_parent' => $after['post_parent']]);
             }
             if (array_key_exists('featured_post_id', $payload) && $after['featured_post_id'] > 0) {
+                $old_thumbnail_id = (int) get_post_thumbnail_id($after['featured_post_id']);
+                if ($old_thumbnail_id !== (int) $attachment->ID) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                        Auth::current_key_id(),
+                        'write:media',
+                        'post_meta',
+                        $after['featured_post_id'] . ':_thumbnail_id',
+                        $old_thumbnail_id > 0 ? $old_thumbnail_id : null,
+                        (int) $attachment->ID
+                    );
+                }
                 set_post_thumbnail($after['featured_post_id'], (int) $attachment->ID);
             }
             $after = self::read_attachment((int) $attachment->ID);
