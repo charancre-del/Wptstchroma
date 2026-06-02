@@ -100,7 +100,7 @@ $programs = $data_service->get_programs();
                         <!-- Program Card -->
                         <div
                             class="relative group bg-white rounded-[2.5rem] p-8 shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition-all hover:-translate-y-1 flex flex-col h-full fade-in-up <?php echo esc_attr($delay_class); ?>">
-                            <a href="<?php echo esc_url($program_permalink); ?>" class="absolute inset-0 z-0"
+                            <a href="<?php echo esc_url($program_permalink); ?>" class="absolute inset-0 z-0 pointer-events-none"
                                 aria-label="View details for <?php echo esc_attr($program_title); ?>"></a>
                             <div class="h-48 rounded-[2rem] overflow-hidden mb-6 relative">
                                 <div

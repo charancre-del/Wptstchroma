@@ -510,7 +510,7 @@ while (have_posts()):
 							?>
 							<div
 								class="bg-white rounded-3xl shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition group overflow-hidden flex flex-col relative">
-								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0"
+								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0 pointer-events-none"
 									aria-label="Learn more about <?php the_title_attribute(); ?>"></a>
 								<?php if ($prog_img): ?>
 									<div class="h-48 overflow-hidden relative z-0">
