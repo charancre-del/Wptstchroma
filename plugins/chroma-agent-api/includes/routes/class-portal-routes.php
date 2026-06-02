@@ -463,14 +463,27 @@ class Portal_Routes
             '_cp_pin_simple_hash' => '[REDACTED_UPDATED]',
         ];
         $diff = Diff::compare($before, $after);
+        $snapshot_ids = [];
 
         if (!$dry_run) {
-            update_post_meta($post_id, '_cp_pin_hash', wp_hash_password($pin));
-            update_post_meta($post_id, '_cp_pin_simple_hash', md5($pin));
+            $old_pin_hash = get_post_meta($post_id, '_cp_pin_hash', true);
+            $old_simple_hash = get_post_meta($post_id, '_cp_pin_simple_hash', true);
+            $new_pin_hash = wp_hash_password($pin);
+            $new_simple_hash = md5($pin);
+
+            if ($old_pin_hash !== $new_pin_hash) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:portal', 'post_meta', $post_id . ':_cp_pin_hash', $old_pin_hash, $new_pin_hash);
+            }
+            if ($old_simple_hash !== $new_simple_hash) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:portal', 'post_meta', $post_id . ':_cp_pin_simple_hash', $old_simple_hash, $new_simple_hash);
+            }
+
+            update_post_meta($post_id, '_cp_pin_hash', $new_pin_hash);
+            update_post_meta($post_id, '_cp_pin_simple_hash', $new_simple_hash);
         }
 
         Route_Utils::log_write($request, 'write:portal', 'portal_family_pin', (string) $post_id, $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => ['family_id' => $post_id, 'pin_reset' => true]]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => $snapshot_ids, 'diff' => $diff, 'data' => ['family_id' => $post_id, 'pin_reset' => true]]);
     }
 
     public static function describe(): array
