@@ -311,21 +311,15 @@ while (have_posts()):
 			// Chart.js Handler
 			const ctx = document.getElementById('programChart');
 			if (ctx) {
-				const loadProgramChart = function () {
-					if (window.Chart) {
-						createProgramChart();
+				let programChartInstance = null;
+				let programChartLoading = false;
+
+				const createProgramChart = function () {
+					if (!window.Chart || programChartInstance) {
 						return;
 					}
 
-					const script = document.createElement('script');
-					script.src = '<?php echo esc_url(get_template_directory_uri() . '/assets/js/chart.min.js'); ?>';
-					script.async = true;
-					script.onload = createProgramChart;
-					document.body.appendChild(script);
-				};
-
-				const createProgramChart = function () {
-					new Chart(ctx, {
+					programChartInstance = new Chart(ctx, {
 						type: 'radar',
 						data: {
 							labels: ['<?php _e('Physical', 'chroma-excellence'); ?>', '<?php _e('Emotional', 'chroma-excellence'); ?>', '<?php _e('Social', 'chroma-excellence'); ?>', '<?php _e('Academic', 'chroma-excellence'); ?>', '<?php _e('Creative', 'chroma-excellence'); ?>'],
@@ -373,6 +367,41 @@ while (have_posts()):
 					});
 				};
 
+				const loadProgramChart = function () {
+					if (window.Chart) {
+						createProgramChart();
+						return;
+					}
+
+					const existingScript = document.getElementById('chroma-lazy-chart') || document.querySelector('script[data-chroma-chartjs]');
+					if (existingScript) {
+						existingScript.addEventListener('load', createProgramChart, { once: true });
+						return;
+					}
+
+					if (programChartLoading) {
+						return;
+					}
+
+					programChartLoading = true;
+					const script = document.createElement('script');
+					script.id = 'chroma-lazy-chart';
+					script.src = '<?php echo esc_url(get_template_directory_uri() . '/assets/js/chart.min.js'); ?>';
+					script.async = true;
+					script.dataset.chromaChartjs = 'true';
+					script.onload = createProgramChart;
+					document.body.appendChild(script);
+				};
+
+				const loadProgramChartWhenIdle = function () {
+					if ('requestIdleCallback' in window) {
+						window.requestIdleCallback(loadProgramChart, { timeout: 1800 });
+						return;
+					}
+
+					window.setTimeout(loadProgramChart, 1200);
+				};
+
 				if (!('IntersectionObserver' in window)) {
 					loadProgramChart();
 					return;
@@ -388,6 +417,7 @@ while (have_posts()):
 					});
 				}, { rootMargin: '200px' }); // Start loading 200px before view
 				observer.observe(ctx);
+				loadProgramChartWhenIdle();
 			}
 		});
 	</script>
