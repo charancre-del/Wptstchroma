@@ -275,6 +275,18 @@ function getReportId( report ) {
     return typeof report === 'object' ? report.id : report;
 }
 
+function normalizeReportMutationResponse( response ) {
+    if ( ! response || typeof response !== 'object' ) {
+        return null;
+    }
+
+    if ( response.data && typeof response.data === 'object' && ! Array.isArray( response.data ) ) {
+        return response.data;
+    }
+
+    return response;
+}
+
 function patchReportInCache( cachedValue, reportId, patch ) {
     if ( ! cachedValue || ! reportId || ! patch ) {
         return cachedValue;
@@ -373,9 +385,14 @@ function patchReportListInCache( cachedValue, reportId, patch, filters = {} ) {
 function syncReportStatusCaches( queryClient, report, updatedReport, fallbackStatus ) {
     const reportId = getReportId( report );
     const originalReport = normalizeReportMutationInput( report );
+    const normalizedUpdatedReport = normalizeReportMutationResponse( updatedReport );
     const patch =
-        updatedReport && typeof updatedReport === 'object'
-            ? { ...originalReport, ...updatedReport, status: updatedReport.status || fallbackStatus }
+        normalizedUpdatedReport && typeof normalizedUpdatedReport === 'object'
+            ? {
+                  ...originalReport,
+                  ...normalizedUpdatedReport,
+                  status: normalizedUpdatedReport.status || fallbackStatus,
+              }
             : { ...originalReport, id: reportId, status: fallbackStatus };
 
     queryClient.getQueriesData( { queryKey: [ 'reports', 'list' ] } ).forEach( ( [ queryKey ] ) => {
@@ -389,6 +406,8 @@ function syncReportStatusCaches( queryClient, report, updatedReport, fallbackSta
     queryClient.setQueryData( queryKeys.reports.detail( reportId ), ( cachedValue ) =>
         patchReportInCache( cachedValue, reportId, patch )
     );
+
+    return patch;
 }
 
 function buildStatusChangeRequestConfig( report ) {
