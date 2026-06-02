@@ -49,7 +49,10 @@ class Chroma_Virtual_Page_SEO_Data
             return self::defaults();
         }
 
-        $data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
+        $storage_program_slug = function_exists('chroma_seo_get_combo_storage_slug')
+            ? chroma_seo_get_combo_storage_slug($program_slug)
+            : sanitize_title($program_slug);
+        $data = Chroma_Combo_Page_Data::get($storage_program_slug, $city_slug, $state);
         return wp_parse_args(self::only_seo_fields($data), self::defaults());
     }
 
@@ -58,7 +61,10 @@ class Chroma_Virtual_Page_SEO_Data
             return false;
         }
 
-        return Chroma_Combo_Page_Data::save($program_slug, $city_slug, $state, self::sanitize_updates($updates));
+        $storage_program_slug = function_exists('chroma_seo_get_combo_storage_slug')
+            ? chroma_seo_get_combo_storage_slug($program_slug)
+            : sanitize_title($program_slug);
+        return Chroma_Combo_Page_Data::save($storage_program_slug, $city_slug, $state, self::sanitize_updates($updates));
     }
 
     public static function get_service_area($type, $area_name) {

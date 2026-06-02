@@ -333,6 +333,7 @@ const ReportWizard = () => {
     const handleApprove = async () => {
         try {
             const approvedReport = await approveMutation.mutateAsync( {
+                ...reportState,
                 id,
                 version_id: reportState.version_id,
                 updated_at: reportState.updated_at,
@@ -352,11 +353,13 @@ const ReportWizard = () => {
             return;
         }
         try {
-            await revertMutation.mutateAsync( {
+            const revertedReport = await revertMutation.mutateAsync( {
+                ...reportState,
                 id,
                 version_id: reportState.version_id,
                 updated_at: reportState.updated_at,
             } );
+            syncServerReportMeta( revertedReport || { id, status: 'draft' } );
             addToast( { type: 'success', message: 'Report reverted to draft status.' } );
             navigate( `/edit/${ id }` ); // Transition to edit mode immediately
         } catch ( error ) {

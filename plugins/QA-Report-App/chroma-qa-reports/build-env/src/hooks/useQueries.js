@@ -304,16 +304,88 @@ function patchReportInCache( cachedValue, reportId, patch ) {
     return cachedValue;
 }
 
+function reportMatchesFilters( report, filters = {} ) {
+    if ( ! report || ! filters || typeof filters !== 'object' ) {
+        return true;
+    }
+
+    if ( filters.status && report.status !== filters.status ) {
+        return false;
+    }
+
+    const typeFilter = filters.type || filters.report_type;
+    if ( typeFilter && report.report_type !== typeFilter ) {
+        return false;
+    }
+
+    if ( filters.school_id && String( report.school_id ) !== String( filters.school_id ) ) {
+        return false;
+    }
+
+    if ( filters.author === 'me' && report.is_mine !== true ) {
+        return false;
+    }
+
+    return true;
+}
+
+function patchReportListInCache( cachedValue, reportId, patch, filters = {} ) {
+    if ( ! cachedValue || ! reportId || ! patch ) {
+        return cachedValue;
+    }
+
+    const patchItem = ( item ) => {
+        if ( String( item?.id ) !== String( reportId ) ) {
+            return item;
+        }
+
+        return { ...item, ...patch };
+    };
+
+    const patchList = ( list ) => {
+        const patched = list.map( patchItem );
+        return patched.filter(
+            ( item ) => String( item?.id ) !== String( reportId ) || reportMatchesFilters( item, filters )
+        );
+    };
+
+    if ( Array.isArray( cachedValue ) ) {
+        return patchList( cachedValue );
+    }
+
+    if ( Array.isArray( cachedValue.data ) ) {
+        const nextData = patchList( cachedValue.data );
+        const removedCount = cachedValue.data.length - nextData.length;
+
+        return {
+            ...cachedValue,
+            data: nextData,
+            total:
+                typeof cachedValue.total === 'number'
+                    ? Math.max( 0, cachedValue.total - removedCount )
+                    : cachedValue.total,
+        };
+    }
+
+    return cachedValue;
+}
+
 function syncReportStatusCaches( queryClient, report, updatedReport, fallbackStatus ) {
     const reportId = getReportId( report );
+    const originalReport = normalizeReportMutationInput( report );
     const patch =
         updatedReport && typeof updatedReport === 'object'
-            ? { ...updatedReport, status: updatedReport.status || fallbackStatus }
-            : { id: reportId, status: fallbackStatus };
+            ? { ...originalReport, ...updatedReport, status: updatedReport.status || fallbackStatus }
+            : { ...originalReport, id: reportId, status: fallbackStatus };
 
-    queryClient.setQueriesData( { queryKey: [ 'reports', 'list' ] }, ( cachedValue ) =>
-        patchReportInCache( cachedValue, reportId, patch )
-    );
+    queryClient.getQueriesData( { queryKey: [ 'reports', 'list' ] } ).forEach( ( [ queryKey ] ) => {
+        const filters = queryKey?.[ 2 ] && typeof queryKey[ 2 ] === 'object' ? queryKey[ 2 ] : {};
+
+        queryClient.setQueryData( queryKey, ( cachedValue ) =>
+            patchReportListInCache( cachedValue, reportId, patch, filters )
+        );
+    } );
+
     queryClient.setQueryData( queryKeys.reports.detail( reportId ), ( cachedValue ) =>
         patchReportInCache( cachedValue, reportId, patch )
     );

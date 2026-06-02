@@ -101,6 +101,7 @@ export function ReportsPage() {
         async ( report ) => {
             try {
                 await approveMutation.mutateAsync( {
+                    ...report,
                     id: report.id,
                     version_id: report.version_id,
                     updated_at: report.updated_at,
@@ -124,6 +125,7 @@ export function ReportsPage() {
             }
             try {
                 await revertMutation.mutateAsync( {
+                    ...report,
                     id: report.id,
                     version_id: report.version_id,
                     updated_at: report.updated_at,

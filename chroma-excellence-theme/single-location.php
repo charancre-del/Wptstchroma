@@ -830,7 +830,7 @@ endwhile;
 				<div class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin">
 				</div>
 			</div>
-			<iframe id="chroma-tour-frame" src="" class="w-full h-full border-0"
+			<iframe id="chroma-tour-frame" src="about:blank" class="w-full h-full border-0"
 				allow="camera; microphone; autoplay; encrypted-media;"></iframe>
 		</div>
 	</div>
@@ -859,7 +859,7 @@ endwhile;
 		function closeModal() {
 			modal.classList.add('hidden');
 			document.body.style.overflow = '';
-			iframe.src = '';
+			iframe.src = 'about:blank';
 		}
 
 		// Attach listeners to booking buttons

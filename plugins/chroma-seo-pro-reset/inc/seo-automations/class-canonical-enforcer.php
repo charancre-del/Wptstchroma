@@ -274,6 +274,12 @@ class Chroma_Canonical_Enforcer
         // Handle special cases
         if (get_query_var('chroma_combo')) {
             $program_slug = get_query_var('combo_program');
+            $program = function_exists('chroma_seo_resolve_program_for_combo_slug')
+                ? chroma_seo_resolve_program_for_combo_slug($program_slug)
+                : null;
+            if ($program instanceof WP_Post && function_exists('chroma_seo_get_program_combo_slug')) {
+                $program_slug = chroma_seo_get_program_combo_slug($program);
+            }
             $city_slug = get_query_var('combo_city');
             $state = strtolower((string) get_query_var('combo_state'));
             $url = home_url("/{$program_slug}-in-{$city_slug}-{$state}/");

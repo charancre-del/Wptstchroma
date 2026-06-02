@@ -2170,6 +2170,10 @@ class Chroma_SEO_Dashboard
     {
         // Save Handler
         if (isset($_POST['chroma_sitemap_save']) && check_admin_referer('chroma_sitemap_options')) {
+            if (!current_user_can('manage_options')) {
+                wp_die(esc_html__('You do not have permission to update sitemap settings.', 'chroma-seo-pro'));
+            }
+
             $options = array(
                 'enable_pages' => isset($_POST['enable_pages']),
                 'enable_posts' => isset($_POST['enable_posts']),
@@ -2187,10 +2191,32 @@ class Chroma_SEO_Dashboard
                 $upload_dir = wp_upload_dir();
                 $target_path = $upload_dir['basedir'] . '/chroma-sitemap-manual.xml';
 
-                if (move_uploaded_file($uploaded['tmp_name'], $target_path)) {
+                $allowed_mimes = array(
+                    'xml' => 'application/xml|text/xml',
+                );
+                $checked = wp_check_filetype_and_ext(
+                    (string) ($uploaded['tmp_name'] ?? ''),
+                    (string) ($uploaded['name'] ?? ''),
+                    $allowed_mimes
+                );
+                $is_valid_sitemap = false;
+
+                if (!empty($checked['ext']) && !empty($checked['type']) && function_exists('simplexml_load_file') && is_uploaded_file((string) ($uploaded['tmp_name'] ?? ''))) {
+                    $previous_errors = libxml_use_internal_errors(true);
+                    $xml = simplexml_load_file((string) $uploaded['tmp_name'], 'SimpleXMLElement', LIBXML_NONET);
+                    libxml_clear_errors();
+                    libxml_use_internal_errors($previous_errors);
+
+                    if ($xml instanceof SimpleXMLElement) {
+                        $root_name = $xml->getName();
+                        $is_valid_sitemap = in_array($root_name, array('urlset', 'sitemapindex'), true);
+                    }
+                }
+
+                if ($is_valid_sitemap && move_uploaded_file($uploaded['tmp_name'], $target_path)) {
                     echo '<div class="notice notice-success"><p>Sitemap file uploaded successfully!</p></div>';
                 } else {
-                    echo '<div class="notice notice-error"><p>Failed to move uploaded file.</p></div>';
+                    echo '<div class="notice notice-error"><p>Invalid sitemap upload. Please upload a valid XML sitemap or sitemap index.</p></div>';
                 }
             }
 

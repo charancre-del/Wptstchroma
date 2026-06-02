@@ -544,7 +544,9 @@ class SEO_Operation_Routes
                     continue;
                 }
 
-                $program_slug = (string) $combo['program']->post_name;
+                $program_slug = function_exists('\chroma_seo_get_program_combo_slug')
+                    ? \chroma_seo_get_program_combo_slug($combo['program'])
+                    : (string) $combo['program']->post_name;
                 $city_slug = sanitize_title((string) ($combo['city_slug'] ?? $combo['city'] ?? ''));
                 $state = strtoupper(sanitize_text_field((string) ($combo['state'] ?? '')));
                 $data = class_exists('\Chroma_Virtual_Page_SEO_Data')
@@ -1458,9 +1460,12 @@ class SEO_Operation_Routes
         $state = strtoupper(sanitize_text_field((string) ($payload['state'] ?? $request->get_param('state'))));
 
         if ($program_slug !== '' && $city_slug !== '' && $state !== '' && class_exists('\Chroma_Combo_Page_Data')) {
+            $storage_program_slug = function_exists('\chroma_seo_get_combo_storage_slug')
+                ? \chroma_seo_get_combo_storage_slug($program_slug)
+                : $program_slug;
             return rest_ensure_response([
                 'success' => true,
-                'data' => \Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state),
+                'data' => \Chroma_Combo_Page_Data::get($storage_program_slug, $city_slug, $state),
             ]);
         }
 
@@ -1648,8 +1653,13 @@ class SEO_Operation_Routes
         unset($raw_updates['type'], $raw_updates['key'], $raw_updates['program_slug'], $raw_updates['city_slug'], $raw_updates['state'], $raw_updates['area_type'], $raw_updates['area_name']);
         [$updates, $blocked] = Route_Utils::partition_updates($raw_updates, $allowed_fields);
 
+        $storage_program_slug = $descriptor['program_slug'] ?? '';
+        if ($descriptor['type'] === 'combo' && function_exists('\chroma_seo_get_combo_storage_slug')) {
+            $storage_program_slug = \chroma_seo_get_combo_storage_slug($storage_program_slug);
+        }
+
         $before = $descriptor['type'] === 'combo' && class_exists('\Chroma_Combo_Page_Data')
-            ? \Chroma_Combo_Page_Data::get($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state'])
+            ? \Chroma_Combo_Page_Data::get($storage_program_slug, $descriptor['city_slug'], $descriptor['state'])
             : self::read_virtual_page_data($descriptor);
         $after = $before;
         $stored_updates = [];
@@ -1665,7 +1675,7 @@ class SEO_Operation_Routes
         if (!$dry_run && !empty($updates)) {
             $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'virtual_page_seo', $descriptor['snapshot_key'], $before, $after);
             if ($descriptor['type'] === 'combo' && class_exists('\Chroma_Combo_Page_Data')) {
-                \Chroma_Combo_Page_Data::save($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state'], $stored_updates);
+                \Chroma_Combo_Page_Data::save($storage_program_slug, $descriptor['city_slug'], $descriptor['state'], $stored_updates);
             } elseif (class_exists('\Chroma_Virtual_Page_SEO_Data')) {
                 \Chroma_Virtual_Page_SEO_Data::save_service_area($descriptor['type'], $descriptor['area_name'], $stored_updates);
             }

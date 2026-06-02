@@ -15,6 +15,10 @@ $is_new = !$school_id;
 
 // Handle form submission
 if (isset($_POST['cqa_school_nonce']) && wp_verify_nonce($_POST['cqa_school_nonce'], 'cqa_save_school')) {
+    if (!current_user_can('cqa_manage_schools')) {
+        wp_die(esc_html__('You do not have permission to save schools.', 'chroma-qa-reports'));
+    }
+
     $school->name = sanitize_text_field($_POST['name']);
     $school->location = sanitize_text_field($_POST['location']);
     $school->region = sanitize_text_field($_POST['region']);

@@ -1,0 +1,410 @@
+# Staging Stack Verification - 2026-06-01
+
+Target: `https://x3yyntt5tp-staging.wpdns.site`
+
+Guard used for remote checks:
+
+- Working directory: `/home/x3yyadl/public_html/x3yyntt5tp-staging.wpdns.site`
+- Confirmed `siteurl`: `https://x3yyntt5tp-staging.wpdns.site`
+- Live root `/home/x3yyadl/public_html` was not used.
+
+## Verified
+
+- Active theme: `chroma-excellence-theme`.
+- Published locations on staging: `24`.
+- Active custom plugins include Agent API, SEO Pro reset, parent portal, school dashboard, QA reports, form plugins, and lead log.
+- Remote PHP syntax: `311` deployed custom theme/plugin PHP files checked, `0` failures.
+- Local tracked PHP syntax: `325` PHP files checked, `0` failures.
+- Composer validation passed for:
+  - `plugins/chroma-seo-pro-reset/composer.json`
+  - `plugins/chroma-seo-pro/composer.json`
+  - `plugins/QA-Report-App/chroma-qa-reports/composer.json`
+- Builds passed for:
+  - `chroma-excellence-theme`
+  - `plugins/chroma-school-dashboard`
+  - `plugins/chroma-parent-portal/build-env`
+  - `plugins/QA-Report-App/chroma-qa-reports/build-env`
+- QA Reports checks passed:
+  - `npm run lint:js`
+  - `npm run lint:css`
+  - `npm run check-engines`
+- Agent API staging checks returned 200 for discovery/resources, customizer scripts, contact/tour form settings, leads, portal dashboard/taxonomies, schools, SEO virtual pages, LLM settings, school detail, school TV, and school config.
+- Agent API global script dry-run preserved `<script>` content and left live theme mods unchanged.
+- Stored schema output verified on public staging pages:
+  - Home: `EducationalOrganization`, `FAQPage`, `Person`
+  - Programs: `BreadcrumbList`, `CollectionPage`
+  - Kindergarten: `BreadcrumbList`, `Service`, `Course`
+  - Careers: `BreadcrumbList`, `Person`, `JobPosting`
+  - ZIP virtual: `CollectionPage`, `BreadcrumbList`
+  - Combo virtual: `Service`, `BreadcrumbList`
+  - Stored-schema location sample: `WebPage`, `BreadcrumbList`, `ChildCare|Preschool|EducationalOrganization|LocalBusiness`
+- Careers feed loaded `72` jobs and career page emitted `JobPosting` schema.
+- Browser smoke on staging home passed:
+  - Hero location badge: `24+ METRO ATLANTA LOCATIONS`
+  - Schedule time active state changes on click.
+  - Map lazy-loads Leaflet with markers and tiles.
+  - Mobile menu opens from the header toggle.
+  - Sticky mobile Schedule a Tour CTA appears after scroll.
+- Programs page browser smoke found no `kindergarten-1` links; Kindergarten links resolve to `/programs/kindergarten/`.
+- Latest single blog post includes the contact form wrapper and GHL iframe.
+- School TV page and parent portal public screen load without app console errors.
+- Additional non-admin frontend smoke checks passed from the in-app browser:
+  - `/qa-reports/` redirects to `/qa-reports/login/`, renders the QA login form, and loads without console warnings/errors.
+  - `/parent-portal/` renders the PIN keypad, portal bundle, and login enhancements without console warnings/errors.
+  - `/tv/cherokee-academy/` renders Cherokee Academy TV content and the local PDF.js bundle without console warnings/errors.
+  - The staging home page renders the `24+ METRO ATLANTA LOCATIONS` badge from the current published location count.
+- Public/protected route boundaries were checked without browser authentication:
+  - `GET /wp-json/cqa/v1/manifest` returned `200`; `GET /wp-json/cqa/v1/reports` and `/me` returned `401`.
+  - `GET /wp-json/chroma-portal/v1/content/dashboard` and `/years` returned `403` without a portal token.
+  - `GET /wp-json/chroma/v1/tv/cherokee-academy` returned `200` with Cherokee Academy data.
+  - `GET /wp-json/chroma/v1/weather?lat=bad&lon=bad` returned `400` with `invalid_coordinates`.
+  - `GET /wp-json/chroma/v1/portal/me` returned `401` without a director bearer token.
+- Authenticated QA Reports list approval flow was verified without mutating report data:
+  - A temporary WordPress auth session was generated through staging bootstrap for user `charancre`, then destroyed after the browser run.
+  - `/qa-reports/#/reports?status=submitted` showed report `41` for `East Cobb (Marietta)` as `SUBMITTED`.
+  - The row action menu contained `Approve Report`.
+  - The approval request and follow-up report reads were mocked in Playwright so no real approval write reached WordPress.
+  - After the mocked successful approval response, the Submitted tab updated immediately from `1` submitted row to `0`, showed the empty-state message, and emitted no relevant console errors.
+  - A direct post-check confirmed the real staging report `41` remained `submitted` at version `148`.
+  - Staging QA bundle loaded from `wp-content/plugins/chroma-qa-reports/build/index.js?ver=fa65f2477c0f0ac7c721`.
+- QA Reports frontend fix deployed to staging only:
+  - React Query status-change cache sync now merges status updates with the original report row and handles status-filtered list caches.
+  - Reports list and wizard status-change calls pass the full report context into approve/revert mutations.
+  - Staging plugin backups were created at `/home/x3yyadl/staging-backups/codex-20260601-183545` and `/home/x3yyadl/staging-backups/codex-20260601-184025`.
+- Post-fix staging regression smoke passed for public surfaces:
+  - Home returned `200`, emitted `EducationalOrganization`, `FAQPage`, and `Person` schema, and showed `24+ METRO ATLANTA LOCATIONS`.
+  - Home map lazy-load triggered after scroll with a Leaflet container, `20` markers, and `18` tiles.
+  - Programs returned `200`, emitted `BreadcrumbList` and `CollectionPage`, and had no `kindergarten-1` links.
+  - Kindergarten returned `200`, canonical `/programs/kindergarten/`, and emitted `BreadcrumbList`, `Service`, and `Course`.
+  - Careers returned `200`, loaded job content, and emitted `72` `JobPosting` schema nodes.
+  - QA login, Parent Portal, Cherokee TV, ZIP virtual page, and combo virtual page all returned `200` without relevant app console errors.
+- Post-fix Agent API smoke passed with temporary keys that were deleted after testing:
+  - `GET /discovery` returned `200`.
+  - `GET /resources` returned `200`.
+  - `GET /theme/customizer/scripts` returned script fields containing existing `<script>` content.
+  - `PATCH /theme/customizer/scripts?dry_run=true` returned `200` and preserved `<script>` in the dry-run diff.
+  - `GET /seo/virtual-pages/zip/30345` returned `200`.
+  - `PATCH /seo/virtual-pages/zip/30345?dry_run=true` returned `200` with the dry-run title diff.
+  - `GET /forms/contact/settings` returned `200`.
+  - `POST /cache/flush?dry_run=true` returned `200` with `write:maintenance`; a prior probe using the non-existent broad `maintenance` scope correctly returned `403`.
+- Forms and protected API smoke passed without side-effect submissions:
+  - `/contact/` redirects to `/contact-us/`, renders the contact form wrapper, and exposes the configured LeadConnector iframe for form `ibinKhrBmF0n4S5tFcz6`.
+  - `/careers/` renders the career form wrapper and exposes the configured LeadConnector iframe for form `WYGFB2WBYuti6S6ys30H`.
+  - The latest blog post renders the contact form wrapper with the same contact form data source.
+  - Portal login with missing/invalid PIN returns `400`/`401`; portal content without a token returns `403`; director `/portal/me` without bearer returns `401`; school weather rejects invalid coordinates with `400`; Cherokee TV data returns `200`.
+- Schedule-tour booking flow was verified on staging after the iframe cleanup:
+  - The hidden `#chroma-tour-frame` and global `#chroma-booking-frame` now idle at `about:blank`, preventing the page from loading recursively in hidden iframes.
+  - Clicking the first campus `SCHEDULE VISIT` button opens `#chroma-tour-modal`, sets the visible iframe to `https://api.leadconnectorhq.com/widget/booking/qqekul20rH0iU9Yrhfp2`, updates the external link to the same URL, and produces no relevant app console errors.
+  - Staging backup for this theme-only deployment: `/home/x3yyadl/staging-backups/codex-20260601-185608-theme-iframe`.
+- Focused post-deployment checks passed for the currently changed files:
+  - PHP syntax passed for `page-schedule-tour.php`, `single-location.php`, `page-summer-camp.php`, and `inc/chroma-booking-modal.php`.
+  - QA Reports `npm run lint:js` and `npm run lint:css` passed.
+  - `git diff --check` found no whitespace errors.
+  - Staging browser smoke re-verified `/schedule-a-tour/`: `20` booking buttons, hidden iframes at `about:blank`, first booking button opens the LeadConnector iframe, and no relevant console warnings/errors.
+  - Staging browser smoke re-verified `/qa-reports/` redirects to `/qa-reports/login/`, renders the login form, and emits no relevant console warnings/errors.
+- Staging deployment parity and bootstrap checks passed:
+  - SHA-256 hashes for the deployed changed theme files and QA Reports build files match the local worktree.
+  - SEO Pro reset is active on staging as `chroma-seo-pro-reset/chroma-seo-reset.php`.
+  - Actual registered REST route patterns include `/chroma-agent/v1/theme/customizer/(?P<group>[a-z0-9-]+)`, `/chroma-agent/v1/forms/(?P<form>[a-z0-9-]+)/settings`, `/chroma-agent/v1/seo/virtual-pages/(?P<type>[a-z0-9_-]+)/(?P<key>[^/]+)`, and `/chroma/v1/tv/(?P<slug>[a-zA-Z0-9-]+)`.
+  - QA Reports runtime classes are namespaced under `ChromaQA\...`, including `ChromaQA\Plugin`, `ChromaQA\Models\Report`, `ChromaQA\Workflow\Approval_Workflow`, and `ChromaQA\API\REST_Controller`.
+- A combo-page URL leak was found and fixed:
+  - Fresh `/rising-kindergarten-in-kennesaw-ga/` HTML previously linked to `/kindergarten-1-in-kennesaw-ga/` in related program links.
+  - Combo URL resolution now maps the internal `kindergarten-1` WordPress post slug to the public combo slug `kindergarten`.
+  - `/kindergarten-in-kennesaw-ga/` returns `200` with canonical `https://x3yyntt5tp-staging.wpdns.site/kindergarten-in-kennesaw-ga/`.
+  - `/kindergarten-1-in-kennesaw-ga/` returns `301` to `https://x3yyntt5tp-staging.wpdns.site/kindergarten-in-kennesaw-ga/`.
+  - Fresh `/rising-kindergarten-in-kennesaw-ga/` no longer contains `kindergarten-1-in-kennesaw-ga`.
+  - `/sitemap.xml` contains the clean `kindergarten-in-kennesaw-ga` URL and no `kindergarten-1-in-kennesaw-ga` URL.
+  - Staging backup for this SEO/theme deployment: `/home/x3yyadl/staging-backups/codex-20260601-190904-combo-slug`.
+- Latest combo-route deployment parity and runtime checks passed:
+  - SHA-256 hashes for deployed `inc/seo-profile.php`, `class-combo-page-generator.php`, `class-combo-internal-links.php`, and `class-canonical-enforcer.php` match the local worktree.
+  - Remote bootstrap confirms `chroma_seo_get_program_combo_slug`, `chroma_seo_resolve_program_for_combo_slug`, and `chroma_seo_build_combo_profile` are loaded.
+  - Remote bootstrap confirms public combo slug `kindergarten` resolves to internal post `kindergarten-1#6785`.
+  - Remote PHP syntax passed across `311` deployed custom PHP files after the combo-route fix.
+  - Fresh no-cache-busting public checks returned:
+    - `/schedule-a-tour/`: `200`, canonical schedule URL, no empty Chroma booking iframe src, `about:blank` Chroma iframe present.
+    - `/kindergarten-in-kennesaw-ga/`: `200`, canonical clean combo URL, `Service` and `BreadcrumbList` schema.
+    - `/kindergarten-1-in-kennesaw-ga/`: `301` to `/kindergarten-in-kennesaw-ga/`.
+    - `/rising-kindergarten-in-kennesaw-ga/`: `200`, `Service` and `BreadcrumbList` schema, no old Kindergarten combo URL.
+    - `/programs/kindergarten/`: `200`, canonical clean program URL, `BreadcrumbList`, `Service`, and `Course` schema.
+    - `/sitemap.xml`: contains clean Kindergarten combo URL and not the old `kindergarten-1` combo URL.
+  - Protected/public API boundary smoke still passes: CQA manifest `200`, unauthenticated CQA reports `401`, unauthenticated portal dashboard `403`, Cherokee TV API `200`.
+- Agent API virtual combo SEO storage compatibility was verified after the public slug cleanup:
+  - The deployed Agent API route file, virtual-page SEO data file, and theme SEO helper file match the local worktree by SHA-256.
+  - Existing Kindergarten combo SEO data remains stored under the internal option key for `kindergarten-1`, and clean public reads resolve that storage safely.
+  - Direct virtual SEO reads for both `combo/kindergarten:kennesaw:GA` and `combo/kindergarten-1:kennesaw:GA` return the existing title `Kindergarten in Kennesaw, GA | Chroma Early Learning Academy` and the existing meta description.
+  - `GET /seo/virtual-pages` handler output now lists the Kennesaw Kindergarten combo as key `kindergarten:kennesaw:GA` with URL `/kindergarten-in-kennesaw-ga/`, not the old `kindergarten-1` public identity.
+  - Remote PHP syntax again passed across `311` deployed custom PHP files after this storage/API compatibility patch.
+  - Staging cache was purged again after deployment through `CDN_Clear_Cache_Hooks::purge_cache()` with a staging `siteurl` guard.
+- QA Reports build integrity was re-verified after the generated chunk update:
+  - `build/index.js` maps the current lazy chunk IDs to the present filenames:
+    - `cqa-ui-vendor.e74c6e07.chunk.js`
+    - `cqa-dashboard-page.568acdbd.chunk.js`
+    - `cqa-print-page.d99f307e.chunk.js`
+    - `cqa-reports-page.754f8ac7.chunk.js`
+    - `cqa-report-wizard.23411d61.chunk.js`
+    - `cqa-schools-page.e6008a01.chunk.js`
+    - `cqa-settings-page.655a1423.chunk.js`
+    - numeric shared chunks `353.112fd6db.chunk.js`, `513.1b4186bb.chunk.js`, and `743.a3317bae.chunk.js`.
+  - SHA-256 hashes for `index.js`, `index.asset.php`, CSS files, vendor chunk, shared chunks, and all named lazy chunks match between the local worktree and staging.
+  - The old deleted chunk filenames are absent from staging, so there is no stale mixed-build state in `wp-content/plugins/chroma-qa-reports/build`.
+- Public in-app browser staging smoke was repeated without wp-admin:
+  - Home hero renders, the location pill reads `24+ METRO ATLANTA LOCATIONS`, and the count is sourced from published `location` posts.
+  - Home map surface renders with Leaflet tiles and markers; the smoke saw `6` loaded tiles and `61` marker-like elements after lazy-load.
+  - Mobile menu toggle opens the navigation surface.
+  - QA Reports login shell renders with username/password fields and no console errors.
+  - No console warnings/errors were captured during the fresh home or QA login checks.
+  - Public `curl` status checks returned `200` for `/`, `/qa-reports/login/`, `/programs/kindergarten/`, `/kindergarten-in-kennesaw-ga/`, and `/sitemap.xml`.
+- Whole-stack continuation smoke on staging:
+  - Current staging guard still passes: `home` and `siteurl` both equal `https://x3yyntt5tp-staging.wpdns.site`, with active `stylesheet`/`template` set to `chroma-excellence-theme`.
+  - SEO/schema sampled pages returned:
+    - `/`: `200`, canonical staging home URL, meta description present, schema types `EducationalOrganization`, `FAQPage`, and `Person`.
+    - `/programs/kindergarten/`: `200`, clean canonical URL, schema types `BreadcrumbList`, `Service`, and `Course`, and no `kindergarten-1` slug leak.
+    - `/kindergarten-in-kennesaw-ga/`: `200`, clean canonical URL, schema types `Service` and `BreadcrumbList`.
+    - `/daycare-30345/` and `/es/daycare-30345/`: `200`, canonical virtual ZIP URLs, schema types `CollectionPage` and `BreadcrumbList`.
+    - `/careers/`: `200`, career metadata present, and `69` `JobPosting` schema nodes in the rendered HTML.
+    - `/sitemap.xml`: `200`, includes `/kindergarten-in-kennesaw-ga/`, and does not include `/kindergarten-1-in-kennesaw-ga/`.
+  - Stored API-loaded schema remains available and renders:
+    - The database has `_chroma_post_schemas` on `190` posts/pages, plus `metasync_schema_markup`, `_chroma_schema_data`, and related schema keys.
+    - A sampled blog post with `_chroma_post_schemas` renders `BlogPosting`, `Article`, and `HowTo` schema and includes the bottom contact form.
+    - `/parents/` renders stored complex schema types including `Organization`, `Menu`, `HowTo`, `FAQPage`, `ChildCare`, `ImageGallery`, `SpecialAnnouncement`, and `Speakable`.
+  - Unauthenticated protected endpoints remain protected:
+    - Agent API routes return `401` without an API key.
+    - Parent portal protected routes return `403`/`401` without auth.
+    - QA Reports protected routes under `/wp-json/cqa/v1` return `401`; `/wp-json/cqa/v1/manifest` remains public `200`.
+    - Cherokee school TV public data returns `200`; invalid weather coordinates return `400`.
+  - Authenticated Agent API smoke used temporary staging-only keys that were removed afterward:
+    - `GET /discovery`, `/resources`, `/theme/customizer/scripts`, `/forms/contact/settings`, `/leads`, `/seo/virtual-pages`, `/portal/dashboard`, `/schools`, and `/schools/6187/tv` returned `200`.
+    - `/resources` includes the route catalog with `/seo/virtual-pages`, theme customizer script fields, portal, schools, forms/leads, and maintenance route families.
+    - `PATCH /theme/customizer/scripts?dry_run=true` returned `200`; after JSON decoding, the dry-run diff preserved both `<script>` and `window.__codex_probe = true`.
+    - Temporary Agent API key cleanup was verified; no `Codex staging smoke` or `Codex staging local smoke` key records remain.
+- Public frontend interaction smoke:
+    - Home renders `24+ METRO ATLANTA LOCATIONS`, Leaflet map tiles/markers, and the mobile sticky Schedule a Tour CTA.
+    - Mobile menu toggle opens the navigation surface.
+    - Home program wizard schedule buttons render after selecting Infant Care; clicking `9:00am` changes that button to the active dark style.
+    - Careers renders job content and the career form without console errors.
+  - Browser runtime pass on the current staging tab:
+    - Homepage reload produced no app console warnings/errors.
+    - Lazy map section initialized after scroll with Leaflet panes, `6` tiles, and `20` marker icons.
+    - Mobile menu close action changed menu ARIA state from expanded to collapsed without console errors.
+    - Program wizard `Infant Care` -> `9:00am` changed the button class from white/inactive to `bg-brand-ink text-white shadow-md scale-105`; screenshot evidence was captured in the browser session.
+    - Mobile sticky Schedule a Tour CTA remained visible at the bottom of the viewport during the schedule selector check.
+  - Careers feed runtime:
+    - Staging WordPress bootstrap confirmed `chroma_careers_feed_url=https://app.acquire4hire.com/feed/indeed.xml?id=4668`.
+    - `Chroma_Careers_API::get_careers(true)` returned `69` jobs; first parsed job was `Assistant Childcare Teacher`.
+    - Rendered `/careers/` contains `69` `JobPosting` schema nodes and the career form.
+- QA Portal approval runtime smoke:
+  - Used staging-only WordPress bootstrap and `rest_do_request`; no wp-admin or wp-cli was used.
+  - Guard confirmed `siteurl=https://x3yyntt5tp-staging.wpdns.site`.
+  - Temporary report `45` was created against active school `6` with status `submitted`.
+  - The current React production path was exercised: `PUT /cqa/v1/reports/45` with `{ status: "approved", save_mode: "status_change" }`.
+  - Approval returned HTTP `200`; response status and database status both became `approved`; report version moved from `1` to `2`.
+  - Detail fetch `GET /cqa/v1/reports/45` returned HTTP `200` with status `approved`.
+  - Approved report list included the temporary report immediately after approval, confirming submitted/approved list cache expectations at the API level.
+  - Revert path `PUT /cqa/v1/reports/45` with `{ status: "draft", save_mode: "status_change" }` returned HTTP `200`; response and database status both became `draft`; version moved to `3`.
+  - Monday auto-sync was temporarily disabled during the smoke (`yes -> no -> yes`) to avoid outbound side effects.
+  - Cleanup removed the temporary report and its `3` generated snapshots; follow-up verification showed report `45` absent, snapshots `0`, and Monday auto-sync restored to `yes`.
+- Local source/build verification was repeated against the current worktree:
+  - PHP syntax passed for `324` tracked PHP files, excluding dependency/vendor trees.
+  - Composer validation passed for:
+    - `plugins/chroma-seo-pro/composer.json`
+    - `plugins/chroma-seo-pro-reset/composer.json`
+    - `plugins/QA-Report-App/chroma-qa-reports/composer.json`
+  - QA Reports `npm run lint:js` and `npm run lint:css` passed.
+  - Builds completed successfully for:
+    - `chroma-excellence-theme`
+    - `plugins/chroma-parent-portal/build-env`
+    - `plugins/chroma-school-dashboard`
+    - `plugins/QA-Report-App/chroma-qa-reports/build-env`
+  - The theme, parent portal, and school dashboard builds did not leave tracked content diffs; QA Reports retained only the expected rebuilt bundle/hash changes from the approval cache-sync fix.
+  - QA Reports `npm run test:unit -- --runInBand` still reports `No tests found`; this remains a coverage gap, not a runtime failure.
+- Staging cache was purged after deployment using the host CDN cache management class with a staging `siteurl` guard:
+  - `CDN_Clear_Cache_Hooks::purge_cache()` returned success.
+  - `wp_cache_flush()` was also run.
+  - Plain `/schedule-a-tour/` now serves the updated iframe HTML without cache-busting and no longer contains empty `src=""` Chroma booking iframes.
+- Customizer registration was checked through WordPress bootstrap with `WP_ADMIN` set:
+  - `256` settings, `199` controls, `34` sections
+  - Global Scripts section registered
+  - Required sampled settings present
+  - `0` captured PHP errors
+- Agent API reserved meta safety was verified on staging post `4219`:
+  - Dry-run generic `/content/{id}` update reported blocked keys for `_cp_pdf_file_id`, `_chroma_school_config`, `lead_payload`, `lead_status`, and `_chroma_post_schemas`.
+  - Real generic `/content/{id}` update with those keys returned `403` / `caa_write_policy_blocked`.
+  - Reserved meta values were unchanged after the blocked write.
+  - Dry-run audit delta was `2`; snapshot delta was `0`.
+- Sitemap and virtual SEO coverage was verified:
+  - `/sitemap.xml` includes `/daycare-30345/`, `/es/daycare-30345/`, `/rising-kindergarten-in-kennesaw-ga/`, and `/programs/kindergarten/`.
+  - `/daycare-30345/` returns title, meta description, canonical, `CollectionPage`, and `BreadcrumbList`.
+  - `/es/daycare-30345/` returns Spanish-route canonical and schema.
+  - `/rising-kindergarten-in-kennesaw-ga/` returns editable virtual/combo SEO output with `Service` and `BreadcrumbList`.
+  - `/programs/kindergarten/` returns canonical `/programs/kindergarten/` with `BreadcrumbList`, `Service`, and `Course`.
+- Virtual SEO Agent API checks returned 200 for ZIP, county, and combo identities.
+- Virtual SEO ZIP dry-run patch preserved live option data and returned the dry-run title probe.
+- Non-side-effect Agent API operations were verified:
+  - `GET /forms/contact/settings`
+  - `PATCH /forms/contact/settings?dry_run=true`
+  - `GET /leads`
+  - `POST /leads/{id}/retry-webhook?dry_run=true`
+  - `PATCH /media/{id}/metadata?dry_run=true`
+  - `POST /cache/flush?dry_run=true`
+  - `POST /sitemaps/refresh?dry_run=true`
+  - `POST /geo-feed/refresh?dry_run=true`
+  - `GET /geo-feed`
+- Contact form settings and media metadata were unchanged after dry-run operations.
+- Operational dry-runs produced audit entries and no rollback snapshots.
+- Schema output checks:
+  - Registry wiring confirmed: `Chroma_Schema_Registry::init()` outputs registered schemas at `wp_head` priority `99`.
+  - Modular/API-loaded schema path confirmed: `Chroma_Schema_Injector::output_modular_schemas()` reads `_chroma_post_schemas`, expands graph documents, validates/normalizes rows, and registers them through the central registry.
+  - Sampled staging pages output JSON-LD:
+    - `/`: `EducationalOrganization`, `FAQPage`, `DataFeed`, `Person`, `EntryPoint`, `ViewAction`.
+    - `/parents/`: `Organization`, `Menu`, `HowTo`, `FAQPage`, `ChildCare`, `ImageGallery`, `SpecialAnnouncement`, `Speakable`, `BreadcrumbList`.
+    - `/programs/kindergarten/`: `Service`, `Course`, `CourseInstance`, `BreadcrumbList`.
+    - `/careers/`: `69` `JobPosting` records plus organization/place/address schema.
+    - `/daycare-30345/`: `CollectionPage`, `ItemList`, `EducationalOrganization`, `Service`, `PostalCodeRangeSpecification`, `BreadcrumbList`.
+    - `/2026/05/22/georgia-pre-k-parent-guide/`: `BlogPosting`, `WebPage`, `BreadcrumbList`, `ImageObject`, `Organization`, `Person`.
+  - Public JSON-LD strips internal underscore metadata keys in sampled pages.
+  - Stored/live-host normalization is working in sampled schema URL fields; the only `chromaela.com` hit on `/parents/` was the legitimate email address `info@chromaela.com`.
+  - Homepage schema dynamic location fact renders `24+`; no stale `23+` schema text was found in sampled homepage JSON-LD.
+- CSP/static JavaScript risk pass:
+  - Owned authored Chroma PHP/JS outside generated/vendor/dependency trees has no `eval(...)`, `new Function(...)`, string-based `setTimeout`/`setInterval`, or `document.write(...)` matches.
+  - Shipped generated Chroma JS assets under `assets`, `build`, and `dist` have no matches for those CSP-risk execution patterns.
+  - The bundled theme PDF.js runtime has eval disabled through `FeatureTest.isEvalSupported`.
+  - The browser CSP eval warning is not attributable to owned Chroma runtime source from this scan.
+- PHP remote/file-write pass reviewed expected integration surfaces:
+  - School weather proxy validates latitude/longitude and calls a fixed Open-Meteo host.
+  - School dashboard media uploads use WordPress MIME validation and `wp_handle_upload`.
+  - Google/Gemini/LLM/Monday/Google Drive calls are fixed integration endpoints or authenticated plugin services.
+- SEO dashboard manual sitemap upload was hardened:
+  - Save/upload now requires `manage_options`.
+  - Uploaded sitemap files must pass XML MIME/extension checks and parse as a `urlset` or `sitemapindex` before replacing `uploads/chroma-sitemap-manual.xml`.
+  - `php -l plugins/chroma-seo-pro-reset/inc/class-seo-dashboard.php` passed.
+  - Staging-only deployment backup: `/home/x3yyadl/staging-backups/codex-20260601-php-hardening`.
+  - Remote staging `php -l wp-content/plugins/chroma-seo-pro-reset/inc/class-seo-dashboard.php` passed.
+  - Remote staging bootstrap guard confirmed `siteurl=https://x3yyntt5tp-staging.wpdns.site`; `wp_cache_flush()` completed.
+- Forms/leads staging smoke:
+  - Staging guard confirmed `siteurl=https://x3yyntt5tp-staging.wpdns.site` and path `/home/x3yyadl/public_html/x3yyntt5tp-staging.wpdns.site`.
+  - Contact, acquisition, and tour handlers were run through isolated PHP bootstrap processes.
+  - `wp_mail` was intercepted, form webhook options were temporarily cleared, and the tour form's GHL request was intercepted with `pre_http_request`; no real outbound email or webhook was sent.
+  - Contact redirected with `contact_sent=1`, acquisition redirected with `acquisition_sent=1`, and tour redirected with `tour_sent=1`.
+  - Temporary `lead_log` records were created for contact, acquisition, and tour, then deleted.
+  - Career handler was separately smoke-tested with the resume field temporarily marked optional because CLI PHP cannot satisfy WordPress' `is_uploaded_file()` check. It redirected with `career_sent=1`, created a temporary `lead_log` record, and the record was deleted.
+  - All touched webhook/form options were restored after the smoke tests.
+- Fresh homepage browser smoke:
+  - Staging homepage loaded at mobile-width viewport with title `Chroma Academy | Top Daycare & Preschool in Metro Atlanta`.
+  - Hero copy was present and the page exposed the dynamic `24+ Metro Atlanta Locations` badge.
+  - The location map lazy-loaded after scrolling: `1` Leaflet container, `6` visible tiles, and `20` marker icons.
+  - The mobile sticky CTA exists as fixed bottom container `#sticky-cta` with an inner `Schedule a Tour` link.
+  - No console errors were captured during the pass.
+- School dashboard and portal staging smoke:
+  - `/tv/cherokee-academy/` rendered the TV dashboard with title `Chroma TV | Cherokee Academy`, current date/weather content, announcements, educator/director/newsletter sections, and no console errors.
+  - `/portal/` rendered the Director Portal Google sign-in shell with React assets from `chroma-school-dashboard/assets/dist/portal.js` and no console errors.
+  - `/parent-portal/` rendered the Parent Portal PIN entry shell with React assets from `chroma-parent-portal/build/index.js` and no console errors.
+  - Staging bootstrap guard confirmed `siteurl=https://x3yyntt5tp-staging.wpdns.site`.
+  - School/portal REST routes were registered for `chroma/v1` TV/weather/director endpoints and `chroma-portal/v1` login/dashboard/year/taxonomy endpoints.
+  - `GET /chroma/v1/tv/cherokee-academy` through `rest_do_request()` returned `200` with keys `id`, `title`, `slug`, `config`, `weather`, `content`, `global`, and `_token`.
+  - Parent portal dashboard/year/taxonomy routes remained protected without a family token, as expected.
+  - Public parent portal login route executed with a bogus PIN and returned safe `401 invalid_pin`.
+- Targeted source sanity:
+  - `php -l` passed for all changed PHP files in the theme, Agent API, and SEO Pro plugin.
+  - `git diff --check` passed with only CRLF normalization warnings.
+  - QA Reports React build environment `npm run lint:js` passed.
+  - QA Reports React build environment `npm run lint:css` passed.
+- Public frontend interaction smoke:
+  - Mobile menu button on staging homepage resolved uniquely, opened with `aria-expanded=true`, exposed the close control and schedule-tour navigation, then returned to `aria-expanded=false` after closing.
+  - Homepage program wizard Kindergarten card resolved uniquely, selected successfully, and displayed the Kindergarten result with `View All Programs` and `Speak to an enrollment specialist` actions.
+  - The visible `9:00am` time button changed to the active dark state (`bg-brand-ink text-white shadow-md scale-105`) after click.
+  - No console errors were captured during the homepage interaction pass.
+  - `/schedule-a-tour/` rendered with booking copy and no console errors. Hidden booking iframes were `about:blank`; no iframe was empty or pointed at the current page URL.
+  - `/programs/` exact Kindergarten card links all pointed to `/programs/kindergarten/`; no exact Kindergarten card link pointed to GA Pre-K and no `kindergarten-1` links were present.
+- Blog contact-form output:
+  - `single.php` appends the contact section after post content using `chroma_render_contact_form()`, `chroma_contact_form_shortcode()`, or `[chroma_contact_form]` fallback.
+  - The five most recent published staging posts returned `200` and each contained the bottom contact section plus contact form output:
+    - `Georgia Pre-K Parent Guide: Everything You Need to Know for 2026`
+    - `Explore the Link Between Care Quality and Education Pricing`
+    - `Early Education Expansion: Chroma Academy's 19 New Locations`
+    - `Childcare & Preschool in Ellenwood, GA | Chroma Academy`
+    - `Childcare & Preschool in Austell, GA | South Cobb Campus by Chroma`
+- Critical public asset smoke:
+  - Sampled scripts/styles from `/`, `/programs/`, `/schedule-a-tour/`, `/parent-portal/`, `/portal/`, `/tv/cherokee-academy/`, and `/2026/05/22/georgia-pre-k-parent-guide/`.
+  - `51` staging-owned `wp-content`/`wp-includes` JS/CSS assets were checked by `HEAD`.
+  - Asset failures: `0`.
+- Staging deployment/runtime integrity:
+  - Staging guard confirmed `siteurl=https://x3yyntt5tp-staging.wpdns.site`, `home=https://x3yyntt5tp-staging.wpdns.site`, and active theme `chroma-excellence-theme`.
+  - Active custom plugins on staging: `chroma-acquisitions-form`, `chroma-agent-api`, `chroma-career-form`, `chroma-contact-form`, `chroma-lead-log`, `chroma-parent-portal`, `chroma-qa-reports`, `chroma-school-dashboard`, `chroma-seo-pro-reset`, and `chroma-tour-form`.
+  - Runtime parity check covered changed theme files, Agent API/SEO Pro files, generated QA build files, new hashed QA chunks, and removed old QA chunks. Runtime parity passed: `25/25`.
+  - Three QA `build-env/src` files differed between local and staging. These are non-runtime build-source files; the generated served QA build files matched.
+  - Remote deployed PHP lint passed for `311` custom theme/plugin PHP files outside dependency folders.
+- Agent API discovery/resources smoke:
+  - Found and patched an internal-process auth cache edge case in `plugins/chroma-agent-api/includes/class-auth.php`: an unauthenticated `rest_do_request()` could poison a later authenticated request if PHP reused the request object hash in the same process.
+  - Patch expands the auth cache key to include request object hash, method, route, API key hash, body hash, signature headers, and required scopes.
+  - Staging-only backup before deployment: `/home/x3yyadl/staging-backups/codex-20260601-204137-agent-auth-cache`.
+  - Local and remote `php -l` passed for `class-auth.php`.
+  - After patch, unauthenticated `/chroma-agent/v1/discovery` returned `401 caa_missing_key`, then authenticated `/discovery` in the same PHP process returned `200`.
+  - Authenticated `/resources` returned `200`, exposed `61` route catalog entries, and included required route groups for theme customizer/page meta/CPT meta/taxonomy meta, virtual pages, forms/leads, portal, schools, media metadata, cache, sitemaps, and GEO feed refresh.
+  - Representative authenticated routes returned `200`: `/theme/customizer/scripts`, `/seo/virtual-pages`, `/forms/contact/settings`, `/leads`, and `/schools`.
+  - `PATCH /theme/customizer/scripts?dry_run=true` preserved `<script>` content, returned a diff, blocked no keys, and created no snapshots.
+  - Temporary Agent API keys used for smoke tests were revoked before exit.
+- Public crawl and link/media integrity:
+  - Crawled representative staging pages: `/`, `/programs/`, `/programs/kindergarten/`, `/schedule-a-tour/`, `/careers/`, `/parents/`, `/parent-portal/`, `/portal/`, `/tv/cherokee-academy/`, `/daycare-30345/`, `/rising-kindergarten-in-kennesaw-ga/`, and `/2026/05/22/georgia-pre-k-parent-guide/`.
+  - All `12` seed pages returned `200` and exposed staging canonicals.
+  - Checked `87` internal staging-host link targets. The only non-2xx/3xx results were protected wp-admin media URLs and WordPress media-template placeholders such as `{{ data.url }}` and `{{ data.editLink }}` emitted by admin/media script templates, not public navigation links.
+  - Checked `105` staging-host asset URLs across sampled pages. Asset failures: `0`.
+- SEO URL, sitemap, and canonical checks:
+  - `/robots.txt` returned `200` and disallows crawling on staging. This is expected for staging and was not changed.
+  - `/sitemap.xml` returned `200` XML.
+  - Sitemap contains `/programs/kindergarten/`, `/daycare-30345/`, `/es/daycare-30345/`, `/rising-kindergarten-in-kennesaw-ga/`, and `/kindergarten-in-kennesaw-ga/`.
+  - Sitemap does not contain `/kindergarten-1-in-kennesaw-ga/`.
+  - `/programs/kindergarten/`, `/daycare-30345/`, `/rising-kindergarten-in-kennesaw-ga/`, `/kindergarten-in-kennesaw-ga/`, and `/es/daycare-30345/` returned `200` with canonical, meta description, and JSON-LD schema output.
+  - `/programs/kindergarten-1/` returned `301` to `/programs/kindergarten/`.
+  - `/kindergarten-1-in-kennesaw-ga/` returned `301` to `/kindergarten-in-kennesaw-ga/`.
+- Staging callback wiring audit:
+  - Inspected registered custom REST routes in the booted staging WordPress runtime for `chroma`, `chroma-agent`, `chroma-portal`, and `cqa` namespaces.
+  - Custom REST route handlers checked: `167`.
+  - REST callback failures: `0`; REST permission callback failures: `0`.
+  - Custom shortcodes checked: `7` (`chroma_acquisition_form`, `chroma_career_form`, `chroma_contact_form`, `chroma_parent_portal`, `chroma_tour_form`, `chroma_pdf`, and `chroma_link`).
+  - Shortcode callback failures: `0`.
+  - Custom AJAX callbacks checked: `66`.
+  - AJAX callback failures: `0`.
+  - Sampled custom rewrite rules include TV dashboard, director portal, combo pages, service-area ZIP/county pages, near-me pages, KML feed, and portal taxonomies.
+- Local AJAX/admin mutation hardening pass:
+  - Re-scanned SEO Pro AJAX handlers for `check_ajax_referer()` calls without nearby capability or per-post edit checks; no unguarded SEO Pro AJAX handlers were found.
+  - Confirmed high-risk SEO Pro handlers for image analysis, competitor comparison, career sync, GMB sync/place lookup, schema reset, link equity AI apply, combo AI generation/translation, LLM settings/actions, breadcrumbs, schema inspector, and theme translation all require a nonce plus a role/capability or per-post edit permission.
+  - Added explicit autosave/revision/edit-post guards to parent portal and school dashboard save-post meta handlers.
+  - Added explicit action-level capability checks to legacy QA admin settings, school delete, and school save mutations.
+  - PHP syntax passed for the five hardened files.
+  - Deployed the five hardened files to staging only after confirming the staging path and `siteurl=https://x3yyntt5tp-staging.wpdns.site`.
+  - Staging-only backup before deployment: `/home/x3yyadl/staging-backups/codex-20260601-ajax-hardening`.
+  - Remote PHP syntax passed for the deployed parent portal, school dashboard, and QA admin PHP files.
+  - Local and remote SHA-256 hashes matched for all five deployed files.
+  - Remaining broad scanner hits are expected public/OAuth flows: QA Google OAuth state validation and public tour/career/contact/acquisition form nonce checks.
+- Authenticated public QA dashboard browser pass:
+  - Browser plugin runtime was unavailable because the required Node runner was not exposed after tool discovery, so the available Playwright bridge was used as fallback.
+  - Public `/qa-reports/login/` rendered the expected login form and logged in through the public QA frontend without using wp-admin.
+  - Initial authenticated dashboard smoke found a Recharts sizing warning for `Compliance Trend`.
+  - Patched `ComplianceChart.jsx` to measure its wrapper with `ResizeObserver` and render `AreaChart` with explicit dimensions instead of relying on `ResponsiveContainer` during initial layout.
+  - Rebuilt and deployed the QA build folder to staging only. Staging-only backup before the final build replacement: `/home/x3yyadl/staging-backups/codex-20260601-qa-dashboard-chart-build-v2`.
+  - QA JS lint passed after the patch.
+  - Re-test on staging authenticated dashboard rendered `Compliance Trend`, produced one chart SVG with a measured box of approximately `757x380`, and emitted no relevant console warnings/errors.
+- Browser-level career upload smoke:
+  - Staging-only options backup: `/home/x3yyadl/staging-backups/codex-20260601-career-upload-smoke/options.json`.
+  - Temporarily neutralized staging career email/webhook targets and lead-log webhook target before the test, then restored them from the backup afterward.
+  - Submitted the WordPress fallback career handler from a real browser multipart form on `/careers/` with a PDF resume upload.
+  - The browser submission redirected to `/careers/?...&career_sent=1` with no console warnings/errors.
+  - The submission created staging lead log post `8989` and uploaded `wp-content/uploads/2026/06/codex-career-resume-smoke.pdf`.
+  - Cleanup deleted the test lead and uploaded PDF, removed temporary helper files, and verified `remaining_codex_leads=0` and `remaining_uploads=[]`.
+
+## Warnings / Gaps
+
+- QA Reports `npm run test:unit` found no matching test files and exited with Jest's `No tests found` message. This is a test coverage gap, not a runtime failure.
+- Build warnings remain:
+  - Browserslist/caniuse data is stale in theme/school/parent builds.
+  - Parent portal build reports Dart Sass legacy JS API deprecation from the Sass loader chain.
+  - QA Reports build reports `cqa-ui-vendor...chunk.js` exceeds the recommended webpack asset size.
+- Browser smoke still sees a non-app `Deprecated API for given entry type` warning during map lazy-load. It did not block Leaflet markers/tiles.
+- The intermittent `@import rules are not allowed here` browser warning did not reproduce in a clean headless staging load, and no authored source `CSSStyleSheet.replaceSync`, `adoptedStyleSheets`, or authored `@import` construct-style usage was found. This currently looks like browser/devtools/iframe behavior rather than a shipped Chroma source error.
+- Authenticated visual wp-admin Customizer loading remains unverified by design because wp-admin/browser access was avoided.
+- Real authenticated QA Portal approval writes were executed through the staging REST/backend path against a temporary report and then cleaned up. A full browser-session authenticated QA Portal click remains unverified because wp-admin/login browser access was avoided.
+- Outbound form webhooks were intentionally not executed during smoke tests; handlers were verified with side effects intercepted or staging options temporarily neutralized.
+
+## Current Source State
+
+Tracked source changed in the QA Reports React source and generated `build` output to fix approval/revert cache synchronization, theme booking modal templates/scripts to prevent hidden iframes from self-loading the current page, combo-page SEO/link generation so the internal `kindergarten-1` post slug does not leak into public combo URLs, Agent API/virtual SEO storage resolution so clean public combo keys still read existing internal storage, Agent API auth cache handling for internal REST dispatches, and SEO dashboard sitemap upload hardening. This report remains an untracked audit artifact until intentionally committed.

@@ -25,20 +25,29 @@ class Auth
     {
         $required_scopes = Utils::normalize_scopes($required_scopes);
 
-        $cache_id = spl_object_hash($request) . '|' . implode(',', $required_scopes);
+        if (!Utils::is_https_request()) {
+            $err = new WP_Error('caa_https_required', 'HTTPS is required for Agent API access.', ['status' => 403]);
+            return $err;
+        }
+
+        $raw_key = self::extract_api_key($request);
+        $cache_id = implode('|', [
+            spl_object_hash($request),
+            $request->get_method(),
+            $request->get_route(),
+            md5($raw_key),
+            md5($request->get_body()),
+            md5((string) $request->get_header('x-chroma-timestamp')),
+            md5((string) $request->get_header('x-chroma-signature')),
+            implode(',', $required_scopes),
+        ]);
+
         if (isset(self::$cache[$cache_id])) {
             $cached = self::$cache[$cache_id];
             self::$current_key = $cached['key'] ?? null;
             return $cached['result'];
         }
 
-        if (!Utils::is_https_request()) {
-            $err = new WP_Error('caa_https_required', 'HTTPS is required for Agent API access.', ['status' => 403]);
-            self::$cache[$cache_id] = ['result' => $err, 'key' => null];
-            return $err;
-        }
-
-        $raw_key = self::extract_api_key($request);
         if ($raw_key === '') {
             $err = new WP_Error('caa_missing_key', 'Missing API key.', ['status' => 401]);
             self::$cache[$cache_id] = ['result' => $err, 'key' => null];

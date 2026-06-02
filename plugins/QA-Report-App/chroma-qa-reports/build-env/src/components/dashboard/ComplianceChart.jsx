@@ -1,8 +1,11 @@
-import React, { useMemo } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
 import { Loader2, TrendingUp } from 'lucide-react';
 
 const ComplianceChart = ( { stats, isLoading } ) => {
+    const chartRef = useRef( null );
+    const [ chartSize, setChartSize ] = useState( { width: 0, height: 0 } );
+
     const data = useMemo( () => {
         const trend = Array.isArray( stats?.trend )
             ? stats.trend
@@ -19,6 +22,28 @@ const ComplianceChart = ( { stats, isLoading } ) => {
     }, [ stats ] );
 
     const hasTrendData = data.length > 0;
+    const canRenderChart = chartSize.width > 0 && chartSize.height > 0;
+
+    useEffect( () => {
+        if ( ! hasTrendData || ! chartRef.current || typeof ResizeObserver === 'undefined' ) {
+            return undefined;
+        }
+
+        const observer = new ResizeObserver( ( entries ) => {
+            const entry = entries[ 0 ];
+            const width = Math.floor( entry?.contentRect?.width || 0 );
+            const height = Math.floor( entry?.contentRect?.height || 0 );
+
+            if ( width > 0 && height > 0 ) {
+                setChartSize( ( current ) =>
+                    current.width === width && current.height === height ? current : { width, height }
+                );
+            }
+        } );
+
+        observer.observe( chartRef.current );
+        return () => observer.disconnect();
+    }, [ hasTrendData ] );
 
     if ( isLoading ) {
         return (
@@ -39,9 +64,18 @@ const ComplianceChart = ( { stats, isLoading } ) => {
 
             <div className="flex-1 w-full min-w-0">
                 { hasTrendData ? (
-                    <div className="h-[320px] md:h-[380px] w-full min-w-0" style={ { position: 'relative' } }>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={ data } margin={ { top: 10, right: 10, left: -20, bottom: 0 } }>
+                    <div
+                        ref={ chartRef }
+                        className="h-[320px] md:h-[380px] min-h-[320px] w-full min-w-0"
+                        style={ { position: 'relative' } }
+                    >
+                        { canRenderChart ? (
+                            <AreaChart
+                                width={ chartSize.width }
+                                height={ chartSize.height }
+                                data={ data }
+                                margin={ { top: 10, right: 10, left: -20, bottom: 0 } }
+                            >
                                 <defs>
                                     <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#4A6C7C" stopOpacity={ 0.2 } />
@@ -83,7 +117,9 @@ const ComplianceChart = ( { stats, isLoading } ) => {
                                     fill="url(#colorScore)"
                                 />
                             </AreaChart>
-                        </ResponsiveContainer>
+                        ) : (
+                            <div className="h-full w-full" aria-hidden="true" />
+                        ) }
                     </div>
                 ) : (
                     <div className="h-[320px] md:h-[380px] rounded-2xl border border-dashed border-brand-ink/10 bg-brand-cream/40 flex items-center justify-center text-center px-6">
