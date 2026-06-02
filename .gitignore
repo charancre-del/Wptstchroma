@@ -7,3 +7,15 @@ lighthouse-automation/lighthouse-out/json/
 /tools/composer.phar
 /tools/composer-setup.php
 lighthouse-automation/lighthouse-master-out/
+
+# Local scratch/debug artifacts
+.playwright-mcp/
+chromaela.html
+temp_canonical.txt
+live-kindergarten.json
+diff.txt
+diff_cleanup.txt
+full_diff.txt
+old_cleanup.php
+old_enforcer.php
+plugins/QA-Report-App/chroma-qa-reports/build-env/node_modules/
