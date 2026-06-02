@@ -251,6 +251,23 @@ class Portal_Routes
         }
 
         if (count($postarr) > 1) {
+            foreach ([
+                'post_title' => 'title',
+                'post_content' => 'content',
+                'post_excerpt' => 'excerpt',
+                'post_status' => 'status',
+            ] as $post_field => $response_field) {
+                if (array_key_exists($post_field, $postarr) && (string) $before[$response_field] !== (string) $postarr[$post_field]) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                        Auth::current_key_id(),
+                        'write:portal',
+                        'post_field',
+                        $post_id . ':' . $post_field,
+                        $before[$response_field],
+                        $postarr[$post_field]
+                    );
+                }
+            }
             $updated = wp_update_post($postarr, true);
             if (is_wp_error($updated)) {
                 return $updated;

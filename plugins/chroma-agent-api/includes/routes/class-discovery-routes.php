@@ -257,7 +257,7 @@ class Discovery_Routes
             self::route_entry('GET', '/audit', ['admin:audit'], [], []),
             self::route_entry('GET', '/audit/{id}', ['admin:audit'], [], []),
             self::route_entry('GET', '/snapshots', ['admin:audit'], [], []),
-            self::route_entry('POST', '/rollback/snapshot', ['admin:audit', 'write:theme|write:seo'], ['snapshot_id', 'dry_run'], []),
+            self::route_entry('POST', '/rollback/snapshot', ['admin:audit', 'domain write scope'], ['snapshot_id', 'dry_run'], []),
         ];
     }
 

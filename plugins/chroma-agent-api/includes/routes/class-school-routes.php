@@ -177,6 +177,22 @@ class School_Routes
         }
 
         if (count($postarr) > 1) {
+            foreach ([
+                'post_title' => 'title',
+                'post_name' => 'slug',
+                'post_status' => 'status',
+            ] as $post_field => $response_field) {
+                if (array_key_exists($post_field, $postarr) && (string) $before[$response_field] !== (string) $postarr[$post_field]) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                        Auth::current_key_id(),
+                        'write:schools',
+                        'post_field',
+                        (int) $school->ID . ':' . $post_field,
+                        $before[$response_field],
+                        $postarr[$post_field]
+                    );
+                }
+            }
             $updated = wp_update_post($postarr, true);
             if (is_wp_error($updated)) {
                 return $updated;
