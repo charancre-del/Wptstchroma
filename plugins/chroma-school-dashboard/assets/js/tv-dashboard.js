@@ -296,6 +296,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await res.json();
 
             updateUI(data);
+            if (data.weather) {
+                updateWeatherUI(data.weather);
+            }
 
             // 2. Fetch Weather (if lat/lon exists)
             if (config.lat && config.lon) {
@@ -317,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const w = await res.json();
                 if (w && !w.error) updateWeatherUI(w);
             }
-        } catch (e) { console.error('Weather Sync Error', e); }
+        } catch (e) { debugLog('Weather Sync Error', e); }
     }
 
     /**
