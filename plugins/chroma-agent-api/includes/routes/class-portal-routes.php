@@ -177,14 +177,14 @@ class Portal_Routes
             return new \WP_Error('caa_title_required', 'title is required.', ['status' => 400]);
         }
 
-        $meta = self::meta_from_payload($payload);
+        [$meta, $blocked_meta] = self::meta_from_payload($payload);
         $tax = self::tax_from_payload($payload, $post_type);
         $after = ['post' => $postarr, 'meta' => $meta, 'taxonomies' => $tax];
         $diff = Diff::compare(null, $after);
 
         if ($dry_run) {
             Route_Utils::log_write($request, 'write:portal', 'portal_content', 'new', true, null, $after, $diff);
-            return rest_ensure_response(['success' => true, 'dry_run' => true, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
+            return rest_ensure_response(['success' => true, 'dry_run' => true, 'blocked_keys' => $blocked_meta, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
         }
 
         $post_id = wp_insert_post($postarr, true);
@@ -200,7 +200,7 @@ class Portal_Routes
         $created_diff = Diff::compare(null, $created);
         Route_Utils::log_write($request, 'write:portal', 'portal_content', (string) $post_id, false, null, $created, $created_diff, 201);
 
-        return new \WP_REST_Response(['success' => true, 'dry_run' => false, 'snapshot_ids' => [], 'diff' => $created_diff, 'data' => $created], 201);
+        return new \WP_REST_Response(['success' => true, 'dry_run' => false, 'blocked_keys' => $blocked_meta, 'snapshot_ids' => [], 'diff' => $created_diff, 'data' => $created], 201);
     }
 
     public static function update_content(WP_REST_Request $request)
@@ -233,7 +233,7 @@ class Portal_Routes
             }
         }
 
-        $meta = self::meta_from_payload($payload);
+        [$meta, $blocked_meta] = self::meta_from_payload($payload);
         $tax = self::tax_from_payload($payload, (string) $post->post_type);
 
         if ($dry_run) {
@@ -247,7 +247,7 @@ class Portal_Routes
             $after['taxonomies'] = array_merge($after['taxonomies'], $tax);
             $diff = Diff::compare($before, $after);
             Route_Utils::log_write($request, 'write:portal', 'portal_content', (string) $post_id, true, $before, $after, $diff);
-            return rest_ensure_response(['success' => true, 'dry_run' => true, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
+            return rest_ensure_response(['success' => true, 'dry_run' => true, 'blocked_keys' => $blocked_meta, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
         }
 
         if (count($postarr) > 1) {
@@ -270,7 +270,7 @@ class Portal_Routes
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:portal', 'portal_content', (string) $post_id, false, $before, $after, $diff);
 
-        return rest_ensure_response(['success' => true, 'dry_run' => false, 'snapshot_ids' => $snapshot_ids, 'diff' => $diff, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => false, 'blocked_keys' => $blocked_meta, 'snapshot_ids' => $snapshot_ids, 'diff' => $diff, 'data' => $after]);
     }
 
     public static function delete_content(WP_REST_Request $request)
@@ -395,6 +395,7 @@ class Portal_Routes
         }
 
         $results = [];
+        $blocked_keys = [];
         foreach ($rows as $index => $row) {
             if (!is_array($row)) {
                 $results[$index] = ['success' => false, 'error' => 'invalid_row'];
@@ -408,8 +409,11 @@ class Portal_Routes
                 continue;
             }
 
+            [$meta, $blocked_meta] = self::meta_from_payload($row);
+            $blocked_keys = array_merge($blocked_keys, $blocked_meta);
+
             if ($dry_run) {
-                $results[$index] = ['success' => true, 'dry_run' => true, 'post_type' => $post_type, 'title' => $title];
+                $results[$index] = ['success' => true, 'dry_run' => true, 'post_type' => $post_type, 'title' => $title, 'meta' => $meta, 'blocked_keys' => $blocked_meta];
                 continue;
             }
 
@@ -425,14 +429,14 @@ class Portal_Routes
                 continue;
             }
 
-            self::apply_portal_meta((int) $post_id, self::meta_from_payload($row));
+            self::apply_portal_meta((int) $post_id, $meta);
             self::apply_taxonomies((int) $post_id, self::tax_from_payload($row, $post_type));
             $results[$index] = ['success' => true, 'post_id' => (int) $post_id];
         }
 
         $diff = Diff::compare(null, $results);
         Route_Utils::log_write($request, 'write:portal', 'portal_bulk_import', 'batch', $dry_run, null, $results, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $results]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'blocked_keys' => array_values(array_unique($blocked_keys)), 'snapshot_ids' => [], 'diff' => $diff, 'data' => $results]);
     }
 
     public static function reset_family_pin(WP_REST_Request $request)
@@ -519,7 +523,13 @@ class Portal_Routes
     private static function meta_from_payload(array $payload): array
     {
         $meta = isset($payload['meta']) && is_array($payload['meta']) ? $payload['meta'] : [];
-        unset($meta['_cp_pin_hash'], $meta['_cp_pin_simple_hash']);
+        $blocked = [];
+        foreach (['_cp_pin_hash', '_cp_pin_simple_hash'] as $protected_key) {
+            if (array_key_exists($protected_key, $meta)) {
+                $blocked[] = $protected_key;
+                unset($meta[$protected_key]);
+            }
+        }
 
         foreach ([
             'file_id' => '_cp_pdf_file_id',
@@ -532,8 +542,10 @@ class Portal_Routes
             }
         }
 
-        [$meta] = Route_Utils::partition_updates($meta, Field_Registry::portal_meta_fields());
-        return $meta;
+        [$meta, $policy_blocked] = Route_Utils::partition_updates($meta, Field_Registry::portal_meta_fields());
+        $blocked = array_values(array_unique(array_merge($blocked, $policy_blocked)));
+
+        return [$meta, $blocked];
     }
 
     private static function tax_from_payload(array $payload, string $post_type): array
