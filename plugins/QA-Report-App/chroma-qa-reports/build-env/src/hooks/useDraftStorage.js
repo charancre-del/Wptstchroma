@@ -17,6 +17,11 @@ const MAX_PHOTO_BYTES = 200 * 1024 * 1024; // 200MB
 
 // Create dedicated store
 const store = createStore( DB_NAME, STORE_NAME );
+const debugLog = ( ...args ) => {
+    if ( typeof window !== 'undefined' && window.cqaData?.debug && window.console?.debug ) {
+        window.console.debug( ...args );
+    }
+};
 
 /**
  * Draft Storage API
@@ -94,7 +99,7 @@ export const draftStorage = {
 
         const expired = drafts.filter( ( d ) => d.lastModified < cutoff );
         for ( const draft of expired ) {
-            console.log( `[DraftStorage] Deleting expired draft: ${ draft.id }` );
+            debugLog( `[DraftStorage] Deleting expired draft: ${ draft.id }` );
             await this.delete( draft.id );
         }
     },
@@ -113,7 +118,7 @@ export const draftStorage = {
         const toDelete = sorted.slice( MAX_DRAFTS );
 
         for ( const draft of toDelete ) {
-            console.log( `[DraftStorage] Evicting old draft: ${ draft.id }` );
+            debugLog( `[DraftStorage] Evicting old draft: ${ draft.id }` );
             await this.delete( draft.id );
         }
     },
@@ -145,7 +150,7 @@ export const draftStorage = {
             }
 
             const photoSize = this._estimatePhotoSize( draft.photos );
-            console.log( `[DraftStorage] Evicting photos from draft: ${ draft.id } (${ photoSize } bytes)` );
+            debugLog( `[DraftStorage] Evicting photos from draft: ${ draft.id } (${ photoSize } bytes)` );
 
             draft.photos = [];
             await this.save( draft.id, draft );

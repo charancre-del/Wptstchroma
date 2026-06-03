@@ -98,8 +98,7 @@ class Chroma_Schema_Injector
         }
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_queried_object_id())) {
             return;
         }
 
@@ -126,8 +125,7 @@ class Chroma_Schema_Injector
         }
 
         // Respect manual overrides.
-        $override = get_post_meta($post_id, '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro($post_id)) {
             return;
         }
 
@@ -285,8 +283,7 @@ class Chroma_Schema_Injector
         $target_id = is_front_page() ? get_option('page_on_front') : get_queried_object_id();
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta($target_id, '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro($target_id)) {
             return;
         }
 
@@ -342,8 +339,7 @@ class Chroma_Schema_Injector
         }
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_option('page_on_front'), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_option('page_on_front'))) {
             return;
         }
 
@@ -381,8 +377,14 @@ class Chroma_Schema_Injector
         $location_id = get_the_ID();
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta($location_id, '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro($location_id)) {
+            return;
+        }
+
+        if (
+            function_exists('chroma_post_has_stored_schema_type_pro')
+            && chroma_post_has_stored_schema_type_pro($location_id, ['ChildCare', 'Preschool', 'EducationalOrganization', 'LocalBusiness'])
+        ) {
             return;
         }
 
@@ -688,10 +690,14 @@ class Chroma_Schema_Injector
             case 'program':
                 // Service schema for programs
                 $program_name = get_the_title($post_id);
-                $program_desc = get_post_field('post_excerpt', $post_id);
-                if (empty($program_desc)) {
-                    $content = get_post_field('post_content', $post_id);
-                    $program_desc = wp_trim_words(strip_shortcodes($content), 55);
+                if (function_exists('chroma_schema_clean_program_description_pro')) {
+                    $program_desc = chroma_schema_clean_program_description_pro($post_id, get_post_meta($post_id, 'schema_prog_description', true));
+                } else {
+                    $program_desc = get_post_field('post_excerpt', $post_id);
+                    if (empty($program_desc)) {
+                        $content = get_post_field('post_content', $post_id);
+                        $program_desc = wp_trim_words(wp_strip_all_tags(strip_shortcodes($content)), 35);
+                    }
                 }
                 $age_range = get_post_meta($post_id, 'program_age_range', true);
 
@@ -735,16 +741,22 @@ class Chroma_Schema_Injector
         }
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_queried_object_id())) {
             return;
         }
 
         $post_id = get_the_ID();
         $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+        $schemas = is_array($schemas) ? $schemas : [];
 
-        if (empty($schemas) || !is_array($schemas)) {
-            $schemas = self::normalize_legacy_schema_data(get_post_meta($post_id, '_chroma_schema_data', true));
+        if (!empty($schemas)) {
+            $schemas = self::expand_schema_graph_documents($schemas);
+            $schemas = self::filter_preparable_schema_rows($schemas);
+        }
+
+        if (empty($schemas)) {
+            $legacy_schemas = self::normalize_legacy_schema_data(get_post_meta($post_id, '_chroma_schema_data', true));
+            $schemas = self::filter_preparable_schema_rows(self::expand_schema_graph_documents($legacy_schemas));
             if (empty($schemas)) {
                 return;
             }
@@ -765,8 +777,11 @@ class Chroma_Schema_Injector
             $schema_type = $prepared['type'];
 
             // Global Suppression Check (e.g. for external AI schema)
-            $override = get_post_meta($post_id, '_chroma_schema_override', true);
-            if ($override && ($schema_type === 'FAQPage' || $schema_type === 'BreadcrumbList')) {
+            if (
+                function_exists('chroma_has_valid_schema_override_pro')
+                && chroma_has_valid_schema_override_pro($post_id)
+                && ($schema_type === 'FAQPage' || $schema_type === 'BreadcrumbList')
+            ) {
                 continue;
             }
 
@@ -1107,14 +1122,36 @@ class Chroma_Schema_Injector
                 }
                 // Registry will output at priority 99 - don't echo here
             } else {
-                // Fallback: also route through Registry for consistency
                 $final_schema = [
                     '@context' => 'https://schema.org',
                     '@graph' => $graph
                 ];
-                Chroma_Schema_Registry::register($final_schema, ['source' => 'schema-injector-modular-legacy']);
+                echo '<script type="application/ld+json">' . wp_json_encode($final_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
             }
         }
+    }
+
+    /**
+     * Keep only rows that can be converted into a schema type.
+     *
+     * @param mixed $schemas
+     * @return array<int,array>
+     */
+    private static function filter_preparable_schema_rows($schemas)
+    {
+        if (empty($schemas) || !is_array($schemas)) {
+            return [];
+        }
+
+        $valid = [];
+        foreach ($schemas as $schema) {
+            $prepared = self::prepare_modular_schema_input($schema);
+            if (!empty($prepared['type'])) {
+                $valid[] = $schema;
+            }
+        }
+
+        return $valid;
     }
 
     /**
@@ -1150,6 +1187,48 @@ class Chroma_Schema_Injector
         }
 
         return [];
+    }
+
+    /**
+     * Expand full JSON-LD documents stored inside _chroma_post_schemas.
+     *
+     * Some Agent API clients send a complete JSON-LD object like
+     * ['@context' => 'https://schema.org', '@graph' => [...]] instead of the
+     * Builder's row list. Render those existing records without requiring a
+     * re-save by flattening graph nodes into normal schema rows.
+     *
+     * @param array $schemas
+     * @return array<int,array>
+     */
+    private static function expand_schema_graph_documents(array $schemas)
+    {
+        $expanded = [];
+
+        foreach ($schemas as $schema) {
+            if (is_object($schema)) {
+                $schema = (array) $schema;
+            }
+
+            if (!is_array($schema)) {
+                continue;
+            }
+
+            if (!empty($schema['@graph']) && is_array($schema['@graph'])) {
+                foreach ($schema['@graph'] as $node) {
+                    if (is_object($node)) {
+                        $node = (array) $node;
+                    }
+                    if (is_array($node) && !empty($node)) {
+                        $expanded[] = $node;
+                    }
+                }
+                continue;
+            }
+
+            $expanded[] = $schema;
+        }
+
+        return $expanded;
     }
 
     /**
@@ -1386,6 +1465,10 @@ class Chroma_Schema_Injector
             $schema = self::normalize_review_schema($schema, $post_id);
         }
 
+        if (in_array($schema_type, ['Article', 'BlogPosting', 'NewsArticle'], true)) {
+            $schema = self::normalize_article_schema($schema, $post_id);
+        }
+
         if ($schema_type === 'Service') {
             $schema = self::normalize_service_schema($schema);
         }
@@ -1569,6 +1652,125 @@ class Chroma_Schema_Injector
         }
 
         unset($schema['author_name'], $schema['itemReviewed_name']);
+        return $schema;
+    }
+
+    /**
+     * Normalize Article-like schema from API/builder rows.
+     *
+     * @param array $schema
+     * @param int   $post_id
+     * @return array
+     */
+    private static function normalize_article_schema($schema, $post_id)
+    {
+        if (empty($schema['headline'])) {
+            $schema['headline'] = get_the_title($post_id);
+        }
+
+        if (empty($schema['description'])) {
+            $description = get_the_excerpt($post_id);
+            if (empty($description)) {
+                $description = wp_trim_words(wp_strip_all_tags(get_post_field('post_content', $post_id)), 35);
+            }
+            if (!empty($description)) {
+                $schema['description'] = $description;
+            }
+        }
+
+        if (empty($schema['datePublished'])) {
+            $schema['datePublished'] = get_the_date('c', $post_id);
+        }
+
+        if (empty($schema['dateModified'])) {
+            $schema['dateModified'] = get_the_modified_date('c', $post_id);
+        }
+
+        if (!empty($schema['author']) && is_string($schema['author'])) {
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $schema['author'],
+            ];
+        }
+
+        if (empty($schema['author']) && !empty($schema['author_name'])) {
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $schema['author_name'],
+            ];
+        }
+
+        if (empty($schema['author'])) {
+            $author_id = (int) get_post_field('post_author', $post_id);
+            $author_name = $author_id > 0 ? get_the_author_meta('display_name', $author_id) : '';
+            if (empty($author_name)) {
+                $author_name = get_bloginfo('name');
+            }
+            $schema['author'] = [
+                '@type' => 'Person',
+                'name' => $author_name,
+            ];
+            if ($author_id > 0) {
+                $schema['author']['url'] = get_author_posts_url($author_id);
+            }
+        }
+
+        if (!empty($schema['author']) && is_array($schema['author']) && empty($schema['author']['@type']) && !empty($schema['author']['name'])) {
+            $schema['author']['@type'] = 'Person';
+        }
+
+        if (!empty($schema['publisher']) && is_string($schema['publisher'])) {
+            $schema['publisher'] = [
+                '@type' => 'Organization',
+                'name' => $schema['publisher'],
+            ];
+        }
+
+        if (empty($schema['publisher']) || !is_array($schema['publisher'])) {
+            $schema['publisher'] = [
+                '@type' => 'Organization',
+                'name' => get_bloginfo('name'),
+                'url' => home_url('/'),
+            ];
+        } elseif (empty($schema['publisher']['@type'])) {
+            $schema['publisher']['@type'] = 'Organization';
+        }
+
+        if (empty($schema['publisher']['logo'])) {
+            $logo = get_theme_mod('custom_logo') ? wp_get_attachment_image_url(get_theme_mod('custom_logo'), 'full') : '';
+            if (!empty($logo)) {
+                $schema['publisher']['logo'] = [
+                    '@type' => 'ImageObject',
+                    'url' => $logo,
+                ];
+            }
+        }
+
+        if (!empty($schema['image']) && is_string($schema['image'])) {
+            $schema['image'] = [
+                '@type' => 'ImageObject',
+                'url' => $schema['image'],
+            ];
+        }
+
+        if (empty($schema['image'])) {
+            $image = get_the_post_thumbnail_url($post_id, 'full');
+            if (!empty($image)) {
+                $schema['image'] = [
+                    '@type' => 'ImageObject',
+                    'url' => $image,
+                ];
+            }
+        }
+
+        if (empty($schema['mainEntityOfPage'])) {
+            $schema['mainEntityOfPage'] = [
+                '@type' => 'WebPage',
+                '@id' => get_permalink($post_id),
+            ];
+        }
+
+        unset($schema['author_name']);
         return $schema;
     }
 

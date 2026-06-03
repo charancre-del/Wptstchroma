@@ -15,6 +15,9 @@ while (have_posts()):
 	$age_range = chroma_get_translated_meta($program_id, 'program_age_range', true);
 	$color_scheme = get_post_meta($program_id, 'program_color_scheme', true) ?: 'red';
 	$lesson_plan_url = get_post_meta($program_id, 'program_lesson_plan_file', true);
+	if (function_exists('chroma_normalize_owned_url')) {
+		$lesson_plan_url = chroma_normalize_owned_url($lesson_plan_url);
+	}
 	$has_lesson_plan = trim((string) $lesson_plan_url) !== '' && trim((string) $lesson_plan_url) !== '#';
 
 	// Hero section
@@ -305,73 +308,116 @@ while (have_posts()):
                 });
             }
 
-            // Chart.js Handler
+			// Chart.js Handler
 			const ctx = document.getElementById('programChart');
 			if (ctx) {
+				let programChartInstance = null;
+				let programChartLoading = false;
+
+				const createProgramChart = function () {
+					if (!window.Chart || programChartInstance) {
+						return;
+					}
+
+					programChartInstance = new Chart(ctx, {
+						type: 'radar',
+						data: {
+							labels: ['<?php _e('Physical', 'chroma-excellence'); ?>', '<?php _e('Emotional', 'chroma-excellence'); ?>', '<?php _e('Social', 'chroma-excellence'); ?>', '<?php _e('Academic', 'chroma-excellence'); ?>', '<?php _e('Creative', 'chroma-excellence'); ?>'],
+							datasets: [{
+								label: '<?php echo esc_js(get_the_title()); ?> Focus',
+								data: [
+									<?php echo absint($prism_physical); ?>,
+									<?php echo absint($prism_emotional); ?>,
+									<?php echo absint($prism_social); ?>,
+									<?php echo absint($prism_academic); ?>,
+									<?php echo absint($prism_creative); ?>
+								],
+								backgroundColor: '<?php
+								$chart_colors = array(
+									'red' => '#D67D6B',
+									'blue' => '#4A6C7C',
+									'yellow' => '#E6BE75',
+									'blueDark' => '#2F4858',
+									'green' => '#8DA399',
+									'orange' => '#C26524',
+									'teal' => '#4A6C7C',
+								);
+								$hex_color = $chart_colors[$color_scheme] ?? '#D67D6B';
+								echo $hex_color . '33'; // Add 20% opacity
+								?>',
+								borderColor: '<?php echo $hex_color; ?>',
+								pointBackgroundColor: '#fff',
+								pointBorderColor: '<?php echo $hex_color; ?>',
+								borderWidth: 2
+							}]
+						},
+						options: {
+							scales: {
+								r: {
+									angleLines: { color: '#e5e5e5' },
+									grid: { color: '#e5e5e5' },
+									pointLabels: { font: { family: 'Outfit', size: 14 }, color: '#263238' },
+									suggestedMin: 0,
+									suggestedMax: 100,
+									ticks: { display: false }
+								}
+							},
+							plugins: { legend: { display: false } }
+						}
+					});
+				};
+
+				const loadProgramChart = function () {
+					if (window.Chart) {
+						createProgramChart();
+						return;
+					}
+
+					const existingScript = document.getElementById('chroma-lazy-chart') || document.querySelector('script[data-chroma-chartjs]');
+					if (existingScript) {
+						existingScript.addEventListener('load', createProgramChart, { once: true });
+						return;
+					}
+
+					if (programChartLoading) {
+						return;
+					}
+
+					programChartLoading = true;
+					const script = document.createElement('script');
+					script.id = 'chroma-lazy-chart';
+					script.src = '<?php echo esc_url(get_template_directory_uri() . '/assets/js/chart.min.js'); ?>';
+					script.async = true;
+					script.dataset.chromaChartjs = 'true';
+					script.onload = createProgramChart;
+					document.body.appendChild(script);
+				};
+
+				const loadProgramChartWhenIdle = function () {
+					if ('requestIdleCallback' in window) {
+						window.requestIdleCallback(loadProgramChart, { timeout: 1800 });
+						return;
+					}
+
+					window.setTimeout(loadProgramChart, 1200);
+				};
+
+				if (!('IntersectionObserver' in window)) {
+					loadProgramChart();
+					return;
+				}
+
 				const observer = new IntersectionObserver((entries) => {
 					entries.forEach(entry => {
 						if (entry.isIntersecting) {
 							// Disconnect observer immediately
 							observer.disconnect();
-
-							// Dynamically load Chart.js library
-							const script = document.createElement('script');
-							script.src = '<?php echo esc_url(get_template_directory_uri() . '/assets/js/chart.min.js'); ?>';
-							script.async = true;
-							script.onload = function () {
-								// Initialize Chart after library loads
-								new Chart(ctx, {
-									type: 'radar',
-									data: {
-										labels: ['<?php _e('Physical', 'chroma-excellence'); ?>', '<?php _e('Emotional', 'chroma-excellence'); ?>', '<?php _e('Social', 'chroma-excellence'); ?>', '<?php _e('Academic', 'chroma-excellence'); ?>', '<?php _e('Creative', 'chroma-excellence'); ?>'],
-										datasets: [{
-											label: '<?php echo esc_js(get_the_title()); ?> Focus',
-											data: [
-												<?php echo absint($prism_physical); ?>,
-												<?php echo absint($prism_emotional); ?>,
-												<?php echo absint($prism_social); ?>,
-												<?php echo absint($prism_academic); ?>,
-												<?php echo absint($prism_creative); ?>
-											],
-											backgroundColor: '<?php
-											$chart_colors = array(
-												'red' => '#D67D6B',
-												'blue' => '#4A6C7C',
-												'yellow' => '#E6BE75',
-												'blueDark' => '#2F4858',
-												'green' => '#8DA399',
-												'orange' => '#C26524',
-												'teal' => '#4A6C7C',
-											);
-											$hex_color = $chart_colors[$color_scheme] ?? '#D67D6B';
-											echo $hex_color . '33'; // Add 20% opacity
-											?>',
-											borderColor: '<?php echo $hex_color; ?>',
-											pointBackgroundColor: '#fff',
-											pointBorderColor: '<?php echo $hex_color; ?>',
-											borderWidth: 2
-										}]
-									},
-									options: {
-										scales: {
-											r: {
-												angleLines: { color: '#e5e5e5' },
-												grid: { color: '#e5e5e5' },
-												pointLabels: { font: { family: 'Outfit', size: 14 }, color: '#263238' },
-												suggestedMin: 0,
-												suggestedMax: 100,
-												ticks: { display: false }
-											}
-										},
-										plugins: { legend: { display: false } }
-									}
-								});
-							};
-							document.body.appendChild(script);
+							loadProgramChart();
 						}
 					});
 				}, { rootMargin: '200px' }); // Start loading 200px before view
 				observer.observe(ctx);
+				loadProgramChartWhenIdle();
 			}
 		});
 	</script>

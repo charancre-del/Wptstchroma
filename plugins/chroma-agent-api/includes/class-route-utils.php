@@ -16,14 +16,40 @@ class Route_Utils
         if (!is_array($payload)) {
             $payload = $request->get_params();
         }
-        return is_array($payload) ? $payload : [];
+
+        if (!is_array($payload)) {
+            return [];
+        }
+
+        return self::merge_control_params($request, $payload);
+    }
+
+    public static function merge_control_params(WP_REST_Request $request, array $payload): array
+    {
+        foreach (['dry_run', 'strict_write'] as $key) {
+            $param = $request->get_param($key);
+            if (Utils::truthy($param)) {
+                $payload[$key] = true;
+            } elseif (!array_key_exists($key, $payload) && $param !== null) {
+                $payload[$key] = $param;
+            }
+        }
+
+        return $payload;
     }
 
     public static function updates_from_request(WP_REST_Request $request): array
     {
         $payload = self::payload($request);
-        $updates = isset($payload['updates']) && is_array($payload['updates']) ? $payload['updates'] : $payload;
-        unset($updates['dry_run'], $updates['strict_write'], $updates['updates']);
+        if (isset($payload['updates']) && is_array($payload['updates'])) {
+            $updates = $payload['updates'];
+        } elseif (isset($payload['fields']) && is_array($payload['fields'])) {
+            $updates = $payload['fields'];
+        } else {
+            $updates = $payload;
+        }
+
+        unset($updates['dry_run'], $updates['strict_write'], $updates['updates'], $updates['fields']);
         return is_array($updates) ? $updates : [];
     }
 
@@ -355,6 +381,10 @@ class Route_Utils
             return self::sanitize_schema_document_for_storage($key, $value);
         }
 
+        if (self::is_global_script_theme_mod($key)) {
+            return self::sanitize_global_script_markup((string) $value);
+        }
+
         if (substr($key, -5) === '_json') {
             if (is_string($value)) {
                 $decoded = json_decode($value, true);
@@ -376,6 +406,17 @@ class Route_Utils
             return sanitize_email((string) $value);
         }
 
+        if ($key === 'chroma_llm_base_url') {
+            $url = rtrim(esc_url_raw((string) $value, ['http', 'https']), '/');
+            if ($url === '') {
+                return '';
+            }
+            if (function_exists('chroma_seo_validate_remote_url')) {
+                return chroma_seo_validate_remote_url($url, true) ?: '';
+            }
+            return wp_http_validate_url($url) ? $url : '';
+        }
+
         if (strpos($key, 'url') !== false || strpos($key, 'link') !== false || strpos($key, 'image') !== false || strpos($key, 'photo') !== false || strpos($key, 'webhook') !== false) {
             return esc_url_raw((string) $value);
         }
@@ -385,6 +426,38 @@ class Route_Utils
         }
 
         return sanitize_text_field((string) $value);
+    }
+
+    private static function is_global_script_theme_mod(string $key): bool
+    {
+        return in_array($key, [
+            'chroma_header_scripts',
+            'chroma_footer_scripts',
+        ], true);
+    }
+
+    private static function sanitize_global_script_markup(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+
+        $value = str_replace(["\0", '<?', '?>'], ['', '&lt;?', '?&gt;'], $value);
+
+        if (function_exists('chroma_strip_disallowed_customizer_markup')) {
+            $value = chroma_strip_disallowed_customizer_markup($value);
+        }
+
+        if (
+            stripos($value, '<script') === false
+            && stripos($value, '<noscript') === false
+            && stripos($value, '<') === false
+        ) {
+            return "<script>\n" . $value . "\n</script>";
+        }
+
+        return $value;
     }
 
     private static function is_schema_document_key(string $key): bool
@@ -438,7 +511,11 @@ class Route_Utils
             return $value;
         }
 
-        if (isset($value['@type']) || isset($value['type']) || isset($value['@graph'])) {
+        if (isset($value['@graph']) && is_array($value['@graph'])) {
+            return array_values(array_filter($value['@graph'], 'is_array'));
+        }
+
+        if (isset($value['@type']) || isset($value['type'])) {
             return [$value];
         }
 

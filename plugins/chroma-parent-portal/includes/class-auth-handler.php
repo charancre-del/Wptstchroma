@@ -7,10 +7,21 @@ class Chroma_Portal_Auth
 {
     private const TOKEN_VERSION = 'v1';
     private const TOKEN_TTL = 24 * HOUR_IN_SECONDS;
+    private const LOGIN_MAX_ATTEMPTS = 8;
+    private const LOGIN_WINDOW = 15 * MINUTE_IN_SECONDS;
 
     public static function login($pin)
     {
         $pin = sanitize_text_field($pin);
+        if (self::is_rate_limited()) {
+            return new WP_Error('too_many_attempts', 'Too many attempts. Please try again later.', ['status' => 429]);
+        }
+
+        if (!preg_match('/^\d{4,6}$/', $pin)) {
+            self::record_failed_login();
+            return new WP_Error('invalid_pin', 'Invalid PIN', ['status' => 401]);
+        }
+
         $hashed_lookup = md5($pin);
 
         $args = [
@@ -26,14 +37,23 @@ class Chroma_Portal_Auth
         if (empty($families)) {
             // SECURITY: Log failed PIN attempts for monitoring
             error_log('Parent Portal Login Failure: Invalid PIN attempted.');
+            self::record_failed_login();
             return new WP_Error('invalid_pin', 'Invalid PIN', ['status' => 401]);
         }
 
         $family_id = $families[0];
+        $stored_hash = get_post_meta($family_id, '_cp_pin_hash', true);
+        if (is_string($stored_hash) && '' !== $stored_hash && !wp_check_password($pin, $stored_hash, $family_id)) {
+            error_log('Parent Portal Login Failure: PIN hash verification failed.');
+            self::record_failed_login();
+            return new WP_Error('invalid_pin', 'Invalid PIN', ['status' => 401]);
+        }
+
         $family_name = get_the_title($family_id);
 
         try {
             $token = self::create_signed_token($family_id, $family_name);
+            self::clear_failed_logins();
 
             return [
                 'token' => $token,
@@ -142,6 +162,30 @@ class Chroma_Portal_Auth
     private static function token_secret()
     {
         return wp_salt('auth') . '|' . wp_salt('secure_auth') . '|chroma-parent-portal';
+    }
+
+    private static function login_rate_key()
+    {
+        $ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : 'unknown';
+        return 'chroma_portal_login_' . md5($ip);
+    }
+
+    private static function is_rate_limited()
+    {
+        $attempts = (int) get_transient(self::login_rate_key());
+        return $attempts >= self::LOGIN_MAX_ATTEMPTS;
+    }
+
+    private static function record_failed_login()
+    {
+        $key = self::login_rate_key();
+        $attempts = (int) get_transient($key);
+        set_transient($key, $attempts + 1, self::LOGIN_WINDOW);
+    }
+
+    private static function clear_failed_logins()
+    {
+        delete_transient(self::login_rate_key());
     }
 
     private static function base64url_encode($value)

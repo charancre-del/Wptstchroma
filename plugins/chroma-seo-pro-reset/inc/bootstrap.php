@@ -229,6 +229,9 @@ foreach ($schema_builders as $file) {
 if (!function_exists('chroma_advanced_seo_init')) {
 function chroma_advanced_seo_init()
 {
+	if (class_exists('Chroma_Schema_Registry'))
+		Chroma_Schema_Registry::init();
+
 	// Core Modules
 	if (class_exists('Chroma_SEO_Dashboard'))
 		(new Chroma_SEO_Dashboard())->init();

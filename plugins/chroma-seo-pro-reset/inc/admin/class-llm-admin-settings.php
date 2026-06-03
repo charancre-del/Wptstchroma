@@ -71,7 +71,17 @@ class Chroma_LLM_Admin_Settings
         register_setting('chroma_llm_settings', 'chroma_openai_api_key');
         register_setting('chroma_llm_settings', 'chroma_google_places_api_key');
         register_setting('chroma_llm_settings', 'chroma_llm_model');
-        register_setting('chroma_llm_settings', 'chroma_llm_base_url');
+        register_setting('chroma_llm_settings', 'chroma_llm_base_url', [
+            'sanitize_callback' => function($input) {
+                $url = rtrim(esc_url_raw((string) $input, ['http', 'https']), '/');
+                if ($url === '') {
+                    return '';
+                }
+                return function_exists('chroma_seo_validate_remote_url')
+                    ? (chroma_seo_validate_remote_url($url, true) ?: '')
+                    : (wp_http_validate_url($url) ? $url : '');
+            },
+        ]);
         register_setting('chroma_llm_settings', 'chroma_llm_rate_limit');
         register_setting('chroma_llm_settings', 'chroma_llm_rate_limit');
         register_setting('chroma_llm_settings', 'chroma_llm_cache_duration');

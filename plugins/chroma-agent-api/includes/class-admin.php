@@ -69,6 +69,7 @@ class Admin
             'write:leads',
             'read:maintenance',
             'write:maintenance',
+            'read:geo',
             'admin:keys',
             'admin:audit',
         ];

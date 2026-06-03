@@ -222,7 +222,6 @@ add_action('wp_enqueue_scripts', function () {
         'root' => esc_url_raw(rest_url()),
         'nonce' => wp_create_nonce('wp_rest'),
         'assetsUrl' => CHROMA_PORTAL_URL . 'build/',
-        'logoUrl' => CHROMA_PORTAL_URL . 'build-env/src/assets/images/chroma_hex_logo.png'
     ]);
 });
 
@@ -240,9 +239,9 @@ add_shortcode('chroma_parent_portal', function () {
     wp_enqueue_style('chroma-portal-styles');
 
     // Fallback/Loading state that React will replace
-    return '<div id="chroma-parent-portal-root" style="display: flex !important; flex-direction: column; justify-content: center; align-items: center; height: 100vh !important; width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 99999 !important; background: #FFEB3B; color: black; text-align: center; overflow: visible !important;">
-        <div style="font-size: 40px; margin: 0; font-weight: 700;">PHP LOADED</div>
-        <p style="font-size: 20px;">Waiting for React app to mount...</p>
-        <p style="font-size: 14px; margin-top: 20px;">If this screen stays visible for more than 5 seconds, the App is broken.</p>
+    return '<div id="chroma-parent-portal-root" style="display: flex !important; flex-direction: column; justify-content: center; align-items: center; height: 100vh !important; width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 99999 !important; background: #FDFBF7; color: #263238; text-align: center; overflow: visible !important; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;">
+        <div style="width: 44px; height: 44px; border: 4px solid rgba(38, 50, 56, 0.14); border-top-color: #263238; border-radius: 999px; animation: chromaPortalSpin 1s linear infinite;"></div>
+        <p style="font-size: 18px; margin: 20px 0 0; font-weight: 700;">Loading Parent Portal</p>
+        <style>@keyframes chromaPortalSpin { to { transform: rotate(360deg); } }</style>
     </div>';
 });

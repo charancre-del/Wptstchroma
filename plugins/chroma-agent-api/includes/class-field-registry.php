@@ -29,7 +29,9 @@ class Field_Registry
             'write:leads',
             'read:maintenance',
             'write:maintenance',
+            'read:geo',
             'admin:keys',
+            'admin:audit',
         ];
     }
 
@@ -148,6 +150,10 @@ class Field_Registry
             ],
             'scripts' => [
                 'storage' => 'theme_mod',
+                'script_fields' => [
+                    'chroma_header_scripts',
+                    'chroma_footer_scripts',
+                ],
                 'fields' => [
                     'chroma_header_scripts',
                     'chroma_footer_scripts',

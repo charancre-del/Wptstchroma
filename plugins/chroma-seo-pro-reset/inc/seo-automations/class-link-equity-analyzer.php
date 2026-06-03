@@ -500,6 +500,17 @@ add_action('wp_ajax_chroma_link_equity_ai_preview', function() {
     if (!$source) {
         wp_send_json_error('Source post not found');
     }
+
+    if (function_exists('chroma_seo_can_edit_post') && !chroma_seo_can_edit_post($source_id)) {
+        wp_send_json_error('Permission denied for this source post');
+    }
+
+    if (function_exists('chroma_seo_validate_remote_url')) {
+        $target_url = chroma_seo_validate_remote_url($target_url, false);
+        if (!$target_url) {
+            wp_send_json_error('Invalid or blocked target URL');
+        }
+    }
     
     // Use LLM to find best insertion point
     $prompt = "You are editing a webpage to add an internal link. 
@@ -544,6 +555,17 @@ add_action('wp_ajax_chroma_link_equity_ai_apply', function() {
     $source = get_post($source_id);
     if (!$source) {
         wp_send_json_error('Source post not found');
+    }
+
+    if (function_exists('chroma_seo_can_edit_post') && !chroma_seo_can_edit_post($source_id)) {
+        wp_send_json_error('Permission denied for this source post');
+    }
+
+    if (function_exists('chroma_seo_validate_remote_url')) {
+        $target_url = chroma_seo_validate_remote_url($target_url, false);
+        if (!$target_url) {
+            wp_send_json_error('Invalid or blocked target URL');
+        }
     }
     
     // Simple append approach (safer than AI replacement)

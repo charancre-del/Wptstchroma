@@ -34,7 +34,7 @@ function chroma_render_booking_modal() {
                 <div id="chroma-booking-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
                     <div class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin"></div>
                 </div>
-                <iframe id="chroma-booking-frame" src="" class="w-full h-full border-0"
+                <iframe id="chroma-booking-frame" src="about:blank" class="w-full h-full border-0"
                     allow="camera; microphone; autoplay; encrypted-media;"></iframe>
             </div>
         </div>
@@ -76,7 +76,7 @@ function chroma_render_booking_modal() {
                 if (!modal) return;
                 modal.classList.add('hidden');
                 document.body.style.overflow = '';
-                iframe.src = '';
+                iframe.src = 'about:blank';
             }
 
             // Delegation for any .booking-btn

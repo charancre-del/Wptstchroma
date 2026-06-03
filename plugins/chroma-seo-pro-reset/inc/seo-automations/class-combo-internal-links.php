@@ -140,7 +140,10 @@ class Chroma_Combo_Internal_Links
             if (!empty($programs)) {
                 $links = [];
                 foreach ($programs as $program) {
-                    $url = home_url('/' . $program->post_name . '-in-' . sanitize_title($city_name) . '-' . strtolower($state) . '/');
+                    $program_slug = function_exists('chroma_seo_get_program_combo_slug')
+                        ? chroma_seo_get_program_combo_slug($program)
+                        : $program->post_name;
+                    $url = home_url('/' . $program_slug . '-in-' . sanitize_title($city_name) . '-' . strtolower($state) . '/');
                     $links[] = '<a href="' . esc_url($url) . '">' . esc_html($program->post_title) . '</a>';
                 }
                 

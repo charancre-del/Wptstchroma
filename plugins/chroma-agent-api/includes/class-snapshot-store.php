@@ -89,6 +89,38 @@ class Snapshot_Store
             return true;
         }
 
+        if ($target_type === 'attachment_field') {
+            [$post_id, $field] = self::split_compound_target_key($target_key);
+            $allowed_fields = ['post_title', 'post_excerpt', 'post_content', 'post_parent'];
+            if ($post_id <= 0 || !in_array($field, $allowed_fields, true)) {
+                return new \WP_Error('caa_snapshot_invalid_target', 'Invalid attachment field snapshot target.', ['status' => 400]);
+            }
+
+            $postarr = ['ID' => $post_id, $field => $field === 'post_parent' ? (int) $old_value : (string) $old_value];
+            $result = wp_update_post($postarr, true);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+
+            return true;
+        }
+
+        if ($target_type === 'post_field') {
+            [$post_id, $field] = self::split_compound_target_key($target_key);
+            $allowed_fields = ['post_title', 'post_name', 'post_status', 'post_content', 'post_excerpt', 'post_parent'];
+            if ($post_id <= 0 || !in_array($field, $allowed_fields, true)) {
+                return new \WP_Error('caa_snapshot_invalid_target', 'Invalid post field snapshot target.', ['status' => 400]);
+            }
+
+            $postarr = ['ID' => $post_id, $field => $field === 'post_parent' ? (int) $old_value : (string) $old_value];
+            $result = wp_update_post($postarr, true);
+            if (is_wp_error($result)) {
+                return $result;
+            }
+
+            return true;
+        }
+
         if ($target_type === 'term_meta') {
             [$term_id, $meta_key] = self::split_compound_target_key($target_key);
             if ($term_id <= 0 || $meta_key === '') {

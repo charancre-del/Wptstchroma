@@ -209,6 +209,16 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
                     'meta_description' => 'Encuentra recursos para padres, información de inscripción, detalles de matrícula y apoyo familiar de Chroma Early Learning Academy.',
                 ],
             ],
+            'programs' => [
+                'en' => [
+                    'title' => 'Programs | Chroma Early Learning Academy',
+                    'meta_description' => 'Explore Chroma early learning programs for every age, from infant care and toddlers to preschool, GA Pre-K, Kindergarten, and school-age care.',
+                ],
+                'es' => [
+                    'title' => 'Programas | Chroma Early Learning Academy',
+                    'meta_description' => 'Explora los programas de aprendizaje temprano de Chroma para cada edad, desde bebes y ninos pequenos hasta preescolar, GA Pre-K, Kindergarten y cuidado para escolares.',
+                ],
+            ],
             'contact-us' => [
                 'en' => [
                     'title' => 'Contact Us | Chroma Early Learning Academy',
@@ -413,8 +423,9 @@ if (!function_exists('chroma_seo_get_program_label')) {
             'camp-summer-winter-fall' => ['en' => 'Seasonal Camps', 'es' => 'Campamentos estacionales'],
             'parents-day-out' => ['en' => "Parent's Day Out", 'es' => 'Día libre para padres'],
             'kindergarten' => ['en' => 'Kindergarten', 'es' => 'Kindergarten'],
-            'rising-pre-k' => ['en' => 'Rising Pre-K', 'es' => 'Rising Pre-K'],
-            'rising-kindergarten' => ['en' => 'Rising Kindergarten', 'es' => 'Rising Kindergarten'],
+            'kindergarten-1' => ['en' => 'Kindergarten', 'es' => 'Kindergarten'],
+            'rising-pre-k' => ['en' => 'Rising Pre-K', 'es' => 'Pre-K en ascenso'],
+            'rising-kindergarten' => ['en' => 'Rising Kindergarten', 'es' => 'Kindergarten en ascenso'],
         ];
 
         $slug = $program->post_name;
@@ -708,10 +719,104 @@ if (!function_exists('chroma_seo_build_singular_profile')) {
             }
         }
 
+        if ($post_type === 'program') {
+            $program_overrides = [
+                'rising-pre-k' => [
+                    'title' => 'Pre-K en ascenso | Programa de Chroma',
+                    'meta_description' => 'Prepara a tu hijo de 4 a 5 años para Pre-K con un programa alegre y práctico de Chroma Early Learning Academy. Conoce el programa y agenda una visita.',
+                ],
+                'rising-kindergarten' => [
+                    'title' => 'Kindergarten en ascenso | Programa de Chroma',
+                    'meta_description' => 'Ayuda a tu hijo a prepararse para kindergarten con aprendizaje basado en el juego, rutinas escolares y apoyo de maestros de Chroma Early Learning Academy.',
+                ],
+                'kindergarten-1' => [
+                    'title' => 'Programa de kindergarten | Chroma Early Learning Academy',
+                    'meta_description' => 'Descubre el programa de kindergarten de Chroma Early Learning Academy, diseñado para fortalecer la confianza, la curiosidad y la preparación para primer grado.',
+                ],
+            ];
+
+            if (isset($program_overrides[$post->post_name])) {
+                $title = $program_overrides[$post->post_name]['title'];
+                $meta_description = $program_overrides[$post->post_name]['meta_description'];
+            }
+        }
+
         return [
             'title' => chroma_seo_trim_title($title),
             'meta_description' => chroma_seo_trim_meta_description($meta_description),
         ];
+    }
+}
+
+if (!function_exists('chroma_seo_get_program_combo_slug')) {
+    function chroma_seo_get_program_combo_slug($program)
+    {
+        if (!$program instanceof WP_Post) {
+            return '';
+        }
+
+        $slug = sanitize_title((string) $program->post_name);
+        if (
+            $slug === 'kindergarten-1'
+            && function_exists('chroma_get_kindergarten_program_alias_post')
+        ) {
+            $alias_program = chroma_get_kindergarten_program_alias_post();
+            if ($alias_program instanceof WP_Post && (int) $alias_program->ID === (int) $program->ID) {
+                return 'kindergarten';
+            }
+        }
+
+        return $slug;
+    }
+}
+
+if (!function_exists('chroma_seo_resolve_program_for_combo_slug')) {
+    function chroma_seo_resolve_program_for_combo_slug($program_slug)
+    {
+        $program_slug = sanitize_title((string) $program_slug);
+        if ($program_slug === '') {
+            return null;
+        }
+
+        if (
+            $program_slug === 'kindergarten'
+            && function_exists('chroma_get_kindergarten_program_alias_post')
+        ) {
+            $alias_program = chroma_get_kindergarten_program_alias_post();
+            if ($alias_program instanceof WP_Post) {
+                return $alias_program;
+            }
+        }
+
+        $program = get_page_by_path($program_slug, OBJECT, 'program');
+        if ($program instanceof WP_Post) {
+            return $program;
+        }
+
+        $matches = get_posts([
+            'post_type' => 'program',
+            'name' => $program_slug,
+            'posts_per_page' => 1,
+            'post_status' => 'publish',
+        ]);
+
+        return $matches[0] ?? null;
+    }
+}
+
+if (!function_exists('chroma_seo_get_combo_storage_slug')) {
+    function chroma_seo_get_combo_storage_slug($program_slug)
+    {
+        $program_slug = sanitize_title((string) $program_slug);
+        if ($program_slug === '') {
+            return '';
+        }
+
+        $program = function_exists('chroma_seo_resolve_program_for_combo_slug')
+            ? chroma_seo_resolve_program_for_combo_slug($program_slug)
+            : null;
+
+        return $program instanceof WP_Post ? sanitize_title((string) $program->post_name) : $program_slug;
     }
 }
 
@@ -727,7 +832,8 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
         $state = strtoupper((string) ($city_context['state'] ?? 'GA'));
         $age_range = trim((string) get_post_meta($program->ID, 'program_age_range', true));
         $program_label = chroma_seo_get_program_label($program, $language);
-        $canonical_path = ($language === 'es' ? '/es/' : '/') . $program->post_name . '-in-' . $city_context['canonical_slug'] . '-' . strtolower($state) . '/';
+        $program_slug = chroma_seo_get_program_combo_slug($program);
+        $canonical_path = ($language === 'es' ? '/es/' : '/') . $program_slug . '-in-' . $city_context['canonical_slug'] . '-' . strtolower($state) . '/';
 
         $meta_map = [
             'infant-care' => [
@@ -768,15 +874,15 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
             ],
             'rising-pre-k' => [
                 'en' => "Rising Pre-K in {$city_name}, {$state}. Discover Chroma support for children preparing to enter Pre-K with confidence.",
-                'es' => "Rising Pre-K en {$city_name}, {$state}. Descubre cómo Chroma apoya a niños que se preparan para entrar a Pre-K con confianza.",
+                'es' => "Pre-K en ascenso en {$city_name}, {$state}. Descubre cómo Chroma apoya a niños que se preparan para entrar a Pre-K con confianza.",
             ],
             'rising-kindergarten' => [
                 'en' => "Rising Kindergarten in {$city_name}, {$state}. Explore summer readiness support for children preparing for elementary school at Chroma.",
-                'es' => "Rising Kindergarten en {$city_name}, {$state}. Explora el apoyo de preparación de verano para niños que se preparan para la primaria en Chroma.",
+                'es' => "Kindergarten en ascenso en {$city_name}, {$state}. Explora el apoyo de preparación de verano para niños que se preparan para la primaria en Chroma.",
             ],
         ];
 
-        $meta_description = $meta_map[$program->post_name][$language] ?? '';
+        $meta_description = $meta_map[$program_slug][$language] ?? '';
         if ($meta_description === '') {
             $meta_description = $language === 'es'
                 ? "{$program_label} en {$city_name}, {$state}. Descubre el enfoque educativo de Chroma y agenda un recorrido hoy."
@@ -882,16 +988,9 @@ if (!function_exists('chroma_resolve_current_seo_profile')) {
             $program_slug = sanitize_title((string) get_query_var('combo_program'));
             $city_slug = sanitize_title((string) get_query_var('combo_city'));
             $state = strtoupper((string) get_query_var('combo_state'));
-            $program = $program_slug !== '' ? get_page_by_path($program_slug, OBJECT, 'program') : null;
-            if (!$program instanceof WP_Post && $program_slug !== '') {
-                $matches = get_posts([
-                    'post_type' => 'program',
-                    'name' => $program_slug,
-                    'posts_per_page' => 1,
-                    'post_status' => 'publish',
-                ]);
-                $program = $matches[0] ?? null;
-            }
+            $program = function_exists('chroma_seo_resolve_program_for_combo_slug')
+                ? chroma_seo_resolve_program_for_combo_slug($program_slug)
+                : null;
             $city_context = $city_slug !== '' ? chroma_seo_resolve_virtual_city_context($city_slug, $state) : null;
 
             if ($program instanceof WP_Post && is_array($city_context)) {

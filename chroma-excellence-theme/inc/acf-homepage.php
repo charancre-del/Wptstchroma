@@ -216,6 +216,41 @@ function chroma_home_infer_stat_key($stat, $index = 0)
         return $fallback_keys[$index] ?? 'stat_' . ($index + 1);
 }
 
+function chroma_home_get_location_count()
+{
+        $counts = post_type_exists('location') ? wp_count_posts('location') : null;
+        return isset($counts->publish) ? max(0, (int) $counts->publish) : 0;
+}
+
+function chroma_home_format_location_stat_value($fallback_value, $location_count)
+{
+        $location_count = max(0, (int) $location_count);
+
+        if ($location_count > 0) {
+                return $location_count . '+';
+        }
+
+        return sanitize_text_field($fallback_value);
+}
+
+function chroma_home_normalize_location_count_copy($text, $location_count = null)
+{
+        $text = (string) $text;
+        $location_count = $location_count === null ? chroma_home_get_location_count() : (int) $location_count;
+
+        if ($text === '' || $location_count < 1) {
+                return $text;
+        }
+
+        return (string) preg_replace_callback(
+                '/\b\d+\+\s+((?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations))\b/i',
+                static function ($matches) use ($location_count) {
+                        return $location_count . '+ ' . $matches[1];
+                },
+                $text
+        );
+}
+
 function chroma_home_stats()
 {
         $post_id = chroma_get_home_page_id();
@@ -249,11 +284,18 @@ function chroma_home_stats()
         // Define color cycle for stats (red, yellow, blue, green)
         $colors = array('chroma-red', 'chroma-yellow', 'chroma-blue', 'chroma-green');
         $index = 0;
+        $location_count = chroma_home_get_location_count();
 
         foreach ($stats as $stat) {
+                $key = chroma_home_infer_stat_key($stat, $index);
+                $value = sanitize_text_field($stat['value'] ?? '');
+                if ($key === 'locations') {
+                        $value = chroma_home_format_location_stat_value($value, $location_count);
+                }
+
                 $cleaned[] = array(
-                        'key' => chroma_home_infer_stat_key($stat, $index),
-                        'value' => sanitize_text_field($stat['value'] ?? ''),
+                        'key' => $key,
+                        'value' => $value,
                         'label' => sanitize_text_field($stat['label'] ?? ''),
                         'color' => $colors[$index % count($colors)],
                 );
@@ -697,9 +739,26 @@ function chroma_home_clean_program_copy($copy)
         return trim($copy);
 }
 
+function chroma_home_program_public_key($post_id)
+{
+        $anchor_slug = sanitize_title((string) get_post_meta($post_id, 'program_anchor_slug', true));
+        if ($anchor_slug !== '' && $anchor_slug !== 'program_anchor_slug') {
+                return $anchor_slug;
+        }
+
+        $permalink_path = (string) wp_parse_url((string) get_permalink($post_id), PHP_URL_PATH);
+        $public_slug = sanitize_title(basename(untrailingslashit($permalink_path)));
+        if ($public_slug !== '') {
+                return $public_slug;
+        }
+
+        $post_slug = sanitize_title((string) get_post_field('post_name', $post_id));
+        return $post_slug !== '' ? $post_slug : 'program-' . (int) $post_id;
+}
+
 function chroma_home_program_fallback_summary($post_id)
 {
-        $slug = sanitize_title(get_post_field('post_name', $post_id));
+        $slug = chroma_home_program_public_key($post_id);
         $title = strtolower((string) get_the_title($post_id));
         $summaries = array(
                 'infant-care' => __('A peaceful, shoeless infant classroom with responsive caregiving, safe sleep routines, and sensory discovery for early growth.', 'chroma-excellence'),
@@ -764,7 +823,7 @@ function chroma_home_program_summary($post_id)
 function chroma_home_program_wizard_options()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_wizard_options:v3:' . $token;
+        $cache_key = 'home_wizard_options:v4:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -809,7 +868,7 @@ function chroma_home_program_wizard_options()
                 $icon = chroma_get_translated_meta($post_id, 'program_icon', true) ?: '📚';
                 $age_range = chroma_get_translated_meta($post_id, 'program_age_range', true) ?: '';
                 $excerpt = chroma_home_program_summary($post_id);
-                $anchor_slug = get_post_field('post_name', $post_id);
+                $anchor_slug = chroma_home_program_public_key($post_id);
                 $image_url = get_the_post_thumbnail_url($post_id, 'large') ?: 'https://images.unsplash.com/photo-1555252333-9f8e92e65df9?q=80&w=800&auto=format&fit=crop';
                 $label = get_the_title();
                 if ($age_range) {
@@ -835,7 +894,7 @@ function chroma_home_curriculum_profiles()
 {
         $defaults = chroma_home_default_curriculum_profiles();
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_curriculum_profiles:v4:' . $token;
+        $cache_key = 'home_curriculum_profiles:v5:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -891,8 +950,11 @@ function chroma_home_curriculum_profiles()
 
                 foreach ($programs as $program) {
                         $post_id = (int) $program->ID;
-                        $slug = get_post_field('post_name', $post_id);
-                        $anchor_slug = get_post_meta($post_id, 'program_anchor_slug', true);
+                        $slug = chroma_home_program_public_key($post_id);
+                        $anchor_slug = sanitize_title((string) get_post_meta($post_id, 'program_anchor_slug', true));
+                        if ($anchor_slug === 'program_anchor_slug') {
+                                $anchor_slug = '';
+                        }
                         $key = sanitize_title($anchor_slug ?: $slug ?: $post_id);
 
                         if ($key === '') {
@@ -946,7 +1008,7 @@ function chroma_home_curriculum_profiles()
 function chroma_home_schedule_tracks()
 {
         $token = chroma_get_last_changed('programs');
-        $cache_key = 'home_schedule_tracks:v3:' . $token;
+        $cache_key = 'home_schedule_tracks:v4:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -1002,7 +1064,7 @@ function chroma_home_schedule_tracks()
         while ($programs->have_posts()) {
                 $programs->the_post();
                 $post_id = get_the_ID();
-                $anchor_slug = get_post_field('post_name', $post_id);
+                $anchor_slug = chroma_home_program_public_key($post_id);
                 $key = $anchor_slug;
                 if (isset($used_keys[$key]))
                         $key .= '-' . $post_id;
@@ -1114,7 +1176,7 @@ function chroma_home_faq_items()
 
                         return array(
                                 'question' => sanitize_text_field(is_scalar($item['question'] ?? null) ? (string) $item['question'] : ''),
-                                'answer' => sanitize_textarea_field(is_scalar($item['answer'] ?? null) ? (string) $item['answer'] : ''),
+                                'answer' => sanitize_textarea_field(chroma_home_normalize_location_count_copy(is_scalar($item['answer'] ?? null) ? (string) $item['answer'] : '')),
                         );
                 },
                 $items
@@ -1140,6 +1202,22 @@ function chroma_home_faq()
         );
 }
 
+function chroma_format_location_count_text($text, $location_count)
+{
+        $text = (string) $text;
+        $location_count = max(0, (int) $location_count);
+
+        if ($text === '' || $location_count === 0) {
+                return $text;
+        }
+
+        if (preg_match('/^\s*\d+\+\s+/u', $text)) {
+                return (string) preg_replace('/^\s*\d+\+/u', $location_count . '+', $text, 1);
+        }
+
+        return sprintf(__('%d+ neighborhood locations across Metro Atlanta', 'chroma-excellence'), $location_count);
+}
+
 function chroma_home_locations_preview()
 {
         $token = chroma_get_last_changed('locations');
@@ -1151,7 +1229,6 @@ function chroma_home_locations_preview()
         }
 
         $post_id = chroma_get_home_page_id();
-        $heading = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_heading', true) ?: chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
         $subheading = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_subheading', true) ?: chroma_get_theme_mod('chroma_home_locations_subheading', 'Find a Chroma campus near your home or work.'));
         $cta_label = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_cta_label', true) ?: chroma_get_theme_mod('chroma_home_locations_cta_label', 'View All Locations'));
         $cta_link = chroma_get_localized_url(esc_url_raw(chroma_get_theme_mod('chroma_home_locations_cta_link', '/locations/')));
@@ -1165,6 +1242,9 @@ function chroma_home_locations_preview()
                 'update_post_meta_cache' => true,
                 'no_found_rows' => true,
         ));
+        $location_count = count($locations);
+        $heading_template = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_heading', true) ?: chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
+        $heading = chroma_format_location_count_text($heading_template, $location_count);
 
         $map_points = array();
         $featured = array();

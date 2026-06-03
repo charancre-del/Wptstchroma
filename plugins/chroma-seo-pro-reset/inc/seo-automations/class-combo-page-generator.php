@@ -70,8 +70,10 @@ class Chroma_Combo_Page_Generator
         $city_slug = sanitize_title(get_query_var('combo_city'));
         $state = strtoupper(sanitize_text_field(get_query_var('combo_state')));
 
-        // Find program
-        $program = get_page_by_path($program_slug, OBJECT, 'program');
+        // Find program, allowing canonical public slugs to resolve to internal WP slugs.
+        $program = function_exists('chroma_seo_resolve_program_for_combo_slug')
+            ? chroma_seo_resolve_program_for_combo_slug($program_slug)
+            : get_page_by_path($program_slug, OBJECT, 'program');
         if (!$program) {
             $programs = get_posts([
                 'post_type' => 'program',
@@ -754,7 +756,10 @@ class Chroma_Combo_Page_Generator
                         <?php
                         $other_programs = get_posts(['post_type' => 'program', 'posts_per_page' => -1, 'exclude' => [$program->ID], 'orderby' => 'title', 'order' => 'ASC']);
                         foreach ($other_programs as $op):
-                            $link = home_url('/' . $op->post_name . '-in-' . $city_slug . '-' . strtolower($state) . '/');
+                            $op_slug = function_exists('chroma_seo_get_program_combo_slug')
+                                ? chroma_seo_get_program_combo_slug($op)
+                                : $op->post_name;
+                            $link = home_url('/' . $op_slug . '-in-' . $city_slug . '-' . strtolower($state) . '/');
                             ?>
                             <a href="<?php echo esc_url($link); ?>"
                                 class="px-6 py-3 bg-white rounded-full text-sm font-bold text-brand-ink hover:bg-chroma-blue hover:text-white transition-all shadow-sm border border-brand-ink/5">
@@ -965,7 +970,10 @@ class Chroma_Combo_Page_Generator
 
                 $url = (string) ($profile['canonical'] ?? '');
                 if ($url === '') {
-                    $url = home_url('/' . $prog->post_name . '-in-' . $city_context['canonical_slug'] . '-' . strtolower((string) $city_context['state']) . '/');
+                    $prog_slug = function_exists('chroma_seo_get_program_combo_slug')
+                        ? chroma_seo_get_program_combo_slug($prog)
+                        : $prog->post_name;
+                    $url = home_url('/' . $prog_slug . '-in-' . $city_context['canonical_slug'] . '-' . strtolower((string) $city_context['state']) . '/');
                 }
 
                 $combos[] = [
@@ -995,7 +1003,6 @@ class Chroma_Combo_Page_Generator
             $urls = [];
         }
 
-        $lastmod = gmdate('c');
         $base = rtrim(home_url('/'), '/');
         $combos = self::get_all_combos();
 
@@ -1005,6 +1012,7 @@ class Chroma_Combo_Page_Generator
             }
 
             $url = (string) $combo['url'];
+            $lastmod = $this->get_combo_sitemap_lastmod($combo);
             $urls[] = [
                 'loc' => $url,
                 'lastmod' => $lastmod,
@@ -1027,6 +1035,42 @@ class Chroma_Combo_Page_Generator
         }
 
         return $urls;
+    }
+
+    /**
+     * Stable lastmod for generated combo URLs.
+     *
+     * @param array $combo
+     * @return string
+     */
+    private function get_combo_sitemap_lastmod($combo)
+    {
+        $timestamps = [];
+
+        if (!empty($combo['program']) && $combo['program'] instanceof WP_Post && !empty($combo['program']->post_modified_gmt)) {
+            $timestamps[] = strtotime($combo['program']->post_modified_gmt);
+        }
+
+        if (class_exists('Chroma_Combo_Page_Data') && !empty($combo['program']) && $combo['program'] instanceof WP_Post) {
+            $saved = Chroma_Combo_Page_Data::get($combo['program']->post_name, sanitize_title((string) ($combo['city'] ?? '')), (string) ($combo['state'] ?? 'GA'));
+            if (!empty($saved['last_updated'])) {
+                $timestamps[] = (int) $saved['last_updated'];
+            }
+        }
+
+        if (!empty($combo['location_id'])) {
+            $location = get_post((int) $combo['location_id']);
+            if ($location instanceof WP_Post && !empty($location->post_modified_gmt)) {
+                $timestamps[] = strtotime($location->post_modified_gmt);
+            }
+        }
+
+        $timestamps = array_filter(array_map('intval', $timestamps));
+        if (!empty($timestamps)) {
+            return gmdate('c', max($timestamps));
+        }
+
+        return get_lastpostmodified('gmt') ? gmdate('c', strtotime(get_lastpostmodified('gmt'))) : gmdate('c');
     }
 
     /**

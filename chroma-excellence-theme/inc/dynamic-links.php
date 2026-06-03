@@ -254,3 +254,52 @@ if (!function_exists('chroma_url')) {
          return home_url($path);
     }
 }
+
+/**
+ * Normalize Chroma-owned absolute URLs to the current WordPress host.
+ *
+ * Cloned staging environments can contain stored production URLs in menus,
+ * media fields, and PDF fields. Keep external destinations untouched while
+ * making Chroma-owned links follow the active environment.
+ *
+ * @param string $url URL to normalize.
+ * @return string
+ */
+if (!function_exists('chroma_normalize_owned_url')) {
+    function chroma_normalize_owned_url($url) {
+        $url = trim((string) $url);
+        if ($url === '' || $url[0] === '#' || preg_match('#^(mailto|tel):#i', $url)) {
+            return $url;
+        }
+
+        $parts = wp_parse_url($url);
+        if (empty($parts['host'])) {
+            return $url;
+        }
+
+        $host = strtolower((string) $parts['host']);
+        $owned_hosts = [
+            'chromaela.com',
+            'www.chromaela.com',
+            'chromaearlylearning.com',
+            'www.chromaearlylearning.com',
+        ];
+
+        if (!in_array($host, $owned_hosts, true)) {
+            return $url;
+        }
+
+        $path = isset($parts['path']) && $parts['path'] !== '' ? $parts['path'] : '/';
+        $normalized = home_url($path);
+
+        if (!empty($parts['query'])) {
+            $normalized .= '?' . $parts['query'];
+        }
+
+        if (!empty($parts['fragment'])) {
+            $normalized .= '#' . $parts['fragment'];
+        }
+
+        return $normalized;
+    }
+}

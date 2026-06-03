@@ -50,6 +50,149 @@ if (!function_exists('chroma_schema_strip_internal_keys')) {
     }
 }
 
+/**
+ * Normalize Chroma-owned absolute URLs in public JSON-LD to the active site URL.
+ *
+ * Stored/API-loaded schema can legitimately contain production URLs when data is
+ * copied between environments. Keep storage untouched, but avoid leaking the
+ * wrong host when the site renders from staging or another migrated domain.
+ *
+ * @param mixed $value
+ * @return mixed
+ */
+if (!function_exists('chroma_schema_normalize_site_urls_for_output')) {
+    function chroma_schema_normalize_site_urls_for_output($value) {
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (is_array($value)) {
+            $normalized = [];
+            foreach ($value as $key => $item) {
+                $normalized[$key] = chroma_schema_normalize_site_urls_for_output($item);
+            }
+            return $normalized;
+        }
+
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+
+        $home = home_url('/');
+        $home_host = strtolower((string) wp_parse_url($home, PHP_URL_HOST));
+        if ($home_host === '') {
+            return $value;
+        }
+
+        $owned_hosts = [
+            'chromaela.com',
+            'www.chromaela.com',
+            'chromaearlylearning.com',
+            'www.chromaearlylearning.com',
+        ];
+        $home_root = rtrim($home, '/');
+        $value_host = strtolower((string) wp_parse_url($value, PHP_URL_HOST));
+        if (in_array($value_host, $owned_hosts, true)) {
+            if ($value_host === $home_host) {
+                return $value;
+            }
+
+            return preg_replace(
+                '~^https?://(?:www\.)?(?:chromaela|chromaearlylearning)\.com~i',
+                $home_root,
+                $value
+            );
+        }
+
+        return preg_replace(
+            '~(?<![@\w.-])(?:https?://)?(?:www\.)?(?:chromaela|chromaearlylearning)\.com(?=$|[\/\s<>"\').,;:!?])~i',
+            $home_root,
+            $value
+        );
+    }
+}
+
+/**
+ * Get the current published Location count for dynamic public facts.
+ *
+ * Stored/API-loaded schema can contain stale marketing counts such as "23+".
+ * Keep the stored record intact, but render the current count so JSON-LD does
+ * not drift from the public site after locations are added.
+ *
+ * @return int
+ */
+if (!function_exists('chroma_schema_get_published_location_count')) {
+    function chroma_schema_get_published_location_count() {
+        static $count = null;
+
+        if ($count !== null) {
+            return $count;
+        }
+
+        $count = 0;
+        if (post_type_exists('location')) {
+            $counts = wp_count_posts('location');
+            if (isset($counts->publish)) {
+                $count = (int) $counts->publish;
+            }
+        }
+
+        return $count;
+    }
+}
+
+/**
+ * Normalize dynamic site facts inside schema output.
+ *
+ * @param mixed $value
+ * @return mixed
+ */
+if (!function_exists('chroma_schema_normalize_dynamic_site_facts_for_output')) {
+    function chroma_schema_normalize_dynamic_site_facts_for_output($value) {
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (is_array($value)) {
+            $normalized = [];
+            foreach ($value as $key => $item) {
+                $normalized[$key] = chroma_schema_normalize_dynamic_site_facts_for_output($item);
+            }
+            return $normalized;
+        }
+
+        if (!is_string($value) || $value === '') {
+            return $value;
+        }
+
+        $location_count = chroma_schema_get_published_location_count();
+        if ($location_count < 1 || !preg_match('/\b\d+\+\s+(?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations)\b/i', $value)) {
+            return $value;
+        }
+
+        return preg_replace_callback(
+            '/\b\d+\+\s+((?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations))\b/i',
+            static function ($matches) use ($location_count) {
+                return $location_count . '+ ' . $matches[1];
+            },
+            $value
+        );
+    }
+}
+
+/**
+ * Check raw JSON-LD HTML for dynamic facts that should be normalized.
+ *
+ * @param string $html
+ * @return bool
+ */
+if (!function_exists('chroma_schema_output_contains_dynamic_site_fact')) {
+    function chroma_schema_output_contains_dynamic_site_fact($html) {
+        return is_string($html)
+            && preg_match('/\b\d+\+\s+(?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations)\b/i', $html);
+    }
+}
+
 if (!function_exists('chroma_schema_array_is_list')) {
     function chroma_schema_array_is_list(array $value) {
         if ($value === []) {
@@ -180,6 +323,13 @@ class Chroma_Schema_Registry
      * @var bool
      */
     private static $output_done = false;
+
+    /**
+     * Whether the current wp_head output buffer was started by this registry.
+     *
+     * @var bool
+     */
+    private static $head_buffer_active = false;
 
     /**
      * Initialize the registry
@@ -339,6 +489,14 @@ class Chroma_Schema_Registry
             return;
         }
 
+        $existing_head = '';
+        if (self::$head_buffer_active && ob_get_level() > 0) {
+            $existing_head = (string) ob_get_contents();
+        }
+        $head_already_has_breadcrumb = $existing_head !== ''
+            && stripos($existing_head, 'application/ld+json') !== false
+            && stripos($existing_head, 'BreadcrumbList') !== false;
+
         // Build schema graph
         $graph = [];
         foreach (self::$schemas as $item) {
@@ -346,6 +504,22 @@ class Chroma_Schema_Registry
 
             if (function_exists('chroma_schema_strip_internal_keys')) {
                 $schema = chroma_schema_strip_internal_keys($schema);
+            }
+
+            if (function_exists('chroma_schema_normalize_site_urls_for_output')) {
+                $schema = chroma_schema_normalize_site_urls_for_output($schema);
+            }
+
+            if (function_exists('chroma_schema_normalize_dynamic_site_facts_for_output')) {
+                $schema = chroma_schema_normalize_dynamic_site_facts_for_output($schema);
+            }
+
+            $type = isset($schema['@type']) ? $schema['@type'] : '';
+            if (is_array($type)) {
+                $type = reset($type);
+            }
+            if ($head_already_has_breadcrumb && $type === 'BreadcrumbList') {
+                continue;
             }
 
             // Add @context if missing
@@ -360,6 +534,139 @@ class Chroma_Schema_Registry
         foreach ($graph as $schema) {
             echo '<script type="application/ld+json">' . wp_json_encode($schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '</script>' . "\n";
         }
+    }
+
+    /**
+     * Start a front-end head buffer so external JSON-LD emitters can be
+     * normalized on staging/migrated domains without editing their storage.
+     */
+    public static function begin_external_schema_url_normalization()
+    {
+        if (is_admin() || is_feed() || is_robots() || is_404()) {
+            return;
+        }
+
+        if (!function_exists('chroma_schema_normalize_site_urls_for_output')) {
+            return;
+        }
+
+        $home_host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        if ($home_host === '' || in_array($home_host, ['chromaela.com', 'www.chromaela.com'], true)) {
+            return;
+        }
+
+        self::$head_buffer_active = true;
+        ob_start([__CLASS__, 'normalize_external_schema_output']);
+    }
+
+    /**
+     * End the external schema normalization buffer.
+     */
+    public static function end_external_schema_url_normalization()
+    {
+        if (!self::$head_buffer_active) {
+            return;
+        }
+
+        self::$head_buffer_active = false;
+        if (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+    }
+
+    /**
+     * Normalize JSON-LD script blocks emitted by any head participant.
+     *
+     * @param string $html
+     * @return string
+     */
+    public static function normalize_external_schema_output($html)
+    {
+        if (!is_string($html)) {
+            return $html;
+        }
+
+        $html = self::normalize_external_social_url_meta($html);
+
+        if (stripos($html, 'application/ld+json') === false) {
+            return $html;
+        }
+
+        return (string) preg_replace_callback(
+            '/<script\b([^>]*)type=(["\'])application\/ld\+json\2([^>]*)>(.*?)<\/script>/is',
+            function ($matches) {
+                $json = trim((string) $matches[4]);
+                if (
+                    $json === ''
+                    || (
+                        stripos($json, 'chromaela.com') === false
+                        && stripos($json, 'chromaearlylearning.com') === false
+                        && (
+                            !function_exists('chroma_schema_output_contains_dynamic_site_fact')
+                            || !chroma_schema_output_contains_dynamic_site_fact($json)
+                        )
+                    )
+                ) {
+                    return $matches[0];
+                }
+
+                $decoded = json_decode($json, true);
+                if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+                    return $matches[0];
+                }
+
+                $decoded = chroma_schema_normalize_site_urls_for_output($decoded);
+                if (function_exists('chroma_schema_normalize_dynamic_site_facts_for_output')) {
+                    $decoded = chroma_schema_normalize_dynamic_site_facts_for_output($decoded);
+                }
+                $encoded = wp_json_encode($decoded, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                if (!is_string($encoded) || $encoded === '') {
+                    return $matches[0];
+                }
+
+                return '<script' . $matches[1] . 'type=' . $matches[2] . 'application/ld+json' . $matches[2] . $matches[3] . '>' . $encoded . '</script>';
+            },
+            $html
+        );
+    }
+
+    /**
+     * Normalize URL-bearing social meta tags emitted by third-party plugins.
+     *
+     * @param string $html
+     * @return string
+     */
+    private static function normalize_external_social_url_meta($html)
+    {
+        if (
+            stripos($html, 'chromaela.com') === false
+            && stripos($html, 'chromaearlylearning.com') === false
+        ) {
+            return $html;
+        }
+
+        $pattern = '/<meta\b(?=[^>]*(?:property|name)=(["\'])(og:url|twitter:url|twitter:domain)\1)([^>]*\bcontent=(["\'])(.*?)\4[^>]*)>/is';
+
+        return (string) preg_replace_callback(
+            $pattern,
+            static function ($matches) {
+                $meta_name = strtolower((string) $matches[2]);
+                $value = html_entity_decode((string) $matches[5], ENT_QUOTES, get_bloginfo('charset') ?: 'UTF-8');
+                $normalized = chroma_schema_normalize_site_urls_for_output($value);
+
+                if ($meta_name === 'twitter:domain') {
+                    $normalized_host = wp_parse_url($normalized, PHP_URL_HOST);
+                    $normalized = is_string($normalized_host) && $normalized_host !== '' ? $normalized_host : $normalized;
+                }
+
+                if ($normalized === $value) {
+                    return $matches[0];
+                }
+
+                return str_replace($matches[4] . $matches[5] . $matches[4], $matches[4] . esc_attr($normalized) . $matches[4], $matches[0]);
+            },
+            $html
+        );
     }
 
     /**
@@ -474,5 +781,5 @@ class Chroma_Schema_Registry
 
 // Initialize the registry
 add_action('init', ['Chroma_Schema_Registry', 'init']);
-
-
+add_action('wp_head', ['Chroma_Schema_Registry', 'begin_external_schema_url_normalization'], 0);
+add_action('wp_head', ['Chroma_Schema_Registry', 'end_external_schema_url_normalization'], PHP_INT_MAX);

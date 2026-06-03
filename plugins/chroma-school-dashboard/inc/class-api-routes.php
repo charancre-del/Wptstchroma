@@ -35,6 +35,12 @@ class Chroma_School_API_Routes
             'permission_callback' => [$this, 'check_director_permission']
         ]);
 
+        register_rest_route('chroma/v1', '/portal/media', [
+            'methods' => 'POST',
+            'callback' => [$this, 'upload_portal_media'],
+            'permission_callback' => [$this, 'check_director_permission']
+        ]);
+
         register_rest_route('chroma/v1', '/weather', [
             'methods' => 'GET',
             'callback' => [$this, 'get_weather_proxy'],
@@ -197,7 +203,11 @@ class Chroma_School_API_Routes
         }
 
         // 1. Verify Token with Google
-        $response = wp_remote_get('https://oauth2.googleapis.com/tokeninfo?id_token=' . $id_token);
+        $tokeninfo_url = add_query_arg(
+            ['id_token' => rawurlencode((string) $id_token)],
+            'https://oauth2.googleapis.com/tokeninfo'
+        );
+        $response = wp_remote_get($tokeninfo_url, ['timeout' => 10]);
         if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
             return new WP_Error('invalid_token', 'Google Token invalid', ['status' => 401]);
         }
@@ -356,10 +366,17 @@ class Chroma_School_API_Routes
     {
         $school_id = $request['id'];
         $params = $request->get_json_params();
+        if (!is_array($params)) {
+            return new WP_Error('invalid_payload', 'JSON object payload required.', ['status' => 400]);
+        }
 
-        // LOGGING
-        $log = sprintf("[%s] PATCH School %s. Payload keys: %s\n", date('Y-m-d H:i:s'), $school_id, implode(',', array_keys($params)));
-        file_put_contents(WP_CONTENT_DIR . '/uploads/portal-api.log', $log, FILE_APPEND);
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            $upload_dir = wp_upload_dir();
+            if (empty($upload_dir['error']) && !empty($upload_dir['basedir'])) {
+                $log = sprintf("[%s] PATCH School %s. Payload keys: %s\n", current_time('mysql'), $school_id, implode(',', array_map('sanitize_key', array_keys($params))));
+                file_put_contents(trailingslashit($upload_dir['basedir']) . 'portal-api.log', $log, FILE_APPEND);
+            }
+        }
 
         // Whitelisted fields to update
         $allowed_keys = [
@@ -411,6 +428,87 @@ class Chroma_School_API_Routes
         }
 
         return rest_ensure_response(['success' => true]);
+    }
+
+    /**
+     * POST /portal/media
+     *
+     * Upload a director-selected image or PDF using the existing director token
+     * instead of spoofing a WordPress admin session.
+     */
+    public function upload_portal_media($request)
+    {
+        if (empty($_FILES['file']) || !is_array($_FILES['file'])) {
+            return new WP_Error('missing_file', 'A file upload is required.', ['status' => 400]);
+        }
+
+        $file = $_FILES['file'];
+        if (!empty($file['error'])) {
+            return new WP_Error('upload_error', 'The uploaded file could not be processed.', ['status' => 400]);
+        }
+
+        $allowed_mimes = [
+            'jpg|jpeg|jpe' => 'image/jpeg',
+            'png'          => 'image/png',
+            'gif'          => 'image/gif',
+            'webp'         => 'image/webp',
+            'pdf'          => 'application/pdf',
+        ];
+
+        $checked = wp_check_filetype_and_ext(
+            (string) ($file['tmp_name'] ?? ''),
+            (string) ($file['name'] ?? ''),
+            $allowed_mimes
+        );
+
+        if (empty($checked['type']) || !in_array($checked['type'], $allowed_mimes, true)) {
+            return new WP_Error('invalid_file_type', 'Only images and PDFs are allowed.', ['status' => 400]);
+        }
+
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+        require_once ABSPATH . 'wp-admin/includes/media.php';
+        require_once ABSPATH . 'wp-admin/includes/image.php';
+
+        $upload = wp_handle_upload($file, [
+            'test_form' => false,
+            'mimes'     => $allowed_mimes,
+        ]);
+
+        if (!empty($upload['error'])) {
+            return new WP_Error('upload_failed', sanitize_text_field($upload['error']), ['status' => 500]);
+        }
+
+        $attachment = [
+            'post_mime_type' => $upload['type'],
+            'post_title'     => sanitize_file_name(pathinfo((string) $file['name'], PATHINFO_FILENAME)),
+            'post_content'   => '',
+            'post_status'    => 'inherit',
+        ];
+
+        $attachment_id = wp_insert_attachment($attachment, $upload['file'], 0, true);
+        if (is_wp_error($attachment_id)) {
+            return $attachment_id;
+        }
+
+        if (!$attachment_id) {
+            return new WP_Error('attachment_failed', 'The uploaded file could not be added to the media library.', ['status' => 500]);
+        }
+
+        $metadata = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+        if (!is_wp_error($metadata)) {
+            wp_update_attachment_metadata($attachment_id, $metadata);
+        }
+
+        if ($this->current_user_school_id) {
+            update_post_meta($attachment_id, '_chroma_school_id', (int) $this->current_user_school_id);
+        }
+
+        return rest_ensure_response([
+            'id'        => (int) $attachment_id,
+            'url'       => esc_url_raw($upload['url']),
+            'mime_type' => sanitize_text_field($upload['type']),
+            'title'     => get_the_title($attachment_id),
+        ]);
     }
 
     /**

@@ -88,6 +88,18 @@ class Chroma_Schema_Validator
         self::$errors = [];
         self::$warnings = [];
 
+        return self::validate_schema($schema, $context);
+    }
+
+    /**
+     * Validate a schema object without clearing accumulated validation state.
+     *
+     * @param array  $schema  The schema array to validate.
+     * @param string $context Optional context for error messages.
+     * @return bool True if no critical errors have been collected.
+     */
+    private static function validate_schema($schema, $context = '')
+    {
         // 1. Check basic structure
         if (!self::validate_structure($schema, $context)) {
             return false;
@@ -140,7 +152,7 @@ class Chroma_Schema_Validator
         $valid = true;
         foreach ($graph_data['@graph'] as $index => $schema) {
             $context = "Graph item #{$index}";
-            if (!self::validate($schema, $context)) {
+            if (!self::validate_schema($schema, $context)) {
                 $valid = false;
             }
         }
@@ -183,7 +195,7 @@ class Chroma_Schema_Validator
             // 3. Validate each node in the graph
             foreach ($graph as $i => $node) {
                 $nodeContext = count($graph) > 1 ? "$context > Node $i" : $context;
-                self::validate($node, $nodeContext); // Use the main validate function for each node
+                self::validate_schema($node, $nodeContext);
             }
 
             // 4. Validate Graph Integrity (Linkages)
@@ -191,7 +203,7 @@ class Chroma_Schema_Validator
 
         } else {
             // Single schema object
-            self::validate($parsed);
+            self::validate_schema($parsed);
         }
 
         return [
@@ -346,12 +358,12 @@ class Chroma_Schema_Validator
                 // Array of objects
                 if (is_array($value) && isset($value[0]) && is_array($value[0])) {
                     foreach ($value as $idx => $nested) {
-                        self::validate($nested, "{$context}.{$field}[{$idx}]");
+                        self::validate_schema($nested, "{$context}.{$field}[{$idx}]");
                     }
                 }
                 // Single nested object
                 elseif (is_array($value) && isset($value['@type'])) {
-                    self::validate($value, "{$context}.{$field}");
+                    self::validate_schema($value, "{$context}.{$field}");
                 }
             }
         }

@@ -196,7 +196,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 								class="bg-white rounded-[2rem] p-6 shadow-card border border-<?php echo esc_attr($is_featured ? $colors['border'] . ' border-opacity-50' : 'brand-ink/5'); ?> hover:border-<?php echo esc_attr($colors['border']); ?>/30 transition-all hover:-translate-y-1 h-full flex flex-col relative overflow-hidden">
 
 								<!-- Overlay Link for entire card -->
-								<a href="<?php echo esc_url($location_permalink); ?>" class="absolute inset-0 z-10"
+								<a href="<?php echo esc_url($location_permalink); ?>" class="absolute inset-0 z-10 pointer-events-none"
 									aria-label="<?php printf(esc_attr__('View %s', 'chroma-excellence'), esc_attr($location_name)); ?>"></a>
 
 								<div

@@ -9,6 +9,11 @@ $options = chroma_home_program_wizard_options();
 $wizard_content = chroma_home_program_wizard_content();
 $program_slug = chroma_get_program_base_slug();
 $program_archive_url = chroma_get_program_archive_url();
+$default_option = $options[0] ?? array();
+$default_option_label = sanitize_text_field($default_option['label'] ?? '');
+$default_option_description = sanitize_textarea_field($default_option['description'] ?? '');
+$default_option_link = !empty($default_option['link']) ? $default_option['link'] : $program_archive_url;
+$default_option_image = !empty($default_option['image']) ? $default_option['image'] : '';
 
 if (empty($options)) {
     return;
@@ -80,13 +85,13 @@ function chroma_get_wizard_color_classes($key)
                     <!-- Text Content (Left) -->
                     <div class="text-center md:text-left space-y-4 order-2 md:order-1">
                         <h3 class="text-2xl md:text-3xl font-serif font-bold text-brand-ink" data-program-wizard-title>
-                            Program Name</h3>
+                            <?php echo esc_html($default_option_label); ?></h3>
                         <p class="text-brand-ink text-sm md:text-base leading-relaxed" data-program-wizard-description>
-                            Description goes here.</p>
+                            <?php echo esc_html($default_option_description); ?></p>
 
                         <div class="flex flex-wrap gap-3 text-xs pt-2 justify-center md:justify-start">
                             <a class="inline-flex items-center justify-center px-6 py-3 rounded-full border border-chroma-blue/20 bg-white text-brand-ink font-semibold hover:border-chroma-blue hover:text-chroma-blue transition shadow-sm"
-                                data-program-wizard-link href="<?php echo esc_url($program_archive_url); ?>"
+                                data-program-wizard-link href="<?php echo esc_url($default_option_link); ?>"
                                 aria-label="<?php echo esc_attr($wizard_content['primary_cta_aria_label']); ?>">
                                 <?php echo esc_html($wizard_content['primary_cta_label']); ?>
                             </a>
@@ -101,7 +106,8 @@ function chroma_get_wizard_color_classes($key)
                     <!-- Image (Right) -->
                     <div
                         class="order-1 md:order-2 relative w-full aspect-video md:aspect-[4/3] rounded-2xl overflow-hidden shadow-card border-4 border-white transform rotate-2 transition-transform duration-700 hover:rotate-0 bg-brand-cream/50">
-                        <img src="" alt="<?php echo esc_attr($wizard_content['image_alt']); ?>"
+                        <img src="<?php echo esc_url($default_option_image); ?>"
+                            alt="<?php echo esc_attr($wizard_content['image_alt']); ?>"
                             class="w-full h-full object-cover" width="640" height="480" data-program-wizard-image />
                     </div>
                 </div>

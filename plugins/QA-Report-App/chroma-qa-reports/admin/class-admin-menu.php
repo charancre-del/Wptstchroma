@@ -604,6 +604,10 @@ class Admin_Menu
 
         // Handle form submission
         if (isset($_POST['cqa_settings_nonce']) && wp_verify_nonce($_POST['cqa_settings_nonce'], 'cqa_save_settings')) {
+            if (!current_user_can('cqa_manage_settings')) {
+                wp_die(esc_html__('You do not have permission to update QA settings.', 'chroma-qa-reports'));
+            }
+
             $this->save_settings();
         }
 

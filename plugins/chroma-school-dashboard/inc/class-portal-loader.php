@@ -30,6 +30,7 @@ class Chroma_School_Portal_Loader
             $plugin_template = CHROMA_SCHOOL_DB_PATH . 'templates/portal-dashboard.php';
 
             if (file_exists($plugin_template)) {
+                $this->setup_portal_document_filters();
                 include($plugin_template);
                 exit;
             }
@@ -38,6 +39,7 @@ class Chroma_School_Portal_Loader
             $theme_template = locate_template(['page-portal.php', 'page-director-portal.php']);
 
             if ($theme_template) {
+                $this->setup_portal_document_filters();
                 include($theme_template);
                 exit;
             }
@@ -46,6 +48,32 @@ class Chroma_School_Portal_Loader
             exit;
         }
         return $template;
+    }
+
+    private function setup_portal_document_filters()
+    {
+        $title = __('Director Portal | Chroma Early Learning', 'chroma-school-dashboard');
+        $canonical = home_url('/portal/');
+
+        add_filter('pre_get_document_title', static function () use ($title) {
+            return $title;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_title', static function () use ($title) {
+            return $title;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_canonical', static function () use ($canonical) {
+            return $canonical;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_opengraph_url', static function () use ($canonical) {
+            return $canonical;
+        }, PHP_INT_MAX);
+
+        add_filter('wpseo_robots', static function () {
+            return 'noindex,nofollow,noarchive,nosnippet';
+        }, PHP_INT_MAX);
     }
 
     public function enqueue_portal_assets()
@@ -72,11 +100,65 @@ class Chroma_School_Portal_Loader
         // Compiled Portal JS
         wp_enqueue_script('chroma-portal-js', $js_url, ['react', 'react-dom'], $js_version, true);
 
+        $google_config = $this->get_google_client_config();
+
         // Pass config to JS
         wp_localize_script('chroma-portal-js', 'chromaPortalConfig', [
             'apiUrl' => get_rest_url(),
-            'googleClientId' => trim(get_option('chroma_google_client_id', '')),
+            'googleClientId' => $google_config['client_id'],
+            'googleClientWarning' => $google_config['warning'],
         ]);
+    }
+
+    /**
+     * Resolve the Google client ID for the current host.
+     *
+     * Staging domains need their own OAuth Web Client in Google Console. Loading
+     * a production-only client on staging makes Google Identity Services log a
+     * hard browser error and renders a dead login button.
+     *
+     * @return array{client_id:string,warning:string}
+     */
+    private function get_google_client_config(): array
+    {
+        $client_id = trim((string) get_option('chroma_google_client_id', ''));
+        $host = '';
+        if (function_exists('wp_parse_url')) {
+            $host = (string) wp_parse_url(home_url('/'), PHP_URL_HOST);
+        }
+
+        $is_staging = $host !== '' && (
+            stripos($host, '-staging.wpdns.site') !== false
+            || stripos($host, 'staging.') === 0
+            || stripos($host, '.staging.') !== false
+        );
+
+        if (!$is_staging) {
+            return [
+                'client_id' => $client_id,
+                'warning' => '',
+            ];
+        }
+
+        $staging_client_id = trim((string) get_option('chroma_staging_google_client_id', ''));
+        if ($staging_client_id !== '') {
+            return [
+                'client_id' => $staging_client_id,
+                'warning' => '',
+            ];
+        }
+
+        if ($client_id === '') {
+            return [
+                'client_id' => '',
+                'warning' => 'Google Sign-In is not configured for this staging site.',
+            ];
+        }
+
+        return [
+            'client_id' => '',
+            'warning' => 'Google Sign-In needs a staging OAuth client before this portal can be tested here.',
+        ];
     }
 
     /**

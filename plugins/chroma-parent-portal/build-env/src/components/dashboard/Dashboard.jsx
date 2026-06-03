@@ -3,6 +3,12 @@ import { useAuth } from '../../context/AuthContext';
 import Header from './Header';
 import { AnimatePresence, motion } from 'framer-motion';
 
+const debugLog = (...args) => {
+    if (window.chromaPortalSettings?.debug && window.console && typeof window.console.debug === 'function') {
+        window.console.debug(...args);
+    }
+};
+
 // Lazy Load Heavy Components
 const Sidebar = lazy(() => import('./Sidebar'));
 const DashboardGrid = lazy(() => import('./DashboardGrid'));
@@ -38,7 +44,7 @@ const Dashboard = () => {
         setLoading(true);
         const settings = window.chromaPortalSettings;
         try {
-            console.log('[Dashboard] Fetching with token:', user.token?.substring(0, 16) + '...');
+            debugLog('[Dashboard] Fetching portal dashboard data.');
             const res = await fetch(`${settings.root}chroma-portal/v1/content/dashboard?year=${year}`, {
                 headers: {
                     'X-Portal-Token': user.token,
@@ -46,7 +52,7 @@ const Dashboard = () => {
                 }
             });
 
-            console.log('[Dashboard] Response status:', res.status);
+            debugLog('[Dashboard] Response status:', res.status);
 
             // If 403, token is invalid - force re-login
             if (res.status === 403) {
@@ -75,7 +81,7 @@ const Dashboard = () => {
                 events: json.events || []
             };
 
-            console.log('[Dashboard] Data loaded successfully:', Object.keys(safeData).map(k => `${k}:${safeData[k]?.length || safeData[k]}`).join(', '));
+            debugLog('[Dashboard] Data loaded successfully:', Object.keys(safeData).map(k => `${k}:${safeData[k]?.length || safeData[k]}`).join(', '));
             setData(safeData);
         } catch (e) {
             console.error("[Dashboard] Failed to fetch dashboard:", e);
@@ -113,7 +119,7 @@ const Dashboard = () => {
 
                 if (res.ok) {
                     const years = await res.json();
-                    console.log('[Dashboard] Available years from WP:', years);
+                    debugLog('[Dashboard] Available years from WP:', years);
                     setAvailableYears(years);
 
                     // Set default year to the first available year if current year yields nothing
@@ -159,7 +165,7 @@ const Dashboard = () => {
     );
 
     const handleView = (file) => {
-        console.log('[Dashboard] Opening PDF:', file.title);
+        debugLog('[Dashboard] Opening PDF:', file.title);
         setSelectedFile(file);
     };
 

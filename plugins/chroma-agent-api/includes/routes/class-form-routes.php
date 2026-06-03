@@ -6,6 +6,7 @@ use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Diff;
 use ChromaAgentAPI\Field_Registry;
 use ChromaAgentAPI\Route_Utils;
+use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_Query;
 use WP_REST_Request;
@@ -84,12 +85,15 @@ class Form_Routes
         }
 
         $fields = (array) ($config['fields'] ?? []);
+        [$data, $defaults_applied] = self::read_effective_form_settings($canonical, $fields);
+
         return rest_ensure_response([
             'success' => true,
             'form' => $canonical,
             'fields' => $fields,
             'secret_fields' => array_values(array_intersect($fields, Field_Registry::secret_option_keys())),
-            'data' => Route_Utils::read_options($fields),
+            'defaults_applied' => $defaults_applied,
+            'data' => $data,
         ]);
     }
 
@@ -102,7 +106,7 @@ class Form_Routes
 
         return Route_Utils::write_options(
             $request,
-            Route_Utils::updates_from_request($request),
+            self::normalize_form_updates($canonical, Route_Utils::updates_from_request($request)),
             (array) ($config['fields'] ?? []),
             'write:forms',
             'form_settings'
@@ -168,6 +172,7 @@ class Form_Routes
         $payload = Route_Utils::payload($request);
         $dry_run = Route_Utils::dry_run($payload);
         $before = ['webhook_sent' => get_post_meta((int) $post->ID, '_chroma_webhook_sent', true)];
+        $snapshot_ids = [];
 
         if (!$dry_run) {
             delete_post_meta((int) $post->ID, '_chroma_webhook_sent');
@@ -178,11 +183,22 @@ class Form_Routes
 
         $after = ['webhook_sent' => get_post_meta((int) $post->ID, '_chroma_webhook_sent', true)];
         $diff = Diff::compare($before, $after);
+        if (!$dry_run && $before !== $after) {
+            $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                Auth::current_key_id(),
+                'write:leads',
+                'post_meta',
+                (int) $post->ID . ':_chroma_webhook_sent',
+                $before['webhook_sent'] === '' ? null : $before['webhook_sent'],
+                $after['webhook_sent'] === '' ? null : $after['webhook_sent']
+            );
+        }
         Route_Utils::log_write($request, 'write:leads', 'lead_retry_webhook', (string) $post->ID, $dry_run, $before, $after, $diff);
 
         return rest_ensure_response([
             'success' => true,
             'dry_run' => $dry_run,
+            'snapshot_ids' => $snapshot_ids,
             'data' => [
                 'lead_id' => (int) $post->ID,
                 'retried' => true,
@@ -217,6 +233,125 @@ class Form_Routes
         }
 
         return [$requested, null];
+    }
+
+    private static function read_effective_form_settings(string $canonical, array $fields): array
+    {
+        $defaults = self::form_defaults($canonical);
+        $data = [];
+        $defaults_applied = [];
+
+        foreach ($fields as $field) {
+            $field = (string) $field;
+            $value = get_option($field, null);
+            if ($value === null && array_key_exists($field, $defaults)) {
+                $value = $defaults[$field];
+                $defaults_applied[] = $field;
+            }
+
+            $data[$field] = Route_Utils::mask_secret_if_needed($field, $value);
+        }
+
+        return [$data, $defaults_applied];
+    }
+
+    private static function form_defaults(string $canonical): array
+    {
+        $fields_default = static function (string $function): ?string {
+            if (!function_exists($function)) {
+                return null;
+            }
+
+            $fields = call_user_func($function);
+            return is_array($fields) ? wp_json_encode($fields) : null;
+        };
+
+        $defaults = [
+            'contact' => [
+                'chroma_contact_fields' => $fields_default('chroma_contact_default_fields'),
+                'chroma_contact_webhook_url' => '',
+                'chroma_contact_email_recipient' => get_option('admin_email'),
+                'chroma_contact_form_id' => 'ibinKhrBmF0n4S5tFcz6',
+                'chroma_contact_form_height' => 779,
+                'chroma_contact_form_name' => 'Contact Us- Chroma Early Learning',
+                'chroma_contact_lazy_load' => true,
+                'chroma_contact_lazy_delay' => 2000,
+            ],
+            'career' => [
+                'chroma_career_fields' => $fields_default('chroma_career_default_fields'),
+                'chroma_career_webhook_url' => '',
+                'chroma_career_email_recipient' => 'careers@chromaela.com',
+                'chroma_career_form_id' => 'WYGFB2WBYuti6S6ys30H',
+                'chroma_career_form_height' => 522,
+                'chroma_career_form_name' => 'Careers Form - Chroma Early Learning',
+                'chroma_career_lazy_load' => true,
+                'chroma_career_lazy_delay' => 2000,
+            ],
+            'acquisition' => [
+                'chroma_acquisition_fields' => $fields_default('chroma_acquisition_default_fields'),
+                'chroma_acquisition_webhook_url' => '',
+                'chroma_acquisition_email_recipient' => 'acquisitions@chromaela.com',
+            ],
+            'tour' => [
+                'chroma_tour_form_id' => '848tl2LjoZVsUIhhNOxd',
+                'chroma_tour_form_height' => 1125,
+                'chroma_tour_form_name' => 'PARENT INFORMATION - Chroma Early Learning',
+                'chroma_tour_lazy_load' => true,
+                'chroma_tour_lazy_delay' => 2000,
+            ],
+            'lead-log' => [
+                'chroma_lead_log_webhook_url' => '',
+            ],
+        ];
+
+        return array_filter($defaults[$canonical] ?? [], static function ($value): bool {
+            return $value !== null;
+        });
+    }
+
+    private static function normalize_form_updates(string $canonical, array $updates): array
+    {
+        $prefixes = [
+            'contact' => 'chroma_contact',
+            'career' => 'chroma_career',
+            'acquisition' => 'chroma_acquisition',
+            'tour' => 'chroma_tour',
+            'lead-log' => 'chroma_lead_log',
+        ];
+        $prefix = $prefixes[$canonical] ?? '';
+        if ($prefix === '') {
+            return $updates;
+        }
+
+        $aliases = [
+            'fields_json' => "{$prefix}_fields",
+            'fields' => "{$prefix}_fields",
+            'webhook_url' => "{$prefix}_webhook_url",
+            'email_recipient' => "{$prefix}_email_recipient",
+            'ghl_form_id' => "{$prefix}_form_id",
+            'form_id' => "{$prefix}_form_id",
+            'ghl_form_name' => "{$prefix}_form_name",
+            'form_name' => "{$prefix}_form_name",
+            'ghl_form_height' => "{$prefix}_form_height",
+            'form_height' => "{$prefix}_form_height",
+            'lazy_load' => "{$prefix}_lazy_load",
+            'delay' => "{$prefix}_lazy_delay",
+            'lazy_delay' => "{$prefix}_lazy_delay",
+        ];
+
+        if ($canonical === 'lead-log') {
+            $aliases = [
+                'webhook_url' => "{$prefix}_webhook_url",
+            ];
+        }
+
+        $normalized = [];
+        foreach ($updates as $key => $value) {
+            $key = (string) $key;
+            $normalized[$aliases[$key] ?? $key] = $value;
+        }
+
+        return $normalized;
     }
 
     private static function require_lead(int $lead_id)

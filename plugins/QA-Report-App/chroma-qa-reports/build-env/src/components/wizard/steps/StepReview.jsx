@@ -111,12 +111,28 @@ export function StepReview( { isViewMode = false, readOnly = false } ) {
     }, [ responses ] );
 
     const currentOverallRating = report?.overall_rating || 'pending';
+    const reportStatus = report?.status || 'draft';
+    const reviewTitle = isViewMode ? 'Review Report' : 'Review & Submit';
+    const reviewIntro = isViewMode
+        ? reportStatus === 'submitted'
+            ? 'This report has been submitted and is awaiting approval.'
+            : reportStatus === 'approved'
+                ? 'This report has been approved and is read-only unless reverted by an approver.'
+                : 'Review the current report details.'
+        : 'Review your report before submitting. You can go back to make changes.';
+    const completeMessage = isViewMode
+        ? reportStatus === 'submitted'
+            ? 'Report is submitted and ready for approval'
+            : reportStatus === 'approved'
+                ? 'Report is approved'
+                : 'Report is complete'
+        : 'Report is complete and ready to submit';
 
     return (
         <div className="space-y-6 w-full">
             <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Review & Submit</h2>
-                <p className="text-gray-600">Review your report before submitting. You can go back to make changes.</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{ reviewTitle }</h2>
+                <p className="text-gray-600">{ reviewIntro }</p>
             </div>
 
             { /* Validation Status */ }
@@ -156,7 +172,7 @@ export function StepReview( { isViewMode = false, readOnly = false } ) {
                 <div className="bg-green-50 border border-green-200 rounded-xl p-4">
                     <div className="flex items-center gap-3">
                         <CheckCircle className="w-5 h-5 text-green-500" />
-                        <p className="font-medium text-green-800">Report is complete and ready to submit</p>
+                        <p className="font-medium text-green-800">{ completeMessage }</p>
                     </div>
                 </div>
             ) }

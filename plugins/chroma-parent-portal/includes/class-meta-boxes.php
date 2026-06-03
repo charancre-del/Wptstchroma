@@ -174,6 +174,14 @@ class Chroma_Portal_Meta_Boxes
             return;
         }
 
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+
+        if (wp_is_post_revision($post_id) || !current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
         // Save PDF
         if (isset($_POST['chroma_portal_pdf_id'])) {
             update_post_meta($post_id, '_cp_pdf_file_id', sanitize_text_field($_POST['chroma_portal_pdf_id']));

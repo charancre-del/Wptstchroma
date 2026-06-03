@@ -21,7 +21,6 @@ require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-template-loader.php';
 require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-portal-loader.php';
 require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-weather.php';
 require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-admin-settings.php';
-require_once CHROMA_SCHOOL_DB_PATH . 'inc/class-media-permissions.php';
 
 // Initialize
 function chroma_school_dashboard_init()
@@ -36,7 +35,6 @@ function chroma_school_dashboard_init()
     // Heavy UI and Admin logic
     if (is_admin()) {
         new Chroma_School_Admin_Settings();
-        new Chroma_Media_Permissions();
     }
 }
 add_action('plugins_loaded', 'chroma_school_dashboard_init');

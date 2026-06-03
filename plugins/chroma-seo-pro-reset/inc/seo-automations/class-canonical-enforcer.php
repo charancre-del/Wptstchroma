@@ -42,6 +42,8 @@ class Chroma_Canonical_Enforcer
         add_action('wp_head', [$this, 'output_canonical'], 1);
         add_filter('wp_robots', [$this, 'filter_404_robots'], 20);
         add_filter('wpseo_robots', [$this, 'filter_404_wpseo_robots'], 20);
+        add_filter('wpseo_canonical', [$this, 'filter_wpseo_empty_canonical'], 20);
+        add_filter('wpseo_opengraph_url', [$this, 'filter_wpseo_empty_canonical'], 20);
         add_filter('redirect_canonical', [$this, 'preserve_program_permalink_requests'], 1, 2);
         add_filter('old_slug_redirect_url', [$this, 'resolve_program_old_slug_redirect'], 10, 1);
 
@@ -80,6 +82,11 @@ class Chroma_Canonical_Enforcer
             user_trailingslashit('/' . $program_slug . '/' . $post->post_name),
             user_trailingslashit('/es/' . $program_slug . '/' . $post->post_name),
         ];
+
+        $permalink_path = wp_parse_url((string) get_permalink($post), PHP_URL_PATH);
+        if (is_string($permalink_path) && $permalink_path !== '') {
+            $expected_paths[] = user_trailingslashit($permalink_path);
+        }
 
         return in_array(user_trailingslashit($request_path), $expected_paths, true);
     }
@@ -133,6 +140,14 @@ class Chroma_Canonical_Enforcer
         $requested_slug = sanitize_title((string) $matches[2]);
         if ($requested_slug === '') {
             return $redirect_url;
+        }
+
+        if (
+            $requested_slug === 'kindergarten'
+            && function_exists('chroma_get_kindergarten_program_alias_post')
+            && chroma_get_kindergarten_program_alias_post() instanceof WP_Post
+        ) {
+            return false;
         }
 
         $candidates = get_posts([
@@ -259,6 +274,12 @@ class Chroma_Canonical_Enforcer
         // Handle special cases
         if (get_query_var('chroma_combo')) {
             $program_slug = get_query_var('combo_program');
+            $program = function_exists('chroma_seo_resolve_program_for_combo_slug')
+                ? chroma_seo_resolve_program_for_combo_slug($program_slug)
+                : null;
+            if ($program instanceof WP_Post && function_exists('chroma_seo_get_program_combo_slug')) {
+                $program_slug = chroma_seo_get_program_combo_slug($program);
+            }
             $city_slug = get_query_var('combo_city');
             $state = strtolower((string) get_query_var('combo_state'));
             $url = home_url("/{$program_slug}-in-{$city_slug}-{$state}/");
@@ -418,6 +439,30 @@ class Chroma_Canonical_Enforcer
             $this->canonical_rendered = true;
             do_action('chroma_canonical_output_done', $canonical);
         }
+    }
+
+    /**
+     * Fill Yoast canonical gaps without overriding explicit Yoast or virtual-route canonicals.
+     *
+     * @param string $canonical Current Yoast canonical/OpenGraph URL.
+     * @return string
+     */
+    public function filter_wpseo_empty_canonical($canonical)
+    {
+        if (!empty($canonical)) {
+            return $canonical;
+        }
+
+        if (!get_option('chroma_seo_enable_canonical', true)) {
+            return $canonical;
+        }
+
+        if ($this->is_qa_route_request() || $this->is_sitemap_request() || is_404()) {
+            return $canonical;
+        }
+
+        $fallback = $this->get_canonical_url();
+        return !empty($fallback) ? $fallback : $canonical;
     }
 
     /**

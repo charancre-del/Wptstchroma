@@ -1,4 +1,6 @@
 {
+    "name": "chroma/qa-reports",
+    "description": "Chroma QA Reports portal plugin dependencies and test tooling.",
     "license": "proprietary",
     "require": {
         "dompdf/dompdf": "^2.0"

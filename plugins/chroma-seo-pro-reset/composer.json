@@ -1,5 +1,6 @@
 {
     "name": "chroma/seo-pro-reset",
+    "description": "Chroma SEO Pro automation and schema tooling for WordPress.",
     "type": "wordpress-plugin",
     "license": "proprietary",
     "authors": [

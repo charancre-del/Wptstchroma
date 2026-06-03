@@ -66,17 +66,31 @@ class Chroma_School_Template_Loader
             '6.4.0'
         );
 
+        $pdfjs_url = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+        $pdfjs_worker_url = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        $pdfjs_version = '3.11.174';
+
+        if (function_exists('get_stylesheet_directory') && function_exists('get_stylesheet_directory_uri')) {
+            $theme_pdfjs_path = get_stylesheet_directory() . '/assets/js/pdf/pdf.min.js';
+            $theme_pdfjs_worker_path = get_stylesheet_directory() . '/assets/js/pdf/pdf.worker.min.js';
+            if (file_exists($theme_pdfjs_path) && file_exists($theme_pdfjs_worker_path)) {
+                $pdfjs_url = get_stylesheet_directory_uri() . '/assets/js/pdf/pdf.min.js';
+                $pdfjs_worker_url = get_stylesheet_directory_uri() . '/assets/js/pdf/pdf.worker.min.js';
+                $pdfjs_version = (string) max(filemtime($theme_pdfjs_path), filemtime($theme_pdfjs_worker_path));
+            }
+        }
+
         wp_enqueue_script(
             'chroma-tv-pdfjs',
-            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+            $pdfjs_url,
             [],
-            '3.11.174',
+            $pdfjs_version,
             true
         );
 
         wp_add_inline_script(
             'chroma-tv-pdfjs',
-            "if (window.pdfjsLib) { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; }",
+            "if (window.pdfjsLib) { window.pdfjsLib.GlobalWorkerOptions.workerSrc = '" . esc_js($pdfjs_worker_url) . "'; }",
             'after'
         );
 

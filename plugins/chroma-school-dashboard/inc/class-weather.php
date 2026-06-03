@@ -4,7 +4,13 @@ class Chroma_Weather_Provider
 {
     public static function get_weather($lat, $lon)
     {
-        if (!$lat || !$lon)
+        if (!is_numeric($lat) || !is_numeric($lon))
+            return null;
+
+        $lat = (float) $lat;
+        $lon = (float) $lon;
+
+        if ($lat < -90 || $lat > 90 || $lon < -180 || $lon > 180)
             return null;
 
         $cache_key = 'chroma_weather_' . md5($lat . $lon);

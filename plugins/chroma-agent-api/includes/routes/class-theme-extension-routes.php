@@ -122,6 +122,7 @@ class Theme_Extension_Routes
             'group' => $group,
             'fields' => $fields,
             'json_fields' => (array) ($groups[$group]['json_fields'] ?? []),
+            'script_fields' => (array) ($groups[$group]['script_fields'] ?? []),
             'data' => Route_Utils::read_theme_mods($fields),
         ]);
     }
@@ -318,6 +319,7 @@ class Theme_Extension_Routes
                 'storage' => (string) ($config['storage'] ?? 'theme_mod'),
                 'fields' => (array) ($config['fields'] ?? []),
                 'json_fields' => (array) ($config['json_fields'] ?? []),
+                'script_fields' => (array) ($config['script_fields'] ?? []),
             ];
         }
         return $out;

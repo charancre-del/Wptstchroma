@@ -5,6 +5,7 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Diff;
 use ChromaAgentAPI\Route_Utils;
+use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_REST_Request;
 
@@ -89,6 +90,7 @@ class Maintenance_Routes
         $dry_run = Route_Utils::dry_run($payload);
         $before = self::read_attachment((int) $attachment->ID);
         $after = $before;
+        $snapshot_ids = [];
 
         $post_update = ['ID' => (int) $attachment->ID];
         if (array_key_exists('title', $payload)) {
@@ -115,15 +117,55 @@ class Maintenance_Routes
 
         if (!$dry_run) {
             if (count($post_update) > 1) {
+                foreach ([
+                    'post_title' => 'title',
+                    'post_excerpt' => 'caption',
+                    'post_content' => 'description',
+                ] as $post_field => $response_field) {
+                    if (array_key_exists($post_field, $post_update) && $before[$response_field] !== $after[$response_field]) {
+                        $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                            Auth::current_key_id(),
+                            'write:media',
+                            'attachment_field',
+                            (int) $attachment->ID . ':' . $post_field,
+                            $before[$response_field],
+                            $after[$response_field]
+                        );
+                    }
+                }
                 wp_update_post($post_update);
             }
             if (array_key_exists('alt', $payload)) {
+                if ($before['alt'] !== $after['alt']) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:media', 'post_meta', (int) $attachment->ID . ':_wp_attachment_image_alt', $before['alt'], $after['alt']);
+                }
                 update_post_meta((int) $attachment->ID, '_wp_attachment_image_alt', $after['alt']);
             }
             if (array_key_exists('post_parent', $payload)) {
+                if ($before['post_parent'] !== $after['post_parent']) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                        Auth::current_key_id(),
+                        'write:media',
+                        'attachment_field',
+                        (int) $attachment->ID . ':post_parent',
+                        $before['post_parent'],
+                        $after['post_parent']
+                    );
+                }
                 wp_update_post(['ID' => (int) $attachment->ID, 'post_parent' => $after['post_parent']]);
             }
             if (array_key_exists('featured_post_id', $payload) && $after['featured_post_id'] > 0) {
+                $old_thumbnail_id = (int) get_post_thumbnail_id($after['featured_post_id']);
+                if ($old_thumbnail_id !== (int) $attachment->ID) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                        Auth::current_key_id(),
+                        'write:media',
+                        'post_meta',
+                        $after['featured_post_id'] . ':_thumbnail_id',
+                        $old_thumbnail_id > 0 ? $old_thumbnail_id : null,
+                        (int) $attachment->ID
+                    );
+                }
                 set_post_thumbnail($after['featured_post_id'], (int) $attachment->ID);
             }
             $after = self::read_attachment((int) $attachment->ID);
@@ -131,7 +173,7 @@ class Maintenance_Routes
 
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:media', 'media_metadata', (string) $attachment->ID, $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'diff' => $diff, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => $snapshot_ids, 'diff' => $diff, 'data' => $after]);
     }
 
     public static function flush_cache(WP_REST_Request $request)
@@ -156,7 +198,7 @@ class Maintenance_Routes
         $after = ['flushed' => true, 'group' => $group];
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:maintenance', 'cache_flush', $group !== '' ? $group : 'all', $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
     }
 
     public static function refresh_sitemaps(WP_REST_Request $request)
@@ -172,7 +214,7 @@ class Maintenance_Routes
         $after = ['rewrite_rules' => 'flushed'];
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:maintenance', 'sitemaps_refresh', 'global', $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
     }
 
     public static function refresh_geo_feed(WP_REST_Request $request)
@@ -182,13 +224,17 @@ class Maintenance_Routes
         $before = ['geo_feed_cache' => 'stale'];
 
         if (!$dry_run) {
+            delete_transient('chroma_agent_geo_feed_v3');
             delete_transient('chroma_geo_feed');
         }
 
-        $after = ['geo_feed_cache' => 'cleared'];
+        $after = [
+            'geo_feed_cache' => 'cleared',
+            'cache_keys' => ['chroma_agent_geo_feed_v3', 'chroma_geo_feed'],
+        ];
         $diff = Diff::compare($before, $after);
         Route_Utils::log_write($request, 'write:maintenance', 'geo_feed_refresh', 'global', $dry_run, $before, $after, $diff);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'data' => $after]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'snapshot_ids' => [], 'diff' => $diff, 'data' => $after]);
     }
 
     public static function describe(): array

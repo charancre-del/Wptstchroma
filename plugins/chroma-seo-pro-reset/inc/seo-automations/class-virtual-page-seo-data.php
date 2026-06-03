@@ -49,7 +49,10 @@ class Chroma_Virtual_Page_SEO_Data
             return self::defaults();
         }
 
-        $data = Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state);
+        $storage_program_slug = function_exists('chroma_seo_get_combo_storage_slug')
+            ? chroma_seo_get_combo_storage_slug($program_slug)
+            : sanitize_title($program_slug);
+        $data = Chroma_Combo_Page_Data::get($storage_program_slug, $city_slug, $state);
         return wp_parse_args(self::only_seo_fields($data), self::defaults());
     }
 
@@ -58,7 +61,10 @@ class Chroma_Virtual_Page_SEO_Data
             return false;
         }
 
-        return Chroma_Combo_Page_Data::save($program_slug, $city_slug, $state, self::sanitize_updates($updates));
+        $storage_program_slug = function_exists('chroma_seo_get_combo_storage_slug')
+            ? chroma_seo_get_combo_storage_slug($program_slug)
+            : sanitize_title($program_slug);
+        return Chroma_Combo_Page_Data::save($storage_program_slug, $city_slug, $state, self::sanitize_updates($updates));
     }
 
     public static function get_service_area($type, $area_name) {
@@ -95,13 +101,6 @@ class Chroma_Virtual_Page_SEO_Data
         $title = trim((string) ($data[$title_key] ?? ''));
         $description = trim((string) ($data[$desc_key] ?? ''));
 
-        if ($title === '' && $language === 'es') {
-            $title = trim((string) ($data['seo_title'] ?? ''));
-        }
-        if ($description === '' && $language === 'es') {
-            $description = trim((string) ($data['meta_description'] ?? ''));
-        }
-
         return [
             'title' => $title !== '' ? $title : (string) ($fallbacks['title'] ?? ''),
             'meta_description' => $description !== '' ? $description : (string) ($fallbacks['meta_description'] ?? ''),
@@ -117,6 +116,8 @@ class Chroma_Virtual_Page_SEO_Data
         $description = (string) ($seo['meta_description'] ?? '');
         $canonical = (string) ($seo['canonical'] ?? '');
         $robots = trim((string) ($seo['robots'] ?? ''));
+
+        add_filter('chroma_should_use_local_seo_fallback', '__return_true', PHP_INT_MAX);
 
         if ($canonical !== '') {
             foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $filter) {
@@ -163,14 +164,12 @@ class Chroma_Virtual_Page_SEO_Data
         foreach ($locations as $location) {
             $county = sanitize_text_field((string) get_post_meta($location->ID, 'location_county', true));
             if ($county !== '') {
-                $county_slug = sanitize_title(str_replace(' County', '', $county));
-                $counties[$county_slug] = [
-                    'type' => 'county',
-                    'area_name' => $county_slug,
-                    'label' => ucwords(str_replace('-', ' ', $county_slug)) . ' County',
-                    'url' => home_url('/childcare-in-' . $county_slug . '-county/'),
-                    'data' => self::get_service_area('county', $county_slug),
-                ];
+                self::add_county_candidate($counties, $county);
+            }
+
+            $region_county = self::county_from_location_region((int) $location->ID);
+            if ($region_county !== '') {
+                self::add_county_candidate($counties, $region_county);
             }
 
             $zip = preg_replace('/[^0-9]/', '', (string) get_post_meta($location->ID, 'location_zip', true));
@@ -186,6 +185,52 @@ class Chroma_Virtual_Page_SEO_Data
         }
 
         return array_values($counties + $zips);
+    }
+
+    private static function add_county_candidate(array &$counties, $county) {
+        $county_slug = sanitize_title(preg_replace('/\s+county\b/i', '', (string) $county));
+        if ($county_slug === '') {
+            return;
+        }
+
+        $counties[$county_slug] = [
+            'type' => 'county',
+            'area_name' => $county_slug,
+            'label' => ucwords(str_replace('-', ' ', $county_slug)) . ' County',
+            'url' => home_url('/childcare-in-' . $county_slug . '-county/'),
+            'data' => self::get_service_area('county', $county_slug),
+        ];
+    }
+
+    private static function county_from_location_region($location_id) {
+        $term_ids = [];
+        $primary = (int) get_post_meta((int) $location_id, '_yoast_wpseo_primary_location_region', true);
+        if ($primary > 0) {
+            $term_ids[] = $primary;
+        }
+
+        $terms = get_the_terms((int) $location_id, 'location_region');
+        if (is_array($terms)) {
+            foreach ($terms as $term) {
+                if ($term instanceof WP_Term) {
+                    $term_ids[] = (int) $term->term_id;
+                }
+            }
+        }
+
+        foreach (array_unique(array_filter($term_ids)) as $term_id) {
+            $term = get_term((int) $term_id, 'location_region');
+            if (!$term instanceof WP_Term || is_wp_error($term)) {
+                continue;
+            }
+
+            $name = trim((string) $term->name);
+            if ($name !== '' && preg_match('/\bcounty\b/i', $name)) {
+                return $name;
+            }
+        }
+
+        return '';
     }
 
     public static function sanitize_updates(array $updates) {

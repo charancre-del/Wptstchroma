@@ -63,6 +63,11 @@ class Upgrade_Manager
             self::migration_v1_4_0_monday_defaults();
         }
 
+        // Version 1.4.1: backfill school tiers from latest active reports
+        if (version_compare($current_version, '1.4.1', '<')) {
+            self::migration_v1_4_1_sync_school_tiers();
+        }
+
         // Update version option
         update_option('cqa_db_version', CQA_VERSION);
     }
@@ -166,5 +171,32 @@ class Upgrade_Manager
         ];
 
         update_option('cqa_settings', array_merge($defaults, $settings));
+    }
+
+    /**
+     * Migration: sync school tiers to the latest submitted/approved report.
+     *
+     * @return void
+     */
+    private static function migration_v1_4_1_sync_school_tiers()
+    {
+        global $wpdb;
+
+        $reports_table = $wpdb->prefix . 'cqa_reports';
+        $table_exists = $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $reports_table));
+        if ($table_exists !== $reports_table) {
+            return;
+        }
+
+        $school_ids = $wpdb->get_col(
+            "SELECT DISTINCT school_id
+             FROM {$reports_table}
+             WHERE school_id > 0
+               AND status IN ('approved', 'submitted')"
+        );
+
+        foreach ($school_ids as $school_id) {
+            \ChromaQA\Models\Report::sync_school_tier_from_latest_report((int) $school_id);
+        }
     }
 }

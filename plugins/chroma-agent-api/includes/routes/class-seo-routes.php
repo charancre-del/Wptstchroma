@@ -254,6 +254,7 @@ class SEO_Routes
         $after = [];
         $blocked = [];
         $write_mismatches = [];
+        $snapshot_ids = [];
 
         foreach ((array) $updates as $key => $value) {
             $meta_key = (string) $key;
@@ -268,6 +269,7 @@ class SEO_Routes
             if ($value === null) {
                 $after[$meta_key] = null;
                 if (!$dry_run) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':' . $meta_key, $old, null);
                     delete_post_meta($post_id, $meta_key);
                 }
                 continue;
@@ -277,6 +279,7 @@ class SEO_Routes
             $after[$meta_key] = $new;
 
             if (!$dry_run) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':' . $meta_key, $old, $new);
                 self::persist_meta_value($post_id, $meta_key, $new);
                 $saved = get_post_meta($post_id, $meta_key, true);
                 if (!self::meta_values_equivalent($new, $saved)) {
@@ -328,6 +331,7 @@ class SEO_Routes
             'post_id' => $post_id,
             'blocked_keys' => $blocked,
             'write_mismatches' => $write_mismatches,
+            'snapshot_ids' => $snapshot_ids,
             'diff' => $diff,
             'data' => $dry_run ? $after : $live,
         ]);
@@ -370,6 +374,11 @@ class SEO_Routes
             unset($post_type['attachment']);
             $post_type = array_values($post_type);
         }
+        $post_type = is_array($post_type) ? $post_type : [(string) $post_type];
+        $post_type = array_values(array_filter(array_map('sanitize_key', $post_type), 'post_type_exists'));
+        if (empty($post_type)) {
+            return new \WP_Error('caa_invalid_post_type', 'No valid post types were requested.', ['status' => 400]);
+        }
 
         $needs_review_param = $request->get_param('needs_review');
         $needs_review = null;
@@ -383,20 +392,8 @@ class SEO_Routes
             $has_schema = Utils::truthy($has_schema_param);
         }
 
-        $meta_query = ['relation' => 'AND'];
         if ($has_schema) {
-            $meta_query[] = [
-                'relation' => 'OR',
-                ['key' => '_chroma_post_schemas', 'compare' => 'EXISTS'],
-                ['key' => '_chroma_schema_override', 'compare' => 'EXISTS'],
-                ['key' => '_chroma_schema_data', 'compare' => 'EXISTS'],
-            ];
-        }
-
-        if ($needs_review === true) {
-            $meta_query[] = ['key' => '_chroma_needs_review', 'compare' => 'EXISTS'];
-        } elseif ($needs_review === false) {
-            $meta_query[] = ['key' => '_chroma_needs_review', 'compare' => 'NOT EXISTS'];
+            return self::list_schema_posts_with_indexed_query($request, $post_type, $page, $per_page, $needs_review);
         }
 
         $args = [
@@ -410,8 +407,10 @@ class SEO_Routes
             'no_found_rows' => false,
         ];
 
-        if (count($meta_query) > 1) {
-            $args['meta_query'] = $meta_query;
+        if ($needs_review === true) {
+            $args['meta_query'] = [['key' => '_chroma_needs_review', 'compare' => 'EXISTS']];
+        } elseif ($needs_review === false) {
+            $args['meta_query'] = [['key' => '_chroma_needs_review', 'compare' => 'NOT EXISTS']];
         }
 
         $query = new \WP_Query($args);
@@ -458,6 +457,122 @@ class SEO_Routes
         ]);
     }
 
+    private static function list_schema_posts_with_indexed_query(
+        WP_REST_Request $request,
+        array $post_type,
+        int $page,
+        int $per_page,
+        ?bool $needs_review
+    ) {
+        global $wpdb;
+
+        $schema_keys = ['_chroma_post_schemas', '_chroma_schema_override', '_chroma_schema_data'];
+        $statuses = ['publish', 'draft', 'pending', 'private'];
+        $offset = ($page - 1) * $per_page;
+        $search = sanitize_text_field((string) $request->get_param('search'));
+
+        $schema_placeholders = implode(',', array_fill(0, count($schema_keys), '%s'));
+        $type_placeholders = implode(',', array_fill(0, count($post_type), '%s'));
+        $status_placeholders = implode(',', array_fill(0, count($statuses), '%s'));
+
+        $where = "pm.meta_key IN ($schema_placeholders)
+            AND p.post_type IN ($type_placeholders)
+            AND p.post_status IN ($status_placeholders)";
+        $where_args = array_merge($schema_keys, $post_type, $statuses);
+
+        if ($search !== '') {
+            $like = '%' . $wpdb->esc_like($search) . '%';
+            $where .= ' AND (p.post_title LIKE %s OR p.post_content LIKE %s OR p.post_excerpt LIKE %s)';
+            $where_args[] = $like;
+            $where_args[] = $like;
+            $where_args[] = $like;
+        }
+
+        if ($needs_review === true) {
+            $where .= " AND EXISTS (
+                SELECT 1 FROM {$wpdb->postmeta} review_pm
+                WHERE review_pm.post_id = p.ID AND review_pm.meta_key = %s
+            )";
+            $where_args[] = '_chroma_needs_review';
+        } elseif ($needs_review === false) {
+            $where .= " AND NOT EXISTS (
+                SELECT 1 FROM {$wpdb->postmeta} review_pm
+                WHERE review_pm.post_id = p.ID AND review_pm.meta_key = %s
+            )";
+            $where_args[] = '_chroma_needs_review';
+        }
+
+        $ids_sql = $wpdb->prepare(
+            "SELECT DISTINCT p.ID
+             FROM {$wpdb->postmeta} pm
+             INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+             WHERE {$where}
+             ORDER BY p.post_modified_gmt DESC, p.ID DESC
+             LIMIT %d OFFSET %d",
+            array_merge($where_args, [$per_page, $offset])
+        );
+        $count_sql = $wpdb->prepare(
+            "SELECT COUNT(DISTINCT p.ID)
+             FROM {$wpdb->postmeta} pm
+             INNER JOIN {$wpdb->posts} p ON p.ID = pm.post_id
+             WHERE {$where}",
+            $where_args
+        );
+
+        $post_ids = array_map('intval', (array) $wpdb->get_col($ids_sql));
+        $total = (int) $wpdb->get_var($count_sql);
+        $items = [];
+        $include_data = Utils::truthy($request->get_param('include_data'));
+
+        foreach ($post_ids as $post_id) {
+            $post = get_post($post_id);
+            if (!$post) {
+                continue;
+            }
+
+            $schemas = get_post_meta($post_id, '_chroma_post_schemas', true);
+            $schema_data = get_post_meta($post_id, '_chroma_schema_data', true);
+            $schema_count = is_array($schemas) ? count($schemas) : 0;
+            if ($schema_count === 0 && !empty($schema_data)) {
+                $schema_count = 1;
+            }
+            $override = get_post_meta($post_id, '_chroma_schema_override', true);
+            $needs_review_value = get_post_meta($post_id, '_chroma_needs_review', true);
+
+            $item = [
+                'post_id' => $post_id,
+                'post_type' => (string) $post->post_type,
+                'post_status' => (string) $post->post_status,
+                'title' => get_the_title($post),
+                'slug' => (string) $post->post_name,
+                'permalink' => get_permalink($post),
+                'modified_gmt' => (string) $post->post_modified_gmt,
+                'schema_count' => $schema_count,
+                'has_schema_override' => !empty($override),
+                'needs_review' => Utils::truthy($needs_review_value),
+                'schema_validation_status' => get_post_meta($post_id, '_chroma_schema_validation_status', true),
+            ];
+
+            if ($include_data) {
+                $item['schema'] = self::get_schema_data_for_post($post_id);
+            }
+
+            $items[] = $item;
+        }
+
+        return rest_ensure_response([
+            'success' => true,
+            'schema_keys' => self::SCHEMA_META_KEYS,
+            'data' => $items,
+            'pagination' => [
+                'page' => $page,
+                'per_page' => $per_page,
+                'total' => $total,
+                'total_pages' => (int) ceil($total / $per_page),
+            ],
+        ]);
+    }
+
     public static function set_post_schema(WP_REST_Request $request)
     {
         $post_id = (int) $request['post_id'];
@@ -478,6 +593,7 @@ class SEO_Routes
         $after = [];
         $blocked = [];
         $write_mismatches = [];
+        $snapshot_ids = [];
 
         foreach ((array) $updates as $key => $value) {
             $meta_key = (string) $key;
@@ -492,6 +608,7 @@ class SEO_Routes
             if ($value === null) {
                 $after[$meta_key] = null;
                 if (!$dry_run) {
+                    $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':' . $meta_key, $old, null);
                     delete_post_meta($post_id, $meta_key);
                 }
                 continue;
@@ -501,6 +618,7 @@ class SEO_Routes
             $after[$meta_key] = $new;
 
             if (!$dry_run) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':' . $meta_key, $old, $new);
                 self::persist_meta_value($post_id, $meta_key, $new);
                 $saved = get_post_meta($post_id, $meta_key, true);
                 if (!self::meta_values_equivalent($new, $saved)) {
@@ -552,6 +670,7 @@ class SEO_Routes
             'post_id' => $post_id,
             'blocked_keys' => $blocked,
             'write_mismatches' => $write_mismatches,
+            'snapshot_ids' => $snapshot_ids,
             'diff' => $diff,
             'data' => $dry_run ? $after : $live,
         ]);
@@ -559,11 +678,7 @@ class SEO_Routes
 
     private static function payload(WP_REST_Request $request): array
     {
-        $payload = $request->get_json_params();
-        if (!is_array($payload)) {
-            $payload = $request->get_params();
-        }
-        return is_array($payload) ? $payload : [];
+        return Route_Utils::payload($request);
     }
 
     private static function read_options_by_keys(array $keys): array

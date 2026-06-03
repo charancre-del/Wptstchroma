@@ -5,6 +5,8 @@ namespace ChromaAgentAPI\Routes;
 use ChromaAgentAPI\Auth;
 use ChromaAgentAPI\Audit_Log;
 use ChromaAgentAPI\Diff;
+use ChromaAgentAPI\Route_Utils;
+use ChromaAgentAPI\Snapshot_Store;
 use ChromaAgentAPI\Utils;
 use WP_Query;
 use WP_REST_Request;
@@ -180,17 +182,16 @@ class Media_Routes
 
     public static function attach_media(WP_REST_Request $request)
     {
-        $payload = $request->get_json_params();
-        if (!is_array($payload)) {
-            $payload = $request->get_params();
-        }
+        $payload = Route_Utils::payload($request);
 
         $dry_run = Utils::truthy($payload['dry_run'] ?? false);
         $post_id = isset($payload['post_id']) ? (int) $payload['post_id'] : 0;
-        $attachment_id = isset($payload['attachment_id']) ? (int) $payload['attachment_id'] : 0;
+        $attachment_id = isset($payload['attachment_id'])
+            ? (int) $payload['attachment_id']
+            : (isset($payload['media_id']) ? (int) $payload['media_id'] : 0);
 
         if ($post_id <= 0 || $attachment_id <= 0) {
-            return new \WP_Error('caa_invalid_attach_input', 'post_id and attachment_id are required.', ['status' => 400]);
+            return new \WP_Error('caa_invalid_attach_input', 'post_id and attachment_id/media_id are required.', ['status' => 400]);
         }
 
         $post = get_post($post_id);
@@ -203,8 +204,18 @@ class Media_Routes
         $before = ['post_parent' => (int) $attachment->post_parent];
         $after = ['post_parent' => $post_id];
         $diff = Diff::compare($before, $after);
+        $snapshot_ids = [];
 
         if (!$dry_run) {
+            $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                Auth::current_key_id(),
+                'write:media',
+                'media_parent',
+                (string) $attachment_id,
+                $before,
+                $after
+            );
+
             wp_update_post([
                 'ID' => $attachment_id,
                 'post_parent' => $post_id,
@@ -228,6 +239,8 @@ class Media_Routes
         return rest_ensure_response([
             'success' => true,
             'dry_run' => $dry_run,
+            'snapshot_ids' => $snapshot_ids,
+            'diff' => $diff,
             'data' => [
                 'attachment_id' => $attachment_id,
                 'post_id' => $post_id,

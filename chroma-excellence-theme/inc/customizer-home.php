@@ -18,7 +18,11 @@ function chroma_home_sanitize_json_setting($value)
         return '';
     }
 
-    $data = json_decode($value, true);
+    if (is_array($value) || is_object($value)) {
+        $data = json_decode(wp_json_encode($value), true);
+    } else {
+        $data = json_decode((string) $value, true);
+    }
 
     if (JSON_ERROR_NONE !== json_last_error() || !is_array($data)) {
         return '';
@@ -26,6 +30,44 @@ function chroma_home_sanitize_json_setting($value)
 
     return wp_json_encode($data);
 }
+
+/**
+ * JSON-driven Customizer controls must always render as textarea strings.
+ *
+ * A direct option/theme-mod write can leave these values as arrays, which
+ * breaks the Customizer bootstrap script before wp.customize initializes.
+ */
+function chroma_home_normalize_json_theme_mod($value)
+{
+    if (empty($value)) {
+        return '';
+    }
+
+    if (is_array($value) || is_object($value)) {
+        return wp_json_encode($value);
+    }
+
+    return (string) $value;
+}
+
+function chroma_home_json_theme_mod_keys()
+{
+    return array(
+        'chroma_home_stats_json',
+        'chroma_home_prismpath_cards_json',
+        'chroma_home_program_wizard_json',
+        'chroma_home_curriculum_profiles_json',
+        'chroma_home_schedule_tracks_json',
+        'chroma_home_faq_items_json',
+        'chroma_home_parent_reviews_json',
+        'chroma_home_tour_benefits_json',
+    );
+}
+
+foreach (chroma_home_json_theme_mod_keys() as $chroma_home_json_theme_mod_key) {
+    add_filter('theme_mod_' . $chroma_home_json_theme_mod_key, 'chroma_home_normalize_json_theme_mod', 1);
+}
+unset($chroma_home_json_theme_mod_key);
 
 /**
  * Sanitize checkbox values.

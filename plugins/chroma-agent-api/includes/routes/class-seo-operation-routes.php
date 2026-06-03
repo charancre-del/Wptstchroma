@@ -323,6 +323,8 @@ class SEO_Operation_Routes
 
     public static function list_translations(WP_REST_Request $request)
     {
+        global $wpdb;
+
         $page = max(1, (int) $request->get_param('page'));
         $per_page = (int) $request->get_param('per_page');
         if ($per_page <= 0) {
@@ -334,24 +336,60 @@ class SEO_Operation_Routes
         if (is_string($post_type) && strpos($post_type, ',') !== false) {
             $post_type = array_filter(array_map('trim', explode(',', $post_type)));
         }
+        $post_type = is_array($post_type) ? $post_type : [(string) $post_type];
+        $post_type = array_values(array_filter(array_map('sanitize_key', $post_type), 'post_type_exists'));
+        if (empty($post_type)) {
+            return new \WP_Error('caa_invalid_post_type', 'No valid post types were requested.', ['status' => 400]);
+        }
 
-        $query = new WP_Query([
-            'post_type' => $post_type,
-            'post_status' => ['publish', 'draft', 'pending', 'private'],
-            'posts_per_page' => $per_page,
-            'paged' => $page,
-            's' => sanitize_text_field((string) $request->get_param('search')),
-            'meta_query' => [
-                'relation' => 'OR',
-                ['key' => '_chroma_es_title', 'compare' => 'EXISTS'],
-                ['key' => '_chroma_es_content', 'compare' => 'EXISTS'],
-                ['key' => '_chroma_es_excerpt', 'compare' => 'EXISTS'],
-            ],
-            'no_found_rows' => false,
-        ]);
+        $statuses = ['publish', 'draft', 'pending', 'private'];
+        $translation_keys = [
+            '_chroma_es_title',
+            '_chroma_es_content',
+            '_chroma_es_excerpt',
+        ];
+        $offset = ($page - 1) * $per_page;
+        $search = sanitize_text_field((string) $request->get_param('search'));
 
+        $post_type_placeholders = implode(',', array_fill(0, count($post_type), '%s'));
+        $status_placeholders = implode(',', array_fill(0, count($statuses), '%s'));
+        $meta_placeholders = implode(',', array_fill(0, count($translation_keys), '%s'));
+
+        $where = "p.post_type IN ($post_type_placeholders) AND p.post_status IN ($status_placeholders) AND pm.meta_key IN ($meta_placeholders)";
+        $where_args = array_merge($post_type, $statuses, $translation_keys);
+        if ($search !== '') {
+            $like = '%' . $wpdb->esc_like($search) . '%';
+            $where .= ' AND (p.post_title LIKE %s OR p.post_content LIKE %s OR p.post_excerpt LIKE %s)';
+            $where_args[] = $like;
+            $where_args[] = $like;
+            $where_args[] = $like;
+        }
+
+        $ids_sql = $wpdb->prepare(
+            "SELECT DISTINCT p.ID
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+             WHERE {$where}
+             ORDER BY p.post_modified_gmt DESC, p.ID DESC
+             LIMIT %d OFFSET %d",
+            array_merge($where_args, [$per_page, $offset])
+        );
+        $count_sql = $wpdb->prepare(
+            "SELECT COUNT(DISTINCT p.ID)
+             FROM {$wpdb->posts} p
+             INNER JOIN {$wpdb->postmeta} pm ON pm.post_id = p.ID
+             WHERE {$where}",
+            $where_args
+        );
+
+        $total = (int) $wpdb->get_var($count_sql);
         $items = [];
-        foreach ((array) $query->posts as $post) {
+        foreach ((array) $wpdb->get_col($ids_sql) as $post_id) {
+            $post = get_post((int) $post_id);
+            if (!$post) {
+                continue;
+            }
+
             $items[] = [
                 'post_id' => (int) $post->ID,
                 'post_type' => (string) $post->post_type,
@@ -369,8 +407,8 @@ class SEO_Operation_Routes
             'pagination' => [
                 'page' => $page,
                 'per_page' => $per_page,
-                'total' => (int) $query->found_posts,
-                'total_pages' => (int) $query->max_num_pages,
+                'total' => $total,
+                'total_pages' => (int) ceil($total / $per_page),
             ],
         ]);
     }
@@ -506,7 +544,9 @@ class SEO_Operation_Routes
                     continue;
                 }
 
-                $program_slug = (string) $combo['program']->post_name;
+                $program_slug = function_exists('\chroma_seo_get_program_combo_slug')
+                    ? \chroma_seo_get_program_combo_slug($combo['program'])
+                    : (string) $combo['program']->post_name;
                 $city_slug = sanitize_title((string) ($combo['city_slug'] ?? $combo['city'] ?? ''));
                 $state = strtoupper(sanitize_text_field((string) ($combo['state'] ?? '')));
                 $data = class_exists('\Chroma_Virtual_Page_SEO_Data')
@@ -963,7 +1003,22 @@ class SEO_Operation_Routes
 
         $is_valid = empty($errors);
         $payload = Route_Utils::payload($request);
+        $snapshot_ids = [];
         if (!Route_Utils::dry_run($payload)) {
+            foreach ([
+                '_chroma_schema_validation_status' => $is_valid ? 'valid' : 'invalid',
+                '_chroma_last_validated' => time(),
+                '_chroma_schema_errors' => $is_valid ? null : $errors,
+            ] as $meta_key => $new_value) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                    Auth::current_key_id(),
+                    'write:seo',
+                    'post_meta',
+                    $post_id . ':' . $meta_key,
+                    get_post_meta($post_id, $meta_key, true),
+                    $new_value
+                );
+            }
             update_post_meta($post_id, '_chroma_schema_validation_status', $is_valid ? 'valid' : 'invalid');
             update_post_meta($post_id, '_chroma_last_validated', time());
             if ($is_valid) {
@@ -991,6 +1046,7 @@ class SEO_Operation_Routes
             'valid' => $is_valid,
             'schema_count' => $schema_count,
             'errors' => $errors,
+            'snapshot_ids' => $snapshot_ids,
         ]);
     }
 
@@ -1033,11 +1089,13 @@ class SEO_Operation_Routes
             }
         }
         $candidate = Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', $candidate);
+        $snapshot_ids = [];
         if (!$dry_run) {
+            $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'post_meta', $post_id . ':_chroma_post_schemas', $current, $candidate);
             update_post_meta($post_id, '_chroma_post_schemas', $candidate);
         }
         Route_Utils::log_write($request, 'write:seo', 'schema_sync', (string) $post_id, $dry_run, ['schemas' => $current], ['schemas' => $candidate], Diff::compare(['schemas' => $current], ['schemas' => $candidate]));
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'post_id' => $post_id, 'data' => ['schemas' => $candidate]]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run, 'post_id' => $post_id, 'snapshot_ids' => $snapshot_ids, 'data' => ['schemas' => $candidate]]);
     }
 
     private static function test_llm_connection(WP_REST_Request $request)
@@ -1085,14 +1143,29 @@ class SEO_Operation_Routes
         $payload = Route_Utils::payload($request);
         $apply = Utils::truthy($payload['apply'] ?? (!$fix_mode ? false : true));
         $dry_run = Route_Utils::dry_run($payload);
+        $snapshot_ids = [];
         if ($apply && !$dry_run) {
-            update_post_meta($post_id, '_chroma_post_schemas', Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', [$schema]));
-            update_post_meta($post_id, '_chroma_schema_data', Route_Utils::sanitize_value_for_storage('_chroma_schema_data', $schema));
-            update_post_meta($post_id, '_chroma_schema_type', $schema['@type']);
+            $schema_rows = Route_Utils::sanitize_value_for_storage('_chroma_post_schemas', [$schema]);
+            $schema_data = Route_Utils::sanitize_value_for_storage('_chroma_schema_data', $schema);
+            foreach ([
+                '_chroma_post_schemas' => $schema_rows,
+                '_chroma_schema_data' => $schema_data,
+                '_chroma_schema_type' => $schema['@type'],
+            ] as $meta_key => $new_value) {
+                $snapshot_ids[] = Snapshot_Store::create_snapshot(
+                    Auth::current_key_id(),
+                    'write:seo',
+                    'post_meta',
+                    $post_id . ':' . $meta_key,
+                    get_post_meta($post_id, $meta_key, true),
+                    $new_value
+                );
+                update_post_meta($post_id, $meta_key, $new_value);
+            }
         }
 
         Route_Utils::log_write($request, 'write:seo', 'generated_schema', (string) $post_id, $dry_run || !$apply, null, $schema, ['generated' => true]);
-        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run || !$apply, 'post_id' => $post_id, 'data' => $schema, 'applied' => $apply && !$dry_run]);
+        return rest_ensure_response(['success' => true, 'dry_run' => $dry_run || !$apply, 'post_id' => $post_id, 'snapshot_ids' => $snapshot_ids, 'data' => $schema, 'applied' => $apply && !$dry_run]);
     }
 
     private static function generate_llm_targeting(WP_REST_Request $request)
@@ -1387,9 +1460,12 @@ class SEO_Operation_Routes
         $state = strtoupper(sanitize_text_field((string) ($payload['state'] ?? $request->get_param('state'))));
 
         if ($program_slug !== '' && $city_slug !== '' && $state !== '' && class_exists('\Chroma_Combo_Page_Data')) {
+            $storage_program_slug = function_exists('\chroma_seo_get_combo_storage_slug')
+                ? \chroma_seo_get_combo_storage_slug($program_slug)
+                : $program_slug;
             return rest_ensure_response([
                 'success' => true,
-                'data' => \Chroma_Combo_Page_Data::get($program_slug, $city_slug, $state),
+                'data' => \Chroma_Combo_Page_Data::get($storage_program_slug, $city_slug, $state),
             ]);
         }
 
@@ -1577,8 +1653,13 @@ class SEO_Operation_Routes
         unset($raw_updates['type'], $raw_updates['key'], $raw_updates['program_slug'], $raw_updates['city_slug'], $raw_updates['state'], $raw_updates['area_type'], $raw_updates['area_name']);
         [$updates, $blocked] = Route_Utils::partition_updates($raw_updates, $allowed_fields);
 
+        $storage_program_slug = $descriptor['program_slug'] ?? '';
+        if ($descriptor['type'] === 'combo' && function_exists('\chroma_seo_get_combo_storage_slug')) {
+            $storage_program_slug = \chroma_seo_get_combo_storage_slug($storage_program_slug);
+        }
+
         $before = $descriptor['type'] === 'combo' && class_exists('\Chroma_Combo_Page_Data')
-            ? \Chroma_Combo_Page_Data::get($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state'])
+            ? \Chroma_Combo_Page_Data::get($storage_program_slug, $descriptor['city_slug'], $descriptor['state'])
             : self::read_virtual_page_data($descriptor);
         $after = $before;
         $stored_updates = [];
@@ -1594,7 +1675,9 @@ class SEO_Operation_Routes
         if (!$dry_run && !empty($updates)) {
             $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'virtual_page_seo', $descriptor['snapshot_key'], $before, $after);
             if ($descriptor['type'] === 'combo' && class_exists('\Chroma_Combo_Page_Data')) {
-                \Chroma_Combo_Page_Data::save($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state'], $stored_updates);
+                \Chroma_Combo_Page_Data::save($storage_program_slug, $descriptor['city_slug'], $descriptor['state'], $stored_updates);
+            } elseif (class_exists('\Chroma_Virtual_Page_SEO_Data')) {
+                \Chroma_Virtual_Page_SEO_Data::save_service_area($descriptor['type'], $descriptor['area_name'], $stored_updates);
             }
         }
 
@@ -1609,7 +1692,7 @@ class SEO_Operation_Routes
             'blocked_keys' => $blocked,
             'snapshot_ids' => $snapshot_ids,
             'diff' => $diff,
-            'data' => $dry_run ? $after : \Chroma_Combo_Page_Data::get($descriptor['program_slug'], $descriptor['city_slug'], $descriptor['state']),
+            'data' => $dry_run ? $after : self::read_virtual_page_data($descriptor),
         ]);
     }
 

@@ -90,6 +90,14 @@ class Chroma_School_Post_Type
             return;
         }
 
+        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+            return;
+        }
+
+        if (wp_is_post_revision($post_id) || !current_user_can('edit_post', $post_id)) {
+            return;
+        }
+
         // Config
         $config = [
             'director_email' => sanitize_email($_POST['chroma_director_email']),

@@ -189,7 +189,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const docPromise = ensurePdfLibrary()
             .then(function () {
-                return window.pdfjsLib.getDocument(url).promise;
+                return window.pdfjsLib.getDocument({
+                    url: url,
+                    isEvalSupported: false,
+                }).promise;
             })
             .then(function (pdfDoc) {
                 pdfDocCache.set(url, pdfDoc);

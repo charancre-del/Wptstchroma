@@ -315,7 +315,7 @@ class Chroma_Program_Enhancements
             </div>
         </div>
         <style>
-            <style>.sticky-cta-bar {
+            .sticky-cta-bar {
                 position: fixed;
                 bottom: 0;
                 left: 0;

@@ -6,6 +6,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     const config = window.ChromaConfig || {};
     if (!config.slug) return; // Not configured
+    const debugLog = (...args) => {
+        if (config.debug && window.console && typeof window.console.debug === 'function') {
+            window.console.debug(...args);
+        }
+    };
 
     // State
     let slideImages = window.slideImages || [];
@@ -51,7 +56,10 @@ document.addEventListener('DOMContentLoaded', function () {
     async function initPdfViewer(pdfUrl, container, qrSrc, title) {
         try {
             // Load PDF
-            pdfDoc = await pdfjsLib.getDocument(pdfUrl).promise;
+            pdfDoc = await pdfjsLib.getDocument({
+                url: pdfUrl,
+                isEvalSupported: false,
+            }).promise;
             pdfTotalPages = pdfDoc.numPages;
             pdfPageNum = 1;
 
@@ -185,27 +193,30 @@ document.addEventListener('DOMContentLoaded', function () {
     function initBackgroundMusic() {
         if (!config.musicUrl || !els.audio || isAudioInitialized) return;
 
-        const url = config.musicUrl.trim();
-        let html = '';
-        console.log('[Audio] Attempting to init with URL:', url);
+        const url = safeMediaUrl(config.musicUrl.trim());
+        if (!url) {
+            debugLog('[Audio] Ignoring unsupported music URL.');
+            return;
+        }
 
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        let html = '';
+        debugLog('[Audio] Attempting to init with URL:', url);
+
+        if (isYouTubeUrl(url)) {
             let id = '';
             let listId = '';
+            const parsedUrl = new URL(url, window.location.origin);
+            const pathParts = parsedUrl.pathname.split('/').filter(Boolean);
 
             // Handle Playlist
-            if (url.includes('list=')) {
-                listId = url.split('list=')[1].split('&')[0];
-            }
+            listId = safeYouTubeToken(parsedUrl.searchParams.get('list') || '');
 
             // Handle Video ID
-            if (url.includes('v=')) {
-                id = url.split('v=')[1].split('&')[0];
-            } else if (url.includes('youtu.be/')) {
-                id = url.split('youtu.be/')[1].split('?')[0];
-            } else if (url.includes('shorts/') || url.includes('embed/')) {
-                const parts = url.split('/');
-                id = parts[parts.length - 1].split('?')[0];
+            id = safeYouTubeToken(parsedUrl.searchParams.get('v') || '');
+            if (!id && parsedUrl.hostname.includes('youtu.be')) {
+                id = safeYouTubeToken(pathParts[0] || '');
+            } else if (!id && (pathParts[0] === 'shorts' || pathParts[0] === 'embed')) {
+                id = safeYouTubeToken(pathParts[1] || '');
             }
 
             if (id || listId) {
@@ -228,18 +239,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 const src = `${base}${id || ''}?${params.toString()}`;
-                console.log('[Audio] YouTube Embed SRC:', src);
-                html = `<iframe src="${src}" allow="autoplay; encrypted-media"></iframe>`;
+                debugLog('[Audio] YouTube Embed SRC:', src);
+                html = `<iframe src="${esc(src)}" allow="autoplay; encrypted-media"></iframe>`;
             }
         } else {
             // Standard Audio
             isAudioInitialized = true;
-            html = `<audio src="${url}" autoplay loop></audio>`;
+            html = `<audio src="${esc(url)}" autoplay loop></audio>`;
         }
 
         if (html) {
             els.audio.innerHTML = html;
-            console.log('[Audio] Player injected into container.');
+            debugLog('[Audio] Player injected into container.');
         }
     }
 
@@ -248,7 +259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const overlay = document.getElementById('audio-trigger-overlay');
     if (overlay) {
         overlay.addEventListener('click', () => {
-            console.log('[Dashboard] Interaction detected. Starting systems...');
+            debugLog('[Dashboard] Interaction detected. Starting systems...');
             overlay.style.opacity = '0';
             setTimeout(() => overlay.remove(), 500);
 
@@ -285,6 +296,9 @@ document.addEventListener('DOMContentLoaded', function () {
             const data = await res.json();
 
             updateUI(data);
+            if (data.weather) {
+                updateWeatherUI(data.weather);
+            }
 
             // 2. Fetch Weather (if lat/lon exists)
             if (config.lat && config.lon) {
@@ -306,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 const w = await res.json();
                 if (w && !w.error) updateWeatherUI(w);
             }
-        } catch (e) { console.error('Weather Sync Error', e); }
+        } catch (e) { debugLog('Weather Sync Error', e); }
     }
 
     /**
@@ -382,13 +396,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const oldLen = slideImages.length;
             // Check if changed
             if (JSON.stringify(slideImages) !== JSON.stringify(c.slideshow)) {
-                slideImages = c.slideshow;
+                slideImages = c.slideshow.map(safeMediaUrl).filter(Boolean);
                 // Reset if index out of bounds
                 if (currentSlideIndex >= slideImages.length) currentSlideIndex = 0;
 
                 // IF FIRST LOAD, SET LAYER 1 IMMEDIATELY
                 if (oldLen === 0 && slideImages.length > 0 && els.slide1) {
-                    els.slide1.style.backgroundImage = `url("${slideImages[0]}")`;
+                    els.slide1.style.backgroundImage = `url("${cssUrl(slideImages[0])}")`;
                     els.slide1.style.opacity = 1;
                 }
             }
@@ -540,15 +554,16 @@ document.addEventListener('DOMContentLoaded', function () {
             // Increment
             currentSlideIndex = (currentSlideIndex + 1) % slideImages.length;
             const nextSrc = slideImages[currentSlideIndex];
+            if (!nextSrc) return;
 
             // Swap Layers
             const incoming = activeLayer === 1 ? els.slide2 : els.slide1;
             const outgoing = activeLayer === 1 ? els.slide1 : els.slide2;
 
-            console.log('[Slideshow] Transitioning to:', nextSrc);
+            debugLog('[Slideshow] Transitioning to:', nextSrc);
 
             // Prepare incoming
-            incoming.style.backgroundImage = `url("${nextSrc}")`;
+            incoming.style.backgroundImage = `url("${cssUrl(nextSrc)}")`;
             incoming.style.opacity = 1;
             incoming.classList.add('ken-burns');
 
@@ -575,12 +590,43 @@ document.addEventListener('DOMContentLoaded', function () {
     // HTML Escape Helper
     function esc(unsafe) {
         if (!unsafe) return '';
-        return unsafe
+        return String(unsafe)
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#039;");
+    }
+
+    function safeMediaUrl(value) {
+        if (!value) return '';
+        try {
+            const parsed = new URL(String(value).trim(), window.location.origin);
+            if (!['http:', 'https:'].includes(parsed.protocol)) {
+                return '';
+            }
+            return parsed.href;
+        } catch (e) {
+            return '';
+        }
+    }
+
+    function isYouTubeUrl(value) {
+        try {
+            const host = new URL(value, window.location.origin).hostname.replace(/^www\./, '');
+            return host === 'youtube.com' || host === 'm.youtube.com' || host === 'youtu.be' || host === 'youtube-nocookie.com';
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function safeYouTubeToken(value) {
+        const token = String(value || '').trim();
+        return /^[A-Za-z0-9_-]+$/.test(token) ? token : '';
+    }
+
+    function cssUrl(value) {
+        return String(value).replace(/["\\\n\r\f]/g, '\\$&');
     }
 
     init();

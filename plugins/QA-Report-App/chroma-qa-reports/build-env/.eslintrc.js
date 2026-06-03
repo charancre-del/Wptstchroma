@@ -6,16 +6,6 @@ module.exports = {
     },
     settings: {
         'import/resolver': {
-            alias: {
-                map: [
-                    [ '@api', './src/api' ],
-                    [ '@components', './src/components' ],
-                    [ '@hooks', './src/hooks' ],
-                    [ '@stores', './src/stores' ],
-                    [ '@utils', './src/utils' ],
-                ],
-                extensions: [ '.js', '.jsx', '.json' ],
-            },
             node: {
                 extensions: [ '.js', '.jsx', '.json' ],
             },
@@ -30,5 +20,7 @@ module.exports = {
         'no-alert': 'off',
         'no-console': 'off',
         'no-nested-ternary': 'off',
+        'import/no-extraneous-dependencies': 'off',
+        'import/no-unresolved': 'off',
     },
 };

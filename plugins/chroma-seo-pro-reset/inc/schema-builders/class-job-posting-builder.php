@@ -24,8 +24,7 @@ class Chroma_Job_Posting_Builder
         }
 
         // Check for manual override (AI Fixed Schema)
-        $override = get_post_meta(get_queried_object_id(), '_chroma_schema_override', true);
-        if ($override) {
+        if (function_exists('chroma_has_valid_schema_override_pro') && chroma_has_valid_schema_override_pro(get_queried_object_id())) {
             return;
         }
 
@@ -51,6 +50,10 @@ class Chroma_Job_Posting_Builder
         $unit = get_post_meta($post_id, '_career_salary_unit', true) ?: 'YEAR';
         $type = get_post_meta($post_id, '_career_type', true) ?: 'FULL_TIME';
         $location = get_post_meta($post_id, '_career_location', true);
+        $city = get_post_meta($post_id, '_career_city', true);
+        $state = get_post_meta($post_id, '_career_state', true);
+        $postal_code = get_post_meta($post_id, '_career_postal_code', true);
+        $country = get_post_meta($post_id, '_career_country', true) ?: 'US';
         $date_posted = get_post_meta($post_id, '_career_date_posted', true) ?: get_the_date('Y-m-d');
         $valid_through = date('Y-m-d', strtotime('+3 months', strtotime($date_posted))); // Default to 3 months validity
 
@@ -85,9 +88,30 @@ class Chroma_Job_Posting_Builder
             ];
         }
 
-        // Add Location if present
-        // Add Location if present
-        if ($location) {
+        // Add Location if present.
+        if ($city || $state || $postal_code) {
+            $address_parts = [
+                '@type' => 'PostalAddress',
+                'addressCountry' => $country,
+            ];
+
+            if ($city) {
+                $address_parts['addressLocality'] = $city;
+            }
+
+            if ($state) {
+                $address_parts['addressRegion'] = $state;
+            }
+
+            if ($postal_code) {
+                $address_parts['postalCode'] = $postal_code;
+            }
+
+            $schema['jobLocation'] = [
+                '@type' => 'Place',
+                'address' => $address_parts
+            ];
+        } elseif ($location) {
             $address_parts = [
                 '@type' => 'PostalAddress',
                 'streetAddress' => $location, // Fallback

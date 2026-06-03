@@ -198,6 +198,25 @@ add_action('save_post', 'chroma_clear_query_cache');
 add_action('delete_post', 'chroma_clear_query_cache');
 add_action('trash_post', 'chroma_clear_query_cache');
 
+/**
+ * Keep the Careers page dynamic so external job-feed availability and
+ * JobPosting schema are not frozen by page caches.
+ */
+function chroma_disable_careers_page_cache()
+{
+    if (is_admin() || wp_doing_ajax() || wp_doing_cron() || !is_page('careers')) {
+        return;
+    }
+
+    if (!defined('DONOTCACHEPAGE')) {
+        define('DONOTCACHEPAGE', true);
+    }
+
+    nocache_headers();
+    header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+}
+add_action('template_redirect', 'chroma_disable_careers_page_cache', -1000);
+
 
 
 /**
@@ -260,6 +279,8 @@ if (is_admin()) {
 require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
+require_once CHROMA_THEME_DIR . '/inc/guide-aliases.php';
+require_once CHROMA_THEME_DIR . '/inc/staging-cache.php';
 require_once CHROMA_THEME_DIR . '/inc/archive-root-query-context.php';
 require_once CHROMA_THEME_DIR . '/inc/seo-profile.php';
 require_once CHROMA_THEME_DIR . '/inc/seo-runtime.php';
@@ -270,6 +291,7 @@ if (is_admin() || is_customize_preview()) {
     require_once CHROMA_THEME_DIR . '/inc/customizer-header.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-footer.php';
     require_once CHROMA_THEME_DIR . '/inc/customizer-locations.php';
+    require_once CHROMA_THEME_DIR . '/inc/customizer-scripts.php';
 }
 
 /**
@@ -862,6 +884,10 @@ function chroma_preserve_dynamic_route_redirects($redirect_url, $requested_url)
         return false;
     }
 
+    if (preg_match('#^/(es/)?daycare-\d{5}/?$#i', $path) || preg_match('#^/(es/)?childcare-in-[a-z0-9-]+-county/?$#i', $path)) {
+        return false;
+    }
+
     return $redirect_url;
 }
 add_filter('redirect_canonical', 'chroma_preserve_dynamic_route_redirects', 1, 2);
@@ -927,6 +953,26 @@ function chroma_get_dynamic_route_canonical_path($path)
         }
 
         $segments[] = $keyword . '-near-' . $city_slug . '-' . $state;
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    if (preg_match('#^/(es/)?daycare-(\d{5})/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $segments[] = 'daycare-' . $matches[2];
+        return '/' . implode('/', $segments) . '/';
+    }
+
+    if (preg_match('#^/(es/)?childcare-in-([a-z0-9-]+)-county/?$#i', $path, $matches)) {
+        $segments = [];
+        if (!empty($matches[1])) {
+            $segments[] = 'es';
+        }
+
+        $segments[] = 'childcare-in-' . sanitize_title($matches[2]) . '-county';
         return '/' . implode('/', $segments) . '/';
     }
 
@@ -1063,5 +1109,9 @@ add_action('init', 'chroma_register_contact_form_shortcode');
  */
 function chroma_render_contact_form()
 {
+    if (function_exists('chroma_contact_form_shortcode')) {
+        return chroma_contact_form_shortcode();
+    }
+
     return do_shortcode('[chroma_tour_form]');
 }

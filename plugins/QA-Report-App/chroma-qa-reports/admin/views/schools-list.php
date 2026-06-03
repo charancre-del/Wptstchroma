@@ -12,6 +12,10 @@ use ChromaQA\Models\School;
 // Handle delete action
 if ( isset( $_GET['action'] ) && $_GET['action'] === 'delete' && isset( $_GET['id'] ) ) {
     if ( wp_verify_nonce( $_GET['_wpnonce'], 'cqa_delete_school' ) ) {
+        if ( ! current_user_can( 'cqa_manage_schools' ) ) {
+            wp_die( esc_html__( 'You do not have permission to delete schools.', 'chroma-qa-reports' ) );
+        }
+
         $school = School::find( intval( $_GET['id'] ) );
         if ( $school ) {
             $school->delete();

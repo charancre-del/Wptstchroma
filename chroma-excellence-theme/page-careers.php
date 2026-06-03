@@ -99,6 +99,10 @@ if (!empty($jobs) && is_array($jobs)) {
 
 		$job_url = esc_url_raw($job['url'] ?? '');
 		$job_location = sanitize_text_field($job['location'] ?? '');
+		$job_city = sanitize_text_field($job['city'] ?? '');
+		$job_state = sanitize_text_field($job['state'] ?? '');
+		$job_postal_code = sanitize_text_field($job['postal_code'] ?? '');
+		$job_country = sanitize_text_field($job['country'] ?? 'US') ?: 'US';
 		$raw_type = $job['type'] ?? '';
 		$employment_type = $raw_type ? $map_employment_type($raw_type) : '';
 
@@ -142,14 +146,29 @@ if (!empty($jobs) && is_array($jobs)) {
 			$schema_job['employmentType'] = $employment_type;
 		}
 
-		if ($job_location) {
+		if ($job_location || $job_city || $job_state || $job_postal_code) {
+			$address = array(
+				'@type' => 'PostalAddress',
+				'addressCountry' => $job_country,
+			);
+
+			if ($job_city) {
+				$address['addressLocality'] = $job_city;
+			} elseif ($job_location) {
+				$address['addressLocality'] = $job_location;
+			}
+
+			if ($job_state) {
+				$address['addressRegion'] = $job_state;
+			}
+
+			if ($job_postal_code) {
+				$address['postalCode'] = $job_postal_code;
+			}
+
 			$schema_job['jobLocation'] = array(
 				'@type' => 'Place',
-				'address' => array(
-					'@type' => 'PostalAddress',
-					'addressLocality' => $job_location,
-					'addressCountry' => 'US',
-				),
+				'address' => $address,
 			);
 		}
 

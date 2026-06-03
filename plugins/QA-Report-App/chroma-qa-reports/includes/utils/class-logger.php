@@ -69,19 +69,24 @@ class Logger
         $log_file = $log_dir . '/integration.log';
         $timestamp = current_time('mysql');
 
+        $redacted_request = self::redact_data($request);
+        $redacted_response = self::redact_data($response);
+
         $entry = [
             'timestamp' => $timestamp,
             'level' => strtoupper($level),
             'service' => $service,
             'action' => $action,
             'user_id' => get_current_user_id(),
-            'request' => self::redact_data($request),
-            'response' => self::redact_data($response),
+            'request' => $redacted_request,
+            'response' => $redacted_response,
         ];
 
-        error_log(
-            sprintf("[CQA][%s][%s] %s: %s", strtoupper($level), $service, $action, json_encode($response))
-        );
+        if ($level !== 'debug' || (defined('CQA_DEBUG') && CQA_DEBUG)) {
+            error_log(
+                sprintf("[CQA][%s][%s] %s: %s", strtoupper($level), $service, $action, json_encode($redacted_response))
+            );
+        }
 
         FileSystem::append(
             $log_file,

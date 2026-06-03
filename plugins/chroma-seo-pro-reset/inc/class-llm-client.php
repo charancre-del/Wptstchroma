@@ -23,7 +23,7 @@ class Chroma_LLM_Client
     {
         $this->api_key = self::get_api_key();
         $this->model = get_option('chroma_llm_model', 'gpt-4o-mini');
-        $this->base_url = get_option('chroma_llm_base_url', 'https://api.openai.com/v1');
+        $this->base_url = self::validated_base_url(get_option('chroma_llm_base_url', 'https://api.openai.com/v1')) ?: 'https://api.openai.com/v1';
 
         // Register AJAX actions for saving key and testing connection
         add_action('wp_ajax_chroma_save_llm_settings', [$this, 'ajax_save_settings']);
@@ -50,7 +50,10 @@ class Chroma_LLM_Client
             wp_send_json_error(['message' => 'API key not configured']);
         }
 
-        $base_url = get_option('chroma_llm_base_url', 'https://generativelanguage.googleapis.com/v1beta');
+        $base_url = self::validated_base_url(get_option('chroma_llm_base_url', 'https://generativelanguage.googleapis.com/v1beta'));
+        if (!$base_url) {
+            wp_send_json_error(['message' => 'Invalid or blocked LLM base URL']);
+        }
         $url = rtrim($base_url, '/') . '/models';
 
         $response = wp_remote_get($url, [
@@ -237,9 +240,10 @@ class Chroma_LLM_Client
             update_option('chroma_llm_model', sanitize_text_field($_POST['model']));
         }
         if (isset($_POST['base_url'])) {
-            $url = esc_url_raw($_POST['base_url']);
-            // Remove trailing slash for consistency
-            $url = rtrim($url, '/');
+            $url = self::validated_base_url($_POST['base_url']);
+            if (!$url) {
+                wp_send_json_error(['message' => 'Invalid or blocked LLM base URL']);
+            }
             update_option('chroma_llm_base_url', $url);
         }
 
@@ -938,14 +942,18 @@ class Chroma_LLM_Client
         // Lazy-load settings fresh from database to ensure latest values are used
         $api_key = self::get_api_key();
         $model = get_option('chroma_llm_model', 'gpt-4o-mini');
-        $base_url = get_option('chroma_llm_base_url', 'https://api.openai.com/v1');
+        $base_url = self::validated_base_url(get_option('chroma_llm_base_url', 'https://api.openai.com/v1'));
 
         if (empty($api_key)) {
             return new WP_Error('no_api_key', 'No API Key configured. Please save your key first.');
         }
 
+        if (!$base_url) {
+            return new WP_Error('invalid_base_url', 'Invalid or blocked LLM base URL.');
+        }
+
         // Use configured base URL or default
-        $url = ($base_url ?: 'https://api.openai.com/v1') . '/chat/completions';
+        $url = rtrim($base_url, '/') . '/chat/completions';
 
         $body = array_merge([
             'model' => $model ?: 'gpt-4o-mini',
@@ -1304,13 +1312,17 @@ class Chroma_LLM_Client
     private function make_request_internal($data) {
         $api_key = self::get_api_key();
         $model = get_option('chroma_llm_model', 'gpt-4o-mini');
-        $base_url = get_option('chroma_llm_base_url', 'https://api.openai.com/v1');
+        $base_url = self::validated_base_url(get_option('chroma_llm_base_url', 'https://api.openai.com/v1'));
 
         if (empty($api_key)) {
             return new WP_Error('no_api_key', 'No API Key configured.');
         }
 
-        $url = ($base_url ?: 'https://api.openai.com/v1') . '/chat/completions';
+        if (!$base_url) {
+            return new WP_Error('invalid_base_url', 'Invalid or blocked LLM base URL.');
+        }
+
+        $url = rtrim($base_url, '/') . '/chat/completions';
 
         $body = array_merge([
             'model' => $model ?: 'gpt-4o-mini',
@@ -1499,6 +1511,24 @@ class Chroma_LLM_Client
             'ai_generated' => true,
             'retry_count' => $retry_count
         ];
+    }
+
+    /**
+     * Normalize and validate a configured LLM provider base URL.
+     *
+     * @param mixed $base_url
+     * @return string|false
+     */
+    private static function validated_base_url($base_url)
+    {
+        $base_url = rtrim((string) $base_url, '/');
+        if ($base_url === '') {
+            $base_url = 'https://api.openai.com/v1';
+        }
+
+        return function_exists('chroma_seo_validate_remote_url')
+            ? chroma_seo_validate_remote_url($base_url, true)
+            : (wp_http_validate_url($base_url) ? esc_url_raw($base_url, ['http', 'https']) : false);
     }
 
     /**

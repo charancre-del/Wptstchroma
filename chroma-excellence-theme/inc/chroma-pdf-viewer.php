@@ -18,6 +18,8 @@ function chroma_pdf_shortcode($atts) {
     ), $atts);
 
     if (empty($args['url'])) return '';
+    $args['url'] = function_exists('chroma_normalize_owned_url') ? chroma_normalize_owned_url($args['url']) : $args['url'];
+    $args['cover'] = function_exists('chroma_normalize_owned_url') ? chroma_normalize_owned_url($args['cover']) : $args['cover'];
 
     // Enqueue viewer on first shortcode use (fallback if has_shortcode check missed it)
     chroma_enqueue_pdf_assets();

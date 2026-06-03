@@ -20,7 +20,6 @@ wp_enqueue_style('wp-mediaelement');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Director Portal | Chroma Early Learning</title>
     <meta name="robots" content="noindex, nofollow">
 
     <style>
@@ -62,7 +61,20 @@ wp_enqueue_style('wp-mediaelement');
     </style>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <?php wp_head(); ?>
+    <?php
+    ob_start();
+    wp_head();
+    $portal_head = (string) ob_get_clean();
+    $portal_canonical = '<link rel="canonical" href="' . esc_url(home_url('/portal/')) . '" />';
+
+    if (preg_match('/<link\s+rel=(["\'])canonical\1[^>]*>/i', $portal_head)) {
+        $portal_head = preg_replace('/<link\s+rel=(["\'])canonical\1[^>]*>/i', $portal_canonical, $portal_head);
+    } else {
+        $portal_head .= "\n" . $portal_canonical . "\n";
+    }
+
+    echo $portal_head; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+    ?>
 </head>
 
 <body class="selection:bg-chroma-yellow/30">

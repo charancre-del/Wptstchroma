@@ -206,8 +206,10 @@ const ReportWizard = () => {
 
     // Use current ID from hook or param
     const reportState = draft;
-    const currentReportStatus = reportState?.status || existingReport?.status;
-    const effectivelyReadOnly = isViewMode || reportState.status === 'approved';
+    const currentReportStatus = existingReport?.status || reportState?.status;
+    const canApproveCurrentReport =
+        Boolean( id ) && currentReportStatus === 'submitted' && capabilities?.cqa_approve_reports;
+    const effectivelyReadOnly = isViewMode || currentReportStatus === 'approved';
 
     const syncServerReportMeta = React.useCallback(
         ( savedReport ) => {
@@ -333,6 +335,7 @@ const ReportWizard = () => {
     const handleApprove = async () => {
         try {
             const approvedReport = await approveMutation.mutateAsync( {
+                ...reportState,
                 id,
                 version_id: reportState.version_id,
                 updated_at: reportState.updated_at,
@@ -352,11 +355,13 @@ const ReportWizard = () => {
             return;
         }
         try {
-            await revertMutation.mutateAsync( {
+            const revertedReport = await revertMutation.mutateAsync( {
+                ...reportState,
                 id,
                 version_id: reportState.version_id,
                 updated_at: reportState.updated_at,
             } );
+            syncServerReportMeta( revertedReport || { id, status: 'draft' } );
             addToast( { type: 'success', message: 'Report reverted to draft status.' } );
             navigate( `/edit/${ id }` ); // Transition to edit mode immediately
         } catch ( error ) {
@@ -467,7 +472,7 @@ const ReportWizard = () => {
             <div className="bg-brand-cream/50 px-8 py-6 border-b border-brand-ink/5 flex flex-col gap-4 md:flex-row md:justify-between md:items-center">
                 <h2 className="text-2xl font-serif font-bold text-brand-ink">{ wizardTitle }</h2>
                 <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                    { isViewMode && currentReportStatus === 'submitted' && capabilities?.cqa_approve_reports && (
+                    { canApproveCurrentReport && (
                         <button
                             onClick={ handleApprove }
                             className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
@@ -635,17 +640,15 @@ const ReportWizard = () => {
                                     Edit Report
                                 </button>
                             ) }
-                            { isViewMode &&
-                                currentReportStatus === 'submitted' &&
-                                capabilities?.cqa_approve_reports && (
-                                    <button
-                                        onClick={ handleApprove }
-                                        className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2"
-                                        disabled={ approveMutation.isPending }
-                                    >
-                                        { approveMutation.isPending ? 'Approving...' : 'Approve Report' }
-                                    </button>
-                                ) }
+                            { canApproveCurrentReport && (
+                                <button
+                                    onClick={ handleApprove }
+                                    className="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-2xl font-bold text-sm transition-all shadow-md hover:shadow-lg flex items-center gap-2"
+                                    disabled={ approveMutation.isPending }
+                                >
+                                    { approveMutation.isPending ? 'Approving...' : 'Approve Report' }
+                                </button>
+                            ) }
                             { isViewMode && currentReportStatus === 'approved' && capabilities?.cqa_approve_reports && (
                                 <button
                                     onClick={ handleRevert }

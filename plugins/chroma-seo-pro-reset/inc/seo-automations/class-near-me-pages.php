@@ -1018,7 +1018,7 @@ class Chroma_Near_Me_Pages
             $urls = [];
         }
 
-        $lastmod = gmdate('c');
+        $lastmod = $this->get_near_me_sitemap_lastmod();
         $base = rtrim(home_url('/'), '/');
         $links = self::get_sitemap_urls();
 
@@ -1050,6 +1050,28 @@ class Chroma_Near_Me_Pages
         }
 
         return $urls;
+    }
+
+    /**
+     * Stable lastmod for generated near-me URLs.
+     *
+     * @return string
+     */
+    private function get_near_me_sitemap_lastmod()
+    {
+        $posts = get_posts([
+            'post_type' => ['location', 'program', 'city'],
+            'posts_per_page' => 1,
+            'post_status' => 'publish',
+            'orderby' => 'modified',
+            'order' => 'DESC',
+        ]);
+
+        if (!empty($posts) && $posts[0] instanceof WP_Post && !empty($posts[0]->post_modified_gmt)) {
+            return gmdate('c', strtotime($posts[0]->post_modified_gmt));
+        }
+
+        return get_lastpostmodified('gmt') ? gmdate('c', strtotime(get_lastpostmodified('gmt'))) : gmdate('c');
     }
 
     public static function get_all_pages()
