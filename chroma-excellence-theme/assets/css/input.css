@@ -2995,6 +2995,253 @@
   }
 }
 
+/* V2 final parity locks. These sit last so older preview guardrails cannot crop the approved layouts. */
+@media (min-width: 1024px) {
+  #programs .chroma-program-shell-grid {
+    grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr) !important;
+    height: clamp(43rem, calc(100svh - 8rem), 53rem) !important;
+    min-height: 43rem !important;
+    max-height: 53rem !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+  }
+
+  #programs .chroma-program-tabs,
+  #programs .chroma-program-card {
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  #programs .chroma-program-tabs {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding-bottom: 1.25rem !important;
+  }
+
+  #programs .chroma-program-card {
+    overflow: hidden !important;
+  }
+
+  #programs .chroma-program-card > div {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    gap: clamp(0.75rem, 1vw, 1rem) !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    overflow-x: visible !important;
+    overflow-y: auto !important;
+    padding: clamp(2rem, 2.35vw, 2.75rem) !important;
+    padding-bottom: clamp(3rem, 4vw, 4.75rem) !important;
+    scroll-padding-bottom: 4rem !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-image],
+  #programs .chroma-program-card .chroma-program-image-frame,
+  #programs .chroma-program-card img {
+    display: none !important;
+  }
+
+  #programs .chroma-program-title {
+    font-size: clamp(3rem, 4.15vw, 4.65rem) !important;
+    line-height: 0.95 !important;
+    margin: 0 !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-description],
+  #programs .chroma-program-card [data-program-wizard-prism-description] {
+    font-size: clamp(0.96rem, 1.05vw, 1.12rem) !important;
+    line-height: 1.55 !important;
+    margin: 0 !important;
+    max-width: 62ch !important;
+  }
+
+  #programs .chroma-program-card .radarChart {
+    flex: 0 0 auto !important;
+    width: min(100%, 25.5rem) !important;
+    max-width: 25.5rem !important;
+    margin: clamp(0.35rem, 0.75vw, 0.65rem) auto !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card .radarSvg {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: 560 / 430 !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-link] {
+    align-self: flex-start !important;
+    margin-top: 0.25rem !important;
+  }
+
+  .chroma-reviews-grid {
+    grid-template-columns: minmax(18rem, 0.78fr) minmax(0, 1.12fr) !important;
+    gap: clamp(2rem, 3vw, 3.25rem) !important;
+    align-items: stretch !important;
+  }
+
+  .reviewSide,
+  .chroma-review-card {
+    min-height: clamp(27rem, 31vw, 34rem) !important;
+  }
+
+  .chroma-review-viewport {
+    min-height: clamp(27rem, 31vw, 34rem) !important;
+    overflow: visible !important;
+  }
+
+  .chroma-review-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: clamp(2.2rem, 2.8vw, 3.35rem) !important;
+    gap: clamp(1.75rem, 2.6vw, 3rem) !important;
+  }
+
+  .chroma-review-card blockquote {
+    max-width: 46ch !important;
+    font-size: clamp(1.2rem, 1.75vw, 2.15rem) !important;
+    line-height: 1.12 !important;
+    margin: 0 !important;
+  }
+
+  .page-template-page-contact .formGrid,
+  .page-template-page-summer-camp #camp-inquiry > div,
+  .page-template-page-summer-camp-discover-go #camp-inquiry > div {
+    align-items: stretch !important;
+  }
+
+  .page-template-page-contact .formGrid > .space-y-10,
+  .page-template-page-contact .chroma-form-scroll-card--contact,
+  .page-template-page-summer-camp .chroma-tour-info-card,
+  .page-template-page-summer-camp-discover-go .chroma-tour-info-card,
+  .page-template-page-summer-camp .chroma-form-scroll-card--summer,
+  .page-template-page-summer-camp-discover-go .chroma-form-scroll-card--summer {
+    height: min(78vh, 50rem) !important;
+    max-height: min(78vh, 50rem) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card iframe,
+  .page-template-page-summer-camp .chroma-form-scroll-card iframe,
+  .page-template-page-summer-camp-discover-go .chroma-form-scroll-card iframe {
+    display: block !important;
+    width: 100% !important;
+    height: min(96rem, 180svh) !important;
+    min-height: min(84rem, 155svh) !important;
+    max-height: none !important;
+  }
+
+  .chroma-location-map-panel,
+  .chroma-location-list-panel {
+    height: clamp(34rem, 60vh, 43rem) !important;
+    min-height: 34rem !important;
+  }
+}
+
+#programs .chroma-program-card [data-program-wizard-image],
+#programs .chroma-program-card .chroma-program-image-frame,
+#programs .chroma-program-card img,
+.chroma-program-card [data-program-wizard-image],
+.chroma-program-card .chroma-program-image-frame {
+  display: none !important;
+}
+
+.chroma-location-map-summary,
+.chroma-location-map-panel .chroma-location-map-summary,
+[data-location-summary-count],
+[data-location-summary-label] {
+  display: none !important;
+}
+
+.chroma-location-list-panel {
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.chroma-location-card-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-right: 0.5rem !important;
+  scrollbar-gutter: stable !important;
+}
+
+.page-template-page-locations .chroma-location-list-panel > .pt-4,
+.post-type-archive-location .chroma-location-list-panel > .pt-4 {
+  display: none !important;
+}
+
+.chroma-summer-calendar-scroll {
+  max-height: min(72vh, 46rem) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+}
+
+@media (max-width: 1023px) {
+  #programs .chroma-program-shell-grid,
+  #programs .chroma-program-tabs,
+  #programs .chroma-program-card,
+  #programs .chroma-program-card > div {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card > div {
+    padding: clamp(1.5rem, 5vw, 2rem) !important;
+  }
+
+  #programs .chroma-program-title {
+    font-size: clamp(2.5rem, 12vw, 4.15rem) !important;
+    line-height: 0.95 !important;
+  }
+
+  #programs .chroma-program-card .radarChart {
+    width: min(100%, 22rem) !important;
+    max-width: 22rem !important;
+    margin-inline: auto !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card .radarSvg {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 560 / 430 !important;
+    overflow: visible !important;
+  }
+
+  .chroma-review-card {
+    min-height: auto !important;
+    overflow: visible !important;
+    padding: 1.75rem !important;
+  }
+
+  .chroma-review-card blockquote {
+    font-size: clamp(1.45rem, 8vw, 2.35rem) !important;
+    line-height: 1.08 !important;
+  }
+}
+
 /**
  * V2 final parity guardrails.
  * These keep the approved HTML-design proportions without changing mapped WP content.
@@ -3593,5 +3840,241 @@
     .chroma-location-list-panel {
       overflow: visible !important;
     }
+  }
+}
+
+/* V2 absolute final parity locks. Last in file so older preview guardrails cannot crop layouts. */
+@media (min-width: 1024px) {
+  #programs .chroma-program-shell-grid {
+    grid-template-columns: minmax(18rem, 24rem) minmax(0, 1fr) !important;
+    height: clamp(43rem, calc(100svh - 8rem), 53rem) !important;
+    min-height: 43rem !important;
+    max-height: 53rem !important;
+    align-items: stretch !important;
+    overflow: hidden !important;
+  }
+
+  #programs .chroma-program-tabs,
+  #programs .chroma-program-card {
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  #programs .chroma-program-tabs {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    padding-bottom: 1.25rem !important;
+  }
+
+  #programs .chroma-program-card {
+    overflow: hidden !important;
+  }
+
+  #programs .chroma-program-card > div {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    gap: clamp(0.75rem, 1vw, 1rem) !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    overflow-x: visible !important;
+    overflow-y: auto !important;
+    padding: clamp(2rem, 2.35vw, 2.75rem) !important;
+    padding-bottom: clamp(3rem, 4vw, 4.75rem) !important;
+    scroll-padding-bottom: 4rem !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  #programs .chroma-program-title {
+    font-size: clamp(3rem, 4.15vw, 4.65rem) !important;
+    line-height: 0.95 !important;
+    margin: 0 !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-description],
+  #programs .chroma-program-card [data-program-wizard-prism-description] {
+    font-size: clamp(0.96rem, 1.05vw, 1.12rem) !important;
+    line-height: 1.55 !important;
+    margin: 0 !important;
+    max-width: 62ch !important;
+  }
+
+  #programs .chroma-program-card .radarChart {
+    flex: 0 0 auto !important;
+    width: min(100%, 25.5rem) !important;
+    max-width: 25.5rem !important;
+    margin: clamp(0.35rem, 0.75vw, 0.65rem) auto !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card .radarSvg {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    aspect-ratio: 560 / 430 !important;
+    overflow: visible !important;
+  }
+
+  .chroma-reviews-grid {
+    grid-template-columns: minmax(18rem, 0.78fr) minmax(0, 1.12fr) !important;
+    gap: clamp(2rem, 3vw, 3.25rem) !important;
+    align-items: stretch !important;
+  }
+
+  .reviewSide,
+  .chroma-review-card,
+  .chroma-review-viewport {
+    min-height: clamp(27rem, 31vw, 34rem) !important;
+  }
+
+  .chroma-review-viewport {
+    overflow: visible !important;
+  }
+
+  .chroma-review-card {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: clamp(2.2rem, 2.8vw, 3.35rem) !important;
+    gap: clamp(1.75rem, 2.6vw, 3rem) !important;
+  }
+
+  .chroma-review-card blockquote {
+    max-width: 46ch !important;
+    font-size: clamp(1.2rem, 1.75vw, 2.15rem) !important;
+    line-height: 1.12 !important;
+    margin: 0 !important;
+  }
+
+  .page-template-page-contact .formGrid,
+  .page-template-page-summer-camp #camp-inquiry > div,
+  .page-template-page-summer-camp-discover-go #camp-inquiry > div {
+    align-items: stretch !important;
+  }
+
+  .page-template-page-contact .formGrid > .space-y-10,
+  .page-template-page-contact .chroma-form-scroll-card--contact,
+  .page-template-page-summer-camp .chroma-tour-info-card,
+  .page-template-page-summer-camp-discover-go .chroma-tour-info-card,
+  .page-template-page-summer-camp .chroma-form-scroll-card--summer,
+  .page-template-page-summer-camp-discover-go .chroma-form-scroll-card--summer {
+    height: min(78vh, 50rem) !important;
+    max-height: min(78vh, 50rem) !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card iframe,
+  .page-template-page-summer-camp .chroma-form-scroll-card iframe,
+  .page-template-page-summer-camp-discover-go .chroma-form-scroll-card iframe {
+    display: block !important;
+    width: 100% !important;
+    height: min(96rem, 180svh) !important;
+    min-height: min(84rem, 155svh) !important;
+    max-height: none !important;
+  }
+
+  .chroma-location-map-panel,
+  .chroma-location-list-panel {
+    height: clamp(34rem, 60vh, 43rem) !important;
+    min-height: 34rem !important;
+  }
+}
+
+#programs .chroma-program-card [data-program-wizard-image],
+#programs .chroma-program-card .chroma-program-image-frame,
+#programs .chroma-program-card img,
+.chroma-program-card [data-program-wizard-image],
+.chroma-program-card .chroma-program-image-frame {
+  display: none !important;
+}
+
+.chroma-location-map-summary,
+.chroma-location-map-panel .chroma-location-map-summary,
+[data-location-summary-count],
+[data-location-summary-label] {
+  display: none !important;
+}
+
+.chroma-location-list-panel {
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.chroma-location-card-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-right: 0.5rem !important;
+  scrollbar-gutter: stable !important;
+}
+
+.page-template-page-locations .chroma-location-list-panel > .pt-4,
+.post-type-archive-location .chroma-location-list-panel > .pt-4 {
+  display: none !important;
+}
+
+.chroma-summer-calendar-scroll {
+  max-height: min(72vh, 46rem) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+}
+
+@media (max-width: 1023px) {
+  #programs .chroma-program-shell-grid,
+  #programs .chroma-program-tabs,
+  #programs .chroma-program-card,
+  #programs .chroma-program-card > div {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card > div {
+    padding: clamp(1.5rem, 5vw, 2rem) !important;
+  }
+
+  #programs .chroma-program-title {
+    font-size: clamp(2.5rem, 12vw, 4.15rem) !important;
+    line-height: 0.95 !important;
+  }
+
+  #programs .chroma-program-card .radarChart {
+    width: min(100%, 22rem) !important;
+    max-width: 22rem !important;
+    margin-inline: auto !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card .radarSvg {
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 560 / 430 !important;
+    overflow: visible !important;
+  }
+
+  .chroma-review-card {
+    min-height: auto !important;
+    overflow: visible !important;
+    padding: 1.75rem !important;
+  }
+
+  .chroma-review-card blockquote {
+    font-size: clamp(1.45rem, 8vw, 2.35rem) !important;
+    line-height: 1.08 !important;
   }
 }

@@ -175,7 +175,7 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 	<!-- FAQ Section -->
 	<section class="white borderY py-20 bg-white border-y border-chroma-blue/10">
 		<div class="max-w-4xl mx-auto px-4 lg:px-6">
-			<h2 class="font-serif text-3xl font-bold text-brand-ink mb-10 text-center"><?php _e('Helpful answers while we connect.', 'chroma-excellence'); ?></h2>
+			<h2 class="font-serif text-3xl font-bold text-brand-ink mb-10 text-center"><?php _e('Helpful answers for every question.', 'chroma-excellence'); ?></h2>
 			<div class="space-y-4">
 				<details class="group bg-white rounded-2xl px-6 py-4 border border-chroma-blue/10 shadow-sm">
 					<summary
@@ -185,7 +185,7 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 								class="fa-solid fa-chevron-down"></i></span>
 					</summary>
 					<p class="mt-3 text-brand-ink/70 text-sm leading-relaxed">
-						<?php _e('The fastest way is to visit our <a href="/locations/" class="text-chroma-blue underline">Locations Page</a>, select your nearest campus, and use the "Book Tour" button on that specific page. This ensures your request goes directly to that school\'s director.', 'chroma-excellence'); ?>
+						<?php _e('Use the form on this page, call us, or choose a campus on the <a href="/locations/" class="text-chroma-blue underline">Locations Page</a> if you already know the school you want. Either way, we will route your request to the right Chroma team.', 'chroma-excellence'); ?>
 					</p>
 				</details>
 				<details class="group bg-white rounded-2xl px-6 py-4 border border-chroma-blue/10 shadow-sm">
@@ -207,7 +207,7 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 								class="fa-solid fa-chevron-down"></i></span>
 					</summary>
 					<p class="mt-3 text-brand-ink/70 text-sm leading-relaxed">
-						<?php _e('Campus-specific questions are welcome here too. If you prefer to reach a campus directly, each <a href="/locations/" class="text-chroma-blue underline">location page</a> lists direct school contact details.', 'chroma-excellence'); ?>
+						<?php _e('Campus-specific questions are welcome here too. Send your campus, child age, and timing through the form and we will connect you with the right campus team. If you prefer direct school details, each <a href="/locations/" class="text-chroma-blue underline">location page</a> lists them.', 'chroma-excellence'); ?>
 					</p>
 				</details>
 			</div>

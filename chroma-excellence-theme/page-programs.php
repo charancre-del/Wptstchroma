@@ -24,28 +24,7 @@ if (empty($programs) || !is_array($programs)) {
 }
 $wizard_program_options = function_exists('chroma_home_program_wizard_options') ? chroma_home_program_wizard_options() : array();
 
-$is_flexible_program = static function ($program) {
-    $title = strtolower(get_the_title($program->ID));
-
-    foreach (array('camp', 'kindergarten', 'rising', 'parent', 'therapy', 'early learning') as $keyword) {
-        if (strpos($title, $keyword) !== false) {
-            return true;
-        }
-    }
-
-    return false;
-};
-
-$core_programs = array();
-$flexible_programs = array();
-
-foreach ($programs as $program) {
-    if ($is_flexible_program($program)) {
-        $flexible_programs[] = $program;
-    } else {
-        $core_programs[] = $program;
-    }
-}
+$core_programs = is_array($programs) ? array_values($programs) : array();
 
 $color_map = array(
     'red' => '#A84B38',
@@ -212,50 +191,6 @@ $color_map = array(
             <?php endif; ?>
         </div>
     </section>
-
-    <?php if (!empty($flexible_programs)): ?>
-        <section class="cream py-20 md:py-24 bg-brand-cream">
-            <div class="max-w-7xl mx-auto px-4 lg:px-6">
-                <div class="max-w-4xl mb-12">
-                    <div class="text-xs font-bold uppercase tracking-[0.22em] text-chroma-blue mb-4">
-                        <?php esc_html_e('Seasonal & Flexible', 'chroma-excellence'); ?>
-                    </div>
-                    <h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.035em] leading-[0.98] text-brand-ink mb-5">
-                        <?php esc_html_e('More ways to belong at Chroma.', 'chroma-excellence'); ?>
-                    </h2>
-                    <p class="text-lg text-brand-ink/70 leading-relaxed">
-                        <?php esc_html_e('Families can choose full-time classrooms, part-time options, after-school care, and seasonal camp experiences as schedules and needs change.', 'chroma-excellence'); ?>
-                    </p>
-                </div>
-
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-7">
-                    <?php foreach ($flexible_programs as $program):
-                        $program_id = $program->ID;
-                        $program_title = get_the_title($program_id);
-                        $program_permalink = get_permalink($program_id);
-                        $program_excerpt = has_excerpt($program_id)
-                            ? get_the_excerpt($program_id)
-                            : wp_trim_words(wp_strip_all_tags((string) get_post_field('post_content', $program_id)), 24);
-                        ?>
-                        <a href="<?php echo esc_url($program_permalink); ?>"
-                            class="chroma-template-card chroma-template-card--simple bg-white rounded-[2rem] border border-chroma-blue/10 shadow-soft p-7 flex flex-col gap-5"
-                            style="--card-accent: #A84B38">
-                            <h3 class="font-serif text-3xl font-semibold tracking-[-0.025em] leading-none text-brand-ink">
-                                <?php echo esc_html($program_title); ?>
-                            </h3>
-                            <p class="text-brand-ink/70 text-base leading-relaxed">
-                                <?php echo esc_html($program_excerpt); ?>
-                            </p>
-                            <span class="chroma-card-link mt-auto">
-                                <?php esc_html_e('Explore', 'chroma-excellence'); ?>
-                                <span aria-hidden="true">&rarr;</span>
-                            </span>
-                        </a>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </section>
-    <?php endif; ?>
 
     <section class="white borderY py-20 md:py-24 bg-white border-y border-chroma-blue/10">
         <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-center">
