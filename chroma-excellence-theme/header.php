@@ -130,11 +130,11 @@
 				?>
 				<div class="block leading-tight">
 					<span class="block font-sans text-xl lg:text-2xl font-bold text-brand-ink">
-						<?php echo esc_html(__($first_line, 'chroma-excellence')); ?>
+						<?php echo esc_html($first_line); ?>
 					</span>
 					<?php foreach ($lines as $line): ?>
 						<span class="block text-[10px] lg:text-xs font-bold tracking-[0.15em] text-chroma-blue uppercase">
-							<?php echo esc_html(__($line, 'chroma-excellence')); ?>
+							<?php echo esc_html($line); ?>
 						</span>
 					<?php endforeach; ?>
 				</div>
