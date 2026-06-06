@@ -89,6 +89,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 
 	<?php get_template_part('template-parts/home/locations-preview', null, array('hide_heading' => true)); ?>
 
+	<?php if (false): ?>
 	<section class="chroma-location-promise-section cream py-20 bg-brand-cream">
 		<div class="max-w-7xl mx-auto px-4 lg:px-6">
 			<div class="max-w-3xl mx-auto text-center mb-12">
@@ -124,6 +125,8 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 		</div>
 	</section>
 
+
+	<?php endif; ?>
 
 	<section class="white borderY py-20 bg-white border-y border-chroma-blue/10">
 		<div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">

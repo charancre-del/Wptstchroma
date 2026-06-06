@@ -29,9 +29,13 @@ $corporate_name = get_post_meta($page_id, 'contact_corporate_name', true) ?: get
 $global_address = function_exists('chroma_global_full_address') ? chroma_global_full_address() : '';
 $global_phone = function_exists('chroma_global_phone') ? chroma_global_phone() : '';
 $global_email = function_exists('chroma_global_email') ? chroma_global_email() : '';
+$global_phone = preg_match('/\d{3}/', (string) $global_phone) ? $global_phone : '';
+$global_email = is_email($global_email) ? $global_email : '';
 $corporate_address = get_post_meta($page_id, 'contact_corporate_address', true) ?: ($global_address ?: "3554 Old Milton Pkwy\nAlpharetta, GA 30005");
-$corporate_phone = get_post_meta($page_id, 'contact_corporate_phone', true) ?: ($global_phone ?: '470-470-6589');
-$corporate_email = get_post_meta($page_id, 'contact_corporate_email', true) ?: ($global_email ?: 'info@chromaela.com');
+$contact_phone_meta = get_post_meta($page_id, 'contact_corporate_phone', true);
+$contact_email_meta = get_post_meta($page_id, 'contact_corporate_email', true);
+$corporate_phone = preg_match('/\d{3}/', (string) $contact_phone_meta) ? $contact_phone_meta : ($global_phone ?: '470-470-6589');
+$corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($global_email ?: 'info@chromaela.com');
 
 // Careers Section (Using existing meta if available, else standard fallback)
 $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?: '/careers/';

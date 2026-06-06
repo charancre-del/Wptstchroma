@@ -2513,12 +2513,15 @@
   @media (min-width: 1024px) {
     .page-template-page-contact #tour .formGrid,
     .page-template-page-summer-camp #camp-inquiry > div,
+    .page-template-page-summer-camp-discover-go #camp-inquiry > div,
     .single-location #contact > div {
       align-items: stretch;
     }
 
     .page-template-page-contact .chroma-form-scroll-card--contact,
     .page-template-page-summer-camp .chroma-form-scroll-card--summer,
+    .page-template-page-summer-camp-discover-go .chroma-form-scroll-card--summer,
+    .page-template-page-summer-camp-discover-go .chroma-form-scroll-card--summer,
     .single-location .chroma-form-scroll-card--location {
       height: min(76vh, 48rem) !important;
       max-height: min(76vh, 48rem) !important;
@@ -2529,7 +2532,8 @@
     }
 
     .page-template-page-contact .formGrid > .space-y-10,
-    .page-template-page-summer-camp .chroma-tour-info-card {
+    .page-template-page-summer-camp .chroma-tour-info-card,
+    .page-template-page-summer-camp-discover-go .chroma-tour-info-card {
       height: min(76vh, 48rem);
       min-height: min(76vh, 48rem);
       overflow-y: auto;
@@ -2539,6 +2543,7 @@
 
     .page-template-page-contact .chroma-form-scroll-card iframe,
     .page-template-page-summer-camp .chroma-form-scroll-card iframe,
+    .page-template-page-summer-camp-discover-go .chroma-form-scroll-card iframe,
     .single-location .chroma-form-scroll-card iframe {
       height: min(86rem, 165svh) !important;
       min-height: min(78rem, 145svh) !important;
@@ -2546,12 +2551,14 @@
     }
   }
 
-  .page-template-page-summer-camp .chroma-summer-map-only .chroma-location-map-panel {
+  .page-template-page-summer-camp .chroma-summer-map-only .chroma-location-map-panel,
+  .page-template-page-summer-camp-discover-go .chroma-summer-map-only .chroma-location-map-panel {
     height: min(72vh, 44rem) !important;
     min-height: 34rem !important;
   }
 
-  .page-template-page-summer-camp #highlights {
+  .page-template-page-summer-camp #highlights,
+  .page-template-page-summer-camp-discover-go #highlights {
     display: none;
   }
 
@@ -2713,14 +2720,26 @@
   }
 
   .chroma-location-list-panel {
-    overflow-y: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
   }
 
   .chroma-location-card-scroll {
-    height: auto !important;
+    flex: 1 1 auto !important;
+    height: 100% !important;
     min-height: 0 !important;
     max-height: none !important;
-    overflow: visible !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(74, 108, 124, 0.22) transparent !important;
+  }
+
+  .chroma-location-list-panel > .pt-4 {
+    flex: 0 0 auto !important;
   }
 
   .chroma-form-scroll-card {
@@ -2968,7 +2987,8 @@
     }
 
     .page-template-page-contact .formGrid > .space-y-10,
-    .page-template-page-summer-camp .chroma-tour-info-card {
+    .page-template-page-summer-camp .chroma-tour-info-card,
+    .page-template-page-summer-camp-discover-go .chroma-tour-info-card {
       height: min(74vh, 46rem) !important;
       max-height: min(74vh, 46rem) !important;
       overflow-y: auto !important;
