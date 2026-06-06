@@ -45,7 +45,7 @@ if (empty($reviews)) {
                                                         ?>
                                                         <article class="w-full flex-shrink-0 chroma-review-card" data-review-slide="<?php echo esc_attr($index); ?>">
                                                                 <blockquote>
-                                                                        <?php echo esc_html(wp_trim_words((string) $review['review'], 22, '…')); ?>
+                                                                        <?php echo esc_html(wp_trim_words((string) $review['review'], 54, '…')); ?>
                                                                 </blockquote>
                                                                 <div class="flex items-center gap-4">
                                                                         <div class="chroma-review-avatar"><?php echo esc_html($initials); ?></div>
@@ -88,3 +88,4 @@ if (empty($reviews)) {
                 </div>
         </div>
 </section>
+

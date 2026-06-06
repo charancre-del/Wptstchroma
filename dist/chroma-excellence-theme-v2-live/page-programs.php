@@ -10,6 +10,18 @@ get_header();
 
 $data_service = Chroma_Data_Service::get_instance();
 $programs = $data_service->get_programs();
+
+if (empty($programs) || !is_array($programs)) {
+    $programs = get_posts(array(
+        'post_type' => 'program',
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+        'orderby' => 'menu_order',
+        'order' => 'ASC',
+        'no_found_rows' => true,
+        'update_post_meta_cache' => true,
+    ));
+}
 $wizard_program_options = function_exists('chroma_home_program_wizard_options') ? chroma_home_program_wizard_options() : array();
 
 $is_flexible_program = static function ($program) {
@@ -81,8 +93,8 @@ $color_map = array(
                         $program_id = $program->ID;
                         $program_title = get_the_title($program_id);
                         $program_permalink = get_permalink($program_id);
-                        $age_range = $data_service->get_translated_meta($program_id, 'program_age_range');
-                        $features = $data_service->get_translated_meta($program_id, 'program_features');
+                        $age_range = chroma_get_translated_meta($program_id, 'program_age_range', true);
+                        $features = chroma_get_translated_meta($program_id, 'program_features', true);
                         $features_array = $features ? array_values(array_filter(array_map('trim', explode("\n", $features)))) : array();
                         $color_scheme = $data_service->get_meta($program_id, 'program_color_scheme', 'red');
                         $accent = $color_map[$color_scheme] ?? $color_map['red'];
@@ -198,6 +210,68 @@ $color_map = array(
                     </p>
                 </div>
             <?php endif; ?>
+        </div>
+    </section>
+
+    <?php if (!empty($flexible_programs)): ?>
+        <section class="cream py-20 md:py-24 bg-brand-cream">
+            <div class="max-w-7xl mx-auto px-4 lg:px-6">
+                <div class="max-w-4xl mb-12">
+                    <div class="text-xs font-bold uppercase tracking-[0.22em] text-chroma-blue mb-4">
+                        <?php esc_html_e('Seasonal & Flexible', 'chroma-excellence'); ?>
+                    </div>
+                    <h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.035em] leading-[0.98] text-brand-ink mb-5">
+                        <?php esc_html_e('More ways to belong at Chroma.', 'chroma-excellence'); ?>
+                    </h2>
+                    <p class="text-lg text-brand-ink/70 leading-relaxed">
+                        <?php esc_html_e('Families can choose full-time classrooms, part-time options, after-school care, and seasonal camp experiences as schedules and needs change.', 'chroma-excellence'); ?>
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-7">
+                    <?php foreach ($flexible_programs as $program):
+                        $program_id = $program->ID;
+                        $program_title = get_the_title($program_id);
+                        $program_permalink = get_permalink($program_id);
+                        $program_excerpt = has_excerpt($program_id)
+                            ? get_the_excerpt($program_id)
+                            : wp_trim_words(wp_strip_all_tags((string) get_post_field('post_content', $program_id)), 24);
+                        ?>
+                        <a href="<?php echo esc_url($program_permalink); ?>"
+                            class="chroma-template-card chroma-template-card--simple bg-white rounded-[2rem] border border-chroma-blue/10 shadow-soft p-7 flex flex-col gap-5"
+                            style="--card-accent: #A84B38">
+                            <h3 class="font-serif text-3xl font-semibold tracking-[-0.025em] leading-none text-brand-ink">
+                                <?php echo esc_html($program_title); ?>
+                            </h3>
+                            <p class="text-brand-ink/70 text-base leading-relaxed">
+                                <?php echo esc_html($program_excerpt); ?>
+                            </p>
+                            <span class="chroma-card-link mt-auto">
+                                <?php esc_html_e('Explore', 'chroma-excellence'); ?>
+                                <span aria-hidden="true">&rarr;</span>
+                            </span>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </section>
+    <?php endif; ?>
+
+    <section class="white borderY py-20 md:py-24 bg-white border-y border-chroma-blue/10">
+        <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-center">
+            <div>
+                <div class="text-xs font-bold uppercase tracking-[0.22em] text-chroma-green mb-4">
+                    <?php esc_html_e('Our Methodology', 'chroma-excellence'); ?>
+                </div>
+                <h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.035em] leading-[0.98] text-brand-ink mb-5">
+                    <?php esc_html_e('More than just daycare.', 'chroma-excellence'); ?>
+                </h2>
+            </div>
+            <div class="bg-brand-cream rounded-[2.5rem] border border-chroma-blue/10 p-8 md:p-10 shadow-soft">
+                <p class="text-lg md:text-xl text-brand-ink/75 leading-relaxed">
+                    <?php esc_html_e('Every program is guided by Prismpath™: a whole-child framework that balances physical, emotional, social, academic, and creative development while preserving the warmth of home.', 'chroma-excellence'); ?>
+                </p>
+            </div>
         </div>
     </section>
 

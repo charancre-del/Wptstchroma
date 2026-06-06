@@ -3461,4 +3461,137 @@
       line-height: 1 !important;
     }
   }
+
+  /* Final V2 parity guardrails: keep interactive cards usable on desktop and mobile. */
+  @media (min-width: 1024px) {
+    #programs .chroma-program-shell-grid {
+      height: min(82vh, 54rem) !important;
+      min-height: 48rem !important;
+      align-items: stretch !important;
+    }
+
+    #programs .chroma-program-tabs {
+      height: 100% !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      scrollbar-gutter: stable;
+    }
+
+    #programs .chroma-program-card {
+      height: 100% !important;
+      min-height: 0 !important;
+      overflow: hidden !important;
+    }
+
+    #programs .chroma-program-card > div {
+      height: 100% !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      overflow-x: visible !important;
+      padding-bottom: 2.5rem !important;
+      scrollbar-gutter: stable;
+    }
+
+    #programs .chroma-program-card [data-program-wizard-image],
+    #programs .chroma-program-card .chroma-program-image-frame,
+    #programs .chroma-program-card img {
+      display: none !important;
+    }
+
+    #programs .chroma-program-card .radarChart {
+      width: min(100%, 28rem) !important;
+      max-width: 28rem !important;
+      margin-inline: auto !important;
+      overflow: visible !important;
+    }
+
+    #programs .chroma-program-card .radarSvg {
+      display: block;
+      width: 100% !important;
+      height: auto !important;
+      aspect-ratio: 560 / 430;
+      min-height: 0 !important;
+      overflow: visible !important;
+    }
+
+    .chroma-location-list-panel {
+      overflow: hidden !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    .chroma-location-card-scroll {
+      flex: 1 1 auto !important;
+      min-height: 0 !important;
+      overflow-y: auto !important;
+      overflow-x: hidden !important;
+      padding-right: 0.5rem;
+      scrollbar-gutter: stable;
+    }
+
+    .page-template-page-locations .chroma-location-list-panel > .pt-4,
+    .post-type-archive-location .chroma-location-list-panel > .pt-4 {
+      display: none !important;
+    }
+  }
+
+  .chroma-review-viewport {
+    min-height: clamp(30rem, 34vw, 36rem) !important;
+  }
+
+  .chroma-review-card {
+    min-height: clamp(30rem, 34vw, 36rem) !important;
+    padding-bottom: clamp(6.5rem, 8vw, 8.25rem) !important;
+    overflow-y: auto !important;
+  }
+
+  .chroma-review-card blockquote {
+    max-width: 40ch !important;
+    font-size: clamp(1.18rem, 1.35vw, 1.72rem) !important;
+    line-height: 1.16 !important;
+  }
+
+  @media (max-width: 767px) {
+    #programs .chroma-program-card {
+      overflow: visible !important;
+    }
+
+    #programs .chroma-program-card > div {
+      overflow: visible !important;
+      padding: 1.5rem !important;
+    }
+
+    #programs .chroma-program-card [data-program-wizard-image],
+    #programs .chroma-program-card .chroma-program-image-frame,
+    #programs .chroma-program-card img {
+      display: none !important;
+    }
+
+    #programs .chroma-program-card .radarChart {
+      width: min(100%, 23rem) !important;
+      margin-inline: auto !important;
+      overflow: visible !important;
+    }
+
+    #programs .chroma-program-card .radarSvg {
+      height: auto !important;
+      aspect-ratio: 560 / 430;
+      min-height: 17rem !important;
+      overflow: visible !important;
+    }
+
+    .chroma-review-viewport,
+    .chroma-review-card {
+      min-height: auto !important;
+    }
+
+    .chroma-review-card {
+      padding-bottom: 1.75rem !important;
+      overflow: visible !important;
+    }
+
+    .chroma-location-list-panel {
+      overflow: visible !important;
+    }
+  }
 }
