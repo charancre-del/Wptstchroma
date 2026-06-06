@@ -37,9 +37,6 @@ $contact_email_meta = get_post_meta($page_id, 'contact_corporate_email', true);
 $corporate_phone = preg_match('/\d{3}/', (string) $contact_phone_meta) ? $contact_phone_meta : ($global_phone ?: '470-470-6589');
 $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($global_email ?: 'info@chromaela.com');
 
-// Careers Section (Using existing meta if available, else standard fallback)
-$careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?: '/careers/';
-
 ?>
 
 <main>
@@ -63,50 +60,6 @@ $careers_link_url = get_post_meta($page_id, 'contact_careers_link_url', true) ?:
 				</p>
 			</div>
 
-		</div>
-	</section>
-
-	<section class="chroma-contact-routing-section white borderY py-20 bg-white border-y border-chroma-blue/10">
-		<div class="max-w-7xl mx-auto px-4 lg:px-6">
-
-			<!-- Routing Grid (Directs users before they scroll to form) -->
-			<div class="grid md:grid-cols-3 gap-6">
-				<!-- Prospective Families -->
-				<div
-					class="chroma-v2-card bg-brand-cream border border-chroma-blue/10 p-8 rounded-[2rem] hover:shadow-card transition-all group text-center">
-					<div
-						class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
-						<i class="fa-solid fa-baby text-chroma-red"></i></div>
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php _e('Looking for care?', 'chroma-excellence'); ?></h3>
-					<p class="text-brand-ink/60 text-sm mb-6"><?php _e('Find a school near you to check pricing, availability, and book a tour.', 'chroma-excellence'); ?></p>
-					<a href="/locations/"
-						class="inline-block w-full py-3 bg-chroma-red text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-red/90 transition-colors"><?php _e('Find a School', 'chroma-excellence'); ?></a>
-				</div>
-
-				<!-- Current Families -->
-				<div
-					class="chroma-v2-card bg-brand-cream border border-chroma-blue/10 p-8 rounded-[2rem] hover:shadow-card transition-all group text-center">
-					<div
-						class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
-						<i class="fa-solid fa-people-roof text-chroma-blue"></i></div>
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php _e('Current Family?', 'chroma-excellence'); ?></h3>
-					<p class="text-brand-ink/60 text-sm mb-6"><?php _e('Access the parent portal for tuition payments, daily reports, and photos.', 'chroma-excellence'); ?></p>
-					<a href="/parents/"
-						class="inline-block w-full py-3 bg-chroma-blue text-white font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-chroma-blueDark transition-colors"><?php _e('Parent Portal', 'chroma-excellence'); ?></a>
-				</div>
-
-				<!-- Careers -->
-				<div
-					class="chroma-v2-card bg-brand-cream border border-chroma-blue/10 p-8 rounded-[2rem] hover:shadow-card transition-all group text-center">
-					<div
-						class="w-16 h-16 mx-auto bg-white rounded-2xl flex items-center justify-center text-3xl mb-6 shadow-sm group-hover:scale-110 transition-transform">
-						<i class="fa-solid fa-apple-whole text-chroma-yellow"></i></div>
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php _e('Join the team?', 'chroma-excellence'); ?></h3>
-					<p class="text-brand-ink/60 text-sm mb-6"><?php _e('We are always hiring passionate educators. View open positions today.', 'chroma-excellence'); ?></p>
-					<a href="<?php echo esc_url($careers_link_url); ?>"
-						class="inline-block w-full py-3 bg-chroma-yellow text-brand-ink font-bold uppercase tracking-wider text-xs rounded-xl hover:bg-white transition-colors"><?php _e('View Careers', 'chroma-excellence'); ?></a>
-				</div>
-			</div>
 		</div>
 	</section>
 
