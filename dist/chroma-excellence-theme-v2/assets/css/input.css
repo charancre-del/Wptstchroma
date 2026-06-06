@@ -2557,11 +2557,6 @@
     min-height: 34rem !important;
   }
 
-  .page-template-page-summer-camp #highlights,
-  .page-template-page-summer-camp-discover-go #highlights {
-    display: none;
-  }
-
   .page-template-page-contact .formGrid {
     align-items: stretch;
   }
@@ -3157,6 +3152,33 @@
 
   .page-template-page-contact .chroma-contact-routing-section {
     display: none !important;
+  }
+
+  .chroma-summer-calendar-scroll {
+    max-height: min(72vh, 46rem);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+
+  .chroma-summer-calendar-scroll .chroma-template-card {
+    min-height: 12.5rem;
+  }
+
+  .summer-camp-tour-btn.chroma-card-link {
+    appearance: none;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
+    text-align: left;
+  }
+
+  .page-template-page-summer-camp #calendars,
+  .page-template-page-summer-camp-discover-go #calendars {
+    scroll-margin-top: 7rem;
   }
 }
 

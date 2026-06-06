@@ -563,7 +563,7 @@ while (have_posts()):
 					</aside>
 					<article class="chroma-review-card">
 						<blockquote>
-							<?php echo esc_html(wp_trim_words($hero_review_text ?: __("We absolutely love Chroma! The teachers are so caring and my child has learned so much.", 'chroma-excellence'), 58, '…')); ?>
+							<?php echo esc_html(wp_trim_words($hero_review_text ?: __("We absolutely love Chroma! The teachers are so caring and my child has learned so much.", 'chroma-excellence'), 34, '…')); ?>
 						</blockquote>
 						<div class="flex items-center gap-4">
 							<div class="chroma-review-avatar">

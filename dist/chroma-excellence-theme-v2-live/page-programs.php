@@ -10,6 +10,7 @@ get_header();
 
 $data_service = Chroma_Data_Service::get_instance();
 $programs = $data_service->get_programs();
+$wizard_program_options = function_exists('chroma_home_program_wizard_options') ? chroma_home_program_wizard_options() : array();
 
 $is_flexible_program = static function ($program) {
     $title = strtolower(get_the_title($program->ID));
@@ -132,6 +133,59 @@ $color_map = array(
                                 <span class="chroma-card-link mt-auto">
                                     <?php esc_html_e('Learn More', 'chroma-excellence'); ?>
                                     <span aria-hidden="true">→</span>
+                                </span>
+                            </div>
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+            <?php elseif (!empty($wizard_program_options)): ?>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-7">
+                    <?php foreach ($wizard_program_options as $index => $option):
+                        $program_title = sanitize_text_field($option['program_title'] ?? ($option['label'] ?? ''));
+                        $age_range = sanitize_text_field($option['age_label'] ?? '');
+                        if (!$age_range && preg_match('/\s*\((.*)\)\s*$/', (string) ($option['label'] ?? ''), $matches)) {
+                            $age_range = sanitize_text_field($matches[1]);
+                            $program_title = trim((string) preg_replace('/\s*\([^)]+\)\s*$/', '', (string) ($option['label'] ?? '')));
+                        }
+                        $program_link = !empty($option['link']) ? $option['link'] : chroma_get_program_archive_url();
+                        $thumbnail_url = !empty($option['image']) ? $option['image'] : '';
+                        $program_excerpt = sanitize_textarea_field($option['description'] ?? '');
+                        $accent = sanitize_hex_color($option['prism_color'] ?? '') ?: $color_map['red'];
+                        ?>
+
+                        <a href="<?php echo esc_url($program_link); ?>"
+                            class="chroma-template-card group bg-white rounded-[2rem] border border-chroma-blue/10 shadow-soft overflow-hidden flex flex-col"
+                            style="--card-accent: <?php echo esc_attr($accent); ?>">
+                            <?php if ($thumbnail_url): ?>
+                                <div class="chroma-template-card-image aspect-[3/2] overflow-hidden bg-brand-cream">
+                                    <img src="<?php echo esc_url($thumbnail_url); ?>"
+                                        alt="<?php echo esc_attr($program_title); ?>"
+                                        class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        loading="<?php echo $index < 3 ? 'eager' : 'lazy'; ?>"
+                                        width="640"
+                                        height="430">
+                                </div>
+                            <?php endif; ?>
+                            <div class="p-7 flex flex-col gap-4 flex-1">
+                                <?php if ($age_range): ?>
+                                    <div class="text-xs font-bold uppercase tracking-[0.14em] text-brand-ink/50">
+                                        <?php echo esc_html($age_range); ?>
+                                    </div>
+                                <?php endif; ?>
+
+                                <h3 class="font-serif text-3xl font-semibold tracking-[-0.025em] leading-none text-brand-ink">
+                                    <?php echo esc_html($program_title); ?>
+                                </h3>
+
+                                <?php if ($program_excerpt): ?>
+                                    <p class="text-brand-ink/70 text-base leading-relaxed">
+                                        <?php echo esc_html($program_excerpt); ?>
+                                    </p>
+                                <?php endif; ?>
+
+                                <span class="chroma-card-link mt-auto">
+                                    <?php esc_html_e('Learn More', 'chroma-excellence'); ?>
+                                    <span aria-hidden="true">&rarr;</span>
                                 </span>
                             </div>
                         </a>

@@ -220,17 +220,35 @@ get_header();
 	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
 		<!-- Hero -->
-		<section class="pageHero chroma-v2-page-hero py-20 bg-white text-center border-b border-brand-ink/5">
-			<div class="max-w-4xl mx-auto px-4">
-				<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
-					<?php echo esc_html($hero_badge); ?>
-				</span>
-				<h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6">
-					<?php echo esc_html($hero_title); ?>
-				</h1>
-				<p class="text-lg text-brand-ink/80">
-					<?php echo esc_html($hero_description); ?>
-				</p>
+		<section class="pageHero chroma-v2-page-hero relative overflow-hidden bg-brand-cream border-b border-brand-ink/5">
+			<div class="absolute inset-0 opacity-80 bg-[linear-gradient(rgba(38,50,56,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(38,50,56,0.035)_1px,transparent_1px)] bg-[size:72px_72px]"></div>
+			<div class="absolute -left-20 bottom-0 h-72 w-72 rounded-full bg-chroma-redLight/70 blur-3xl"></div>
+			<div class="absolute right-0 top-0 h-96 w-96 rounded-full bg-chroma-blueLight/60 blur-3xl"></div>
+			<div class="relative max-w-7xl mx-auto px-4 lg:px-6 py-16 md:py-24">
+				<div class="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-brand-ink/50 mb-7">
+					<a href="<?php echo esc_url(home_url('/')); ?>" class="hover:text-chroma-red transition"><?php esc_html_e('Home', 'chroma-excellence'); ?></a>
+					<span aria-hidden="true">&middot;</span>
+					<span><?php esc_html_e('Parents', 'chroma-excellence'); ?></span>
+				</div>
+				<div class="max-w-4xl">
+					<div class="inline-flex items-center gap-2 bg-white border border-chroma-red/20 px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-brand-ink shadow-sm mb-7">
+						<span class="w-2 h-2 rounded-full bg-chroma-red" aria-hidden="true"></span>
+						<?php echo esc_html($hero_badge); ?>
+					</div>
+					<h1 class="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.045em] leading-[0.94] text-brand-ink mb-7">
+						<?php
+						$parents_title = (string) $hero_title;
+						if (stripos($parents_title, "child's journey") !== false) {
+							echo wp_kses_post(str_ireplace("child's journey", '<em class="block text-chroma-red">child\'s journey</em>', esc_html($parents_title)));
+						} else {
+							echo esc_html($parents_title);
+						}
+						?>
+					</h1>
+					<p class="text-lg md:text-xl text-brand-ink/75 leading-relaxed max-w-3xl">
+						<?php echo esc_html($hero_description); ?>
+					</p>
+				</div>
 			</div>
 		</section>
 

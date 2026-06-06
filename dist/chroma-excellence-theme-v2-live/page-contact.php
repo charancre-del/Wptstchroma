@@ -154,7 +154,7 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 				</div>
 			</div>
 
-			<!-- General Inquiry Form (Below Fold) -->
+			<!-- Contact Form -->
 			<div id="general-form"
 				class="tourForm chroma-form-scroll-card chroma-form-scroll-card--contact bg-white rounded-[2.5rem] p-8 md:p-10 text-brand-ink relative overflow-y-auto shadow-card border border-brand-ink/5 order-1">
 				<div

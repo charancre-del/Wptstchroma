@@ -16,7 +16,7 @@ while (have_posts()):
 	// Hero Section
 	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: __('Established 2022', 'chroma-excellence');
 	$hero_badge_text = trim((string) $hero_badge_text, " \t\n\r\0\x0B\"'“”‘’");
-	$hero_title = chroma_get_translated_meta($page_id, 'about_hero_title') ?: __('More than a school. <span class="text-chroma-yellow italic">A second home.</span>', 'chroma-excellence');
+	$hero_title = chroma_get_translated_meta($page_id, 'about_hero_title') ?: __('More than a school. <span class="text-chroma-red italic">A second home.</span>', 'chroma-excellence');
 	$hero_title = html_entity_decode((string) $hero_title, ENT_QUOTES, get_bloginfo('charset') ?: 'UTF-8');
 	$hero_description = chroma_get_translated_meta($page_id, 'about_hero_description') ?: __('We founded Chroma on a simple belief: Early education should be a perfect blend of rigorous cognitive development and the comforting warmth of family.', 'chroma-excellence');
 	$hero_image = chroma_get_translated_meta($page_id, 'about_hero_image') ?: 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1000&auto=format&fit=crop';
@@ -158,27 +158,34 @@ while (have_posts()):
 
 	<main id="main-content" class="chroma-about-v2" role="main">
 		<!-- Hero Section -->
-		<section class="pageHero chroma-v2-page-hero relative pt-16 pb-20 lg:pt-24 lg:pb-32 overflow-hidden">
+		<section class="pageHero chroma-v2-page-hero relative pt-16 pb-20 lg:pt-24 lg:pb-28 overflow-hidden bg-brand-cream border-b border-brand-ink/5">
 			<!-- Decor -->
-			<div
-				class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chroma-yellowLight/50 to-transparent -z-10">
-			</div>
-			<div class="absolute bottom-0 left-0 w-96 h-96 bg-chroma-blue/5 rounded-full blur-3xl -z-10"></div>
+			<div class="absolute inset-0 opacity-80 bg-[linear-gradient(rgba(38,50,56,0.035)_1px,transparent_1px),linear-gradient(90deg,rgba(38,50,56,0.035)_1px,transparent_1px)] bg-[size:72px_72px]"></div>
+			<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chroma-blueLight/50 to-transparent"></div>
+			<div class="absolute bottom-0 left-0 w-96 h-96 bg-chroma-redLight/60 rounded-full blur-3xl"></div>
 
-			<div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-16 items-center">
+			<div class="relative max-w-7xl mx-auto px-4 lg:px-6">
+				<div class="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-brand-ink/50 mb-7">
+					<a href="<?php echo esc_url(home_url('/')); ?>" class="hover:text-chroma-red transition"><?php esc_html_e('Home', 'chroma-excellence'); ?></a>
+					<span aria-hidden="true">&middot;</span>
+					<span><?php esc_html_e('About', 'chroma-excellence'); ?></span>
+				</div>
+			</div>
+
+			<div class="relative max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-16 items-center">
 				<div class="fade-in-up">
 					<?php if ($hero_badge_text): ?>
 						<div
-							class="inline-flex items-center gap-2 bg-white border border-chroma-yellow/40 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-yellow shadow-sm mb-6">
-							<i class="fa-solid fa-heart"></i> <?php echo esc_html($hero_badge_text); ?>
+							class="inline-flex items-center gap-2 bg-white border border-chroma-red/20 px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-brand-ink shadow-sm mb-7">
+							<span class="w-2 h-2 rounded-full bg-chroma-red" aria-hidden="true"></span> <?php echo esc_html($hero_badge_text); ?>
 						</div>
 					<?php endif; ?>
 
-					<h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6">
+					<h1 class="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.045em] leading-[0.94] text-brand-ink mb-7">
 						<?php echo wp_kses_post($hero_title); ?>
 					</h1>
 
-					<p class="text-lg text-brand-ink/70 mb-8 leading-relaxed">
+					<p class="text-lg md:text-xl text-brand-ink/75 mb-8 leading-relaxed">
 						<?php echo esc_html($hero_description); ?>
 					</p>
 
@@ -194,7 +201,7 @@ while (have_posts()):
 					<div
 						class="absolute inset-0 bg-chroma-yellow/10 rounded-[3rem] -rotate-3 transform translate-x-4 translate-y-4">
 					</div>
-					<div class="chroma-about-hero-img relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white">
+					<div class="chroma-about-hero-img relative rounded-[3rem] overflow-hidden shadow-2xl border-8 border-white">
 						<img src="<?php echo esc_url($hero_image); ?>"
 							alt="<?php echo esc_attr(strip_tags($hero_title)); ?>" class="w-full h-full object-cover" />
 					</div>
