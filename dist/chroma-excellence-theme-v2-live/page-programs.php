@@ -202,6 +202,7 @@ $color_map = array(
     </section>
 
 
+    <?php if (false): ?>
     <section id="curriculum" class="white borderY chroma-prism-stack py-20 md:py-24 bg-white border-y border-chroma-blue/10">
         <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.95fr_1.05fr] gap-10 items-center">
             <div>
@@ -242,6 +243,8 @@ $color_map = array(
         </div>
     </section>
 
+
+    <?php endif; ?>
 
     <section class="py-20 bg-brand-cream">
         <div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">
