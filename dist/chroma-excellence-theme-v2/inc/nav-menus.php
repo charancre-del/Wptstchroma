@@ -297,6 +297,7 @@ function chroma_primary_nav()
 function chroma_primary_nav_fallback()
 {
 	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
+	$early_learning_label = chroma_get_theme_mod('chroma_early_learning_nav_label', __('Early Learning', 'chroma-excellence'));
 
 	$pages = $is_es ? array(
 		'programs' => 'Programas',
@@ -304,14 +305,20 @@ function chroma_primary_nav_fallback()
 		'about' => 'Nosotros',
 		'contact-us' => 'Contacto'
 	) : array(
-		'programs' => 'Programs',
-		'locations' => 'Locations',
 		'about' => 'About Us',
-		'contact-us' => 'Contact'
+		'prismpath' => 'PrismPath',
+		'parents' => 'Parents',
+		'programs' => 'Programs',
+		'early-learning' => $early_learning_label,
+		'contact-us' => 'Contact',
+		'locations' => 'Locations',
+		'summer-camp-discover-go' => 'Summer 2026'
 	);
 
 	foreach ($pages as $slug => $title) {
-		$url = chroma_get_page_link($slug);
+		$url = 'prismpath' === $slug
+			? chroma_get_page_link('curriculum')
+			: chroma_get_page_link($slug);
 		echo '<a href="' . esc_url($url) . '" class="hover:text-chroma-blue transition">' . esc_html($title) . '</a>';
 	}
 }

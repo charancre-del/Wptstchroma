@@ -2853,10 +2853,16 @@
     }
 
     .chroma-program-card {
+      height: 100% !important;
       max-height: 100% !important;
       min-height: 0 !important;
-      display: flex !important;
-      overflow: hidden !important;
+      display: block !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      scrollbar-gutter: stable !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: color-mix(in srgb, var(--program-accent) 34%, rgba(74, 108, 124, 0.22)) transparent !important;
     }
 
     .chroma-program-card > div {
@@ -2864,15 +2870,10 @@
       display: grid !important;
       grid-template-columns: minmax(0, 1fr) !important;
       row-gap: clamp(0.35rem, 0.65vw, 0.7rem) !important;
-      flex: 1 1 auto !important;
-      height: 100% !important;
-      min-height: 0 !important;
-      overflow-x: hidden !important;
-      overflow-y: auto !important;
-      overscroll-behavior: contain !important;
-      scrollbar-gutter: stable !important;
-      scrollbar-width: thin !important;
-      scrollbar-color: color-mix(in srgb, var(--program-accent) 34%, rgba(74, 108, 124, 0.22)) transparent !important;
+      height: auto !important;
+      min-height: 100% !important;
+      overflow: visible !important;
+      padding-bottom: clamp(2.4rem, 3vw, 3.5rem) !important;
     }
 
     #programs .chroma-program-title,
@@ -2885,6 +2886,7 @@
       width: min(100%, 19.75rem) !important;
       max-width: 19.75rem !important;
       margin: 0.25rem auto 0.45rem !important;
+      overflow: visible !important;
     }
 
     .chroma-program-card .radarSvg {
@@ -2892,6 +2894,7 @@
       height: auto !important;
       max-height: 15.15rem !important;
       width: min(100%, 19.75rem) !important;
+      overflow: visible !important;
     }
 
     .chroma-program-card [data-program-wizard-prism-description] {
@@ -2980,6 +2983,7 @@
 
     .page-template-page-contact .chroma-form-scroll-card--contact,
     .page-template-page-summer-camp .chroma-form-scroll-card--summer,
+    .page-template-page-summer-camp-discover-go .chroma-form-scroll-card--summer,
     .single-location .chroma-form-scroll-card--location {
       height: min(74vh, 46rem) !important;
       max-height: min(74vh, 46rem) !important;

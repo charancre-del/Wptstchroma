@@ -159,6 +159,9 @@ function chroma_get_page_link($name)
         'after-school' => 'programs/after-school',
         'parents-day-out' => 'programs/parents-day-out',
         'camp-summer-winter-fall' => 'programs/camp-summer-winter-fall',
+        'early-learning' => 'chroma-early-learning',
+        'early-start' => 'chroma-early-learning',
+        'chroma-early-start' => 'chroma-early-learning',
     );
 
     // Check if this is an aliased name
