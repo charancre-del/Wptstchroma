@@ -23,11 +23,14 @@ if (!defined('ABSPATH')) {
 function chroma_migrate_v2_theme_state($old_name = '', $old_theme = null)
 {
     $target_stylesheet = get_stylesheet();
-    if ('chroma-excellence-theme-v2' !== $target_stylesheet) {
+    if (0 !== strpos($target_stylesheet, 'chroma-excellence-theme-v2')) {
         return;
     }
 
-    $source_stylesheets = array('chroma-excellence-theme');
+    $source_stylesheets = array(
+        'chroma-excellence-theme-v2',
+        'chroma-excellence-theme',
+    );
 
     if ($old_theme instanceof WP_Theme) {
         $old_stylesheet = $old_theme->get_stylesheet();

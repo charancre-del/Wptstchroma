@@ -1,0 +1,58 @@
+/*
+Theme Name: Chroma Excellence Theme V2.0 Live
+Theme URI: https://chromaela.com
+Author: Chroma Development Team
+Author URI: https://chromaela.com
+Description: Chroma Early Learning Academy V2.0 live theme with approved HTML design elements, preserved content mappings, customizer fallback support, and V2 program/location/form/review experiences.
+Version: 2.0.0
+Requires at least: 6.0
+Tested up to: 6.4
+Requires PHP: 8.0
+License: Proprietary
+License URI: All rights reserved
+Text Domain: chroma-excellence
+Tags: education, childcare, early-learning, tailwind, custom-theme
+
+Chroma Excellence Theme
+Copyright (C) 2025 Chroma Early Learning Academy
+All rights reserved. This theme is proprietary software.
+*/
+
+/**
+ * This file only contains the WordPress theme header.
+ * All styles are compiled via Tailwind CSS into assets/css/main.css
+ * and enqueued via inc/enqueue.php
+ */
+
+/* Fallback Utilities for Schedule Layout */
+.gap-x-4 {
+    column-gap: 1rem;
+}
+
+.gap-y-4 {
+    row-gap: 1rem;
+}
+
+.w-14 {
+    width: 3.5rem;
+}
+
+.h-14 {
+    height: 3.5rem;
+}
+
+@media (min-width: 768px) {
+    .md\:w-16 {
+        width: 4rem;
+    }
+
+    .md\:h-16 {
+        height: 4rem;
+    }
+}
+
+/* Prevent horizontal scroll from off-canvas menu */
+html, body {
+    overflow-x: hidden;
+    width: 100%;
+}

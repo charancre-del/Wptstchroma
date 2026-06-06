@@ -139,11 +139,23 @@ if (!function_exists('chroma_get_theme_mod')) {
             return $value;
         }
 
-        if ('chroma-excellence-theme-v2' === get_stylesheet()) {
-            $source_mods = get_option('theme_mods_chroma-excellence-theme', array());
+        $stylesheet = get_stylesheet();
+        if (0 === strpos($stylesheet, 'chroma-excellence-theme-v2')) {
+            $source_stylesheets = array(
+                'chroma-excellence-theme-v2',
+                'chroma-excellence-theme',
+            );
 
-            if (is_array($source_mods) && array_key_exists($name, $source_mods)) {
-                return $source_mods[$name];
+            foreach ($source_stylesheets as $source_stylesheet) {
+                if ($source_stylesheet === $stylesheet) {
+                    continue;
+                }
+
+                $source_mods = get_option('theme_mods_' . $source_stylesheet, array());
+
+                if (is_array($source_mods) && array_key_exists($name, $source_mods)) {
+                    return $source_mods[$name];
+                }
             }
         }
 

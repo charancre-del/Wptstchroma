@@ -2828,19 +2828,32 @@
   @media (min-width: 1024px) {
     .chroma-program-shell-grid {
       grid-template-columns: minmax(18rem, 23rem) minmax(0, 1fr) !important;
-      height: min(78vh, 48rem) !important;
-      min-height: 44rem !important;
+      height: min(82vh, 50rem) !important;
+      min-height: 45rem !important;
+      align-items: stretch !important;
     }
 
     .chroma-program-card {
       max-height: 100% !important;
+      min-height: 0 !important;
+      display: flex !important;
+      overflow: hidden !important;
     }
 
     .chroma-program-card > div {
       align-content: start !important;
       display: grid !important;
       grid-template-columns: minmax(0, 1fr) !important;
-      row-gap: clamp(0.45rem, 0.8vw, 0.85rem) !important;
+      row-gap: clamp(0.35rem, 0.65vw, 0.7rem) !important;
+      flex: 1 1 auto !important;
+      height: 100% !important;
+      min-height: 0 !important;
+      overflow-x: hidden !important;
+      overflow-y: auto !important;
+      overscroll-behavior: contain !important;
+      scrollbar-gutter: stable !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: color-mix(in srgb, var(--program-accent) 34%, rgba(74, 108, 124, 0.22)) transparent !important;
     }
 
     #programs .chroma-program-title,
@@ -2850,16 +2863,16 @@
     }
 
     .chroma-program-card .radarChart {
-      width: min(100%, 22.75rem) !important;
-      max-width: 22.75rem !important;
+      width: min(100%, 19.75rem) !important;
+      max-width: 19.75rem !important;
       margin: 0.25rem auto 0.45rem !important;
     }
 
     .chroma-program-card .radarSvg {
       aspect-ratio: 560 / 430 !important;
       height: auto !important;
-      max-height: 17.75rem !important;
-      width: min(100%, 22.75rem) !important;
+      max-height: 15.15rem !important;
+      width: min(100%, 19.75rem) !important;
     }
 
     .chroma-program-card [data-program-wizard-prism-description] {
@@ -2892,6 +2905,12 @@
       overflow-y: auto !important;
       overscroll-behavior: contain !important;
       scrollbar-gutter: stable !important;
+    }
+
+    .chroma-location-map-summary,
+    [data-location-summary-count],
+    [data-location-summary-label] {
+      display: none !important;
     }
 
     .chroma-map-only .chroma-location-explorer,
