@@ -4314,20 +4314,21 @@
 
 @media (max-width: 767px) {
   #programs .chroma-program-card .radarChart {
-    width: min(100%, 20rem) !important;
-    max-width: 20rem !important;
-    margin-block: 1.15rem !important;
+    width: min(calc(100% + 3rem), 18.75rem) !important;
+    max-width: calc(100% + 3rem) !important;
+    margin: 1.15rem -1.5rem !important;
   }
 
   #programs .chroma-program-card .radarSvg {
     width: 100% !important;
-    max-width: 20rem !important;
-    min-height: 15.5rem !important;
+    max-width: 18.75rem !important;
+    height: auto !important;
+    min-height: 0 !important;
     aspect-ratio: 560 / 430 !important;
     overflow: visible !important;
   }
 
   #programs .chroma-program-card .radarLabel {
-    font-size: 0.9rem !important;
+    font-size: 1rem !important;
   }
 }
