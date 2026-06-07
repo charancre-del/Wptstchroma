@@ -3242,6 +3242,23 @@
   }
 }
 
+@media (min-width: 768px) {
+  .chroma-review-viewport {
+    overflow: hidden !important;
+    isolation: isolate !important;
+  }
+
+  .chroma-review-viewport [data-reviews-track] {
+    width: 100% !important;
+  }
+
+  .chroma-review-viewport [data-review-slide] {
+    flex: 0 0 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
 /* V2 absolute mobile containment fixes. */
 @media (max-width: 1023px) {
   #programs,
