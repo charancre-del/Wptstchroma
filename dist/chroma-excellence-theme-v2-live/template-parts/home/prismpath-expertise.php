@@ -30,12 +30,12 @@ $readiness_heading = $readiness['heading'] ?? __('Kindergarten Readiness', 'chro
 $readiness_text = $readiness['description'] ?? __('Our graduates enter school confident, socially capable, and academically prepared.', 'chroma-excellence');
 $color_heading = $feature['color_heading'] ?? __('Every child brings their own beautiful color to the world.', 'chroma-excellence');
 $color_text = $subheading ?: __('Chroma represents the full spectrum of growth, learning, and possibility within each child. We nurture every child’s unique strengths, personality, and talents.', 'chroma-excellence');
-$curriculum_text = wp_trim_words(wp_strip_all_tags($curriculum_text), 28, '...');
-$care_text = wp_trim_words(wp_strip_all_tags($care_text), 22, '...');
-$fuel_text = wp_trim_words(wp_strip_all_tags($fuel_text), 16, '...');
-$safety_text = wp_trim_words(wp_strip_all_tags($safety_text), 16, '...');
-$readiness_text = wp_trim_words(wp_strip_all_tags($readiness_text), 16, '...');
-$color_text = wp_trim_words(wp_strip_all_tags($color_text), 28, '...');
+$curriculum_text = wp_strip_all_tags($curriculum_text);
+$care_text = wp_strip_all_tags($care_text);
+$fuel_text = wp_strip_all_tags($fuel_text);
+$safety_text = wp_strip_all_tags($safety_text);
+$readiness_text = wp_strip_all_tags($readiness_text);
+$color_text = wp_strip_all_tags($color_text);
 ?>
 
 <section id="prismpath" class="py-24 px-4 lg:px-6 bg-white relative overflow-hidden" data-section="prismpath">
