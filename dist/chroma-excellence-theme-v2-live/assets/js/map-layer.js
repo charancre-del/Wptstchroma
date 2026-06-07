@@ -104,11 +104,34 @@
         markerById.set(parseInt(location.id, 10), marker);
       });
 
+      const ensureMapVisible = () => {
+        const mapShell = container.closest('.chroma-location-map-panel') || container;
+        const rect = mapShell.getBoundingClientRect();
+        const header = document.querySelector('header');
+        const headerHeight = header ? header.getBoundingClientRect().height : 0;
+        const topLimit = headerHeight + 24;
+        const bottomLimit = window.innerHeight - 32;
+
+        if (rect.top < topLimit || rect.bottom > bottomLimit) {
+          const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          mapShell.scrollIntoView({
+            behavior: prefersReducedMotion ? 'auto' : 'smooth',
+            block: 'center',
+          });
+
+          window.setTimeout(() => {
+            map.invalidateSize();
+          }, prefersReducedMotion ? 0 : 350);
+        }
+      };
+
       const focusLocation = (locationId) => {
         const id = parseInt(locationId, 10);
         const location = locations.find((item) => parseInt(item.id, 10) === id);
         const marker = markerById.get(id);
         if (!location || !marker) return;
+
+        ensureMapVisible();
 
         const target = [location.lat, location.lng];
         const openPopup = () => {
