@@ -3242,6 +3242,89 @@
   }
 }
 
+/* V2 absolute mobile containment fixes. */
+@media (max-width: 1023px) {
+  #programs,
+  #programs .chroma-program-shell {
+    overflow-x: hidden !important;
+  }
+
+  #programs .chroma-program-shell-grid {
+    display: block !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  #programs .chroma-program-tabs {
+    display: flex !important;
+    grid-template-columns: none !important;
+    gap: 0.75rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 0 0.25rem 0.8rem !important;
+    scroll-snap-type: x proximity;
+    scrollbar-gutter: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  #programs .chroma-program-tab {
+    flex: 0 0 min(72vw, 14.5rem) !important;
+    min-width: min(72vw, 14.5rem) !important;
+    transform: none !important;
+    scroll-snap-align: start;
+  }
+
+  #programs .chroma-program-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-top: 1rem !important;
+    overflow: hidden !important;
+  }
+
+  #programs .chroma-program-card > div,
+  #programs .chroma-program-card [data-program-wizard-description],
+  #programs .chroma-program-card [data-program-wizard-prism-description] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  #programs .chroma-program-card .radarChart {
+    width: min(100%, 20.5rem) !important;
+    max-width: 20.5rem !important;
+    margin: 1.25rem auto !important;
+  }
+
+  #programs .chroma-program-card .radarSvg {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .chroma-review-card blockquote {
+    font-size: clamp(1.18rem, 6.4vw, 1.82rem) !important;
+    line-height: 1.12 !important;
+  }
+
+  .chroma-location-list-panel {
+    height: min(74vh, 42rem) !important;
+    min-height: 34rem !important;
+    overflow: hidden !important;
+  }
+
+  .chroma-location-card-scroll {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    min-height: 0 !important;
+  }
+}
+
 /**
  * V2 final parity guardrails.
  * These keep the approved HTML-design proportions without changing mapped WP content.
