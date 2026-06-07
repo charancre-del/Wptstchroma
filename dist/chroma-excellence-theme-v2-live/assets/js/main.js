@@ -147,7 +147,77 @@
     motionItems.forEach(el => observer.observe(el));
   };
 
+  const normalizeGhlFormEmbeds = () => {
+    const formCards = document.querySelectorAll('.chroma-form-scroll-card, .chroma-tour-form-card');
+    if (!formCards.length) return;
+
+    formCards.forEach((card) => {
+      card.querySelectorAll('.chroma-tour-form-wrapper, [data-chroma-ghl-container], .chroma-ghl-iframe-container').forEach((container) => {
+        if (!(container instanceof HTMLElement)) return;
+
+        container.style.setProperty('position', 'relative', 'important');
+        container.style.setProperty('left', 'auto', 'important');
+        container.style.setProperty('right', 'auto', 'important');
+        container.style.setProperty('top', 'auto', 'important');
+        container.style.setProperty('bottom', 'auto', 'important');
+        container.style.setProperty('transform', 'none', 'important');
+        container.style.setProperty('width', '100%', 'important');
+        container.style.setProperty('max-width', '100%', 'important');
+      });
+
+      card.querySelectorAll('iframe[data-src], iframe[src*="leadconnectorhq.com"], iframe[src*="msgsndr.com"], iframe[src*="gohighlevel"]').forEach((iframe) => {
+        if (!(iframe instanceof HTMLIFrameElement)) return;
+
+        const dataSource = iframe.getAttribute('data-src');
+        if (dataSource && !iframe.getAttribute('src')) {
+          iframe.setAttribute('src', dataSource);
+        }
+
+        iframe.style.setProperty('position', 'relative', 'important');
+        iframe.style.setProperty('inset', 'auto', 'important');
+        iframe.style.setProperty('left', '0', 'important');
+        iframe.style.setProperty('right', 'auto', 'important');
+        iframe.style.setProperty('top', '0', 'important');
+        iframe.style.setProperty('bottom', 'auto', 'important');
+        iframe.style.setProperty('transform', 'none', 'important');
+        iframe.style.setProperty('display', 'block', 'important');
+        iframe.style.setProperty('visibility', 'visible', 'important');
+        iframe.style.setProperty('opacity', '1', 'important');
+        iframe.style.setProperty('width', '100%', 'important');
+        iframe.style.setProperty('max-width', '100%', 'important');
+        iframe.style.setProperty('min-width', '0', 'important');
+      });
+    });
+  };
+
+  const observeGhlFormEmbeds = () => {
+    normalizeGhlFormEmbeds();
+
+    if (!('MutationObserver' in window) || document.documentElement.dataset.chromaGhlEmbedObserver === 'true') {
+      return;
+    }
+
+    document.documentElement.dataset.chromaGhlEmbedObserver = 'true';
+    const refresh = debounce(normalizeGhlFormEmbeds, 50);
+    const observer = new MutationObserver(refresh);
+
+    document.querySelectorAll('.chroma-form-scroll-card, .chroma-tour-form-card').forEach((card) => {
+      observer.observe(card, {
+        attributes: true,
+        attributeFilter: ['style', 'src', 'data-src', 'class'],
+        childList: true,
+        subtree: true,
+      });
+    });
+
+    window.setTimeout(normalizeGhlFormEmbeds, 100);
+    window.setTimeout(normalizeGhlFormEmbeds, 800);
+    window.setTimeout(normalizeGhlFormEmbeds, 2200);
+  };
+
   const syncTourFormScroll = () => {
+    normalizeGhlFormEmbeds();
+
     const grids = document.querySelectorAll('[data-tour-scroll-grid]');
     if (!grids.length) return;
 
@@ -1109,10 +1179,15 @@
     // 1. Critical Nav (Immediate)
     initMobileNav();
     initRevealMotion();
+    observeGhlFormEmbeds();
     syncTourFormScroll();
     window.addEventListener('resize', debounce(syncTourFormScroll, 150));
-    window.addEventListener('load', syncTourFormScroll);
+    window.addEventListener('load', () => {
+      observeGhlFormEmbeds();
+      syncTourFormScroll();
+    });
     setTimeout(syncTourFormScroll, 500);
+    setTimeout(observeGhlFormEmbeds, 2400);
 
     const initializeLazyComponent = (el, type) => {
       if (type === 'wizard') initProgramWizard(el);

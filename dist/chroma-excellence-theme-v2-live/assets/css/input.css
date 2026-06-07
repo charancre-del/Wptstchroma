@@ -3153,6 +3153,59 @@
   }
 }
 
+.chroma-form-scroll-card .chroma-tour-form-wrapper,
+.chroma-form-scroll-card [data-chroma-ghl-container],
+.chroma-form-scroll-card .chroma-ghl-iframe-container,
+.chroma-tour-form-card .chroma-tour-form-wrapper,
+.chroma-tour-form-card [data-chroma-ghl-container],
+.chroma-tour-form-card .chroma-ghl-iframe-container {
+  position: relative !important;
+  inset: auto !important;
+  left: auto !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  max-height: none !important;
+}
+
+.chroma-form-scroll-card .chroma-ghl-iframe-container,
+.chroma-tour-form-card .chroma-ghl-iframe-container {
+  min-height: min(84rem, 155svh) !important;
+  overflow: hidden !important;
+}
+
+.chroma-form-scroll-card iframe[data-src*="leadconnectorhq.com"],
+.chroma-form-scroll-card iframe[src*="leadconnectorhq.com"],
+.chroma-form-scroll-card iframe[src*="msgsndr.com"],
+.chroma-form-scroll-card iframe[src*="gohighlevel"],
+.chroma-tour-form-card iframe[data-src*="leadconnectorhq.com"],
+.chroma-tour-form-card iframe[src*="leadconnectorhq.com"],
+.chroma-tour-form-card iframe[src*="msgsndr.com"],
+.chroma-tour-form-card iframe[src*="gohighlevel"] {
+  position: relative !important;
+  inset: auto !important;
+  left: 0 !important;
+  right: auto !important;
+  top: 0 !important;
+  bottom: auto !important;
+  transform: none !important;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  height: min(96rem, 180svh) !important;
+  min-height: min(84rem, 155svh) !important;
+  max-height: none !important;
+  border: 0 !important;
+}
+
 #programs .chroma-program-card [data-program-wizard-image],
 #programs .chroma-program-card .chroma-program-image-frame,
 #programs .chroma-program-card img,
