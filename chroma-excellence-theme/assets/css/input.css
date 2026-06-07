@@ -3259,6 +3259,27 @@
   }
 }
 
+@layer components {
+  @media (min-width: 768px) {
+    .chroma-review-viewport {
+      overflow: hidden !important;
+      clip-path: inset(0 round 3rem) !important;
+      contain: paint !important;
+      isolation: isolate !important;
+    }
+
+    .chroma-review-viewport [data-reviews-track] {
+      width: 100% !important;
+    }
+
+    .chroma-review-viewport [data-review-slide] {
+      flex: 0 0 100% !important;
+      min-width: 100% !important;
+      max-width: 100% !important;
+    }
+  }
+}
+
 /* V2 absolute mobile containment fixes. */
 @media (max-width: 1023px) {
   #programs,
@@ -4176,5 +4197,25 @@
   .chroma-review-card blockquote {
     font-size: clamp(1.45rem, 8vw, 2.35rem) !important;
     line-height: 1.08 !important;
+  }
+}
+
+/* Final V2 review carousel clipping guardrail: desktop/tablet only. */
+@media (min-width: 768px) {
+  .chroma-review-viewport {
+    overflow: hidden !important;
+    clip-path: inset(0 round 3rem) !important;
+    contain: paint !important;
+    isolation: isolate !important;
+  }
+
+  .chroma-review-viewport [data-reviews-track] {
+    width: 100% !important;
+  }
+
+  .chroma-review-viewport [data-review-slide] {
+    flex: 0 0 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
   }
 }
