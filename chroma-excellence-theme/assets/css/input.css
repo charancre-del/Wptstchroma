@@ -4219,3 +4219,75 @@
     max-width: 100% !important;
   }
 }
+
+/* Final V2 mobile containment: prevent off-canvas UI and hidden slides from widening pages. */
+@media (max-width: 1023px) {
+  [data-mobile-nav].translate-x-full {
+    display: none !important;
+  }
+
+  #programs,
+  #programs .chroma-program-shell,
+  #programs .chroma-program-shell-grid,
+  #programs .chroma-program-card {
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  #programs .chroma-program-tabs {
+    display: flex !important;
+    grid-auto-flow: initial !important;
+    grid-auto-columns: initial !important;
+    grid-template-columns: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-x: contain !important;
+    -webkit-overflow-scrolling: touch;
+    contain: paint;
+  }
+
+  #programs .chroma-program-tab {
+    flex: 0 0 min(72vw, 14.5rem) !important;
+    min-width: min(72vw, 14.5rem) !important;
+    max-width: min(72vw, 14.5rem) !important;
+    transform: none !important;
+  }
+
+  .chroma-review-viewport {
+    overflow: hidden !important;
+    clip-path: inset(0 round 1.75rem) !important;
+    contain: paint !important;
+  }
+
+  .chroma-review-viewport [data-reviews-track] {
+    width: 100% !important;
+  }
+
+  .chroma-review-viewport [data-review-slide] {
+    flex: 0 0 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .single-location #contact,
+  .single-location #contact > div,
+  .single-location #contact > div > *,
+  .single-location #contact .space-y-6,
+  .single-location #contact .space-y-6 > div,
+  .single-location #tour {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+
+  .single-location #contact iframe,
+  .single-location #contact [data-chroma-map] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}

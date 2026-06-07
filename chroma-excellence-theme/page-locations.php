@@ -56,25 +56,9 @@ function chroma_get_region_color_mem($term_id)
 ?>
 
 <main>
-	<!-- Hero Section -->
-	<section class="chroma-v2-page-hero relative pt-16 pb-12 lg:pt-24 lg:pb-20 bg-brand-cream overflow-hidden">
-		<!-- Decor -->
-		<div
-			class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-chroma-greenLight/40 via-transparent to-transparent">
-		</div>
-
-		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
-			<h1 class="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.045em] leading-[0.94] text-brand-ink mb-6 fade-in-up"
-				style="animation-delay: 0.1s;">
-				<?php echo wp_kses_post(get_theme_mod('chroma_locations_archive_title', 'A Chroma <span class="text-chroma-green italic">near you.</span>')); ?>
-			</h1>
-
-			<p class="text-lg md:text-xl text-brand-ink/75 leading-relaxed max-w-3xl mx-auto mb-10 fade-in-up" style="animation-delay: 0.2s;">
-				<?php echo esc_html($archive_subtitle); ?>
-			</p>
-
-		</div>
-	</section>
+	<h1 class="sr-only">
+		<?php echo wp_kses_post(get_theme_mod('chroma_locations_archive_title', 'A Chroma near you.')); ?>
+	</h1>
 
 	<?php get_template_part('template-parts/home/locations-preview', null, array('hide_heading' => true)); ?>
 

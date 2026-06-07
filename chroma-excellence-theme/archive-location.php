@@ -67,25 +67,9 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 ?>
 
 <main>
-	<!-- Hero Section -->
-		<section class="pageHero chroma-v2-page-hero relative pt-16 pb-12 lg:pt-24 lg:pb-20 bg-brand-cream overflow-hidden">
-		<!-- Decor -->
-		<div
-			class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-chroma-greenLight/40 via-transparent to-transparent">
-		</div>
-
-		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
-			<h1 class="font-serif text-[2.8rem] md:text-6xl text-brand-ink mb-6 fade-in-up"
-				style="animation-delay: 0.1s;">
-				<?php echo wp_kses_post($archive_title); ?>
-			</h1>
-
-			<p class="text-lg text-brand-ink/90 max-w-2xl mx-auto mb-10 fade-in-up" style="animation-delay: 0.2s;">
-				<?php echo esc_html($archive_subtitle); ?>
-			</p>
-
-		</div>
-	</section>
+	<h1 class="sr-only">
+		<?php echo wp_kses_post($archive_title); ?>
+	</h1>
 
 	<?php get_template_part('template-parts/home/locations-preview', null, array('hide_heading' => true)); ?>
 
