@@ -413,7 +413,11 @@
         button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
         if (isActive && window.matchMedia('(max-width: 768px)').matches) {
-          button.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          const optionScroller = button.closest('[data-program-wizard-options]');
+          if (optionScroller && optionScroller.scrollWidth > optionScroller.clientWidth) {
+            const targetLeft = button.offsetLeft - ((optionScroller.clientWidth - button.offsetWidth) / 2);
+            optionScroller.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+          }
         }
       });
 
@@ -434,6 +438,11 @@
       updateRadar(selectedData);
 
       window.requestAnimationFrame(() => {
+        wizard.scrollLeft = 0;
+        const shellGrid = wizard.querySelector('.chroma-program-shell-grid');
+        if (shellGrid) {
+          shellGrid.scrollLeft = 0;
+        }
         result.scrollTop = 0;
         if (resultScroller && resultScroller !== result) {
           resultScroller.scrollTop = 0;
