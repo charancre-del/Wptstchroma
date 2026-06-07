@@ -3221,6 +3221,11 @@
   display: none !important;
 }
 
+.page-template-page-locations .chroma-locations-showcase,
+.post-type-archive-location .chroma-locations-showcase {
+  padding-top: clamp(1.5rem, 3vw, 2.5rem) !important;
+}
+
 .chroma-location-list-panel {
   overflow: hidden !important;
   display: flex !important;

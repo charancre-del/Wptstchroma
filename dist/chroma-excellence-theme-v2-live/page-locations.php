@@ -60,6 +60,20 @@ function chroma_get_region_color_mem($term_id)
 		<?php echo wp_kses_post(get_theme_mod('chroma_locations_archive_title', 'A Chroma near you.')); ?>
 	</h1>
 
+	<section class="chroma-location-compact-intro bg-white pt-16 md:pt-20 pb-4">
+		<div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">
+			<p class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3">
+				<?php esc_html_e('Neighborhood care, one Chroma standard', 'chroma-excellence'); ?>
+			</p>
+			<h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.04em] leading-[0.98] text-brand-ink mb-5">
+				<?php esc_html_e('Local roots. One standard.', 'chroma-excellence'); ?>
+			</h2>
+			<p class="text-brand-ink/70 text-base md:text-lg leading-relaxed max-w-3xl mx-auto">
+				<?php esc_html_e('Find a Chroma campus close to home or work. Each location is neighborhood-specific and connected by the same safety, curriculum, and care standards.', 'chroma-excellence'); ?>
+			</p>
+		</div>
+	</section>
+
 	<?php get_template_part('template-parts/home/locations-preview', null, array('hide_heading' => true)); ?>
 
 	<?php if (false): ?>
