@@ -94,7 +94,11 @@
       locations.forEach((location) => {
         const marker = L.marker([location.lat, location.lng]).addTo(map);
         marker.bindPopup(createPopupContent(location), {
+          autoPan: true,
+          autoPanPadding: [80, 110],
+          keepInView: true,
           maxWidth: 320,
+          minWidth: 240,
           className: 'chroma-map-popup-shell',
         });
         markerById.set(parseInt(location.id, 10), marker);
@@ -106,8 +110,27 @@
         const marker = markerById.get(id);
         if (!location || !marker) return;
 
-        map.flyTo([location.lat, location.lng], 14, { duration: 0.7 });
-        window.setTimeout(() => marker.openPopup(), 450);
+        const target = [location.lat, location.lng];
+        const openPopup = () => {
+          marker.openPopup();
+          window.setTimeout(() => {
+            const popup = marker.getPopup && marker.getPopup();
+            if (popup && popup.isOpen && popup.isOpen()) {
+              map.panInside(target, {
+                paddingTopLeft: [80, 190],
+                paddingBottomRight: [80, 80],
+              });
+            }
+          }, 80);
+        };
+
+        map.once('moveend', openPopup);
+        map.flyTo(target, 14, { duration: 0.7 });
+        window.setTimeout(() => {
+          if (!marker.isPopupOpen || !marker.isPopupOpen()) {
+            openPopup();
+          }
+        }, 900);
       };
 
       const filterLocations = (ids) => {

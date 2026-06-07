@@ -17,9 +17,10 @@ $grouped = $locations_data['grouped'] ?? array();
 $explorer_id = 'chroma-locations-map';
 $hide_heading = !empty($args['hide_heading']);
 $map_only = !empty($args['map_only']);
+$stacked = !empty($args['stacked']);
 ?>
 
-<section id="locations" class="chroma-locations-showcase py-20 md:py-24 bg-white <?php echo $map_only ? 'chroma-map-only' : ''; ?>" data-section="locations">
+<section id="locations" class="chroma-locations-showcase py-20 md:py-24 bg-white <?php echo $map_only ? 'chroma-map-only' : ''; ?> <?php echo $stacked ? 'chroma-locations-stacked' : ''; ?>" data-section="locations">
     <div class="max-w-[112rem] mx-auto px-4 sm:px-6 lg:px-8">
 
         <?php if (!$hide_heading): ?>
@@ -36,7 +37,7 @@ $map_only = !empty($args['map_only']);
         <?php endif; ?>
 
         <?php if (!empty($map_json) && !empty($featured)): ?>
-            <div class="chroma-location-explorer grid lg:grid-cols-[minmax(0,0.98fr)_minmax(0,0.92fr)] gap-7 xl:gap-11 items-stretch"
+            <div class="chroma-location-explorer grid <?php echo $stacked ? 'grid-cols-1' : 'lg:grid-cols-[minmax(0,0.98fr)_minmax(0,0.92fr)]'; ?> gap-7 xl:gap-11 items-stretch"
                 data-location-explorer
                 data-map-target="<?php echo esc_attr($explorer_id); ?>">
                 <div class="chroma-location-map-panel relative rounded-[2rem] overflow-hidden border border-chroma-blue/10 shadow-soft bg-chroma-blueLight/30 min-h-[32rem]">

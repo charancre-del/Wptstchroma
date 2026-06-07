@@ -74,7 +74,7 @@ function chroma_get_region_color_mem($term_id)
 		</div>
 	</section>
 
-	<?php get_template_part('template-parts/home/locations-preview', null, array('hide_heading' => true)); ?>
+	<?php get_template_part('template-parts/home/locations-preview', null, array('hide_heading' => true, 'stacked' => true)); ?>
 
 	<?php if (false): ?>
 	<section class="chroma-location-promise-section cream py-20 bg-brand-cream">

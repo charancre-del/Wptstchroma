@@ -4359,22 +4359,62 @@
 }
 
 @media (min-width: 1024px) {
+  #programs .chroma-program-card {
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  #programs .chroma-program-card > div {
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+    padding: clamp(2.1rem, 2.5vw, 2.85rem) clamp(2.35rem, 3.6vw, 3.75rem) !important;
+  }
+
+  #programs .chroma-program-age {
+    margin-bottom: clamp(1.15rem, 1.5vw, 1.6rem) !important;
+    padding-block: 0.45rem !important;
+    font-size: clamp(0.68rem, 0.68vw, 0.76rem) !important;
+  }
+
+  #programs .chroma-program-title {
+    margin-bottom: clamp(0.8rem, 1vw, 1.05rem) !important;
+    font-size: clamp(3.1rem, 4.7vw, 5.1rem) !important;
+    line-height: 0.9 !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-description],
+  #programs .chroma-program-card [data-program-wizard-prism-description] {
+    font-size: clamp(0.98rem, 1.05vw, 1.12rem) !important;
+    line-height: 1.45 !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-description] {
+    margin-bottom: clamp(1rem, 1.2vw, 1.35rem) !important;
+    max-width: 46rem !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-prism-description] {
+    margin-top: clamp(0.85rem, 1vw, 1.1rem) !important;
+    margin-bottom: clamp(1rem, 1.1vw, 1.25rem) !important;
+  }
+
   #programs .chroma-program-card .radarChart {
-    width: min(100%, 35rem) !important;
-    max-width: 35rem !important;
-    margin-block: clamp(0.75rem, 1.15vw, 1.15rem) clamp(0.85rem, 1.25vw, 1.25rem) !important;
+    width: min(100%, 31rem) !important;
+    max-width: 31rem !important;
+    margin-block: clamp(0.35rem, 0.7vw, 0.7rem) clamp(0.45rem, 0.8vw, 0.85rem) !important;
   }
 
   #programs .chroma-program-card .radarSvg {
     width: 100% !important;
-    max-width: 35rem !important;
-    min-height: 24rem !important;
+    max-width: 31rem !important;
+    min-height: 20.25rem !important;
     aspect-ratio: 560 / 430 !important;
     overflow: visible !important;
   }
 
   #programs .chroma-program-card .radarLabel {
-    font-size: clamp(0.95rem, 0.95vw, 1.06rem) !important;
+    font-size: clamp(0.82rem, 0.78vw, 0.94rem) !important;
   }
 }
 
@@ -4397,4 +4437,371 @@
   #programs .chroma-program-card .radarLabel {
     font-size: 1rem !important;
   }
+}
+
+/* Final V2 batch: keep program detail cards fully visible without right-side scroll. */
+@media (min-width: 1024px) {
+  #programs .chroma-program-shell-grid {
+    height: auto !important;
+    min-height: 0 !important;
+    align-items: start !important;
+  }
+
+  #programs .chroma-program-card {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+  }
+
+  #programs .chroma-program-card > div {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-y: visible !important;
+    padding: clamp(1.85rem, 2.25vw, 2.6rem) clamp(2rem, 3vw, 3.25rem) !important;
+    gap: clamp(0.55rem, 0.75vw, 0.85rem) !important;
+  }
+
+  #programs .chroma-program-age {
+    margin-bottom: 0.9rem !important;
+    padding-block: 0.38rem !important;
+    font-size: clamp(0.66rem, 0.62vw, 0.72rem) !important;
+  }
+
+  #programs .chroma-program-title {
+    margin: 0 0 0.7rem !important;
+    font-size: clamp(2.85rem, 4.15vw, 4.55rem) !important;
+    line-height: 0.92 !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-description],
+  #programs .chroma-program-card [data-program-wizard-prism-description] {
+    font-size: clamp(0.9rem, 0.88vw, 1rem) !important;
+    line-height: 1.38 !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-description] {
+    margin-bottom: 0.85rem !important;
+  }
+
+  #programs .chroma-program-card [data-program-wizard-prism-description] {
+    margin-top: 0.55rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  #programs .chroma-program-card .radarChart {
+    width: min(100%, 26rem) !important;
+    max-width: 26rem !important;
+    margin: 0.25rem auto 0.45rem !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card .radarSvg {
+    width: 100% !important;
+    max-width: 26rem !important;
+    height: auto !important;
+    min-height: 0 !important;
+    aspect-ratio: 560 / 430 !important;
+    overflow: visible !important;
+  }
+
+  #programs .chroma-program-card .radarLabel {
+    font-size: clamp(0.72rem, 0.68vw, 0.82rem) !important;
+  }
+}
+
+/* Final V2 batch: let full parent reviews breathe instead of truncating or clipping. */
+@media (min-width: 1024px) {
+  .chroma-reviews-grid {
+    grid-template-columns: minmax(18rem, 0.62fr) minmax(0, 1.38fr) !important;
+    align-items: stretch !important;
+  }
+
+  .chroma-review-viewport {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(0 round 3rem) !important;
+  }
+
+  .chroma-review-viewport [data-reviews-track] {
+    align-items: stretch !important;
+    height: auto !important;
+  }
+
+  .chroma-review-card {
+    height: auto !important;
+    min-height: clamp(28rem, 33vw, 35rem) !important;
+    overflow: visible !important;
+    padding: clamp(2.35rem, 3vw, 3.4rem) !important;
+    justify-content: space-between !important;
+  }
+
+  .chroma-review-card blockquote {
+    max-width: none !important;
+    font-size: clamp(1.32rem, 1.45vw, 1.9rem) !important;
+    line-height: 1.13 !important;
+    letter-spacing: -0.035em !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .chroma-review-viewport {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .chroma-review-card {
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  .chroma-review-card blockquote {
+    font-size: clamp(1.35rem, 6.2vw, 2rem) !important;
+    line-height: 1.15 !important;
+  }
+}
+
+/* Final V2 batch: FAQ becomes a two-column card stack on desktop. */
+@media (min-width: 1024px) {
+  #faq .faqBox {
+    max-width: none !important;
+  }
+
+  #faq .faqWrap {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    align-items: start !important;
+    gap: clamp(1rem, 1.4vw, 1.5rem) !important;
+  }
+
+  #faq .faqItem {
+    break-inside: avoid;
+  }
+}
+
+/* Final V2 batch: restore a summer hero image composition while preserving page content. */
+.chroma-summer-hero-art {
+  max-width: min(100%, 34rem);
+  margin-inline: auto;
+}
+
+.chroma-summer-hero-frame {
+  height: clamp(18rem, 34vw, 32rem);
+  border-radius: 45% 2.75rem 45% 2.75rem;
+}
+
+.chroma-summer-hero-float {
+  position: absolute;
+  right: -1.25rem;
+  bottom: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  max-width: min(92%, 23rem);
+  padding: 1rem 1.2rem;
+  border-radius: 1.5rem;
+}
+
+.chroma-summer-hero-float strong,
+.chroma-summer-hero-float span {
+  display: block;
+}
+
+.chroma-summer-hero-float strong {
+  color: var(--brand-ink);
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.chroma-summer-hero-float span {
+  color: rgb(40 51 57 / 0.68);
+  font-size: 0.86rem;
+  line-height: 1.25;
+}
+
+@media (max-width: 767px) {
+  .chroma-summer-hero-frame {
+    height: 18rem;
+    border-radius: 2rem;
+  }
+
+  .chroma-summer-hero-float {
+    position: static;
+    margin-top: 1rem;
+    max-width: none;
+  }
+}
+
+/* Final V2 batch: put parent moments inside a contained scroll card. */
+.chroma-moments-scroll-card {
+  max-height: min(78vh, 58rem);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.chroma-moments-grid [data-moment-card] {
+  min-height: clamp(13.5rem, 18vw, 18rem);
+}
+
+.chroma-moments-grid [data-moment-card]:first-child {
+  min-height: clamp(28rem, 48vw, 48rem);
+}
+
+@media (max-width: 767px) {
+  .chroma-moments-scroll-card {
+    max-height: 70vh;
+  }
+
+  .chroma-moments-grid [data-moment-card],
+  .chroma-moments-grid [data-moment-card]:first-child {
+    min-height: 16rem;
+  }
+}
+
+/* Final V2 batch: locations archive/page use map-first, cards-below layout hooked to the same map JS. */
+.chroma-locations-stacked .chroma-location-explorer {
+  grid-template-columns: 1fr !important;
+  max-width: min(100%, 86rem);
+  margin-inline: auto;
+}
+
+.chroma-locations-stacked .chroma-location-map-panel {
+  min-height: clamp(30rem, 52vw, 44rem) !important;
+}
+
+.chroma-locations-stacked .chroma-location-list-panel {
+  min-height: 0 !important;
+  padding: clamp(1.25rem, 2vw, 2rem) !important;
+}
+
+.chroma-locations-stacked .chroma-location-list-panel [data-location-filters] {
+  justify-content: center;
+}
+
+.chroma-locations-stacked .chroma-location-card-scroll {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  max-height: none !important;
+  overflow: visible !important;
+  padding-right: 0 !important;
+  margin-right: 0 !important;
+}
+
+.chroma-locations-stacked .chroma-location-card {
+  margin-bottom: 0 !important;
+  height: 100%;
+}
+
+.chroma-locations-stacked .chroma-location-card button {
+  height: auto;
+}
+
+@media (max-width: 1279px) {
+  .chroma-locations-stacked .chroma-location-card-scroll {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .chroma-locations-stacked .chroma-location-map-panel {
+    min-height: 26rem !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-card-scroll {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Final V2 batch: compact summer camp calendar list, closer to the earlier region setup. */
+.chroma-summer-calendar-regions {
+  align-items: start;
+}
+
+.chroma-summer-region-column {
+  min-width: 0;
+}
+
+.chroma-summer-campus-row {
+  transition: border-color 0.22s ease, box-shadow 0.22s ease, transform 0.22s ease, background 0.22s ease;
+}
+
+.chroma-summer-campus-row:hover {
+  background: #fff;
+  border-color: rgba(168, 75, 56, 0.2);
+  box-shadow: 0 14px 34px rgba(38, 50, 56, 0.08);
+  transform: translateY(-2px);
+}
+
+.chroma-summer-campus-row h4 {
+  font-size: clamp(0.98rem, 0.95vw, 1.08rem);
+}
+
+.chroma-summer-campus-row .chroma-card-link,
+.chroma-summer-campus-row .summer-camp-tour-btn.chroma-card-link {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+/* Final V2 batch: keep Leaflet campus popup cards fully visible after card clicks. */
+.chroma-location-map-panel .leaflet-popup-content-wrapper {
+  border-radius: 1.25rem !important;
+  overflow: hidden;
+}
+
+.chroma-location-map-panel .leaflet-popup-content {
+  margin: 0 !important;
+  width: min(18rem, calc(100vw - 4rem)) !important;
+}
+
+.chroma-location-map-panel .chroma-map-popup {
+  max-height: min(21rem, 70vh);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.chroma-location-map-panel .chroma-map-popup-photo {
+  width: 100%;
+  height: 7.5rem;
+  object-fit: cover;
+}
+
+.chroma-location-map-panel .chroma-map-popup-body {
+  padding: 1rem 1.1rem 1.05rem;
+}
+
+.chroma-location-map-panel .chroma-map-popup-body strong {
+  display: block;
+  color: var(--brand-ink);
+  font-weight: 800;
+  line-height: 1.15;
+  margin-bottom: 0.45rem;
+}
+
+.chroma-location-map-panel .chroma-map-popup-body p,
+.chroma-location-map-panel .chroma-map-popup-email {
+  display: block;
+  color: rgb(40 51 57 / 0.72);
+  font-size: 0.88rem;
+  line-height: 1.3;
+  margin: 0.32rem 0;
+}
+
+.chroma-location-map-panel .chroma-map-popup-link {
+  display: inline-block;
+  color: #4a6c7c;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  margin-top: 0.6rem;
+  text-transform: uppercase;
 }

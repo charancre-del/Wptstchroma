@@ -13,7 +13,7 @@ if (!$faq_data || empty($faq_data['items'])) {
 ?>
 
 <section id="faq" class="py-20 bg-brand-cream" data-section="faq">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="faqBox bg-white border border-chroma-blue/10 rounded-[2.5rem] shadow-soft p-7 md:p-10 lg:p-12">
             <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-chroma-red mb-3">
                 <?php echo esc_html($faq_data['heading'] ?: __('Common questions from parents', 'chroma-excellence')); ?>
@@ -22,7 +22,7 @@ if (!$faq_data || empty($faq_data['items'])) {
                 <?php echo esc_html($faq_data['subheading'] ?: __('We’ve answered a few of the questions parents ask most when choosing childcare and early learning.', 'chroma-excellence')); ?>
             </h2>
 
-            <div class="faqWrap grid gap-3" data-accordion-group>
+            <div class="faqWrap grid gap-3 lg:grid-cols-2 lg:gap-4" data-accordion-group>
                 <?php foreach ($faq_data['items'] as $index => $item):
                     if (empty($item['question'])) {
                         continue;

@@ -357,12 +357,14 @@ get_header();
 						<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('Campus Moments', 'chroma-excellence'); ?></span>
 						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink"><?php esc_html_e('Moments of Joy.', 'chroma-excellence'); ?></h2>
 					</div>
-					<div class="grid md:grid-cols-3 gap-5">
-						<?php foreach (array_slice($gallery_images, 0, 6) as $index => $image_url): ?>
+					<div class="chroma-moments-scroll-card rounded-[2.5rem] border border-chroma-blue/10 bg-white shadow-soft p-4 md:p-5">
+						<div class="chroma-moments-grid grid md:grid-cols-3 gap-5">
+						<?php foreach ($gallery_images as $index => $image_url): ?>
 							<div data-moment-card class="relative overflow-hidden rounded-[2rem] shadow-soft border border-chroma-blue/10 <?php echo $index === 0 ? 'md:col-span-2 md:row-span-2 min-h-[28rem]' : 'min-h-[13.5rem]'; ?>">
 								<img src="<?php echo esc_url($image_url); ?>" alt="<?php esc_attr_e('Chroma classroom moment', 'chroma-excellence'); ?>" class="w-full h-full object-cover" loading="lazy" onerror="this.closest('[data-moment-card]')?.remove();" />
 							</div>
 						<?php endforeach; ?>
+						</div>
 					</div>
 				</div>
 			</section>

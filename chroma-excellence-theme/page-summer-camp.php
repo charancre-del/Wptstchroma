@@ -18,6 +18,26 @@ $camp_hero_title = $camp_language === 'es'
 $camp_hero_description = $camp_language === 'es'
 	? 'Cuando no hay clases, comienza la aventura. Explora temas semanales, excursiones, proyectos STEM y dias de agua en nuestros campus de Metro Atlanta para edades de 5 a 12 anos.'
 	: 'When school is out, the adventure begins. Explore weekly themes, field trips, STEM projects, and splash-day fun across our Metro Atlanta campuses for ages 5 to 12.';
+$camp_page_id = get_queried_object_id();
+$camp_hero_image_url = $camp_page_id ? get_the_post_thumbnail_url($camp_page_id, 'hero-large') : '';
+$camp_hero_image_alt = $camp_page_id ? get_the_title($camp_page_id) : __('Children enjoying Chroma summer camp activities', 'chroma-excellence');
+
+if (!$camp_hero_image_url) {
+	$camp_hero_image_url = (string) get_theme_mod('chroma_home_hero_image', '');
+}
+
+if (!$camp_hero_image_url) {
+	$front_page_id = (int) get_option('page_on_front');
+	if ($front_page_id && has_post_thumbnail($front_page_id)) {
+		$camp_hero_image_url = get_the_post_thumbnail_url($front_page_id, 'hero-large');
+		$camp_hero_image_alt = get_the_title($front_page_id);
+	}
+}
+
+if (!$camp_hero_image_url && file_exists(get_template_directory() . '/assets/images/early-start/synergy-classroom.jpg')) {
+	$camp_hero_image_url = get_template_directory_uri() . '/assets/images/early-start/synergy-classroom.jpg';
+	$camp_hero_image_alt = __('Children exploring hands-on classroom activities', 'chroma-excellence');
+}
 
 $normalize_location_name = static function ($name) {
 	$name = trim((string) $name);
@@ -200,38 +220,57 @@ get_header();
 				<span><?php printf(esc_html__('Summer %d', 'chroma-excellence'), $camp_year); ?></span>
 			</div>
 
-			<div class="max-w-4xl">
-				<div class="inline-flex items-center gap-2 bg-white border border-chroma-red/20 px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] text-brand-ink shadow-sm mb-7">
-					<span class="w-2 h-2 rounded-full bg-chroma-red" aria-hidden="true"></span>
-					<span><?php printf(esc_html__('Summer %d', 'chroma-excellence'), $camp_year); ?></span>
-					<span aria-hidden="true">&middot;</span>
-					<span><?php esc_html_e('Ages 5-12', 'chroma-excellence'); ?></span>
+			<div class="grid lg:grid-cols-[minmax(0,0.95fr)_minmax(20rem,0.75fr)] gap-10 lg:gap-16 items-center">
+				<div class="max-w-4xl">
+					<div class="inline-flex items-center gap-2 bg-white border border-chroma-red/20 px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-[0.2em] text-brand-ink shadow-sm mb-7">
+						<span class="w-2 h-2 rounded-full bg-chroma-red" aria-hidden="true"></span>
+						<span><?php printf(esc_html__('Summer %d', 'chroma-excellence'), $camp_year); ?></span>
+						<span aria-hidden="true">&middot;</span>
+						<span><?php esc_html_e('Ages 5-12', 'chroma-excellence'); ?></span>
+					</div>
+
+					<h1 class="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.045em] leading-[0.94] text-brand-ink mb-7">
+						<?php echo wp_kses_post($camp_hero_title); ?>
+					</h1>
+
+					<p class="text-lg md:text-xl text-brand-ink/75 leading-relaxed max-w-3xl mb-8">
+						<?php echo esc_html($camp_hero_description); ?>
+					</p>
+
+					<div class="flex flex-wrap gap-3 mb-8">
+						<span class="px-4 py-2 rounded-full bg-brand-cream text-brand-ink text-xs font-bold uppercase tracking-wider border border-brand-ink/5"><?php _e('Weekly Themes', 'chroma-excellence'); ?></span>
+						<span class="px-4 py-2 rounded-full bg-brand-cream text-brand-ink text-xs font-bold uppercase tracking-wider border border-brand-ink/5"><?php _e('Field Trips', 'chroma-excellence'); ?></span>
+						<span class="px-4 py-2 rounded-full bg-brand-cream text-brand-ink text-xs font-bold uppercase tracking-wider border border-brand-ink/5"><?php _e('STEM Projects', 'chroma-excellence'); ?></span>
+						<span class="px-4 py-2 rounded-full bg-brand-cream text-brand-ink text-xs font-bold uppercase tracking-wider border border-brand-ink/5"><?php _e('Ages 5-12', 'chroma-excellence'); ?></span>
+					</div>
+
+					<div class="flex flex-wrap gap-4">
+						<a href="#calendars" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-blueDark text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-brand-ink transition-colors">
+							<?php _e('Find Your Camp', 'chroma-excellence'); ?>
+							<i class="fa-solid fa-arrow-down ml-2"></i>
+						</a>
+						<a href="<?php echo esc_url($schedule_tour_url); ?>" class="inline-flex items-center justify-center px-8 py-4 rounded-full border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:bg-brand-cream transition-colors">
+							<?php _e('Schedule a Tour', 'chroma-excellence'); ?>
+						</a>
+					</div>
 				</div>
 
-				<h1 class="font-serif text-5xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.045em] leading-[0.94] text-brand-ink mb-7">
-					<?php echo wp_kses_post($camp_hero_title); ?>
-				</h1>
-
-				<p class="text-lg md:text-xl text-brand-ink/75 leading-relaxed max-w-3xl mb-8">
-					<?php echo esc_html($camp_hero_description); ?>
-				</p>
-
-				<div class="flex flex-wrap gap-3 mb-8">
-					<span class="px-4 py-2 rounded-full bg-brand-cream text-brand-ink text-xs font-bold uppercase tracking-wider border border-brand-ink/5"><?php _e('Weekly Themes', 'chroma-excellence'); ?></span>
-					<span class="px-4 py-2 rounded-full bg-brand-cream text-brand-ink text-xs font-bold uppercase tracking-wider border border-brand-ink/5"><?php _e('Field Trips', 'chroma-excellence'); ?></span>
-					<span class="px-4 py-2 rounded-full bg-brand-cream text-brand-ink text-xs font-bold uppercase tracking-wider border border-brand-ink/5"><?php _e('STEM Projects', 'chroma-excellence'); ?></span>
-					<span class="px-4 py-2 rounded-full bg-brand-cream text-brand-ink text-xs font-bold uppercase tracking-wider border border-brand-ink/5"><?php _e('Ages 5-12', 'chroma-excellence'); ?></span>
-				</div>
-
-				<div class="flex flex-wrap gap-4">
-					<a href="#calendars" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-blueDark text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-brand-ink transition-colors">
-						<?php _e('Find Your Camp', 'chroma-excellence'); ?>
-						<i class="fa-solid fa-arrow-down ml-2"></i>
-					</a>
-					<a href="<?php echo esc_url($schedule_tour_url); ?>" class="inline-flex items-center justify-center px-8 py-4 rounded-full border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:bg-brand-cream transition-colors">
-						<?php _e('Schedule a Tour', 'chroma-excellence'); ?>
-					</a>
-				</div>
+				<?php if ($camp_hero_image_url): ?>
+					<div class="chroma-summer-hero-art relative">
+						<div class="chroma-summer-hero-frame overflow-hidden border border-white/80 bg-white shadow-soft">
+							<img src="<?php echo esc_url($camp_hero_image_url); ?>" alt="<?php echo esc_attr($camp_hero_image_alt); ?>" class="block w-full h-full object-cover no-lazy">
+						</div>
+						<div class="chroma-summer-hero-float bg-white/95 border border-chroma-blue/10 shadow-soft">
+							<span class="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-chroma-blueLight text-chroma-blue">
+								<i class="fa-solid fa-compass"></i>
+							</span>
+							<div>
+								<strong><?php esc_html_e('Weekly discoveries', 'chroma-excellence'); ?></strong>
+								<span><?php esc_html_e('Themes, field trips, STEM, and splash-day fun.', 'chroma-excellence'); ?></span>
+							</div>
+						</div>
+					</div>
+				<?php endif; ?>
 			</div>
 
 		</div>
@@ -272,32 +311,39 @@ get_header();
 			</div>
 
 			<div class="chroma-summer-calendar-scroll bg-white rounded-[2.5rem] border border-chroma-blue/10 shadow-soft p-5 md:p-7">
-				<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+				<div class="chroma-summer-calendar-regions grid md:grid-cols-2 xl:grid-cols-4 gap-5">
 					<?php foreach ($active_regions as $region_data): ?>
-						<?php foreach ($region_data['posts'] as $campus): ?>
-							<article class="chroma-template-card bg-white rounded-[1.75rem] border border-brand-ink/10 p-6 shadow-soft">
-								<h3 class="font-serif text-2xl font-semibold tracking-[-0.02em] text-brand-ink mb-2"><?php echo esc_html($campus['title']); ?></h3>
-								<?php if (!empty($campus['address'])): ?>
-									<p class="text-sm text-brand-ink/70 mb-5"><?php echo esc_html($campus['address']); ?></p>
-								<?php endif; ?>
-								<div class="flex flex-wrap gap-3">
-									<?php if (!empty($campus['calendar_url'])): ?>
-										<a href="<?php echo esc_url($campus['calendar_url']); ?>" class="chroma-card-link" <?php echo $campus['is_pdf_calendar'] ? 'target="_blank" rel="noopener"' : ''; ?>>
-											<?php echo esc_html($campus['calendar_label']); ?> <span aria-hidden="true">&rarr;</span>
-										</a>
-									<?php else: ?>
-										<a href="<?php echo esc_url($campus['permalink']); ?>" class="chroma-card-link">
-											<?php esc_html_e('Camp Details', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
-										</a>
-									<?php endif; ?>
-									<?php if (!empty($campus['booking_link'])): ?>
-										<button type="button" class="summer-camp-tour-btn chroma-card-link" data-campus="<?php echo esc_attr($campus['title']); ?>" data-booking="<?php echo esc_url($campus['booking_link']); ?>">
-											<?php esc_html_e('Book Tour', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
-										</button>
-									<?php endif; ?>
-								</div>
-							</article>
-						<?php endforeach; ?>
+						<div class="chroma-summer-region-column">
+							<h3 class="font-serif text-2xl md:text-3xl font-semibold tracking-[-0.03em] text-brand-ink mb-4">
+								<?php echo esc_html($region_data['title']); ?>
+							</h3>
+							<div class="space-y-3">
+								<?php foreach ($region_data['posts'] as $campus): ?>
+									<article class="chroma-summer-campus-row rounded-[1.35rem] border border-brand-ink/10 bg-brand-cream/45 p-4">
+										<h4 class="font-bold text-brand-ink leading-tight mb-1"><?php echo esc_html($campus['title']); ?></h4>
+										<?php if (!empty($campus['address'])): ?>
+											<p class="text-sm text-brand-ink/65 leading-snug mb-3"><?php echo esc_html($campus['address']); ?></p>
+										<?php endif; ?>
+										<div class="flex flex-wrap gap-x-4 gap-y-2">
+											<?php if (!empty($campus['calendar_url'])): ?>
+												<a href="<?php echo esc_url($campus['calendar_url']); ?>" class="chroma-card-link" <?php echo $campus['is_pdf_calendar'] ? 'target="_blank" rel="noopener"' : ''; ?>>
+													<?php echo esc_html($campus['calendar_label']); ?> <span aria-hidden="true">&rarr;</span>
+												</a>
+											<?php else: ?>
+												<a href="<?php echo esc_url($campus['permalink']); ?>" class="chroma-card-link">
+													<?php esc_html_e('Camp Details', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
+												</a>
+											<?php endif; ?>
+											<?php if (!empty($campus['booking_link'])): ?>
+												<button type="button" class="summer-camp-tour-btn chroma-card-link" data-campus="<?php echo esc_attr($campus['title']); ?>" data-booking="<?php echo esc_url($campus['booking_link']); ?>">
+													<?php esc_html_e('Book Tour', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
+												</button>
+											<?php endif; ?>
+										</div>
+									</article>
+								<?php endforeach; ?>
+							</div>
+						</div>
 					<?php endforeach; ?>
 				</div>
 			</div>
