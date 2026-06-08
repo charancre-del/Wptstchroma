@@ -44,6 +44,18 @@ class Chroma_Virtual_Page_SEO_Data
         return sanitize_key($type) . ':' . sanitize_title($area_name);
     }
 
+    public static function near_me_key($keyword, $city_slug = '', $state = '') {
+        $keyword = sanitize_title($keyword);
+        $city_slug = sanitize_title($city_slug);
+        $state = strtoupper(sanitize_text_field($state));
+
+        if ($city_slug !== '' && $state !== '') {
+            return $keyword . ':' . $city_slug . ':' . $state;
+        }
+
+        return $keyword;
+    }
+
     public static function get_combo($program_slug, $city_slug, $state) {
         if (!class_exists('Chroma_Combo_Page_Data')) {
             return self::defaults();
@@ -85,6 +97,24 @@ class Chroma_Virtual_Page_SEO_Data
         return self::OPTION_PREFIX . self::service_area_key($type, $area_name);
     }
 
+    public static function get_near_me($keyword, $city_slug = '', $state = '') {
+        $option_key = self::near_me_option_key($keyword, $city_slug, $state);
+        $data = get_option($option_key, []);
+        return wp_parse_args(is_array($data) ? $data : [], self::defaults());
+    }
+
+    public static function save_near_me($keyword, $city_slug, $state, array $updates) {
+        $option_key = self::near_me_option_key($keyword, $city_slug, $state);
+        $existing = self::get_near_me($keyword, $city_slug, $state);
+        $data = wp_parse_args(self::sanitize_updates($updates), $existing);
+        $data['last_updated'] = current_time('timestamp');
+        return update_option($option_key, $data, false);
+    }
+
+    public static function near_me_option_key($keyword, $city_slug = '', $state = '') {
+        return self::OPTION_PREFIX . 'near-me:' . self::near_me_key($keyword, $city_slug, $state);
+    }
+
     public static function resolve($type, array $args, array $fallbacks = []) {
         $language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
         $data = [];
@@ -93,6 +123,8 @@ class Chroma_Virtual_Page_SEO_Data
             $data = self::get_combo($args['program_slug'] ?? '', $args['city_slug'] ?? '', $args['state'] ?? '');
         } elseif ($type === 'service_area') {
             $data = self::get_service_area($args['area_type'] ?? '', $args['area_name'] ?? '');
+        } elseif ($type === 'near-me') {
+            $data = self::get_near_me($args['keyword'] ?? '', $args['city_slug'] ?? '', $args['state'] ?? '');
         }
 
         $title_key = $language === 'es' ? 'seo_title_es' : 'seo_title';
@@ -185,6 +217,75 @@ class Chroma_Virtual_Page_SEO_Data
         }
 
         return array_values($counties + $zips);
+    }
+
+    public static function near_me_candidates() {
+        $items = [];
+        $keywords = ['daycare', 'preschool', 'childcare', 'pre-k', 'infant-care'];
+
+        foreach ($keywords as $keyword) {
+            $items[] = self::near_me_candidate($keyword, '', 'GA');
+        }
+
+        $cities = [];
+        if (function_exists('chroma_seo_get_virtual_city_records')) {
+            $cities = chroma_seo_get_virtual_city_records();
+        } elseif (class_exists('Chroma_Combo_Page_Generator')) {
+            $cities = Chroma_Combo_Page_Generator::get_all_cities();
+        }
+
+        foreach ($keywords as $keyword) {
+            foreach ((array) $cities as $city) {
+                $city_slug = sanitize_title((string) ($city['canonical_slug'] ?? ($city['city_slug'] ?? ($city['city'] ?? ''))));
+                $state = strtoupper(sanitize_text_field((string) ($city['state'] ?? 'GA')));
+                if ($city_slug === '') {
+                    continue;
+                }
+
+                $items[] = self::near_me_candidate($keyword, $city_slug, $state, $city);
+            }
+        }
+
+        return $items;
+    }
+
+    private static function near_me_candidate($keyword, $city_slug = '', $state = 'GA', $city = null) {
+        $keyword = sanitize_title($keyword);
+        $city_slug = sanitize_title($city_slug);
+        $state = strtoupper(sanitize_text_field($state));
+        $keyword_label = ucwords(str_replace('-', ' ', $keyword));
+
+        if ($city_slug !== '') {
+            $city_name = '';
+            if (is_array($city) && function_exists('chroma_seo_get_city_display_name')) {
+                $city_name = chroma_seo_get_city_display_name($city, 'en');
+            }
+            if ($city_name === '') {
+                $city_name = ucwords(str_replace('-', ' ', $city_slug));
+            }
+
+            return [
+                'type' => 'near-me',
+                'key' => self::near_me_key($keyword, $city_slug, $state),
+                'keyword' => $keyword,
+                'city_slug' => $city_slug,
+                'state' => $state,
+                'label' => $keyword_label . ' Near ' . $city_name . ', ' . $state,
+                'url' => home_url('/' . $keyword . '-near-' . $city_slug . '-' . strtolower($state) . '/'),
+                'data' => self::get_near_me($keyword, $city_slug, $state),
+            ];
+        }
+
+        return [
+            'type' => 'near-me',
+            'key' => self::near_me_key($keyword),
+            'keyword' => $keyword,
+            'city_slug' => '',
+            'state' => '',
+            'label' => $keyword_label . ' Near Me',
+            'url' => home_url('/' . $keyword . '-near-me/'),
+            'data' => self::get_near_me($keyword),
+        ];
     }
 
     private static function add_county_candidate(array &$counties, $county) {
