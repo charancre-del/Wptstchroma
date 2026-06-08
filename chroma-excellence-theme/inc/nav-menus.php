@@ -116,11 +116,14 @@ function chroma_disable_front_page_edge_cache()
 add_action('send_headers', 'chroma_disable_front_page_edge_cache', 100);
 
 /**
- * Nav markup on the front page goes stale most visibly, so skip transients there.
+ * Header/footer navigation includes Customizer-controlled labels and URLs.
+ *
+ * Avoid transient caching so Customizer/menu overrides show immediately on
+ * staging and production without a manual cache purge.
  */
 function chroma_should_cache_nav_markup()
 {
-	return !is_front_page() && !is_customize_preview();
+	return false;
 }
 
 /**
@@ -186,6 +189,23 @@ function chroma_normalize_nav_url($url)
 
 	$path = isset($parts['path']) && $parts['path'] !== '' ? $parts['path'] : '/';
 	$path = user_trailingslashit($path);
+	$path_key = trim($path, '/');
+
+	if (in_array($path_key, array('chroma-early-start', 'chroma-early-learning', 'early-start'), true)) {
+		$early_learning_url = function_exists('chroma_get_early_learning_url')
+			? chroma_get_early_learning_url()
+			: home_url('/early-learning/');
+
+		if (!empty($parts['query'])) {
+			$early_learning_url = add_query_arg(wp_parse_args($parts['query']), $early_learning_url);
+		}
+
+		if (!empty($parts['fragment'])) {
+			$early_learning_url .= '#' . $parts['fragment'];
+		}
+
+		return $early_learning_url;
+	}
 
 	if (!empty($parts['query'])) {
 		$path .= '?' . $parts['query'];

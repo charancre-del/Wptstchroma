@@ -159,9 +159,10 @@ function chroma_get_page_link($name)
         'after-school' => 'programs/after-school',
         'parents-day-out' => 'programs/parents-day-out',
         'camp-summer-winter-fall' => 'programs/camp-summer-winter-fall',
-        'early-learning' => 'chroma-early-learning',
-        'early-start' => 'chroma-early-learning',
-        'chroma-early-start' => 'chroma-early-learning',
+        'early-learning' => 'early-learning',
+        'early-start' => 'early-learning',
+        'chroma-early-start' => 'early-learning',
+        'chroma-early-learning' => 'early-learning',
     );
 
     // Check if this is an aliased name
@@ -214,6 +215,57 @@ function chroma_dynamic_link_shortcode($atts, $content = null)
     return '<a ' . implode(' ', $link_atts) . '>' . do_shortcode($content) . '</a>';
 }
 add_shortcode('chroma_link', 'chroma_dynamic_link_shortcode');
+
+/**
+ * Canonical public URL for the Early Learning page.
+ *
+ * The live content may still live on the legacy `chroma-early-start` page slug
+ * for backwards compatibility, but public navigation should not expose that
+ * old Early Start wording.
+ *
+ * @return string
+ */
+function chroma_get_early_learning_url()
+{
+    return home_url('/early-learning/');
+}
+
+/**
+ * Serve the legacy Early Start page at the public Early Learning URL.
+ *
+ * This avoids requiring a database slug migration and keeps existing meta
+ * fields/content attached to the current WordPress page.
+ *
+ * @param array $query_vars
+ * @return array
+ */
+function chroma_route_early_learning_alias($query_vars)
+{
+    if (isset($query_vars['pagename']) && trim((string) $query_vars['pagename'], '/') === 'early-learning') {
+        $query_vars['pagename'] = 'chroma-early-start';
+    }
+
+    return $query_vars;
+}
+add_filter('request', 'chroma_route_early_learning_alias');
+
+/**
+ * Keep /early-learning/ from canonicalizing back to /chroma-early-start/.
+ *
+ * @param string|false $redirect_url
+ * @return string|false
+ */
+function chroma_disable_early_learning_canonical_redirect($redirect_url)
+{
+    $request_path = isset($_SERVER['REQUEST_URI']) ? trim((string) wp_parse_url(wp_unslash($_SERVER['REQUEST_URI']), PHP_URL_PATH), '/') : '';
+
+    if ($request_path === 'early-learning') {
+        return false;
+    }
+
+    return $redirect_url;
+}
+add_filter('redirect_canonical', 'chroma_disable_early_learning_canonical_redirect');
 
 /**
  * Helper to check if a URL needs updating (points to a redirect)

@@ -80,8 +80,8 @@
 			<!-- Logo -->
 			<a href="<?php echo esc_url(chroma_url('/')); ?>" class="flex items-center gap-4 group">
 				<?php
-				$logo_width_desktop = get_theme_mod('chroma_logo_width_desktop', 70);
-				$logo_width_mobile = get_theme_mod('chroma_logo_width_mobile', 56);
+				$logo_width_desktop = chroma_get_theme_mod('chroma_logo_width_desktop', 70);
+				$logo_width_mobile = chroma_get_theme_mod('chroma_logo_width_mobile', 56);
 				?>
 				<style>
 					.chroma-logo {
