@@ -4794,22 +4794,34 @@
 }
 
 .chroma-locations-stacked .chroma-location-list-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  height: clamp(30rem, 58vh, 42rem) !important;
   min-height: 0 !important;
+  overflow: hidden !important;
   padding: clamp(1.25rem, 2vw, 2rem) !important;
 }
 
 .chroma-locations-stacked .chroma-location-list-panel [data-location-filters] {
+  flex: 0 0 auto;
   justify-content: center;
 }
 
 .chroma-locations-stacked .chroma-location-card-scroll {
   display: grid !important;
+  flex: 1 1 auto !important;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1rem;
+  height: auto !important;
   max-height: none !important;
-  overflow: visible !important;
-  padding-right: 0 !important;
-  margin-right: 0 !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  padding-right: 0.5rem !important;
+  margin-right: -0.5rem !important;
+  overscroll-behavior: contain !important;
+  scrollbar-gutter: stable !important;
+  scrollbar-width: thin !important;
 }
 
 .chroma-locations-stacked .chroma-location-card {
@@ -4834,6 +4846,7 @@
 
   .chroma-locations-stacked .chroma-location-card-scroll {
     grid-template-columns: 1fr;
+    max-height: 70vh !important;
   }
 }
 
