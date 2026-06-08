@@ -49,6 +49,19 @@ while (have_posts()):
 	$schedule_title = chroma_get_translated_meta($program_id, 'program_schedule_title', true) ?: __('A Rhythm, Not a Routine', 'chroma-excellence');
 	$schedule_title = str_ireplace('Rythm', 'Rhythm', $schedule_title);
 	$schedule_items = chroma_get_translated_meta($program_id, 'program_schedule_items', true);
+	$schedule_steps = array();
+	if ($schedule_items) {
+		foreach (array_filter(array_map('trim', explode("\n", (string) $schedule_items))) as $item) {
+			$parts = array_map('trim', explode('|', $item));
+			if (count($parts) >= 3 && stripos($parts[0], 'note') === false) {
+				$schedule_steps[] = array(
+					'time' => $parts[0],
+					'title' => $parts[1],
+					'copy' => implode(' | ', array_slice($parts, 2)),
+				);
+			}
+		}
+	}
 
 	// Color mapping
 	$color_map = array(
@@ -238,73 +251,60 @@ while (have_posts()):
 		</section>
 
 		<!-- Schedule -->
-		<?php if ($schedule_items):
-			$schedule_items_array = array_filter(array_map('trim', explode("\n", $schedule_items)));
-			if (!empty($schedule_items_array)):
-				$steps = array();
-				foreach ($schedule_items_array as $item) {
-					$parts = explode('|', $item);
-					if (count($parts) >= 3) {
-						$steps[] = array(
-							'time' => trim($parts[0]),
-							'title' => trim($parts[1]),
-							'copy' => trim($parts[2]),
-						);
-					}
-				}
+		<?php if (!empty($schedule_steps)):
+			$first_schedule_step = $schedule_steps[0];
+			?>
+			<section id="schedule" class="cream py-20 lg:py-24 bg-brand-cream relative">
+				<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-chroma-red via-chroma-yellow to-chroma-blue opacity-40"></div>
+				<div class="max-w-6xl mx-auto px-4 lg:px-6">
+					<div class="head reveal text-center max-w-3xl mx-auto mb-12">
+						<span class="font-bold tracking-[0.2em] text-xs uppercase mb-4 block" style="color: <?php echo esc_attr($hex_color); ?>;">
+							<?php esc_html_e('Sample Day', 'chroma-excellence'); ?>
+						</span>
+						<h2 class="text-3xl md:text-4xl font-serif text-brand-ink mb-3">
+							<?php echo esc_html($schedule_title); ?>
+						</h2>
+						<p class="text-brand-ink max-w-2xl mx-auto">
+							<?php printf(esc_html__('Slide through a sample %s day built from this program schedule.', 'chroma-excellence'), esc_html(get_the_title())); ?>
+						</p>
+					</div>
 
-				if (!empty($steps)):
-					$rhythm_steps = array_values(array_filter($steps, static function ($step) {
-						return stripos($step['time'], 'note') === false;
-					}));
-					if (empty($rhythm_steps)) {
-						$rhythm_steps = $steps;
-					}
-					$total_steps = count($rhythm_steps);
-					$rhythm_indexes = array_values(array_unique(array_filter(array(
-						0,
-						$total_steps > 2 ? (int) floor(($total_steps - 1) / 2) : 1,
-						$total_steps - 1,
-					), static function ($index) use ($total_steps) {
-						return $index >= 0 && $index < $total_steps;
-					})));
-					$rhythm_labels = array(__('AM', 'chroma-excellence'), __('Mid', 'chroma-excellence'), __('PM', 'chroma-excellence'));
-					?>
-					<section id="schedule" class="white py-24 bg-white">
-						<div class="max-w-4xl mx-auto px-4 lg:px-6">
-							<h2 class="text-3xl font-serif font-bold text-center text-brand-ink mb-12">
-								<?php echo esc_html($schedule_title); ?>
-							</h2>
-
-							<div class="single-program-rhythm space-y-8 relative before:absolute before:left-8 before:top-4 before:bottom-4 before:w-0.5 before:bg-brand-ink/10">
-								<?php foreach ($rhythm_indexes as $rhythm_position => $step_index):
-									$step = $rhythm_steps[$step_index];
-									$rhythm_label = $rhythm_labels[$rhythm_position] ?? $step['time'];
-									?>
-									<div class="flex gap-8 items-start relative">
-										<div class="w-16 h-16 rounded-full font-bold flex items-center justify-center shrink-0 z-10 border-4 border-white shadow-sm"
-											style="background-color: <?php echo esc_attr($hex_color); ?>1f; color: <?php echo esc_attr($hex_color); ?>;">
-											<?php echo esc_html($rhythm_label); ?>
-										</div>
-										<div class="pt-3">
-											<div class="text-xs font-bold uppercase tracking-[0.2em] mb-1"
-												style="color: <?php echo esc_attr($hex_color); ?>;">
-												<?php echo esc_html($step['time']); ?>
-											</div>
-											<h3 class="font-bold text-lg text-brand-ink mb-2">
-												<?php echo esc_html($step['title']); ?>
-											</h3>
-											<p class="text-brand-ink/60">
-												<?php echo esc_html($step['copy']); ?>
-											</p>
-										</div>
-									</div>
-								<?php endforeach; ?>
-							</div>
+					<div class="day reveal single-program-sun-schedule" data-sun-schedule style="--program-accent: <?php echo esc_attr($hex_color); ?>;">
+						<script type="application/json" data-sun-steps>
+							<?php echo wp_json_encode($schedule_steps, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
+						</script>
+						<div class="sky" aria-hidden="true">
+							<div class="sun" data-sun-orb></div>
+							<div class="cloud c1"></div>
+							<div class="cloud c2"></div>
 						</div>
-					</section>
-                <?php endif; ?>
-            <?php endif; endif; ?>
+						<div class="panel">
+							<div class="font-bold tracking-[0.2em] text-xs uppercase mb-3" style="color: <?php echo esc_attr($hex_color); ?>;">
+								<?php echo esc_html(get_the_title()); ?>
+							</div>
+							<div class="time font-serif" data-sun-time><?php echo esc_html($first_schedule_step['time']); ?></div>
+							<h3 class="font-serif text-4xl md:text-5xl font-semibold tracking-[-0.035em] text-brand-ink mb-4" data-sun-title>
+								<?php echo esc_html($first_schedule_step['title']); ?>
+							</h3>
+							<p class="text-brand-ink/75 text-lg leading-relaxed min-h-[7rem]" data-sun-copy>
+								<?php echo esc_html($first_schedule_step['copy']); ?>
+							</p>
+							<div class="track mt-8"><div class="progress" data-sun-progress></div></div>
+							<input
+								class="mt-5 w-full accent-chroma-yellow"
+								data-sun-range
+								type="range"
+								min="0"
+								max="<?php echo esc_attr(max(0, count($schedule_steps) - 1)); ?>"
+								value="0"
+								step="1"
+								aria-label="<?php echo esc_attr($schedule_title); ?>"
+							/>
+						</div>
+					</div>
+				</div>
+			</section>
+		<?php endif; ?>
 
 		<?php if ($is_preschool_reference): ?>
 			<section class="white borderY py-20 bg-white border-y border-chroma-blue/10">

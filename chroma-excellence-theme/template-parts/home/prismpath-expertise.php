@@ -55,10 +55,10 @@ $color_text = wp_strip_all_tags($color_text);
 		<div class="chroma-bento-grid" aria-label="<?php esc_attr_e('Chroma standard highlights', 'chroma-excellence'); ?>">
 			<article class="chroma-bento-card chroma-bento-card--curriculum">
 				<div class="chroma-bento-icon" aria-hidden="true">
-					<i class="fa-solid fa-shapes"></i>
+					<i class="fa-solid fa-user-check"></i>
 				</div>
-				<h3><?php echo esc_html($curriculum_heading); ?></h3>
-				<p><?php echo esc_html($curriculum_text); ?></p>
+				<h3><?php echo esc_html($care_heading); ?></h3>
+				<p><?php echo esc_html($care_text); ?></p>
 			</article>
 
 			<article class="chroma-bento-card chroma-bento-card--readiness">
@@ -71,10 +71,10 @@ $color_text = wp_strip_all_tags($color_text);
 
 			<article class="chroma-bento-card chroma-bento-card--care">
 				<div class="chroma-bento-icon" aria-hidden="true">
-					<i class="fa-solid fa-user-check"></i>
+					<i class="fa-solid fa-shapes"></i>
 				</div>
-				<h3><?php echo esc_html($care_heading); ?></h3>
-				<p><?php echo esc_html($care_text); ?></p>
+				<h3><?php echo esc_html($curriculum_heading); ?></h3>
+				<p><?php echo esc_html($curriculum_text); ?></p>
 			</article>
 
 			<article class="chroma-bento-card chroma-bento-card--color">

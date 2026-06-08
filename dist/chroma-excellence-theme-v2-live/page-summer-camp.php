@@ -199,9 +199,13 @@ if ($has_pdf_calendar && function_exists('chroma_enqueue_pdf_assets')) {
 }
 
 $active_regions = array();
+$campuses = array();
 foreach ($regions as $region_key => $region_data) {
 	if (!empty($region_data['posts'])) {
 		$active_regions[$region_key] = $region_data;
+		foreach ($region_data['posts'] as $campus) {
+			$campuses[] = $campus;
+		}
 	}
 }
 
@@ -310,40 +314,35 @@ get_header();
 				<p class="text-brand-ink/70 text-base md:text-lg leading-relaxed max-w-3xl mx-auto"><?php _e('Browse participating campuses to view weekly calendars, themes, and tour options.', 'chroma-excellence'); ?></p>
 			</div>
 
-			<div class="chroma-summer-calendar-scroll bg-white rounded-[2.5rem] border border-chroma-blue/10 shadow-soft p-5 md:p-7">
-				<div class="chroma-summer-calendar-regions grid md:grid-cols-2 xl:grid-cols-4 gap-5">
-					<?php foreach ($active_regions as $region_data): ?>
-						<div class="chroma-summer-region-column">
-							<h3 class="font-serif text-2xl md:text-3xl font-semibold tracking-[-0.03em] text-brand-ink mb-4">
-								<?php echo esc_html($region_data['title']); ?>
-							</h3>
-							<div class="space-y-3">
-								<?php foreach ($region_data['posts'] as $campus): ?>
-									<article class="chroma-summer-campus-row rounded-[1.35rem] border border-brand-ink/10 bg-brand-cream/45 p-4">
-										<h4 class="font-bold text-brand-ink leading-tight mb-1"><?php echo esc_html($campus['title']); ?></h4>
-										<?php if (!empty($campus['address'])): ?>
-											<p class="text-sm text-brand-ink/65 leading-snug mb-3"><?php echo esc_html($campus['address']); ?></p>
-										<?php endif; ?>
-										<div class="flex flex-wrap gap-x-4 gap-y-2">
-											<?php if (!empty($campus['calendar_url'])): ?>
-												<a href="<?php echo esc_url($campus['calendar_url']); ?>" class="chroma-card-link" <?php echo $campus['is_pdf_calendar'] ? 'target="_blank" rel="noopener"' : ''; ?>>
-													<?php echo esc_html($campus['calendar_label']); ?> <span aria-hidden="true">&rarr;</span>
-												</a>
-											<?php else: ?>
-												<a href="<?php echo esc_url($campus['permalink']); ?>" class="chroma-card-link">
-													<?php esc_html_e('Camp Details', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
-												</a>
-											<?php endif; ?>
-											<?php if (!empty($campus['booking_link'])): ?>
-												<button type="button" class="summer-camp-tour-btn chroma-card-link" data-campus="<?php echo esc_attr($campus['title']); ?>" data-booking="<?php echo esc_url($campus['booking_link']); ?>">
-													<?php esc_html_e('Book Tour', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
-												</button>
-											<?php endif; ?>
-										</div>
-									</article>
-								<?php endforeach; ?>
+			<div class="chroma-summer-calendar-scroll chroma-summer-calendar-scroll--cards bg-white rounded-[2.5rem] border border-chroma-blue/10 shadow-soft p-5 md:p-7">
+				<div class="chroma-summer-calendar-cards grid md:grid-cols-2 xl:grid-cols-3 gap-5">
+					<?php foreach ($campuses as $campus): ?>
+						<article class="chroma-summer-campus-card rounded-[1.75rem] border border-brand-ink/10 bg-white p-6 md:p-7">
+							<h4 class="font-serif font-semibold tracking-[-0.04em] leading-[0.96] text-brand-ink mb-3"><?php echo esc_html($campus['title']); ?></h4>
+							<?php if (!empty($campus['address'])): ?>
+								<p class="text-sm md:text-base text-brand-ink/70 leading-snug mb-5"><?php echo esc_html($campus['address']); ?></p>
+							<?php endif; ?>
+							<div class="flex flex-wrap gap-x-5 gap-y-2">
+								<?php if (!empty($campus['calendar_url'])): ?>
+									<a href="<?php echo esc_url($campus['calendar_url']); ?>" class="chroma-card-link" <?php echo $campus['is_pdf_calendar'] ? 'target="_blank" rel="noopener"' : ''; ?>>
+										<?php echo esc_html($campus['calendar_label']); ?> <span aria-hidden="true">&rarr;</span>
+									</a>
+								<?php else: ?>
+									<a href="<?php echo esc_url($campus['permalink']); ?>" class="chroma-card-link">
+										<?php esc_html_e('Camp Details', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
+									</a>
+								<?php endif; ?>
+								<?php if (!empty($campus['booking_link'])): ?>
+									<button type="button" class="summer-camp-tour-btn chroma-card-link" data-campus="<?php echo esc_attr($campus['title']); ?>" data-booking="<?php echo esc_url($campus['booking_link']); ?>">
+										<?php esc_html_e('Schedule Tour', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
+									</button>
+								<?php else: ?>
+									<button type="button" class="summer-camp-tour-btn chroma-card-link" data-campus="<?php echo esc_attr($campus['title']); ?>">
+										<?php esc_html_e('Ask About This Camp', 'chroma-excellence'); ?> <span aria-hidden="true">&rarr;</span>
+									</button>
+								<?php endif; ?>
 							</div>
-						</div>
+						</article>
 					<?php endforeach; ?>
 				</div>
 			</div>

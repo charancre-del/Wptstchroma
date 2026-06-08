@@ -689,6 +689,37 @@
   };
 
   /**
+   * Component: Moments Carousel
+   */
+  const initMomentsCarousel = (carousel) => {
+    if (carousel.dataset.momentsReady === 'true') return;
+    carousel.dataset.momentsReady = 'true';
+
+    const track = carousel.querySelector('[data-moments-track]');
+    const slides = Array.from(carousel.querySelectorAll('[data-moments-slide]'));
+    const prev = carousel.querySelector('[data-moments-prev]');
+    const next = carousel.querySelector('[data-moments-next]');
+    const dots = Array.from(carousel.querySelectorAll('[data-moments-dot]'));
+    if (!track || slides.length <= 1) return;
+
+    let activeIndex = 0;
+
+    const activate = (index) => {
+      activeIndex = (index + slides.length) % slides.length;
+      track.style.transform = `translateX(-${activeIndex * 100}%)`;
+      dots.forEach((dot, dotIndex) => {
+        dot.classList.toggle('is-active', dotIndex === activeIndex);
+        dot.setAttribute('aria-current', dotIndex === activeIndex ? 'true' : 'false');
+      });
+    };
+
+    if (prev) prev.addEventListener('click', () => activate(activeIndex - 1));
+    if (next) next.addEventListener('click', () => activate(activeIndex + 1));
+    dots.forEach((dot, dotIndex) => dot.addEventListener('click', () => activate(dotIndex)));
+    activate(0);
+  };
+
+  /**
    * Component: Curriculum Radar Chart
    */
   const initCurriculumChart = (container) => {
@@ -1224,6 +1255,7 @@
     document.querySelectorAll('[data-program-wizard]').forEach(initProgramWizard);
     document.querySelectorAll('[data-radar-chart]').forEach(el => observeOrInitialize(el, 'radar'));
     document.querySelectorAll('[data-sun-schedule]').forEach(el => observeOrInitialize(el, 'sun-schedule'));
+    document.querySelectorAll('[data-moments-carousel]').forEach(initMomentsCarousel);
 
     // Fix: Observe the parent container for the chart so initCurriculumChart can find siblings
     document.querySelectorAll('[data-curriculum-chart]').forEach(el => {
