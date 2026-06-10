@@ -192,7 +192,7 @@ $color_map = array(
         </div>
     </section>
 
-    <section class="white borderY py-20 md:py-24 bg-white border-y border-chroma-blue/10">
+    <section class="white borderY chroma-program-methodology py-24 md:py-32 bg-white border-y border-chroma-blue/10">
         <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-center">
             <div>
                 <div class="text-xs font-bold uppercase tracking-[0.22em] text-chroma-green mb-4">

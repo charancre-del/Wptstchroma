@@ -471,7 +471,7 @@ while (have_posts()):
 		<?php endif; ?>
 
 		<!-- Programs Grid -->
-		<?php if ($programs_query->have_posts()): ?>
+		<?php if (false && $programs_query->have_posts()): ?>
 			<section id="programs" class="cream py-24 bg-brand-cream">
 				<div class="max-w-7xl mx-auto px-4 lg:px-6">
 					<div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">

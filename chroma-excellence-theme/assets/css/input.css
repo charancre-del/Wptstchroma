@@ -4960,3 +4960,44 @@
   margin-top: 0.6rem;
   text-transform: uppercase;
 }
+
+/* Final V2 polish: match approved hero word lockup and expand methodology band. */
+.chroma-redesign-hero-title {
+  line-height: 0.78 !important;
+  max-width: 43rem !important;
+}
+
+.chroma-redesign-hero-title em,
+.chroma-redesign-hero-title .italic,
+.chroma-redesign-hero-title .text-chroma-red {
+  color: #8c6b2f !important;
+  display: block !important;
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif) !important;
+  font-size: 0.86em !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.072em !important;
+  line-height: 0.64 !important;
+  margin-top: -0.22em !important;
+}
+
+@media (min-width: 1024px) {
+  .chroma-program-methodology {
+    min-height: 24rem;
+  }
+
+  .chroma-program-methodology > div {
+    align-items: stretch !important;
+  }
+
+  .chroma-program-methodology > div > div:first-child,
+  .chroma-program-methodology > div > div:last-child {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .chroma-program-methodology > div > div:last-child {
+    min-height: 10.5rem;
+  }
+}
