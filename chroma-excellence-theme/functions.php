@@ -140,22 +140,22 @@ if (!function_exists('chroma_get_theme_mod')) {
         }
 
         $stylesheet = get_stylesheet();
-        if (0 === strpos($stylesheet, 'chroma-excellence-theme-v2')) {
-            $source_stylesheets = array(
-                'chroma-excellence-theme-v2',
-                'chroma-excellence-theme',
-            );
+        $source_stylesheets = array_unique(array(
+            'chroma-excellence-theme-v2',
+            'chroma-excellence-theme-v2-0',
+            'chroma-excellence-theme-v2-0-2',
+            'chroma-excellence-theme',
+        ));
 
-            foreach ($source_stylesheets as $source_stylesheet) {
-                if ($source_stylesheet === $stylesheet) {
-                    continue;
-                }
+        foreach ($source_stylesheets as $source_stylesheet) {
+            if ($source_stylesheet === $stylesheet) {
+                continue;
+            }
 
-                $source_mods = get_option('theme_mods_' . $source_stylesheet, array());
+            $source_mods = get_option('theme_mods_' . $source_stylesheet, array());
 
-                if (is_array($source_mods) && array_key_exists($name, $source_mods)) {
-                    return $source_mods[$name];
-                }
+            if (is_array($source_mods) && array_key_exists($name, $source_mods)) {
+                return $source_mods[$name];
             }
         }
 

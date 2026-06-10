@@ -160,8 +160,8 @@ function chroma_get_page_link($name)
         'parents-day-out' => 'programs/parents-day-out',
         'camp-summer-winter-fall' => 'programs/camp-summer-winter-fall',
         'early-learning' => 'early-learning',
-        'early-start' => 'early-learning',
-        'chroma-early-start' => 'early-learning',
+        'early-start' => 'chroma-early-start',
+        'chroma-early-start' => 'chroma-early-start',
         'chroma-early-learning' => 'early-learning',
     );
 
@@ -219,35 +219,19 @@ add_shortcode('chroma_link', 'chroma_dynamic_link_shortcode');
 /**
  * Canonical public URL for the Early Learning page.
  *
- * The live content may still live on the legacy `chroma-early-start` page slug
- * for backwards compatibility, but public navigation should not expose that
- * old Early Start wording.
- *
  * @return string
  */
 function chroma_get_early_learning_url()
 {
-    return home_url('/early-learning/');
-}
-
-/**
- * Serve the legacy Early Start page at the public Early Learning URL.
- *
- * This avoids requiring a database slug migration and keeps existing meta
- * fields/content attached to the current WordPress page.
- *
- * @param array $query_vars
- * @return array
- */
-function chroma_route_early_learning_alias($query_vars)
-{
-    if (isset($query_vars['pagename']) && trim((string) $query_vars['pagename'], '/') === 'early-learning') {
-        $query_vars['pagename'] = 'chroma-early-start';
+    foreach (array('early-learning', 'chroma-early-learning') as $slug) {
+        $post = get_page_by_path($slug, OBJECT, 'page');
+        if ($post) {
+            return get_permalink($post);
+        }
     }
 
-    return $query_vars;
+    return home_url('/early-learning/');
 }
-add_filter('request', 'chroma_route_early_learning_alias');
 
 /**
  * Keep /early-learning/ from canonicalizing back to /chroma-early-start/.

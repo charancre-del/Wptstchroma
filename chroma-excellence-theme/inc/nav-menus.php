@@ -30,8 +30,8 @@ add_action('init', 'chroma_register_menus');
 /**
  * Normalize legacy service labels in rendered navigation.
  *
- * The WordPress menu data may still contain older therapy-era labels while the
- * public brand language for this area is Chroma Early Learning.
+ * Preserve explicit Early Start menu labels while allowing the public Early
+ * Learning label to be controlled from the Customizer.
  */
 function chroma_normalize_nav_label($label)
 {
@@ -40,8 +40,8 @@ function chroma_normalize_nav_label($label)
 	$early_learning_brand_label = chroma_get_theme_mod('chroma_early_learning_brand_label', __('Chroma Early Learning', 'chroma-excellence'));
 
 	return str_replace(
-		array('Pediatric Therapy', 'Specialized Pediatric Therapy', 'Chroma Early Start', 'Chroma Early Learning', 'Early Start', 'Early Learning'),
-		array($early_learning_label, $early_learning_label, $early_learning_brand_label, $early_learning_brand_label, $early_learning_label, $early_learning_label),
+		array('Pediatric Therapy', 'Specialized Pediatric Therapy', 'Chroma Early Learning', 'Early Learning'),
+		array($early_learning_label, $early_learning_label, $early_learning_brand_label, $early_learning_label),
 		$label
 	);
 }
@@ -191,7 +191,7 @@ function chroma_normalize_nav_url($url)
 	$path = user_trailingslashit($path);
 	$path_key = trim($path, '/');
 
-	if (in_array($path_key, array('chroma-early-start', 'chroma-early-learning', 'early-start'), true)) {
+	if (in_array($path_key, array('chroma-early-learning'), true)) {
 		$early_learning_url = function_exists('chroma_get_early_learning_url')
 			? chroma_get_early_learning_url()
 			: home_url('/early-learning/');

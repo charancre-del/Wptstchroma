@@ -26,7 +26,7 @@
 	<?php
 	// Hero Image LCP Preload
 	if (is_front_page()) {
-		$chroma_hero_url = get_theme_mod('chroma_home_hero_image');
+		$chroma_hero_url = function_exists('chroma_get_theme_mod') ? chroma_get_theme_mod('chroma_home_hero_image') : get_theme_mod('chroma_home_hero_image');
 		if (!$chroma_hero_url) {
 			$chroma_front_id = get_option('page_on_front');
 			if ($chroma_front_id && has_post_thumbnail($chroma_front_id)) {
@@ -111,7 +111,9 @@
 					}
 				</style>
 				<?php
-				$logo_url = Chroma_Branding_Engine::get_instance()->get_setting('assets', 'logo_url');
+				$custom_logo_id = function_exists('chroma_get_theme_mod') ? (int) chroma_get_theme_mod('custom_logo', 0) : (int) get_theme_mod('custom_logo', 0);
+				$logo_url = $custom_logo_id ? wp_get_attachment_image_url($custom_logo_id, 'full') : '';
+				$logo_url = $logo_url ?: Chroma_Branding_Engine::get_instance()->get_setting('assets', 'logo_url');
 				$logo_url = $logo_url ?: get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp';
 				$brand_label = chroma_get_theme_mod('chroma_early_learning_brand_label', get_bloginfo('name'));
 				?>
@@ -157,7 +159,7 @@
 				?>
 				<a href="<?php echo esc_url($cta_url); ?>"
 					class="inline-flex items-center justify-center px-6 py-3 rounded-full bg-chroma-red text-white text-xs font-semibold uppercase tracking-widest hover:bg-chroma-red/90 transition shadow-soft">
-					<?php _e($cta_text, 'chroma-excellence'); ?>
+					<?php echo esc_html($cta_text); ?>
 				</a>
 			</nav>
 
@@ -197,7 +199,7 @@
 
 			<a href="<?php echo esc_url($cta_url); ?>"
 				class="block w-full text-center mt-6 px-6 py-4 rounded-xl bg-chroma-red text-white font-semibold uppercase tracking-widest hover:bg-chroma-red/90 transition shadow-soft">
-				<?php _e($cta_text, 'chroma-excellence'); ?>
+				<?php echo esc_html($cta_text); ?>
 			</a>
 		</nav>
 	</div>

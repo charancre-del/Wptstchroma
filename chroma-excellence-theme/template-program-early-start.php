@@ -128,6 +128,13 @@ while (have_posts()):
             'classroom care',
             'family partnership',
             'child development support',
+            'daycare',
+            'whole-child',
+            'warmth of home',
+            'preserving the warmth',
+            'every program is guided by prismpath',
+            'prismpath™',
+            'prismpath',
         );
 
         if (!$is_early_learning_route) {
@@ -232,9 +239,9 @@ while (have_posts()):
         ],
     ];
 
-    $cta_title = get_post_meta($page_id, 'early_start_cta_title', true) ?: __('Ready to take the next step?', 'chroma-excellence');
-    $cta_description = $normalize_early_learning_text(get_post_meta($page_id, 'early_start_cta_description', true) ?: ($is_early_learning_route ? __('Schedule a tour with Chroma Early Learning to meet our team, explore classrooms, and talk through the support your child needs.', 'chroma-excellence') : __('Visit the official Chroma Early Start website to meet our clinical directors, view accepted insurances, and request an initial evaluation.', 'chroma-excellence')));
-    $cta_button_text = $normalize_early_learning_text(get_post_meta($page_id, 'early_start_cta_button_text', true) ?: ($is_early_learning_route ? __('Schedule a Tour', 'chroma-excellence') : __('Go to Early Start Website', 'chroma-excellence')));
+    $cta_title = $route_text('early_start_cta_title', __('Ready to take the next step?', 'chroma-excellence'));
+    $cta_description = $route_text('early_start_cta_description', $is_early_learning_route ? __('Schedule a tour with Chroma Early Learning to meet our team, explore classrooms, and talk through the support your child needs.', 'chroma-excellence') : __('Visit the official Chroma Early Start website to meet our clinical directors, view accepted insurances, and request an initial evaluation.', 'chroma-excellence'));
+    $cta_button_text = $route_text('early_start_cta_button_text', $is_early_learning_route ? __('Schedule a Tour', 'chroma-excellence') : __('Go to Early Start Website', 'chroma-excellence'));
     $cta_button_url = $normalize_early_learning_url(get_post_meta($page_id, 'early_start_cta_button_url', true), $is_early_learning_route ? '/schedule-a-tour/' : 'https://chromaearlystart.com/');
     ?>
 
