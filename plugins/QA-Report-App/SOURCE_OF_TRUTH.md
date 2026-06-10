@@ -152,8 +152,7 @@ Each checklist item uses a consistent rating:
 | School-age | 1:25 | 50 | [count] |
 
 ### 6.3 Health & Safety
-- Fire Drills (Monthly, 1 nap time drill/year)
-- Tornado Drills (Every 6 months)
+- All drills as required are being conducted off the State Drill Log form
 - Pediatric First Aid/CPR documentation
 - Fire extinguishers (serviced/tagged annually)
 - Emergency numbers near phones
@@ -227,17 +226,7 @@ Each checklist item uses a consistent rating:
 - Transportation logbook complete
 
 ### 6.9 Posted Notices/Signage
-- Current License
-- Consumer Product Safety Poster
-- No Smoking sign
-- Liability insurance notice
-- Communicable disease chart
-- Parent access statement
-- Management names
-- Weekly menu
-- Emergency plans
-- Visitor check-in notice
-- DECAL Rules & Regulations
+- All Required Posted Notices are in Place
 
 ### 6.10 First Aid Kit Checklist
 - Scissors, Tweezers
@@ -343,7 +332,7 @@ Extended criteria for protecting children/staff while supporting health and well
 
 ### 7.9 Leadership/Lobby/Office/Files
 - Professional, inviting, Chroma-branded environment
-- Required posted notices in place
+- All Required Posted Notices are in Place
 - Monthly newsletters distributed
 - Music playing in lobby
 - Transition communication between classrooms

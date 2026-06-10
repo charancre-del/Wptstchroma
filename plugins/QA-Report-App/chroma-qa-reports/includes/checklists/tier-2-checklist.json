@@ -373,7 +373,7 @@
                 },
                 {
                     "key": "posted_notices",
-                    "label": "Required posted notices are in place",
+                    "label": "All Required Posted Notices are in Place",
                     "type": "rating_notes"
                 },
                 {

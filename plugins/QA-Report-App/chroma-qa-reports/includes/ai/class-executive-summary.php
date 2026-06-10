@@ -2026,9 +2026,9 @@ class Executive_Summary
                 'no' => 'Fire extinguisher needs to be serviced/replaced. Schedule inspection by [DATE]. Ensure annual maintenance tag is current.',
                 'sometimes' => 'Fire extinguisher present but needs attention. Check expiration date and ensure monthly visual inspection log is maintained.',
             ],
-            'health_safety/fire_drills' => [
-                'no' => 'Fire drills not conducted as required. Schedule monthly fire drills and ensure one nap time drill per year. Maintain drill log with dates and times.',
-                'sometimes' => 'Fire drills being conducted but not consistently documented. Ensure drill log captures all required information.',
+            'health_safety/drill_logs' => [
+                'no' => 'All required drills are not being conducted off the State Drill Log form. Complete each required drill and maintain the State Drill Log form with dates and times.',
+                'sometimes' => 'Required drills are being conducted but not consistently documented on the State Drill Log form. Ensure all drill documentation is complete and current.',
             ],
             'health_safety/allergy_list' => [
                 'no' => 'Allergy list not posted or not current. Update immediately and post in all classrooms and kitchen. Ensure all staff are aware.',

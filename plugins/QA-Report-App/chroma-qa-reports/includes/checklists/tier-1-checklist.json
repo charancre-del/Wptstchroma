@@ -71,14 +71,8 @@
             "name": "Health & Safety",
             "items": [
                 {
-                    "key": "fire_drills",
-                    "label": "Fire Drills – Monthly (1 nap time drill per year)",
-                    "type": "rating_notes",
-                    "evidence": "documentation"
-                },
-                {
-                    "key": "tornado_drills",
-                    "label": "Tornado Drills – Every six months",
+                    "key": "drill_logs",
+                    "label": "All drills as required are being conducted off the State Drill Log form",
                     "type": "rating_notes",
                     "evidence": "documentation"
                 },
@@ -461,80 +455,8 @@
             "name": "Posted Notices/Signage",
             "items": [
                 {
-                    "key": "current_license",
-                    "label": "Current License",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "consumer_safety",
-                    "label": "Consumer Product Safety Poster",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "no_smoking",
-                    "label": "No smoking sign",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "liability_notice",
-                    "label": "Copy of \"No liability insurance poster\" only if center does NOT carry liability insurance",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "disease_chart",
-                    "label": "Current communicable disease chart",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "parent_access",
-                    "label": "Statement allowing parents access when a child is present",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "management_names",
-                    "label": "Names of management responsible for administration",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "weekly_menu",
-                    "label": "Dated current week's menu for meals and snacks",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "emergency_plans",
-                    "label": "Severe weather, fire, and other emergency plans",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "visitor_check_in",
-                    "label": "Require visitors to check in with staff when entering",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "license_review",
-                    "label": "Right of parents to review most recent license report",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "visitor_sign_in",
-                    "label": "Notice: \"Visitors check in\" notification/sign-in sheet",
-                    "type": "rating_notes",
-                    "evidence": "observation"
-                },
-                {
-                    "key": "rules_regs",
-                    "label": "Current Rules & Regs in a binder and accessible",
+                    "key": "required_posted_notices",
+                    "label": "All Required Posted Notices are in Place",
                     "type": "rating_notes",
                     "evidence": "observation"
                 }
