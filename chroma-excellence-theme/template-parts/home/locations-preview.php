@@ -51,10 +51,10 @@ $stacked = !empty($args['stacked']);
                 <div class="chroma-location-list-panel rounded-[2rem] border border-chroma-blue/10 shadow-soft bg-white p-5 md:p-7 flex flex-col min-h-[32rem]">
                     <div class="flex gap-3 flex-wrap mb-5" data-location-filters>
                         <button type="button"
-                            class="chroma-location-filter is-active"
+                            class="chroma-location-filter"
                             data-location-filter="closest"
-                            aria-pressed="true">
-                            <?php esc_html_e('Closest to Me', 'chroma-excellence'); ?>
+                            aria-pressed="false">
+                            <?php esc_html_e('Use My Location', 'chroma-excellence'); ?>
                         </button>
                         <?php foreach ($grouped as $group):
                             $slug = sanitize_title($group['slug'] ?? $group['label'] ?? '');
@@ -71,9 +71,9 @@ $stacked = !empty($args['stacked']);
                         <?php endforeach; ?>
                     </div>
 
-                    <p class="chroma-location-status sr-only"
+                    <p class="chroma-location-status rounded-[1.25rem] bg-chroma-cream px-5 py-4 text-sm md:text-base text-brand-ink/75 mb-5"
                         data-location-status>
-                        <?php esc_html_e('Share location to sort campuses by distance, or choose a region to zoom the map.', 'chroma-excellence'); ?>
+                        <?php esc_html_e('Share your location to sort campuses by distance, or choose a region to zoom the map.', 'chroma-excellence'); ?>
                     </p>
 
                     <div class="chroma-location-card-scroll pr-2 -mr-2" data-location-list>
