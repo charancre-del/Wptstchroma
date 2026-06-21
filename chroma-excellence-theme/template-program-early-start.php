@@ -1,6 +1,6 @@
 <?php
 /**
- * Template Name: Early Learning Support Template
+ * Template Name: Early Start Therapy Template
  * Template Post Type: program
  *
  * @package Chroma_Excellence

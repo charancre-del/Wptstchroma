@@ -1,9 +1,9 @@
 <?php
 /**
- * Template Name: Early Learning Support Template
+ * Template Name: Early Start Therapy Template
  * Template Post Type: page
  *
- * Backward-compatible page template that reuses the program template implementation.
+ * Backward-compatible page template that reuses the Early Start implementation.
  *
  * @package Chroma_Excellence
  * @since 1.0.0

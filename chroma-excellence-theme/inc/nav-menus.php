@@ -28,22 +28,14 @@ function chroma_register_menus()
 add_action('init', 'chroma_register_menus');
 
 /**
- * Normalize legacy service labels in rendered navigation.
+ * Normalize rendered navigation labels.
  *
- * Preserve explicit Early Start menu labels while allowing the public Early
- * Learning label to be controlled from the Customizer.
+ * Real WordPress menu item titles are the source of truth. Theme-level label
+ * overrides are only used by fallback/generated nav arrays, not assigned menus.
  */
 function chroma_normalize_nav_label($label)
 {
-	$label = (string) $label;
-	$early_learning_label = chroma_get_theme_mod('chroma_early_learning_nav_label', __('Early Learning', 'chroma-excellence'));
-	$early_learning_brand_label = chroma_get_theme_mod('chroma_early_learning_brand_label', __('Chroma Early Learning', 'chroma-excellence'));
-
-	return str_replace(
-		array('Pediatric Therapy', 'Specialized Pediatric Therapy', 'Chroma Early Learning', 'Early Learning'),
-		array($early_learning_label, $early_learning_label, $early_learning_brand_label, $early_learning_label),
-		$label
-	);
+	return (string) $label;
 }
 
 /**

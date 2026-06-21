@@ -201,12 +201,12 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
             ],
             'chroma-early-start' => [
                 'en' => [
-                    'title' => 'Chroma Early Learning | Early Childhood Education',
-                    'meta_description' => 'Explore Chroma Early Learning and learn how our early childhood programs help children and families thrive.',
+                    'title' => 'Chroma Early Start | Pediatric Therapy',
+                    'meta_description' => 'Explore Chroma Early Start for speech, occupational, and ABA therapy support connected with early childhood education.',
                 ],
                 'es' => [
-                    'title' => 'Chroma Early Learning | Educación infantil',
-                    'meta_description' => 'Explora Chroma Early Learning y conoce cómo nuestros programas de educación infantil ayudan a niños y familias a prosperar.',
+                    'title' => 'Chroma Early Start | Terapia pediátrica',
+                    'meta_description' => 'Explora Chroma Early Start para apoyo de terapia del habla, ocupacional y ABA conectado con educación infantil.',
                 ],
             ],
             'parents' => [

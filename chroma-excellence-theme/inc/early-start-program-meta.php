@@ -1,6 +1,6 @@
 <?php
 /**
- * Chroma Early Learning Support Page Meta Boxes
+ * Chroma Early Start Page Meta Boxes
  *
  * @package Chroma_Excellence
  * @since 1.0.0
@@ -42,7 +42,7 @@ function chroma_early_start_page_meta_boxes()
 
     add_meta_box(
         'chroma-early-start-hero',
-        __('Chroma Early Learning: Hero', 'chroma-excellence'),
+        __('Chroma Early Start: Hero', 'chroma-excellence'),
         'chroma_early_start_hero_meta_box_render',
         'program',
         'normal',
@@ -51,7 +51,7 @@ function chroma_early_start_page_meta_boxes()
 
     add_meta_box(
         'chroma-early-start-synergy',
-        __('Chroma Early Learning: Support + Education', 'chroma-excellence'),
+        __('Chroma Early Start: Therapy + Education', 'chroma-excellence'),
         'chroma_early_start_synergy_meta_box_render',
         'program',
         'normal',
@@ -60,7 +60,7 @@ function chroma_early_start_page_meta_boxes()
 
     add_meta_box(
         'chroma-early-start-services',
-        __('Chroma Early Learning: Services', 'chroma-excellence'),
+        __('Chroma Early Start: Services', 'chroma-excellence'),
         'chroma_early_start_services_meta_box_render',
         'program',
         'normal',
@@ -69,7 +69,7 @@ function chroma_early_start_page_meta_boxes()
 
     add_meta_box(
         'chroma-early-start-cta',
-        __('Chroma Early Learning: Final CTA', 'chroma-excellence'),
+        __('Chroma Early Start: Final CTA', 'chroma-excellence'),
         'chroma_early_start_cta_meta_box_render',
         'program',
         'normal',
@@ -82,7 +82,7 @@ function chroma_early_start_template_note($post)
 {
     $template = get_post_meta($post->ID, '_wp_page_template', true);
     echo '<p class="description" style="margin-bottom:16px;">';
-    echo esc_html__('These fields are used by the "Early Learning Support" program template.', 'chroma-excellence');
+    echo esc_html__('These fields are used by the "Early Start Therapy" program template.', 'chroma-excellence');
     if (!chroma_is_early_start_template($template)) {
         echo ' ';
         echo esc_html__('This program is not currently using that template.', 'chroma-excellence');
