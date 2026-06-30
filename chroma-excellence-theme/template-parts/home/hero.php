@@ -64,6 +64,8 @@ $location_pill = sprintf($hero['pill_format'], $loc_count);
                 <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0">
                     <span class="w-2 h-2 rounded-full bg-chroma-green"></span>
                     <span class="leading-relaxed"><?php echo esc_html($hero['quality_badge_text']); ?></span>
+                    <span class="chroma-hero-proof-chip"><?php esc_html_e('NAEYC Recognized', 'chroma-excellence'); ?></span>
+                    <span class="chroma-hero-proof-chip"><?php esc_html_e('GAC Accredited GA Pre-K', 'chroma-excellence'); ?></span>
                 </div>
             </div>
         </div>

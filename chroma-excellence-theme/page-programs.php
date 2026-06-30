@@ -192,19 +192,19 @@ $color_map = array(
         </div>
     </section>
 
-    <section class="white borderY chroma-program-methodology py-24 md:py-32 bg-white border-y border-chroma-blue/10">
-        <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-center">
+    <section class="white borderY chroma-program-methodology chroma-program-support-note py-20 md:py-24 bg-white border-y border-chroma-blue/10">
+        <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.85fr_1.15fr] gap-10 items-center">
             <div>
                 <div class="text-xs font-bold uppercase tracking-[0.22em] text-chroma-green mb-4">
-                    <?php esc_html_e('Our Methodology', 'chroma-excellence'); ?>
+                    <?php esc_html_e('Program support', 'chroma-excellence'); ?>
                 </div>
                 <h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.035em] leading-[0.98] text-brand-ink mb-5">
-                    <?php esc_html_e('More than just daycare.', 'chroma-excellence'); ?>
+                    <?php esc_html_e('Every classroom keeps its own rhythm.', 'chroma-excellence'); ?>
                 </h2>
             </div>
             <div class="bg-brand-cream rounded-[2.5rem] border border-chroma-blue/10 p-8 md:p-10 shadow-soft">
                 <p class="text-lg md:text-xl text-brand-ink/75 leading-relaxed">
-                    <?php esc_html_e('Every program is guided by Prismpath™: a whole-child framework that balances physical, emotional, social, academic, and creative development while preserving the warmth of home.', 'chroma-excellence'); ?>
+                    <?php esc_html_e('From infant care through school-age programs, children grow at different speeds and classrooms have different needs. Chroma’s planning approach helps teachers shape lessons around the milestones, interests, and support needs they see each day — so the structure stays connected while each classroom still feels personal.', 'chroma-excellence'); ?>
                 </p>
             </div>
         </div>

@@ -306,6 +306,44 @@ get_header();
 			</div>
 		</section>
 
+		<!-- Growth Support -->
+		<section class="chroma-parent-growth-section cream py-20 md:py-24 bg-brand-cream border-t border-brand-ink/5">
+			<div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-14 items-center">
+				<div class="chroma-parent-growth-copy">
+					<span class="inline-flex items-center gap-2 bg-white border border-chroma-red/15 px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-red mb-7">
+						<span class="w-2 h-2 rounded-full bg-chroma-red" aria-hidden="true"></span>
+						<?php esc_html_e('How we support growth', 'chroma-excellence'); ?>
+					</span>
+					<h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.04em] leading-[0.98] text-brand-ink mb-6">
+						<?php esc_html_e('We notice the little patterns that help children grow.', 'chroma-excellence'); ?>
+					</h2>
+					<p class="text-lg text-brand-ink/75 leading-relaxed mb-5">
+						<?php esc_html_e('Families want to know their child is understood. Our teachers pay attention to the small signals that show up across the day — how children enter play, try new language, handle routines, build friendships, and ask for help.', 'chroma-excellence'); ?>
+					</p>
+					<p class="text-brand-ink/65 leading-relaxed">
+						<?php esc_html_e('Those observations help teachers plan with intention, so support feels calm, personal, and developmentally right.', 'chroma-excellence'); ?>
+					</p>
+				</div>
+				<div class="chroma-parent-growth-cards">
+					<article>
+						<small><?php esc_html_e('Notice', 'chroma-excellence'); ?></small>
+						<h3><?php esc_html_e('Seen clearly.', 'chroma-excellence'); ?></h3>
+						<p><?php esc_html_e('Teachers notice where your child is growing, what feels easy, and where a little more support may help.', 'chroma-excellence'); ?></p>
+					</article>
+					<article>
+						<small><?php esc_html_e('Plan', 'chroma-excellence'); ?></small>
+						<h3><?php esc_html_e('Planned gently.', 'chroma-excellence'); ?></h3>
+						<p><?php esc_html_e('Classroom plans are shaped around the children in the room, so learning feels age-appropriate and responsive.', 'chroma-excellence'); ?></p>
+					</article>
+					<article>
+						<small><?php esc_html_e('Support', 'chroma-excellence'); ?></small>
+						<h3><?php esc_html_e('Supported well.', 'chroma-excellence'); ?></h3>
+						<p><?php esc_html_e('Directors and curriculum leaders help teachers choose next steps, materials, or coaching that fit the classroom.', 'chroma-excellence'); ?></p>
+					</article>
+				</div>
+			</div>
+		</section>
+
 		<!-- Events Section -->
 		<section id="events" class="cream py-24 bg-brand-cream relative overflow-hidden border-t border-brand-ink/5 chroma-parents-split-section chroma-parents-events">
 			<div

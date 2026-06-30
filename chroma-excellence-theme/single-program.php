@@ -21,6 +21,12 @@ while (have_posts()):
 	$has_lesson_plan = trim((string) $lesson_plan_url) !== '' && trim((string) $lesson_plan_url) !== '#';
 
 	$is_preschool_reference = 'preschool' === get_post_field('post_name', $program_id);
+	$program_slug = (string) get_post_field('post_name', $program_id);
+	$program_title_normalized = strtolower(wp_strip_all_tags((string) get_the_title($program_id)));
+	$is_prek_literacy_program = in_array($program_slug, array('pre-k-ga-pre-k', 'ga-pre-k', 'pre-k', 'prek'), true)
+		|| false !== strpos($program_title_normalized, 'ga pre')
+		|| false !== strpos($program_title_normalized, 'pre-k')
+		|| false !== strpos($program_title_normalized, 'pre k');
 
 	// Hero section
 	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: get_the_title();
@@ -249,6 +255,39 @@ while (have_posts()):
 				</div>
 			</div>
 		</section>
+
+		<?php if ($is_prek_literacy_program): ?>
+			<section class="chroma-prek-literacy-section white borderY py-20 md:py-24 bg-white border-y border-chroma-blue/10" style="--program-accent: <?php echo esc_attr($hex_color); ?>;">
+				<div class="max-w-6xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-14 items-center">
+					<div>
+						<span class="inline-flex items-center gap-2 bg-brand-cream border border-brand-ink/10 px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold mb-7" style="color: <?php echo esc_attr($hex_color); ?>;">
+							<span class="w-2 h-2 rounded-full" style="background: <?php echo esc_attr($hex_color); ?>;" aria-hidden="true"></span>
+							<?php esc_html_e('Pre-K literacy readiness', 'chroma-excellence'); ?>
+						</span>
+						<h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.04em] leading-[0.98] text-brand-ink mb-6">
+							<?php esc_html_e('Sound awareness that helps children step into kindergarten with confidence.', 'chroma-excellence'); ?>
+						</h2>
+						<p class="text-lg text-brand-ink/75 leading-relaxed">
+							<?php esc_html_e('In Pre-K and GA Pre-K classrooms, literacy readiness grows through stories, songs, conversation, vocabulary, and playful sound work. Heggerty Phonics supports children as they learn to hear, blend, segment, and play with sounds.', 'chroma-excellence'); ?>
+						</p>
+					</div>
+					<div class="chroma-prek-literacy-card">
+						<article>
+							<h3><?php esc_html_e('Heggerty Phonics', 'chroma-excellence'); ?></h3>
+							<p><?php esc_html_e('Daily phonemic awareness practice helps children hear and work with sounds before formal reading begins.', 'chroma-excellence'); ?></p>
+						</article>
+						<article>
+							<h3><?php esc_html_e('Language-rich classrooms', 'chroma-excellence'); ?></h3>
+							<p><?php esc_html_e('Teachers reinforce literacy through read-alouds, songs, vocabulary, conversation, and purposeful play.', 'chroma-excellence'); ?></p>
+						</article>
+						<article>
+							<h3><?php esc_html_e('Kindergarten confidence', 'chroma-excellence'); ?></h3>
+							<p><?php esc_html_e('Children build listening, oral language, and sound-awareness skills that support a smoother next step.', 'chroma-excellence'); ?></p>
+						</article>
+					</div>
+				</div>
+			</section>
+		<?php endif; ?>
 
 		<!-- Schedule -->
 		<?php if (!empty($schedule_steps)):

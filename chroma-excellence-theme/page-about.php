@@ -271,6 +271,55 @@ while (have_posts()):
 			</div>
 		</section>
 
+		<!-- Care Support Story -->
+		<section class="chroma-care-support-section white borderY py-20 md:py-24 bg-white border-y border-chroma-blue/10">
+			<div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.92fr_1.08fr] gap-10 lg:gap-14 items-center">
+				<div>
+					<span class="inline-flex items-center gap-2 bg-chroma-redLight/60 border border-chroma-red/10 px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-red mb-7">
+						<span class="w-2 h-2 rounded-full bg-chroma-red" aria-hidden="true"></span>
+						<?php esc_html_e('Care behind the care', 'chroma-excellence'); ?>
+					</span>
+					<h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.04em] leading-[0.98] text-brand-ink mb-6">
+						<?php esc_html_e('Care gets stronger when teachers are supported well.', 'chroma-excellence'); ?>
+					</h2>
+					<p class="text-lg text-brand-ink/75 leading-relaxed mb-5">
+						<?php esc_html_e('Children do their best growing when the adults around them feel prepared, encouraged, and connected. At Chroma, our teachers are supported by simple, thoughtful systems that help them notice growth, plan next steps, and keep classroom care personal.', 'chroma-excellence'); ?>
+					</p>
+					<p class="text-brand-ink/65 leading-relaxed">
+						<?php esc_html_e('The heart of the work is still the teacher-child relationship. The support behind it simply helps that relationship stay consistent from classroom to classroom.', 'chroma-excellence'); ?>
+					</p>
+				</div>
+				<div class="chroma-care-support-panel">
+					<?php
+					$care_support_items = array(
+						array(
+							'title' => __('Teachers notice milestones in real moments.', 'chroma-excellence'),
+							'copy'  => __('Growth shows up in play, routines, language, movement, friendships, and confidence — not only on a checklist.', 'chroma-excellence'),
+						),
+						array(
+							'title' => __('Lesson plans follow the children in the room.', 'chroma-excellence'),
+							'copy'  => __('Planning can reflect what children are ready for now, while still honoring each program’s rhythm and goals.', 'chroma-excellence'),
+						),
+						array(
+							'title' => __('Coaching stays connected to classroom needs.', 'chroma-excellence'),
+							'copy'  => __('Directors, curriculum leaders, and training teams can support teachers with practical next steps that fit the children they serve.', 'chroma-excellence'),
+						),
+					);
+
+					foreach ($care_support_items as $index => $item):
+						?>
+						<article class="chroma-care-support-item">
+							<span><?php echo esc_html($index + 1); ?></span>
+							<div>
+								<h3><?php echo esc_html($item['title']); ?></h3>
+								<p><?php echo esc_html($item['copy']); ?></p>
+							</div>
+						</article>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</section>
+
 		<!-- Our Educators -->
 		<section id="educators" class="white borderY py-24 bg-white border-y border-chroma-blue/10">
 			<div class="max-w-7xl mx-auto px-4 lg:px-6">
