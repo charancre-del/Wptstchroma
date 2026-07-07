@@ -5130,3 +5130,188 @@
     letter-spacing: 0.1em;
   }
 }
+
+/* PrismPath support and final polish for map/form/hero trust behavior. */
+.chroma-prismpath-support-section {
+  position: relative;
+}
+
+.chroma-prismpath-support-grid {
+  align-items: stretch;
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 3rem);
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.chroma-prismpath-support-copy {
+  background: linear-gradient(135deg, #fff 0%, #fffaf3 100%);
+  border: 1px solid rgba(168, 75, 56, 0.12);
+  border-radius: clamp(2rem, 4vw, 3rem);
+  box-shadow: 0 24px 70px rgba(38, 50, 56, 0.07);
+  padding: clamp(1.75rem, 4vw, 3.25rem);
+}
+
+.chroma-prismpath-support-cards {
+  display: grid;
+  gap: 1rem;
+}
+
+.chroma-prismpath-support-card {
+  background: #fff;
+  border: 1px solid rgba(74, 108, 124, 0.12);
+  border-radius: clamp(1.35rem, 3vw, 2rem);
+  box-shadow: 0 18px 44px rgba(38, 50, 56, 0.055);
+  padding: clamp(1.25rem, 3vw, 1.85rem);
+}
+
+.chroma-prismpath-support-card span {
+  color: #a84b38;
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  margin-bottom: 0.8rem;
+}
+
+.chroma-prismpath-support-card h3 {
+  color: #263238;
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif);
+  font-size: clamp(1.7rem, 2.5vw, 2.35rem);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 0 0 0.7rem;
+}
+
+.chroma-prismpath-support-card p {
+  color: rgba(38, 50, 56, 0.72);
+  font-size: clamp(0.98rem, 1.2vw, 1.08rem);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.chroma-location-map-panel .leaflet-tile-pane {
+  z-index: 200 !important;
+}
+
+.chroma-location-map-panel .leaflet-overlay-pane {
+  z-index: 400 !important;
+}
+
+.chroma-location-map-panel .leaflet-marker-pane,
+.chroma-location-map-panel .leaflet-shadow-pane {
+  z-index: 600 !important;
+}
+
+.chroma-location-map-panel .leaflet-tooltip-pane {
+  z-index: 650 !important;
+}
+
+.chroma-location-map-panel .leaflet-popup-pane {
+  z-index: 780 !important;
+}
+
+.chroma-location-map-panel .leaflet-control-container {
+  position: relative;
+  z-index: 820 !important;
+}
+
+.chroma-location-map-panel .leaflet-popup {
+  z-index: 790 !important;
+}
+
+.chroma-location-map-panel .leaflet-popup-content {
+  width: min(17rem, calc(100vw - 4rem)) !important;
+}
+
+.chroma-location-map-panel .chroma-map-popup {
+  max-height: min(18.5rem, 62vh);
+}
+
+.chroma-location-map-panel .chroma-map-popup-photo {
+  height: 6rem;
+}
+
+.chroma-location-map-panel .chroma-map-popup-body {
+  padding: 0.9rem 1rem 0.95rem;
+}
+
+.chroma-location-map-panel .chroma-map-popup-body strong {
+  font-size: 1rem;
+}
+
+.chroma-redesign-hero .space-y-8 > .flex:last-child {
+  align-items: flex-start;
+  column-gap: 1rem;
+  row-gap: 0.7rem;
+}
+
+.chroma-redesign-hero .space-y-8 > .flex:last-child > div:last-child {
+  column-gap: 0.55rem;
+  max-width: 100%;
+  row-gap: 0.55rem;
+}
+
+.chroma-redesign-hero .overflow-x-hidden {
+  overflow-x: clip !important;
+  overflow-y: visible !important;
+}
+
+.chroma-redesign-hero .chroma-hero-proof-chip {
+  flex: 0 0 auto;
+  padding-inline: 0.72rem;
+}
+
+@media (min-width: 1024px) {
+  .page-template-page-contact .formGrid {
+    align-items: start !important;
+    gap: clamp(2.5rem, 5vw, 4rem) !important;
+  }
+
+  .page-template-page-contact .formGrid > .space-y-10,
+  .page-template-page-contact .chroma-form-scroll-card--contact {
+    height: clamp(34rem, 70vh, 43rem) !important;
+    max-height: clamp(34rem, 70vh, 43rem) !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  .page-template-page-contact .formGrid > .space-y-10 {
+    overflow-y: auto !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact {
+    overflow-y: auto !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card .chroma-ghl-iframe-container,
+  .page-template-page-contact .chroma-form-scroll-card [data-chroma-ghl-container],
+  .page-template-page-contact .chroma-form-scroll-card [id*="inline-"] {
+    min-height: 0 !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card iframe,
+  .page-template-page-contact .chroma-form-scroll-card iframe[data-src*="leadconnectorhq.com"],
+  .page-template-page-contact .chroma-form-scroll-card iframe[src*="leadconnectorhq.com"],
+  .page-template-page-contact .chroma-form-scroll-card iframe[src*="msgsndr.com"],
+  .page-template-page-contact .chroma-form-scroll-card iframe[src*="gohighlevel"] {
+    height: clamp(50rem, 112vh, 64rem) !important;
+    min-height: clamp(50rem, 112vh, 64rem) !important;
+    max-height: none !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .chroma-prismpath-support-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact,
+  .page-template-page-contact .formGrid > .space-y-10 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}

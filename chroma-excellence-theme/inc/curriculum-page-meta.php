@@ -43,6 +43,15 @@ function chroma_curriculum_page_meta_boxes() {
 	);
 
 	add_meta_box(
+		'chroma-curriculum-support',
+		__( 'PrismPath Support', 'chroma-excellence' ),
+		'chroma_curriculum_support_meta_box_render',
+		'page',
+		'normal',
+		'default'
+	);
+
+	add_meta_box(
 		'chroma-curriculum-environment',
 		__( 'Environment (Third Teacher)', 'chroma-excellence' ),
 		'chroma_curriculum_environment_meta_box_render',
@@ -202,6 +211,95 @@ function chroma_curriculum_framework_meta_box_render( $post ) {
 				<textarea id="_chroma_es_curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_desc"
 						  name="_chroma_es_curriculum_pillar_<?php echo esc_attr( $pillar['name'] ); ?>_desc"
 						  rows="2" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, "_chroma_es_curriculum_pillar_{$pillar['name']}_desc", true ) ); ?></textarea>
+			</td>
+		</tr>
+		<?php endforeach; ?>
+	</table>
+	<?php
+}
+
+/**
+ * PrismPath Support Meta Box
+ */
+function chroma_curriculum_support_meta_box_render( $post ) {
+	wp_nonce_field( 'chroma_curriculum_support_meta', 'chroma_curriculum_support_nonce' );
+
+	$support_badge = get_post_meta( $post->ID, 'curriculum_support_badge', true );
+	$support_title = get_post_meta( $post->ID, 'curriculum_support_title', true );
+	$support_description = get_post_meta( $post->ID, 'curriculum_support_description', true );
+
+	$cards = array(
+		array( 'name' => 'notice', 'label' => 'Card 1: Notice growth patterns' ),
+		array( 'name' => 'plan', 'label' => 'Card 2: Plan next steps' ),
+		array( 'name' => 'coach', 'label' => 'Card 3: Support the classroom' ),
+	);
+	?>
+	<table class="form-table">
+		<tr>
+			<th><label for="curriculum_support_badge">Badge</label></th>
+			<td>
+				<input type="text" id="curriculum_support_badge" name="curriculum_support_badge"
+					   value="<?php echo esc_attr( $support_badge ); ?>"
+					   class="large-text" placeholder="e.g., Teacher-supported growth" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_support_badge" name="_chroma_es_curriculum_support_badge"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_support_badge', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Badge" style="margin-top: 5px;" />
+			</td>
+		</tr>
+		<tr>
+			<th><label for="curriculum_support_title">Section Title</label></th>
+			<td>
+				<input type="text" id="curriculum_support_title" name="curriculum_support_title"
+					   value="<?php echo esc_attr( $support_title ); ?>"
+					   class="large-text" placeholder="e.g., How PrismPath supports every classroom rhythm." />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_support_title" name="_chroma_es_curriculum_support_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_support_title', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Section Title" style="margin-top: 5px;" />
+			</td>
+		</tr>
+		<tr>
+			<th><label for="curriculum_support_description">Description</label></th>
+			<td>
+				<textarea id="curriculum_support_description" name="curriculum_support_description"
+						  rows="3" class="large-text"><?php echo esc_textarea( $support_description ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_support_description" name="_chroma_es_curriculum_support_description"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_support_description', true ) ); ?></textarea>
+			</td>
+		</tr>
+		<?php foreach ( $cards as $card ) :
+			$title = get_post_meta( $post->ID, "curriculum_support_{$card['name']}_title", true );
+			$desc = get_post_meta( $post->ID, "curriculum_support_{$card['name']}_desc", true );
+		?>
+		<tr>
+			<th colspan="2"><strong><?php echo esc_html( $card['label'] ); ?></strong></th>
+		</tr>
+		<tr>
+			<th><label for="curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_title">Title</label></th>
+			<td>
+				<input type="text" id="curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_title"
+					   name="curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_title"
+					   value="<?php echo esc_attr( $title ); ?>"
+					   class="large-text" />
+				<br>
+				<input type="text" id="_chroma_es_curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_title"
+					   name="_chroma_es_curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_title"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, "_chroma_es_curriculum_support_{$card['name']}_title", true ) ); ?>"
+					   class="large-text" placeholder="[ES] Title" style="margin-top: 5px;" />
+			</td>
+		</tr>
+		<tr>
+			<th><label for="curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_desc">Description</label></th>
+			<td>
+				<textarea id="curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_desc"
+						  name="curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_desc"
+						  rows="3" class="large-text"><?php echo esc_textarea( $desc ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_desc"
+						  name="_chroma_es_curriculum_support_<?php echo esc_attr( $card['name'] ); ?>_desc"
+						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, "_chroma_es_curriculum_support_{$card['name']}_desc", true ) ); ?></textarea>
 			</td>
 		</tr>
 		<?php endforeach; ?>
@@ -612,6 +710,26 @@ function chroma_save_curriculum_page_meta( $post_id ) {
 			'curriculum_pillar_creative_desc'  => 'sanitize_textarea_field',
 			'_chroma_es_curriculum_pillar_creative_desc'  => 'sanitize_textarea_field',
 		),
+		'chroma_curriculum_support_nonce' => array(
+			'curriculum_support_badge'       => 'sanitize_text_field',
+			'_chroma_es_curriculum_support_badge'       => 'sanitize_text_field',
+			'curriculum_support_title'       => 'sanitize_text_field',
+			'_chroma_es_curriculum_support_title'       => 'sanitize_text_field',
+			'curriculum_support_description' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_support_description' => 'sanitize_textarea_field',
+			'curriculum_support_notice_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_support_notice_title' => 'sanitize_text_field',
+			'curriculum_support_notice_desc' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_support_notice_desc' => 'sanitize_textarea_field',
+			'curriculum_support_plan_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_support_plan_title' => 'sanitize_text_field',
+			'curriculum_support_plan_desc' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_support_plan_desc' => 'sanitize_textarea_field',
+			'curriculum_support_coach_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_support_coach_title' => 'sanitize_text_field',
+			'curriculum_support_coach_desc' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_support_coach_desc' => 'sanitize_textarea_field',
+		),
 		'chroma_curriculum_timeline_nonce' => array(
 			'curriculum_timeline_badge'       => 'sanitize_text_field',
 			'_chroma_es_curriculum_timeline_badge'       => 'sanitize_text_field',
@@ -744,6 +862,16 @@ function chroma_seed_curriculum_page_defaults( $post_id ) {
 
 		'curriculum_framework_title'       => 'The Prismpath™ Framework',
 		'curriculum_framework_description' => 'Just as a prism refracts light into a spectrum, our curriculum refracts "play" into five distinct pillars of development. Every activity in our classrooms targets one or more of these areas.',
+
+		'curriculum_support_badge'       => 'Teacher-supported growth',
+		'curriculum_support_title'       => 'How PrismPath supports every classroom rhythm.',
+		'curriculum_support_description' => 'PrismPath gives teachers a clear way to notice growth, plan meaningful next steps, and keep each classroom balanced across the five pillars without losing the warmth of child-led discovery.',
+		'curriculum_support_notice_title' => 'Notice growth patterns',
+		'curriculum_support_notice_desc' => 'Teachers observe what children are practicing, where confidence is building, and which milestones are ready for gentle support.',
+		'curriculum_support_plan_title' => 'Plan next steps',
+		'curriculum_support_plan_desc' => 'Lesson experiences are shaped around the children in the room, so learning stays age-appropriate, joyful, and intentional.',
+		'curriculum_support_coach_title' => 'Support the classroom',
+		'curriculum_support_coach_desc' => 'Directors and curriculum leaders can coach teachers with the right focus, helping each classroom keep its own rhythm while staying connected to shared goals.',
 
 		'curriculum_pillar_physical_icon'  => 'fa-solid fa-person-running',
 		'curriculum_pillar_physical_title' => 'Physical',

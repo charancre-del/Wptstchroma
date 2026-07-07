@@ -24,6 +24,31 @@ $hero_description = chroma_get_translated_meta($page_id, 'curriculum_hero_descri
 $framework_title = chroma_get_translated_meta($page_id, 'curriculum_framework_title') ?: __('Five pillars. One prism.', 'chroma-excellence');
 $framework_description = chroma_get_translated_meta($page_id, 'curriculum_framework_description') ?: __('A prism refracts light into clear dimensions. Prismpath™ refracts play into the five pillars of development — and rebalances the mix at each age.', 'chroma-excellence');
 
+$support_badge = chroma_get_translated_meta($page_id, 'curriculum_support_badge') ?: __('Teacher-supported growth', 'chroma-excellence');
+$support_title = chroma_get_translated_meta($page_id, 'curriculum_support_title') ?: __('How PrismPath supports every classroom rhythm.', 'chroma-excellence');
+$support_description = chroma_get_translated_meta($page_id, 'curriculum_support_description') ?: __('PrismPath gives teachers a clear way to notice growth, plan meaningful next steps, and keep each classroom balanced across the five pillars without losing the warmth of child-led discovery.', 'chroma-excellence');
+
+$support_cards = array(
+	array(
+		'name' => 'notice',
+		'number' => __('01', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_support_notice_title') ?: __('Notice growth patterns', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_support_notice_desc') ?: __('Teachers observe what children are practicing, where confidence is building, and which milestones are ready for gentle support.', 'chroma-excellence'),
+	),
+	array(
+		'name' => 'plan',
+		'number' => __('02', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_support_plan_title') ?: __('Plan next steps', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_support_plan_desc') ?: __('Lesson experiences are shaped around the children in the room, so learning stays age-appropriate, joyful, and intentional.', 'chroma-excellence'),
+	),
+	array(
+		'name' => 'coach',
+		'number' => __('03', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'curriculum_support_coach_title') ?: __('Support the classroom', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'curriculum_support_coach_desc') ?: __('Directors and curriculum leaders can coach teachers with the right focus, helping each classroom keep its own rhythm while staying connected to shared goals.', 'chroma-excellence'),
+	),
+);
+
 $pillars = array(
 	array(
 		'name' => 'physical',
@@ -241,6 +266,36 @@ $cta_description = chroma_get_translated_meta($page_id, 'curriculum_cta_descript
 							</p>
 						</article>
 					<?php endforeach; ?>
+				</div>
+			</div>
+		</section>
+
+		<!-- PrismPath Support Section -->
+		<section id="prismpath-support" class="chroma-prismpath-support-section py-24 px-4 lg:px-6 bg-white">
+			<div class="max-w-7xl mx-auto">
+				<div class="chroma-prismpath-support-grid">
+					<div class="chroma-prismpath-support-copy reveal">
+						<span class="inline-flex items-center gap-2 bg-chroma-redLight text-chroma-red px-5 py-3 rounded-full text-sm font-semibold mb-7">
+							<span aria-hidden="true">•</span>
+							<?php echo esc_html($support_badge); ?>
+						</span>
+						<h2 class="font-serif text-4xl md:text-6xl text-brand-ink mb-6 tracking-[-0.045em] leading-[0.95]">
+							<?php echo esc_html($support_title); ?>
+						</h2>
+						<p class="text-lg md:text-xl text-brand-ink/75 leading-relaxed">
+							<?php echo esc_html($support_description); ?>
+						</p>
+					</div>
+
+					<div class="chroma-prismpath-support-cards reveal d1">
+						<?php foreach ($support_cards as $card): ?>
+							<article class="chroma-prismpath-support-card">
+								<span><?php echo esc_html($card['number']); ?></span>
+								<h3><?php echo esc_html($card['title']); ?></h3>
+								<p><?php echo esc_html($card['desc']); ?></p>
+							</article>
+						<?php endforeach; ?>
+					</div>
 				</div>
 			</div>
 		</section>
