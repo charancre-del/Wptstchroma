@@ -5262,6 +5262,308 @@
   padding-inline: 0.72rem;
 }
 
+/* Small tablet layer: gives iPad Mini portrait more room without forcing crowded desktop navigation. */
+@media (min-width: 744px) and (max-width: 819px) {
+  .container,
+  .max-w-7xl,
+  .max-w-\[1200px\],
+  .max-w-5xl,
+  .max-w-4xl {
+    max-width: min(100% - 2.5rem, 46rem) !important;
+  }
+
+  .chroma-redesign-hero {
+    padding-top: 4.3rem !important;
+    padding-bottom: 4.6rem !important;
+  }
+
+  .chroma-redesign-hero-title {
+    font-size: clamp(3.45rem, 7.25vw, 4.25rem) !important;
+    line-height: 0.94 !important;
+    max-width: 42rem !important;
+  }
+
+  .chroma-redesign-hero-title em,
+  .chroma-redesign-hero-title .italic,
+  .chroma-redesign-hero-title .text-chroma-red {
+    line-height: 0.9 !important;
+    margin-top: -0.02em !important;
+    margin-bottom: 0.2rem !important;
+  }
+
+  .chroma-redesign-hero .space-y-8 {
+    gap: 1.3rem !important;
+  }
+
+  .chroma-redesign-hero .space-y-8 > p {
+    font-size: clamp(0.98rem, 1.8vw, 1.12rem) !important;
+    line-height: 1.55 !important;
+  }
+
+  .chroma-redesign-hero-art {
+    min-height: clamp(26rem, 58vw, 30rem) !important;
+  }
+
+  .grid.md\:grid-cols-2.lg\:grid-cols-3,
+  .grid.md\:grid-cols-2.lg\:grid-cols-4,
+  .grid.sm\:grid-cols-2.lg\:grid-cols-4 {
+    gap: 1.25rem !important;
+  }
+}
+
+/* Tablet response layer: bridges the 820px -> 1024px Tailwind gap for iPad portrait and small landscape tablets. */
+@media (min-width: 820px) and (max-width: 1023px) {
+  html {
+    scroll-padding-top: 5.25rem;
+  }
+
+  section,
+  [id] {
+    scroll-margin-top: 5.25rem;
+  }
+
+  .container {
+    max-width: min(100% - 3rem, 58rem) !important;
+  }
+
+  [data-header] > div {
+    height: 5.25rem !important;
+    gap: 1rem;
+    padding-inline: 1.25rem !important;
+  }
+
+  [data-header] .chroma-logo {
+    height: 3.25rem !important;
+    width: 3.25rem !important;
+  }
+
+  [data-header] a.group {
+    gap: 0.75rem;
+    flex: 0 0 auto;
+  }
+
+  [data-header] a.group > div {
+    display: none;
+  }
+
+  [data-header] nav.hidden.lg\:flex {
+    display: flex !important;
+    align-items: center;
+    gap: clamp(0.7rem, 1.3vw, 1rem) !important;
+    max-width: calc(100vw - 7rem);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    padding-bottom: 0.2rem;
+    scrollbar-width: none;
+    white-space: nowrap;
+  }
+
+  [data-header] nav.hidden.lg\:flex::-webkit-scrollbar {
+    display: none;
+  }
+
+  [data-header] nav.hidden.lg\:flex > a {
+    flex: 0 0 auto;
+    font-size: clamp(0.82rem, 1.35vw, 0.95rem);
+    line-height: 1;
+  }
+
+  [data-header] nav.hidden.lg\:flex > a.inline-flex {
+    display: none !important;
+  }
+
+  [data-mobile-nav-toggle],
+  [data-mobile-nav] {
+    display: none !important;
+  }
+
+  #main-content {
+    padding-top: 5.25rem !important;
+  }
+
+  .max-w-7xl,
+  .max-w-\[1200px\] {
+    max-width: min(100% - 3rem, 60rem) !important;
+  }
+
+  .max-w-5xl {
+    max-width: min(100% - 3rem, 54rem) !important;
+  }
+
+  .max-w-4xl {
+    max-width: min(100% - 3rem, 50rem) !important;
+  }
+
+  .chroma-redesign-hero {
+    padding-top: 4.6rem !important;
+    padding-bottom: 4.8rem !important;
+  }
+
+  .chroma-redesign-hero > .max-w-7xl {
+    display: grid !important;
+    grid-template-columns: minmax(0, 0.95fr) minmax(19rem, 0.78fr) !important;
+    gap: clamp(2rem, 4vw, 3rem) !important;
+    align-items: center;
+  }
+
+  .chroma-redesign-hero-title {
+    font-size: clamp(4.15rem, 8.15vw, 5.55rem) !important;
+    line-height: 0.86 !important;
+    max-width: 36rem !important;
+  }
+
+  .chroma-redesign-hero-title em,
+  .chroma-redesign-hero-title .italic,
+  .chroma-redesign-hero-title .text-chroma-red {
+    margin-top: -0.14em !important;
+  }
+
+  .chroma-redesign-hero-art {
+    margin-top: 0 !important;
+    min-height: clamp(24rem, 44vw, 29rem) !important;
+  }
+
+  .chroma-redesign-hero .space-y-8 {
+    gap: 1.45rem !important;
+  }
+
+  .chroma-redesign-hero .space-y-8 > p {
+    font-size: clamp(1.02rem, 1.8vw, 1.18rem) !important;
+    line-height: 1.58 !important;
+  }
+
+  .chroma-redesign-hero .space-y-8 > p + p {
+    font-size: clamp(0.94rem, 1.55vw, 1.05rem) !important;
+  }
+
+  .chroma-redesign-hero .chroma-hero-proof-chip {
+    padding: 0.38rem 0.68rem;
+  }
+
+  .grid.md\:grid-cols-2.lg\:grid-cols-3,
+  .grid.md\:grid-cols-2.lg\:grid-cols-4,
+  .grid.sm\:grid-cols-2.lg\:grid-cols-4 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .grid.lg\:grid-cols-2,
+  .grid.lg\:grid-cols-\[0\.85fr_1\.15fr\],
+  .grid.lg\:grid-cols-\[0\.92fr_1\.08fr\],
+  .grid.lg\:grid-cols-\[0\.95fr_1\.05fr\],
+  .grid.lg\:grid-cols-\[0\.9fr_1\.1fr\],
+  .grid.lg\:grid-cols-\[minmax\(0\2c 0\.95fr\)_minmax\(22rem\2c 0\.75fr\)\],
+  .grid.lg\:grid-cols-\[minmax\(0\2c 0\.98fr\)_minmax\(0\2c 0\.92fr\)\] {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
+  }
+
+  .chroma-bento-heading h2 {
+    font-size: clamp(3.2rem, 7vw, 4.1rem) !important;
+  }
+
+  .chroma-bento-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    grid-auto-rows: minmax(13rem, auto);
+    gap: 1.25rem;
+  }
+
+  .chroma-bento-card {
+    padding: clamp(1.5rem, 2.5vw, 2rem) !important;
+  }
+
+  .chroma-bento-card--curriculum {
+    grid-column: 1 / span 3 !important;
+    grid-row: 1 / span 2 !important;
+    min-height: 28rem !important;
+  }
+
+  .chroma-bento-card--readiness {
+    grid-column: 4 / span 3 !important;
+    grid-row: 1 !important;
+  }
+
+  .chroma-bento-card--care {
+    grid-column: 4 / span 3 !important;
+    grid-row: 2 !important;
+  }
+
+  .chroma-bento-card--color {
+    grid-column: 1 / span 6 !important;
+    grid-row: 3 !important;
+  }
+
+  .chroma-bento-card--fuel {
+    grid-column: 1 / span 3 !important;
+    grid-row: 4 !important;
+  }
+
+  .chroma-bento-card--safety {
+    grid-column: 4 / span 3 !important;
+    grid-row: 4 !important;
+  }
+
+  .chroma-bento-card h3,
+  .chroma-bento-card--readiness h3,
+  .chroma-bento-card--care h3,
+  .chroma-bento-card--color h3 {
+    font-size: clamp(1.9rem, 3.6vw, 2.35rem) !important;
+  }
+
+  .chroma-location-showcase-grid,
+  .chroma-locations-showcase .grid.lg\:grid-cols-2 {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.82fr) !important;
+    gap: 1.4rem !important;
+    align-items: stretch !important;
+  }
+
+  .chroma-location-map-panel,
+  .chroma-location-list-panel {
+    height: clamp(31rem, 62vw, 39rem) !important;
+    min-height: clamp(31rem, 62vw, 39rem) !important;
+  }
+
+  .chroma-location-list-panel {
+    overflow: hidden !important;
+  }
+
+  .chroma-location-card-scroll {
+    max-height: calc(100% - 8.5rem) !important;
+    overflow-y: auto !important;
+  }
+
+  .chroma-location-card {
+    padding: 1.1rem !important;
+  }
+
+  .chroma-location-card h3 {
+    font-size: clamp(1.15rem, 2vw, 1.45rem) !important;
+    line-height: 1.1 !important;
+  }
+
+  .chroma-map-popup-shell .leaflet-popup-content {
+    width: min(18rem, 34vw) !important;
+  }
+}
+
+@media (min-width: 900px) and (max-width: 1023px) {
+  .container {
+    max-width: min(100% - 4rem, 62rem) !important;
+  }
+
+  .max-w-7xl,
+  .max-w-\[1200px\] {
+    max-width: min(100% - 4rem, 64rem) !important;
+  }
+
+  .chroma-redesign-hero > .max-w-7xl {
+    grid-template-columns: minmax(0, 0.92fr) minmax(22rem, 0.78fr) !important;
+  }
+
+  .chroma-redesign-hero-title {
+    font-size: clamp(4.7rem, 7.2vw, 5.9rem) !important;
+  }
+}
+
 @media (min-width: 1024px) {
   .page-template-page-contact .formGrid {
     align-items: start !important;
