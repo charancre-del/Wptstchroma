@@ -5511,37 +5511,150 @@
   .chroma-location-showcase-grid,
   .chroma-locations-showcase .grid.lg\:grid-cols-2 {
     display: grid !important;
-    grid-template-columns: minmax(0, 1fr) minmax(19rem, 0.82fr) !important;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr) !important;
     gap: 1.4rem !important;
     align-items: stretch !important;
   }
 
   .chroma-location-map-panel,
   .chroma-location-list-panel {
-    height: clamp(31rem, 62vw, 39rem) !important;
-    min-height: clamp(31rem, 62vw, 39rem) !important;
+    height: clamp(36rem, 68vw, 43rem) !important;
+    min-height: clamp(36rem, 68vw, 43rem) !important;
   }
 
   .chroma-location-list-panel {
+    display: flex !important;
+    flex-direction: column !important;
     overflow: hidden !important;
+    padding: 1.45rem !important;
+  }
+
+  .chroma-location-list-panel [data-location-filters] {
+    gap: 0.65rem !important;
+  }
+
+  .chroma-location-list-panel [data-location-filters] button {
+    font-size: 0.72rem !important;
+    letter-spacing: 0.16em !important;
+    padding: 0.75rem 1rem !important;
+  }
+
+  .chroma-location-list-panel [data-location-status] {
+    flex: 0 0 auto !important;
+    font-size: 0.98rem !important;
+    line-height: 1.45 !important;
+    margin-block: 1.25rem !important;
   }
 
   .chroma-location-card-scroll {
-    max-height: calc(100% - 8.5rem) !important;
+    flex: 1 1 auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
     overflow-y: auto !important;
+    padding-right: 0.35rem !important;
   }
 
   .chroma-location-card {
-    padding: 1.1rem !important;
+    padding: 1rem 1.1rem !important;
   }
 
   .chroma-location-card h3 {
-    font-size: clamp(1.15rem, 2vw, 1.45rem) !important;
+    font-size: clamp(1.08rem, 1.8vw, 1.35rem) !important;
     line-height: 1.1 !important;
   }
 
   .chroma-map-popup-shell .leaflet-popup-content {
     width: min(18rem, 34vw) !important;
+  }
+
+  .chroma-reviews-grid {
+    grid-template-columns: minmax(14.5rem, 0.62fr) minmax(0, 1.38fr) !important;
+    gap: 1.45rem !important;
+    align-items: stretch !important;
+  }
+
+  .reviewSide,
+  .chroma-review-card {
+    min-height: clamp(26rem, 54vw, 34rem) !important;
+  }
+
+  .reviewSide {
+    justify-content: center !important;
+    gap: 1.5rem !important;
+    padding: clamp(1.55rem, 2.6vw, 2.1rem) !important;
+  }
+
+  .reviewSide:after {
+    font-size: clamp(8rem, 15vw, 12rem) !important;
+  }
+
+  .reviewSide h2 {
+    font-size: clamp(1.65rem, 2.8vw, 2.15rem) !important;
+    line-height: 1.04 !important;
+  }
+
+  .reviewSide p {
+    font-size: clamp(0.86rem, 1.35vw, 0.98rem) !important;
+    line-height: 1.35 !important;
+  }
+
+  .chroma-review-viewport {
+    height: clamp(26rem, 54vw, 34rem) !important;
+    overflow: hidden !important;
+  }
+
+  .chroma-review-viewport [data-reviews-track],
+  .chroma-review-card {
+    height: 100% !important;
+  }
+
+  .chroma-review-card {
+    justify-content: space-between !important;
+    overflow-y: auto !important;
+    padding: clamp(1.5rem, 2.5vw, 2.05rem) !important;
+  }
+
+  .chroma-review-card blockquote {
+    font-size: clamp(1.65rem, 3.55vw, 2.45rem) !important;
+    line-height: 1.03 !important;
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .chroma-review-card .chroma-review-avatar {
+    height: 3.5rem !important;
+    width: 3.5rem !important;
+  }
+
+  .page-template-page-contact .formGrid {
+    align-items: stretch !important;
+    gap: 1.45rem !important;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr) !important;
+  }
+
+  .page-template-page-contact .formGrid > .space-y-10,
+  .page-template-page-contact .chroma-form-scroll-card--contact {
+    height: clamp(34rem, 70vw, 43rem) !important;
+    max-height: clamp(34rem, 70vw, 43rem) !important;
+    min-height: 0 !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact {
+    padding: clamp(1.5rem, 3vw, 2rem) !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact iframe,
+  .page-template-page-contact .chroma-form-scroll-card--contact iframe[data-src*="leadconnectorhq.com"],
+  .page-template-page-contact .chroma-form-scroll-card--contact iframe[src*="leadconnectorhq.com"],
+  .page-template-page-contact .chroma-form-scroll-card--contact iframe[src*="msgsndr.com"],
+  .page-template-page-contact .chroma-form-scroll-card--contact iframe[src*="gohighlevel"] {
+    height: clamp(45rem, 100vh, 58rem) !important;
+    min-height: clamp(45rem, 100vh, 58rem) !important;
+    max-height: none !important;
   }
 }
 
@@ -5609,7 +5722,9 @@
   .chroma-prismpath-support-grid {
     grid-template-columns: 1fr;
   }
+}
 
+@media (max-width: 819px) {
   .page-template-page-contact .chroma-form-scroll-card--contact,
   .page-template-page-contact .formGrid > .space-y-10 {
     height: auto !important;
