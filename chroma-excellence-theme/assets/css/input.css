@@ -5555,16 +5555,125 @@
   }
 
   .chroma-location-card {
-    padding: 1rem 1.1rem !important;
+    margin-bottom: 0.7rem !important;
+    min-height: 0 !important;
+    padding: 0 !important;
   }
 
-  .chroma-location-card h3 {
-    font-size: clamp(1.08rem, 1.8vw, 1.35rem) !important;
+  .chroma-location-card button {
+    min-height: 0 !important;
+    padding: 0.9rem 1rem 0.55rem !important;
+  }
+
+  .chroma-location-card [class*="text-xl"],
+  .chroma-location-card [class*="md:text-2xl"] {
+    font-size: clamp(1.05rem, 1.75vw, 1.28rem) !important;
     line-height: 1.1 !important;
   }
 
+  .chroma-location-card [class*="text-brand-ink/65"],
+  .chroma-location-card [class*="text-brand-ink/60"] {
+    font-size: 0.82rem !important;
+    line-height: 1.32 !important;
+  }
+
+  .chroma-location-card [class*="tracking"] {
+    font-size: 0.64rem !important;
+    line-height: 1.2 !important;
+    margin-top: 0.35rem !important;
+  }
+
+  .chroma-location-card > div {
+    gap: 0.45rem !important;
+    padding: 0 1rem 0.85rem !important;
+  }
+
+  .chroma-location-card > div a {
+    font-size: 0.78rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-explorer,
+  .chroma-locations-stacked .grid.lg\:grid-cols-2 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-map-panel {
+    height: clamp(28rem, 52vw, 34rem) !important;
+    min-height: clamp(28rem, 52vw, 34rem) !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-list-panel {
+    height: clamp(35rem, 62vh, 42rem) !important;
+    min-height: 0 !important;
+    padding: 1.25rem !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-list-panel [data-location-filters] {
+    justify-content: center !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-card-scroll {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    grid-auto-flow: row !important;
+    grid-auto-columns: initial !important;
+    grid-auto-rows: minmax(8.4rem, auto) !important;
+    align-items: start !important;
+    align-content: start !important;
+    gap: 0.8rem !important;
+    overflow-y: auto !important;
+    padding-right: 0.45rem !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-card {
+    margin-bottom: 0 !important;
+    height: auto !important;
+    min-height: 8.4rem !important;
+    overflow: visible !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-card button {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 0.95rem 1rem 0.55rem !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-card > div {
+    padding-bottom: 0.95rem !important;
+  }
+
   .chroma-map-popup-shell .leaflet-popup-content {
-    width: min(18rem, 34vw) !important;
+    width: min(16.5rem, 32vw) !important;
+  }
+
+  .chroma-location-map-panel .leaflet-popup {
+    margin-bottom: 1.9rem !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup {
+    max-height: 15.75rem !important;
+    overflow-y: auto !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup-photo {
+    height: 4.5rem !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup-body {
+    padding: 0.8rem 0.9rem !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup-body strong {
+    font-size: 0.98rem !important;
+    line-height: 1.12 !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup-body p,
+  .chroma-location-map-panel .chroma-map-popup-email,
+  .chroma-location-map-panel .chroma-map-popup-link {
+    font-size: 0.78rem !important;
+    line-height: 1.25 !important;
   }
 
   .chroma-reviews-grid {
