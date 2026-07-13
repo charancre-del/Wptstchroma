@@ -71,5 +71,20 @@
 				</article>
 			<?php endforeach; ?>
 		</div>
+
+		<div class="mt-14 lg:mt-16 fade-in-up">
+			<?php
+			get_template_part(
+				'template-parts/home/program-prism-slider',
+				null,
+				array(
+					'eyebrow'     => __( 'Program chart', 'chroma-excellence' ),
+					'title'       => __( 'The prism shifts by program.', 'chroma-excellence' ),
+					'description' => __( 'Choose a Chroma program to see how the same five pillars rebalance as children move from early care into school readiness.', 'chroma-excellence' ),
+					'class'       => 'chroma-program-prism-slider--home',
+				)
+			);
+			?>
+		</div>
 	</div>
 </section>

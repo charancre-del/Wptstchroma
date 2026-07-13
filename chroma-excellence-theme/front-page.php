@@ -28,11 +28,6 @@ get_header();
 <?php get_template_part( 'template-parts/home/curriculum-chart' ); ?>
 <?php endif; ?>
 
-<!-- Programs Wizard -->
-<?php if ( chroma_home_has_program_wizard() ) : ?>
-<?php get_template_part( 'template-parts/home/programs-wizard' ); ?>
-<?php endif; ?>
-
 <!-- Schedule Tabs -->
 <?php if ( chroma_home_has_schedule_tracks() ) : ?>
 <?php get_template_part( 'template-parts/home/schedule-tabs' ); ?>

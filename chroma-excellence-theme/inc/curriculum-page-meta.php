@@ -89,6 +89,7 @@ function chroma_curriculum_hero_meta_box_render( $post ) {
 	$hero_badge = get_post_meta( $post->ID, 'curriculum_hero_badge', true );
 	$hero_title = get_post_meta( $post->ID, 'curriculum_hero_title', true );
 	$hero_description = get_post_meta( $post->ID, 'curriculum_hero_description', true );
+	$hero_description_two = get_post_meta( $post->ID, 'curriculum_hero_description_two', true );
 	?>
 	<table class="form-table">
 		<tr>
@@ -124,6 +125,16 @@ function chroma_curriculum_hero_meta_box_render( $post ) {
 				<br>
 				<textarea id="_chroma_es_curriculum_hero_description" name="_chroma_es_curriculum_hero_description"
 						  rows="4" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_hero_description', true ) ); ?></textarea>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="curriculum_hero_description_two">Description 2</label></th>
+			<td>
+				<textarea id="curriculum_hero_description_two" name="curriculum_hero_description_two"
+						  rows="4" class="large-text"><?php echo esc_textarea( $hero_description_two ); ?></textarea>
+				<br>
+				<textarea id="_chroma_es_curriculum_hero_description_two" name="_chroma_es_curriculum_hero_description_two"
+						  rows="4" class="large-text" placeholder="[ES] Description 2" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_hero_description_two', true ) ); ?></textarea>
 			</td>
 		</tr>
 	</table>
@@ -227,11 +238,13 @@ function chroma_curriculum_support_meta_box_render( $post ) {
 	$support_badge = get_post_meta( $post->ID, 'curriculum_support_badge', true );
 	$support_title = get_post_meta( $post->ID, 'curriculum_support_title', true );
 	$support_description = get_post_meta( $post->ID, 'curriculum_support_description', true );
+	$parent_overview_pdf_url = get_post_meta( $post->ID, 'curriculum_parent_overview_pdf_url', true );
 
 	$cards = array(
 		array( 'name' => 'notice', 'label' => 'Card 1: Notice growth patterns' ),
 		array( 'name' => 'plan', 'label' => 'Card 2: Plan next steps' ),
 		array( 'name' => 'coach', 'label' => 'Card 3: Support the classroom' ),
+		array( 'name' => 'share', 'label' => 'Card 4: Share with families' ),
 	);
 	?>
 	<table class="form-table">
@@ -267,6 +280,18 @@ function chroma_curriculum_support_meta_box_render( $post ) {
 				<br>
 				<textarea id="_chroma_es_curriculum_support_description" name="_chroma_es_curriculum_support_description"
 						  rows="3" class="large-text" placeholder="[ES] Description" style="margin-top: 5px;"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_curriculum_support_description', true ) ); ?></textarea>
+			</td>
+		</tr>
+		<tr>
+			<th><label for="curriculum_parent_overview_pdf_url">Parent Overview PDF URL</label></th>
+			<td>
+				<input type="url" id="curriculum_parent_overview_pdf_url" name="curriculum_parent_overview_pdf_url"
+					   value="<?php echo esc_attr( $parent_overview_pdf_url ); ?>"
+					   class="large-text" placeholder="Leave blank to use the bundled Prismpath parent overview PDF" />
+				<br>
+				<input type="url" id="_chroma_es_curriculum_parent_overview_pdf_url" name="_chroma_es_curriculum_parent_overview_pdf_url"
+					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_parent_overview_pdf_url', true ) ); ?>"
+					   class="large-text" placeholder="[ES] Parent Overview PDF URL" style="margin-top: 5px;" />
 			</td>
 		</tr>
 		<?php foreach ( $cards as $card ) :
@@ -674,10 +699,12 @@ function chroma_save_curriculum_page_meta( $post_id ) {
 		'chroma_curriculum_hero_nonce' => array(
 			'curriculum_hero_badge'       => 'sanitize_text_field',
 			'_chroma_es_curriculum_hero_badge'       => 'sanitize_text_field',
-			'curriculum_hero_title'       => 'sanitize_text_field',
-			'_chroma_es_curriculum_hero_title'       => 'sanitize_text_field',
+			'curriculum_hero_title'       => 'wp_kses_post',
+			'_chroma_es_curriculum_hero_title'       => 'wp_kses_post',
 			'curriculum_hero_description' => 'sanitize_textarea_field',
 			'_chroma_es_curriculum_hero_description' => 'sanitize_textarea_field',
+			'curriculum_hero_description_two' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_hero_description_two' => 'sanitize_textarea_field',
 		),
 		'chroma_curriculum_framework_nonce' => array(
 			'curriculum_framework_title'       => 'sanitize_text_field',
@@ -717,6 +744,8 @@ function chroma_save_curriculum_page_meta( $post_id ) {
 			'_chroma_es_curriculum_support_title'       => 'sanitize_text_field',
 			'curriculum_support_description' => 'sanitize_textarea_field',
 			'_chroma_es_curriculum_support_description' => 'sanitize_textarea_field',
+			'curriculum_parent_overview_pdf_url' => 'esc_url_raw',
+			'_chroma_es_curriculum_parent_overview_pdf_url' => 'esc_url_raw',
 			'curriculum_support_notice_title' => 'sanitize_text_field',
 			'_chroma_es_curriculum_support_notice_title' => 'sanitize_text_field',
 			'curriculum_support_notice_desc' => 'sanitize_textarea_field',
@@ -729,6 +758,10 @@ function chroma_save_curriculum_page_meta( $post_id ) {
 			'_chroma_es_curriculum_support_coach_title' => 'sanitize_text_field',
 			'curriculum_support_coach_desc' => 'sanitize_textarea_field',
 			'_chroma_es_curriculum_support_coach_desc' => 'sanitize_textarea_field',
+			'curriculum_support_share_title' => 'sanitize_text_field',
+			'_chroma_es_curriculum_support_share_title' => 'sanitize_text_field',
+			'curriculum_support_share_desc' => 'sanitize_textarea_field',
+			'_chroma_es_curriculum_support_share_desc' => 'sanitize_textarea_field',
 		),
 		'chroma_curriculum_timeline_nonce' => array(
 			'curriculum_timeline_badge'       => 'sanitize_text_field',
@@ -856,22 +889,25 @@ function chroma_seed_curriculum_page_defaults( $post_id ) {
 	}
 
 	$defaults = array(
-		'curriculum_hero_badge'       => 'The Chroma Difference',
-		'curriculum_hero_title'       => 'Scientific rigor. <br><span class="italic text-chroma-green">Joyful delivery.</span>',
-		'curriculum_hero_description' => 'Our proprietary Prismpath™ curriculum isn\'t just about ABCs. It\'s a comprehensive framework designed to build the critical thinking, emotional intelligence, and social skills needed for the 21st century.',
+		'curriculum_hero_badge'       => 'The Prismpath method',
+		'curriculum_hero_title'       => 'Whole-child learning that grows with <span class="pp-script">your child.</span>',
+		'curriculum_hero_description' => 'Prismpath is Chroma Early Learning Academy\'s curriculum framework for helping children grow across five connected areas: physical, emotional, social, academic, and creative development.',
+		'curriculum_hero_description_two' => 'It is simple on purpose: teachers notice what children are practicing, plan meaningful next steps, and shape classroom experiences around the children in front of them.',
 
-		'curriculum_framework_title'       => 'The Prismpath™ Framework',
-		'curriculum_framework_description' => 'Just as a prism refracts light into a spectrum, our curriculum refracts "play" into five distinct pillars of development. Every activity in our classrooms targets one or more of these areas.',
+		'curriculum_framework_title'       => 'A clearer way to understand the whole child.',
+		'curriculum_framework_description' => 'Children do not grow in straight lines. A block tower can build hand strength, problem-solving, language, peer cooperation, and imagination all at once. Prismpath helps teachers see those connected moments and plan from them.',
 
-		'curriculum_support_badge'       => 'Teacher-supported growth',
-		'curriculum_support_title'       => 'How PrismPath supports every classroom rhythm.',
-		'curriculum_support_description' => 'PrismPath gives teachers a clear way to notice growth, plan meaningful next steps, and keep each classroom balanced across the five pillars without losing the warmth of child-led discovery.',
-		'curriculum_support_notice_title' => 'Notice growth patterns',
-		'curriculum_support_notice_desc' => 'Teachers observe what children are practicing, where confidence is building, and which milestones are ready for gentle support.',
-		'curriculum_support_plan_title' => 'Plan next steps',
-		'curriculum_support_plan_desc' => 'Lesson experiences are shaped around the children in the room, so learning stays age-appropriate, joyful, and intentional.',
-		'curriculum_support_coach_title' => 'Support the classroom',
-		'curriculum_support_coach_desc' => 'Directors and curriculum leaders can coach teachers with the right focus, helping each classroom keep its own rhythm while staying connected to shared goals.',
+		'curriculum_support_badge'       => 'How it works',
+		'curriculum_support_title'       => 'Teachers are supported, so children are seen clearly.',
+		'curriculum_support_description' => 'Prismpath is not a script. It is a teacher-guided rhythm: observe children, understand what growth is emerging, plan the next meaningful experience, then share progress with families.',
+		'curriculum_support_notice_title' => 'Notice',
+		'curriculum_support_notice_desc' => 'Teachers watch for patterns in play, language, movement, relationships, and problem-solving.',
+		'curriculum_support_plan_title' => 'Plan',
+		'curriculum_support_plan_desc' => 'Lesson plans are shaped around the children in the room and the next skills they are ready to practice.',
+		'curriculum_support_coach_title' => 'Support',
+		'curriculum_support_coach_desc' => 'Classroom leaders and curriculum teams help teachers choose helpful coaching and materials.',
+		'curriculum_support_share_title' => 'Share',
+		'curriculum_support_share_desc' => 'Families see photos, notes, progress reports, and simple ways to continue learning at home.',
 
 		'curriculum_pillar_physical_icon'  => 'fa-solid fa-person-running',
 		'curriculum_pillar_physical_title' => 'Physical',
