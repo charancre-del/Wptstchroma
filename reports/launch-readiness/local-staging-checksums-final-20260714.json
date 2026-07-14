@@ -1,0 +1,362 @@
+﻿[
+    {
+        "File":  "chroma-excellence-theme/404.php",
+        "Match":  true,
+        "Local":  "4142370e6771751b5ff3397fade77aefc3a99f13e2fe8625c0269cfc617f5730",
+        "Remote":  "4142370e6771751b5ff3397fade77aefc3a99f13e2fe8625c0269cfc617f5730"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/css/font-awesome-subset.0f48cea3c569.css",
+        "Match":  true,
+        "Local":  "f4652deb182a95d3bb539a4b96f8e2ec3e866e3d1a5af3b9eb64efd435d8d696",
+        "Remote":  "f4652deb182a95d3bb539a4b96f8e2ec3e866e3d1a5af3b9eb64efd435d8d696"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/css/font-awesome-subset.css",
+        "Match":  true,
+        "Local":  "f4652deb182a95d3bb539a4b96f8e2ec3e866e3d1a5af3b9eb64efd435d8d696",
+        "Remote":  "f4652deb182a95d3bb539a4b96f8e2ec3e866e3d1a5af3b9eb64efd435d8d696"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/css/input.css",
+        "Match":  true,
+        "Local":  "9cb99959ede58f061c937238db0a0cf54cee3d6fcfc417998ca8b5cb360628b2",
+        "Remote":  "9cb99959ede58f061c937238db0a0cf54cee3d6fcfc417998ca8b5cb360628b2"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/css/main.0502aae4ef02.css",
+        "Match":  true,
+        "Local":  "eab0bc639a7e742705935c625bb282b6f68c1c0cf79a9feab10677452844044f",
+        "Remote":  "eab0bc639a7e742705935c625bb282b6f68c1c0cf79a9feab10677452844044f"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/css/main.css",
+        "Match":  true,
+        "Local":  "eab0bc639a7e742705935c625bb282b6f68c1c0cf79a9feab10677452844044f",
+        "Remote":  "eab0bc639a7e742705935c625bb282b6f68c1c0cf79a9feab10677452844044f"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/css/page-careers.468522d0eded.css",
+        "Match":  true,
+        "Local":  "e87df2cd5a3640ff9a40a57f73d258e5d47b181bb3edee8921ff55d2fa5be102",
+        "Remote":  "e87df2cd5a3640ff9a40a57f73d258e5d47b181bb3edee8921ff55d2fa5be102"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/css/page-effects.bc9294bb75ba.css",
+        "Match":  true,
+        "Local":  "79ca093313a39f819b323bb7317d1fadd5a7a358e678a4e70da0522947b71241",
+        "Remote":  "79ca093313a39f819b323bb7317d1fadd5a7a358e678a4e70da0522947b71241"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/css/page-forms.3d953a5a038e.css",
+        "Match":  true,
+        "Local":  "c6282dcadde45b79d233c8d11d9a7b07da0bf15087ee8bfe80b13181b530c9b0",
+        "Remote":  "c6282dcadde45b79d233c8d11d9a7b07da0bf15087ee8bfe80b13181b530c9b0"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/js/admin.b59808020d86.js",
+        "Match":  true,
+        "Local":  "286c7080fc766b4549cc7613a76effc041f63adb6a833b6199a1ad67bf688be6",
+        "Remote":  "286c7080fc766b4549cc7613a76effc041f63adb6a833b6199a1ad67bf688be6"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/js/main.adb61f49a50f.js",
+        "Match":  true,
+        "Local":  "313436887f40b9019aaccc59a106e23a2b5c590412adb3200bdbe29fb5b4f949",
+        "Remote":  "313436887f40b9019aaccc59a106e23a2b5c590412adb3200bdbe29fb5b4f949"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/js/main.js",
+        "Match":  true,
+        "Local":  "66fd04c8b62d82ed79c16ddb42bfc63badbbb4c6f991bdc529d08ea971874cfb",
+        "Remote":  "66fd04c8b62d82ed79c16ddb42bfc63badbbb4c6f991bdc529d08ea971874cfb"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/js/map-facade.09665faed753.js",
+        "Match":  true,
+        "Local":  "ab15163859f18b3ff804a20df262395b03e83064165e3b105987cea500c27f76",
+        "Remote":  "ab15163859f18b3ff804a20df262395b03e83064165e3b105987cea500c27f76"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/js/map-facade.js",
+        "Match":  true,
+        "Local":  "8c69e7e725d28d0ea4c3cf9691c0bd1bf61bd65998ee752f292d64e5e93a280c",
+        "Remote":  "8c69e7e725d28d0ea4c3cf9691c0bd1bf61bd65998ee752f292d64e5e93a280c"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/js/map-layer.9c02ad9fea4d.js",
+        "Match":  true,
+        "Local":  "69fa1c46625f5f09240bcfc3ee0d9b96e68bf506413edf80887fc9b17d9b908f",
+        "Remote":  "69fa1c46625f5f09240bcfc3ee0d9b96e68bf506413edf80887fc9b17d9b908f"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/js/map-layer.js",
+        "Match":  true,
+        "Local":  "9fa60875911a46f7988770988f6fbfec938152ed3b1fef6b7381f9267a5a1c1e",
+        "Remote":  "9fa60875911a46f7988770988f6fbfec938152ed3b1fef6b7381f9267a5a1c1e"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/manifest.json",
+        "Match":  true,
+        "Local":  "c6153700e8523cdedc247473b5ca6795980efedffbcb5e46a65d7d45185a5199",
+        "Remote":  "c6153700e8523cdedc247473b5ca6795980efedffbcb5e46a65d7d45185a5199"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/layers.png",
+        "Match":  true,
+        "Local":  "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6",
+        "Remote":  "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/layers-2x.png",
+        "Match":  true,
+        "Local":  "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf",
+        "Remote":  "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/marker-icon.png",
+        "Match":  true,
+        "Local":  "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437",
+        "Remote":  "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/marker-icon-2x.png",
+        "Match":  true,
+        "Local":  "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528",
+        "Remote":  "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/marker-shadow.png",
+        "Match":  true,
+        "Local":  "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da",
+        "Remote":  "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/vendor/leaflet-1.9.4/leaflet.min.css",
+        "Match":  true,
+        "Local":  "fd1a923787183f63764e6a63a31b73bc709aa61f9db6063958c06f6b340aeef3",
+        "Remote":  "fd1a923787183f63764e6a63a31b73bc709aa61f9db6063958c06f6b340aeef3"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/vendor/leaflet-1.9.4/leaflet.min.js",
+        "Match":  true,
+        "Local":  "5517756fb7fad219e5d692c5177c4a6af10a32eb1bda1fd628ad1ac22d014014",
+        "Remote":  "5517756fb7fad219e5d692c5177c4a6af10a32eb1bda1fd628ad1ac22d014014"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/vendor/leaflet-1.9.4/LICENSE",
+        "Match":  true,
+        "Local":  "53e8dc25862014e4324741ca18fbe3611e11d42ef69f59f86ea8c5389647d4cb",
+        "Remote":  "53e8dc25862014e4324741ca18fbe3611e11d42ef69f59f86ea8c5389647d4cb"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/webfonts/fa-brands-subset.woff2",
+        "Match":  true,
+        "Local":  "e699e5cc8247497e3772111a6d6fec27eec1fbb45afe9ce1db9531837ceb7f17",
+        "Remote":  "e699e5cc8247497e3772111a6d6fec27eec1fbb45afe9ce1db9531837ceb7f17"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/webfonts/fa-regular-subset.woff2",
+        "Match":  true,
+        "Local":  "0289e37cecfebda6c62dfabef94c13bafbb329d6fcd8ee52484d5ba78f2825ea",
+        "Remote":  "0289e37cecfebda6c62dfabef94c13bafbb329d6fcd8ee52484d5ba78f2825ea"
+    },
+    {
+        "File":  "chroma-excellence-theme/assets/webfonts/fa-solid-subset.woff2",
+        "Match":  true,
+        "Local":  "880d4beac53dc44457351da3cb30a6a1f53b3fe0306ec17fc816fabd3bcfad1c",
+        "Remote":  "880d4beac53dc44457351da3cb30a6a1f53b3fe0306ec17fc816fabd3bcfad1c"
+    },
+    {
+        "File":  "chroma-excellence-theme/header.php",
+        "Match":  true,
+        "Local":  "46566b7d6e63b94c213b0f827759e205a6427e6c9f9a53e2b77e57a75b67486b",
+        "Remote":  "46566b7d6e63b94c213b0f827759e205a6427e6c9f9a53e2b77e57a75b67486b"
+    },
+    {
+        "File":  "chroma-excellence-theme/inc/critical-css.php",
+        "Match":  true,
+        "Local":  "426482211b7fb838b0da7bcb02d38eb17cd150004c853d1300ad248604a8c631",
+        "Remote":  "426482211b7fb838b0da7bcb02d38eb17cd150004c853d1300ad248604a8c631"
+    },
+    {
+        "File":  "chroma-excellence-theme/inc/customizer-scripts.php",
+        "Match":  true,
+        "Local":  "60e379ee17bf2aefee5564751ac2b61737fe7a6b22a4e85082f001d485fe1ee6",
+        "Remote":  "60e379ee17bf2aefee5564751ac2b61737fe7a6b22a4e85082f001d485fe1ee6"
+    },
+    {
+        "File":  "chroma-excellence-theme/inc/enqueue.php",
+        "Match":  true,
+        "Local":  "a3ec6b3b78482610ecd06c3f36b6799ee4c2fd20983ff73296491be1c4bcf391",
+        "Remote":  "a3ec6b3b78482610ecd06c3f36b6799ee4c2fd20983ff73296491be1c4bcf391"
+    },
+    {
+        "File":  "chroma-excellence-theme/package.json",
+        "Match":  true,
+        "Local":  "29ff139b33034eb7b3446639e8a1f766be00e8d9bb9cde023d36cd3661b37186",
+        "Remote":  "29ff139b33034eb7b3446639e8a1f766be00e8d9bb9cde023d36cd3661b37186"
+    },
+    {
+        "File":  "chroma-excellence-theme/package-lock.json",
+        "Match":  true,
+        "Local":  "80e1d738c25179c7ed3b50fab003159122008cca001dfeee2b5744f5c4c71ed2",
+        "Remote":  "80e1d738c25179c7ed3b50fab003159122008cca001dfeee2b5744f5c4c71ed2"
+    },
+    {
+        "File":  "chroma-excellence-theme/page-careers.php",
+        "Match":  true,
+        "Local":  "030da410f8c29bcf56dd3d76d06c7bf08b84359e09638888cbfcadcd1de9a964",
+        "Remote":  "030da410f8c29bcf56dd3d76d06c7bf08b84359e09638888cbfcadcd1de9a964"
+    },
+    {
+        "File":  "chroma-excellence-theme/page-contact.php",
+        "Match":  true,
+        "Local":  "7d4cf9f360be17aba9b3064cdb7b9856d4d1c4a25f46729bf2865abd1d3f7a08",
+        "Remote":  "7d4cf9f360be17aba9b3064cdb7b9856d4d1c4a25f46729bf2865abd1d3f7a08"
+    },
+    {
+        "File":  "chroma-excellence-theme/page-curriculum.php",
+        "Match":  true,
+        "Local":  "3cf79eafdb8b2838b729bce8b60e7e447907d1254b731272092122c89466dc5e",
+        "Remote":  "3cf79eafdb8b2838b729bce8b60e7e447907d1254b731272092122c89466dc5e"
+    },
+    {
+        "File":  "chroma-excellence-theme/page-newsroom.php",
+        "Match":  true,
+        "Local":  "33e3543ed26befb53226a0da5dad44c18a079422d4f47df8fa640974db73d047",
+        "Remote":  "33e3543ed26befb53226a0da5dad44c18a079422d4f47df8fa640974db73d047"
+    },
+    {
+        "File":  "chroma-excellence-theme/page-summer-camp.php",
+        "Match":  true,
+        "Local":  "3ca08a2b489950774aa834a8dca37300f83399705008dbcca771e878d4a8485d",
+        "Remote":  "3ca08a2b489950774aa834a8dca37300f83399705008dbcca771e878d4a8485d"
+    },
+    {
+        "File":  "chroma-excellence-theme/page-terms.php",
+        "Match":  true,
+        "Local":  "7098239e904bc3aced17a44868ad5b85b5ad559a1e28c845d047d787cfe3cf3b",
+        "Remote":  "7098239e904bc3aced17a44868ad5b85b5ad559a1e28c845d047d787cfe3cf3b"
+    },
+    {
+        "File":  "chroma-excellence-theme/scripts/build-vendor-assets.js",
+        "Match":  true,
+        "Local":  "b7985116ee054c6da72c183b28d0f7d9f27cb6516f761fbb251afa9ecf78bb20",
+        "Remote":  "b7985116ee054c6da72c183b28d0f7d9f27cb6516f761fbb251afa9ecf78bb20"
+    },
+    {
+        "File":  "chroma-excellence-theme/scripts/rev-theme-assets.js",
+        "Match":  true,
+        "Local":  "819b38dd54d351e6745be1e967ed430739f6052929fae0b1ad44a6e5ceee3100",
+        "Remote":  "819b38dd54d351e6745be1e967ed430739f6052929fae0b1ad44a6e5ceee3100"
+    },
+    {
+        "File":  "chroma-excellence-theme/single.php",
+        "Match":  true,
+        "Local":  "ff1d817e8ac75a6088615481ed2cf1491a6c9eacea7fbfc49955131f1d4c6af3",
+        "Remote":  "ff1d817e8ac75a6088615481ed2cf1491a6c9eacea7fbfc49955131f1d4c6af3"
+    },
+    {
+        "File":  "chroma-excellence-theme/single-location.php",
+        "Match":  true,
+        "Local":  "c97e15e7d7f465830227ea590448bb6fdcfe40930e5f01100436ee0fa5ee6474",
+        "Remote":  "c97e15e7d7f465830227ea590448bb6fdcfe40930e5f01100436ee0fa5ee6474"
+    },
+    {
+        "File":  "chroma-excellence-theme/template-parts/home/locations-preview.php",
+        "Match":  true,
+        "Local":  "314ac9a181f0b1c6c4b5dd2caa415339bc84d95f5eadac1a5335eaca9f5232d1",
+        "Remote":  "314ac9a181f0b1c6c4b5dd2caa415339bc84d95f5eadac1a5335eaca9f5232d1"
+    },
+    {
+        "File":  "chroma-excellence-theme/template-parts/home/schedule-tabs.php",
+        "Match":  true,
+        "Local":  "c124bd3ed19305305bee83009fb15c2215a4675452e87bc2914e502dd88b5149",
+        "Remote":  "c124bd3ed19305305bee83009fb15c2215a4675452e87bc2914e502dd88b5149"
+    },
+    {
+        "File":  "chroma-excellence-theme/template-parts/home/tour-cta.php",
+        "Match":  true,
+        "Local":  "9dc6222ee746f66cdc4cc2cc5883736d8f719daf1b3adb851f50c678b225cf9e",
+        "Remote":  "9dc6222ee746f66cdc4cc2cc5883736d8f719daf1b3adb851f50c678b225cf9e"
+    },
+    {
+        "File":  "plugins/chroma-career-form/chroma-career-form.php",
+        "Match":  true,
+        "Local":  "2e2197f8ff87bbb8850c5fe6ace337384104e092e1465e7b7d0d8cec420e1a8e",
+        "Remote":  "2e2197f8ff87bbb8850c5fe6ace337384104e092e1465e7b7d0d8cec420e1a8e"
+    },
+    {
+        "File":  "plugins/chroma-contact-form/chroma-contact-form.php",
+        "Match":  true,
+        "Local":  "b5036700e5565d43105756aeeb3c6160277394a216c0911f9ee47673ce886055",
+        "Remote":  "b5036700e5565d43105756aeeb3c6160277394a216c0911f9ee47673ce886055"
+    },
+    {
+        "File":  "plugins/chroma-parent-portal/assets/login-enhancements.js",
+        "Match":  true,
+        "Local":  "837733c451d761f1060b401a2a169cfdb05927ddfc0fee5deef6a32d0e8b4c56",
+        "Remote":  "837733c451d761f1060b401a2a169cfdb05927ddfc0fee5deef6a32d0e8b4c56"
+    },
+    {
+        "File":  "plugins/chroma-parent-portal/chroma-parent-portal.php",
+        "Match":  true,
+        "Local":  "f0b290dac63575cbf0db6a4cb33dd2cde97ccb9a957dd3d03e1901e6a3e10d92",
+        "Remote":  "f0b290dac63575cbf0db6a4cb33dd2cde97ccb9a957dd3d03e1901e6a3e10d92"
+    },
+    {
+        "File":  "plugins/chroma-school-dashboard/assets/dist/portal.css",
+        "Match":  true,
+        "Local":  "1325383381a1a6dd653fb722d28d4f0d7bf63ec42c2d0d1841beb0e551c28ddb",
+        "Remote":  "1325383381a1a6dd653fb722d28d4f0d7bf63ec42c2d0d1841beb0e551c28ddb"
+    },
+    {
+        "File":  "plugins/chroma-school-dashboard/assets/dist/portal.js",
+        "Match":  true,
+        "Local":  "436d40952266391a16e5233761f085b3b3fc70f1a02b93bdb79e0d46f722688b",
+        "Remote":  "436d40952266391a16e5233761f085b3b3fc70f1a02b93bdb79e0d46f722688b"
+    },
+    {
+        "File":  "plugins/chroma-school-dashboard/assets/dist/portal.js.map",
+        "Match":  true,
+        "Local":  "6cb6cf6a6d310517ea973abe868642a742f060a829a75aff63a91601452f37ab",
+        "Remote":  "6cb6cf6a6d310517ea973abe868642a742f060a829a75aff63a91601452f37ab"
+    },
+    {
+        "File":  "plugins/chroma-school-dashboard/assets/src/portal.jsx",
+        "Match":  true,
+        "Local":  "b55e3f0902fc0893b655450dabee1348ea5b5bc74d7b04ee302b8070ae2e909b",
+        "Remote":  "b55e3f0902fc0893b655450dabee1348ea5b5bc74d7b04ee302b8070ae2e909b"
+    },
+    {
+        "File":  "plugins/chroma-school-dashboard/templates/portal-dashboard.php",
+        "Match":  true,
+        "Local":  "1810c24f02367ad5e18a67b86004281e09b3ad584235625e33bd7ca56c5c9132",
+        "Remote":  "1810c24f02367ad5e18a67b86004281e09b3ad584235625e33bd7ca56c5c9132"
+    },
+    {
+        "File":  "plugins/chroma-seo-pro-reset/inc/seo-automations/class-credential-badges.php",
+        "Match":  true,
+        "Local":  "942de0e15ee24c317cf7046865f06e295e0b5c5f9e56c8662749561e2f731898",
+        "Remote":  "942de0e15ee24c317cf7046865f06e295e0b5c5f9e56c8662749561e2f731898"
+    },
+    {
+        "File":  "plugins/chroma-tour-form/chroma-tour-form.php",
+        "Match":  true,
+        "Local":  "7aeea3c05ab9093b9339366edc62263f88f365234e9e68866161f45d30da6804",
+        "Remote":  "7aeea3c05ab9093b9339366edc62263f88f365234e9e68866161f45d30da6804"
+    },
+    {
+        "File":  "plugins/QA-Report-App/chroma-qa-reports/public/css/frontend-styles.css",
+        "Match":  true,
+        "Local":  "452319f35710f35ab825ee6c9ddac6d819430bb989a51dd3fd60119d7be51cbd",
+        "Remote":  "452319f35710f35ab825ee6c9ddac6d819430bb989a51dd3fd60119d7be51cbd"
+    },
+    {
+        "File":  "plugins/QA-Report-App/chroma-qa-reports/public/views/login.php",
+        "Match":  true,
+        "Local":  "e0538009df9f1daef2e842425b1ce26cf022bc11cc4b34d21c90efd10c9afdc5",
+        "Remote":  "e0538009df9f1daef2e842425b1ce26cf022bc11cc4b34d21c90efd10c9afdc5"
+    }
+]

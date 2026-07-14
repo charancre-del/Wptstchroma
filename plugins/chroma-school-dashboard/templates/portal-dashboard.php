@@ -4,15 +4,6 @@
  * Optimized for performance: Pre-compiled React & Tailwind, non-blocking scripts.
  */
 
-// Logic: Enable WordPress Media Library for this page
-wp_enqueue_media();
-
-// Enqueue the admin CSS that styles the media modal
-wp_enqueue_style('media-views');
-wp_enqueue_style('imgareaselect');
-wp_enqueue_style('dashicons');
-wp_enqueue_style('buttons');
-wp_enqueue_style('wp-mediaelement');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +51,6 @@ wp_enqueue_style('wp-mediaelement');
         }
     </style>
 
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <?php
     ob_start();
     wp_head();

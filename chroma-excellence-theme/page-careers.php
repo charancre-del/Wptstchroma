@@ -289,7 +289,7 @@ if (!empty($jobs) && is_array($jobs)) {
 					</p>
 				</div>
 
-				<div class="chroma-form-scroll-card chroma-form-scroll-card--career bg-white p-10 rounded-[3rem] border border-brand-ink/5 shadow-soft">
+				<div class="chroma-form-scroll-card chroma-form-scroll-card--career bg-white p-10 rounded-[3rem] border border-brand-ink/5 shadow-soft" tabindex="0" aria-label="<?php esc_attr_e( 'Career application form', 'chroma-excellence' ); ?>">
 					<?php echo do_shortcode('[chroma_career_form]'); ?>
 				</div>
 			</div>

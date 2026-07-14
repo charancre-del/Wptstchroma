@@ -183,7 +183,7 @@ function chroma_enqueue_assets()
         $script_dependencies = array();
         $skip_global_scripts = chroma_is_app_shell_route();
 
-        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome.css');
+        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome-subset.css');
         wp_enqueue_style(
                 'chroma-font-awesome',
                 $fa_asset['url'],
@@ -191,6 +191,13 @@ function chroma_enqueue_assets()
                 $fa_asset['version'],
                 'all'
         );
+
+        // Standalone portal/QA shells own their layout CSS and runtime. Keep the
+        // local icon subset available, but avoid shipping the full marketing
+        // stylesheet and scripts into authenticated application routes.
+        if ($skip_global_scripts) {
+                return;
+        }
 
         // Chart.js - Removed global enqueue. Lazy loaded in main.js
         // via IntersectionObserver when #curriculum section is visible.
@@ -454,11 +461,17 @@ function chroma_async_styles($html, $handle, $href, $media)
         }
 
         // Effects bundle is non-critical; always load asynchronously.
-        // Other handles continue to load async on non-critical routes.
-        $html = str_replace("media='all'", "media='print' onload=\"this.media='all'\"", $html);
-        $html = str_replace('media="all"', "media='print' onload=\"this.media='all'\"", $html);
-        $html = str_replace("media='print'", "media='print' onload=\"this.media='all'\"", $html);
-        $html = str_replace('media="print"', "media='print' onload=\"this.media='all'\"", $html);
+        // Other handles continue to load async on non-critical routes. Replace
+        // the media attribute once so the generated tag never contains duplicate
+        // onload attributes.
+        if (strpos($html, "onload=\"this.media='all'\"") === false) {
+                $html = preg_replace(
+                        '/\smedia=(["\'])(?:all|print)\1/i',
+                        " media='print' onload=\"this.media='all'\"",
+                        $html,
+                        1
+                );
+        }
 
         if (strpos($html, '<noscript><link rel=') === false) {
                 $html .= "<noscript><link rel='stylesheet' href='" . esc_url($href) . "' media='all'></noscript>";
@@ -510,6 +523,10 @@ function chroma_dequeue_dashicons()
  */
 function chroma_preload_main_css()
 {
+        if (chroma_is_app_shell_route()) {
+                return;
+        }
+
         $main_css_asset = chroma_get_theme_asset('assets/css/main.css');
         $href = $main_css_asset['url'];
         if (!empty($main_css_asset['version'])) {
@@ -519,6 +536,25 @@ function chroma_preload_main_css()
         echo '<link rel="preload" href="' . esc_url($href) . '" as="style">' . "\n";
 }
 add_action('wp_head', 'chroma_preload_main_css', 1);
+
+/**
+ * Warm the above-the-fold location map without loading map assets globally.
+ */
+function chroma_preload_location_map_assets()
+{
+        if (!(is_post_type_archive('location') || is_page('locations'))) {
+                return;
+        }
+
+        $leaflet_base = trailingslashit(CHROMA_THEME_URI) . 'assets/vendor/leaflet-1.9.4/';
+        echo '<link rel="preload" href="' . esc_url($leaflet_base . 'leaflet.min.css') . '" as="style">' . "\n";
+        echo '<link rel="preload" href="' . esc_url($leaflet_base . 'leaflet.min.js') . '" as="script">' . "\n";
+
+        foreach (array('a', 'b', 'c') as $tile_subdomain) {
+                echo '<link rel="preconnect" href="https://' . esc_attr($tile_subdomain) . '.tile.openstreetmap.org" crossorigin>' . "\n";
+        }
+}
+add_action('wp_head', 'chroma_preload_location_map_assets', 2);
 
 add_action('wp_enqueue_scripts', 'chroma_dequeue_dashicons');
 
@@ -552,6 +588,21 @@ function chroma_dequeue_cdn_styles()
         }
 }
 add_action('wp_enqueue_scripts', 'chroma_dequeue_cdn_styles', 100);
+
+/**
+ * Keep standalone application routes free of marketing analytics/breadcrumbs.
+ */
+function chroma_dequeue_app_shell_marketing_assets()
+{
+        if (!chroma_is_app_shell_route()) {
+                return;
+        }
+
+        wp_dequeue_style('metasync-breadcrumbs');
+        wp_dequeue_script('metasync-tracker');
+        wp_dequeue_script('metasync');
+}
+add_action('wp_enqueue_scripts', 'chroma_dequeue_app_shell_marketing_assets', 9999);
 
 /**
  * Add performance attributes to enqueued scripts

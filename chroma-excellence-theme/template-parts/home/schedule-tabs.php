@@ -52,7 +52,7 @@ if (empty($tracks)) {
                         </div>
                 </div>
 
-                <p class="scheduleHint text-center -mt-7 mb-8 text-sm text-brand-ink/65">
+                <p class="scheduleHint text-center -mt-7 mb-8 text-sm text-brand-ink/75">
                         <?php esc_html_e('Choose a program above, then slide through a sample Chroma day.', 'chroma-excellence'); ?>
                 </p>
 

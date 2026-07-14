@@ -787,7 +787,8 @@ while (have_posts()):
 
 				<!-- Form Side -->
 				<div id="tour"
-					class="chroma-form-scroll-card chroma-form-scroll-card--location bg-brand-cream p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-<?php echo esc_attr($region_colors['border']); ?>/10 h-fit sticky top-28">
+					class="chroma-form-scroll-card chroma-form-scroll-card--location bg-brand-cream p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-<?php echo esc_attr($region_colors['border']); ?>/10 h-fit sticky top-28"
+					tabindex="0" aria-label="<?php esc_attr_e( 'Campus tour request form', 'chroma-excellence' ); ?>">
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-2">
 						<?php _e('Request a Tour', 'chroma-excellence'); ?>
 					</h3>

@@ -1,0 +1,190 @@
+[
+  {
+    "route": "home",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "about",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "curriculum",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "parents",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "programs",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "program-single",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "locations",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "location-single",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "city-single",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "contact",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "schedule-tour",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "summer-camp",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "early-start",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "careers",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "career-single",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "employers",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "communities",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "blog",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "post-single",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "newsroom",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "stories",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "privacy",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "terms",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "parent-portal",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/chroma-parent-portal/assets/login-enhancements.js",
+      "/wp-content/plugins/chroma-parent-portal/build/index.css",
+      "/wp-content/plugins/chroma-parent-portal/build/index.js",
+      "/wp-content/plugins/metasync/breadcrumbs/css/metasync-breadcrumbs.css"
+    ]
+  },
+  {
+    "route": "director-portal",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/chroma-school-dashboard/assets/dist/portal.css",
+      "/wp-content/plugins/chroma-school-dashboard/assets/dist/portal.js"
+    ]
+  },
+  {
+    "route": "qa-reports",
+    "status": 200,
+    "pluginAssets": [
+      "/wp-content/plugins/chroma-qa-reports/assets/images/icon-144.png",
+      "/wp-content/plugins/chroma-qa-reports/public/css/frontend-styles.css",
+      "/wp-content/plugins/chroma-qa-reports/public/js/frontend-app.js"
+    ]
+  }
+]

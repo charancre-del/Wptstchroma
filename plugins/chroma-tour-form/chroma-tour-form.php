@@ -104,17 +104,20 @@ function chroma_tour_form_shortcode()
     <div class="chroma-tour-form-wrapper" data-lazy="<?php echo $lazy_load ? 'true' : 'false'; ?>"
         data-chroma-ghl-container="1"
         data-delay="<?php echo esc_attr($lazy_delay); ?>">
-        <!-- GHL Iframe - Official Embed -->
         <div class="chroma-ghl-iframe-container" style="min-height: <?php echo esc_attr($form_height); ?>px;">
-            <iframe data-src="<?php echo esc_url($form_url); ?>"
-                style="width:100%;height:100%;border:none;border-radius:3px;min-height:<?php echo esc_attr($form_height); ?>px;"
-                id="inline-<?php echo esc_attr($form_id); ?>" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
-                data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
-                data-deactivation-type="neverDeactivate" data-deactivation-value=""
-                data-form-name="<?php echo esc_attr($form_name); ?>" data-height="<?php echo esc_attr($form_height); ?>"
-                data-layout-iframe-id="inline-<?php echo esc_attr($form_id); ?>"
-                data-form-id="<?php echo esc_attr($form_id); ?>" title="<?php echo esc_attr($form_name); ?>">
-            </iframe>
+            <template data-chroma-ghl-template>
+                <iframe data-src="<?php echo esc_url($form_url); ?>"
+                    loading="<?php echo esc_attr($loading_attr); ?>"
+                    style="width:100%;height:100%;border:none;border-radius:3px;min-height:<?php echo esc_attr($form_height); ?>px;"
+                    id="inline-<?php echo esc_attr($form_id); ?>" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
+                    data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
+                    data-deactivation-type="neverDeactivate" data-deactivation-value=""
+                    data-form-name="<?php echo esc_attr($form_name); ?>" data-height="<?php echo esc_attr($form_height); ?>"
+                    data-layout-iframe-id="inline-<?php echo esc_attr($form_id); ?>"
+                    data-form-id="<?php echo esc_attr($form_id); ?>" title="<?php echo esc_attr($form_name); ?>">
+                </iframe>
+            </template>
+            <div class="chroma-ghl-form-placeholder" aria-hidden="true"></div>
         </div>
     </div>
 
@@ -132,6 +135,12 @@ function chroma_tour_form_shortcode()
 
         .chroma-ghl-iframe-container iframe {
             display: block;
+        }
+
+        .chroma-ghl-form-placeholder {
+            min-height: inherit;
+            border-radius: inherit;
+            background: linear-gradient(110deg, #fbfaf8 8%, #f3efeb 18%, #fbfaf8 33%);
         }
     </style>
     <script>
@@ -163,14 +172,36 @@ function chroma_tour_form_shortcode()
                             return;
                         }
 
-                        this.activated.add(container);
-
                         var iframe = container.querySelector('iframe[data-src]');
-                        if (iframe && !iframe.src) {
-                            iframe.src = iframe.getAttribute('data-src');
+                        if (!iframe) {
+                            var template = container.querySelector('template[data-chroma-ghl-template]');
+                            var frameHost = container.querySelector('.chroma-ghl-iframe-container');
+                            if (template && frameHost) {
+                                var fragment = template.content.cloneNode(true);
+                                iframe = fragment.querySelector('iframe[data-src]');
+                                frameHost.appendChild(fragment);
+                                template.remove();
+
+                                var placeholder = frameHost.querySelector('.chroma-ghl-form-placeholder');
+                                if (placeholder) {
+                                    placeholder.remove();
+                                }
+                            }
                         }
 
-                        this.ensureScript();
+                        if (!iframe) {
+                            return;
+                        }
+
+                        this.activated.add(container);
+
+                        var self = this;
+                        window.requestAnimationFrame(function () {
+                            if (!iframe.src) {
+                                iframe.src = iframe.getAttribute('data-src');
+                            }
+                            self.ensureScript();
+                        });
                     },
 
                     bindIntentHandlers: function (container) {
@@ -206,6 +237,11 @@ function chroma_tour_form_shortcode()
 
                         this.observed.add(container);
                         this.bindIntentHandlers(container);
+
+                        if (container.getAttribute('data-lazy') !== 'true') {
+                            this.activateContainer(container);
+                            return;
+                        }
 
                         if ('IntersectionObserver' in window) {
                             if (!this.observer) {

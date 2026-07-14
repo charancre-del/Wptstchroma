@@ -104,7 +104,7 @@ $stacked = !empty($args['stacked']);
                                         <?php echo esc_html($location['title'] ?? ''); ?>
                                     </span>
                                     <?php if ($city_state): ?>
-                                        <span class="block text-brand-ink/65 font-semibold">
+                                        <span class="block text-brand-ink/75 font-semibold">
                                             <?php echo esc_html($city_state); ?>
                                         </span>
                                     <?php endif; ?>
@@ -113,21 +113,21 @@ $stacked = !empty($args['stacked']);
                                             <?php echo esc_html($location['address']); ?>
                                         </span>
                                     <?php endif; ?>
-                                    <span class="block text-brand-ink/40 text-xs uppercase tracking-[0.16em] mt-2">
+                                    <span class="block text-brand-ink/70 text-xs uppercase tracking-[0.16em] mt-2">
                                         <?php esc_html_e('Click card to zoom map', 'chroma-excellence'); ?>
                                     </span>
                                     <span class="block text-chroma-red font-bold text-sm mt-2 hidden" data-location-distance></span>
                                 </button>
 
-                                <div class="px-5 pb-5 -mt-2 flex flex-wrap gap-3 text-sm">
+                                <div class="px-5 pb-5 flex flex-wrap gap-2 text-sm">
                                     <?php if (!empty($location['phone'])): ?>
-                                        <a class="text-brand-ink/70 hover:text-chroma-red transition"
+                                        <a class="min-h-11 inline-flex items-center px-3 text-brand-ink/75 hover:text-chroma-red transition"
                                             href="tel:<?php echo esc_attr(preg_replace('/[^0-9+]/', '', (string) $location['phone'])); ?>">
                                             <?php echo esc_html($location['phone']); ?>
                                         </a>
                                     <?php endif; ?>
                                     <?php if (!empty($location['url'])): ?>
-                                        <a class="campus-card-link font-bold text-chroma-red hover:text-brand-ink transition"
+                                        <a class="campus-card-link min-h-11 inline-flex items-center px-3 font-bold text-chroma-red hover:text-brand-ink transition"
                                             href="<?php echo esc_url($location['url']); ?>">
                                             <?php esc_html_e('View campus', 'chroma-excellence'); ?>
                                         </a>

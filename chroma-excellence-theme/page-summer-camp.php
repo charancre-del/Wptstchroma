@@ -459,23 +459,23 @@ get_header();
 		<div class="absolute -right-20 -top-20 w-96 h-96 bg-white/5 rounded-full blur-3xl"></div>
 		<div class="max-w-6xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-[0.9fr,1.1fr] gap-10 items-start">
 			<div>
-				<span class="text-chroma-yellow font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Need Help Choosing?', 'chroma-excellence'); ?></span>
+				<span class="text-[#F4D66F] font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Need Help Choosing?', 'chroma-excellence'); ?></span>
 				<h2 class="font-serif text-3xl md:text-5xl font-bold mb-4"><?php _e('Ask about camp availability or schedule a walkthrough.', 'chroma-excellence'); ?></h2>
 				<p class="text-white/80 text-lg mb-6"><?php _e('Tell us your preferred campus, weeks, and child’s age. A Chroma team member will help confirm availability and next steps.', 'chroma-excellence'); ?></p>
 
 				<div id="summer-camp-campus-panel" class="hidden bg-white/10 border border-white/15 rounded-[2rem] p-6 mb-6">
-					<p class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60 mb-2"><?php _e('Selected Campus', 'chroma-excellence'); ?></p>
+					<p class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/85 mb-2"><?php _e('Selected Campus', 'chroma-excellence'); ?></p>
 					<p id="summer-camp-campus-name" class="font-serif text-2xl font-bold text-white"></p>
 					<p class="text-sm text-white/75 mt-2"><?php _e('If direct online booking is not available for this location yet, use the form to ask for the camp calendar and next tour times.', 'chroma-excellence'); ?></p>
 				</div>
 
 				<div class="bg-white/10 border border-white/15 rounded-[2rem] p-6">
-					<p class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/60 mb-2"><?php _e('What to Expect', 'chroma-excellence'); ?></p>
+					<p class="text-[11px] font-bold uppercase tracking-[0.2em] text-white/85 mb-2"><?php _e('What to Expect', 'chroma-excellence'); ?></p>
 					<p class="text-sm text-white/80"><?php _e('Campus cards with a direct booking link keep the current booking flow. Cards without one send families here so no CTA dead-ends.', 'chroma-excellence'); ?></p>
 				</div>
 			</div>
 
-			<div class="chroma-form-scroll-card chroma-form-scroll-card--summer bg-white p-4 md:p-6 rounded-[2.5rem] text-brand-ink shadow-2xl">
+			<div class="chroma-form-scroll-card chroma-form-scroll-card--summer bg-white p-4 md:p-6 rounded-[2.5rem] text-brand-ink shadow-2xl" tabindex="0" aria-label="<?php esc_attr_e( 'Summer camp tour form', 'chroma-excellence' ); ?>">
 				<?php if (shortcode_exists('chroma_tour_form')): ?>
 					<?php echo do_shortcode('[chroma_tour_form]'); ?>
 				<?php else: ?>

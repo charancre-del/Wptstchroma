@@ -68,7 +68,7 @@ const MediaUploader = ({ value, onChange, label, token, accept = 'image/*', help
 
     return (
         <div className="space-y-2">
-            <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">{label}</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">{label}</label>
             <div className="flex items-center gap-4">
                 <button type="button" onClick={chooseFile} disabled={uploading} className="flex-1 cursor-pointer group text-left disabled:opacity-60">
                     <div className="w-full p-4 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 group-hover:border-chroma-blue group-hover:bg-chroma-blue/5 transition-all flex flex-col items-center justify-center min-h-[140px]">
@@ -81,7 +81,7 @@ const MediaUploader = ({ value, onChange, label, token, accept = 'image/*', help
                             <div className="relative w-full h-full flex flex-col items-center">
                                 <i className="fa-solid fa-file-pdf text-4xl text-red-500 mb-3"></i>
                                 <span className="text-xs font-bold text-brand-ink">PDF Uploaded</span>
-                                <span className="text-[10px] text-brand-ink/50 truncate max-w-xs">{value.split('/').pop()}</span>
+                                <span className="text-[10px] text-brand-ink/70 truncate max-w-xs">{value.split('/').pop()}</span>
                             </div>
                         ) : value ? (
                             <div className="relative w-full h-full flex flex-col items-center">
@@ -413,7 +413,7 @@ function App() {
             <div className="max-w-md w-full text-center">
                 <div className="mb-8 flex justify-center text-chroma-blue text-6xl"><i className="fa-solid fa-shapes"></i></div>
                 <h1 className="font-serif text-5xl font-bold mb-4 tracking-tight text-brand-ink">Director Portal</h1>
-                <p className="text-brand-ink/50 text-xl font-medium mb-12">Sign in to manage your school's display.</p>
+                <p className="text-brand-ink/70 text-xl font-medium mb-12">Sign in to manage your school's display.</p>
 
                 <div className="bg-white p-12 rounded-[2.5rem] shadow-card border border-chroma-blue/10">
                     {GOOGLE_CLIENT_WARNING ? (
@@ -462,11 +462,11 @@ function App() {
                         <div className="grid md:grid-cols-2 gap-8">
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Name</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">Name</label>
                                     <input name="eom.name" defaultValue={c.eom?.name} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Classroom / Role</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">Classroom / Role</label>
                                     <input name="eom.role" defaultValue={c.eom?.role} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
                                 </div>
                             </div>
@@ -478,7 +478,7 @@ function App() {
                                 onChange={(url) => setFormState({ ...formState, eomPhoto: url })}
                             />
                             <div className="md:col-span-2 space-y-2">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">A Little About Them</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">A Little About Them</label>
                                 <textarea name="eom.blurb" defaultValue={c.eom?.blurb} rows="3" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
                             </div>
                         </div>
@@ -490,7 +490,7 @@ function App() {
                     <FormSection title="Today's Schedule" icon="fa-calendar-day" colorClass="bg-chroma-blue">
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Header (e.g. Activity Schedule)</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">Header (e.g. Activity Schedule)</label>
                                 <input name="today.title" defaultValue={c.today?.title || 'Daily Schedule'} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 font-bold" />
                             </div>
                             <div className="grid md:grid-cols-2 gap-4">
@@ -522,7 +522,7 @@ function App() {
                     <FormSection title="Highlights Slideshow" icon="fa-camera-retro" colorClass="bg-chroma-red">
                         <div className="space-y-8">
                             <div className="space-y-2">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Section Title</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">Section Title</label>
                                 <input name="slideshow_title" defaultValue={c.slideshow_title || 'Campus Life'} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 font-bold" />
                             </div>
 
@@ -555,23 +555,23 @@ function App() {
                         <div className="space-y-6">
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Headline</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">Headline</label>
                                     <input name="newsletter.title" defaultValue={c.newsletter?.title} className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Link URL (QR)</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">Link URL (QR)</label>
                                     <input name="newsletter.url" defaultValue={c.newsletter?.url} placeholder="https://" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50" />
                                 </div>
                             </div>
                             <div className="space-y-2">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Quick Summary</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">Quick Summary</label>
                                 <textarea name="newsletter.body" defaultValue={c.newsletter?.body} rows="3" className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50" />
                             </div>
                             <div className="p-6 bg-chroma-blueDark/5 rounded-2xl border border-chroma-blueDark/10">
                                 <div className="flex items-center justify-between mb-4">
                                     <div>
                                         <h4 className="font-bold text-brand-ink">📄 Newsletter PDF</h4>
-                                        <p className="text-xs text-brand-ink/50">Upload a PDF to display on the TV (auto-scrolls pages)</p>
+                                        <p className="text-xs text-brand-ink/70">Upload a PDF to display on the TV (auto-scrolls pages)</p>
                                     </div>
                                     {formState.newsletterPdf && (
                                         <button type="button" onClick={() => setFormState({ ...formState, newsletterPdf: '' })} className="text-xs font-bold text-red-500 hover:text-red-700">
@@ -606,7 +606,7 @@ function App() {
                     <FormSection title="Global TV Settings" icon="fa-gear" colorClass="bg-brand-ink">
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/50">Background Music URL (YouTube or MP3)</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-brand-ink/70">Background Music URL (YouTube or MP3)</label>
                                 <div className="flex gap-4">
                                     <div className="flex-1">
                                         <input name="music_url" defaultValue={c.music_url || ''} placeholder="https://www.youtube.com/watch?v=..." className="w-full p-4 rounded-xl border-2 border-gray-100 bg-gray-50 focus:border-chroma-blue focus:bg-white outline-none font-medium transition-all" />
@@ -619,7 +619,7 @@ function App() {
                             </div>
                             <div className="p-4 bg-brand-cream border border-brand-ink/5 rounded-2xl">
                                 <p className="text-xs font-bold text-brand-ink/60 mb-1">💡 Pro Tip</p>
-                                <p className="text-[11px] text-brand-ink/50 leading-relaxed">Most browsers require you to click the screen once after the page loads to enable audio playback. If music doesn't start, just tap the screen!</p>
+                                <p className="text-[11px] text-brand-ink/70 leading-relaxed">Most browsers require you to click the screen once after the page loads to enable audio playback. If music doesn't start, just tap the screen!</p>
                             </div>
                         </div>
                     </FormSection>

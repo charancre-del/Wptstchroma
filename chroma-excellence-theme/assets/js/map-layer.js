@@ -91,16 +91,37 @@
       }).addTo(map);
 
       const markerById = new Map();
+      let activeMarkerIds = null;
+      const compactMap = window.matchMedia('(max-width: 619px)').matches;
+      const popupPaddingTopLeft = compactMap ? [20, 72] : [92, 168];
+      const popupPaddingBottomRight = compactMap ? [20, 44] : [92, 112];
+      const themeUrl = window.chromaData && window.chromaData.themeUrl;
+      const markerIconUrl = themeUrl
+        ? `${themeUrl}/assets/vendor/leaflet-1.9.4/images/marker-icon-2x.png`
+        : '';
+      const markerIcon = L.divIcon({
+        className: 'chroma-map-marker-target',
+        html: markerIconUrl ? `<img src="${escapeHTML(markerIconUrl)}" alt="">` : '',
+        iconSize: [44, 44],
+        iconAnchor: [22, 41],
+        popupAnchor: [0, -36],
+      });
       locations.forEach((location) => {
-        const marker = L.marker([location.lat, location.lng]).addTo(map);
+        const marker = L.marker([location.lat, location.lng], {
+          icon: markerIcon,
+          interactive: false,
+          keyboard: false,
+          title: '',
+          alt: '',
+        }).addTo(map);
         marker.bindPopup(createPopupContent(location), {
-          autoPan: true,
-          autoPanPaddingTopLeft: [92, 168],
-          autoPanPaddingBottomRight: [92, 112],
+          autoPan: !compactMap,
+          autoPanPaddingTopLeft: popupPaddingTopLeft,
+          autoPanPaddingBottomRight: popupPaddingBottomRight,
           offset: [0, -18],
-          keepInView: true,
-          maxWidth: 300,
-          minWidth: 240,
+          keepInView: !compactMap,
+          maxWidth: compactMap ? 272 : 300,
+          minWidth: compactMap ? 208 : 240,
           className: 'chroma-map-popup-shell',
         });
         markerById.set(parseInt(location.id, 10), marker);
@@ -129,6 +150,50 @@
         map.invalidateSize();
       };
 
+      const keepPopupInsideMap = (popup) => {
+        if (!popup || !popup.isOpen || !popup.isOpen()) return;
+
+        popup.update();
+        window.requestAnimationFrame(() => {
+          const popupElement = popup.getElement && popup.getElement();
+          const mapElement = map.getContainer();
+          if (!popupElement || !mapElement) return;
+
+          const popupRect = popupElement.getBoundingClientRect();
+          const mapRect = mapElement.getBoundingClientRect();
+          const inset = compactMap ? 8 : 16;
+
+          if (compactMap) {
+            popupElement.classList.add('chroma-map-popup-contained');
+            popupElement.style.setProperty(
+              '--chroma-popup-left',
+              `${Math.max(inset, Math.round((mapRect.width - popupRect.width) / 2))}px`
+            );
+            popupElement.style.setProperty('--chroma-popup-top', `${inset}px`);
+            return;
+          }
+
+          let panX = 0;
+          let panY = 0;
+
+          if (popupRect.left < mapRect.left + inset) {
+            panX = popupRect.left - (mapRect.left + inset);
+          } else if (popupRect.right > mapRect.right - inset) {
+            panX = popupRect.right - (mapRect.right - inset);
+          }
+
+          if (popupRect.top < mapRect.top + inset) {
+            panY = popupRect.top - (mapRect.top + inset);
+          } else if (popupRect.bottom > mapRect.bottom - inset) {
+            panY = popupRect.bottom - (mapRect.bottom - inset);
+          }
+
+          if (panX || panY) {
+            map.panBy([panX, panY], { animate: false });
+          }
+        });
+      };
+
       const focusLocation = (locationId) => {
         const id = parseInt(locationId, 10);
         const location = locations.find((item) => parseInt(item.id, 10) === id);
@@ -143,10 +208,11 @@
           window.setTimeout(() => {
             const popup = marker.getPopup && marker.getPopup();
             if (popup && popup.isOpen && popup.isOpen()) {
-              map.panInside(marker.getLatLng(), {
-                paddingTopLeft: [160, 250],
-                paddingBottomRight: [160, 130],
-              });
+              keepPopupInsideMap(popup);
+              const popupImage = popup.getElement()?.querySelector('.chroma-map-popup-photo');
+              if (popupImage && !popupImage.complete) {
+                popupImage.addEventListener('load', () => keepPopupInsideMap(popup), { once: true });
+              }
             }
           }, 80);
         };
@@ -165,12 +231,41 @@
           ? new Set(ids.map((id) => parseInt(id, 10)))
           : null;
 
+        activeMarkerIds = allowedIds;
+
         markerById.forEach((marker, id) => {
           marker.setOpacity(!allowedIds || allowedIds.has(id) ? 1 : 0.28);
         });
 
         fitLocations(map, locations, ids);
       };
+
+      // Pins are visual map affordances while the adjacent campus cards are the
+      // fully accessible keyboard controls. Resolve pointer clicks through the
+      // map itself so dense overlapping pins do not create undersized or
+      // competing touch targets.
+      map.on('click', (event) => {
+        const clickPoint = map.latLngToContainerPoint(event.latlng);
+        let closestId = null;
+        let closestDistance = 29;
+
+        markerById.forEach((marker, id) => {
+          if (activeMarkerIds && !activeMarkerIds.has(id)) {
+            return;
+          }
+
+          const markerPoint = map.latLngToContainerPoint(marker.getLatLng());
+          const distance = clickPoint.distanceTo(markerPoint);
+          if (distance < closestDistance) {
+            closestId = id;
+            closestDistance = distance;
+          }
+        });
+
+        if (closestId !== null) {
+          focusLocation(closestId);
+        }
+      });
 
       container.chromaMapApi = {
         filterLocations,

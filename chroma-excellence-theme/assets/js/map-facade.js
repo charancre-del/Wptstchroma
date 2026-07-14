@@ -42,18 +42,26 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        const themeUrl = window.chromaData && window.chromaData.themeUrl;
+        if (!themeUrl) {
+            window.chromaMapAssetsLoading = false;
+            return;
+        }
+
+        const leafletBaseUrl = themeUrl + '/assets/vendor/leaflet-1.9.4';
+
         // Load Leaflet CSS
         if (!document.querySelector('link[data-chroma-leaflet-css]')) {
             const link = document.createElement('link');
             link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            link.href = leafletBaseUrl + '/leaflet.min.css';
             link.setAttribute('data-chroma-leaflet-css', 'true');
             document.head.appendChild(link);
         }
 
         // Load Leaflet JS
         const script = document.createElement('script');
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.src = leafletBaseUrl + '/leaflet.min.js';
         script.async = true;
         script.onload = loadMapLayer;
         script.onerror = () => {
@@ -81,9 +89,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     mapContainers.forEach(container => observer.observe(container));
 
-    ['scroll', 'wheel', 'touchstart', 'pointerdown', 'focusin'].forEach((eventName) => {
-        window.addEventListener(eventName, loadMapAssets, { once: true, passive: true });
-    });
+    mapContainers.forEach((container) => {
+        ['pointerdown', 'touchstart', 'focusin', 'keydown'].forEach((eventName) => {
+            container.addEventListener(eventName, loadMapAssets, { once: true, passive: eventName !== 'keydown' });
+        });
 
-    window.setTimeout(loadMapAssets, 2500);
+        const explorer = container.closest('[data-location-explorer]');
+        if (explorer) {
+            explorer.querySelectorAll('[data-location-filter], [data-location-card]').forEach((control) => {
+                control.addEventListener('click', loadMapAssets, { once: true });
+            });
+        }
+    });
 });

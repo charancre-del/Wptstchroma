@@ -98,7 +98,7 @@ $default_sections = array(
             <li>' . __('Links to third-party websites are provided for convenience and do not imply endorsement', 'chroma-excellence') . '</li>
             <li>' . __('Unauthorized use of our website may give rise to a claim for damages', 'chroma-excellence') . '</li>
         </ul>
-        <p>' . __('Our website uses cookies to improve your experience. See our', 'chroma-excellence') . ' <a href="/privacy-policy/" class="text-chroma-blue hover:underline">' . __('Privacy Policy', 'chroma-excellence') . '</a> ' . __('for details.', 'chroma-excellence') . '</p>'
+        <p>' . __('Our website uses cookies to improve your experience. See our', 'chroma-excellence') . ' <a href="/privacy-policy/" class="text-chroma-blue underline underline-offset-2">' . __('Privacy Policy', 'chroma-excellence') . '</a> ' . __('for details.', 'chroma-excellence') . '</p>'
     ),
     array(
         'title' => __('Governing Law', 'chroma-excellence'),
@@ -171,7 +171,7 @@ if (!$has_custom_content) {
         </div>
 
         <div class="mt-16 pt-8 border-t border-chroma-blue/20">
-            <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="text-chroma-blue hover:underline">
+            <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="text-chroma-blue underline underline-offset-2">
                 <?php _e('View our Privacy Policy →', 'chroma-excellence'); ?>
             </a>
         </div>

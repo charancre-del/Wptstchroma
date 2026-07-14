@@ -81,7 +81,7 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 								class="w-10 h-10 bg-chroma-blue/10 rounded-full flex items-center justify-center text-chroma-blue shrink-0">
 								<i class="fa-solid fa-location-dot"></i></div>
 							<div>
-								<h4 class="font-bold text-brand-ink"><?php _e('Mailing Address', 'chroma-excellence'); ?></h4>
+								<h3 class="font-bold text-brand-ink"><?php _e('Mailing Address', 'chroma-excellence'); ?></h3>
 								<p class="text-brand-ink/60">
 									<?php echo nl2br(esc_html($corporate_address)); ?>
 								</p>
@@ -92,7 +92,7 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 								class="w-10 h-10 bg-chroma-blue/10 rounded-full flex items-center justify-center text-chroma-blue shrink-0">
 								<i class="fa-solid fa-phone"></i></div>
 							<div>
-								<h4 class="font-bold text-brand-ink"><?php _e('Phone', 'chroma-excellence'); ?></h4>
+								<h3 class="font-bold text-brand-ink"><?php _e('Phone', 'chroma-excellence'); ?></h3>
 								<p class="text-brand-ink/60"><a href="tel:<?php echo esc_attr(preg_replace('/[^0-9+]/', '', $corporate_phone)); ?>" class="hover:text-chroma-blue transition"><?php echo esc_html($corporate_phone); ?></a></p>
 								<p class="text-xs text-brand-ink/70 mt-1"><?php _e('Mon-Fri, 9am - 5pm EST', 'chroma-excellence'); ?></p>
 							</div>
@@ -103,7 +103,7 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 									class="w-10 h-10 bg-chroma-blue/10 rounded-full flex items-center justify-center text-chroma-blue shrink-0">
 									<i class="fa-regular fa-envelope"></i></div>
 								<div>
-									<h4 class="font-bold text-brand-ink"><?php _e('Email', 'chroma-excellence'); ?></h4>
+									<h3 class="font-bold text-brand-ink"><?php _e('Email', 'chroma-excellence'); ?></h3>
 									<p class="text-brand-ink/60"><a href="mailto:<?php echo esc_attr($corporate_email); ?>" class="hover:text-chroma-blue transition"><?php echo esc_html($corporate_email); ?></a></p>
 								</div>
 							</div>
@@ -156,7 +156,8 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 
 			<!-- Contact Form -->
 			<div id="general-form"
-				class="tourForm chroma-form-scroll-card chroma-form-scroll-card--contact bg-white rounded-[2.5rem] p-8 md:p-10 text-brand-ink relative overflow-y-auto shadow-card border border-brand-ink/5 order-1">
+				class="tourForm chroma-form-scroll-card chroma-form-scroll-card--contact bg-white rounded-[2.5rem] p-8 md:p-10 text-brand-ink relative overflow-y-auto shadow-card border border-brand-ink/5 order-1"
+				tabindex="0" aria-label="<?php esc_attr_e( 'General inquiry form', 'chroma-excellence' ); ?>">
 				<div
 					class="absolute top-0 right-0 w-64 h-64 bg-chroma-blueLight rounded-full blur-[80px] opacity-50 -translate-y-1/2 translate-x-1/2">
 				</div>

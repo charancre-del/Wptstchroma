@@ -132,7 +132,7 @@ $newsroom_query = chroma_cached_query($newsroom_args, 'newsroom_page', 7 * DAY_I
     </section>
   </main>
 
-  <footer class="bg-brand-ink text-white py-8 text-center text-xs opacity-50 border-t border-white/10">
+  <footer class="bg-brand-ink text-white/80 py-8 text-center text-xs border-t border-white/10">
     &copy; <?php echo esc_html(date('Y')); ?> <?php bloginfo('name'); ?>.
   </footer>
 

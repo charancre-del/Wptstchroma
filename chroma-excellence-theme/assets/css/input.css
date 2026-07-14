@@ -101,6 +101,15 @@
     overflow-x: hidden;
   }
 
+  /* Keep the complete homepage in the document while allowing the browser to
+     defer layout and paint for sections well below the initial viewport. */
+  @supports (content-visibility: auto) {
+    .home-v2 > section:nth-of-type(n + 3) {
+      content-visibility: auto;
+      contain-intrinsic-size: auto 900px;
+    }
+  }
+
   /* Accessible focus states for keyboard navigation */
   a:focus-visible,
   button:focus-visible,
@@ -428,6 +437,17 @@
     transition-delay: 0ms, 0ms, 0ms, 0ms, 0ms, 0ms;
   }
 
+  /* Keep first-view content immediately readable; below-fold sections retain reveals. */
+  .chroma-js main > section:first-of-type .reveal,
+  .chroma-js main > section:first-of-type .fade-in-up,
+  .chroma-js main > section:first-of-type .chroma-motion-item,
+  .chroma-js .pageHero .reveal,
+  .chroma-js .pageHero .fade-in-up,
+  .chroma-js .pageHero .chroma-motion-item {
+    opacity: 1;
+    transform: none;
+  }
+
   .chroma-redesign-hero-frame {
     animation: chroma-soft-float 9s ease-in-out infinite;
   }
@@ -646,22 +666,33 @@
   }
 
   .chroma-prism-orb {
+    position: relative;
+  }
+
+  .chroma-prism-orb::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--prism-color, #7D5BA6) 18%, transparent);
+    pointer-events: none;
+    will-change: transform, opacity;
     animation: chroma-prism-breathe 7s ease-in-out infinite;
   }
 
-  .chroma-prism-card:nth-child(2) .chroma-prism-orb {
+  .chroma-prism-card:nth-child(2) .chroma-prism-orb::after {
     animation-delay: -1.1s;
   }
 
-  .chroma-prism-card:nth-child(3) .chroma-prism-orb {
+  .chroma-prism-card:nth-child(3) .chroma-prism-orb::after {
     animation-delay: -2.2s;
   }
 
-  .chroma-prism-card:nth-child(4) .chroma-prism-orb {
+  .chroma-prism-card:nth-child(4) .chroma-prism-orb::after {
     animation-delay: -3.3s;
   }
 
-  .chroma-prism-card:nth-child(5) .chroma-prism-orb {
+  .chroma-prism-card:nth-child(5) .chroma-prism-orb::after {
     animation-delay: -4.4s;
   }
 
@@ -670,7 +701,14 @@
   }
 
   .chroma-location-card {
+    display: flex;
+    flex-direction: column;
     transition: opacity 360ms ease, transform 260ms ease, border-color 180ms ease, background 180ms ease;
+  }
+
+  .chroma-location-card > button,
+  .chroma-location-card > div {
+    flex: 0 0 auto;
   }
 
   .chroma-location-card.hidden {
@@ -727,12 +765,12 @@
     0%,
     100% {
       transform: scale(1);
-      box-shadow: 0 0 0 0 color-mix(in srgb, var(--prism-color, #7D5BA6) 16%, transparent);
+      opacity: 0.45;
     }
 
     50% {
-      transform: scale(1.07);
-      box-shadow: 0 0 0 1.1rem color-mix(in srgb, var(--prism-color, #7D5BA6) 0%, transparent);
+      transform: scale(1.38);
+      opacity: 0;
     }
   }
 
@@ -853,7 +891,7 @@
     display: inline-flex;
     border-radius: 9999px;
     background: color-mix(in srgb, var(--card-accent) 12%, #ffffff);
-    color: var(--card-accent);
+    color: #263238;
     padding: 0.35rem 0.7rem;
     font-size: 0.7rem;
     font-weight: 800;
@@ -865,7 +903,7 @@
     display: inline-flex;
     gap: 0.35rem;
     align-items: center;
-    color: var(--card-accent);
+    color: #263238;
     font-size: 0.8rem;
     font-weight: 800;
     letter-spacing: 0.12em;
@@ -1210,7 +1248,7 @@
     align-items: center;
     border-radius: 999px;
     background: color-mix(in srgb, var(--program-accent) 12%, #ffffff);
-    color: var(--program-accent);
+    color: #263238;
     font-size: 0.78rem;
     font-weight: 800;
     letter-spacing: 0.16em;
@@ -2147,6 +2185,20 @@
   .chroma-location-map-panel .leaflet-popup,
   .chroma-location-map-panel .leaflet-control {
     z-index: 10;
+  }
+
+  .chroma-map-marker-target {
+    align-items: flex-start;
+    background: transparent;
+    border: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .chroma-map-marker-target img {
+    display: block;
+    height: 41px;
+    width: 25px;
   }
 
   .chroma-location-filter {
@@ -6115,7 +6167,11 @@
   align-items: center;
   display: grid;
   gap: 60px;
-  grid-template-columns: 1.02fr 0.98fr;
+  grid-template-columns: minmax(0, 1.02fr) minmax(0, 0.98fr);
+}
+
+.pp-hero-grid > * {
+  min-width: 0;
 }
 
 .pp-reveal {
@@ -6204,7 +6260,7 @@
 
 .pp-copy-sm,
 .pp-sublead {
-  color: rgba(38, 50, 56, 0.64);
+  color: rgba(38, 50, 56, 0.82);
   font-size: 16px;
   line-height: 1.7;
   margin: 16px 0 0;
@@ -6283,6 +6339,7 @@
   border-radius: 34px;
   box-shadow: var(--pp-shadow);
   cursor: crosshair;
+  min-width: 0;
   overflow: hidden;
   padding: 30px;
   position: relative;
@@ -6302,6 +6359,7 @@
 .pp-prism-svg {
   display: block;
   height: auto;
+  overflow: visible;
   position: relative;
   width: 100%;
   z-index: 1;
@@ -6576,7 +6634,7 @@
 
 .pp-page .chroma-program-prism-slider--curriculum .chroma-program-slider-ticks button {
   border-radius: 14px;
-  color: rgba(38, 50, 56, 0.55);
+  color: rgba(38, 50, 56, 0.82);
   flex: 1;
   font-size: 12px;
   font-weight: 800;
@@ -6636,7 +6694,7 @@
 .pp-skill-chip.physical { color: var(--pp-purple); }
 .pp-skill-chip.emotional { color: var(--pp-blue); }
 .pp-skill-chip.social { color: var(--pp-green); }
-.pp-skill-chip.academic { color: var(--pp-gold); }
+.pp-skill-chip.academic { color: #765a00; }
 .pp-skill-chip.creative { color: var(--pp-rust); }
 
 .pp-teacher-note {
@@ -7215,8 +7273,8 @@
 
   .chroma-location-card,
   .chroma-locations-stacked .chroma-location-card {
-    height: auto !important;
-    min-height: 9rem !important;
+    height: max-content !important;
+    min-height: max-content !important;
     margin: 0 !important;
   }
 
@@ -7278,6 +7336,52 @@
   .chroma-location-map-panel {
     height: 24rem !important;
     min-height: 24rem !important;
+  }
+
+  .chroma-map-popup-shell .leaflet-popup-content-wrapper {
+    max-height: 20rem !important;
+  }
+
+  .chroma-map-popup-shell.chroma-map-popup-contained {
+    bottom: auto !important;
+    left: var(--chroma-popup-left, 8px) !important;
+    margin: 0 !important;
+    top: var(--chroma-popup-top, 8px) !important;
+    transform: none !important;
+  }
+
+  .chroma-map-popup-shell.chroma-map-popup-contained .leaflet-popup-tip-container {
+    display: none !important;
+  }
+
+  .chroma-map-popup-shell .leaflet-popup-content {
+    width: min(17rem, calc(100vw - 5rem)) !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup {
+    max-height: 19rem !important;
+    overflow-y: auto !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup-photo {
+    height: 3.75rem !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup-body {
+    padding: 0.65rem 0.75rem 0.72rem !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup-body strong {
+    font-size: 0.9rem !important;
+    line-height: 1.12 !important;
+  }
+
+  .chroma-location-map-panel .chroma-map-popup-body p,
+  .chroma-location-map-panel .chroma-map-popup-email,
+  .chroma-location-map-panel .chroma-map-popup-link {
+    font-size: 0.72rem !important;
+    line-height: 1.2 !important;
+    margin-block: 0.18rem !important;
   }
 
   .chroma-location-list-panel {
@@ -7403,4 +7507,29 @@
   .pp-section-head {
     margin-bottom: 38px !important;
   }
+}
+
+/* Production accessibility pass: retain the palette while keeping text WCAG AA. */
+.text-brand-ink\/50,
+.text-brand-ink\/60,
+.text-brand-ink\/65 {
+  color: rgba(38, 50, 56, 0.82) !important;
+}
+
+.bg-chroma-yellow {
+  background-color: #8c6b2f !important;
+  color: #ffffff !important;
+}
+
+.pp-pillar.academic em,
+.ray-academic-text {
+  color: #765a00 !important;
+  fill: #765a00 !important;
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: #263238 !important;
+  text-decoration: underline !important;
+  text-decoration-thickness: 1px !important;
+  text-underline-offset: 2px !important;
 }

@@ -146,24 +146,6 @@
 
     motionItems.forEach(el => observer.observe(el));
 
-    let revealFrame = 0;
-    const revealPassedItems = () => {
-      window.cancelAnimationFrame(revealFrame);
-      revealFrame = window.requestAnimationFrame(() => {
-        motionItems.forEach((el) => {
-          if (el.classList.contains('is-visible')) return;
-          if (el.getBoundingClientRect().top <= window.innerHeight * 1.08) {
-            activate(el);
-            observer.unobserve(el);
-          }
-        });
-      });
-    };
-
-    window.addEventListener('scroll', revealPassedItems, { passive: true });
-    window.addEventListener('resize', revealPassedItems, { passive: true });
-    revealPassedItems();
-
     window.setTimeout(() => {
       motionItems.forEach((el) => {
         if (!el.classList.contains('is-visible')) activate(el);
@@ -440,7 +422,8 @@
         circle.setAttribute('cx', point.x.toFixed(2));
         circle.setAttribute('cy', point.y.toFixed(2));
         circle.setAttribute('r', '7');
-        circle.setAttribute('aria-label', `${chartLabels[index] || 'Pillar'} ${normalizedValues[index]}%`);
+        circle.setAttribute('aria-hidden', 'true');
+        circle.setAttribute('focusable', 'false');
         radarPoints.appendChild(circle);
       });
     };
@@ -665,7 +648,8 @@
         circle.setAttribute('cx', point.x.toFixed(2));
         circle.setAttribute('cy', point.y.toFixed(2));
         circle.setAttribute('r', '7');
-        circle.setAttribute('aria-label', `${chartLabels[index] || 'Pillar'} focus`);
+        circle.setAttribute('aria-hidden', 'true');
+        circle.setAttribute('focusable', 'false');
         radarPoints.appendChild(circle);
       });
     };
@@ -826,7 +810,8 @@
       circle.setAttribute('cx', center.x);
       circle.setAttribute('cy', center.y);
       circle.setAttribute('r', '10');
-      circle.setAttribute('aria-label', `${labels[index]} ${value}%`);
+      circle.setAttribute('aria-hidden', 'true');
+      circle.setAttribute('focusable', 'false');
       pointsGroup.appendChild(circle);
     });
 

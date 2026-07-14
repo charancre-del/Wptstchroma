@@ -171,7 +171,7 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 				</div>
 
 				<div class="pp-prism-card pp-reveal pp-delay-1" data-prism-card>
-					<svg class="pp-prism-svg" viewBox="0 0 520 400" role="img" aria-labelledby="pp-prism-title pp-prism-desc">
+					<svg class="pp-prism-svg" viewBox="0 0 640 400" role="img" aria-labelledby="pp-prism-title pp-prism-desc">
 						<title id="pp-prism-title"><?php esc_html_e( 'The Prismpath prism', 'chroma-excellence' ); ?></title>
 						<desc id="pp-prism-desc"><?php esc_html_e( 'A beam of light enters a prism and refracts into five developmental pillars.', 'chroma-excellence' ); ?></desc>
 						<defs>
@@ -185,19 +185,19 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 						<text x="16" y="138" class="pp-prism-label pp-ink-label"><?php esc_html_e( 'One activity', 'chroma-excellence' ); ?></text>
 						<polygon points="150,196 265,110 265,282" fill="url(#pp-prism-gradient)" opacity=".08" stroke="#263238" stroke-width="2.6" />
 						<g class="pp-prism-fan">
-							<line x1="265" y1="196" x2="425" y2="64" class="pp-prism-ray ray-physical" />
-							<line x1="265" y1="196" x2="425" y2="130" class="pp-prism-ray ray-emotional" />
-							<line x1="265" y1="196" x2="425" y2="196" class="pp-prism-ray ray-social" />
-							<line x1="265" y1="196" x2="425" y2="262" class="pp-prism-ray ray-academic" />
-							<line x1="265" y1="196" x2="425" y2="328" class="pp-prism-ray ray-creative" />
-							<line x1="265" y1="196" x2="425" y2="64" class="pp-prism-dash" />
-							<line x1="265" y1="196" x2="425" y2="196" class="pp-prism-dash" />
-							<line x1="265" y1="196" x2="425" y2="328" class="pp-prism-dash" />
-							<text x="434" y="60" class="pp-prism-label ray-physical-text"><?php esc_html_e( 'Physical', 'chroma-excellence' ); ?></text>
-							<text x="434" y="126" class="pp-prism-label ray-emotional-text"><?php esc_html_e( 'Emotional', 'chroma-excellence' ); ?></text>
-							<text x="434" y="192" class="pp-prism-label ray-social-text"><?php esc_html_e( 'Social', 'chroma-excellence' ); ?></text>
-							<text x="434" y="258" class="pp-prism-label ray-academic-text"><?php esc_html_e( 'Academic', 'chroma-excellence' ); ?></text>
-							<text x="434" y="324" class="pp-prism-label ray-creative-text"><?php esc_html_e( 'Creative', 'chroma-excellence' ); ?></text>
+							<line x1="265" y1="196" x2="400" y2="64" class="pp-prism-ray ray-physical" />
+							<line x1="265" y1="196" x2="400" y2="130" class="pp-prism-ray ray-emotional" />
+							<line x1="265" y1="196" x2="400" y2="196" class="pp-prism-ray ray-social" />
+							<line x1="265" y1="196" x2="400" y2="262" class="pp-prism-ray ray-academic" />
+							<line x1="265" y1="196" x2="400" y2="328" class="pp-prism-ray ray-creative" />
+							<line x1="265" y1="196" x2="400" y2="64" class="pp-prism-dash" />
+							<line x1="265" y1="196" x2="400" y2="196" class="pp-prism-dash" />
+							<line x1="265" y1="196" x2="400" y2="328" class="pp-prism-dash" />
+							<text x="520" y="60" text-anchor="end" class="pp-prism-label ray-physical-text"><?php esc_html_e( 'Physical', 'chroma-excellence' ); ?></text>
+							<text x="520" y="126" text-anchor="end" class="pp-prism-label ray-emotional-text"><?php esc_html_e( 'Emotional', 'chroma-excellence' ); ?></text>
+							<text x="520" y="192" text-anchor="end" class="pp-prism-label ray-social-text"><?php esc_html_e( 'Social', 'chroma-excellence' ); ?></text>
+							<text x="520" y="258" text-anchor="end" class="pp-prism-label ray-academic-text"><?php esc_html_e( 'Academic', 'chroma-excellence' ); ?></text>
+							<text x="520" y="324" text-anchor="end" class="pp-prism-label ray-creative-text"><?php esc_html_e( 'Creative', 'chroma-excellence' ); ?></text>
 						</g>
 					</svg>
 					<p class="pp-prism-caption">

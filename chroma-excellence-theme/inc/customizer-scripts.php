@@ -268,6 +268,42 @@ if (!function_exists('chroma_dedupe_customizer_scripts')) {
     }
 }
 
+/**
+ * Avoid loading Google gtag.js twice when the same customizer field also
+ * contains Google Tag Manager. GTM can consume the queued gtag() config calls,
+ * so only the redundant network loader is removed; analytics configuration and
+ * attribution behavior remain intact.
+ */
+if (!function_exists('chroma_consolidate_google_tag_loader')) {
+    function chroma_consolidate_google_tag_loader($html)
+    {
+        if (!is_string($html) || trim($html) === '') {
+            return $html;
+        }
+
+        if (stripos($html, 'googletagmanager.com/gtm.js') === false || stripos($html, 'googletagmanager.com/gtag/js') === false) {
+            return $html;
+        }
+
+        // Remove a conventional external gtag.js tag when GTM is already present.
+        $html = preg_replace(
+            '/<script\b[^>]*\bsrc\s*=\s*(["\'])https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=[^"\']+\1[^>]*>\s*<\/script>/i',
+            '',
+            $html
+        );
+
+        // Remove the common dynamically-created gtag.js loader while preserving
+        // the subsequent window.gtag("config", ...) calls for GTM to process.
+        $html = preg_replace(
+            '/\b(?:var|let|const)\s+([A-Za-z_$][A-Za-z0-9_$]*)\s*=\s*document\.createElement\(\s*(["\'])script\2\s*\)\s*;\s*\1\.async\s*=\s*true\s*;\s*\1\.src\s*=\s*(["\'])https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=[^"\']+\3\s*;\s*document\.head\.appendChild\(\s*\1\s*\)\s*;/i',
+            '',
+            $html
+        );
+
+        return $html;
+    }
+}
+
 if (!function_exists('chroma_output_header_scripts')) {
     function chroma_output_header_scripts()
     {
@@ -278,6 +314,7 @@ if (!function_exists('chroma_output_header_scripts')) {
         $scripts = get_theme_mod('chroma_header_scripts');
         if ($scripts) {
             $scripts = chroma_normalize_global_script_markup($scripts);
+            $scripts = chroma_consolidate_google_tag_loader($scripts);
             $scripts = chroma_dedupe_customizer_scripts($scripts);
             if (trim($scripts) === '') {
                 return;
@@ -309,6 +346,7 @@ if (!function_exists('chroma_output_footer_scripts')) {
         if ($scripts) {
             $scripts = chroma_normalize_global_script_markup($scripts);
             $scripts = chroma_dedupe_customizer_scripts($scripts);
+            $scripts = chroma_optimize_third_party_scripts($scripts);
             if (trim($scripts) === '') {
                 return;
             }
