@@ -1178,12 +1178,22 @@
     const status = explorer.querySelector('[data-location-status]');
     const count = explorer.querySelector('[data-location-summary-count]');
     const summaryLabel = explorer.querySelector('[data-location-summary-label]');
+    const closestButton = explorer.querySelector('[data-location-filter="closest"]');
     let userCoords = null;
+    let locationRequestId = 0;
 
     const defaultLocationStatus = 'Share your location to sort campuses by distance, or choose a region to zoom the map.';
     const deniedLocationStatus = 'Location was not shared. Showing all campuses. Choose a region to narrow the map.';
     const blockedLocationStatus = 'Location is blocked in your browser for this site. Click the lock icon in the address bar, allow Location, then try again.';
     const closestLocationStatus = 'Closest campuses sorted by distance.';
+    const timeoutLocationStatus = 'We could not get your location in time. Showing all campuses. Try again or choose a region.';
+
+    const setLocationRequestPending = (isPending) => {
+      if (!closestButton) return;
+      closestButton.disabled = isPending;
+      closestButton.setAttribute('aria-busy', isPending ? 'true' : 'false');
+      closestButton.classList.toggle('is-loading', isPending);
+    };
 
     const distanceMiles = (lat1, lng1, lat2, lng2) => {
       const toRadians = (value) => value * Math.PI / 180;
@@ -1309,35 +1319,43 @@
         return;
       }
 
-      const requestPosition = () => navigator.geolocation.getCurrentPosition(
+      const requestId = ++locationRequestId;
+      let settled = false;
+      setLocationRequestPending(true);
+      if (status) status.textContent = 'Asking your browser for location permission...';
+
+      const finish = (callback) => {
+        if (settled || requestId !== locationRequestId) return;
+        settled = true;
+        window.clearTimeout(watchdog);
+        setLocationRequestPending(false);
+        callback();
+      };
+
+      const watchdog = window.setTimeout(() => {
+        finish(() => {
+          userCoords = null;
+          applyFilter('all', '', timeoutLocationStatus);
+        });
+      }, 12000);
+
+      navigator.geolocation.getCurrentPosition(
         (position) => {
-          userCoords = position.coords;
-          applyFilter('closest', 'Closest to your browser location', closestLocationStatus);
+          finish(() => {
+            userCoords = position.coords;
+            applyFilter('closest', 'Closest to your browser location', closestLocationStatus);
+          });
         },
         (error) => {
-          userCoords = null;
-          const isBlocked = error && error.code === error.PERMISSION_DENIED;
-          applyFilter('all', '', isBlocked ? blockedLocationStatus : deniedLocationStatus);
+          finish(() => {
+            userCoords = null;
+            const isBlocked = error && error.code === error.PERMISSION_DENIED;
+            const isTimeout = error && error.code === error.TIMEOUT;
+            applyFilter('all', '', isBlocked ? blockedLocationStatus : (isTimeout ? timeoutLocationStatus : deniedLocationStatus));
+          });
         },
-        { enableHighAccuracy: false, timeout: 6000, maximumAge: 900000 }
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
       );
-
-      if (status) status.textContent = 'Asking your browser for location permission...';
-      if (navigator.permissions && navigator.permissions.query) {
-        navigator.permissions.query({ name: 'geolocation' })
-          .then((permission) => {
-            if (permission.state === 'denied') {
-              userCoords = null;
-              applyFilter('all', '', blockedLocationStatus);
-              return;
-            }
-            requestPosition();
-          })
-          .catch(requestPosition);
-        return;
-      }
-
-      requestPosition();
     };
 
     filterButtons.forEach((button) => {
