@@ -29,6 +29,83 @@ $hero_description_two = chroma_get_translated_meta( $page_id, 'curriculum_hero_d
 $framework_title       = chroma_get_translated_meta( $page_id, 'curriculum_framework_title' ) ?: __( 'A clearer way to understand the whole child.', 'chroma-excellence' );
 $framework_description = chroma_get_translated_meta( $page_id, 'curriculum_framework_description' ) ?: __( 'Children do not grow in straight lines. A block tower can build hand strength, problem-solving, language, peer cooperation, and imagination all at once. Prismpath helps teachers see those connected moments and plan from them.', 'chroma-excellence' );
 
+$continuum_badge       = chroma_get_translated_meta( $page_id, 'curriculum_continuum_badge' ) ?: __( 'A connected learning continuum', 'chroma-excellence' );
+$continuum_title       = chroma_get_translated_meta( $page_id, 'curriculum_continuum_title' ) ?: __( 'Introduced Early. Deepened Over Time.', 'chroma-excellence' );
+$continuum_intro       = chroma_get_translated_meta( $page_id, 'curriculum_continuum_intro' ) ?: __( 'PrismPath™ is designed as one connected learning journey from infancy through Pre-K. Children encounter the same foundational concepts across every age group, while the experience becomes more detailed, intentional, and challenging as they grow.', 'chroma-excellence' );
+$continuum_foundation  = chroma_get_translated_meta( $page_id, 'curriculum_continuum_foundation' ) ?: __( 'For infants, learning begins through sights, sounds, movement, touch, repetition, and responsive interaction. These early experiences create familiarity and establish the foundation for later understanding.', 'chroma-excellence' );
+$continuum_development = chroma_get_translated_meta( $page_id, 'curriculum_continuum_development' ) ?: __( 'As children develop, they begin recognizing patterns, using language, making connections, solving problems, and applying what they have learned with greater independence.', 'chroma-excellence' );
+$continuum_example     = chroma_get_translated_meta( $page_id, 'curriculum_continuum_example_title' ) ?: __( 'The Same Concept. A New Level at Every Age.', 'chroma-excellence' );
+$continuum_closing     = chroma_get_translated_meta( $page_id, 'curriculum_continuum_closing' ) ?: __( 'What begins as early exposure becomes recognition, understanding, and eventually confident application. Each stage prepares the child for the next—without rushing development or losing the joy of discovery.', 'chroma-excellence' );
+
+$continuum_cards = array(
+	array(
+		'key'      => 'infants',
+		'number'   => '01',
+		'title'    => __( 'Infants', 'chroma-excellence' ),
+		'progress' => __( 'Early exposure', 'chroma-excellence' ),
+		'body'     => chroma_get_translated_meta( $page_id, 'curriculum_continuum_infants_body' ) ?: __( 'Babies hear alphabet songs, listen to stories, explore books, and become familiar with the sounds and rhythms of language.', 'chroma-excellence' ),
+	),
+	array(
+		'key'      => 'toddlers',
+		'number'   => '02',
+		'title'    => __( 'Toddlers', 'chroma-excellence' ),
+		'progress' => __( 'Recognition', 'chroma-excellence' ),
+		'body'     => chroma_get_translated_meta( $page_id, 'curriculum_continuum_toddlers_body' ) ?: __( 'Children repeat words, recognize familiar pictures and symbols, participate in rhymes, and begin connecting language with meaning.', 'chroma-excellence' ),
+	),
+	array(
+		'key'      => 'preschool',
+		'number'   => '03',
+		'title'    => __( 'Preschool', 'chroma-excellence' ),
+		'progress' => __( 'Understanding', 'chroma-excellence' ),
+		'body'     => chroma_get_translated_meta( $page_id, 'curriculum_continuum_preschool_body' ) ?: __( 'Children identify letters, build vocabulary, recognize sound patterns, and begin connecting letters with their sounds.', 'chroma-excellence' ),
+	),
+	array(
+		'key'      => 'prek',
+		'number'   => '04',
+		'title'    => __( 'Pre-K', 'chroma-excellence' ),
+		'progress' => __( 'Confident application', 'chroma-excellence' ),
+		'body'     => chroma_get_translated_meta( $page_id, 'curriculum_continuum_prek_body' ) ?: __( 'Children develop phonological and phonemic awareness, practice blending and separating sounds, explore early writing, and build the foundations for reading through phonics.', 'chroma-excellence' ),
+	),
+);
+
+$studio_badge        = chroma_get_translated_meta( $page_id, 'curriculum_studio_badge' ) ?: __( 'Curriculum Studio', 'chroma-excellence' );
+$studio_title        = chroma_get_translated_meta( $page_id, 'curriculum_studio_title' ) ?: __( 'Personalized Learning Starts with Better Insight', 'chroma-excellence' );
+$studio_subtitle     = chroma_get_translated_meta( $page_id, 'curriculum_studio_subtitle' ) ?: __( 'Meet the Chroma Curriculum Studio', 'chroma-excellence' );
+$studio_intro        = chroma_get_translated_meta( $page_id, 'curriculum_studio_intro' ) ?: __( 'Every child develops differently, and every classroom has its own combination of strengths, interests, learning styles, and areas for growth. That is why Chroma Early Learning Academy developed the Curriculum Studio—our proprietary, in-house platform designed to help transform real insights about children into more responsive learning experiences.', 'chroma-excellence' );
+$studio_insight      = chroma_get_translated_meta( $page_id, 'curriculum_studio_insight' ) ?: __( 'Curriculum Studio brings together parent developmental screening responses, teacher observations, classroom notes, emerging interests, and documented learning progress. It helps our teachers and Education Team understand what children are ready to explore, which skills may need reinforcement, and where additional challenges or enrichment can be introduced.', 'chroma-excellence' );
+$studio_personalize  = chroma_get_translated_meta( $page_id, 'curriculum_studio_personalize' ) ?: __( 'Rather than delivering the same generic lesson plan in every classroom, Curriculum Studio helps teachers adapt PrismPath™ activities, materials, instructional approaches, and levels of support to the children they are actually teaching.', 'chroma-excellence' );
+$studio_process_head = chroma_get_translated_meta( $page_id, 'curriculum_studio_process_heading' ) ?: __( 'One Connected System Supporting Every Level of Learning', 'chroma-excellence' );
+$studio_teacher_head = chroma_get_translated_meta( $page_id, 'curriculum_studio_teacher_heading' ) ?: __( 'Personalized for Children. Purposeful for Teachers.', 'chroma-excellence' );
+$studio_teacher_body = chroma_get_translated_meta( $page_id, 'curriculum_studio_teacher_body' ) ?: __( 'Curriculum Studio creates a continuous connection between the child, the family, the classroom teacher, and Chroma’s Education Team. As teachers document progress and children develop new skills, future learning experiences can evolve while our training and education teams gain better insight into where teachers may benefit from coaching, classroom modeling, additional resources, or targeted professional development.', 'chroma-excellence' );
+$studio_more_head    = chroma_get_translated_meta( $page_id, 'curriculum_studio_more_heading' ) ?: __( 'More Than a Curriculum', 'chroma-excellence' );
+$studio_more_body    = chroma_get_translated_meta( $page_id, 'curriculum_studio_more_body' ) ?: __( 'Many early learning programs purchase a curriculum and distribute the same lesson plans across every classroom. Chroma has built something different. PrismPath™ provides the educational foundation. Curriculum Studio helps personalize how that foundation is delivered, while also helping our Education Team strengthen the teachers responsible for bringing it to life.', 'chroma-excellence' );
+$studio_callout      = chroma_get_translated_meta( $page_id, 'curriculum_studio_callout' ) ?: __( 'Proprietary Technology. Personalized Learning. Stronger Teachers.', 'chroma-excellence' );
+$studio_callout_sub  = chroma_get_translated_meta( $page_id, 'curriculum_studio_callout_subtitle' ) ?: __( 'Designed in-house by Chroma to help every classroom grow.', 'chroma-excellence' );
+$studio_closing      = chroma_get_translated_meta( $page_id, 'curriculum_studio_closing' ) ?: __( 'At Chroma, personalization is not an occasional adjustment. It is part of the system behind how we plan, teach, train, and continuously improve.', 'chroma-excellence' );
+
+$studio_steps = array(
+	array(
+		'number' => '01',
+		'title'  => chroma_get_translated_meta( $page_id, 'curriculum_studio_family_title' ) ?: __( 'Families Share Valuable Insight', 'chroma-excellence' ),
+		'desc'   => chroma_get_translated_meta( $page_id, 'curriculum_studio_family_desc' ) ?: __( 'Parents provide important information through developmental screenings and ongoing communication, helping us better understand each child’s interests, routines, strengths, experiences, and developmental needs.', 'chroma-excellence' ),
+	),
+	array(
+		'number' => '02',
+		'title'  => chroma_get_translated_meta( $page_id, 'curriculum_studio_teacher_title' ) ?: __( 'Teachers Observe Learning in Action', 'chroma-excellence' ),
+		'desc'   => chroma_get_translated_meta( $page_id, 'curriculum_studio_teacher_desc' ) ?: __( 'Our teachers document classroom observations, emerging skills, interests, participation, progress, and areas where children may benefit from additional practice or enrichment.', 'chroma-excellence' ),
+	),
+	array(
+		'number' => '03',
+		'title'  => chroma_get_translated_meta( $page_id, 'curriculum_studio_plan_title' ) ?: __( 'Curriculum Studio Helps Personalize the Plan', 'chroma-excellence' ),
+		'desc'   => chroma_get_translated_meta( $page_id, 'curriculum_studio_plan_desc' ) ?: __( 'Curriculum Studio brings these insights together to help teachers differentiate PrismPath™ lesson plans for their classrooms. Children can explore the same foundational concept through different activities, materials, levels of complexity, and methods of engagement based on their developmental readiness.', 'chroma-excellence' ),
+	),
+	array(
+		'number' => '04',
+		'title'  => chroma_get_translated_meta( $page_id, 'curriculum_studio_coaching_title' ) ?: __( 'Our Education Team Strengthens Classroom Practice', 'chroma-excellence' ),
+		'desc'   => chroma_get_translated_meta( $page_id, 'curriculum_studio_coaching_desc' ) ?: __( 'The insight does not stop with lesson planning. Curriculum Studio also helps our Teacher Training Staff and Education Team identify classroom-specific opportunities for professional development, instructional coaching, modeling, and support.', 'chroma-excellence' ),
+	),
+);
+
 $pillars = array(
 	array(
 		'name'   => 'physical',
@@ -242,6 +319,131 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 					)
 				);
 				?>
+			</div>
+		</section>
+
+		<section id="connected-continuum" class="pp-section pp-white pp-border-y pp-continuum-section">
+			<div class="pp-container">
+				<div class="pp-continuum-intro">
+					<div class="pp-continuum-heading pp-reveal">
+						<span class="pp-kicker"><?php echo esc_html( $continuum_badge ); ?></span>
+						<h2 class="pp-title pp-title-lg"><?php echo esc_html( $continuum_title ); ?></h2>
+					</div>
+					<div class="pp-continuum-copy pp-reveal pp-delay-1">
+						<p><?php echo esc_html( $continuum_intro ); ?></p>
+						<p><?php echo esc_html( $continuum_foundation ); ?></p>
+						<p><?php echo esc_html( $continuum_development ); ?></p>
+					</div>
+				</div>
+
+				<div class="pp-continuum-example pp-reveal">
+					<span class="pp-continuum-example-label"><?php esc_html_e( 'Early literacy example', 'chroma-excellence' ); ?></span>
+					<h3><?php echo esc_html( $continuum_example ); ?></h3>
+				</div>
+
+				<ol class="pp-continuum-steps" aria-label="<?php esc_attr_e( 'Early literacy learning progression from infancy through Pre-K', 'chroma-excellence' ); ?>">
+					<?php foreach ( $continuum_cards as $index => $card ) : ?>
+						<li class="pp-continuum-step pp-continuum-step--<?php echo esc_attr( $card['key'] ); ?> pp-reveal pp-delay-<?php echo esc_attr( min( $index, 3 ) ); ?>">
+							<div class="pp-continuum-marker" aria-hidden="true"><?php echo esc_html( $card['number'] ); ?></div>
+							<span class="pp-continuum-progress"><?php echo esc_html( $card['progress'] ); ?></span>
+							<h4><?php echo esc_html( $card['title'] ); ?></h4>
+							<p><?php echo esc_html( $card['body'] ); ?></p>
+						</li>
+					<?php endforeach; ?>
+				</ol>
+
+				<blockquote class="pp-continuum-closing pp-reveal">
+					<p><?php echo esc_html( $continuum_closing ); ?></p>
+				</blockquote>
+			</div>
+		</section>
+
+		<section id="curriculum-studio" class="pp-section pp-cream pp-studio-section">
+			<div class="pp-container">
+				<div class="pp-studio-shell pp-reveal">
+					<div class="pp-studio-hero">
+						<div class="pp-studio-copy">
+							<span class="pp-kicker"><?php echo esc_html( $studio_badge ); ?></span>
+							<h2 class="pp-title pp-title-lg"><?php echo esc_html( $studio_title ); ?></h2>
+							<h3><?php echo esc_html( $studio_subtitle ); ?></h3>
+							<p><?php echo esc_html( $studio_intro ); ?></p>
+							<p><?php echo esc_html( $studio_insight ); ?></p>
+							<p><?php echo esc_html( $studio_personalize ); ?></p>
+						</div>
+						<div class="pp-studio-dashboard" aria-label="<?php esc_attr_e( 'Stylized Curriculum Studio dashboard showing family insight, teacher observation, personalized planning, and coaching support.', 'chroma-excellence' ); ?>">
+							<div class="pp-studio-dashboard-top">
+								<span><?php esc_html_e( 'Child Profile', 'chroma-excellence' ); ?></span>
+								<strong><?php esc_html_e( 'Classroom Plan', 'chroma-excellence' ); ?></strong>
+							</div>
+							<div class="pp-studio-dashboard-grid">
+								<div class="pp-studio-panel family">
+									<span><?php esc_html_e( 'Family Insight', 'chroma-excellence' ); ?></span>
+									<i></i><i></i><i></i>
+								</div>
+								<div class="pp-studio-panel teacher">
+									<span><?php esc_html_e( 'Teacher Notes', 'chroma-excellence' ); ?></span>
+									<i></i><i></i><i></i>
+								</div>
+								<div class="pp-studio-panel plan">
+									<span><?php esc_html_e( 'PrismPath Plan', 'chroma-excellence' ); ?></span>
+									<i></i><i></i><i></i>
+								</div>
+								<div class="pp-studio-panel coach">
+									<span><?php esc_html_e( 'Coaching Focus', 'chroma-excellence' ); ?></span>
+									<i></i><i></i><i></i>
+								</div>
+							</div>
+							<div class="pp-studio-flowline" aria-hidden="true">
+								<span><?php esc_html_e( 'Family Insight', 'chroma-excellence' ); ?></span>
+								<b>→</b>
+								<span><?php esc_html_e( 'Teacher Observation', 'chroma-excellence' ); ?></span>
+								<b>→</b>
+								<span><?php esc_html_e( 'Personalized Curriculum', 'chroma-excellence' ); ?></span>
+								<b>→</b>
+								<span><?php esc_html_e( 'Teacher Support', 'chroma-excellence' ); ?></span>
+							</div>
+						</div>
+					</div>
+
+					<div class="pp-studio-process">
+						<div class="pp-section-head pp-reveal">
+							<span class="pp-kicker"><?php esc_html_e( 'How insight becomes action', 'chroma-excellence' ); ?></span>
+							<h3 class="pp-title pp-title-md"><?php echo esc_html( $studio_process_head ); ?></h3>
+						</div>
+						<ol class="pp-studio-steps" aria-label="<?php esc_attr_e( 'Curriculum Studio connected process', 'chroma-excellence' ); ?>">
+							<?php foreach ( $studio_steps as $index => $step ) : ?>
+								<li class="pp-studio-step pp-reveal pp-delay-<?php echo esc_attr( min( $index, 3 ) ); ?>">
+									<span><?php echo esc_html( $step['number'] ); ?></span>
+									<h4><?php echo esc_html( $step['title'] ); ?></h4>
+									<p><?php echo esc_html( $step['desc'] ); ?></p>
+								</li>
+							<?php endforeach; ?>
+						</ol>
+					</div>
+
+					<div class="pp-studio-bottom">
+						<article class="pp-studio-text-card pp-reveal">
+							<h3><?php echo esc_html( $studio_teacher_head ); ?></h3>
+							<p><?php echo esc_html( $studio_teacher_body ); ?></p>
+						</article>
+						<article class="pp-studio-text-card pp-reveal pp-delay-1">
+							<h3><?php echo esc_html( $studio_more_head ); ?></h3>
+							<p><?php echo esc_html( $studio_more_body ); ?></p>
+						</article>
+					</div>
+
+					<div class="pp-studio-callout pp-reveal">
+						<div>
+							<h3><?php echo esc_html( $studio_callout ); ?></h3>
+							<p><?php echo esc_html( $studio_callout_sub ); ?></p>
+						</div>
+						<a class="pp-btn primary" href="#program-spectrum"><?php esc_html_e( 'Discover the Chroma Difference', 'chroma-excellence' ); ?></a>
+					</div>
+
+					<blockquote class="pp-studio-quote pp-reveal">
+						<p><?php echo esc_html( $studio_closing ); ?></p>
+					</blockquote>
+				</div>
 			</div>
 		</section>
 
