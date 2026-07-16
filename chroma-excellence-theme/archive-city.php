@@ -139,7 +139,8 @@ if (!function_exists('chroma_get_city_image_html')) {
             <div class="max-w-7xl mx-auto bg-white p-2 rounded-full shadow-float border border-brand-ink/5 flex flex-col lg:flex-row gap-2 fade-in-up"
                 style="animation-delay: 0.3s;">
                 <div class="relative flex-grow max-w-md">
-                    <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-brand-ink"></i>
+                    <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-brand-ink" aria-hidden="true"></i>
+                    <label for="city-search" class="sr-only"><?php esc_html_e('Search communities', 'chroma-excellence'); ?></label>
                     <input type="text" id="city-search"
                         placeholder="<?php esc_attr_e('Search for your city...', 'chroma-excellence'); ?>"
                         class="w-full pl-12 pr-4 py-3 rounded-full focus:outline-none text-brand-ink bg-white" />
@@ -177,7 +178,11 @@ if (!function_exists('chroma_get_city_image_html')) {
                         $county_slug = sanitize_title($county);
 
                         $city_html = chroma_get_city_image_html($post, $local_fallback);
-                        $city_description = chroma_get_translated_meta($city_id, 'city_intro_text');
+                        $city_description = wp_trim_words(
+                            wp_strip_all_tags((string) chroma_get_translated_meta($city_id, 'city_intro_text')),
+                            28,
+                            '&hellip;'
+                        );
                         ?>
                         <div class="city-card group" data-county="<?php echo esc_attr($county_slug); ?>"
                             data-name="<?php echo esc_attr(strtolower(get_the_title())); ?>">
@@ -208,10 +213,10 @@ if (!function_exists('chroma_get_city_image_html')) {
                                             <?php echo esc_html($county); ?>
                                         </span>
                                     </div>
-                                    <h3
+                                    <h2
                                         class="font-serif text-xl md:text-2xl font-bold text-brand-ink mb-2 group-hover:text-chroma-blue transition-colors">
                                         <?php the_title(); ?>
-                                    </h3>
+                                    </h2>
                                     <p class="text-sm text-brand-ink/60 mb-4 line-clamp-2">
                                         <?php echo esc_html($city_description); ?>
                                     </p>

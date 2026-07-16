@@ -130,12 +130,12 @@ function chroma_about_hero_meta_box_render( $post ) {
 			<td>
 				<input type="text" id="about_hero_badge_text" name="about_hero_badge_text"
 					   value="<?php echo esc_attr( $hero_badge_text ); ?>"
-					   class="large-text" placeholder="e.g., Established 2015" />
+					   class="large-text" placeholder="e.g., Established 2022" />
 				<br>
 				<input type="text" id="_chroma_es_about_hero_badge_text" name="_chroma_es_about_hero_badge_text"
 					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_hero_badge_text', true ) ); ?>"
 					   class="large-text" placeholder="[ES] Badge Text" style="margin-top: 5px;" />
-				<p class="description">Text for the badge at the top (e.g., "Established 2015")</p>
+				<p class="description">Text for the badge at the top (e.g., "Established 2022")</p>
 			</td>
 		</tr>
 		<tr>
@@ -1107,14 +1107,14 @@ function chroma_seed_about_page_defaults( $post_id ) {
 
 	// Default values array
 	$defaults = array(
-		'about_hero_badge_text'            => 'Established 2015',
+		'about_hero_badge_text'            => 'Established 2022',
 		'about_hero_title'                 => 'More than a school. <span class="text-chroma-yellow italic">A second home.</span>',
 		'about_hero_description'           => 'We founded Chroma on a simple belief: Early education should be a perfect blend of rigorous cognitive development and the comforting warmth of family.',
 		'about_hero_image'                 => 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1000&auto=format&fit=crop',
 		'about_mission_quote'              => '"To cultivate a vibrant community of lifelong learners by blending academic rigor with the nurturing warmth of home, ensuring every child feels seen, valued, and capable."',
 		'about_story_title'                => 'From one classroom to a community.',
-		'about_story_paragraph1'           => 'Chroma Early Learning Academy began with a single location in Lawrenceville and a mission to redefine "daycare." We didn\'t just want to watch children; we wanted to ignite them.',
-		'about_story_paragraph2'           => 'Over the last decade, we have grown into a network of 19+ campuses across Metro Atlanta, yet each location retains the intimacy and personal touch of that very first school. We are locally owned, operated by educators, and driven by the success of our families.',
+		'about_story_paragraph1'           => 'Chroma Early Learning Academy began in Canton in 2022 with a belief that early education should pair meaningful learning with the warmth and trust of home.',
+		'about_story_paragraph2'           => 'Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.',
 		'about_story_image'                => 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop',
 		'about_stat1_value'                => '19+',
 		'about_stat1_label'                => 'Locations',

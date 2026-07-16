@@ -153,8 +153,9 @@
 			</nav>
 
 			<!-- Mobile Menu Toggle -->
-			<button data-mobile-nav-toggle class="lg:hidden text-brand-ink p-2"
-				aria-label="<?php esc_attr_e('Toggle menu', 'chroma-excellence'); ?>">
+			<button type="button" data-mobile-nav-toggle class="lg:hidden text-brand-ink p-2"
+				aria-controls="chroma-mobile-navigation" aria-expanded="false"
+				aria-label="<?php esc_attr_e('Open menu', 'chroma-excellence'); ?>">
 				<i class="fa-solid fa-bars text-2xl"></i>
 			</button>
 		</div>
@@ -162,7 +163,8 @@
 	</header>
 
 	<!-- Mobile Menu Overlay -->
-	<div data-mobile-nav
+	<div id="chroma-mobile-navigation" data-mobile-nav role="dialog" aria-modal="true" aria-hidden="true" tabindex="-1" inert
+		aria-label="<?php esc_attr_e('Mobile navigation', 'chroma-excellence'); ?>"
 		class="fixed inset-0 bg-white transform translate-x-full transition-transform duration-300 lg:hidden flex flex-col h-full w-full overflow-hidden"
 		style="z-index: 9999;">
 		<div class="flex items-center justify-between p-4 border-b border-brand-ink/5">
@@ -172,11 +174,12 @@
 				<span
 					class="font-serif text-lg font-bold text-brand-ink"><?php _e('Menu', 'chroma-excellence'); ?></span>
 			</div>
-			<button data-mobile-nav-toggle class="text-3xl text-brand-ink"
+			<button type="button" data-mobile-nav-toggle class="text-3xl text-brand-ink"
+				aria-controls="chroma-mobile-navigation" aria-expanded="false"
 				aria-label="<?php esc_attr_e('Close menu', 'chroma-excellence'); ?>">&times;</button>
 		</div>
 
-		<nav class="flex-1 px-6 py-6 overflow-y-auto">
+		<nav class="flex-1 px-6 py-6 overflow-y-auto" aria-label="<?php esc_attr_e('Mobile navigation links', 'chroma-excellence'); ?>">
 			<?php chroma_mobile_nav(); ?>
 
 			<!-- Mobile Language Switcher (Hidden from public until launch) -->

@@ -98,7 +98,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 					<?php esc_html_e('Local roots. One standard.', 'chroma-excellence'); ?>
 				</h2>
 				<p class="text-brand-ink/75 text-lg leading-relaxed">
-					<?php esc_html_e('Every Chroma campus brings the same accredited care model, family communication rhythm, and Prismpath™ curriculum into the neighborhood it serves.', 'chroma-excellence'); ?>
+					<?php esc_html_e('Every Chroma campus brings a shared commitment to warm care, family communication, and the Prismpath™ curriculum into the neighborhood it serves.', 'chroma-excellence'); ?>
 				</p>
 			</div>
 
@@ -116,8 +116,8 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Our five-pillar curriculum balances physical, emotional, social, academic, and creative growth.', 'chroma-excellence'); ?></p>
 				</div>
 				<div class="rounded-[2rem] bg-white border border-chroma-blue/10 shadow-card p-6">
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('6:30–6:30', 'chroma-excellence'); ?></h3>
-					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Extended weekday hours support working families across Metro Atlanta.', 'chroma-excellence'); ?></p>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('Campus Hours', 'chroma-excellence'); ?></h3>
+					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Operating hours vary by campus. Contact your preferred location for its current schedule.', 'chroma-excellence'); ?></p>
 				</div>
 			</div>
 		</div>

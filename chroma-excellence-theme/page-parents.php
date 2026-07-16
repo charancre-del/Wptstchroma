@@ -11,6 +11,9 @@ $has_usable_link = static function ($url) {
 	$url = trim((string) $url);
 	return $url !== '' && $url !== '#';
 };
+$neutralize_family_app_name = static function ($text) {
+	return preg_replace('/\b(?:Procare(?: Cloud)?|Brightwheel)\b/i', __('the family communication app', 'chroma-excellence'), (string) $text);
+};
 
 // Hero Section
 $hero_badge = chroma_get_translated_meta($page_id, 'parents_hero_badge') ?: __('Parent Dashboard', 'chroma-excellence');
@@ -20,13 +23,18 @@ $hero_description = chroma_get_translated_meta($page_id, 'parents_hero_descripti
 // Parent Essentials Section
 $essentials_title = chroma_get_translated_meta($page_id, 'parents_essentials_title') ?: __('Parent Essentials', 'chroma-excellence');
 $essentials_heading = chroma_get_translated_meta($page_id, 'parents_essentials_heading') ?: __('Your quick links.', 'chroma-excellence');
+$family_app_title = chroma_get_translated_meta($page_id, 'parents_resource_procare_title') ?: __('Family Communication App', 'chroma-excellence');
+if (preg_match('/\b(?:Procare|Brightwheel)\b/i', $family_app_title)) {
+	$family_app_title = __('Family Communication App', 'chroma-excellence');
+}
+$family_app_description = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_resource_procare_desc') ?: __('Daily reports, photos, and attendance updates in your campus communication app.', 'chroma-excellence'));
 
 $resources = array(
 	array(
 		'name' => 'procare',
 		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_procare_icon') ?: 'fa-solid fa-cloud',
-		'title' => chroma_get_translated_meta($page_id, 'parents_resource_procare_title') ?: __('Procare Cloud', 'chroma-excellence'),
-		'description' => chroma_get_translated_meta($page_id, 'parents_resource_procare_desc') ?: __('Daily reports, photos, and attendance tracking.', 'chroma-excellence'),
+		'title' => $family_app_title,
+		'description' => $family_app_description,
 		'url' => chroma_get_translated_meta($page_id, 'parents_resource_procare_url') ?: '#',
 		'colorClass' => 'chroma-blue',
 	),
@@ -135,6 +143,7 @@ $menus = array(
 // Safety Section
 $safety_title = chroma_get_translated_meta($page_id, 'parents_safety_title') ?: __('Safe. Secure. Connected.', 'chroma-excellence');
 $safety_description = chroma_get_translated_meta($page_id, 'parents_safety_description') ?: __('We employ enterprise-grade security measures and transparent communication protocols so you can have total peace of mind while you work.', 'chroma-excellence');
+$family_updates_description = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_safety2_desc') ?: __('Your campus communication app can share daily updates such as meals, naps, classroom moments, and photos, based on the tools used by your campus.', 'chroma-excellence'));
 
 $safety_items = array(
 	array(
@@ -147,7 +156,7 @@ $safety_items = array(
 		'icon' => chroma_get_translated_meta($page_id, 'parents_safety2_icon') ?: 'fa-solid fa-mobile-screen-button',
 		'color' => 'chroma-blue',
 		'title' => chroma_get_translated_meta($page_id, 'parents_safety2_title') ?: __('Real-Time Updates', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'parents_safety2_desc') ?: __('Through the Procare app, you receive real-time notifications for meals, naps, and diaper changes, plus photos of your child engaging in the curriculum throughout the day.', 'chroma-excellence'),
+		'desc' => $family_updates_description,
 	),
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'parents_safety3_icon') ?: 'fa-solid fa-lock',
@@ -160,6 +169,12 @@ $safety_items = array(
 // FAQ Section
 $faq_title = chroma_get_translated_meta($page_id, 'parents_faq_title') ?: __('Quick answers for day-to-day life.', 'chroma-excellence');
 $faq_description = chroma_get_translated_meta($page_id, 'parents_faq_description') ?: __('Quick answers to common day-to-day questions.', 'chroma-excellence');
+$late_pickup_answer = chroma_get_translated_meta($page_id, 'parents_faq3_answer') ?: __('Operating hours and late-pickup policies vary by campus. Please review your enrollment agreement or contact your campus Director for the current schedule and applicable fees.', 'chroma-excellence');
+if (false !== stripos($late_pickup_answer, 'close promptly at 6:00 PM') || false !== stripos($late_pickup_answer, '$1 per minute')) {
+	$late_pickup_answer = __('Operating hours and late-pickup policies vary by campus. Please review your enrollment agreement or contact your campus Director for the current schedule and applicable fees.', 'chroma-excellence');
+}
+
+$weather_answer = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_faq2_answer') ?: __('Weather decisions are made with staff and family safety in mind. Updates are shared through the family communication app and other campus communication channels.', 'chroma-excellence'));
 
 $faqs = array(
 	array(
@@ -168,11 +183,11 @@ $faqs = array(
 	),
 	array(
 		'question' => chroma_get_translated_meta($page_id, 'parents_faq2_question') ?: __('How do you handle inclement weather?', 'chroma-excellence'),
-		'answer' => chroma_get_translated_meta($page_id, 'parents_faq2_answer') ?: __('We generally follow the local county school system for weather closures, but we make independent decisions based on staff safety. Alerts will be sent via Procare and posted on our Facebook page by 6:00 AM.', 'chroma-excellence'),
+		'answer' => $weather_answer,
 	),
 	array(
 		'question' => chroma_get_translated_meta($page_id, 'parents_faq3_question') ?: __('What is the late pickup policy?', 'chroma-excellence'),
-		'answer' => chroma_get_translated_meta($page_id, 'parents_faq3_answer') ?: __('We close promptly at 6:00 PM. A late fee of $1 per minute is charged to your account for pickups after 6:05 PM to compensate our staff who stay late.', 'chroma-excellence'),
+		'answer' => $late_pickup_answer,
 	),
 );
 
@@ -395,11 +410,21 @@ get_header();
 						<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('Campus Moments', 'chroma-excellence'); ?></span>
 						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink"><?php esc_html_e('Moments of Joy.', 'chroma-excellence'); ?></h2>
 					</div>
-					<div class="chroma-moments-carousel" data-moments-carousel>
+					<div class="chroma-moments-carousel" data-moments-carousel role="region" aria-live="polite" aria-label="<?php esc_attr_e('Chroma campus moments', 'chroma-excellence'); ?>">
 						<div class="chroma-moments-track" data-moments-track>
 							<?php foreach ($gallery_images as $index => $image_url): ?>
-								<figure class="chroma-moments-slide" data-moments-slide="<?php echo esc_attr($index); ?>">
-									<img src="<?php echo esc_url($image_url); ?>" alt="<?php esc_attr_e('Chroma campus moment', 'chroma-excellence'); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" onerror="this.closest('[data-moments-slide]')?.remove();" />
+								<?php
+								$attachment_id = attachment_url_to_postid($image_url);
+								$image_alt = $attachment_id ? trim((string) get_post_meta($attachment_id, '_wp_attachment_image_alt', true)) : '';
+								if ('' === $image_alt) {
+									$image_alt = sprintf(__('Children and families enjoying a Chroma campus moment, image %d', 'chroma-excellence'), $index + 1);
+								}
+								?>
+								<figure class="chroma-moments-slide" data-moments-slide="<?php echo esc_attr($index); ?>"
+									role="group" aria-roledescription="<?php esc_attr_e('slide', 'chroma-excellence'); ?>"
+									aria-label="<?php echo esc_attr(sprintf(__('Campus moment %1$d of %2$d', 'chroma-excellence'), $index + 1, count($gallery_images))); ?>"
+									aria-hidden="<?php echo 0 === $index ? 'false' : 'true'; ?>" <?php echo 0 === $index ? '' : 'inert'; ?>>
+									<img src="<?php echo esc_url($image_url); ?>" alt="<?php echo esc_attr($image_alt); ?>" loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" onerror="this.closest('[data-moments-slide]')?.remove();" />
 								</figure>
 							<?php endforeach; ?>
 						</div>
@@ -412,7 +437,7 @@ get_header();
 							</button>
 							<div class="chroma-moments-dots" data-moments-dots>
 								<?php foreach ($gallery_images as $index => $image_url): ?>
-									<button type="button" data-moments-dot="<?php echo esc_attr($index); ?>" aria-label="<?php echo esc_attr(sprintf(__('Go to campus moment %d', 'chroma-excellence'), $index + 1)); ?>"></button>
+									<button type="button" data-moments-dot="<?php echo esc_attr($index); ?>" aria-current="<?php echo 0 === $index ? 'true' : 'false'; ?>" aria-label="<?php echo esc_attr(sprintf(__('Go to campus moment %d', 'chroma-excellence'), $index + 1)); ?>"></button>
 								<?php endforeach; ?>
 							</div>
 						<?php endif; ?>

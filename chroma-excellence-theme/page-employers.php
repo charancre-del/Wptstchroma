@@ -14,12 +14,21 @@ $page_id = get_the_ID();
 $hero_badge = chroma_get_translated_meta($page_id, 'employers_hero_badge') ?: __('Workforce Solutions', 'chroma-excellence');
 $hero_title = chroma_get_translated_meta($page_id, 'employers_hero_title') ?: __('Childcare is critical infrastructure.', 'chroma-excellence');
 $hero_description = chroma_get_translated_meta($page_id, 'employers_hero_description') ?: __('Retain top talent and reduce absenteeism by offering premium childcare benefits. Chroma partners with Metro Atlanta\'s leading employers to support working parents.', 'chroma-excellence');
+$location_counts = wp_count_posts('location');
+$published_location_count = isset($location_counts->publish) ? (int) $location_counts->publish : 0;
+$priority_access_description = chroma_get_translated_meta($page_id, 'employers_solution1_desc');
+if (!$priority_access_description || false !== stripos($priority_access_description, '19+ locations')) {
+	$priority_access_description = sprintf(
+		__('Explore partnership options across our %d Metro Atlanta campuses. Availability and reserved access are confirmed campus by campus.', 'chroma-excellence'),
+		$published_location_count
+	);
+}
 
 // Solutions Section (3 cards)
 $solutions = array(
 	array(
 		'title' => chroma_get_translated_meta($page_id, 'employers_solution1_title') ?: __('Priority Access', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'employers_solution1_desc') ?: __('Skip the waitlist. Reserve dedicated spots at our 19+ locations exclusively for your employees\' children.', 'chroma-excellence'),
+		'desc' => $priority_access_description,
 	),
 	array(
 		'title' => chroma_get_translated_meta($page_id, 'employers_solution2_title') ?: __('Tuition Subsidies', 'chroma-excellence'),

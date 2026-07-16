@@ -166,9 +166,12 @@ while (have_posts()):
         'early_start_hero_description',
         $is_early_learning_route
             ? sprintf(__('%s brings classroom care, developmental support, and family partnership together so children can thrive in the rhythm of their day.', 'chroma-excellence'), $early_learning_brand_label)
-            : __('Chroma Early Start is our dedicated therapeutic division, providing Speech, Occupational, and ABA therapies. We seamlessly bridge the gap between clinical intervention and early childhood education.', 'chroma-excellence'),
+            : __('Chroma Early Start connects eligible children with Speech, Occupational, and ABA therapy services at participating locations. Service availability and the appropriate care setting are determined with each family and clinical team.', 'chroma-excellence'),
         array(sprintf(__('%s brings classroom care, developmental support, and family partnership together so children can thrive in the rhythm of their day.', 'chroma-excellence'), $early_learning_brand_label))
     );
+    if (!$is_early_learning_route && false !== stripos($hero_description, 'providing Speech, Occupational, and ABA')) {
+        $hero_description = __('Chroma Early Start connects eligible children with Speech, Occupational, and ABA therapy services at participating locations. Service availability and the appropriate care setting are determined with each family and clinical team.', 'chroma-excellence');
+    }
     $primary_cta_text = $route_text('early_start_primary_cta_text', $is_early_learning_route ? sprintf(__('Explore %s', 'chroma-excellence'), $early_learning_nav_label) : __('Explore Early Start', 'chroma-excellence'), array(sprintf(__('Explore %s', 'chroma-excellence'), $early_learning_nav_label)));
     $primary_cta_url = $normalize_early_learning_url(chroma_get_translated_meta($page_id, 'early_start_primary_cta_url', true), $is_early_learning_route ? '/programs/' : 'https://chromaearlystart.com/');
     $secondary_cta_text = $route_text('early_start_secondary_cta_text', $is_early_learning_route ? __('Schedule a Tour', 'chroma-excellence') : __('Inquire About Early Start', 'chroma-excellence'), array(__('Schedule a Tour', 'chroma-excellence')));
@@ -184,14 +187,20 @@ while (have_posts()):
         'early_start_synergy_intro_one',
         $is_early_learning_route
             ? sprintf(__('Families should not have to piece together care, learning, and developmental guidance across disconnected settings. %s brings that support into one warm school community.', 'chroma-excellence'), $early_learning_brand_label)
-            : __('Traditionally, parents have to juggle preschool drop-offs with driving across town to therapy clinics. Chroma Early Start solves this.', 'chroma-excellence')
+            : __('When services are available at a participating location, Chroma Early Start can help families coordinate early learning and therapy support with fewer disconnected transitions.', 'chroma-excellence')
     );
+    if (!$is_early_learning_route && false !== stripos($synergy_intro_one, 'Chroma Early Start solves this')) {
+        $synergy_intro_one = __('When services are available at a participating location, Chroma Early Start can help families coordinate early learning and therapy support with fewer disconnected transitions.', 'chroma-excellence');
+    }
     $synergy_intro_two = $route_text(
         'early_start_synergy_intro_two',
         $is_early_learning_route
             ? __('By aligning classroom teachers, family communication, and child development support, we create a unified care plan for each child. Strategies are reinforced in daily routines, leading to steadier confidence and growth.', 'chroma-excellence')
-            : __('By integrating our Early Start therapists directly with our Early Learning Academy teachers, we create a unified, collaborative care plan for your child. Strategies used in therapy are reinforced in the classroom, leading to faster, more sustainable progress.', 'chroma-excellence')
+            : __('With family consent and when appropriate for the child, Early Start clinicians and Academy teachers can coordinate strategies across therapy and classroom routines. Services, eligibility, and delivery models vary by location.', 'chroma-excellence')
     );
+    if (!$is_early_learning_route && false !== stripos($synergy_intro_two, 'integrating our Early Start therapists directly')) {
+        $synergy_intro_two = __('With family consent and when appropriate for the child, Early Start clinicians and Academy teachers can coordinate strategies across therapy and classroom routines. Services, eligibility, and delivery models vary by location.', 'chroma-excellence');
+    }
     $synergy_bullets = array_map(
         $normalize_early_learning_text,
         [

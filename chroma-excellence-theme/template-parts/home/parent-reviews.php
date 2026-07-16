@@ -32,7 +32,7 @@ if (empty($reviews)) {
                         </aside>
 
                         <div class="relative min-w-0">
-                                <div class="chroma-review-viewport rounded-[3rem]">
+                                <div class="chroma-review-viewport rounded-[3rem]" aria-live="off" aria-atomic="false">
                                         <div class="flex transition-transform duration-500 ease-in-out" data-reviews-track>
                                                 <?php foreach ($reviews as $index => $review): ?>
                                                         <?php
@@ -43,7 +43,10 @@ if (empty($reviews)) {
                                                         }
                                                         $initials = $initials ?: 'CP';
                                                         ?>
-                                                        <article class="w-full flex-shrink-0 chroma-review-card" data-review-slide="<?php echo esc_attr($index); ?>">
+                                                        <article class="w-full flex-shrink-0 chroma-review-card" data-review-slide="<?php echo esc_attr($index); ?>"
+                                                                role="group" aria-roledescription="<?php esc_attr_e('slide', 'chroma-excellence'); ?>"
+                                                                aria-label="<?php echo esc_attr(sprintf(__('Parent review %1$d of %2$d', 'chroma-excellence'), $index + 1, count($reviews))); ?>"
+                                                                aria-hidden="<?php echo 0 === $index ? 'false' : 'true'; ?>" <?php echo 0 === $index ? '' : 'inert'; ?>>
                                                                 <blockquote>
                                                                         <?php echo esc_html((string) $review['review']); ?>
                                                                 </blockquote>
@@ -68,12 +71,20 @@ if (empty($reviews)) {
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                                                         </svg>
                                                 </button>
-                                                <div class="flex justify-center gap-2" data-reviews-dots>
-                                                        <?php foreach ($reviews as $index => $review): ?>
-                                                                <button class="w-3 h-3 rounded-full transition-all duration-300 <?php echo 0 === $index ? 'bg-chroma-red w-8' : 'bg-chroma-blue/30 hover:bg-chroma-blue/50'; ?>"
-                                                                        data-review-dot="<?php echo esc_attr($index); ?>"
-                                                                        aria-label="<?php echo esc_attr(sprintf($reviews_content['dot_aria_label_format'], $index + 1)); ?>"></button>
-                                                        <?php endforeach; ?>
+                                                <div class="flex items-center justify-center gap-4">
+                                                        <div class="flex justify-center gap-2" data-reviews-dots>
+                                                                <?php foreach ($reviews as $index => $review): ?>
+                                                                        <button class="w-3 h-3 rounded-full transition-all duration-300 <?php echo 0 === $index ? 'bg-chroma-red w-8' : 'bg-chroma-blue/30 hover:bg-chroma-blue/50'; ?>"
+                                                                                data-review-dot="<?php echo esc_attr($index); ?>"
+                                                                                aria-current="<?php echo 0 === $index ? 'true' : 'false'; ?>"
+                                                                                aria-label="<?php echo esc_attr(sprintf($reviews_content['dot_aria_label_format'], $index + 1)); ?>"></button>
+                                                                <?php endforeach; ?>
+                                                        </div>
+                                                        <button type="button" class="w-10 h-10 inline-flex items-center justify-center bg-white rounded-full shadow-md text-brand-ink hover:bg-chroma-blue hover:text-white transition"
+                                                                data-review-pause aria-pressed="false">
+                                                                <i class="fa-solid fa-pause" aria-hidden="true" data-review-pause-icon></i>
+                                                                <span class="sr-only" data-review-pause-label><?php esc_html_e('Pause parent reviews', 'chroma-excellence'); ?></span>
+                                                        </button>
                                                 </div>
                                                 <button class="w-12 h-12 inline-flex items-center justify-center bg-white rounded-full shadow-lg text-brand-ink hover:bg-chroma-blue hover:text-white transition"
                                                         data-review-next

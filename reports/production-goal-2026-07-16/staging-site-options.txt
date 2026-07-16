@@ -1,0 +1,5 @@
+﻿home=https://x3yyntt5tp-staging.wpdns.site
+siteurl=https://x3yyntt5tp-staging.wpdns.site
+template=chroma-excellence-theme
+stylesheet=chroma-excellence-theme
+permalink=/%year%/%monthnum%/%day%/%postname%/

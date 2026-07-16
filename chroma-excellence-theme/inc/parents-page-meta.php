@@ -939,7 +939,7 @@ function chroma_seed_parents_page_defaults($post_id)
         'parents_faq2_answer' => 'Yes! We offer 2-day, 3-day, and 5-day programs to accommodate different family schedules.',
 
         'parents_faq3_question' => 'What is the late pickup policy?',
-        'parents_faq3_answer' => 'We close promptly at 6:00 PM. A late fee of $1 per minute is charged to your account for pickups after 6:05 PM to compensate our staff who stay late.',
+        'parents_faq3_answer' => 'Operating hours and late-pickup policies vary by campus. Please review your enrollment agreement or contact your campus Director for the current schedule and applicable fees.',
 
         // Referral Banner
         'parents_referral_title' => 'Love the Chroma family?',

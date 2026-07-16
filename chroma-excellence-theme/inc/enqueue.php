@@ -537,25 +537,6 @@ function chroma_preload_main_css()
 }
 add_action('wp_head', 'chroma_preload_main_css', 1);
 
-/**
- * Warm the above-the-fold location map without loading map assets globally.
- */
-function chroma_preload_location_map_assets()
-{
-        if (!(is_post_type_archive('location') || is_page('locations'))) {
-                return;
-        }
-
-        $leaflet_base = trailingslashit(CHROMA_THEME_URI) . 'assets/vendor/leaflet-1.9.4/';
-        echo '<link rel="preload" href="' . esc_url($leaflet_base . 'leaflet.min.css') . '" as="style">' . "\n";
-        echo '<link rel="preload" href="' . esc_url($leaflet_base . 'leaflet.min.js') . '" as="script">' . "\n";
-
-        foreach (array('a', 'b', 'c') as $tile_subdomain) {
-                echo '<link rel="preconnect" href="https://' . esc_attr($tile_subdomain) . '.tile.openstreetmap.org" crossorigin>' . "\n";
-        }
-}
-add_action('wp_head', 'chroma_preload_location_map_assets', 2);
-
 add_action('wp_enqueue_scripts', 'chroma_dequeue_dashicons');
 
 

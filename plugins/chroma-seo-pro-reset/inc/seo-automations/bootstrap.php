@@ -56,7 +56,7 @@ add_action('after_setup_theme', function () {
         'chroma_seo_show_related_locations' => true,
         'chroma_seo_link_programs_locations' => true,
         'chroma_seo_enable_keyword_linking' => true,
-        'chroma_seo_show_footer_cities' => true,
+        'chroma_seo_show_footer_cities' => false,
         'chroma_seo_enable_dynamic_titles' => true,
         'chroma_seo_enable_canonical' => true,
         'chroma_seo_redirect_canonical' => true,

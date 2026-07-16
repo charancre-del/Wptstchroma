@@ -382,6 +382,91 @@ function chroma_get_context_meta_description() {
 }
 
 /**
+ * Keep the first matching SEO tag and remove later duplicates.
+ *
+ * @param string $html    Buffered wp_head output.
+ * @param string $pattern Tag-matching regular expression.
+ * @return string
+ */
+function chroma_keep_first_seo_tag($html, $pattern) {
+    $seen = false;
+
+    $result = preg_replace_callback($pattern, static function ($matches) use (&$seen) {
+        if ($seen) {
+            return '';
+        }
+
+        $seen = true;
+        return $matches[0];
+    }, (string) $html);
+
+    return is_string($result) ? $result : (string) $html;
+}
+
+/**
+ * Reconcile OTTO/MetaSync output without competing with tags it supplied.
+ *
+ * @param string $head Buffered wp_head output.
+ * @return string
+ */
+function chroma_reconcile_external_seo_head($head) {
+    $canonical_pattern = '~<link\b(?=[^>]*\brel\s*=\s*(?:"canonical"|\'canonical\'))[^>]*>\s*~i';
+    $description_pattern = '~<meta\b(?=[^>]*\bname\s*=\s*(?:"description"|\'description\'))[^>]*>\s*~i';
+
+    $head = preg_replace($canonical_pattern, '', (string) $head);
+    if (!is_string($head)) {
+        $head = '';
+    }
+    $head = chroma_keep_first_seo_tag($head, $description_pattern);
+
+    $canonical = chroma_get_context_canonical_url();
+    if ($canonical !== '') {
+        $head .= '<link rel="canonical" href="' . esc_url($canonical) . '">' . "\n";
+    }
+
+    if (!preg_match($description_pattern, $head)) {
+        $description = chroma_get_context_meta_description();
+        if ($description !== '') {
+            $head .= '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
+        }
+    }
+
+    return $head;
+}
+
+/**
+ * Buffer wp_head only when an external SEO runtime owns primary tag output.
+ */
+function chroma_begin_external_seo_head_buffer() {
+    if (!function_exists('chroma_should_reconcile_external_seo_head') || !chroma_should_reconcile_external_seo_head()) {
+        return;
+    }
+
+    ob_start();
+    $GLOBALS['chroma_external_seo_head_buffer_level'] = ob_get_level();
+}
+add_action('wp_head', 'chroma_begin_external_seo_head_buffer', PHP_INT_MIN);
+
+/**
+ * Flush reconciled external SEO head output.
+ */
+function chroma_end_external_seo_head_buffer() {
+    $buffer_level = isset($GLOBALS['chroma_external_seo_head_buffer_level'])
+        ? (int) $GLOBALS['chroma_external_seo_head_buffer_level']
+        : 0;
+
+    if ($buffer_level === 0 || ob_get_level() !== $buffer_level) {
+        return;
+    }
+
+    $head = ob_get_clean();
+    unset($GLOBALS['chroma_external_seo_head_buffer_level']);
+
+    echo chroma_reconcile_external_seo_head((string) $head);
+}
+add_action('wp_head', 'chroma_end_external_seo_head_buffer', PHP_INT_MAX);
+
+/**
  * Shared meta description output.
  */
 function chroma_shared_meta_description() {

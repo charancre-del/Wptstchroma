@@ -773,7 +773,7 @@ add_filter('wp_sitemaps_enabled', '__return_false');
  * - Published posts, pages, locations, programs, cities
  * - Combo pages (program-in-city-state)
  * - Near-me pages
- * - Spanish /es/ variants of everything above
+ * - Spanish /es/ variants only when translated content is available
  */
 function chroma_serve_custom_sitemap()
 {
@@ -851,7 +851,7 @@ function chroma_get_standard_sitemap_urls()
     ]);
 
     $front_page_id = (int) get_option('page_on_front');
-    if ($front_page_id > 0) {
+    if ($front_page_id > 0 && chroma_post_has_verified_spanish_variant($front_page_id)) {
         $front_lastmod = get_the_modified_date('c', $front_page_id) ?: gmdate('c');
         $urls[] = [
             'loc' => $base . '/es/',
@@ -869,9 +869,9 @@ function chroma_get_standard_sitemap_urls()
             'lastmod' => get_the_modified_date('c', $post->ID),
         ];
 
-        // Traditional Spanish prefix logic (simpler than reaching into Spanish provider)
+        // Publish a Spanish URL only when its post has translated content.
         $rel_path = trim(str_replace($base, '', $permalink), '/');
-        if ($rel_path && !str_starts_with($rel_path, 'es/')) {
+        if ($rel_path && !str_starts_with($rel_path, 'es/') && chroma_post_has_verified_spanish_variant($post->ID)) {
             $urls[] = [
                 'loc' => $base . '/es/' . $rel_path . '/',
                 'lastmod' => get_the_modified_date('c', $post->ID),
@@ -1143,5 +1143,46 @@ function chroma_render_contact_form()
         return chroma_contact_form_shortcode();
     }
 
-    return do_shortcode('[chroma_tour_form]');
+    $form_id = get_option('chroma_contact_form_id', 'ibinKhrBmF0n4S5tFcz6');
+    if (!$form_id || '848tl2LjoZVsUIhhNOxd' === $form_id) {
+        $form_id = 'ibinKhrBmF0n4S5tFcz6';
+    }
+    $form_url = 'https://api.leadconnectorhq.com/widget/form/' . rawurlencode($form_id);
+
+    return sprintf(
+        '<div class="chroma-contact-form-wrapper"><iframe src="%1$s" loading="lazy" title="%2$s" style="width:100%%;height:779px;border:0;border-radius:1.5rem" allow="clipboard-write"></iframe></div>',
+        esc_url($form_url),
+        esc_attr__('Contact Chroma Early Learning', 'chroma-excellence')
+    );
+}
+
+/**
+ * Determine whether a post has a verified Spanish variant suitable for indexing.
+ */
+function chroma_post_has_verified_spanish_variant($post_id)
+{
+    $post_id = absint($post_id);
+    if (!$post_id) {
+        return false;
+    }
+
+    $alternate_url = trim((string) get_post_meta($post_id, 'alternate_url_es', true));
+    if ($alternate_url !== '') {
+        return true;
+    }
+
+    foreach (array('_chroma_es_title', '_chroma_es_content', '_chroma_es_excerpt', '_chroma_es_meta_description', '_chroma_es_seo_title') as $meta_key) {
+        if (trim((string) get_post_meta($post_id, $meta_key, true)) !== '') {
+            return true;
+        }
+    }
+
+    global $wpdb;
+    $translated_rows = (int) $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key LIKE %s AND meta_value <> ''",
+        $post_id,
+        $wpdb->esc_like('_chroma_es_') . '%'
+    ));
+
+    return $translated_rows > 0;
 }

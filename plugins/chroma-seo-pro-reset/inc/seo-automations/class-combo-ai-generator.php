@@ -52,9 +52,7 @@ class Chroma_Combo_AI_Generator
             wp_send_json_error($result->get_error_message());
         }
         
-        // Get auto-publish setting
-        $auto_publish = get_option('chroma_combo_auto_publish', false);
-        $result['status'] = $auto_publish ? 'published' : 'draft';
+        $result['status'] = 'draft';
         $result['ai_generated'] = true;
         $result['last_ai_update'] = current_time('timestamp');
         
@@ -110,8 +108,7 @@ class Chroma_Combo_AI_Generator
                 ];
                 $error_count++;
             } else {
-                $auto_publish = get_option('chroma_combo_auto_publish', false);
-                $result['status'] = $auto_publish ? 'published' : 'draft';
+                $result['status'] = 'draft';
                 $result['ai_generated'] = true;
                 $result['last_ai_update'] = current_time('timestamp');
                 
@@ -197,7 +194,8 @@ class Chroma_Combo_AI_Generator
             'seo_title_es' => sanitize_text_field($_POST['seo_title_es'] ?? ''),
             'meta_description_es' => sanitize_textarea_field($_POST['meta_description_es'] ?? ''),
             'robots' => sanitize_text_field($_POST['robots'] ?? ''),
-            'status' => sanitize_text_field($_POST['status'] ?? 'draft')
+            'status' => sanitize_text_field($_POST['status'] ?? 'draft'),
+            'ai_generated' => false,
         ];
         if (class_exists('Chroma_Virtual_Page_SEO_Data')) {
             $data = array_merge($data, Chroma_Virtual_Page_SEO_Data::sanitize_updates($data));
@@ -245,7 +243,7 @@ class Chroma_Combo_AI_Generator
             'messages' => [
                 [
                     'role' => 'system',
-                    'content' => 'You are a local SEO expert helping generate location-specific content for a childcare/preschool website. Return valid JSON only.'
+                    'content' => 'Generate factual local content only from verified supplied data. Never invent locations, landmarks, employers, credentials, safety practices, availability, rankings, or quality claims. Use empty values when facts are uncertain. Return valid JSON only.'
                 ],
                 [
                     'role' => 'user',
@@ -470,20 +468,22 @@ PROMPT;
         return <<<PROMPT
 Generate local SEO content for a childcare landing page: "$program_name in $city_name, $state"
 
-Research and provide:
-1. neighborhoods: Array of 3-5 real neighborhood names in or near $city_name, $state. IMPORTANT: If you do not know real specific neighborhood names with high certainty, use generic but accurate descriptors (e.g., "Downtown District", "Historic Center", "Residential Areas") to avoid hallucinating fake names.
-2. major_road: The main highway or road near $city_name (e.g., "GA-400", "I-85")
-3. local_employers: 2-3 major employers or hospitals in $city_name, comma-separated
-4. county: The county that $city_name is in
-5. custom_intro: A compelling 2-sentence intro for parents looking for $program_name in $city_name. Mention a specific local landmark or feature.
+Provide only facts you can verify with high confidence. Use an empty string or empty array for every uncertain field. Do not create generic neighborhood names, imply proximity, or make claims about quality, rankings, safety, staffing, credentials, meals, transportation, enrollment, or program availability.
+
+Fields:
+1. neighborhoods: Verified neighborhood names in or near $city_name, $state
+2. major_road: A verified major road serving $city_name
+3. local_employers: Verified major employers in $city_name, comma-separated
+4. county: The verified county for $city_name
+5. custom_intro: Neutral two-sentence copy using only the verified facts above
 
 Return as JSON:
 {
-    "neighborhoods": ["Downtown $city_name", "North $city_name", ...],
-    "major_road": "GA-400",
-    "local_employers": "Northside Hospital, Delta Air Lines",
-    "county": "Forsyth",
-    "custom_intro": "Looking for quality $program_name near..."
+    "neighborhoods": [],
+    "major_road": "",
+    "local_employers": "",
+    "county": "",
+    "custom_intro": "$program_name information for families in $city_name, $state. Review program details and contact Chroma to confirm current offerings."
 }
 PROMPT;
     }

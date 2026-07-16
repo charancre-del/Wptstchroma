@@ -463,11 +463,13 @@ function chroma_location_schema_pro()
     $rating_value = get_post_meta($location_id, 'seo_llm_rating_value', true) ?: get_post_meta($location_id, 'location_google_rating', true);
     $rating_count = get_post_meta($location_id, 'seo_llm_rating_count', true);
 
-    if ($rating_value) {
+    $rating_value = (float) $rating_value;
+    $rating_count = (int) $rating_count;
+    if ($rating_value >= 1 && $rating_value <= 5 && $rating_count > 0) {
         $schema['aggregateRating'] = array(
             '@type' => 'AggregateRating',
             'ratingValue' => $rating_value,
-            'reviewCount' => $rating_count ?: '1',
+            'reviewCount' => $rating_count,
             'bestRating' => '5',
             'worstRating' => '1'
         );

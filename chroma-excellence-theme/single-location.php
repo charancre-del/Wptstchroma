@@ -98,6 +98,25 @@ while (have_posts()):
 	}
 
 	$programs_query = new WP_Query($programs_args);
+	if ($use_tax_query && !$programs_query->have_posts()) {
+		unset($programs_args['tax_query']);
+		$programs_args['meta_query'] = array(
+			array(
+				'key' => 'program_locations',
+				'value' => '(^|;)i:' . intval($location_id) . ';',
+				'compare' => 'REGEXP',
+			),
+		);
+		$programs_query = new WP_Query($programs_args);
+	}
+	$has_ga_pre_k = false;
+	foreach ($programs_query->posts as $location_program) {
+		$program_slug = sanitize_title($location_program->post_name ?: $location_program->post_title);
+		if (false !== strpos($program_slug, 'ga-pre-k') || false !== strpos($program_slug, 'georgia-pre-k')) {
+			$has_ga_pre_k = true;
+			break;
+		}
+	}
 
 	// Get Region Colors
 	$location_regions = wp_get_post_terms($location_id, 'location_region');
@@ -196,6 +215,7 @@ while (have_posts()):
 						class="absolute inset-0 bg-<?php echo esc_attr($region_colors['text']); ?>/10 rounded-[3rem] rotate-6 transform translate-x-4 translate-y-4">
 					</div>
 					<div class="relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white aspect-square md:aspect-[4/3]"
+						role="region" aria-live="off" aria-label="<?php echo esc_attr(sprintf(__('%s campus gallery', 'chroma-excellence'), $location_name)); ?>"
 						<?php if (count($hero_gallery) > 1)
 							echo 'data-location-carousel'; ?>>
 						<?php if (!empty($hero_gallery)): ?>
@@ -206,20 +226,26 @@ while (have_posts()):
 									<?php foreach ($hero_gallery as $index => $image_url):
 										// Try to get attachment ID to serve responsive images
 										$attachment_id = attachment_url_to_postid($image_url);
+										$attachment_alt = $attachment_id ? trim((string) get_post_meta($attachment_id, '_wp_attachment_image_alt', true)) : '';
+										$slide_alt = $attachment_alt ?: sprintf(__('%1$s campus, image %2$d', 'chroma-excellence'), $location_name, $index + 1);
 										?>
 										<div class="w-full h-full flex-shrink-0"
-											data-location-slide="<?php echo esc_attr($index); ?>">
+											data-location-slide="<?php echo esc_attr($index); ?>"
+											role="group" aria-roledescription="<?php esc_attr_e('slide', 'chroma-excellence'); ?>"
+											aria-label="<?php echo esc_attr(sprintf(__('Campus image %1$d of %2$d', 'chroma-excellence'), $index + 1, count($hero_gallery))); ?>"
+											aria-hidden="<?php echo 0 === $index ? 'false' : 'true'; ?>" <?php echo 0 === $index ? '' : 'inert'; ?>>
 											<?php if ($attachment_id):
 												echo wp_get_attachment_image($attachment_id, 'large', false, array(
 													'class' => 'w-full h-full object-cover',
 													'fetchpriority' => $index === 0 ? 'high' : 'auto',
 													'loading' => $index === 0 ? 'eager' : 'lazy',
 													'decoding' => 'async',
-													'sizes' => '(max-width: 768px) 100vw, 50vw'
+													'sizes' => '(max-width: 768px) 100vw, 50vw',
+													'alt' => $slide_alt,
 												));
 											else: ?>
 												<img src="<?php echo esc_url($image_url); ?>"
-													alt="<?php echo esc_attr($location_name); ?> - Image <?php echo esc_attr($index + 1); ?>"
+													alt="<?php echo esc_attr($slide_alt); ?>"
 													class="w-full h-full object-cover" decoding="async"
 													sizes="(max-width: 768px) 100vw, 50vw" <?php if ($index === 0)
 														echo 'fetchpriority="high"';
@@ -255,9 +281,16 @@ while (have_posts()):
 											<button
 												class="w-2 h-2 rounded-full transition-all <?php echo 0 === $index ? 'bg-white w-6' : 'bg-white/50'; ?>"
 												data-location-dot="<?php echo esc_attr($index); ?>"
+												aria-current="<?php echo 0 === $index ? 'true' : 'false'; ?>"
 												aria-label="Go to image <?php echo esc_attr($index + 1); ?>"></button>
 										<?php endforeach; ?>
 									</div>
+									<button type="button"
+										class="absolute bottom-4 right-4 w-10 h-10 inline-flex items-center justify-center bg-white/90 rounded-full shadow-lg text-brand-ink hover:bg-white transition"
+										data-location-pause aria-pressed="false">
+										<i class="fa-solid fa-pause" aria-hidden="true" data-location-pause-icon></i>
+										<span class="sr-only" data-location-pause-label><?php esc_html_e('Pause campus images', 'chroma-excellence'); ?></span>
+									</button>
 								<?php endif; ?>
 							</div>
 						<?php elseif (has_post_thumbnail()): ?>
@@ -316,7 +349,7 @@ while (have_posts()):
 					</p>
 				</div>
 
-				<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+				<div class="grid md:grid-cols-2 <?php echo $has_ga_pre_k ? 'lg:grid-cols-4' : 'lg:grid-cols-3'; ?> gap-6">
 					<!-- Feature 1 -->
 					<div
 						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-blue/30 transition-all hover:-translate-y-1">
@@ -362,20 +395,22 @@ while (have_posts()):
 						</p>
 					</div>
 
-					<!-- Feature 4 -->
-					<div
-						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-green/30 transition-all hover:-translate-y-1">
+					<?php if ($has_ga_pre_k): ?>
+						<!-- Feature 4 -->
 						<div
-							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-green text-xl mb-6 group-hover:scale-110 transition-transform">
-							<i class="fa-solid fa-graduation-cap"></i>
+							class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-green/30 transition-all hover:-translate-y-1">
+							<div
+								class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-green text-xl mb-6 group-hover:scale-110 transition-transform">
+								<i class="fa-solid fa-graduation-cap"></i>
+							</div>
+							<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
+								<?php _e('Georgia Pre-K', 'chroma-excellence'); ?>
+							</h3>
+							<p class="text-sm text-brand-ink/80 leading-relaxed">
+								<?php _e('This campus offers Georgia Pre-K. Contact the campus team for current eligibility, enrollment, and availability details.', 'chroma-excellence'); ?>
+							</p>
 						</div>
-						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('GA Lottery Pre-K', 'chroma-excellence'); ?>
-						</h3>
-						<p class="text-sm text-brand-ink/80 leading-relaxed">
-							<?php _e('We are a proud partner of the Georgia Pre-K Program, offering tuition-free education for 4-year-olds.', 'chroma-excellence'); ?>
-						</p>
-					</div>
+					<?php endif; ?>
 				</div>
 			</div>
 		</section>

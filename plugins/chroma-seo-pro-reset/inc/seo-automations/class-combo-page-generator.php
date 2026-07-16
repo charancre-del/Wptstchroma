@@ -138,7 +138,7 @@ class Chroma_Combo_Page_Generator
         $age_range = get_post_meta($program->ID, 'program_age_range', true);
 
         // Add Schema
-        $this->output_schema($program, $city_name, (string) $city_context['state'], $location, $loc_address, $loc_zip, $age_range);
+        $this->output_schema($program, $city_name, (string) $city_context['state'], $location, $loc_address, $loc_zip, $age_range, (string) ($combo_profile['canonical'] ?? ''));
 
         // Add Body Class
         add_filter('body_class', function ($classes) {
@@ -151,10 +151,13 @@ class Chroma_Combo_Page_Generator
 
         // Dynamic SEO Title (30-60 chars target)
         $program_title = get_the_title($program);
-        $seo_title = (string) ($combo_profile['title'] ?? "{$program_title} in {$city_name}, {$state} | Chroma");
+        $seo_title = "{$program_title} Information for {$city_name}, {$state} Families | Chroma";
+        if (function_exists('chroma_seo_trim_title')) {
+            $seo_title = chroma_seo_trim_title($seo_title);
+        }
 
         // Dynamic Meta Description (60-160 chars target)
-        $meta_desc = (string) ($combo_profile['meta_description'] ?? $this->generate_combo_meta_description($program, $city_name, (string) $city_context['state'], $age_range));
+        $meta_desc = $this->generate_combo_meta_description($program, $city_name, (string) $city_context['state'], $age_range);
 
         if (class_exists('Chroma_Virtual_Page_SEO_Data')) {
             $virtual_seo = Chroma_Virtual_Page_SEO_Data::resolve('combo', [
@@ -249,16 +252,7 @@ class Chroma_Combo_Page_Generator
             }
         }
 
-        // Return first location in state
-        foreach ($locations as $loc) {
-            $loc_state = get_post_meta($loc->ID, 'location_state', true);
-            if (strtoupper($loc_state) === $state) {
-                return $loc;
-            }
-        }
-
-        // Return any location
-        return $locations[0] ?? null;
+        return null;
     }
 
     /**
@@ -266,58 +260,12 @@ class Chroma_Combo_Page_Generator
      */
     public function generate_combo_meta_description($program, $city_name, $state, $age_range)
     {
-        if (function_exists('chroma_seo_build_combo_profile')) {
-            $city_context = function_exists('chroma_seo_resolve_virtual_city_context')
-                ? chroma_seo_resolve_virtual_city_context(sanitize_title($city_name), $state)
-                : null;
-            if (is_array($city_context)) {
-                $profile = chroma_seo_build_combo_profile($program, $city_context, function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en');
-                if (!empty($profile['meta_description'])) {
-                    return (string) $profile['meta_description'];
-                }
-            }
-        }
-
         $program_title = get_the_title($program);
-        $program_slug = $program->post_name;
-
-        // Define templates based on program type
-        $templates = [
-            'infant-care' => "Trusted Infant Care in {$city_name}, {$state} for babies {$age_range}. Safe sleep, sensory play & nurturing caregivers. Tour today!",
-            'toddler-care' => "Quality Toddler Care in {$city_name}, {$state} for ages {$age_range}. Language-rich learning, guided play & caring teachers. Enroll now!",
-            'preschool' => "Explore Preschool in {$city_name}, {$state} for ages {$age_range}. Hands-on learning, small classes & dedicated teachers. Schedule a tour!",
-            'pre-k-prep' => "Pre-K Prep in {$city_name}, {$state} for ages {$age_range}. Kindergarten readiness, structured learning & social growth. Enroll today!",
-            'ga-pre-k' => "Free GA Pre-K in {$city_name} for 4-year-olds. State-funded, kindergarten-ready curriculum at Chroma. Limited spots—enroll now!",
-            'after-school' => "After School program in {$city_name}, {$state} for ages {$age_range}. Homework help, enrichment activities & safe transportation. Join us!",
-            'camp-summer-winter-fall' => "Summer & Holiday Camps in {$city_name}, {$state}. Fun activities, field trips & friendships for kids {$age_range}. Register today!",
-            'parents-day-out' => "Parents Day Out in {$city_name}, {$state} for ages {$age_range}. Flexible care, engaging activities & peace of mind. Book your spot!",
-        ];
-
-        // Get template or generate a generic one
-        if (isset($templates[$program_slug])) {
-            $description = $templates[$program_slug];
-        } else {
-            // Generic fallback
-            $description = "{$program_title} in {$city_name}, {$state}";
-            if ($age_range) {
-                $description .= " for ages {$age_range}";
-            }
-            $description .= ". Quality early learning with caring teachers at Chroma Early Learning. Schedule a tour today!";
-        }
-
-        // Handle empty age range
-        $description = str_replace(' for ages .', '.', $description);
-        $description = str_replace(' for babies .', '.', $description);
-        $description = str_replace(' for kids .', '.', $description);
+        $description = "Explore {$program_title} information for families in {$city_name}, {$state}. Review program details and contact Chroma to confirm current offerings.";
 
         // Ensure within 160 chars
         if (strlen($description) > 160) {
             $description = substr($description, 0, 157) . '...';
-        }
-
-        // Ensure minimum 60 chars
-        if (strlen($description) < 60) {
-            $description .= " Trusted childcare serving families in Metro Atlanta.";
         }
 
         return $description;
@@ -369,7 +317,7 @@ class Chroma_Combo_Page_Generator
         $neighborhoods = [];
         $major_road = '';
         $local_employers = '';
-        $county = 'Forsyth'; // Default
+        $county = '';
 
         if ($city_page) {
             $raw_neighborhoods = get_post_meta($city_page->ID, 'city_neighborhoods', true);
@@ -380,17 +328,18 @@ class Chroma_Combo_Page_Generator
             }
             $major_road = get_post_meta($city_page->ID, 'city_major_road', true);
             $local_employers = get_post_meta($city_page->ID, 'city_employers', true);
-            $county = get_post_meta($city_page->ID, 'city_county', true) ?: 'Forsyth';
+            $county = get_post_meta($city_page->ID, 'city_county', true);
         } elseif ($location) {
             // Fallback: try to get county from location
-            $county = get_post_meta($location->ID, 'location_county', true) ?: 'Forsyth';
+            $county = get_post_meta($location->ID, 'location_county', true);
         }
 
         // OVERRIDE: Check for specific combo page data (AI Generated or Manual Edit)
         // This is stored in options table via Chroma_Combo_Page_Data class
         $combo_custom_data = Chroma_Combo_Page_Data::get($program->post_name, $city_slug, $state);
 
-        if (!empty($combo_custom_data)) {
+        $custom_data_is_verified = !empty($combo_custom_data) && empty($combo_custom_data['ai_generated']);
+        if ($custom_data_is_verified) {
             if (!empty($combo_custom_data['neighborhoods'])) {
                 $neighborhoods = $combo_custom_data['neighborhoods'];
             }
@@ -406,7 +355,7 @@ class Chroma_Combo_Page_Generator
         }
 
         // Spanish Override
-        if ($lang === 'es' && !empty($combo_custom_data)) {
+        if ($lang === 'es' && $custom_data_is_verified) {
             if (!empty($combo_custom_data['neighborhoods_es'])) {
                 $neighborhoods = $combo_custom_data['neighborhoods_es'];
             }
@@ -421,21 +370,14 @@ class Chroma_Combo_Page_Generator
             }
         }
 
-        // Fallback neighborhoods if none defined
-        if (empty($neighborhoods)) {
-            $neighborhoods = [$city_name . ' Downtown', $city_name . ' North', $city_name . ' South'];
-        }
-
         // Define Intro Text
         $intro_text = '';
-        if (!empty($combo_custom_data['custom_intro'])) {
+        if ($custom_data_is_verified && !empty($combo_custom_data['custom_intro'])) {
             $intro_text = $combo_custom_data['custom_intro'];
         } else {
-            // Default fallback logic
             $intro_text = sprintf(
-                __('Searching for the best %s near %s? At Chroma %s, we combine the safety you need with the enriching curriculum your child deserves.', 'chroma-excellence'),
+                __('Explore %1$s information for families in %2$s. Review program details and contact Chroma to confirm current offerings.', 'chroma-excellence'),
                 strtolower($program->post_title),
-                esc_html($neighborhoods[0] ?? $city_name),
                 esc_html($city_name)
             );
         }
@@ -455,34 +397,34 @@ class Chroma_Combo_Page_Generator
         $t_age_range = (string) $age_range;
 
         // Define translated strings - strictly using variables
-        $str_now_enrolling = sprintf(__('Now Enrolling: %s', 'chroma-excellence'), $t_age_range);
+        $str_now_enrolling = sprintf(__('Program Ages: %s', 'chroma-excellence'), $t_age_range);
         $str_premier_title = $lang === 'es'
-            ? sprintf('%s destacado en', $t_prog_title)
-            : sprintf(__('Premier %s in', 'chroma-excellence'), $t_prog_title);
+            ? sprintf('Información de %s para familias en', $t_prog_title)
+            : sprintf(__('%s Information for Families in', 'chroma-excellence'), $t_prog_title);
         $str_schedule_visit = __('Schedule Visit', 'chroma-excellence');
-        $str_serving_families = sprintf(__('Serving %s Families', 'chroma-excellence'), $t_city_name);
-        $str_why_choose = sprintf(__('Why %s Parents Choose Our %s', 'chroma-excellence'), $t_city_name, $t_prog_title);
-        $str_understanding = sprintf(__('We understand that choosing care in %s is a big decision. Here is what sets our %s apart.', 'chroma-excellence'), $t_city_name, $t_prog_title);
-        $str_low_ratios = __('Low Ratios', 'chroma-excellence');
-        $str_ratios_desc = sprintf(__('Our %s campus maintains strict teacher-to-student ratios, ensuring your child gets the individual attention they need.', 'chroma-excellence'), $t_city_name);
+        $str_serving_families = sprintf(__('Information for %s Families', 'chroma-excellence'), $t_city_name);
+        $str_why_choose = sprintf(__('Explore %1$s Information for %2$s Families', 'chroma-excellence'), $t_prog_title, $t_city_name);
+        $str_understanding = __('Review program information below and contact Chroma to confirm current campus offerings.', 'chroma-excellence');
+        $str_low_ratios = __('Program Details', 'chroma-excellence');
+        $str_ratios_desc = sprintf(__('Contact Chroma to confirm current classroom details and availability for families in %s.', 'chroma-excellence'), $t_city_name);
         $str_curriculum_title = __('Prismpath™ Curriculum', 'chroma-excellence');
 
         // Handle ternary for age label safely
         $t_early_learners = __('early learners', 'chroma-excellence');
-        $str_curriculum_desc = sprintf(__('Specifically designed for %s, our curriculum balances play-based learning with school readiness.', 'chroma-excellence'), $t_age_range ?: $t_early_learners);
+        $str_curriculum_desc = sprintf(__('Review Prismpath curriculum information for %s and confirm current program details with the campus.', 'chroma-excellence'), $t_age_range ?: $t_early_learners);
 
-        $str_updates_title = __('Real-Time Updates', 'chroma-excellence');
-        $str_updates_desc = sprintf(__('Parents in %s love our app. Get photos and updates throughout the workday straight to your phone.', 'chroma-excellence'), $t_city_name);
+        $str_updates_title = __('Family Communication', 'chroma-excellence');
+        $str_updates_desc = __('Ask the campus which family communication and classroom update options are currently available.', 'chroma-excellence');
 
         // Neighborhood logic
         $t_neigh_0 = $neighborhoods[0] ?? $t_city_name;
-        $str_serving_header = sprintf(__('Serving Families in %s', 'chroma-excellence'), $t_neigh_0);
+        $str_serving_header = sprintf(__('Area Information for %s', 'chroma-excellence'), $t_neigh_0);
 
-        $str_locations_serving = sprintf(__('Chroma Locations Serving %s', 'chroma-excellence'), $t_city_name);
-        $str_select_campus = __('Select the campus closest to your home or work.', 'chroma-excellence');
+        $str_locations_serving = sprintf(__('Chroma Locations Near %s', 'chroma-excellence'), $t_city_name);
+        $str_select_campus = __('Review the listed campuses and contact Chroma to confirm program availability.', 'chroma-excellence');
         $str_view_campus = __('View Campus', 'chroma-excellence');
-        $str_visit_classroom = sprintf(__('Visit Our %s Classroom', 'chroma-excellence'), $t_city_name);
-        $str_see_environment = sprintf(__('See the %s environment in person. Meet our Director and teachers.', 'chroma-excellence'), $t_prog_title);
+        $str_visit_classroom = sprintf(__('Ask About %s', 'chroma-excellence'), $t_prog_title);
+        $str_see_environment = __('Contact Chroma to confirm the nearest campus, current offerings, and tour options.', 'chroma-excellence');
         $str_more_options = sprintf(__('More Childcare Options in %s', 'chroma-excellence'), $t_city_name);
 
         // Location Text Logic
@@ -490,24 +432,17 @@ class Chroma_Combo_Page_Generator
         $t_county = $county;
 
         if ($t_major_road) {
-            $str_location_intro = sprintf(__('Located conveniently off %s, our', 'chroma-excellence'), '<strong>' . esc_html($t_major_road) . '</strong>');
+            $str_location_intro = sprintf(__('This page includes area information around %s. ', 'chroma-excellence'), '<strong>' . esc_html($t_major_road) . '</strong>');
         } else {
-            $str_location_intro = __('Our', 'chroma-excellence');
+            $str_location_intro = '';
         }
 
         $t_neighborhoods_html = '<strong>' . implode('</strong>, <strong>', array_map('esc_html', array_slice($neighborhoods, 0, 3))) . '</strong>';
-        $str_location_main = sprintf(__('%s campus is the preferred choice for families living in %s.', 'chroma-excellence'), esc_html($t_city_name), $t_neighborhoods_html);
+        $str_location_main = !empty($neighborhoods)
+            ? sprintf(__('Review program and campus information for families around %1$s, including %2$s.', 'chroma-excellence'), esc_html($t_city_name), $t_neighborhoods_html)
+            : sprintf(__('Review program and campus information for families around %s.', 'chroma-excellence'), esc_html($t_city_name));
 
-        if ($local_employers) {
-            $str_commute = sprintf(
-                __('Whether you work at %s or commute via %s, our drop-off and pick-up hours (6:30 AM – 6:30 PM) are designed for working parents in %s County.', 'chroma-excellence'),
-                '<strong>' . esc_html($local_employers) . '</strong>',
-                esc_html($t_major_road ?: 'GA-400'),
-                esc_html($t_county)
-            );
-        } else {
-            $str_commute = sprintf(__('Our convenient hours (6:30 AM – 6:30 PM) are designed for working parents in %s County.', 'chroma-excellence'), esc_html($t_county));
-        }
+        $str_commute = __('Use each campus page or contact the campus directly to verify its address, hours, transportation, and enrollment details.', 'chroma-excellence');
         ?>
         <main class="combo-page bg-brand-cream">
 
@@ -574,7 +509,7 @@ class Chroma_Combo_Page_Generator
                         class="relative h-[400px] lg:h-[450px] rounded-[2rem] lg:rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white">
                         <?php if ($program_image): ?>
                             <img src="<?php echo esc_url($program_image); ?>" class="w-full h-full object-cover"
-                                alt="<?php echo esc_attr($program->post_title); ?> students in <?php echo esc_attr($city_name); ?>"
+                                alt="<?php echo esc_attr($program->post_title); ?> at Chroma"
                                 loading="eager">
                         <?php else: ?>
                             <div
@@ -599,7 +534,7 @@ class Chroma_Combo_Page_Generator
                     </div>
 
                     <div class="grid md:grid-cols-3 gap-8">
-                        <!-- Benefit 1: Low Ratios -->
+                        <!-- Benefit 1: Program details -->
                         <div class="bg-white p-8 rounded-3xl shadow-sm border border-brand-ink/5">
                             <div
                                 class="w-12 h-12 bg-chroma-red/10 text-chroma-red rounded-xl flex items-center justify-center text-xl mb-4">
@@ -807,8 +742,8 @@ class Chroma_Combo_Page_Generator
                                 </span>
                             </summary>
                             <p class="mt-3 text-sm text-brand-ink/70 leading-relaxed">
-                                Yes! We provide a nutritious breakfast, hot lunch, and afternoon snack prepared fresh daily. Our
-                                menus are CACFP compliant and we accommodate most dietary restrictions.
+                                Meal service and dietary accommodations vary by campus and program. Contact the campus directly
+                                to confirm the current menu and available accommodations.
                             </p>
                         </details>
 
@@ -824,8 +759,8 @@ class Chroma_Combo_Page_Generator
                                 </span>
                             </summary>
                             <p class="mt-3 text-sm text-brand-ink/70 leading-relaxed">
-                                Absolutely. All lead teachers hold a CDA, TCC, or higher degree in Early Childhood Education.
-                                Every staff member is also CPR/First Aid certified and undergoes rigorous background checks.
+                                Staff qualifications and required training depend on role and current program requirements.
+                                Contact the campus to confirm the credentials relevant to this program.
                             </p>
                         </details>
 
@@ -899,29 +834,46 @@ class Chroma_Combo_Page_Generator
     /**
      * Output schema markup
      */
-    public function output_schema($program, $city_name, $state, $location, $loc_address = '', $loc_zip = '', $age_range = '')
+    public function output_schema($program, $city_name, $state, $location, $loc_address = '', $loc_zip = '', $age_range = '', $canonical = '')
     {
+        $program_slug = function_exists('chroma_seo_get_program_combo_slug')
+            ? chroma_seo_get_program_combo_slug($program)
+            : $program->post_name;
+        if ($canonical === '') {
+            $canonical = home_url('/' . $program_slug . '-in-' . sanitize_title($city_name) . '-' . strtolower($state) . '/');
+        }
+
         $schema = [
             '@context' => 'https://schema.org',
-            '@type' => 'Service',
-            'serviceType' => $program->post_title,
-            'provider' => [
-                '@type' => 'Preschool',
-                'name' => 'Chroma Early Learning Academy - ' . $city_name,
-                'address' => [
-                    '@type' => 'PostalAddress',
-                    'addressLocality' => $city_name,
-                    'addressRegion' => $state
-                ]
+            '@type' => 'WebPage',
+            '@id' => $canonical . '#webpage',
+            'url' => $canonical,
+            'name' => $program->post_title . ' information for ' . $city_name . ', ' . $state . ' families',
+            'description' => $this->generate_combo_meta_description($program, $city_name, $state, $age_range),
+            'about' => [
+                [
+                    '@type' => 'Thing',
+                    'name' => $program->post_title,
+                ],
+                [
+                    '@type' => 'Place',
+                    'name' => $city_name . ', ' . $state,
+                ],
             ],
-            'areaServed' => [
-                '@type' => 'City',
-                'name' => $city_name
-            ]
         ];
 
-        if ($loc_zip) {
-            $schema['provider']['address']['postalCode'] = $loc_zip;
+        if ($location instanceof WP_Post) {
+            $schema['mainEntity'] = [
+                '@type' => 'Preschool',
+                'name' => $location->post_title,
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => $loc_address,
+                    'addressLocality' => get_post_meta($location->ID, 'location_city', true),
+                    'addressRegion' => get_post_meta($location->ID, 'location_state', true),
+                    'postalCode' => $loc_zip,
+                ],
+            ];
         }
 
         if ($age_range) {
@@ -1003,7 +955,6 @@ class Chroma_Combo_Page_Generator
             $urls = [];
         }
 
-        $base = rtrim(home_url('/'), '/');
         $combos = self::get_all_combos();
 
         foreach ($combos as $combo) {
@@ -1018,20 +969,6 @@ class Chroma_Combo_Page_Generator
                 'lastmod' => $lastmod,
             ];
 
-            $es_url = str_replace($base . '/', $base . '/es/', $url);
-            if ($es_url === $url) {
-                $path = (string) wp_parse_url($url, PHP_URL_PATH);
-                if ($path !== '') {
-                    $es_url = home_url('/es/' . ltrim($path, '/'));
-                }
-            }
-
-            if ($es_url !== $url) {
-                $urls[] = [
-                    'loc' => $es_url,
-                    'lastmod' => $lastmod,
-                ];
-            }
         }
 
         return $urls;

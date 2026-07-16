@@ -306,7 +306,6 @@ class Chroma_Geographic_SEO
             return $urls;
         }
 
-        $base = rtrim(home_url('/'), '/');
         foreach (Chroma_Virtual_Page_SEO_Data::service_area_candidates() as $item) {
             $url = isset($item['url']) ? (string) $item['url'] : '';
             if ($url === '') {
@@ -319,20 +318,6 @@ class Chroma_Geographic_SEO
                 'lastmod' => $lastmod,
             ];
 
-            $es_url = str_replace($base . '/', $base . '/es/', $url);
-            if ($es_url === $url) {
-                $path = (string) wp_parse_url($url, PHP_URL_PATH);
-                if ($path !== '') {
-                    $es_url = home_url('/es/' . ltrim($path, '/'));
-                }
-            }
-
-            if ($es_url !== $url) {
-                $urls[] = [
-                    'loc' => $es_url,
-                    'lastmod' => $lastmod,
-                ];
-            }
         }
 
         return $urls;

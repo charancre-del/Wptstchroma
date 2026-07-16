@@ -105,8 +105,8 @@ function chroma_get_region_color_mem($term_id)
 					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Our five-pillar curriculum balances physical, emotional, social, academic, and creative growth.', 'chroma-excellence'); ?></p>
 				</div>
 				<div class="rounded-[2rem] bg-white border border-chroma-blue/10 shadow-card p-6">
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('6:30–6:30', 'chroma-excellence'); ?></h3>
-					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Extended weekday hours support working families across Metro Atlanta.', 'chroma-excellence'); ?></p>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('Family-Friendly Schedules', 'chroma-excellence'); ?></h3>
+					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Operating hours vary by campus. View a campus page or contact its team for the current schedule.', 'chroma-excellence'); ?></p>
 				</div>
 			</div>
 		</div>

@@ -26,8 +26,17 @@ while (have_posts()):
 
 	// Story Section
 	$story_title = chroma_get_translated_meta($page_id, 'about_story_title') ?: __('From one classroom to a community.', 'chroma-excellence');
-	$story_paragraph1 = chroma_get_translated_meta($page_id, 'about_story_paragraph1') ?: __('Chroma Early Learning Academy began with a single location in Lawrenceville and a mission to redefine "daycare." We didn\'t just want to watch children; we wanted to ignite them.', 'chroma-excellence');
-	$story_paragraph2 = chroma_get_translated_meta($page_id, 'about_story_paragraph2') ?: __('Over the last decade, we have grown into a network of 19+ campuses across Metro Atlanta, yet each location retains the intimacy and personal touch of that very first school. We are locally owned, operated by educators, and driven by the success of our families.', 'chroma-excellence');
+	$story_paragraph1 = chroma_get_translated_meta($page_id, 'about_story_paragraph1') ?: __('Chroma Early Learning Academy began in Canton in 2022 with a belief that early education should pair meaningful learning with the warmth and trust of home.', 'chroma-excellence');
+	$story_paragraph2 = chroma_get_translated_meta($page_id, 'about_story_paragraph2') ?: __('Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.', 'chroma-excellence');
+	if (false !== stripos($hero_badge_text, 'Established 2015')) {
+		$hero_badge_text = __('Established 2022', 'chroma-excellence');
+	}
+	if (false !== stripos($story_paragraph1, 'single location in Lawrenceville')) {
+		$story_paragraph1 = __('Chroma Early Learning Academy began in Canton in 2022 with a belief that early education should pair meaningful learning with the warmth and trust of home.', 'chroma-excellence');
+	}
+	if (false !== stripos($story_paragraph2, 'over the last decade')) {
+		$story_paragraph2 = __('Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.', 'chroma-excellence');
+	}
 	$story_image = chroma_get_translated_meta($page_id, 'about_story_image') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
 
 	$about_stat1_fallback_value = chroma_get_translated_meta($page_id, 'about_stat1_value') ?: '19+';

@@ -847,7 +847,7 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
 
         $meta_map = [
             'infant-care' => [
-                'en' => "Trusted Infant Care in {$city_name}, {$state}" . ($age_range !== '' ? " for babies {$age_range}." : '.') . ' Safe routines, caring teachers, and early learning at Chroma.',
+                'en' => "Infant Care in {$city_name}, {$state}" . ($age_range !== '' ? " for babies {$age_range}." : '.') . ' Review program information and contact Chroma to confirm current campus offerings.',
                 'es' => "Cuidado para bebés en {$city_name}, {$state}" . ($age_range !== '' ? " para edades {$age_range}." : '.') . ' Rutinas seguras, atención cariñosa y aprendizaje temprano en Chroma.',
             ],
             'toddler-care' => [
@@ -855,7 +855,7 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
                 'es' => "Cuidado para niños pequeños en {$city_name}, {$state}" . ($age_range !== '' ? " para edades {$age_range}." : '.') . ' Juego guiado, lenguaje y atención cariñosa en Chroma.',
             ],
             'preschool' => [
-                'en' => "Preschool in {$city_name}, {$state}" . ($age_range !== '' ? " for ages {$age_range}." : '.') . ' Hands-on learning, small classes, and trusted teachers at Chroma.',
+                'en' => "Preschool in {$city_name}, {$state}" . ($age_range !== '' ? " for ages {$age_range}." : '.') . ' Review program information and contact Chroma to confirm current campus offerings.',
                 'es' => "Preescolar en {$city_name}, {$state}" . ($age_range !== '' ? " para edades {$age_range}." : '.') . ' Aprendizaje práctico, grupos pequeños y maestros de confianza en Chroma.',
             ],
             'pre-k-prep' => [

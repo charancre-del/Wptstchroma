@@ -106,8 +106,8 @@ while (have_posts()):
 	$support_cards = array(
 		array(
 			'icon' => 'fa-solid fa-award',
-			'title' => __('Georgia Accrediting Commission', 'chroma-excellence'),
-			'description' => __('Our Private Kindergarten is fully accredited by the <strong>Georgia Accrediting Commission (GAC)</strong>. This prestigious designation guarantees our program meets or exceeds the highest educational and operational standards in the state, ensuring a seamless academic transition to any public or private 1st-grade program.', 'chroma-excellence'),
+			'title' => __('Kindergarten Readiness', 'chroma-excellence'),
+			'description' => __('Our private Kindergarten experience supports early literacy, mathematics, classroom independence, and the routines children use as they prepare for first grade.', 'chroma-excellence'),
 		),
 		array(
 			'icon' => 'fa-solid fa-hand-holding-dollar',
@@ -261,7 +261,7 @@ while (have_posts()):
 					<?php esc_html_e('An Elite Instructional Framework', 'chroma-excellence'); ?>
 				</h2>
 				<p class="text-brand-ink/80 mt-4 max-w-2xl mx-auto">
-					<?php esc_html_e('We incorporate targeted, elite supplemental resources to guarantee a superior foundation in both reading and mathematics.', 'chroma-excellence'); ?>
+					<?php esc_html_e('Teachers use purposeful literacy and mathematics resources to strengthen each child’s foundation while keeping learning active and developmentally appropriate.', 'chroma-excellence'); ?>
 				</p>
 			</div>
 

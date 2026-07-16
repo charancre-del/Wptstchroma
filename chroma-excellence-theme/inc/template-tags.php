@@ -227,7 +227,7 @@ function chroma_get_location_faq_items($post_id = null)
         ),
         array(
             'question' => __('Do you accept CAPS?', 'chroma-excellence'),
-            'answer' => __('Yes, all Chroma Early Learning Academy Locations accept CAPS (Childcare and Parent Services).', 'chroma-excellence'),
+            'answer' => __('CAPS (Childcare and Parent Services) is accepted at participating Chroma campuses. Authorization, program eligibility, and space availability apply; please confirm with your preferred campus.', 'chroma-excellence'),
         ),
     );
 
@@ -251,9 +251,16 @@ function chroma_get_location_faq_items($post_id = null)
                 continue;
             }
 
+            $question = wp_strip_all_tags($parts[0]);
+            $answer = wp_kses_post($parts[1]);
+
+            if (false !== stripos($question, 'CAPS') && false !== stripos($answer, 'all Chroma') && false !== stripos($answer, 'accept')) {
+                $answer = __('CAPS (Childcare and Parent Services) is accepted at participating Chroma campuses. Authorization, program eligibility, and space availability apply; please confirm with your preferred campus.', 'chroma-excellence');
+            }
+
             $faq[] = array(
-                'question' => wp_strip_all_tags($parts[0]),
-                'answer' => wp_kses_post($parts[1]),
+                'question' => $question,
+                'answer' => $answer,
             );
         }
     }

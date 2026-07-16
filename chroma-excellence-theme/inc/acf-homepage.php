@@ -42,15 +42,15 @@ function chroma_home_default_hero()
 {
         return array(
                 'heading' => __('The art of <span class="italic text-chroma-red">growing up.</span>', 'chroma-excellence'),
-                'subheading' => __('Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.', 'chroma-excellence'),
+                'subheading' => __('Where thoughtful early learning meets the warmth of home. Our Prismpath™ framework supports children from infancy through school age with joyful, age-appropriate experiences.', 'chroma-excellence'),
                 'cta_label' => __('Schedule a Tour', 'chroma-excellence'),
                 'cta_url' => '#tour',
                 'secondary_label' => __('View Programs', 'chroma-excellence'),
                 'secondary_url' => chroma_get_program_archive_url(),
                 'pill_format' => __('%d+ Metro Atlanta Locations', 'chroma-excellence'),
-                'supporting_text' => __('Our team includes both experienced educators and licensed clinicians supporting each child\'s growth.', 'chroma-excellence'),
+                'supporting_text' => __('Our experienced educators support each child\'s growth with warm relationships, intentional learning, and close family partnership.', 'chroma-excellence'),
                 'rating_label' => __('4.8 Average Parent Rating', 'chroma-excellence'),
-                'quality_badge_text' => __('Licensed • Quality Rated • GA Pre-K Partner', 'chroma-excellence'),
+                'quality_badge_text' => __('Programs, credentials, and availability vary by campus', 'chroma-excellence'),
                 'fallback_label' => __('Hero Image Coming Soon', 'chroma-excellence'),
                 'badge_heading' => __('Kindergarten Ready', 'chroma-excellence'),
                 'badge_text' => __('Comprehensive Prep', 'chroma-excellence'),
@@ -150,7 +150,7 @@ function chroma_home_hero()
         $defaults = chroma_home_default_hero();
         $post_id = chroma_get_home_page_id();
 
-        return array(
+        $hero = array(
                 'heading' => chroma_home_get_content_value($post_id, 'home_hero_heading', 'chroma_home_hero_heading', $defaults['heading'], 'wp_kses_post'),
                 'subheading' => chroma_home_get_content_value($post_id, 'home_hero_subheading', 'chroma_home_hero_subheading', $defaults['subheading'], 'sanitize_text_field'),
                 'cta_label' => chroma_home_get_content_value($post_id, 'home_hero_cta_label', 'chroma_home_hero_cta_label', $defaults['cta_label'], 'sanitize_text_field'),
@@ -166,6 +166,20 @@ function chroma_home_hero()
                 'badge_text' => sanitize_text_field(chroma_get_theme_mod('chroma_home_hero_badge_text', $defaults['badge_text'])),
                 'image_alt' => sanitize_text_field(chroma_get_theme_mod('chroma_home_hero_image_alt', $defaults['image_alt'])),
         );
+
+        if (false !== stripos($hero['subheading'], 'accredited excellence')) {
+                $hero['subheading'] = $defaults['subheading'];
+        }
+
+        if (false !== stripos($hero['supporting_text'], 'licensed clinicians supporting each child')) {
+                $hero['supporting_text'] = $defaults['supporting_text'];
+        }
+
+        if (false !== stripos($hero['quality_badge_text'], 'Quality Rated') || false !== stripos($hero['quality_badge_text'], 'GA Pre-K Partner')) {
+                $hero['quality_badge_text'] = $defaults['quality_badge_text'];
+        }
+
+        return $hero;
 }
 
 /**

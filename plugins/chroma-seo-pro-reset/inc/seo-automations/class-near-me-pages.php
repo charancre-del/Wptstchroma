@@ -215,12 +215,30 @@ class Chroma_Near_Me_Pages
 
         $virtual_post = (object) [
             'ID' => 0,
-            'post_type' => 'page',
-            'post_status' => 'publish',
+            'post_author' => 0,
+            'post_date' => '',
+            'post_date_gmt' => '',
+            'post_content' => '',
             'post_title' => (string) $title,
             'post_excerpt' => (string) $description,
+            'post_status' => 'publish',
+            'comment_status' => 'closed',
+            'ping_status' => 'closed',
+            'post_password' => '',
             'post_name' => $route_slug,
+            'to_ping' => '',
+            'pinged' => '',
+            'post_modified' => '',
+            'post_modified_gmt' => '',
+            'post_content_filtered' => '',
+            'post_parent' => 0,
             'guid' => (string) $canonical,
+            'menu_order' => 0,
+            'post_type' => 'page',
+            'post_mime_type' => '',
+            'comment_count' => 0,
+            'filter' => 'raw',
+            'ancestors' => [],
         ];
 
         $wp_query->is_home = false;
@@ -351,7 +369,7 @@ class Chroma_Near_Me_Pages
         if ($city_slug !== '' && $state !== '') {
             $city_name = ucwords(str_replace('-', ' ', $city_slug));
             return sprintf(
-                __('Compare trusted %1$s options near %2$s, %3$s. Explore nearby Chroma locations, curriculum, and tour information for local families.', 'chroma-excellence'),
+                __('Explore %1$s options near %2$s, %3$s. Review nearby Chroma locations, curriculum, and tour information for local families.', 'chroma-excellence'),
                 $keyword_label,
                 $city_name,
                 $state
@@ -359,7 +377,7 @@ class Chroma_Near_Me_Pages
         }
 
         return sprintf(
-            __('Compare trusted %1$s options near you. Explore nearby Chroma locations, curriculum, and tour information for Georgia families.', 'chroma-excellence'),
+            __('Explore %1$s options near you. Review nearby Chroma locations, curriculum, and tour information for Georgia families.', 'chroma-excellence'),
             $keyword_label
         );
     }
@@ -600,7 +618,7 @@ class Chroma_Near_Me_Pages
             }
 
             return [
-                'hero' => sprintf('Find trusted %s options near you. Explore Chroma campuses, curriculum highlights, and tour details for families across Georgia.', $keyword_lower),
+                'hero' => sprintf('Explore %s options near you, including Chroma campus, curriculum, and tour information for families across Georgia.', $keyword_lower),
                 'section_title' => sprintf('Chroma Campuses for %s', $keyword_label),
                 'section_body' => sprintf('Compare our nearby campuses, review program fit, and find the right %s environment for your family.', $keyword_lower),
             ];
@@ -644,8 +662,8 @@ class Chroma_Near_Me_Pages
         if (!empty($neighborhoods)) {
             $list = implode(', ', array_slice($neighborhoods, 0, 3));
             $neighborhood_fragment = $language === 'es'
-                ? ' Familias de zonas como ' . $list . ' suelen comenzar aqui.'
-                : ' Families from neighborhoods like ' . $list . ' often start here.';
+                ? ' Esta página también puede ser útil para familias que revisan opciones cerca de ' . $list . '.'
+                : ' This page may also be useful to families reviewing options around ' . $list . '.';
         }
 
         $county_fragment = '';
@@ -802,8 +820,8 @@ class Chroma_Near_Me_Pages
                                 'border' => 'chroma-blue'
                             );
 
-                            $is_decal = get_post_meta($loc['id'], 'location_decal_licensed', true);
-                            $quality_rated = get_post_meta($loc['id'], 'location_quality_rated', true);
+                            $is_decal = in_array(strtolower(trim((string) get_post_meta($loc['id'], 'location_decal_licensed', true))), array('1', 'yes', 'true', 'licensed'), true);
+                            $quality_rated = in_array(strtolower(trim((string) get_post_meta($loc['id'], 'location_quality_rated', true))), array('1', 'yes', 'true', 'rated'), true);
                             ?>
                             <article class="location-card group" data-lat="<?php echo esc_attr($loc['lat']); ?>"
                                 data-lng="<?php echo esc_attr($loc['lng']); ?>" data-id="<?php echo esc_attr($loc['id']); ?>">
@@ -834,14 +852,18 @@ class Chroma_Near_Me_Pages
                                     </p>
 
                                     <div class="flex flex-wrap gap-2 mb-8">
+                                        <?php if ($is_decal): ?>
                                         <span
                                             class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-blueLight/50 text-chroma-blueDark text-[9px] font-bold uppercase rounded-full">
                                             <i class="fa-solid fa-graduation-cap"></i> DECAL
                                         </span>
+                                        <?php endif; ?>
+                                        <?php if ($quality_rated): ?>
                                         <span
                                             class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-yellowLight/50 text-chroma-yellowDark text-[9px] font-bold uppercase rounded-full">
                                             <i class="fa-solid fa-star"></i> Quality Rated
                                         </span>
+                                        <?php endif; ?>
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-3 mt-auto">
@@ -1049,7 +1071,7 @@ class Chroma_Near_Me_Pages
     }
 
     /**
-     * Add near-me URLs (EN + ES) to unified /sitemap.xml.
+     * Add English near-me URLs to unified /sitemap.xml.
      *
      * @param array $urls
      * @return array
@@ -1061,7 +1083,6 @@ class Chroma_Near_Me_Pages
         }
 
         $lastmod = $this->get_near_me_sitemap_lastmod();
-        $base = rtrim(home_url('/'), '/');
         $links = self::get_sitemap_urls();
 
         foreach ($links as $link) {
@@ -1075,20 +1096,6 @@ class Chroma_Near_Me_Pages
                 'lastmod' => $lastmod,
             ];
 
-            $es_url = str_replace($base . '/', $base . '/es/', $url);
-            if ($es_url === $url) {
-                $path = (string) wp_parse_url($url, PHP_URL_PATH);
-                if ($path !== '') {
-                    $es_url = home_url('/es/' . ltrim($path, '/'));
-                }
-            }
-
-            if ($es_url !== $url) {
-                $urls[] = [
-                    'loc' => $es_url,
-                    'lastmod' => $lastmod,
-                ];
-            }
         }
 
         return $urls;

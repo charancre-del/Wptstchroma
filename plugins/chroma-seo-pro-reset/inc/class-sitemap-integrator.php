@@ -209,6 +209,10 @@ class Chroma_Sitemap_Integrator
         ]);
 
         foreach ($posts as $post) {
+            if (!function_exists('chroma_post_has_verified_spanish_variant') || !chroma_post_has_verified_spanish_variant($post->ID)) {
+                continue;
+            }
+
             $en_url = get_permalink($post->ID);
             if (!$en_url) {
                 continue;

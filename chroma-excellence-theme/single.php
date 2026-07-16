@@ -16,6 +16,8 @@ $author_name = get_the_author();
 $author_title = get_the_author_meta('description') ?: __('Contributor', 'chroma-excellence');
 $author_avatar = get_avatar_url($author_id, array('size' => 150));
 $featured_image_id = get_post_thumbnail_id($post_id);
+$raw_post_content = (string) get_post_field('post_content', $post_id);
+$content_starts_with_h1 = (bool) preg_match('/^\s*(?:(?:<!--.*?-->)\s*)*<h1\b/is', $raw_post_content);
 
 // Get related posts (same category, exclude current)
 $related_args = array(
@@ -172,7 +174,11 @@ $related_query = new WP_Query($related_args);
           <?php
           while (have_posts()):
             the_post();
-            the_content();
+            $rendered_content = apply_filters('the_content', get_the_content());
+            if ($content_starts_with_h1) {
+              $rendered_content = preg_replace('/<h1(\s[^>]*)?>(.*?)<\/h1>/is', '<h2$1>$2</h2>', $rendered_content, 1);
+            }
+            echo $rendered_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
           endwhile;
           ?>
         </div>

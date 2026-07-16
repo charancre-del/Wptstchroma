@@ -10,7 +10,7 @@ if (!defined('ABSPATH')) {
 }
 
 $camp_year = (int) current_time('Y');
-$schedule_tour_url = home_url('/schedule-tour/');
+$schedule_tour_url = home_url('/schedule-a-tour/');
 $camp_language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
 $camp_hero_title = $camp_language === 'es'
 	? 'Un verano de <span class="text-chroma-yellow italic">descubrimiento.</span>'
