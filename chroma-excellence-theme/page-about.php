@@ -39,7 +39,7 @@ while (have_posts()):
 	}
 	$story_image = chroma_get_translated_meta($page_id, 'about_story_image') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
 
-	$about_stat1_fallback_value = chroma_get_translated_meta($page_id, 'about_stat1_value') ?: '19+';
+	$about_stat1_fallback_value = chroma_get_translated_meta($page_id, 'about_stat1_value') ?: '0';
 	$about_stat2_fallback_value = chroma_get_translated_meta($page_id, 'about_stat2_value') ?: '2k+';
 	$stat3_value = chroma_get_translated_meta($page_id, 'about_stat3_value') ?: '450+';
 	$stat3_label = chroma_get_translated_meta($page_id, 'about_stat3_label') ?: __('Educators', 'chroma-excellence');

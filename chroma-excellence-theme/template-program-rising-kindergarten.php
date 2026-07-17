@@ -43,9 +43,9 @@ while (have_posts()):
 			'icon_class' => 'fa-solid fa-landmark-dome',
 			'icon_color' => 'text-chroma-green',
 			'title' => __('Georgia DECAL Summer Transition', 'chroma-excellence'),
-			'copy' => __('Backed by the Georgia Department of Early Care and Learning, this program provides <strong>free summer tuition</strong> for students entering Kindergarten who need additional academic support before the school year starts, based on state eligibility requirements.', 'chroma-excellence'),
+			'copy' => __('Backed by the Georgia Department of Early Care and Learning, this program supports eligible students entering Kindergarten who would benefit from additional academic preparation before the school year starts.', 'chroma-excellence'),
 			'points' => array(
-				__('100% Tuition Covered', 'chroma-excellence'),
+				__('State-Funded Program', 'chroma-excellence'),
 				__('Meals & materials included', 'chroma-excellence'),
 				__('6-week intensive schedule', 'chroma-excellence'),
 			),
@@ -64,7 +64,7 @@ while (have_posts()):
 				__('Flexible wrap-around care options', 'chroma-excellence'),
 			),
 			'accent_class' => 'border-chroma-yellow',
-			'link_text' => __('Request Private Tuition Rates', 'chroma-excellence'),
+			'link_text' => __('Ask About Eligibility', 'chroma-excellence'),
 			'link_color' => 'text-chroma-yellow',
 		),
 	);

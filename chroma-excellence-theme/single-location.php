@@ -23,9 +23,14 @@ while (have_posts()):
 	$lat = $location_fields['latitude'];
 	$lng = $location_fields['longitude'];
 	$license_number = $location_fields['license_number'];
+	$has_ga_pre_k = chroma_location_has_ga_pre_k($location_id);
 
 	// Additional meta fields (with defaults)
-	$hero_subtitle = chroma_get_translated_meta($location_id, 'location_hero_subtitle') ?: __('Now Enrolling: Pre-K & Toddlers', 'chroma-excellence');
+	$default_hero_subtitle = $has_ga_pre_k ? __('Now Enrolling: Pre-K & Toddlers', 'chroma-excellence') : __('Now Enrolling', 'chroma-excellence');
+	$hero_subtitle = chroma_get_translated_meta($location_id, 'location_hero_subtitle') ?: $default_hero_subtitle;
+	if (!$has_ga_pre_k && preg_match('/pre\s*-?\s*k/i', wp_strip_all_tags((string) $hero_subtitle))) {
+		$hero_subtitle = __('Now Enrolling', 'chroma-excellence');
+	}
 	$hero_gallery_raw = chroma_get_translated_meta($location_id, 'location_hero_gallery');
 	$virtual_tour_embed = chroma_get_translated_meta($location_id, 'location_virtual_tour_embed');
 	$tagline = chroma_get_translated_meta($location_id, 'location_tagline') ?: sprintf(__("%s's home for brilliant beginnings.", 'chroma-excellence'), $city);
@@ -43,7 +48,7 @@ while (have_posts()):
 		}
 	}
 	$google_rating = chroma_get_translated_meta($location_id, 'location_google_rating') ?: '4.9';
-	$hours = chroma_get_translated_meta($location_id, 'location_hours') ?: __('7am - 6pm', 'chroma-excellence');
+	$hours = chroma_get_translated_meta($location_id, 'location_hours') ?: __('Contact campus for current hours', 'chroma-excellence');
 	$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('6w - 12y', 'chroma-excellence');
 
 	// Director info
@@ -109,15 +114,6 @@ while (have_posts()):
 		);
 		$programs_query = new WP_Query($programs_args);
 	}
-	$has_ga_pre_k = false;
-	foreach ($programs_query->posts as $location_program) {
-		$program_slug = sanitize_title($location_program->post_name ?: $location_program->post_title);
-		if (false !== strpos($program_slug, 'ga-pre-k') || false !== strpos($program_slug, 'georgia-pre-k')) {
-			$has_ga_pre_k = true;
-			break;
-		}
-	}
-
 	// Get Region Colors
 	$location_regions = wp_get_post_terms($location_id, 'location_region');
 	$region_term = !empty($location_regions) && !is_wp_error($location_regions) ? $location_regions[0] : null;
@@ -370,13 +366,13 @@ while (have_posts()):
 						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-red/30 transition-all hover:-translate-y-1">
 						<div
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-red text-xl mb-6 group-hover:scale-110 transition-transform">
-							<i class="fa-solid fa-tree"></i>
+							<i class="fa-solid fa-hand-holding-heart"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('Nature Playground', 'chroma-excellence'); ?>
+							<?php _e('CAPS Accepted', 'chroma-excellence'); ?>
 						</h3>
 						<p class="text-sm text-brand-ink/80 leading-relaxed">
-							<?php _e('Our oversized, shaded outdoor space features gardening beds, trike paths, and natural sensory zones.', 'chroma-excellence'); ?>
+							<?php _e('All Chroma campuses accept CAPS. Authorization, program eligibility, and space availability apply; contact the campus team for details.', 'chroma-excellence'); ?>
 						</p>
 					</div>
 
@@ -385,13 +381,13 @@ while (have_posts()):
 						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-yellow/30 transition-all hover:-translate-y-1">
 						<div
 							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-yellow text-xl mb-6 group-hover:scale-110 transition-transform">
-							<i class="fa-solid fa-flask"></i>
+							<i class="fa-solid fa-hands-holding-child"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('STEM Atelier', 'chroma-excellence'); ?>
+							<?php _e('Early Start Services', 'chroma-excellence'); ?>
 						</h3>
 						<p class="text-sm text-brand-ink/80 leading-relaxed">
-							<?php _e('A dedicated studio for science experiments, light table exploration, and early engineering projects.', 'chroma-excellence'); ?>
+							<?php _e('Chroma Early Start services are available through every campus. Eligibility, scheduling, and the appropriate care setting are coordinated with each family.', 'chroma-excellence'); ?>
 						</p>
 					</div>
 

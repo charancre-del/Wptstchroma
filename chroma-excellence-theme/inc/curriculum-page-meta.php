@@ -271,7 +271,7 @@ function chroma_curriculum_framework_meta_box_render( $post ) {
 			<td>
 				<input type="text" id="curriculum_framework_title" name="curriculum_framework_title"
 					   value="<?php echo esc_attr( $framework_title ); ?>"
-					   class="large-text" placeholder="e.g., The Prismpath? Framework" />
+					   class="large-text" placeholder="e.g., The Prismpath™ Framework" />
 				<br>
 				<input type="text" id="_chroma_es_curriculum_framework_title" name="_chroma_es_curriculum_framework_title"
 					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_framework_title', true ) ); ?>"
@@ -1113,7 +1113,7 @@ function chroma_seed_curriculum_page_defaults( $post_id ) {
 
 		'curriculum_continuum_badge'          => 'A connected learning continuum',
 		'curriculum_continuum_title'          => 'Introduced Early. Deepened Over Time.',
-		'curriculum_continuum_intro'          => 'PrismPath? is designed as one connected learning journey from infancy through Pre-K. Children encounter the same foundational concepts across every age group, while the experience becomes more detailed, intentional, and challenging as they grow.',
+		'curriculum_continuum_intro'          => 'PrismPath™ is designed as one connected learning journey from infancy through Pre-K. Children encounter the same foundational concepts across every age group, while the experience becomes more detailed, intentional, and challenging as they grow.',
 		'curriculum_continuum_foundation'     => 'For infants, learning begins through sights, sounds, movement, touch, repetition, and responsive interaction. These early experiences create familiarity and establish the foundation for later understanding.',
 		'curriculum_continuum_development'    => 'As children develop, they begin recognizing patterns, using language, making connections, solving problems, and applying what they have learned with greater independence.',
 		'curriculum_continuum_example_title'  => 'The Same Concept. A New Level at Every Age.',
@@ -1121,7 +1121,7 @@ function chroma_seed_curriculum_page_defaults( $post_id ) {
 		'curriculum_continuum_toddlers_body'  => 'Children repeat words, recognize familiar pictures and symbols, participate in rhymes, and begin connecting language with meaning.',
 		'curriculum_continuum_preschool_body' => 'Children identify letters, build vocabulary, recognize sound patterns, and begin connecting letters with their sounds.',
 		'curriculum_continuum_prek_body'      => 'Children develop phonological and phonemic awareness, practice blending and separating sounds, explore early writing, and build the foundations for reading through phonics.',
-		'curriculum_continuum_closing'        => 'What begins as early exposure becomes recognition, understanding, and eventually confident application. Each stage prepares the child for the next?without rushing development or losing the joy of discovery.',
+		'curriculum_continuum_closing'        => 'What begins as early exposure becomes recognition, understanding, and eventually confident application. Each stage prepares the child for the next—without rushing development or losing the joy of discovery.',
 
 		'curriculum_studio_badge'            => 'Curriculum Studio',
 		'curriculum_studio_title'            => 'Personalized Learning Starts with Better Insight',
@@ -1192,7 +1192,7 @@ function chroma_seed_curriculum_page_defaults( $post_id ) {
 		'curriculum_milestone_assessments_bullet2' => 'Individualized Lesson Planning',
 
 		'curriculum_cta_title'       => 'See the curriculum in action.',
-		'curriculum_cta_description' => 'Schedule a tour to see our "Third Teacher" classrooms and meet the educators bringing Prismpath? to life.',
+		'curriculum_cta_description' => 'Schedule a tour to see our "Third Teacher" classrooms and meet the educators bringing Prismpath™ to life.',
 	);
 
 	foreach ( $defaults as $meta_key => $default_value ) {
@@ -1202,3 +1202,59 @@ function chroma_seed_curriculum_page_defaults( $post_id ) {
 	update_post_meta( $post_id, '_curriculum_defaults_seeded', '1' );
 }
 add_action( 'save_post', 'chroma_seed_curriculum_page_defaults', 5 );
+
+/**
+ * Repair legacy punctuation that was saved before UTF-8 defaults were fixed.
+ *
+ * Only exact corrupted tokens are replaced, so custom curriculum copy remains
+ * untouched. The migration runs once per site and also repairs Spanish values
+ * when the same legacy tokens are present there.
+ */
+function chroma_repair_curriculum_legacy_punctuation() {
+	$repair_version = '1';
+	if ( $repair_version === get_option( 'chroma_curriculum_text_repair_version' ) ) {
+		return;
+	}
+
+	$page_ids = get_posts(
+		array(
+			'post_type'      => 'page',
+			'post_status'    => 'any',
+			'posts_per_page' => -1,
+			'fields'         => 'ids',
+			'meta_key'       => '_wp_page_template',
+			'meta_value'     => 'page-curriculum.php',
+		)
+	);
+
+	$meta_keys = array(
+		'curriculum_continuum_intro',
+		'_chroma_es_curriculum_continuum_intro',
+		'curriculum_continuum_closing',
+		'_chroma_es_curriculum_continuum_closing',
+		'curriculum_cta_description',
+		'_chroma_es_curriculum_cta_description',
+	);
+
+	foreach ( $page_ids as $page_id ) {
+		foreach ( $meta_keys as $meta_key ) {
+			$value = get_post_meta( $page_id, $meta_key, true );
+			if ( ! is_string( $value ) || '' === $value ) {
+				continue;
+			}
+
+			$repaired = str_replace(
+				array( 'PrismPath?', 'Prismpath?', 'next?without' ),
+				array( 'PrismPath™', 'Prismpath™', 'next—without' ),
+				$value
+			);
+
+			if ( $repaired !== $value ) {
+				update_post_meta( $page_id, $meta_key, $repaired );
+			}
+		}
+	}
+
+	update_option( 'chroma_curriculum_text_repair_version', $repair_version, false );
+}
+add_action( 'init', 'chroma_repair_curriculum_legacy_punctuation', 20 );

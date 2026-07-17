@@ -17,7 +17,7 @@ $hero_description = chroma_get_translated_meta($page_id, 'employers_hero_descrip
 $location_counts = wp_count_posts('location');
 $published_location_count = isset($location_counts->publish) ? (int) $location_counts->publish : 0;
 $priority_access_description = chroma_get_translated_meta($page_id, 'employers_solution1_desc');
-if (!$priority_access_description || false !== stripos($priority_access_description, '19+ locations')) {
+if (!$priority_access_description || preg_match('/\b\d+\+?\s+locations\b/i', $priority_access_description)) {
 	$priority_access_description = sprintf(
 		__('Explore partnership options across our %d Metro Atlanta campuses. Availability and reserved access are confirmed campus by campus.', 'chroma-excellence'),
 		$published_location_count

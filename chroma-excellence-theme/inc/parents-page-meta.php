@@ -943,7 +943,7 @@ function chroma_seed_parents_page_defaults($post_id)
 
         // Referral Banner
         'parents_referral_title' => 'Love the Chroma family?',
-        'parents_referral_description' => 'Refer a friend and receive a <strong>$100 tuition credit</strong> when they enroll.',
+		'parents_referral_description' => 'Refer a friend and receive a <strong>$100 account credit</strong> when they enroll.',
         'parents_referral_button_text' => 'Refer a Friend',
         'parents_referral_button_url' => 'mailto:director@chromaela.com?subject=Parent%20Referral',
     );

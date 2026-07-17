@@ -212,11 +212,11 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
             'parents' => [
                 'en' => [
                     'title' => 'Parents | Chroma Early Learning Academy',
-                    'meta_description' => 'Find parent resources, enrollment guidance, tuition details, and family support information from Chroma Early Learning Academy.',
+                    'meta_description' => 'Find parent resources, enrollment guidance, account access, and family support information from Chroma Early Learning Academy.',
                 ],
                 'es' => [
                     'title' => 'Padres | Chroma Early Learning Academy',
-                    'meta_description' => 'Encuentra recursos para padres, información de inscripción, detalles de matrícula y apoyo familiar de Chroma Early Learning Academy.',
+                    'meta_description' => 'Encuentra recursos para padres, información de inscripción, acceso a la cuenta y apoyo familiar de Chroma Early Learning Academy.',
                 ],
             ],
             'programs' => [
@@ -232,11 +232,11 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
             'contact-us' => [
                 'en' => [
                     'title' => 'Contact Us | Chroma Early Learning Academy',
-                    'meta_description' => 'Contact Chroma Early Learning Academy to ask about enrollment, locations, tuition, or scheduling a tour.',
+                    'meta_description' => 'Contact Chroma Early Learning Academy to ask about enrollment, locations, programs, or scheduling a tour.',
                 ],
                 'es' => [
                     'title' => 'Contáctanos | Chroma Early Learning Academy',
-                    'meta_description' => 'Contacta a Chroma Early Learning Academy para preguntas sobre inscripción, ubicaciones, matrícula o recorridos.',
+                    'meta_description' => 'Contacta a Chroma Early Learning Academy para preguntas sobre inscripción, ubicaciones, programas o recorridos.',
                 ],
             ],
             'stories' => [
@@ -312,11 +312,11 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
             'parent-portal' => [
                 'en' => [
                     'title' => 'Parent Portal | Chroma',
-                    'meta_description' => 'Secure family portal for tuition, daily reports, classroom updates, and school resources.',
+                    'meta_description' => 'Secure family portal for billing, daily reports, classroom updates, and school resources.',
                 ],
                 'es' => [
                     'title' => 'Portal para familias | Chroma',
-                    'meta_description' => 'Portal seguro para familias con matrícula, reportes diarios, novedades del aula y recursos escolares.',
+                    'meta_description' => 'Portal seguro para familias con facturación, reportes diarios, novedades del aula y recursos escolares.',
                 ],
             ],
         ];

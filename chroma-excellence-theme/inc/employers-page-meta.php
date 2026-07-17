@@ -427,7 +427,10 @@ function chroma_seed_employers_page_defaults( $post_id ) {
 		'employers_hero_description' => 'Retain top talent and reduce absenteeism by offering premium childcare benefits. Chroma partners with Metro Atlanta\'s leading employers to support working parents.',
 
 		'employers_solution1_title' => 'Priority Access',
-		'employers_solution1_desc'  => 'Skip the waitlist. Reserve dedicated spots at our 19+ locations exclusively for your employees\' children.',
+		'employers_solution1_desc'  => sprintf(
+			'Explore partnership options across our %d Metro Atlanta campuses. Availability and reserved access are confirmed campus by campus.',
+			(int) ( wp_count_posts( 'location' )->publish ?? 0 )
+		),
 
 		'employers_solution2_title' => 'Tuition Subsidies',
 		'employers_solution2_desc'  => 'We manage employer-sponsored tuition matching programs, making quality care affordable for your team.',

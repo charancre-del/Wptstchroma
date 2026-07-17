@@ -112,7 +112,7 @@ while (have_posts()):
 		array(
 			'icon' => 'fa-solid fa-hand-holding-dollar',
 			'title' => __('Promise Scholarships & SSOs', 'chroma-excellence'),
-			'description' => __('We believe a premium education should be within reach. Chroma proudly accepts the <strong>Georgia Promise Scholarship</strong> and partners with multiple <strong>Student Scholarship Organizations (SSOs)</strong> to help eligible families offset the cost of private kindergarten tuition.', 'chroma-excellence'),
+			'description' => __('Chroma accepts the <strong>Georgia Promise Scholarship</strong> and partners with multiple <strong>Student Scholarship Organizations (SSOs)</strong> to help eligible families access private kindergarten.', 'chroma-excellence'),
 		),
 	);
 

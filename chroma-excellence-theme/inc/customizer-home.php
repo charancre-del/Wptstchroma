@@ -176,7 +176,7 @@ function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
         'chroma_home_stats_json',
         array(
             'label' => __('Stats JSON (optional key/value/label)', 'chroma-excellence'),
-            'description' => __('Example: [{"key":"locations","value":"19+","label":"Metro campuses"},{"key":"families_served","value":"2000+","label":"Families Served"}]', 'chroma-excellence'),
+            'description' => __('Example: [{"key":"locations","value":"0","label":"Metro campuses"},{"key":"families_served","value":"2000+","label":"Families Served"}]. The published campus count is calculated automatically.', 'chroma-excellence'),
             'section' => 'chroma_home_stats_section',
             'type' => 'textarea',
         )
@@ -405,7 +405,7 @@ function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
         )
     );
 
-    $wp_customize->add_setting('chroma_home_locations_heading', array('default' => '19+ neighborhood locations across Metro Atlanta', 'sanitize_callback' => 'sanitize_text_field'));
+    $wp_customize->add_setting('chroma_home_locations_heading', array('default' => 'Neighborhood locations across Metro Atlanta', 'sanitize_callback' => 'sanitize_text_field'));
     $wp_customize->add_control('chroma_home_locations_heading', array('label' => __('Locations heading', 'chroma-excellence'), 'section' => 'chroma_home_locations_section', 'type' => 'text'));
 
     $wp_customize->add_setting('chroma_home_locations_subheading', array('default' => 'Find a Chroma campus near your home or work. All locations share the same safety standards, curriculum framework, and warm Chroma culture.', 'sanitize_callback' => 'sanitize_text_field'));

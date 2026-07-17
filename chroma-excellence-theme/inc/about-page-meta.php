@@ -270,7 +270,7 @@ function chroma_about_story_meta_box_render( $post ) {
 			<td>
 				<input type="text" id="about_stat1_value" name="about_stat1_value"
 					   value="<?php echo esc_attr( $stat1_value ); ?>"
-					   placeholder="e.g., 19+" style="width: 100px;" />
+					   placeholder="Calculated automatically" style="width: 160px;" />
 				<input type="text" id="about_stat1_label" name="about_stat1_label"
 					   value="<?php echo esc_attr( $stat1_label ); ?>"
 					   placeholder="e.g., Locations" style="margin-left: 10px;" />
@@ -1116,7 +1116,7 @@ function chroma_seed_about_page_defaults( $post_id ) {
 		'about_story_paragraph1'           => 'Chroma Early Learning Academy began in Canton in 2022 with a belief that early education should pair meaningful learning with the warmth and trust of home.',
 		'about_story_paragraph2'           => 'Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.',
 		'about_story_image'                => 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop',
-		'about_stat1_value'                => '19+',
+		'about_stat1_value'                => '0',
 		'about_stat1_label'                => 'Locations',
 		'about_stat2_value'                => '2k+',
 		'about_stat2_label'                => 'Students',

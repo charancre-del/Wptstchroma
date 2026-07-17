@@ -68,6 +68,35 @@ function chroma_get_location_fields($post_id = null)
 }
 
 /**
+ * Determine whether a campus currently offers Georgia Pre-K.
+ *
+ * Campus editors can explicitly override the operational default. Until an
+ * override is saved, every campus is treated as available except Chadwick and
+ * North Hall. This keeps the public site accurate today while allowing either
+ * campus to be enabled later without a theme update.
+ */
+function chroma_location_has_ga_pre_k($post_id = null)
+{
+    $post_id = $post_id ?: get_the_ID();
+    $override = get_post_meta($post_id, 'location_ga_pre_k_available', true);
+
+    if ('yes' === $override) {
+        return true;
+    }
+
+    if ('no' === $override) {
+        return false;
+    }
+
+    $slug = sanitize_title((string) get_post_field('post_name', $post_id));
+    $title = sanitize_title((string) get_the_title($post_id));
+    $identity = $slug . ' ' . $title;
+    $available = false === strpos($identity, 'chadwick') && false === strpos($identity, 'north-hall');
+
+    return (bool) apply_filters('chroma_location_has_ga_pre_k', $available, $post_id, $override);
+}
+
+/**
  * Program meta bundle
  */
 function chroma_get_program_fields($post_id = null)
@@ -227,7 +256,7 @@ function chroma_get_location_faq_items($post_id = null)
         ),
         array(
             'question' => __('Do you accept CAPS?', 'chroma-excellence'),
-            'answer' => __('CAPS (Childcare and Parent Services) is accepted at participating Chroma campuses. Authorization, program eligibility, and space availability apply; please confirm with your preferred campus.', 'chroma-excellence'),
+            'answer' => __('CAPS (Childcare and Parent Services) is accepted at all Chroma campuses. Authorization, program eligibility, and space availability apply; please confirm details with your preferred campus.', 'chroma-excellence'),
         ),
     );
 
@@ -254,8 +283,8 @@ function chroma_get_location_faq_items($post_id = null)
             $question = wp_strip_all_tags($parts[0]);
             $answer = wp_kses_post($parts[1]);
 
-            if (false !== stripos($question, 'CAPS') && false !== stripos($answer, 'all Chroma') && false !== stripos($answer, 'accept')) {
-                $answer = __('CAPS (Childcare and Parent Services) is accepted at participating Chroma campuses. Authorization, program eligibility, and space availability apply; please confirm with your preferred campus.', 'chroma-excellence');
+            if (false !== stripos($question, 'CAPS')) {
+                $answer = __('CAPS (Childcare and Parent Services) is accepted at all Chroma campuses. Authorization, program eligibility, and space availability apply; please confirm details with your preferred campus.', 'chroma-excellence');
             }
 
             $faq[] = array(

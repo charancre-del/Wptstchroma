@@ -192,12 +192,12 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 				<details class="group bg-white rounded-2xl px-6 py-4 border border-chroma-blue/10 shadow-sm">
 					<summary
 						class="flex items-center justify-between gap-3 cursor-pointer list-none font-bold text-brand-ink">
-						<?php _e('Are meals included in tuition?', 'chroma-excellence'); ?>
+						<?php _e('Are meals and snacks provided?', 'chroma-excellence'); ?>
 						<span class="text-chroma-blue group-open:rotate-180 transition-transform"><i
 								class="fa-solid fa-chevron-down"></i></span>
 					</summary>
 					<p class="mt-3 text-brand-ink/70 text-sm leading-relaxed">
-						<?php _e('Yes! We participate in the USDA food program. Breakfast, lunch, and afternoon snack are prepared fresh daily and are included in tuition for all age groups eating solid foods.', 'chroma-excellence'); ?>
+						<?php _e('Yes! We participate in the USDA food program. Breakfast, lunch, and afternoon snack are prepared fresh daily for age groups eating solid foods.', 'chroma-excellence'); ?>
 					</p>
 				</details>
 				<details class="group bg-white rounded-2xl px-6 py-4 border border-chroma-blue/10 shadow-sm">

@@ -14,8 +14,14 @@ $home_id = get_option('page_on_front');
 $hero_image = get_theme_mod('chroma_home_hero_image');
 $hero_fallback_image_path = get_template_directory() . '/assets/images/early-start/synergy-classroom.jpg';
 $hero_fallback_image_url = get_template_directory_uri() . '/assets/images/early-start/synergy-classroom.jpg';
-$loc_count = wp_count_posts('location')->publish ?? 19;
+$loc_count = function_exists('chroma_home_get_location_count') ? chroma_home_get_location_count() : (int) (wp_count_posts('location')->publish ?? 0);
 $location_pill = sprintf($hero['pill_format'], $loc_count);
+$location_pill = function_exists('chroma_home_normalize_location_count_copy')
+    ? chroma_home_normalize_location_count_copy($location_pill, $loc_count)
+    : $location_pill;
+if ($loc_count > 0 && !preg_match('/\b' . preg_quote((string) $loc_count, '/') . '\b/', $location_pill)) {
+    $location_pill = sprintf(__('%d Metro Atlanta Locations', 'chroma-excellence'), $loc_count);
+}
 ?>
 
 <section

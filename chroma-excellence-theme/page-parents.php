@@ -193,7 +193,10 @@ $faqs = array(
 
 // Referral Banner
 $referral_title = chroma_get_translated_meta($page_id, 'parents_referral_title') ?: __('Love the Chroma family?', 'chroma-excellence');
-$referral_description = chroma_get_translated_meta($page_id, 'parents_referral_description') ?: __('Refer a friend and receive a <strong>$100 tuition credit</strong> when they enroll.', 'chroma-excellence');
+$referral_description = chroma_get_translated_meta($page_id, 'parents_referral_description') ?: __('Refer a friend and receive a <strong>$100 account credit</strong> when they enroll.', 'chroma-excellence');
+if (false !== stripos($referral_description, 'tuition credit')) {
+	$referral_description = str_ireplace('tuition credit', 'account credit', $referral_description);
+}
 $referral_button_text = chroma_get_translated_meta($page_id, 'parents_referral_button_text') ?: __('Refer a Friend', 'chroma-excellence');
 $referral_button_url = chroma_get_translated_meta($page_id, 'parents_referral_button_url') ?: 'mailto:director@chromaela.com?subject=Parent%20Referral';
 

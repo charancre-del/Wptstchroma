@@ -291,7 +291,7 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                     </svg>
                 </summary>
                 <p class="mt-4 text-sm text-brand-ink/80">
-                    <?php printf(__('Yes! Our locations serving %s participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia.', 'chroma-excellence'), esc_html($city)); ?>
+					<?php printf(__('Georgia Pre-K is available at most Chroma campuses serving %s. Contact your preferred campus directly to confirm current availability, eligibility, and enrollment details.', 'chroma-excellence'), esc_html($city)); ?>
                 </p>
             </details>
 

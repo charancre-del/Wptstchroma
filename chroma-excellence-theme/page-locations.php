@@ -98,7 +98,7 @@ function chroma_get_region_color_mem($term_id)
 				</div>
 				<div class="rounded-[2rem] bg-white border border-chroma-blue/10 shadow-card p-6">
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('GA Pre-K', 'chroma-excellence'); ?></h3>
-					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Many Chroma locations offer Georgia Pre-K classrooms for kindergarten readiness.', 'chroma-excellence'); ?></p>
+					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Georgia Pre-K is available at most Chroma campuses. Contact your preferred campus directly to confirm current availability and enrollment details.', 'chroma-excellence'); ?></p>
 				</div>
 				<div class="rounded-[2rem] bg-white border border-chroma-blue/10 shadow-card p-6">
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('Prismpath™', 'chroma-excellence'); ?></h3>

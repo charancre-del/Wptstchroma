@@ -47,7 +47,7 @@ function chroma_home_default_hero()
                 'cta_url' => '#tour',
                 'secondary_label' => __('View Programs', 'chroma-excellence'),
                 'secondary_url' => chroma_get_program_archive_url(),
-                'pill_format' => __('%d+ Metro Atlanta Locations', 'chroma-excellence'),
+                'pill_format' => __('%d Metro Atlanta Locations', 'chroma-excellence'),
                 'supporting_text' => __('Our experienced educators support each child\'s growth with warm relationships, intentional learning, and close family partnership.', 'chroma-excellence'),
                 'rating_label' => __('4.8 Average Parent Rating', 'chroma-excellence'),
                 'quality_badge_text' => __('Programs, credentials, and availability vary by campus', 'chroma-excellence'),
@@ -61,7 +61,7 @@ function chroma_home_default_hero()
 function chroma_home_default_stats()
 {
         return array(
-                array('key' => 'locations', 'value' => '19+', 'label' => __('Metro campuses', 'chroma-excellence')),
+                array('key' => 'locations', 'value' => '0', 'label' => __('Metro campuses', 'chroma-excellence')),
                 array('key' => 'families_served', 'value' => '2,000+', 'label' => __('Children enrolled', 'chroma-excellence')),
                 array('key' => 'avg_parent_rating', 'value' => '4.8', 'label' => __('Avg parent rating', 'chroma-excellence')),
                 array('value' => '6w–12y', 'label' => __('Age range', 'chroma-excellence')),
@@ -179,6 +179,8 @@ function chroma_home_hero()
                 $hero['quality_badge_text'] = $defaults['quality_badge_text'];
         }
 
+        $hero['pill_format'] = (string) preg_replace('/%d\s*\+/u', '%d', $hero['pill_format']);
+
         return $hero;
 }
 
@@ -242,7 +244,7 @@ function chroma_home_format_location_stat_value($fallback_value, $location_count
         $location_count = max(0, (int) $location_count);
 
         if ($location_count > 0) {
-                return $location_count . '+';
+                return (string) $location_count;
         }
 
         return sanitize_text_field($fallback_value);
@@ -258,9 +260,9 @@ function chroma_home_normalize_location_count_copy($text, $location_count = null
         }
 
         return (string) preg_replace_callback(
-                '/\b\d+\+\s+((?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations))\b/i',
+                '/\b\d+\+?\s+((?:Metro Atlanta\s+|neighborhood\s+)?(?:campuses|locations))\b/i',
                 static function ($matches) use ($location_count) {
-                        return $location_count . '+ ' . $matches[1];
+                        return $location_count . ' ' . $matches[1];
                 },
                 $text
         );
@@ -615,7 +617,7 @@ function chroma_home_default_faq_items()
         return array(
                 array(
                         'question' => __('Do you offer GA Lottery Pre-K?', 'chroma-excellence'),
-                        'answer' => __('Yes. Many Chroma locations offer free GA Lottery Pre-K for 4-year-olds.', 'chroma-excellence'),
+						'answer' => __('Georgia Pre-K is available at most Chroma campuses. Contact your preferred campus directly to confirm current availability, eligibility, and enrollment details.', 'chroma-excellence'),
                 ),
                 array(
                         'question' => __('What ages do you serve?', 'chroma-excellence'),
@@ -1172,39 +1174,148 @@ function chroma_home_schedule_content()
 /**
  * Home FAQ block
  */
+function chroma_home_normalize_operational_faq_items($items)
+{
+		$normalized_items = array();
+		foreach ((array) $items as $item) {
+				if (!is_array($item)) {
+						continue;
+				}
+
+				$question = sanitize_text_field(is_scalar($item['question'] ?? null) ? (string) $item['question'] : '');
+				$answer = sanitize_textarea_field(chroma_home_normalize_location_count_copy(is_scalar($item['answer'] ?? null) ? (string) $item['answer'] : ''));
+
+				if (preg_match('/(?:tuition|childcare\s+cost|how\s+much|pricing|rates?)/i', $question)) {
+						continue;
+				}
+
+				if (preg_match('/meals?|snacks?/i', $question)) {
+						$question = __('Are meals and snacks provided?', 'chroma-excellence');
+						$answer = __('Yes. Breakfast, lunch, and afternoon snacks are prepared fresh daily for age groups eating solid foods.', 'chroma-excellence');
+				}
+
+				if (preg_match('/(?:GA\s+(?:Lottery\s+)?Pre-?K|Georgia\s+Pre-?K)/i', $question)) {
+						$question = __('Do you offer Georgia Pre-K?', 'chroma-excellence');
+						$answer = __('Georgia Pre-K is available at most Chroma campuses. Contact your preferred campus directly to confirm current availability, eligibility, and enrollment details.', 'chroma-excellence');
+				}
+
+				if (preg_match('/communicate\s+with\s+parents/i', $question) && preg_match('/(?:LineLeader|Procare|Brightwheel)/i', $answer)) {
+						$answer = __('Campuses share daily updates, photos, and messages through the family communication tools used by that campus. Your campus team will provide access details.', 'chroma-excellence');
+				}
+
+				if (preg_match('/(?:licensed|accredit)/i', $question) && preg_match('/(?:NAEYC|GAC\s+Accredited)/i', $answer)) {
+						$answer = __('Chroma campuses operate under applicable Georgia DECAL licensing requirements. Contact your preferred campus directly for current program credentials and participation details.', 'chroma-excellence');
+				}
+
+				$normalized_items[] = array(
+						'question' => $question,
+						'answer' => $answer,
+				);
+		}
+
+		return $normalized_items;
+}
+
 function chroma_home_faq_items()
 {
-        $post_id = chroma_get_home_page_id();
-        $items_json = chroma_get_translated_meta($post_id, 'home_faq_items_json', true);
+		$post_id = chroma_get_home_page_id();
+		$items_json = chroma_get_translated_meta($post_id, 'home_faq_items_json', true);
 
-        $items = array();
-        if (is_array($items_json)) {
-                $items = $items_json;
-        } elseif (is_string($items_json) && $items_json !== '') {
-                $decoded = json_decode($items_json, true);
-                if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
-                        $items = $decoded;
-                }
-        }
+		$items = array();
+		if (is_array($items_json)) {
+				$items = $items_json;
+		} elseif (is_string($items_json) && $items_json !== '') {
+				$decoded = json_decode($items_json, true);
+				if (JSON_ERROR_NONE === json_last_error() && is_array($decoded)) {
+						$items = $decoded;
+				}
+		}
 
-        if (empty($items)) {
-                $items = chroma_home_get_theme_mod_json('chroma_home_faq_items_json', chroma_home_default_faq_items());
-        }
+		if (empty($items)) {
+				$items = chroma_home_get_theme_mod_json('chroma_home_faq_items_json', chroma_home_default_faq_items());
+		}
 
-        return array_map(
-                function ($item) {
-                        if (!is_array($item)) {
-                                $item = array();
-                        }
-
-                        return array(
-                                'question' => sanitize_text_field(is_scalar($item['question'] ?? null) ? (string) $item['question'] : ''),
-                                'answer' => sanitize_textarea_field(chroma_home_normalize_location_count_copy(is_scalar($item['answer'] ?? null) ? (string) $item['answer'] : '')),
-                        );
-                },
-                $items
-        );
+		return chroma_home_normalize_operational_faq_items($items);
 }
+
+/**
+ * Repair legacy homepage FAQ and FAQ schema claims saved before the V2 policy
+ * update. This changes only the front-page FAQ sources and preserves any
+ * unrelated schema entries.
+ */
+function chroma_repair_home_operational_claims()
+{
+		if ((int) get_option('chroma_home_operational_claims_version', 0) >= 1) {
+				return;
+		}
+
+		$home_id = chroma_get_home_page_id();
+		if ($home_id < 1) {
+				return;
+		}
+
+		$faq_meta_keys = array('_chroma_es_home_faq_items_json', 'chroma_faq_items');
+		$normalized_faqs = array();
+		foreach ($faq_meta_keys as $meta_key) {
+				$value = get_post_meta($home_id, $meta_key, true);
+				if (is_array($value) && !empty($value)) {
+						$value = chroma_home_normalize_operational_faq_items($value);
+						update_post_meta($home_id, $meta_key, $value);
+						if (empty($normalized_faqs)) {
+								$normalized_faqs = $value;
+						}
+				}
+		}
+
+		$theme_mod_faqs = get_theme_mod('chroma_home_faq_items_json', array());
+		if (is_array($theme_mod_faqs) && !empty($theme_mod_faqs)) {
+				$theme_mod_faqs = chroma_home_normalize_operational_faq_items($theme_mod_faqs);
+				set_theme_mod('chroma_home_faq_items_json', $theme_mod_faqs);
+				if (empty($normalized_faqs)) {
+						$normalized_faqs = $theme_mod_faqs;
+				}
+		}
+
+		if (empty($normalized_faqs)) {
+				$normalized_faqs = chroma_home_normalize_operational_faq_items(chroma_home_default_faq_items());
+		}
+
+		$faq_schema = array(
+				'@context' => 'https://schema.org',
+				'@type' => 'FAQPage',
+				'mainEntity' => array_map(
+						static function ($item) {
+								return array(
+										'@type' => 'Question',
+										'name' => $item['question'],
+										'acceptedAnswer' => array(
+												'@type' => 'Answer',
+												'text' => $item['answer'],
+										),
+								);
+						},
+						$normalized_faqs
+				),
+		);
+
+		$schemas = get_post_meta($home_id, '_chroma_post_schemas', true);
+		$schemas = is_array($schemas) ? $schemas : array();
+		$replaced = false;
+		foreach ($schemas as $index => $schema) {
+				if (is_array($schema) && 'FAQPage' === ($schema['@type'] ?? '')) {
+						$schemas[$index] = $faq_schema;
+						$replaced = true;
+				}
+		}
+		if (!$replaced) {
+				$schemas[] = $faq_schema;
+		}
+		update_post_meta($home_id, '_chroma_post_schemas', $schemas);
+		update_post_meta($home_id, '_chroma_schema_override', wp_json_encode($faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
+
+		update_option('chroma_home_operational_claims_version', 1, false);
+}
+add_action('init', 'chroma_repair_home_operational_claims', 30);
 
 function chroma_home_faq()
 {
@@ -1234,11 +1345,11 @@ function chroma_format_location_count_text($text, $location_count)
                 return $text;
         }
 
-        if (preg_match('/^\s*\d+\+\s+/u', $text)) {
-                return (string) preg_replace('/^\s*\d+\+/u', $location_count . '+', $text, 1);
+        if (preg_match('/^\s*\d+\+?\s+/u', $text)) {
+                return (string) preg_replace('/^\s*\d+\+?/u', (string) $location_count, $text, 1);
         }
 
-        return sprintf(__('%d+ neighborhood locations across Metro Atlanta', 'chroma-excellence'), $location_count);
+        return sprintf(__('%d neighborhood locations across Metro Atlanta', 'chroma-excellence'), $location_count);
 }
 
 function chroma_home_locations_preview()
@@ -1266,7 +1377,7 @@ function chroma_home_locations_preview()
                 'no_found_rows' => true,
         ));
         $location_count = count($locations);
-        $heading_template = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_heading', true) ?: chroma_get_theme_mod('chroma_home_locations_heading', '19+ neighborhood locations across Metro Atlanta'));
+        $heading_template = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_heading', true) ?: chroma_get_theme_mod('chroma_home_locations_heading', 'Neighborhood locations across Metro Atlanta'));
         $heading = chroma_format_location_count_text($heading_template, $location_count);
 
         $map_points = array();
@@ -1368,7 +1479,7 @@ function chroma_home_default_tour_cta()
                         __('Daily parent communication', 'chroma-excellence'),
                         __('Healthy meals included', 'chroma-excellence'),
                         __('Age-appropriate security', 'chroma-excellence'),
-                        __('GA Lottery Pre-K available', 'chroma-excellence'),
+						__('Ask about Georgia Pre-K availability', 'chroma-excellence'),
                 ),
                 'time_label' => __('Tour: 20–30 min', 'chroma-excellence'),
                 'trust_text' => __('No obligation. We’ll never share your information.', 'chroma-excellence'),
