@@ -4,9 +4,9 @@ This report reconciles the complete 25-phase prompt with current staging evidenc
 
 ## Bottom line
 
-- Every requirement with a safe theme, content-safety, staging, or automated-QA implementation path has been completed and evidenced.
+- Every governing-prompt statement is represented in the requirement register, but representation is not proof of item-level completion. The corrected re-audit verifies the current theme-owned staging surface and explicitly preserves external or deferred gates.
 - The current evidence is a 466-URL technical crawl and content inventory, 162 responsive template checks across 6 viewports, 140 Axe checks across 5 viewports, interaction tests, before/after Lighthouse samples, and post-deploy staging browser review.
-- No theme-owned automated accessibility finding or reproducible template/device regression remains.
+- No theme-owned clipping, overflow, broken-image, font, or tested interaction regression remains in the corrected staging matrix. This is narrower than full production or legal approval.
 - Remaining requirements require management facts, authenticated systems, legal/HR approval, third-party ownership, production infrastructure, field metrics, or cutover state.
 
 ## Internally completed groups
@@ -28,9 +28,9 @@ This report reconciles the complete 25-phase prompt with current staging evidenc
 4. Third-party chat semantics and production field INP/RUM.
 5. Production backup, redirect merge, cache/CDN, robots/indexability, cutover, and post-launch crawl.
 
-## Meaning of complete
+## Meaning of verified
 
-Implementation and evidence must both exist for the exact requirement. Internally testable work is complete; external and production-only work is explicitly gated rather than falsely marked finished.
+Implementation and evidence must both exist for the exact requirement. Phase-level evidence and a matrix row are not sufficient by themselves. External, owner-deferred, authenticated, manual, and production-only work remains gated rather than being falsely marked finished. See `PROMPT-REAUDIT-2026-07-19.md`.
 
 ## Latest internal proof
 

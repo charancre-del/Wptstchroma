@@ -332,7 +332,7 @@ while (have_posts()):
 
         .ces-title {
             margin: 18px 0 18px;
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: var(--font-serif, "Playfair Display", Georgia, serif);
             font-size: clamp(2.4rem, 5vw, 4.6rem);
             line-height: 1.08;
             font-weight: 700;
@@ -341,7 +341,7 @@ while (have_posts()):
 
         .ces-section-title {
             margin: 0 0 18px;
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: var(--font-serif, "Playfair Display", Georgia, serif);
             font-size: clamp(2rem, 3.8vw, 3.4rem);
             line-height: 1.12;
             font-weight: 700;
@@ -570,7 +570,7 @@ while (have_posts()):
 
         .ces-service-card h3 {
             margin: 0 0 12px;
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: var(--font-serif, "Playfair Display", Georgia, serif);
             font-size: 1.7rem;
             line-height: 1.25;
         }

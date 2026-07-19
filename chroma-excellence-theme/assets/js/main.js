@@ -1179,8 +1179,13 @@
     const syncViewportHeight = () => {
       if (!viewport || !slides[currentIndex]) return;
       window.requestAnimationFrame(() => {
+        viewport.style.setProperty('height', 'auto', 'important');
+        track.style.setProperty('height', 'auto', 'important');
         const activeHeight = Math.ceil(slides[currentIndex].scrollHeight);
-        if (activeHeight > 0) viewport.style.height = `${activeHeight}px`;
+        if (activeHeight > 0) {
+          viewport.style.setProperty('height', `${activeHeight}px`, 'important');
+          track.style.setProperty('height', `${activeHeight}px`, 'important');
+        }
       });
     };
 
@@ -1259,6 +1264,7 @@
     syncMotionPreference();
     syncPauseControl();
     syncViewportHeight();
+    if (document.fonts?.ready) document.fonts.ready.then(syncViewportHeight);
     startAutoplay();
   };
 

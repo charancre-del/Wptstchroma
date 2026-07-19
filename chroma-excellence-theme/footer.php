@@ -31,7 +31,7 @@
 						alt="<?php echo esc_attr($footer_brand_label); ?>" width="48" height="48"
 						class="h-12 w-12 opacity-90 hover:opacity-100 transition-opacity" />
 				</a>
-				<p class="text-[11px] text-white/80 leading-relaxed">
+				<p class="text-xs text-white/80 leading-relaxed">
 					<?php _e('Premium childcare & early education across Metro Atlanta.', 'chroma-excellence'); ?>
 				</p>
 			</div>
@@ -122,14 +122,14 @@
 										</div>
 									</div>
 									<h4
-										class="text-[10px] font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
+										class="text-xs font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
 										<?php the_title(); ?>
 									</h4>
-									<span class="text-[9px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
+									<span class="text-[11px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
 								</a>
 							<?php endwhile; ?>
 						</div>
-						<div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[10px] font-bold uppercase tracking-wider text-white/75">
+						<div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-bold uppercase tracking-wider text-white/75">
 							<a href="<?php echo esc_url(chroma_get_localized_url(home_url('/stories/'))); ?>" class="hover:text-white transition-colors"><?php esc_html_e('All Stories', 'chroma-excellence'); ?></a>
 							<a href="<?php echo esc_url(chroma_get_localized_url(home_url('/newsroom/'))); ?>" class="hover:text-white transition-colors"><?php esc_html_e('Newsroom', 'chroma-excellence'); ?></a>
 						</div>

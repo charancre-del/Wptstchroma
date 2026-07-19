@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Technical crawl | 466 sitemap URLs | 466 HTTP 200; 0 crawl or technical SEO issues |
 | Content inventory | 466 URLs | 0 errors, duplicates, thin pages, or no-CTA pages |
-| Template/device matrix | 27 routes x 6 viewports | 162/162 passed |
+| Corrected template/device matrix | 27 routes x 6 viewports | 162 checks; 0 HTTP, overflow, clipping, broken-image, font, text-size, or missing-footer failures |
 | Visual integrity | All 162 checks | 0 overflow, clipped text, broken images, or missing footers |
 | Axe | 28 pages x 5 viewports | 140 checks; 0 theme-owned violations |
 | Interactions | Geolocation, filters, map popup, program slider | Passed |
@@ -16,8 +16,9 @@
 
 ## Latest evidence
 
-- Staging deploy stamp: `20260718-192809`.
-- Cross-device result folders: `reports/production-goal-2026-07-17/qa/template-current/`.
+- Corrected staging asset deploy backup: `/home/x3yyadl/backups/chroma-font-fix-20260719-153524`.
+- Cross-device result folder: `reports/production-goal-2026-07-17/qa/final-reaudit-20260719/`.
+- Focused Curriculum typography result folder: `reports/production-goal-2026-07-17/qa/curriculum-font-final-20260719/`.
 - Accessibility result folder: `reports/production-goal-2026-07-17/qa/axe-current/`.
 - Visual contact sheets: `reports/production-goal-2026-07-17/qa/template-current/contact-sheets/`.
 - Governance artifact summary: `reports/production-goal-2026-07-17/governance-artifact-summary.json`.
@@ -31,4 +32,4 @@
 
 ## Decision
 
-No internally reproducible theme regression remains in the tested staging matrix. Production launch still requires the external gates documented in `EXTERNAL-RELEASE-GATES.md`.
+No internally reproducible theme regression remains in the corrected tested staging matrix. This is not a claim that every governing-prompt item or production launch gate is complete. Remaining gates are documented in `EXTERNAL-RELEASE-GATES.md` and `PROMPT-REAUDIT-2026-07-19.md`.

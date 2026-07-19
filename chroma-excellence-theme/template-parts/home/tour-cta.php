@@ -42,7 +42,7 @@ if (!$tour_cta) {
                                 <?php endif; ?>
 
                                 <?php if (!empty($tour_cta['trust_text'])): ?>
-                                        <p class="text-[11px] text-brand-ink mt-4"><?php echo esc_html($tour_cta['trust_text']); ?></p>
+					<p class="text-xs leading-relaxed text-brand-ink mt-4"><?php echo esc_html($tour_cta['trust_text']); ?></p>
                                 <?php endif; ?>
                         </div>
                 </div>

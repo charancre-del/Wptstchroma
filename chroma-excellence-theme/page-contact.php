@@ -156,7 +156,7 @@ $corporate_email = is_email($contact_email_meta) ? $contact_email_meta : ($globa
 
 			<!-- Contact Form -->
 			<div id="general-form"
-				class="tourForm chroma-form-scroll-card chroma-form-scroll-card--contact bg-white rounded-[2.5rem] p-8 md:p-10 text-brand-ink relative overflow-y-auto shadow-card border border-brand-ink/5 order-1"
+				class="tourForm chroma-form-scroll-card chroma-form-scroll-card--contact bg-white rounded-[2.5rem] p-5 sm:p-7 md:p-10 text-brand-ink relative overflow-y-auto shadow-card border border-brand-ink/5 order-1"
 				tabindex="0" aria-label="<?php esc_attr_e( 'General inquiry form', 'chroma-excellence' ); ?>">
 				<div
 					class="absolute top-0 right-0 w-64 h-64 bg-chroma-blueLight rounded-full blur-[80px] opacity-50 -translate-y-1/2 translate-x-1/2">

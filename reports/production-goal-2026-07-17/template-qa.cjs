@@ -63,6 +63,12 @@ const selectedRoutes = requestedRoutes.length
   ? routes.filter(([name]) => requestedRoutes.includes(name))
   : routes;
 const runInteractionChecks = process.env.CHROMA_QA_INTERACTIONS !== '0';
+const fullPageDevices = new Set(
+  (process.env.CHROMA_QA_FULL_PAGE_DEVICES || 'desktop,tabletPortrait,mobile')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean)
+);
 
 const results = [];
 
@@ -86,6 +92,14 @@ async function inspectPage(page, routeName, routePath, deviceName) {
     scrollTo(0, 0);
   });
   await page.waitForTimeout(600);
+  await page.evaluate(async () => {
+    if (!document.fonts) return;
+    await Promise.all([
+      document.fonts.load('400 16px "Outfit"'),
+      document.fonts.load('600 16px "Playfair Display"'),
+      document.fonts.ready,
+    ]);
+  });
 
   const metrics = await page.evaluate(() => {
     const visible = (element) => {
@@ -116,6 +130,82 @@ async function inspectPage(page, routeName, routePath, deviceName) {
     const duplicateIds = [...document.querySelectorAll('[id]')].map((element) => element.id).filter((id, index, ids) => id && ids.indexOf(id) !== index).filter((id, index, ids) => ids.indexOf(id) === index);
     const headings = [...document.querySelectorAll('h1,h2,h3')].filter(visible).map((heading) => ({ tag: heading.tagName, text: heading.textContent.trim().replace(/\s+/g, ' ').slice(0, 120), size: parseFloat(getComputedStyle(heading).fontSize), lineHeight: getComputedStyle(heading).lineHeight }));
     const frames = [...document.querySelectorAll('iframe')].filter(visible).map((frame) => ({ title: frame.title, src: frame.src, width: frame.getBoundingClientRect().width, height: frame.getBoundingClientRect().height }));
+    const textElements = [...document.querySelectorAll('main h1,main h2,main h3,main h4,main h5,main h6,main p,main li,main a,main button,main label,main summary')]
+      .filter(visible)
+      .filter((element) => element.textContent.trim() && !element.closest('[aria-hidden="true"],.sr-only'));
+    const fontUsage = Object.entries(textElements.reduce((usage, element) => {
+      const family = getComputedStyle(element).fontFamily.replace(/\s+/g, ' ').trim();
+      usage[family] = (usage[family] || 0) + 1;
+      return usage;
+    }, {})).sort((left, right) => right[1] - left[1]);
+    const unexpectedFonts = fontUsage.filter(([family]) => !/(Outfit|Playfair Display|Caveat|Lucida Console|Arial|Helvetica|sans-serif|serif)/i.test(family));
+    const legacySerifUsage = textElements.filter((element) => {
+      const family = getComputedStyle(element).fontFamily.replace(/\s+/g, ' ').trim();
+      return /(Georgia|Times New Roman|Times,)/i.test(family) && !/Playfair Display/i.test(family);
+    }).slice(0, 30).map((element) => ({
+      label: label(element),
+      family: getComputedStyle(element).fontFamily,
+      size: getComputedStyle(element).fontSize,
+    }));
+    const editorialFontMismatches = textElements.filter((element) => {
+      const expectsEditorialFont = element.matches('.font-serif,.chroma-redesign-hero-title,.pp-title-xl,.ces-title,.ces-section-title,.ces-service-card h3');
+      return expectsEditorialFont && !/Playfair Display/i.test(getComputedStyle(element).fontFamily);
+    }).slice(0, 30).map((element) => ({
+      label: label(element),
+      family: getComputedStyle(element).fontFamily,
+      size: getComputedStyle(element).fontSize,
+    }));
+    const undersizedText = textElements.filter((element) => {
+      const style = getComputedStyle(element);
+      return parseFloat(style.fontSize) < 12 && style.textTransform !== 'uppercase';
+    }).slice(0, 20).map((element) => ({ label: label(element), size: getComputedStyle(element).fontSize }));
+    const oversizedText = textElements.filter((element) => {
+      const size = parseFloat(getComputedStyle(element).fontSize);
+      const limit = innerWidth <= 480 ? 64 : innerWidth < 1024 ? 88 : 120;
+      return size > limit;
+    }).slice(0, 20).map((element) => ({ label: label(element), size: getComputedStyle(element).fontSize }));
+    const sections = [...document.querySelectorAll('main section')].filter(visible).map((section, index) => {
+      const rect = section.getBoundingClientRect();
+      const heading = section.querySelector('h1,h2,h3');
+      return {
+        index,
+        id: section.id || '',
+        heading: heading?.textContent.trim().replace(/\s+/g, ' ').slice(0, 100) || '',
+        height: Math.round(rect.height),
+        viewportRatio: Number((rect.height / innerHeight).toFixed(2)),
+      };
+    });
+    const oversizedSections = sections.filter((section) => section.viewportRatio > 2.25);
+    const fixedObstructions = [...document.querySelectorAll('body *')].filter(visible).filter((element) => {
+      const style = getComputedStyle(element);
+      if (!['fixed', 'sticky'].includes(style.position)) return false;
+      if (element.matches('header,[data-site-header]') || element.closest('header,[data-site-header]')) return false;
+      if (element.closest('[data-chroma-chat], .lc_text-widget, .ghl-chat-widget')) return false;
+      const rect = element.getBoundingClientRect();
+      return rect.width * rect.height > innerWidth * innerHeight * 0.25;
+    }).slice(0, 20).map((element) => ({ label: label(element), rect: element.getBoundingClientRect().toJSON() }));
+    const bodyFont = getComputedStyle(document.body).fontFamily;
+    const mainFont = document.querySelector('main') ? getComputedStyle(document.querySelector('main')).fontFamily : '';
+    const h1Font = document.querySelector('main h1') ? getComputedStyle(document.querySelector('main h1')).fontFamily : '';
+    const footer = document.querySelector('footer');
+    const footerRect = footer?.getBoundingClientRect();
+    const footerReachable = Boolean(footer && footerRect && footerRect.bottom + scrollY <= document.documentElement.scrollHeight + 4);
+    const locationList = document.querySelector('[data-location-list], [data-location-results]');
+    const programChartSliders = document.querySelectorAll('[data-program-chart-slider]').length;
+    const fontAvailability = {
+      outfit: document.fonts ? document.fonts.check('16px "Outfit"') : null,
+      playfair: document.fonts ? document.fonts.check('600 16px "Playfair Display"') : null,
+    };
+    const formFrames = frames.map((frame) => {
+      const frameElement = [...document.querySelectorAll('iframe')].find((candidate) => candidate.src === frame.src && visible(candidate));
+      const host = frameElement?.closest('.chroma-form-scroll-card,.chroma-tour-form-card');
+      const hostRect = host?.getBoundingClientRect();
+      return {
+        ...frame,
+        hostWidth: hostRect?.width || null,
+        widthRatio: hostRect?.width ? Number((frame.width / hostRect.width).toFixed(3)) : null,
+      };
+    });
     return {
       title: document.title,
       h1: document.querySelector('h1')?.textContent.trim().replace(/\s+/g, ' ').slice(0, 180) || '',
@@ -127,22 +217,53 @@ async function inspectPage(page, routeName, routePath, deviceName) {
       brokenImages,
       duplicateIds,
       headings,
-      frames,
+      frames: formFrames,
+      typography: {
+        bodyFont,
+        mainFont,
+        h1Font,
+        fontUsage,
+        unexpectedFonts,
+        legacySerifUsage,
+        editorialFontMismatches,
+        fontAvailability,
+        expectedBodyFont: /Outfit/i.test(bodyFont) && (!mainFont || /Outfit/i.test(mainFont)),
+        undersizedText,
+        oversizedText,
+      },
+      sections,
+      oversizedSections,
+      fixedObstructions,
+      footerReachable,
       mainPresent: Boolean(document.querySelector('main')),
       footerPresent: Boolean(document.querySelector('footer')),
       mapPresent: Boolean(document.querySelector('.leaflet-container')),
       locationCards: document.querySelectorAll('[data-location-card]').length,
       programTabs: document.querySelectorAll('[data-program-tab]').length,
       reviewControls: document.querySelectorAll('[data-review-prev],[data-review-next]').length,
+      programChartSliders,
+      locationList: locationList ? {
+        clientHeight: locationList.clientHeight,
+        scrollHeight: locationList.scrollHeight,
+        scrollable: locationList.scrollHeight > locationList.clientHeight + 4,
+      } : null,
     };
   });
 
-  const screenshotPath = path.join(screenshotRoot, `${deviceName}-${routeName}.png`);
-  await page.screenshot({ path: screenshotPath, fullPage: false });
+  const screenshotPath = path.join(screenshotRoot, `${deviceName}-${routeName}.jpg`);
+  if (fullPageDevices.has(deviceName)) {
+    await page.addStyleTag({ content: '* { content-visibility: visible !important; contain-intrinsic-size: none !important; }' });
+  }
+  await page.screenshot({ path: screenshotPath, fullPage: fullPageDevices.has(deviceName), type: 'jpeg', quality: 62 });
   return {
     routeName, routePath, deviceName, status: response?.status() || null, finalUrl: page.url(), screenshotPath, metrics,
-    consoleMessages: [...new Set(consoleMessages)].filter((message) => !/doubleclick|googletagmanager|google-analytics|facebook|clarity/i.test(message)).slice(0, 20),
-    requestFailures: [...new Set(requestFailures)].filter((message) => !/doubleclick|googletagmanager|google-analytics|facebook|clarity|openstreetmap/i.test(message)).slice(0, 20),
+    consoleMessages: [...new Set(consoleMessages)]
+      .filter((message) => !(routeName === 'not-found' && /status of 404/i.test(message)))
+      .filter((message) => !/doubleclick|googletagmanager|google-analytics|googleadservices|facebook|clarity|leadconnector|msgsndr|deprecated api|@import/i.test(message))
+      .slice(0, 20),
+    requestFailures: [...new Set(requestFailures)]
+      .filter((message) => !/doubleclick|googletagmanager|google-analytics|analytics\.google\.com|googleadservices|facebook|clarity|openstreetmap|leadconnector|msgsndr/i.test(message))
+      .slice(0, 20),
   };
 }
 
@@ -206,6 +327,16 @@ async function runInteractions(browser) {
     horizontalOverflow: results.filter((result) => result.metrics?.horizontalOverflow),
     brokenImages: results.filter((result) => result.metrics?.brokenImages?.length),
     clippedText: results.filter((result) => result.metrics?.clippedText?.length),
+    typographyMismatches: results.filter((result) => result.metrics?.typography && !result.metrics.typography.expectedBodyFont),
+    unexpectedFonts: results.filter((result) => result.metrics?.typography?.unexpectedFonts?.length),
+    legacySerifUsage: results.filter((result) => result.metrics?.typography?.legacySerifUsage?.length),
+    editorialFontMismatches: results.filter((result) => result.metrics?.typography?.editorialFontMismatches?.length),
+    unavailableFonts: results.filter((result) => result.metrics?.typography?.fontAvailability && (!result.metrics.typography.fontAvailability.outfit || !result.metrics.typography.fontAvailability.playfair)),
+    undersizedText: results.filter((result) => result.metrics?.typography?.undersizedText?.length),
+    oversizedText: results.filter((result) => result.metrics?.typography?.oversizedText?.length),
+    oversizedSections: results.filter((result) => result.metrics?.oversizedSections?.length),
+    fixedObstructions: results.filter((result) => result.metrics?.fixedObstructions?.length),
+    unreachableFooters: results.filter((result) => result.metrics && !result.metrics.footerReachable),
     missingFooters: results.filter((result) => result.metrics && !result.metrics.footerPresent),
     consoleIssues: results.filter((result) => result.consoleMessages?.length),
     requestFailures: results.filter((result) => result.requestFailures?.length),
@@ -213,5 +344,5 @@ async function runInteractions(browser) {
   };
   fs.writeFileSync(path.join(outputRoot, 'template-qa-results.json'), JSON.stringify(results, null, 2));
   fs.writeFileSync(path.join(outputRoot, 'template-qa-summary.json'), JSON.stringify(summary, null, 2));
-  console.log(JSON.stringify({ totalChecks: summary.totalChecks, failures: summary.failures.length, horizontalOverflow: summary.horizontalOverflow.length, brokenImages: summary.brokenImages.length, clippedText: summary.clippedText.length, missingFooters: summary.missingFooters.length, consoleIssues: summary.consoleIssues.length, requestFailures: summary.requestFailures.length, interactions }, null, 2));
+  console.log(JSON.stringify({ totalChecks: summary.totalChecks, failures: summary.failures.length, horizontalOverflow: summary.horizontalOverflow.length, brokenImages: summary.brokenImages.length, clippedText: summary.clippedText.length, typographyMismatches: summary.typographyMismatches.length, unexpectedFonts: summary.unexpectedFonts.length, legacySerifUsage: summary.legacySerifUsage.length, editorialFontMismatches: summary.editorialFontMismatches.length, unavailableFonts: summary.unavailableFonts.length, undersizedText: summary.undersizedText.length, oversizedText: summary.oversizedText.length, oversizedSections: summary.oversizedSections.length, fixedObstructions: summary.fixedObstructions.length, unreachableFooters: summary.unreachableFooters.length, missingFooters: summary.missingFooters.length, consoleIssues: summary.consoleIssues.length, requestFailures: summary.requestFailures.length, interactions }, null, 2));
 })().catch((error) => { console.error(error); process.exitCode = 1; });
