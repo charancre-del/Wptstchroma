@@ -43,7 +43,8 @@ All currently actionable theme, content-safety, crawl, responsive, accessibility
 - All 24 campus pages returned HTTP 200 and rendered their verified campus-specific license.
 - Focused location/campus QA passed at desktop, tablet portrait, and mobile with location sorting and popup interactions passing.
 - Full staging deploy completed: `20260718-192809` with a remote rollback backup.
-- Latest compiled assets in the staging manifest: `assets/css/main.6f53499ab66f.css` and `assets/js/main.94a4d988cb77.js`.
+- Latest compiled assets in the staging manifest: `assets/css/main.0c91733f7c7d.css` and `assets/js/main.94a4d988cb77.js`.
+- Curriculum typography was normalized to the site-wide Outfit body font on 2026-07-19 and verified at desktop, tablet, and mobile widths without horizontal overflow; Playfair Display remains the heading font.
 - Cross-device browser QA evidence: `reports/production-goal-2026-07-17/qa/template-current/`.
 - Accessibility evidence: `reports/production-goal-2026-07-17/qa/axe-current/`.
 - Program template fallback section remains verified on Preschool, Kindergarten, and Rising Kindergarten.

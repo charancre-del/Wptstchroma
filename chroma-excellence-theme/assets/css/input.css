@@ -6197,7 +6197,7 @@
   --pp-spectrum: linear-gradient(90deg, #7d5ba6, #4a6c7c, #4a7c59, #c2a024, #a84b38);
   background: linear-gradient(180deg, var(--pp-cream), #fff);
   color: var(--pp-ink);
-  font-family: var(--font-sans, "Nunito Sans", system-ui, sans-serif);
+  font-family: var(--font-sans, Outfit, "Outfit-Fallback", system-ui, sans-serif);
   overflow-x: hidden;
 }
 
@@ -6486,7 +6486,7 @@
 }
 
 .pp-prism-label {
-  font-family: var(--font-sans, "Nunito Sans", system-ui, sans-serif);
+  font-family: var(--font-sans, Outfit, "Outfit-Fallback", system-ui, sans-serif);
   font-size: 12.5px;
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -6796,7 +6796,7 @@
 .pp-teacher-note span {
   color: var(--pp-rust);
   display: block;
-  font-family: var(--font-sans, "Nunito Sans", system-ui, sans-serif);
+  font-family: var(--font-sans, Outfit, "Outfit-Fallback", system-ui, sans-serif);
   font-size: 12px;
   font-style: normal;
   font-weight: 800;
