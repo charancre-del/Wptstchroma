@@ -76,10 +76,18 @@ All required deliverable files exist:
 
 The current evidence-based staging score is **8.0/10**, not 10/10.
 
+## Final staging and Git evidence
+
+- Commit `693a17d75666aaa22e045e49293610142662745f` was pushed to `origin/codex/theme-redesign`.
+- All 53 changed theme/plugin files were checksum-compared against staging and matched exactly.
+- Homepage, Curriculum, Parents, Programs, Locations, About, Contact, and Careers returned HTTP 200.
+- Every smoke-tested page loaded `main.6f53499ab66f.css` and `main.94a4d988cb77.js`.
+- No live-site files or settings were changed during this completion pass.
+
 ## Completion decision
 
 - **Theme/staging implementation:** internally complete for all safe work that does not require owner facts or authenticated external systems.
 - **Automated staging QA:** passed across the complete 162-check responsive matrix and 140-check accessibility matrix.
-- **Git/release reproducibility:** completed by committing and pushing the intended source and evidence changes before handoff.
+- **Git/release reproducibility:** completed in commit `693a17d75666aaa22e045e49293610142662745f` on `codex/theme-redesign`.
 - **Full governing prompt:** not complete until the external and production gates in `EXTERNAL-RELEASE-GATES.md` are cleared.
 - **Live launch:** not proven ready by this verification alone.
