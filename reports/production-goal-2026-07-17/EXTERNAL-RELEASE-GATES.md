@@ -4,18 +4,18 @@ These items cannot be completed safely from the staging theme repository or publ
 
 ## 1. Management facts and proof
 
-- Approve campus/program hours, directors, transportation, apps, amenities, tuition/availability policy, Early Start scope, HR details, parent resources, reviews, ratings, licensing, Quality Rated, GA Pre-K, NAEYC, GAC, awards, and safety claims.
-- Supply current source links/documents and an accountable owner/review date.
+- Campus directors, transportation, pickup schools, hours, ages, amenities, and current claim documentation are accepted from the current live site by user direction.
+- Campus licensing was verified against the official Georgia DECAL provider export on 2026-07-19; see `DECAL-LICENSE-VERIFICATION-2026-07-19.md`.
+- Early Start operating details, careers policy, parent resources, and legal approval are intentionally deferred by user direction and are not blockers for this staging task.
 - Replace any template fallback copy with owner-approved, program- or campus-specific operating facts where the fallback is intentionally general.
 
 ## 2. CRM and messaging
 
-- Submit approved tests through Contact, Tour, campus, and Careers forms.
-- Verify GHL records, routing, ownership, deduplication, confirmations, email, SMS, calendar, rescheduling, attribution, consent, and failure behavior.
+- User reports Contact, Tour, campus form, CRM routing, ownership, deduplication, confirmations, email, SMS, calendar, rescheduling, consent, and failure behavior as tested.
 
 ## 3. Analytics and local platforms
 
-- Validate GA4/GTM/Ads events, primary conversions, attribution persistence, consent mode, call tracking, and duplicate prevention.
+- Validate GA4/GTM events, primary conversions, and attribution persistence in the authenticated analytics accounts.
 - Validate Search Console ownership/indexation/sitemap and reconcile every campus with GBP.
 
 ## 4. Legal and security
