@@ -20,7 +20,7 @@ These items cannot be completed safely from the staging theme repository or publ
 
 ## 4. Legal and security
 
-- Legal approval for Privacy, Terms, cookie/consent mode, SMS/email language, vendor processing, retention, child data, and therapy/health-data routing.
+- Legal approval for Privacy, Terms, cookie/consent mode, SMS/email language, vendor processing, retention, child data, and therapy/health-data routing is intentionally deferred by user direction and is not an active blocker in this scope.
 - Complete approved production security scan and sensitive-data review.
 
 ## 5. Production cutover
@@ -38,3 +38,4 @@ These items cannot be completed safely from the staging theme repository or publ
 - Purge or bypass the stale Cloudflare/Rocket `/robots.txt` cache object. The staging origin and cache-busted URL are correct, but the plain cached object still serves the older staging block.
 - Measure production field INP/RUM/CrUX; Lighthouse cannot provide INP.
 - Tune production TTFB/caching and reassess map/analytics costs after cache warm-up.
+- Complete post-cutover Safari/iOS and manual screen-reader spot checks.
