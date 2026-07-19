@@ -13,7 +13,8 @@ get_header();
 $page_id = get_the_ID();
 
 // Get last updated date
-$last_updated = chroma_get_translated_meta($page_id, 'privacy_last_updated') ?: 'December 26, 2024';
+$last_updated = chroma_get_translated_meta($page_id, 'privacy_last_updated') ?: get_the_modified_date('F j, Y', $page_id);
+$privacy_phone = function_exists('chroma_global_phone') && chroma_global_phone() ? chroma_global_phone() : '470-470-6589';
 
 // Default content if no sections are set
 $default_sections = array(
@@ -43,7 +44,7 @@ $default_sections = array(
     'title' => __('Information Security', 'chroma-excellence'),
     'content' => '<p>' . __('We take the security of your personal information seriously. We implement appropriate technical and organizational measures to protect your data, including:', 'chroma-excellence') . '</p>
         <ul>
-            <li>' . __('Secure, encrypted storage of sensitive information', 'chroma-excellence') . '</li>
+            <li>' . __('Reasonable administrative, technical, and physical safeguards for sensitive information', 'chroma-excellence') . '</li>
             <li>' . __('Limited access to personal data on a need-to-know basis', 'chroma-excellence') . '</li>
             <li>' . __('Regular staff training on privacy and data protection', 'chroma-excellence') . '</li>
             <li>' . __('Physical security measures at all our locations', 'chroma-excellence') . '</li>
@@ -66,7 +67,7 @@ $default_sections = array(
     'content' => '<p>' . __('If you have any questions about this Privacy Policy or our data practices, please contact us:', 'chroma-excellence') . '</p>
         <p><strong>' . __('Chroma Early Learning Academy', 'chroma-excellence') . '</strong><br>
         ' . __('Email: privacy@chromaela.com', 'chroma-excellence') . '<br>
-        ' . __('Phone: (404) 800-8000', 'chroma-excellence') . '</p>
+        ' . sprintf(__('Phone: %s', 'chroma-excellence'), esc_html($privacy_phone)) . '</p>
         <p>' . __('This policy may be updated from time to time. We will notify you of any material changes by posting the new policy on this page with an updated "Last Updated" date.', 'chroma-excellence') . '</p>'
   ),
 );
@@ -77,6 +78,10 @@ $has_custom_content = false;
 for ($i = 1; $i <= 5; $i++) {
   $title = chroma_get_translated_meta($page_id, "privacy_section{$i}_title");
   $content = chroma_get_translated_meta($page_id, "privacy_section{$i}_content");
+
+  if (3 === $i && (false !== stripos((string) $content, 'Procare') || false !== stripos((string) $content, 'camera feeds are encrypted'))) {
+    $content = '<p class="mb-4">' . esc_html__('We use approved systems and reasonable administrative, technical, and physical safeguards to protect family and student information. Access is limited to authorized team members who need the information for enrollment, care, safety, communication, or legal compliance. Campus-specific communication and security tools may vary.', 'chroma-excellence') . '</p>';
+  }
 
   if (!empty($title) || !empty($content)) {
     $has_custom_content = true;

@@ -186,7 +186,7 @@ class Chroma_Fallback_Resolver
         $queries = [];
 
         if ($city) {
-            $queries[] = "best daycare near " . $city . " GA";
+            $queries[] = "daycare near " . $city . " GA";
             $queries[] = "childcare in " . $city . " Georgia";
             $queries[] = "preschool " . $city;
         }

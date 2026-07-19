@@ -59,7 +59,10 @@ $georgia_title = chroma_get_translated_meta($page_id, 'employers_georgia_title')
 $georgia_subtitle = chroma_get_translated_meta($page_id, 'employers_georgia_subtitle') ?: __('Georgia Child Care Tax Credit', 'chroma-excellence');
 $georgia_desc = chroma_get_translated_meta($page_id, 'employers_georgia_desc') ?: __('Georgia maintains its generous <strong>75% credit</strong> for employer-sponsored care costs. New for 2026: Employers can also claim a supplemental credit of <strong>$1,000 per child</strong> for eligible childcare payments provided to employees.', 'chroma-excellence');
 $georgia_link_text = chroma_get_translated_meta($page_id, 'employers_georgia_link_text') ?: __('View Georgia DOR Details', 'chroma-excellence');
-$georgia_link_url = chroma_get_translated_meta($page_id, 'employers_georgia_link_url') ?: 'https://dor.georgia.gov/tax-credits-business';
+$georgia_link_url = chroma_get_translated_meta($page_id, 'employers_georgia_link_url') ?: 'https://dor.georgia.gov/taxes/tax-credits';
+if ('https://dor.georgia.gov/tax-credits-business' === untrailingslashit($georgia_link_url)) {
+	$georgia_link_url = 'https://dor.georgia.gov/taxes/tax-credits';
+}
 
 $tax_disclaimer = chroma_get_translated_meta($page_id, 'employers_tax_disclaimer') ?: __('Note: Please consult with your corporate tax professional to verify eligibility and application details.', 'chroma-excellence');
 

@@ -1,0 +1,630 @@
+[
+  {
+    "name": "home",
+    "route": "/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/?codex_axe=1784418021773",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "about",
+    "route": "/about/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/about/?codex_axe=1784418027293",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "curriculum",
+    "route": "/curriculum/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/curriculum/?codex_axe=1784418030966",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "parents",
+    "route": "/parents/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/parents/?codex_axe=1784418034696",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "programs",
+    "route": "/programs/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/?codex_axe=1784418038161",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "program-single",
+    "route": "/programs/infant-care/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/infant-care/?codex_axe=1784418040681",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "program-pre-k",
+    "route": "/programs/ga-pre-k/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/ga-pre-k/?codex_axe=1784418043155",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "program-kindergarten",
+    "route": "/programs/kindergarten/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/kindergarten/?codex_axe=1784418045616",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "program-rising-pre-k",
+    "route": "/programs/rising-pre-k/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/rising-pre-k/?codex_axe=1784418048389",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "program-rising-kindergarten",
+    "route": "/programs/rising-kindergarten/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/rising-kindergarten/?codex_axe=1784418050962",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "locations",
+    "route": "/locations/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/locations/?codex_axe=1784418053427",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "target-size",
+        "impact": "serious",
+        "help": "All touch targets must be 24px large, or leave sufficient space",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/target-size?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              "a[href=\"tel:4704706589\"]"
+            ],
+            "html": "<a class=\"chroma-location-card-action\" href=\"tel:4704706589\">\n                                            Call                                        </a>",
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 56.4px by 11.9px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 10.8px instead of at least 24px."
+          },
+          {
+            "target": [
+              "article[data-location-id=\"4406\"] > .pb-5.gap-2.px-5 > .chroma-location-card-action[rel=\"noopener noreferrer\"][target=\"_blank\"]"
+            ],
+            "html": "<a class=\"chroma-location-card-action\" href=\"https://www.google.com/maps/dir/?api=1&destination=1205%20Upper%20Burris%20Road%2C%20Canton%2C%20GA%2C%2030114\" target=\"_blank\" rel=\"noopener noreferrer\">",
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 93px by 11.9px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 10.8px instead of at least 24px."
+          },
+          {
+            "target": [
+              "article[data-location-id=\"4406\"] > .pb-5.gap-2.px-5 > .chroma-location-card-action:nth-child(3)"
+            ],
+            "html": "<a class=\"chroma-location-card...\" href=\"https://x3yyntt5tp-s...\">",
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 60px by 11.9px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 10.8px instead of at least 24px."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "location-single",
+    "route": "/locations/parklake-campus/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/locations/parklake-campus/?codex_axe=1784418056038",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "contact",
+    "route": "/contact-us/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/contact-us/?codex_axe=1784418059387",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "schedule-tour",
+    "route": "/schedule-a-tour/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/schedule-a-tour/?codex_axe=1784418063360",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "summer-camp",
+    "route": "/summer-camp-discover-go/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/summer-camp-discover-go/?codex_axe=1784418067438",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "early-start",
+    "route": "/chroma-early-start/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/chroma-early-start/?codex_axe=1784418070742",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "careers",
+    "route": "/careers/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/careers/?codex_axe=1784418073222",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "career-single",
+    "route": "/career/assistant-director-childcare-center/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/career/assistant-director-childcare-center/?codex_axe=1784418076290",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "employers",
+    "route": "/employers/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/employers/?codex_axe=1784418078636",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "communities",
+    "route": "/communities/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/communities/?codex_axe=1784418081038",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "parent-portal",
+    "route": "/parent-portal/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/parent-portal/?codex_axe=1784418084261",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "post-single",
+    "route": "/2026/05/22/georgia-pre-k-parent-guide/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/2026/05/22/georgia-pre-k-parent-guide/?codex_axe=1784418086170",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "newsroom",
+    "route": "/newsroom/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/newsroom/?codex_axe=1784418090010",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "stories",
+    "route": "/stories/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/stories/?codex_axe=1784418091637",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "privacy",
+    "route": "/privacy-policy/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/privacy-policy/?codex_axe=1784418095053",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "terms",
+    "route": "/terms-of-service/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/terms-of-service/?codex_axe=1784418097053",
+    "status": 200,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "not-found",
+    "route": "/codex-production-qa-not-found/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/codex-production-qa-not-found/?codex_axe=1784418099162",
+    "status": 404,
+    "error": "",
+    "violations": []
+  },
+  {
+    "name": "spanish-home",
+    "route": "/es/",
+    "viewport": "tablet-portrait",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/es/?codex_axe=1784418100591",
+    "status": 200,
+    "error": "",
+    "violations": [
+      {
+        "id": "region",
+        "impact": "moderate",
+        "help": "All page content should be contained by landmarks",
+        "helpUrl": "https://dequeuniversity.com/rules/axe/4.11/region?application=axeAPI",
+        "nodes": [
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--avatar"
+              ]
+            ],
+            "html": "<img alt=\"Avatar\" src=\"https://images.leadconnectorhq.com/image/f_webp/q_100/r_180/u_https://assets.cdn.filesafe.space/euN4JvLvKNYTYh4Xyh3p/media/66e2f67dd757ddbd6b19ce7c.png\" class=\"lc_text-widget_prompt--avatar circular-image\" width=\"48\" height=\"48\" decoding=\"async\">",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          },
+          {
+            "target": [
+              [
+                "chat-widget",
+                ".lc_text-widget_prompt--prompt-text"
+              ]
+            ],
+            "html": "<div class=\"lc_text-widget_prompt--prompt-text\">Book your appointment here!</div>",
+            "failureSummary": "Fix any of the following:\n  Some page content is not contained by landmarks"
+          }
+        ]
+      }
+    ]
+  }
+]

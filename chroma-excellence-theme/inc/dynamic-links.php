@@ -329,7 +329,15 @@ if (!function_exists('chroma_normalize_owned_url')) {
         }
 
         $path = isset($parts['path']) && $parts['path'] !== '' ? $parts['path'] : '/';
-        $normalized = home_url($path);
+        $is_system_path = (bool) preg_match('#^/(?:wp-admin|wp-content|wp-includes|wp-json)(?:/|$)#i', $path);
+        $is_file = (bool) preg_match('/\.[a-z0-9]{2,8}$/i', $path);
+
+        // Media and WordPress system URLs must remain rooted at the active
+        // site origin. Calling home_url() here would pass them through the
+        // Spanish route filter and incorrectly create /es/wp-content URLs.
+        $normalized = ($is_system_path || $is_file)
+            ? rtrim((string) get_option('home'), '/') . '/' . ltrim($path, '/')
+            : home_url($path);
 
         if (!empty($parts['query'])) {
             $normalized .= '?' . $parts['query'];

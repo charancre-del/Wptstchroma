@@ -47,7 +47,7 @@ while (have_posts()):
 			}
 		}
 	}
-	$google_rating = chroma_get_translated_meta($location_id, 'location_google_rating') ?: '4.9';
+	$google_rating = chroma_get_translated_meta($location_id, 'location_google_rating');
 	$hours = chroma_get_translated_meta($location_id, 'location_hours') ?: __('Contact campus for current hours', 'chroma-excellence');
 	$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('6w - 12y', 'chroma-excellence');
 
@@ -177,7 +177,7 @@ while (have_posts()):
 					</div>
 
 					<!-- Quick Stats -->
-					<div class="grid grid-cols-3 gap-6 border-t border-brand-ink/5 pt-8">
+					<div class="grid <?php echo $google_rating ? 'grid-cols-3' : 'grid-cols-2'; ?> gap-6 border-t border-brand-ink/5 pt-8">
 						<div>
 							<div class="text-2xl font-serif font-bold text-chroma-red mb-1">
 								<?php echo esc_html($ages_served); ?>
@@ -186,14 +186,16 @@ while (have_posts()):
 								<?php _e('Ages Served', 'chroma-excellence'); ?>
 							</div>
 						</div>
-						<div>
-							<div class="text-2xl font-serif font-bold text-chroma-yellow mb-1">
-								<?php echo esc_html($google_rating); ?>
+						<?php if ($google_rating): ?>
+							<div>
+								<div class="text-2xl font-serif font-bold text-chroma-yellow mb-1">
+									<?php echo esc_html($google_rating); ?>
+								</div>
+								<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold">
+									<?php _e('Google Rating', 'chroma-excellence'); ?>
+								</div>
 							</div>
-							<div class="text-[10px] uppercase tracking-wider text-brand-ink/80 font-semibold">
-								<?php _e('Google Rating', 'chroma-excellence'); ?>
-							</div>
-						</div>
+						<?php endif; ?>
 						<div>
 							<div class="text-2xl font-serif font-bold text-chroma-green mb-1">
 								<?php echo esc_html($hours); ?>
@@ -578,7 +580,7 @@ while (have_posts()):
 		<section class="reviews white borderY py-20 lg:py-24 bg-white border-y border-chroma-blue/10">
 			<div class="max-w-6xl mx-auto px-4 lg:px-6">
 				<div class="chroma-reviews-grid reveal">
-					<aside class="reviewSide">
+					<div class="reviewSide">
 						<div>
 							<div class="kicker font-bold tracking-[0.2em] text-xs uppercase mb-3">
 								<?php esc_html_e('From this campus', 'chroma-excellence'); ?>
@@ -591,7 +593,7 @@ while (have_posts()):
 						<p class="text-white/75 leading-relaxed">
 							<?php printf(esc_html__('Real reviews from parents at the %s campus.', 'chroma-excellence'), esc_html(get_the_title())); ?>
 						</p>
-					</aside>
+					</div>
 					<article class="chroma-review-card">
 						<blockquote>
 							<?php echo esc_html(wp_trim_words($hero_review_text ?: __("We absolutely love Chroma! The teachers are so caring and my child has learned so much.", 'chroma-excellence'), 34, '…')); ?>

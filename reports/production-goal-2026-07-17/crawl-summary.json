@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-07-19T00:08:39.726Z",
+  "auditedUrls": 466,
+  "statusCounts": {
+    "200": 466
+  },
+  "errors": 0,
+  "non200": 0,
+  "missingTitles": 0,
+  "duplicateTitles": 0,
+  "missingDescriptions": 0,
+  "missingH1": 0,
+  "multipleH1": 0,
+  "missingCanonical": 0,
+  "canonicalMismatch": 0,
+  "noindexInSitemap": 0,
+  "invalidJsonLdPages": 0,
+  "suspiciousCopyPages": 0,
+  "veryThinPages": 0
+}

@@ -23,9 +23,7 @@ class Chroma_Near_Me_Pages
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_near_me_page']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
-        add_filter('chroma_sitemap_urls', [$this, 'add_to_unified_sitemap']);
-
-        // Note: Sitemap providers are registered by Chroma_Sitemap_Integrator::register_providers()
+        // Near-me routes are personalized UX helpers, not indexable sitemap URLs.
     }
 
 

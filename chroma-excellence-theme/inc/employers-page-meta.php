@@ -454,7 +454,7 @@ function chroma_seed_employers_page_defaults( $post_id ) {
 		'employers_georgia_subtitle'   => 'Georgia Child Care Tax Credit',
 		'employers_georgia_desc'       => 'Georgia maintains its generous <strong>75% credit</strong> for employer-sponsored care costs. New for 2026: Employers can also claim a supplemental credit of <strong>$1,000 per child</strong> for eligible childcare payments provided to employees.',
 		'employers_georgia_link_text'  => 'View Georgia DOR Details',
-		'employers_georgia_link_url'   => 'https://dor.georgia.gov/tax-credits-business',
+		'employers_georgia_link_url'   => 'https://dor.georgia.gov/taxes/tax-credits',
 
 		'employers_tax_disclaimer' => 'Note: Please consult with your corporate tax professional to verify eligibility and application details.',
 

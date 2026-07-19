@@ -1,0 +1,10 @@
+{
+  "generatedAt": "2026-07-19T00:20:37.909Z",
+  "auditedPrograms": 6,
+  "requirementRows": 50,
+  "statusCounts": {
+    "Present": 50
+  },
+  "missing": [],
+  "ownerReview": []
+}

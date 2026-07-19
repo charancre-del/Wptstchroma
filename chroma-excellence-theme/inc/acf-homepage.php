@@ -49,7 +49,7 @@ function chroma_home_default_hero()
                 'secondary_url' => chroma_get_program_archive_url(),
                 'pill_format' => __('%d Metro Atlanta Locations', 'chroma-excellence'),
                 'supporting_text' => __('Our experienced educators support each child\'s growth with warm relationships, intentional learning, and close family partnership.', 'chroma-excellence'),
-                'rating_label' => __('4.8 Average Parent Rating', 'chroma-excellence'),
+                'rating_label' => __('Parent stories from our campuses', 'chroma-excellence'),
                 'quality_badge_text' => __('Programs, credentials, and availability vary by campus', 'chroma-excellence'),
                 'fallback_label' => __('Hero Image Coming Soon', 'chroma-excellence'),
                 'badge_heading' => __('Kindergarten Ready', 'chroma-excellence'),
@@ -62,9 +62,9 @@ function chroma_home_default_stats()
 {
         return array(
                 array('key' => 'locations', 'value' => '0', 'label' => __('Metro campuses', 'chroma-excellence')),
-                array('key' => 'families_served', 'value' => '2,000+', 'label' => __('Children enrolled', 'chroma-excellence')),
-                array('key' => 'avg_parent_rating', 'value' => '4.8', 'label' => __('Avg parent rating', 'chroma-excellence')),
-                array('value' => '6w–12y', 'label' => __('Age range', 'chroma-excellence')),
+                array('key' => 'programs', 'value' => '0', 'label' => __('Programs', 'chroma-excellence')),
+                array('key' => 'founded', 'value' => '2022', 'label' => __('Founded', 'chroma-excellence')),
+                array('key' => 'age_range', 'value' => '6w–12y', 'label' => __('Age range', 'chroma-excellence')),
         );
 }
 
@@ -91,7 +91,7 @@ function chroma_home_default_prismpath()
                         array(
                                 'badge' => '',
                                 'heading' => __('Expert Care, Extended Family.', 'chroma-excellence'),
-                                'text' => __('Our educators are state-certified professionals who understand that the most important credential is kindness.', 'chroma-excellence'),
+                                'text' => __('Our educators build warm, responsive relationships and help each child feel known, secure, and ready to grow.', 'chroma-excellence'),
                                 'button' => __('Meet the Team', 'chroma-excellence'),
                                 'url' => '/about/',
                                 'icon_bg' => 'fa-solid fa-heart',
@@ -100,19 +100,19 @@ function chroma_home_default_prismpath()
                         array(
                                 'badge' => '',
                                 'heading' => __('Wholesome Fuel', 'chroma-excellence'),
-                                'text' => __('Organic, balanced meals served family-style to fuel growing minds.', 'chroma-excellence'),
+                                'text' => __('Meal and snack offerings are planned for young children and can be confirmed with each campus.', 'chroma-excellence'),
                                 'icon' => 'fa-solid fa-apple-whole',
                         ),
                         array(
                                 'badge' => '',
                                 'heading' => __('Uncompromised Safety', 'chroma-excellence'),
-                                'text' => __('Secure, monitored facilities with open-door transparency for parents.', 'chroma-excellence'),
+                                'text' => __('Campus teams follow required licensing, supervision, and visitor procedures that families can review during a tour.', 'chroma-excellence'),
                                 'icon' => 'fa-solid fa-shield-halved',
                         ),
                 ),
                 'readiness' => array(
                         'heading' => __('Kindergarten Readiness', 'chroma-excellence'),
-                        'description' => __('Our graduates enter school confident, socially capable, and academically prepared.', 'chroma-excellence'),
+                        'description' => __('Our programs build the social, emotional, language, and learning habits children use as they move toward kindergarten.', 'chroma-excellence'),
                 ),
         );
 }
@@ -179,6 +179,10 @@ function chroma_home_hero()
                 $hero['quality_badge_text'] = $defaults['quality_badge_text'];
         }
 
+        if (preg_match('/\b\d(?:\.\d)?\b.*(?:rating|stars?)/i', $hero['rating_label'])) {
+                $hero['rating_label'] = $defaults['rating_label'];
+        }
+
         $hero['pill_format'] = (string) preg_replace('/%d\s*\+/u', '%d', $hero['pill_format']);
 
         return $hero;
@@ -205,6 +209,8 @@ function chroma_home_infer_stat_key($stat, $index = 0)
         $label = chroma_home_normalize_stat_text($stat['label'] ?? '');
         $known_labels = array(
                 'locations' => array('locations', 'metro campuses', 'campuses', 'metro atlanta locations', 'metro atlanta campuses', 'metro locations'),
+                'programs' => array('programs', 'learning programs', 'age based programs'),
+                'founded' => array('founded', 'established'),
                 'families_served' => array('families served', 'children enrolled', 'children served', 'students', 'students served', 'families'),
                 'avg_parent_rating' => array('avg parent rating', 'average parent rating', 'parent rating', 'rating'),
                 'age_range' => array('age range', 'ages served', 'age groups'),
@@ -236,6 +242,12 @@ function chroma_home_infer_stat_key($stat, $index = 0)
 function chroma_home_get_location_count()
 {
         $counts = post_type_exists('location') ? wp_count_posts('location') : null;
+        return isset($counts->publish) ? max(0, (int) $counts->publish) : 0;
+}
+
+function chroma_home_get_program_count()
+{
+        $counts = post_type_exists('program') ? wp_count_posts('program') : null;
         return isset($counts->publish) ? max(0, (int) $counts->publish) : 0;
 }
 
@@ -302,12 +314,18 @@ function chroma_home_stats()
         $colors = array('chroma-red', 'chroma-yellow', 'chroma-blue', 'chroma-green');
         $index = 0;
         $location_count = chroma_home_get_location_count();
+        $program_count = chroma_home_get_program_count();
 
         foreach ($stats as $stat) {
                 $key = chroma_home_infer_stat_key($stat, $index);
+                if (in_array($key, array('families_served', 'avg_parent_rating', 'years_excellence'), true)) {
+                        continue;
+                }
                 $value = sanitize_text_field($stat['value'] ?? '');
                 if ($key === 'locations') {
                         $value = chroma_home_format_location_stat_value($value, $location_count);
+                } elseif ($key === 'programs' && $program_count > 0) {
+                        $value = (string) $program_count;
                 }
 
                 $cleaned[] = array(
@@ -317,6 +335,24 @@ function chroma_home_stats()
                         'color' => $colors[$index % count($colors)],
                 );
                 $index++;
+        }
+
+        $present_keys = wp_list_pluck($cleaned, 'key');
+        if (!in_array('programs', $present_keys, true) && $program_count > 0) {
+                $cleaned[] = array(
+                        'key' => 'programs',
+                        'value' => (string) $program_count,
+                        'label' => __('Programs', 'chroma-excellence'),
+                        'color' => $colors[count($cleaned) % count($colors)],
+                );
+        }
+        if (!in_array('founded', $present_keys, true)) {
+                $cleaned[] = array(
+                        'key' => 'founded',
+                        'value' => '2022',
+                        'label' => __('Founded', 'chroma-excellence'),
+                        'color' => $colors[count($cleaned) % count($colors)],
+                );
         }
 
         return $cleaned;
@@ -411,10 +447,15 @@ function chroma_home_prismpath_panels()
         $cards = array_map(
                 function ($card, $index) use ($defaults) {
                         $default_card = $defaults['cards'][$index] ?? array();
+                        $text = sanitize_textarea_field($card['text'] ?? $default_card['text'] ?? '');
+                        if (preg_match('/state-certified professionals|organic, balanced meals|open-door transparency/i', $text)) {
+                                $text = sanitize_textarea_field($default_card['text'] ?? '');
+                        }
+
                         return array(
                                 'badge' => sanitize_text_field($card['badge'] ?? $default_card['badge'] ?? ''),
                                 'heading' => sanitize_text_field($card['heading'] ?? $default_card['heading'] ?? ''),
-                                'text' => sanitize_textarea_field($card['text'] ?? $default_card['text'] ?? ''),
+                                'text' => $text,
                                 'button' => sanitize_text_field($card['button'] ?? $default_card['button'] ?? ''),
                                 'url' => chroma_get_localized_url(esc_url_raw($card['url'] ?? $default_card['url'] ?? '')),
                                 'icon' => sanitize_text_field(($card['icon'] ?? '') ?: ($default_card['icon'] ?? '')),
@@ -625,7 +666,7 @@ function chroma_home_default_faq_items()
                 ),
                 array(
                         'question' => __('Are meals and snacks included?', 'chroma-excellence'),
-                        'answer' => __('Yes. Through the Child and Adult Care Food Program (CACFP).', 'chroma-excellence'),
+                        'answer' => __('Meal and snack offerings vary by campus. Contact your preferred location for current details, including available food-program participation.', 'chroma-excellence'),
                 ),
                 array(
                         'question' => __('How do you communicate with parents?', 'chroma-excellence'),
@@ -1355,7 +1396,7 @@ function chroma_format_location_count_text($text, $location_count)
 function chroma_home_locations_preview()
 {
         $token = chroma_get_last_changed('locations');
-        $cache_key = 'home_locations_preview:v2:' . $token;
+        $cache_key = 'home_locations_preview:v3:' . $token;
         $cached = wp_cache_get($cache_key, 'chroma');
 
         if (false !== $cached) {
@@ -1380,6 +1421,44 @@ function chroma_home_locations_preview()
         $heading_template = sanitize_text_field(chroma_get_translated_meta($post_id, 'home_locations_heading', true) ?: chroma_get_theme_mod('chroma_home_locations_heading', 'Neighborhood locations across Metro Atlanta'));
         $heading = chroma_format_location_count_text($heading_template, $location_count);
 
+        $programs_by_location = array();
+        $programs = get_posts(array(
+                'post_type' => 'program',
+                'post_status' => 'publish',
+                'posts_per_page' => 100,
+                'orderby' => 'title',
+                'order' => 'ASC',
+                'fields' => 'ids',
+                'no_found_rows' => true,
+                'update_post_meta_cache' => true,
+        ));
+
+        foreach ($programs as $program_id) {
+                $selected_locations = get_post_meta($program_id, 'program_locations', true);
+                if (!is_array($selected_locations)) {
+                        continue;
+                }
+
+                $program_slug = sanitize_title((string) get_post_field('post_name', $program_id));
+                $program_title = sanitize_title((string) get_the_title($program_id));
+                $program_keys = array_filter(array_unique(array($program_slug, $program_title)));
+
+                foreach (array_map('intval', $selected_locations) as $selected_location_id) {
+                        if (!$selected_location_id) {
+                                continue;
+                        }
+                        $programs_by_location[$selected_location_id] = array_merge(
+                                $programs_by_location[$selected_location_id] ?? array(),
+                                $program_keys
+                        );
+                }
+        }
+
+        foreach ($programs_by_location as &$program_keys) {
+                $program_keys = array_values(array_unique(array_filter($program_keys)));
+        }
+        unset($program_keys);
+
         $map_points = array();
         $featured = array();
         $grouped = array();
@@ -1400,11 +1479,25 @@ function chroma_home_locations_preview()
                         $term_labels[] = sanitize_text_field($term->name);
                 }
 
+                $location_programs = $programs_by_location[$loc_id] ?? array();
+                $school_pickups = trim((string) get_post_meta($loc_id, 'location_school_pickups', true));
+                $has_transportation = '' !== $school_pickups;
+                $has_ga_pre_k = function_exists('chroma_location_has_ga_pre_k')
+                        ? chroma_location_has_ga_pre_k($loc_id)
+                        : false;
+                $full_address = trim(implode(', ', array_filter(array(
+                        $fields['address'],
+                        $fields['city'],
+                        $fields['state'],
+                        $fields['zip'],
+                ))));
+
                 $location_data = array(
                         'id' => $loc_id,
                         'title' => $title,
                         'city' => $fields['city'],
                         'state' => $fields['state'],
+                        'zip' => $fields['zip'],
                         'address' => $fields['address'],
                         'phone' => $fields['phone'],
                         'email' => sanitize_email($fields['email']),
@@ -1412,6 +1505,11 @@ function chroma_home_locations_preview()
                         'image' => get_the_post_thumbnail_url($loc_id, 'medium_large') ?: '',
                         'region_slugs' => $term_slugs,
                         'region_labels' => $term_labels,
+                        'program_slugs' => $location_programs,
+                        'has_ga_pre_k' => $has_ga_pre_k,
+                        'has_transportation' => $has_transportation,
+                        'directions_url' => $full_address ? 'https://www.google.com/maps/dir/?api=1&destination=' . rawurlencode($full_address) : '',
+                        'tour_url' => add_query_arg('campus', $loc_id, home_url('/schedule-a-tour/')),
                 );
 
                 if ($fields['latitude'] && $fields['longitude']) {
@@ -1423,12 +1521,16 @@ function chroma_home_locations_preview()
                                 'url' => $permalink,
                                 'city' => $fields['city'],
                                 'state' => $fields['state'],
+                                'zip' => $fields['zip'],
                                 'address' => $fields['address'],
                                 'phone' => $fields['phone'],
                                 'email' => sanitize_email($fields['email']),
                                 'image' => get_the_post_thumbnail_url($loc_id, 'medium_large') ?: '',
                                 'region_slugs' => $term_slugs,
                                 'region_labels' => $term_labels,
+                                'program_slugs' => $location_programs,
+                                'has_ga_pre_k' => $has_ga_pre_k,
+                                'has_transportation' => $has_transportation,
                         );
                 }
 

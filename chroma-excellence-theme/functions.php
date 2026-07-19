@@ -769,10 +769,9 @@ add_filter('wp_sitemaps_enabled', '__return_false');
  * Single unified sitemap at /sitemap.xml.
  *
  * Completely bypasses WordPress's native sitemap system and its rewrite rules.
- * Generates one flat XML sitemap containing ALL URLs:
- * - Published posts, pages, locations, programs, cities
- * - Combo pages (program-in-city-state)
- * - Near-me pages
+ * Generates one flat XML sitemap containing approved indexable URLs:
+ * - Published posts, pages, locations, programs, and approved cities
+ * - Search-approved generated routes registered through chroma_sitemap_urls
  * - Spanish /es/ variants only when translated content is available
  */
 function chroma_serve_custom_sitemap()
@@ -860,6 +859,39 @@ function chroma_get_standard_sitemap_urls()
     }
 
     foreach ($posts as $post) {
+        // The secure Parent Portal is intentionally noindex and must not be
+        // advertised as an organic-search landing page in the public sitemap.
+        if (
+            $post->post_type === 'page'
+            && in_array($post->post_name, ['parent-portal', 'blog'], true)
+        ) {
+            continue;
+        }
+
+        if (
+            $post->post_type === 'post'
+            && function_exists('chroma_is_legacy_local_doorway_post')
+            && chroma_is_legacy_local_doorway_post($post->ID)
+        ) {
+            continue;
+        }
+
+        if (
+            $post->post_type === 'post'
+            && function_exists('chroma_is_unfinished_empty_post')
+            && chroma_is_unfinished_empty_post($post->ID)
+        ) {
+            continue;
+        }
+
+        if (
+            $post->post_type === 'city'
+            && function_exists('chroma_city_is_search_approved')
+            && !chroma_city_is_search_approved($post->ID)
+        ) {
+            continue;
+        }
+
         $permalink = get_permalink($post->ID);
         if (!$permalink)
             continue;
@@ -1169,6 +1201,34 @@ function chroma_post_has_verified_spanish_variant($post_id)
     $alternate_url = trim((string) get_post_meta($post_id, 'alternate_url_es', true));
     if ($alternate_url !== '') {
         return true;
+    }
+
+    $looks_spanish = static function ($value) {
+        $value = trim(wp_strip_all_tags(html_entity_decode((string) $value, ENT_QUOTES, 'UTF-8')));
+        if ($value === '') {
+            return false;
+        }
+        if (preg_match('/[áéíóúüñ¿¡]/iu', $value)) {
+            return true;
+        }
+        $normalized = ' ' . strtolower($value) . ' ';
+        $signals = array(' el ', ' la ', ' los ', ' las ', ' de ', ' del ', ' que ', ' para ', ' con ', ' una ', ' un ', ' niños', ' familias', ' aprendizaje', ' desarrollo', ' programa', ' cuidado', ' maestros', ' padres', ' escuela', ' nuestro', ' nuestra', ' cada ');
+        $matches = 0;
+        foreach ($signals as $signal) {
+            if (strpos($normalized, $signal) !== false) {
+                $matches++;
+            }
+        }
+        return $matches >= 3;
+    };
+
+    $post = get_post($post_id);
+    if ($post instanceof WP_Post && $post->post_type === 'post') {
+        return $looks_spanish(get_post_meta($post_id, '_chroma_es_content', true));
+    }
+
+    if ($post instanceof WP_Post && $post->post_type === 'page' && $post->post_name === 'chroma-early-start') {
+        return $looks_spanish(get_post_meta($post_id, '_chroma_es_content', true));
     }
 
     foreach (array('_chroma_es_title', '_chroma_es_content', '_chroma_es_excerpt', '_chroma_es_meta_description', '_chroma_es_seo_title') as $meta_key) {

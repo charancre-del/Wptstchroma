@@ -161,6 +161,7 @@ while (have_posts()):
 	}
 	?>
 
+	<main id="primary" class="site-main single-program custom-program-v2" role="main">
 	<section class="relative pt-20 pb-20 bg-white">
 		<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chroma-blueLight/60 to-transparent"></div>
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
@@ -340,6 +341,19 @@ while (have_posts()):
 		</div>
 	</section>
 
+	<?php
+	get_template_part(
+		'template-parts/program/required-details',
+		null,
+		array(
+			'program_id' => $program_id,
+			'program_title' => get_the_title($program_id),
+			'program_slug' => 'kindergarten-1',
+			'accent' => '#4A6C7C',
+		)
+	);
+	?>
+
 	<section class="py-20 bg-white border-t border-brand-ink/5">
 		<div class="max-w-5xl mx-auto px-4 lg:px-6">
 			<div class="rounded-[2.5rem] bg-gradient-to-br from-brand-ink to-[#2F4858] text-white p-10 md:p-14 text-center shadow-2xl">
@@ -365,6 +379,7 @@ while (have_posts()):
 			</div>
 		</div>
 	</section>
+	</main>
 
 	<script>
 		(function () {

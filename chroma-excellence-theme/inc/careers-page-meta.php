@@ -120,7 +120,7 @@ function chroma_careers_culture_meta_box_render( $post ) {
 
 	$benefits = array(
 		1 => 'Benefit 1 (Competitive Pay)',
-		2 => 'Benefit 2 (Paid Tuition)',
+		2 => 'Benefit 2 (Professional Learning)',
 		3 => 'Benefit 3 (Health & Wellness)',
 	);
 	?>
@@ -414,16 +414,16 @@ function chroma_seed_careers_page_defaults( $post_id ) {
 		'careers_culture_description' => 'We take care of you, so you can take care of them.',
 
 		'careers_benefit1_icon'  => 'fa-solid fa-money-bill-wave',
-		'careers_benefit1_title' => 'Competitive Pay & 401k',
-		'careers_benefit1_desc'  => 'Above-market salaries, annual performance bonuses, and retirement matching.',
+		'careers_benefit1_title' => 'Role-Based Compensation',
+		'careers_benefit1_desc'  => 'Compensation and available benefits vary by role and location. Current openings include the details for each opportunity.',
 
 		'careers_benefit2_icon'  => 'fa-solid fa-graduation-cap',
-		'careers_benefit2_title' => 'Paid Tuition & CDA',
-		'careers_benefit2_desc'  => 'We pay for your Child Development Associate (CDA) credential and offer college tuition assistance.',
+		'careers_benefit2_title' => 'Professional Learning',
+		'careers_benefit2_desc'  => 'Team members receive role-appropriate onboarding, coaching, and opportunities to build early-childhood expertise.',
 
 		'careers_benefit3_icon'  => 'fa-solid fa-heart-pulse',
-		'careers_benefit3_title' => 'Health & Wellness',
-		'careers_benefit3_desc'  => 'Comprehensive medical, dental, and vision insurance, plus free childcare discounts.',
+		'careers_benefit3_title' => 'A Supportive Workplace',
+		'careers_benefit3_desc'  => 'We aim to create a collaborative environment where educators can grow, contribute, and do meaningful work.',
 
 		'careers_openings_title' => 'Current Opportunities',
 

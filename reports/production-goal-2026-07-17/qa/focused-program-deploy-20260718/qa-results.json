@@ -1,0 +1,290 @@
+[
+  {
+    "pageName": "home",
+    "vp": "desktop",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\home-desktop.png",
+    "scrollWidth": 1425,
+    "clientWidth": 1440,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [
+      "chroma-schedule-tabs bg-white border border-chroma-blue/15 p-1 rounded-2xl flex ",
+      "schedule-tab px-8 py-3 rounded-full text-sm font-bold transition-all duration-30",
+      "w-full flex-shrink-0 chroma-review-card",
+      "BLOCKQUOTE",
+      "flex items-center gap-4"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "home",
+    "vp": "tablet",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\home-tablet.png",
+    "scrollWidth": 805,
+    "clientWidth": 820,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [
+      "BUTTON",
+      "BUTTON",
+      "BUTTON",
+      "BUTTON",
+      "BUTTON"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "home",
+    "vp": "mobile",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\home-mobile.png",
+    "scrollWidth": 375,
+    "clientWidth": 390,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [
+      "absolute -top-24 left-10 w-96 h-96 bg-chroma-red/10 blur-3xl",
+      "is-active",
+      "BUTTON",
+      "BUTTON",
+      "BUTTON"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "curriculum",
+    "vp": "desktop",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\curriculum-desktop.png",
+    "scrollWidth": 1425,
+    "clientWidth": 1440,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "curriculum",
+    "vp": "tablet",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\curriculum-tablet.png",
+    "scrollWidth": 805,
+    "clientWidth": 820,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [
+      "BUTTON",
+      "BUTTON",
+      "BUTTON"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "curriculum",
+    "vp": "mobile",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\curriculum-mobile.png",
+    "scrollWidth": 375,
+    "clientWidth": 390,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [
+      "is-active",
+      "BUTTON",
+      "BUTTON",
+      "BUTTON",
+      "BUTTON"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "locations",
+    "vp": "desktop",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\locations-desktop.png",
+    "scrollWidth": 1425,
+    "clientWidth": 1440,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "locations",
+    "vp": "tablet",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\locations-tablet.png",
+    "scrollWidth": 805,
+    "clientWidth": 820,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "locations",
+    "vp": "mobile",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\locations-mobile.png",
+    "scrollWidth": 375,
+    "clientWidth": 390,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "contact",
+    "vp": "desktop",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\contact-desktop.png",
+    "scrollWidth": 1425,
+    "clientWidth": 1440,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [
+      "absolute top-0 right-0 w-[500px] h-[500px] bg-chroma-greenLight rounded-full blu"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "contact",
+    "vp": "tablet",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\contact-tablet.png",
+    "scrollWidth": 805,
+    "clientWidth": 820,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [
+      "absolute top-0 right-0 w-[500px] h-[500px] bg-chroma-greenLight rounded-full blu",
+      "absolute top-0 right-0 w-64 h-64 bg-chroma-blueLight rounded-full blur-[80px] op"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "contact",
+    "vp": "mobile",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\contact-mobile.png",
+    "scrollWidth": 375,
+    "clientWidth": 390,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [
+      "absolute top-0 right-0 w-[500px] h-[500px] bg-chroma-greenLight rounded-full blu",
+      "absolute top-0 right-0 w-64 h-64 bg-chroma-blueLight rounded-full blur-[80px] op"
+    ],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "preschool",
+    "vp": "desktop",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\preschool-desktop.png",
+    "scrollWidth": 1425,
+    "clientWidth": 1440,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "preschool",
+    "vp": "tablet",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\preschool-tablet.png",
+    "scrollWidth": 805,
+    "clientWidth": 820,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "preschool",
+    "vp": "mobile",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\preschool-mobile.png",
+    "scrollWidth": 375,
+    "clientWidth": 390,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "kindergarten",
+    "vp": "desktop",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\kindergarten-desktop.png",
+    "scrollWidth": 1425,
+    "clientWidth": 1440,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "kindergarten",
+    "vp": "tablet",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\kindergarten-tablet.png",
+    "scrollWidth": 805,
+    "clientWidth": 820,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "kindergarten",
+    "vp": "mobile",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\kindergarten-mobile.png",
+    "scrollWidth": 375,
+    "clientWidth": 390,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "rising-kindergarten",
+    "vp": "desktop",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\rising-kindergarten-desktop.png",
+    "scrollWidth": 1425,
+    "clientWidth": 1440,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "rising-kindergarten",
+    "vp": "tablet",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\rising-kindergarten-tablet.png",
+    "scrollWidth": 805,
+    "clientWidth": 820,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  },
+  {
+    "pageName": "rising-kindergarten",
+    "vp": "mobile",
+    "status": "ok",
+    "file": "C:\\Users\\chara\\AppData\\Local\\Temp\\chroma-goal-qa-20260718-1943\\rising-kindergarten-mobile.png",
+    "scrollWidth": 375,
+    "clientWidth": 390,
+    "horizontalOverflow": false,
+    "hasProgramDetails": false,
+    "overflowSamples": [],
+    "consoleErrors": []
+  }
+]

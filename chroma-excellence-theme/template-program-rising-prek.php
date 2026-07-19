@@ -240,6 +240,19 @@ while (have_posts()):
 		</div>
 	</section>
 
+	<?php
+	get_template_part(
+		'template-parts/program/required-details',
+		null,
+		array(
+			'program_id' => get_the_ID(),
+			'program_title' => get_the_title(),
+			'program_slug' => (string) get_post_field('post_name', get_the_ID()),
+			'accent' => '#4A7C59',
+		)
+	);
+	?>
+
 	<script>
 		(function () {
 			const initRisingPrekChart = function () {

@@ -78,7 +78,9 @@ if (!function_exists('chroma_schema_normalize_site_urls_for_output')) {
             return $value;
         }
 
-        $home = home_url('/');
+        // Use the unfiltered site origin so Spanish routing never prefixes
+        // media/system URLs with /es/ during schema host normalization.
+        $home = trailingslashit((string) get_option('home'));
         $home_host = strtolower((string) wp_parse_url($home, PHP_URL_HOST));
         if ($home_host === '') {
             return $value;
@@ -550,7 +552,7 @@ class Chroma_Schema_Registry
             return;
         }
 
-        $home_host = strtolower((string) wp_parse_url(home_url('/'), PHP_URL_HOST));
+        $home_host = strtolower((string) wp_parse_url((string) get_option('home'), PHP_URL_HOST));
         if ($home_host === '' || in_array($home_host, ['chromaela.com', 'www.chromaela.com'], true)) {
             return;
         }

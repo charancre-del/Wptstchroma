@@ -130,12 +130,12 @@ function chroma_about_hero_meta_box_render( $post ) {
 			<td>
 				<input type="text" id="about_hero_badge_text" name="about_hero_badge_text"
 					   value="<?php echo esc_attr( $hero_badge_text ); ?>"
-					   class="large-text" placeholder="e.g., Established 2022" />
+					   class="large-text" placeholder="e.g., Founded in 2022" />
 				<br>
 				<input type="text" id="_chroma_es_about_hero_badge_text" name="_chroma_es_about_hero_badge_text"
 					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_hero_badge_text', true ) ); ?>"
 					   class="large-text" placeholder="[ES] Badge Text" style="margin-top: 5px;" />
-				<p class="description">Text for the badge at the top (e.g., "Established 2022")</p>
+				<p class="description">Text for the badge at the top (e.g., "Founded in 2022")</p>
 			</td>
 		</tr>
 		<tr>
@@ -1107,23 +1107,23 @@ function chroma_seed_about_page_defaults( $post_id ) {
 
 	// Default values array
 	$defaults = array(
-		'about_hero_badge_text'            => 'Established 2022',
+		'about_hero_badge_text'            => 'Founded in 2022',
 		'about_hero_title'                 => 'More than a school. <span class="text-chroma-yellow italic">A second home.</span>',
 		'about_hero_description'           => 'We founded Chroma on a simple belief: Early education should be a perfect blend of rigorous cognitive development and the comforting warmth of family.',
 		'about_hero_image'                 => 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1000&auto=format&fit=crop',
 		'about_mission_quote'              => '"To cultivate a vibrant community of lifelong learners by blending academic rigor with the nurturing warmth of home, ensuring every child feels seen, valued, and capable."',
 		'about_story_title'                => 'From one classroom to a community.',
-		'about_story_paragraph1'           => 'Chroma Early Learning Academy began in Canton in 2022 with a belief that early education should pair meaningful learning with the warmth and trust of home.',
+		'about_story_paragraph1'           => 'Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into one of Georgia\'s largest family-owned and operated early education providers, serving families through a growing network of campuses across Metro Atlanta and surrounding communities.',
 		'about_story_paragraph2'           => 'Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.',
 		'about_story_image'                => 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop',
 		'about_stat1_value'                => '0',
 		'about_stat1_label'                => 'Locations',
-		'about_stat2_value'                => '2k+',
-		'about_stat2_label'                => 'Students',
-		'about_stat3_value'                => '450+',
-		'about_stat3_label'                => 'Educators',
-		'about_stat4_value'                => '100%',
-		'about_stat4_label'                => 'Licensed',
+		'about_stat2_value'                => '6 weeks–12 years',
+		'about_stat2_label'                => 'Age Range',
+		'about_stat3_value'                => '5',
+		'about_stat3_label'                => 'PrismPath Pillars',
+		'about_stat4_value'                => 'GA',
+		'about_stat4_label'                => 'Licensed Campuses',
 		'about_educators_title'            => 'The Heart of Chroma.',
 		'about_educators_description'      => 'We don\'t just hire supervisors; we hire career educators. Our teachers are the most valuable asset in our classrooms, selected for their passion, patience, and professional credentials.',
 		'about_educator1_icon'             => 'fa-solid fa-certificate',
@@ -1134,7 +1134,7 @@ function chroma_seed_about_page_defaults( $post_id ) {
 		'about_educator2_desc'             => 'Every team member undergoes rigorous federal and state background checks. All staff are certified in CPR and First Aid, with regular refresher courses.',
 		'about_educator3_icon'             => 'fa-solid fa-chalkboard-user',
 		'about_educator3_title'            => 'Continuous Growth',
-		'about_educator3_desc'             => 'Our educators participate in 20+ hours of annual professional development, specializing in the Prismpath™ curriculum and social-emotional learning.',
+		'about_educator3_desc'             => 'Our educators receive ongoing, role-appropriate learning and coaching focused on child development, classroom practice, and the PrismPath™ curriculum.',
 		'about_values_title'               => 'The Chroma Standard',
 		'about_values_description'         => 'Our culture is built on four non-negotiable pillars that guide every decision we make, from hiring teachers to designing playgrounds.',
 		'about_value1_icon'                => 'fa-solid fa-heart',
@@ -1170,7 +1170,7 @@ function chroma_seed_about_page_defaults( $post_id ) {
 		'about_philanthropy_bullet3_text'  => 'Community outreach programs',
 		'about_philanthropy_image'         => 'https://images.unsplash.com/photo-1593113598332-cd288d649433?q=80&w=800&auto=format&fit=crop',
 		'about_cta_title'                  => 'Ready to join the family?',
-		'about_cta_description'            => 'Come see why over 2,000 families trust Chroma with their children\'s early years.',
+		'about_cta_description'            => 'Visit a Chroma campus and see how meaningful learning and the warmth of home come together.',
 	);
 
 	// Populate all default values

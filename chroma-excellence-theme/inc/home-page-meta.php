@@ -250,7 +250,7 @@ function chroma_home_json_meta_box_render( $post ) {
 		<tr>
 			<th><label>Stats JSON [ES]</label></th>
 			<td>
-				<textarea name="_chroma_es_home_stats_json" rows="5" class="large-text code" placeholder="[{&quot;key&quot;:&quot;locations&quot;,&quot;value&quot;:&quot;0&quot;,&quot;label&quot;:&quot;Locations&quot;},{&quot;key&quot;:&quot;families_served&quot;,&quot;value&quot;:&quot;2000+&quot;,&quot;label&quot;:&quot;Families Served&quot;}]"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_home_stats_json', true ) ); ?></textarea>
+				<textarea name="_chroma_es_home_stats_json" rows="5" class="large-text code" placeholder="[{&quot;key&quot;:&quot;locations&quot;,&quot;value&quot;:&quot;0&quot;,&quot;label&quot;:&quot;Locations&quot;},{&quot;key&quot;:&quot;programs&quot;,&quot;value&quot;:&quot;0&quot;,&quot;label&quot;:&quot;Programs&quot;},{&quot;key&quot;:&quot;founded&quot;,&quot;value&quot;:&quot;2022&quot;,&quot;label&quot;:&quot;Founded&quot;}]"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_home_stats_json', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>

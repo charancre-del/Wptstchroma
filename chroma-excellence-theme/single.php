@@ -172,14 +172,24 @@ $related_query = new WP_Query($related_args);
         <div
           class="post-content prose prose-lg prose-headings:font-serif prose-headings:font-bold prose-p:text-brand-ink/90 prose-a:text-chroma-blue hover:prose-a:text-chroma-blue/80 transition-colors">
           <?php
-          while (have_posts()):
-            the_post();
-            $rendered_content = apply_filters('the_content', get_the_content());
-            if ($content_starts_with_h1) {
-              $rendered_content = preg_replace('/<h1(\s[^>]*)?>(.*?)<\/h1>/is', '<h2$1>$2</h2>', $rendered_content, 1);
+          $main_post = get_post($post_id);
+          if ($main_post instanceof WP_Post):
+            // wp_head integrations may run secondary queries and leave the
+            // global post pointing at another record. Restore the requested
+            // story explicitly so the real article body and translations are
+            // always rendered instead of an empty related-post context.
+            $GLOBALS['post'] = $main_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+            setup_postdata($main_post);
+            $rendered_content = apply_filters('the_content', (string) $main_post->post_content);
+            // The article title is the single page-level H1. Editors and
+            // imported legacy posts occasionally include additional H1s in
+            // the body; normalize all of them to H2s without changing copy.
+            if ($content_starts_with_h1 || stripos($rendered_content, '<h1') !== false) {
+              $rendered_content = preg_replace('/<h1(\s[^>]*)?>(.*?)<\/h1>/is', '<h2$1>$2</h2>', $rendered_content);
             }
             echo $rendered_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-          endwhile;
+            wp_reset_postdata();
+          endif;
           ?>
         </div>
       </section>
@@ -195,12 +205,12 @@ $related_query = new WP_Query($related_args);
               <a href="<?php the_permalink(); ?>" class="group">
                 <div class="rounded-2xl overflow-hidden mb-4 h-48">
                   <?php if (has_post_thumbnail()): ?>
-                    <?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover group-hover:scale-105 transition-transform')); ?>
+                    <?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover group-hover:scale-105 transition-transform', 'alt' => '')); ?>
                   <?php else: ?>
                     <div class="w-full h-full bg-chroma-blue/10"></div>
                   <?php endif; ?>
                 </div>
-                <h4 class="font-bold text-lg leading-tight group-hover:text-chroma-blue"><?php the_title(); ?></h4>
+                <h3 class="font-bold text-lg leading-tight group-hover:text-chroma-blue"><?php the_title(); ?></h3>
               </a>
             <?php endwhile;
             wp_reset_postdata(); ?>

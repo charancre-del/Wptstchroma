@@ -110,7 +110,7 @@
 								<a href="<?php the_permalink(); ?>" class="group block">
 									<div class="aspect-video relative rounded-lg overflow-hidden bg-brand-ink/10 mb-2">
 										<?php if (has_post_thumbnail()): ?>
-											<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105')); ?>
+											<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105', 'alt' => '')); ?>
 										<?php else: ?>
 											<div
 												class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
@@ -128,6 +128,10 @@
 									<span class="text-[9px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
 								</a>
 							<?php endwhile; ?>
+						</div>
+						<div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[10px] font-bold uppercase tracking-wider text-white/75">
+							<a href="<?php echo esc_url(chroma_get_localized_url(home_url('/stories/'))); ?>" class="hover:text-white transition-colors"><?php esc_html_e('All Stories', 'chroma-excellence'); ?></a>
+							<a href="<?php echo esc_url(chroma_get_localized_url(home_url('/newsroom/'))); ?>" class="hover:text-white transition-colors"><?php esc_html_e('Newsroom', 'chroma-excellence'); ?></a>
 						</div>
 						<?php wp_reset_postdata(); ?>
 					<?php else: ?>

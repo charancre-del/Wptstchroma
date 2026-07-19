@@ -16,7 +16,7 @@ if (empty($reviews)) {
 <section id="reviews" class="reviews white borderY py-20 lg:py-24 bg-white border-y border-chroma-blue/10" data-section="reviews">
         <div class="max-w-7xl mx-auto px-4 lg:px-6">
                 <div class="chroma-reviews-grid reveal" data-reviews-carousel>
-                        <aside class="reviewSide">
+                        <div class="reviewSide">
                                 <div>
                                         <div class="kicker font-bold tracking-[0.2em] text-xs uppercase mb-3">
                                                 <?php echo esc_html($reviews_content['eyebrow']); ?>
@@ -29,7 +29,7 @@ if (empty($reviews)) {
                                 <p class="text-white/75 leading-relaxed">
                                         <?php echo esc_html($reviews_content['subheading']); ?>
                                 </p>
-                        </aside>
+                        </div>
 
                         <div class="relative min-w-0">
                                 <div class="chroma-review-viewport rounded-[3rem]" aria-live="off" aria-atomic="false">
@@ -43,7 +43,7 @@ if (empty($reviews)) {
                                                         }
                                                         $initials = $initials ?: 'CP';
                                                         ?>
-                                                        <article class="w-full flex-shrink-0 chroma-review-card" data-review-slide="<?php echo esc_attr($index); ?>"
+                                                        <div class="w-full flex-shrink-0 chroma-review-card" data-review-slide="<?php echo esc_attr($index); ?>"
                                                                 role="group" aria-roledescription="<?php esc_attr_e('slide', 'chroma-excellence'); ?>"
                                                                 aria-label="<?php echo esc_attr(sprintf(__('Parent review %1$d of %2$d', 'chroma-excellence'), $index + 1, count($reviews))); ?>"
                                                                 aria-hidden="<?php echo 0 === $index ? 'false' : 'true'; ?>" <?php echo 0 === $index ? '' : 'inert'; ?>>
@@ -57,7 +57,7 @@ if (empty($reviews)) {
                                                                                 <span class="text-brand-ink/65"><?php echo esc_html($review['location'] ?: __('Chroma family', 'chroma-excellence')); ?></span>
                                                                         </div>
                                                                 </div>
-                                                        </article>
+                                                        </div>
                                                 <?php endforeach; ?>
                                         </div>
                                 </div>

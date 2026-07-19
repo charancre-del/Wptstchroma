@@ -151,7 +151,7 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
         return [
             'home' => [
                 'en' => [
-                    'title' => 'Chroma Academy | Top Daycare & Preschool in Metro Atlanta',
+                    'title' => 'Chroma Early Learning Academy | Daycare & Preschool in Metro Atlanta',
                     'meta_description' => 'Discover Chroma Early Learning Academy for daycare, preschool, GA Pre-K, and family-focused early education across Metro Atlanta.',
                 ],
                 'es' => [
@@ -631,6 +631,29 @@ if (!function_exists('chroma_seo_get_post_translation_value')) {
     }
 }
 
+if (!function_exists('chroma_seo_text_looks_spanish')) {
+    function chroma_seo_text_looks_spanish($value)
+    {
+        $value = trim(chroma_seo_clean_text((string) $value));
+        if ($value === '') {
+            return false;
+        }
+        if (preg_match('/[áéíóúüñ¿¡]/iu', $value)) {
+            return true;
+        }
+
+        $normalized = ' ' . strtolower($value) . ' ';
+        $signals = [' el ', ' la ', ' los ', ' las ', ' de ', ' del ', ' que ', ' para ', ' con ', ' una ', ' un ', ' niños', ' familias', ' aprendizaje', ' desarrollo', ' programa', ' cuidado', ' maestros', ' padres', ' escuela', ' nuestro', ' nuestra', ' cada '];
+        $matches = 0;
+        foreach ($signals as $signal) {
+            if (strpos($normalized, $signal) !== false) {
+                $matches++;
+            }
+        }
+        return $matches >= 3;
+    }
+}
+
 if (!function_exists('chroma_seo_build_singular_profile')) {
     function chroma_seo_build_singular_profile($post, $language = '')
     {
@@ -651,9 +674,40 @@ if (!function_exists('chroma_seo_build_singular_profile')) {
         $translated_excerpt = chroma_seo_get_post_translation_value($post_id, ['_chroma_es_meta_description', '_chroma_es_excerpt']);
         $translated_content = chroma_seo_get_post_translation_value($post_id, ['_chroma_es_content']);
 
+        if (!chroma_seo_text_looks_spanish($title)) {
+            $title = '';
+        }
+        if (!chroma_seo_text_looks_spanish($translated_title)) {
+            $translated_title = '';
+        }
+        if (!chroma_seo_text_looks_spanish($translated_excerpt)) {
+            $translated_excerpt = '';
+        }
+        if (!chroma_seo_text_looks_spanish($translated_content)) {
+            $translated_content = '';
+        }
+
         if ($title === '') {
             switch ($post_type) {
                 case 'post':
+                    if (preg_match('/^top-rated-preschool-programs-in-(.+)-ga$/', $post->post_name, $matches)) {
+                        $city = ucwords(str_replace('-', ' ', $matches[1]));
+                        $title = 'Preescolar en ' . $city . ', GA | Chroma Academy';
+                        break;
+                    }
+                    if (preg_match('/^kindergarten-readiness-programs-in-(.+)-ga$/', $post->post_name, $matches)) {
+                        $city = ucwords(str_replace('-', ' ', $matches[1]));
+                        $title = 'Kindergarten en ' . $city . ', GA | Chroma Academy';
+                        break;
+                    }
+                    if ($post->post_name === 'how-nutrition-impacts-early-learning-and-behavior') {
+                        $title = 'Nutrición y comportamiento infantil | Chroma';
+                        break;
+                    }
+                    if (strpos($post->post_name, 'how-nutrition-impacts-early-learning-and-behavior-essential-insights') === 0) {
+                        $title = 'Nutrición, cerebro y aprendizaje | Chroma';
+                        break;
+                    }
                     $base_title = $translated_title !== '' ? $translated_title : get_the_title($post);
                     $title = 'Artículo de Chroma: ' . $base_title;
                     break;
@@ -903,8 +957,8 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
             'title' => chroma_seo_trim_title("{$program_label} " . ($language === 'es' ? 'en' : 'in') . " {$city_name}, {$state} | Chroma"),
             'meta_description' => chroma_seo_trim_meta_description($meta_description),
             'canonical' => chroma_seo_build_url_from_path($canonical_path),
-            'indexable' => true,
-            'sitemap_include' => true,
+            'indexable' => false,
+            'sitemap_include' => false,
             'city_context' => $city_context,
         ];
     }
@@ -938,8 +992,8 @@ if (!function_exists('chroma_seo_build_near_me_profile')) {
                 'title' => chroma_seo_trim_title("{$label} {$connector} {$city_name}, {$state} | Chroma"),
                 'meta_description' => chroma_seo_trim_meta_description($meta_description),
                 'canonical' => chroma_seo_build_url_from_path(($language === 'es' ? '/es/' : '/') . "{$keyword}-near-{$city_context['canonical_slug']}-" . strtolower($state) . '/'),
-                'indexable' => true,
-                'sitemap_include' => true,
+                'indexable' => false,
+                'sitemap_include' => false,
                 'city_context' => $city_context,
             ];
         }
@@ -952,8 +1006,8 @@ if (!function_exists('chroma_seo_build_near_me_profile')) {
             'title' => chroma_seo_trim_title("{$label} " . ($language === 'es' ? 'cerca de mí' : 'Near Me') . ' | Chroma'),
             'meta_description' => chroma_seo_trim_meta_description($meta_description),
             'canonical' => chroma_seo_build_url_from_path(($language === 'es' ? '/es/' : '/') . "{$keyword}-near-me/"),
-            'indexable' => true,
-            'sitemap_include' => true,
+            'indexable' => false,
+            'sitemap_include' => false,
         ];
     }
 }

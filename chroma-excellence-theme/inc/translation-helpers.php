@@ -60,6 +60,32 @@ if (!function_exists('chroma_get_translated_meta')) {
 
 if (!function_exists('chroma_get_localized_url')) {
     /**
+     * Determine whether an internal URL has a verified Spanish destination.
+     *
+     * WordPress-backed routes must have translated content before links are
+     * rewritten to /es/. Dynamic routes are left eligible because they are
+     * generated independently and may not resolve through url_to_postid().
+     *
+     * @param string $url Internal absolute or relative URL.
+     * @return bool
+     */
+    function chroma_url_has_verified_spanish_variant($url)
+    {
+        if (!is_string($url) || trim($url) === '') {
+            return false;
+        }
+
+        $absolute_url = strpos($url, '/') === 0 ? home_url($url) : $url;
+        $post_id = url_to_postid($absolute_url);
+        if ($post_id <= 0) {
+            return true;
+        }
+
+        return !function_exists('chroma_post_has_verified_spanish_variant')
+            || chroma_post_has_verified_spanish_variant($post_id);
+    }
+
+    /**
      * Prepend /es/ to internal URLs if the current language is Spanish.
      *
      * @param string $url The internal URL.
@@ -89,6 +115,13 @@ if (!function_exists('chroma_get_localized_url')) {
             return $url;
         }
 
+        $original_path = (string) wp_parse_url($url, PHP_URL_PATH);
+        $is_system_path = (bool) preg_match('#^/(?:wp-admin|wp-content|wp-includes|wp-json)(?:/|$)#i', $original_path);
+        $is_file = (bool) preg_match('/\.[a-z0-9]{2,8}$/i', $original_path);
+        if ($is_system_path || $is_file) {
+            return $url;
+        }
+
         // Split anchor/query if present to protect from trailing slashes
         $parts = explode('#', $url);
         $path_query = $parts[0];
@@ -107,7 +140,11 @@ if (!function_exists('chroma_get_localized_url')) {
 
         // Process path (add /es/ if Spanish)
         $processed_url = $path_query;
-        if ($is_spanish && strpos($processed_url, '/es/') === false) {
+        if (
+            $is_spanish
+            && strpos($processed_url, '/es/') === false
+            && chroma_url_has_verified_spanish_variant($path_query)
+        ) {
             if (strpos($processed_url, $home_url) === 0) {
                 $processed_url = str_replace($home_url, $home_url . '/es', $processed_url);
             } else {

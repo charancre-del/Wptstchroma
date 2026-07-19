@@ -103,9 +103,9 @@ $color_map = array(
                                     </div>
                                 <?php endif; ?>
 
-                                <h3 class="font-serif text-3xl font-semibold tracking-[-0.025em] leading-none text-brand-ink">
+                                <h2 class="font-serif text-3xl font-semibold tracking-[-0.025em] leading-none text-brand-ink">
                                     <?php echo esc_html($program_title); ?>
-                                </h3>
+                                </h2>
 
                                 <p class="text-brand-ink/70 text-base leading-relaxed">
                                     <?php echo esc_html($program_excerpt); ?>
@@ -164,9 +164,9 @@ $color_map = array(
                                     </div>
                                 <?php endif; ?>
 
-                                <h3 class="font-serif text-3xl font-semibold tracking-[-0.025em] leading-none text-brand-ink">
+                                <h2 class="font-serif text-3xl font-semibold tracking-[-0.025em] leading-none text-brand-ink">
                                     <?php echo esc_html($program_title); ?>
-                                </h3>
+                                </h2>
 
                                 <?php if ($program_excerpt): ?>
                                     <p class="text-brand-ink/70 text-base leading-relaxed">

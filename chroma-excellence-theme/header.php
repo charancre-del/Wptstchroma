@@ -67,7 +67,9 @@
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 h-20 lg:h-24 flex items-center justify-between">
 
 			<!-- Logo -->
-			<a href="<?php echo esc_url(chroma_url('/')); ?>" class="flex items-center gap-4 group">
+			<a href="<?php echo esc_url(chroma_url('/')); ?>"
+				class="flex items-center gap-4 group"
+				aria-label="<?php echo esc_attr(chroma_get_theme_mod('chroma_early_learning_brand_label', get_bloginfo('name'))); ?>">
 				<?php
 				$logo_width_desktop = chroma_get_theme_mod('chroma_logo_width_desktop', 70);
 				$logo_width_mobile = chroma_get_theme_mod('chroma_logo_width_mobile', 56);
@@ -107,7 +109,7 @@
 				$brand_label = chroma_get_theme_mod('chroma_early_learning_brand_label', get_bloginfo('name'));
 				?>
 				<img src="<?php echo esc_url($logo_url); ?>"
-					alt="<?php echo esc_attr($brand_label); ?>"
+					alt=""
 					width="<?php echo intval($logo_width_mobile); ?>" height="<?php echo intval($logo_width_mobile); ?>"
 					fetchpriority="high" loading="eager"
 					class="chroma-logo transition-transform duration-300 group-hover:scale-105 no-lazy"

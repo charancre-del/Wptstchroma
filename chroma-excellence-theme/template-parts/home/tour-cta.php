@@ -14,7 +14,7 @@ if (!$tour_cta) {
 <section id="tour" class="py-20 bg-brand-cream border-t border-chroma-blue/10" data-section="tour-cta">
         <div class="max-w-6xl mx-auto px-4 lg:px-6">
                 <div class="chroma-tour-grid grid lg:grid-cols-[0.9fr_1.1fr] gap-7 items-start" data-tour-scroll-grid>
-                        <aside class="chroma-tour-info-card bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 p-8 lg:p-9" data-tour-info-card>
+                        <div class="chroma-tour-info-card bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 p-8 lg:p-9" data-tour-info-card>
                                 <p class="text-[11px] font-bold uppercase tracking-[0.2em] text-chroma-red mb-4">
                                         <?php echo esc_html($tour_cta['heading']); ?>
                                 </p>
@@ -32,7 +32,7 @@ if (!$tour_cta) {
                                 <div class="mt-4 rounded-2xl bg-chroma-red/10 px-4 py-3 text-sm font-bold text-brand-ink">
                                         <?php echo esc_html($tour_cta['time_label']); ?>
                                 </div>
-                        </aside>
+                        </div>
 
                         <div class="chroma-tour-form-card chroma-form-scroll-card bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 p-5 lg:p-7" data-tour-form-card tabindex="0" aria-label="<?php esc_attr_e( 'Schedule a tour form', 'chroma-excellence' ); ?>">
                                 <?php if (shortcode_exists('chroma_tour_form')): ?>

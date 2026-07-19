@@ -19,7 +19,8 @@ class Chroma_Geographic_SEO
         add_action('init', [$this, 'add_service_area_rewrites']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_service_area_page']);
-        add_filter('chroma_sitemap_urls', [$this, 'add_service_areas_to_unified_sitemap']);
+        // Service-area routes remain available for UX/backward compatibility,
+        // but are intentionally excluded from the unified sitemap.
         add_action('admin_menu', [$this, 'add_admin_page'], 30);
     }
     

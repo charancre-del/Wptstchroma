@@ -15,7 +15,7 @@ class Chroma_Sitemap_Integrator
 {
     public function init()
     {
-        // Serve custom XML sitemap endpoints before theme-level redirects.
+        // Retire legacy generated sitemap endpoints before theme-level routing.
         add_action('template_redirect', [$this, 'serve_custom_sitemap_endpoints'], -1001);
 
         // NOTE: Sitemap query var routing is handled by the theme's
@@ -30,12 +30,11 @@ class Chroma_Sitemap_Integrator
         // Prevent core canonical redirect logic from collapsing sitemap endpoints to home.
         add_filter('redirect_canonical', [$this, 'preserve_sitemap_endpoints'], 10, 2);
 
-        // Keep Yoast sitemap index aligned with custom native providers when Yoast is active.
-        add_filter('wpseo_sitemap_index', [$this, 'append_to_yoast_sitemap_index']);
+        // The theme-owned /sitemap.xml is the only public sitemap source.
     }
 
     /**
-     * Serve dedicated sitemap endpoints directly from plugin code.
+     * Redirect retired generated sitemap endpoints to the unified sitemap.
      *
      * Endpoints:
      * - /sitemap_index.xml
@@ -58,37 +57,18 @@ class Chroma_Sitemap_Integrator
 
         $path = '/' . trim($request_uri, '/');
 
-        switch ($path) {
-            case '/sitemap_index.xml':
-                $this->render_sitemap_index([
-                    '/sitemap.xml',
-                    '/sitemap-spanish.xml',
-                    '/sitemap-combos.xml',
-                    '/sitemap-combos-es.xml',
-                    '/sitemap-near-me.xml',
-                    '/sitemap-near-me-es.xml',
-                ]);
-                break;
+        $retired_endpoints = [
+            '/sitemap_index.xml',
+            '/sitemap-spanish.xml',
+            '/sitemap-combos.xml',
+            '/sitemap-combos-es.xml',
+            '/sitemap-near-me.xml',
+            '/sitemap-near-me-es.xml',
+        ];
 
-            case '/sitemap-spanish.xml':
-                $this->render_spanish_sitemap();
-                break;
-
-            case '/sitemap-combos.xml':
-                $this->render_combo_sitemap('en');
-                break;
-
-            case '/sitemap-combos-es.xml':
-                $this->render_combo_sitemap('es');
-                break;
-
-            case '/sitemap-near-me.xml':
-                $this->render_near_me_sitemap('en');
-                break;
-
-            case '/sitemap-near-me-es.xml':
-                $this->render_near_me_sitemap('es');
-                break;
+        if (in_array($path, $retired_endpoints, true)) {
+            wp_safe_redirect(home_url('/sitemap.xml'), 301);
+            exit;
         }
     }
 
@@ -413,39 +393,6 @@ class Chroma_Sitemap_Integrator
      */
     public function append_to_yoast_sitemap_index($sitemap_index)
     {
-        $entries = [
-            [
-                'primary' => '/sitemap-spanish.xml',
-                'aliases' => [],
-            ],
-            [
-                'primary' => '/sitemap-combos.xml',
-                'aliases' => [],
-            ],
-            [
-                'primary' => '/sitemap-combos-es.xml',
-                'aliases' => [],
-            ],
-            [
-                'primary' => '/sitemap-near-me.xml',
-                'aliases' => [],
-            ],
-            [
-                'primary' => '/sitemap-near-me-es.xml',
-                'aliases' => [],
-            ],
-        ];
-
-        foreach ($entries as $entry) {
-            if ($this->sitemap_index_contains_any($sitemap_index, array_merge([$entry['primary']], $entry['aliases']))) {
-                continue;
-            }
-
-            $loc = esc_url(home_url($entry['primary']));
-            $last_mod = $this->get_sitemap_group_lastmod((string) $entry['primary']);
-            $sitemap_index .= '<sitemap><loc>' . $loc . '</loc><lastmod>' . $last_mod . '</lastmod></sitemap>';
-        }
-
         return $sitemap_index;
     }
 

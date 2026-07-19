@@ -25,22 +25,34 @@ $benefits = array(
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit1_icon') ?: 'fa-solid fa-money-bill-wave',
 		'color' => 'chroma-green',
-		'title' => chroma_get_translated_meta($page_id, 'careers_benefit1_title') ?: __('Competitive Pay & 401k', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit1_desc') ?: __('Above-market salaries, annual performance bonuses, and retirement matching.', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit1_title') ?: __('Role-Based Compensation', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit1_desc') ?: __('Compensation and available benefits vary by role and location. Current openings include the details for each opportunity.', 'chroma-excellence'),
 	),
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit2_icon') ?: 'fa-solid fa-graduation-cap',
 		'color' => 'chroma-blue',
-		'title' => chroma_get_translated_meta($page_id, 'careers_benefit2_title') ?: __('Paid Tuition & CDA', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit2_desc') ?: __('We pay for your Child Development Associate (CDA) credential and offer college tuition assistance.', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit2_title') ?: __('Professional Learning', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit2_desc') ?: __('Team members receive role-appropriate onboarding, coaching, and opportunities to build early-childhood expertise.', 'chroma-excellence'),
 	),
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit3_icon') ?: 'fa-solid fa-heart-pulse',
 		'color' => 'chroma-red',
-		'title' => chroma_get_translated_meta($page_id, 'careers_benefit3_title') ?: __('Health & Wellness', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit3_desc') ?: __('Comprehensive medical, dental, and vision insurance, plus free childcare discounts.', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit3_title') ?: __('A Supportive Workplace', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit3_desc') ?: __('We aim to create a collaborative environment where educators can grow, contribute, and do meaningful work.', 'chroma-excellence'),
 	),
 );
+
+$legacy_benefit_copy = array(
+	'Paid Tuition & CDA' => array(__('Professional Learning', 'chroma-excellence'), __('Team members receive role-appropriate onboarding, coaching, and opportunities to build early-childhood expertise.', 'chroma-excellence')),
+	'Competitive Pay & 401k' => array(__('Role-Based Compensation', 'chroma-excellence'), __('Compensation and available benefits vary by role and location. Current openings include the details for each opportunity.', 'chroma-excellence')),
+	'Health & Wellness' => array(__('A Supportive Workplace', 'chroma-excellence'), __('We aim to create a collaborative environment where educators can grow, contribute, and do meaningful work.', 'chroma-excellence')),
+);
+foreach ($benefits as &$benefit) {
+	if (isset($legacy_benefit_copy[$benefit['title']])) {
+		list($benefit['title'], $benefit['desc']) = $legacy_benefit_copy[$benefit['title']];
+	}
+}
+unset($benefit);
 
 // Openings Section
 $openings_title = chroma_get_translated_meta($page_id, 'careers_openings_title') ?: __('Current Opportunities', 'chroma-excellence');

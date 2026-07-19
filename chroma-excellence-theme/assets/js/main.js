@@ -1375,8 +1375,11 @@
     const count = explorer.querySelector('[data-location-summary-count]');
     const summaryLabel = explorer.querySelector('[data-location-summary-label]');
     const closestButton = explorer.querySelector('[data-location-filter="closest"]');
+    const searchInput = explorer.querySelector('[data-location-search]');
+    const programFilter = explorer.querySelector('[data-location-program-filter]');
     let userCoords = null;
     let locationRequestId = 0;
+    let activeFilter = 'all';
 
     const defaultLocationStatus = 'Share your location to sort campuses by distance, or choose a region to zoom the map.';
     const deniedLocationStatus = 'Location was not shared. Showing all campuses. Choose a region to narrow the map.';
@@ -1452,12 +1455,25 @@
     };
 
     const applyFilter = (filter, labelOverride, statusOverride) => {
+      activeFilter = filter;
       const isClosestWithCoords = filter === 'closest' && userCoords;
       setActiveButton(isClosestWithCoords ? 'closest' : filter);
       let visibleCards = cards.filter((card) => {
-        if (filter === 'closest' || filter === 'all') return true;
-        const regions = (card.getAttribute('data-location-regions') || '').split(/\s+/);
-        return regions.indexOf(filter) !== -1;
+        const regionMatch = filter === 'closest' || filter === 'all'
+          ? true
+          : (card.getAttribute('data-location-regions') || '').split(/\s+/).indexOf(filter) !== -1;
+        if (!regionMatch) return false;
+
+        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const searchText = (card.getAttribute('data-location-search-text') || '').toLowerCase();
+        if (searchTerm && searchText.indexOf(searchTerm) === -1) return false;
+
+        const program = programFilter ? programFilter.value : 'all';
+        if (program === 'all') return true;
+        if (program === 'ga-pre-k') return card.getAttribute('data-location-has-ga-pre-k') === 'true';
+        if (program === 'transportation') return card.getAttribute('data-location-has-transportation') === 'true';
+        const programs = (card.getAttribute('data-location-programs') || '').split(/\s+/);
+        return programs.some((value) => value === program || value.indexOf(program) !== -1);
       });
 
       if (isClosestWithCoords) {
@@ -1502,6 +1518,10 @@
       const readableFilter = labelOverride || (isClosestWithCoords ? 'Closest to your browser location' : '');
       updateSummary(visibleCards, readableFilter);
       dispatchFilter(visibleCards);
+
+      if (!visibleCards.length && status) {
+        status.textContent = 'No campuses match those filters. Try another city, ZIP code, or program.';
+      }
 
       if (isClosestWithCoords) {
         window.setTimeout(() => focusCardOnMap(visibleCards[0]), 80);
@@ -1566,6 +1586,18 @@
         applyFilter(filter, button.textContent.trim(), 'Filtered by live campus region.');
       });
     });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', debounce(() => {
+        applyFilter(activeFilter, '', 'Showing campuses that match your search.');
+      }, 180));
+    }
+
+    if (programFilter) {
+      programFilter.addEventListener('change', () => {
+        applyFilter(activeFilter, '', 'Showing campuses with the selected program or service.');
+      });
+    }
 
     explorer.querySelectorAll('[data-location-card]').forEach((button) => {
       button.addEventListener('click', () => {

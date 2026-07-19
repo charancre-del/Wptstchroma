@@ -5,6 +5,12 @@
  * @package Chroma_Excellence
  */
 
+$chroma_program_object = get_queried_object();
+if ($chroma_program_object instanceof WP_Post && $chroma_program_object->post_type === 'program' && $chroma_program_object->post_name === 'kindergarten-1') {
+	require get_template_directory() . '/template-program-kindergarten.php';
+	return;
+}
+
 get_header();
 
 while (have_posts()):
@@ -344,6 +350,19 @@ while (have_posts()):
 				</div>
 			</section>
 		<?php endif; ?>
+
+		<?php
+		get_template_part(
+			'template-parts/program/required-details',
+			null,
+			array(
+				'program_id' => $program_id,
+				'program_title' => get_the_title($program_id),
+				'program_slug' => $program_slug,
+				'accent' => $hex_color,
+			)
+		);
+		?>
 
 		<?php if ($is_preschool_reference): ?>
 			<section class="white borderY py-20 bg-white border-y border-chroma-blue/10">

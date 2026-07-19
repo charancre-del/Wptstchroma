@@ -176,7 +176,7 @@ function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
         'chroma_home_stats_json',
         array(
             'label' => __('Stats JSON (optional key/value/label)', 'chroma-excellence'),
-            'description' => __('Example: [{"key":"locations","value":"0","label":"Metro campuses"},{"key":"families_served","value":"2000+","label":"Families Served"}]. The published campus count is calculated automatically.', 'chroma-excellence'),
+            'description' => __('Example: [{"key":"locations","value":"0","label":"Metro campuses"},{"key":"programs","value":"0","label":"Programs"},{"key":"founded","value":"2022","label":"Founded"}]. Published campus and program counts are calculated automatically.', 'chroma-excellence'),
             'section' => 'chroma_home_stats_section',
             'type' => 'textarea',
         )

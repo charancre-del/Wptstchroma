@@ -142,15 +142,15 @@ $menus = array(
 
 // Safety Section
 $safety_title = chroma_get_translated_meta($page_id, 'parents_safety_title') ?: __('Safe. Secure. Connected.', 'chroma-excellence');
-$safety_description = chroma_get_translated_meta($page_id, 'parents_safety_description') ?: __('We employ enterprise-grade security measures and transparent communication protocols so you can have total peace of mind while you work.', 'chroma-excellence');
+$safety_description = chroma_get_translated_meta($page_id, 'parents_safety_description') ?: __('Campus teams follow established supervision, access, communication, and safety procedures so families know how care is coordinated throughout the day.', 'chroma-excellence');
 $family_updates_description = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_safety2_desc') ?: __('Your campus communication app can share daily updates such as meals, naps, classroom moments, and photos, based on the tools used by your campus.', 'chroma-excellence'));
 
 $safety_items = array(
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'parents_safety1_icon') ?: 'fa-solid fa-video',
 		'color' => 'chroma-green',
-		'title' => chroma_get_translated_meta($page_id, 'parents_safety1_title') ?: __('24/7 Monitored Cameras', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'parents_safety1_desc') ?: __('Our facilities are equipped with high-definition closed-circuit cameras in every classroom, hallway, and playground. Feeds are monitored by leadership to ensure policy adherence and safety.', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'parents_safety1_title') ?: __('Campus Safety Practices', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'parents_safety1_desc') ?: __('Each campus uses supervision, access, and safety procedures aligned with licensing requirements. Your campus Director can explain the systems used at your location.', 'chroma-excellence'),
 	),
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'parents_safety2_icon') ?: 'fa-solid fa-mobile-screen-button',
@@ -161,10 +161,22 @@ $safety_items = array(
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'parents_safety3_icon') ?: 'fa-solid fa-lock',
 		'color' => 'chroma-red',
-		'title' => chroma_get_translated_meta($page_id, 'parents_safety3_title') ?: __('Secure Access Control', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'parents_safety3_desc') ?: __('Our lobbies are secured with coded keypad entry systems. Codes are unique to each family and change regularly. ID is strictly required for any alternative pickups.', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'parents_safety3_title') ?: __('Authorized Pick-Up', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'parents_safety3_desc') ?: __('Children are released only to authorized adults following campus identification and sign-out procedures.', 'chroma-excellence'),
 	),
 );
+
+foreach ($safety_items as &$safety_item) {
+	if ('24/7 Monitored Cameras' === trim((string) $safety_item['title'])) {
+		$safety_item['title'] = __('Campus Safety Practices', 'chroma-excellence');
+		$safety_item['desc'] = __('Each campus uses supervision, access, and safety procedures aligned with licensing requirements. Your campus Director can explain the systems used at your location.', 'chroma-excellence');
+	}
+	if ('Secure Access Control' === trim((string) $safety_item['title'])) {
+		$safety_item['title'] = __('Authorized Pick-Up', 'chroma-excellence');
+		$safety_item['desc'] = __('Children are released only to authorized adults following campus identification and sign-out procedures.', 'chroma-excellence');
+	}
+}
+unset($safety_item);
 
 // FAQ Section
 $faq_title = chroma_get_translated_meta($page_id, 'parents_faq_title') ?: __('Quick answers for day-to-day life.', 'chroma-excellence');

@@ -410,7 +410,7 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 							<span class="pp-kicker"><?php esc_html_e( 'How insight becomes action', 'chroma-excellence' ); ?></span>
 							<h3 class="pp-title pp-title-md"><?php echo esc_html( $studio_process_head ); ?></h3>
 						</div>
-						<ol class="pp-studio-steps" aria-label="<?php esc_attr_e( 'Curriculum Studio connected process', 'chroma-excellence' ); ?>">
+						<ol class="pp-studio-steps" tabindex="0" aria-label="<?php esc_attr_e( 'Curriculum Studio connected process. Scroll horizontally for more steps.', 'chroma-excellence' ); ?>">
 							<?php foreach ( $studio_steps as $index => $step ) : ?>
 								<li class="pp-studio-step pp-reveal pp-delay-<?php echo esc_attr( min( $index, 3 ) ); ?>">
 									<span><?php echo esc_html( $step['number'] ); ?></span>
@@ -421,7 +421,7 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 						</ol>
 					</div>
 
-					<div class="pp-studio-bottom">
+					<div class="pp-studio-bottom" tabindex="0" role="region" aria-label="<?php esc_attr_e( 'Curriculum Studio support details. Scroll horizontally for more details.', 'chroma-excellence' ); ?>">
 						<article class="pp-studio-text-card pp-reveal">
 							<h3><?php echo esc_html( $studio_teacher_head ); ?></h3>
 							<p><?php echo esc_html( $studio_teacher_body ); ?></p>

@@ -49,6 +49,33 @@ $stacked = !empty($args['stacked']);
                 </div>
 
                 <div class="chroma-location-list-panel rounded-[2rem] border border-chroma-blue/10 shadow-soft bg-white p-5 md:p-7 flex flex-col min-h-[32rem]">
+                    <div class="chroma-location-discovery mb-5" data-location-discovery>
+                        <label class="sr-only" for="<?php echo esc_attr($explorer_id); ?>-search">
+                            <?php esc_html_e('Search campuses by name, city, or ZIP code', 'chroma-excellence'); ?>
+                        </label>
+                        <div class="chroma-location-discovery-grid">
+                            <input id="<?php echo esc_attr($explorer_id); ?>-search"
+                                type="search"
+                                class="chroma-location-search"
+                                placeholder="<?php esc_attr_e('Search by campus, city, or ZIP', 'chroma-excellence'); ?>"
+                                autocomplete="postal-code"
+                                data-location-search>
+                            <label class="sr-only" for="<?php echo esc_attr($explorer_id); ?>-program-filter">
+                                <?php esc_html_e('Filter campuses by program or service', 'chroma-excellence'); ?>
+                            </label>
+                            <select id="<?php echo esc_attr($explorer_id); ?>-program-filter"
+                                class="chroma-location-program-filter"
+                                data-location-program-filter>
+                                <option value="all"><?php esc_html_e('All programs and services', 'chroma-excellence'); ?></option>
+                                <option value="infant"><?php esc_html_e('Infant Care', 'chroma-excellence'); ?></option>
+                                <option value="preschool"><?php esc_html_e('Preschool', 'chroma-excellence'); ?></option>
+                                <option value="ga-pre-k"><?php esc_html_e('Georgia Pre-K', 'chroma-excellence'); ?></option>
+                                <option value="kindergarten"><?php esc_html_e('Kindergarten', 'chroma-excellence'); ?></option>
+                                <option value="transportation"><?php esc_html_e('School Transportation', 'chroma-excellence'); ?></option>
+                            </select>
+                        </div>
+                    </div>
+
                     <div class="flex gap-3 flex-wrap mb-5" data-location-filters>
                         <button type="button"
                             class="chroma-location-filter"
@@ -90,11 +117,23 @@ $stacked = !empty($args['stacked']);
                             $region_slugs = array_map('sanitize_title', $location['region_slugs'] ?? array());
                             $region_attr = implode(' ', array_filter($region_slugs));
                             $city_state = trim(($location['city'] ?? '') . (!empty($location['state']) ? ', ' . strtoupper((string) $location['state']) : ''));
+                            $program_attr = implode(' ', array_map('sanitize_title', $location['program_slugs'] ?? array()));
+                            $search_attr = strtolower(implode(' ', array_filter(array(
+                                $location['title'] ?? '',
+                                $location['city'] ?? '',
+                                $location['state'] ?? '',
+                                $location['zip'] ?? '',
+                                $location['address'] ?? '',
+                            ))));
                             ?>
                             <article class="chroma-location-card rounded-[1.35rem] border border-chroma-blue/10 bg-white mb-3 transition"
                                 data-location-card-wrap
                                 data-location-id="<?php echo esc_attr($location_id); ?>"
                                 data-location-regions="<?php echo esc_attr($region_attr); ?>"
+                                data-location-programs="<?php echo esc_attr($program_attr); ?>"
+                                data-location-search-text="<?php echo esc_attr($search_attr); ?>"
+                                data-location-has-ga-pre-k="<?php echo !empty($location['has_ga_pre_k']) ? 'true' : 'false'; ?>"
+                                data-location-has-transportation="<?php echo !empty($location['has_transportation']) ? 'true' : 'false'; ?>"
                                 data-location-lat="<?php echo esc_attr($location_map['lat'] ?? ''); ?>"
                                 data-location-lng="<?php echo esc_attr($location_map['lng'] ?? ''); ?>">
                                 <button type="button"
@@ -121,13 +160,26 @@ $stacked = !empty($args['stacked']);
 
                                 <div class="px-5 pb-5 flex flex-wrap gap-2 text-sm">
                                     <?php if (!empty($location['phone'])): ?>
-                                        <a class="min-h-11 inline-flex items-center px-3 text-brand-ink/75 hover:text-chroma-red transition"
+                                        <a class="chroma-location-card-action"
                                             href="tel:<?php echo esc_attr(preg_replace('/[^0-9+]/', '', (string) $location['phone'])); ?>">
-                                            <?php echo esc_html($location['phone']); ?>
+                                            <?php esc_html_e('Call', 'chroma-excellence'); ?>
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if (!empty($location['directions_url'])): ?>
+                                        <a class="chroma-location-card-action"
+                                            href="<?php echo esc_url($location['directions_url']); ?>"
+                                            target="_blank" rel="noopener noreferrer">
+                                            <?php esc_html_e('Directions', 'chroma-excellence'); ?>
+                                        </a>
+                                    <?php endif; ?>
+                                    <?php if (!empty($location['tour_url'])): ?>
+                                        <a class="chroma-location-card-action"
+                                            href="<?php echo esc_url($location['tour_url']); ?>">
+                                            <?php esc_html_e('Tour', 'chroma-excellence'); ?>
                                         </a>
                                     <?php endif; ?>
                                     <?php if (!empty($location['url'])): ?>
-                                        <a class="campus-card-link min-h-11 inline-flex items-center px-3 font-bold text-chroma-red hover:text-brand-ink transition"
+                                        <a class="campus-card-link chroma-location-card-action is-primary"
                                             href="<?php echo esc_url($location['url']); ?>">
                                             <?php esc_html_e('View campus', 'chroma-excellence'); ?>
                                         </a>

@@ -227,7 +227,7 @@ function chroma_seed_privacy_page_defaults( $post_id ) {
 </ul>',
 
 		'privacy_section3_title' => '3. Digital Security',
-		'privacy_section3_content' => '<p class="mb-4">We use secure platforms (Procare) for all student data. Classroom camera feeds are encrypted and accessible only to authorized leadership for monitoring purposes; they are not publicly broadcast.</p>',
+		'privacy_section3_content' => '<p class="mb-4">We use approved systems and reasonable administrative, technical, and physical safeguards to protect family and student information. Access is limited to authorized team members who need the information for enrollment, care, safety, communication, or legal compliance. Campus-specific communication and security tools may vary.</p>',
 
 		'privacy_section4_title' => '4. Families\' Rights',
 		'privacy_section4_content' => '<p class="mb-4">Chroma upholds the rights of all families to:</p>

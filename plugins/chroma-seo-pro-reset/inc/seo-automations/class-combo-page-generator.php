@@ -23,11 +23,8 @@ class Chroma_Combo_Page_Generator
 
         add_action('admin_menu', [$this, 'add_admin_page'], 20);
 
-        add_action('template_redirect', [$this, 'handle_sitemap']); // Manual Sitemap Handler
-        add_filter('wpseo_sitemap_index', [$this, 'add_to_sitemap']); // Yoast index integration
-        add_filter('chroma_sitemap_urls', [$this, 'add_to_unified_sitemap']);
-
-        // Note: Sitemap providers are registered by Chroma_Sitemap_Integrator::register_providers()
+        // Generated combo routes remain available for UX/backward compatibility,
+        // but are intentionally excluded from all sitemap providers.
     }
 
 
@@ -635,7 +632,7 @@ class Chroma_Combo_Page_Generator
                                 $grid_city = get_post_meta($grid_id, 'location_city', true);
                                 if ($grid_city && !$grid_address)
                                     $grid_address = $grid_city;
-                                $grid_rating = get_post_meta($grid_id, 'location_google_rating', true) ?: '4.9';
+                                $grid_rating = get_post_meta($grid_id, 'location_google_rating', true);
                                 $grid_image = get_the_post_thumbnail_url($grid_id, 'medium_large') ?: 'https://images.unsplash.com/photo-1587654780291-39c9404d746b?q=80&w=600&auto=format&fit=crop';
                                 ?>
                                 <div
@@ -643,10 +640,12 @@ class Chroma_Combo_Page_Generator
                                     <div class="h-48 rounded-2xl bg-brand-cream mb-6 overflow-hidden relative">
                                         <img src="<?php echo esc_url($grid_image); ?>" class="w-full h-full object-cover"
                                             alt="<?php the_title_attribute(); ?>">
-                                        <div
-                                            class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm text-brand-ink">
-                                            <?php echo esc_html($grid_rating); ?> ★
-                                        </div>
+                                        <?php if ($grid_rating): ?>
+                                            <div
+                                                class="absolute top-4 right-4 bg-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-sm text-brand-ink">
+                                                <?php echo esc_html($grid_rating); ?> ★
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
                                     <h3 class="font-serif text-xl font-bold mb-2"><?php the_title(); ?></h3>
                                     <?php if ($grid_address): ?>

@@ -14,7 +14,7 @@ while (have_posts()):
 	$page_id = get_the_ID();
 
 	// Hero Section
-	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: __('Established 2022', 'chroma-excellence');
+	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: __('Founded in 2022', 'chroma-excellence');
 	$hero_badge_text = trim((string) $hero_badge_text, " \t\n\r\0\x0B\"'“”‘’");
 	$hero_title = chroma_get_translated_meta($page_id, 'about_hero_title') ?: __('More than a school. <span class="text-chroma-red italic">A second home.</span>', 'chroma-excellence');
 	$hero_title = html_entity_decode((string) $hero_title, ENT_QUOTES, get_bloginfo('charset') ?: 'UTF-8');
@@ -26,13 +26,13 @@ while (have_posts()):
 
 	// Story Section
 	$story_title = chroma_get_translated_meta($page_id, 'about_story_title') ?: __('From one classroom to a community.', 'chroma-excellence');
-	$story_paragraph1 = chroma_get_translated_meta($page_id, 'about_story_paragraph1') ?: __('Chroma Early Learning Academy began in Canton in 2022 with a belief that early education should pair meaningful learning with the warmth and trust of home.', 'chroma-excellence');
+	$story_paragraph1 = chroma_get_translated_meta($page_id, 'about_story_paragraph1') ?: __('Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into one of Georgia\'s largest family-owned and operated early education providers, serving families through a growing network of campuses across Metro Atlanta and surrounding communities.', 'chroma-excellence');
 	$story_paragraph2 = chroma_get_translated_meta($page_id, 'about_story_paragraph2') ?: __('Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.', 'chroma-excellence');
 	if (false !== stripos($hero_badge_text, 'Established 2015')) {
-		$hero_badge_text = __('Established 2022', 'chroma-excellence');
+		$hero_badge_text = __('Founded in 2022', 'chroma-excellence');
 	}
-	if (false !== stripos($story_paragraph1, 'single location in Lawrenceville')) {
-		$story_paragraph1 = __('Chroma Early Learning Academy began in Canton in 2022 with a belief that early education should pair meaningful learning with the warmth and trust of home.', 'chroma-excellence');
+	if (false !== stripos($story_paragraph1, 'single location in Lawrenceville') || preg_match('/\bbegan\s+in\s+[^.]+\s+in\s+\d{4}\b/i', $story_paragraph1)) {
+		$story_paragraph1 = __('Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into one of Georgia\'s largest family-owned and operated early education providers, serving families through a growing network of campuses across Metro Atlanta and surrounding communities.', 'chroma-excellence');
 	}
 	if (false !== stripos($story_paragraph2, 'over the last decade')) {
 		$story_paragraph2 = __('Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.', 'chroma-excellence');
@@ -40,11 +40,11 @@ while (have_posts()):
 	$story_image = chroma_get_translated_meta($page_id, 'about_story_image') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
 
 	$about_stat1_fallback_value = chroma_get_translated_meta($page_id, 'about_stat1_value') ?: '0';
-	$about_stat2_fallback_value = chroma_get_translated_meta($page_id, 'about_stat2_value') ?: '2k+';
-	$stat3_value = chroma_get_translated_meta($page_id, 'about_stat3_value') ?: '450+';
-	$stat3_label = chroma_get_translated_meta($page_id, 'about_stat3_label') ?: __('Educators', 'chroma-excellence');
-	$stat4_value = chroma_get_translated_meta($page_id, 'about_stat4_value') ?: '100%';
-	$stat4_label = chroma_get_translated_meta($page_id, 'about_stat4_label') ?: __('Licensed', 'chroma-excellence');
+	$about_stat2_fallback_value = chroma_get_translated_meta($page_id, 'about_stat2_value') ?: __('6 weeks–12 years', 'chroma-excellence');
+	$stat3_value = chroma_get_translated_meta($page_id, 'about_stat3_value') ?: '5';
+	$stat3_label = chroma_get_translated_meta($page_id, 'about_stat3_label') ?: __('PrismPath Pillars', 'chroma-excellence');
+	$stat4_value = chroma_get_translated_meta($page_id, 'about_stat4_value') ?: __('GA', 'chroma-excellence');
+	$stat4_label = chroma_get_translated_meta($page_id, 'about_stat4_label') ?: __('Licensed Campuses', 'chroma-excellence');
 
 	$published_locations = wp_count_posts('location');
 	$locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
@@ -56,7 +56,19 @@ while (have_posts()):
 	}
 	$stat1_label = __('Locations', 'chroma-excellence');
 	$stat2_value = !empty($families_served_stat['value']) ? (string) $families_served_stat['value'] : (string) $about_stat2_fallback_value;
-	$stat2_label = __('Families Served', 'chroma-excellence');
+	$stat2_label = !empty($families_served_stat['value']) ? __('Families Served', 'chroma-excellence') : __('Age Range', 'chroma-excellence');
+	if (in_array(trim((string) $stat2_value), array('2k+', '2,000+', '2000+'), true)) {
+		$stat2_value = __('6 weeks–12 years', 'chroma-excellence');
+		$stat2_label = __('Age Range', 'chroma-excellence');
+	}
+	if (in_array(trim((string) $stat3_value), array('450+', '450'), true)) {
+		$stat3_value = '5';
+		$stat3_label = __('PrismPath Pillars', 'chroma-excellence');
+	}
+	if ('100%' === trim((string) $stat4_value)) {
+		$stat4_value = __('GA', 'chroma-excellence');
+		$stat4_label = __('Licensed Campuses', 'chroma-excellence');
+	}
 
 	// Educators Section
 	$educators_title = chroma_get_translated_meta($page_id, 'about_educators_title') ?: __('The Heart of Chroma.', 'chroma-excellence');
@@ -72,7 +84,10 @@ while (have_posts()):
 
 	$educator3_icon = chroma_get_translated_meta($page_id, 'about_educator3_icon') ?: 'fa-solid fa-chalkboard-user';
 	$educator3_title = chroma_get_translated_meta($page_id, 'about_educator3_title') ?: __('Continuous Growth', 'chroma-excellence');
-	$educator3_desc = chroma_get_translated_meta($page_id, 'about_educator3_desc') ?: __('Our educators participate in 20+ hours of annual professional development, specializing in the Prismpath™ curriculum and social-emotional learning.', 'chroma-excellence');
+	$educator3_desc = chroma_get_translated_meta($page_id, 'about_educator3_desc') ?: __('Our educators receive ongoing, role-appropriate learning and coaching focused on child development, classroom practice, and the PrismPath™ curriculum.', 'chroma-excellence');
+	if (false !== stripos($educator3_desc, '20+ hours')) {
+		$educator3_desc = __('Our educators receive ongoing, role-appropriate learning and coaching focused on child development, classroom practice, and the PrismPath™ curriculum.', 'chroma-excellence');
+	}
 
 	// Core Values Section
 	$values_title = __('The Chroma Standard', 'chroma-excellence');
@@ -148,7 +163,10 @@ while (have_posts()):
 
 	// CTA Section
 	$cta_title = chroma_get_translated_meta($page_id, 'about_cta_title') ?: __('Ready to join the family?', 'chroma-excellence');
-	$cta_description = chroma_get_translated_meta($page_id, 'about_cta_description') ?: __('Come see why over 2,000 families trust Chroma with their children\'s early years.', 'chroma-excellence');
+	$cta_description = chroma_get_translated_meta($page_id, 'about_cta_description') ?: __('Visit a Chroma campus and see how meaningful learning and the warmth of home come together.', 'chroma-excellence');
+	if (preg_match('/(?:over\s+)?2,?000\s+families/i', $cta_description)) {
+		$cta_description = __('Visit a Chroma campus and see how meaningful learning and the warmth of home come together.', 'chroma-excellence');
+	}
 
 	// Get Team Members
 	$team_members = chroma_cached_query(
@@ -165,7 +183,7 @@ while (have_posts()):
 	);
 	?>
 
-	<main id="main-content" class="chroma-about-v2" role="main">
+	<main class="chroma-about-v2" role="main">
 		<!-- Hero Section -->
 		<section class="pageHero chroma-v2-page-hero relative pt-16 pb-20 lg:pt-24 lg:pb-28 overflow-hidden bg-brand-cream border-b border-brand-ink/5">
 			<!-- Decor -->

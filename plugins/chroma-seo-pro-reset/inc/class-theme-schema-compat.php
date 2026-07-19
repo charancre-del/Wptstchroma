@@ -673,7 +673,7 @@ function chroma_city_faq_schema_output()
     $faq_items = array(
         array(
             'question' => "Do you offer GA Lottery Pre-K in $city?",
-            'answer' => "Yes! Our locations serving $city participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia."
+            'answer' => "Georgia Pre-K availability varies by campus. Contact the campus serving $city to confirm current eligibility, availability, and enrollment requirements."
         ),
         array(
             'question' => "Do you provide transportation from $city schools?",
@@ -694,7 +694,7 @@ function chroma_city_faq_schema_output()
         $faq_items = array(
             array(
                 'question' => "¿Ofrecen GA Lottery Pre-K en $city?",
-                'answer' => "¡Sí! Nuestras ubicaciones que sirven a $city participan en el programa Georgia Lottery Pre-K. Es gratuito para todos los niños de 4 años que viven en Georgia."
+                'answer' => "La disponibilidad de Georgia Pre-K varía según el campus. Comuníquese con el campus que atiende a $city para confirmar los requisitos y la disponibilidad actuales."
             ),
             array(
                 'question' => "¿Proporcionan transporte desde las escuelas de $city?",

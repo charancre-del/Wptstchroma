@@ -74,7 +74,7 @@ $newsroom_query = chroma_cached_query($newsroom_args, 'newsroom_page', 7 * DAY_I
     <section class="py-20 bg-brand-cream border-b border-brand-ink/5">
       <div class="max-w-5xl mx-auto px-4">
         <h1 class="font-serif text-4xl md:text-5xl text-brand-ink mb-4">Press & Announcements</h1>
-        <p class="text-brand-ink/80 text-lg">Latest updates from <?php bloginfo('name'); ?>.</p>
+        <p class="text-brand-ink/80 text-lg max-w-3xl">Latest updates from <?php bloginfo('name'); ?>, including campus openings, community partnerships, program milestones, and company announcements. This newsroom provides families, journalists, and community partners with verified information directly from the Chroma team.</p>
       </div>
     </section>
 

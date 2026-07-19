@@ -31,7 +31,7 @@ while (have_posts()):
 	the_post();
 
 	$hero_title = __('Step into Kindergarten with absolute confidence.', 'chroma-excellence');
-	$hero_description = __('Stop the &ldquo;summer slide&rdquo; before it starts. Our <strong>Rising Kindergarten Summer Program</strong> is a specialized 6-week curriculum designed to solidify early reading, mathematical reasoning, and vital executive function skills, ensuring your child is 100% prepared for day one of elementary school.', 'chroma-excellence');
+	$hero_description = __('Help your child keep building confidence through summer. Our <strong>Rising Kindergarten Summer Program</strong> supports early reading, mathematical reasoning, and executive-function skills through a joyful bridge into elementary school.', 'chroma-excellence');
 	$hero_image_markup = sprintf(
 		'<img src="%1$s" alt="%2$s" class="w-full h-full object-cover" fetchpriority="high" loading="eager" decoding="async" sizes="(min-width: 1024px) 640px, 100vw" />',
 		esc_url($rising_k_preload_url),
@@ -217,6 +217,19 @@ while (have_posts()):
 			</div>
 		</div>
 	</section>
+
+	<?php
+	get_template_part(
+		'template-parts/program/required-details',
+		null,
+		array(
+			'program_id' => get_the_ID(),
+			'program_title' => get_the_title(),
+			'program_slug' => (string) get_post_field('post_name', get_the_ID()),
+			'accent' => '#4A6C7C',
+		)
+	);
+	?>
 
 	<section class="py-24 bg-brand-ink text-white relative overflow-hidden">
 		<div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(circle at 2px 2px, white 1px, transparent 0); background-size: 32px 32px;" aria-hidden="true"></div>

@@ -22,16 +22,20 @@ $selected_category = isset($_GET['category']) ? sanitize_text_field($_GET['categ
 // Query arguments
 $args = array(
   'post_type' => 'post',
-  'posts_per_page' => 9,
+  'posts_per_page' => 36,
   'post_status' => 'publish',
   'orderby' => 'date',
   'order' => 'DESC',
 );
 
-// Exclude featured post from grid
+// Keep the featured item and unfinished empty editorial records out of the grid.
+$excluded_post_ids = function_exists('chroma_get_unfinished_empty_post_ids')
+  ? chroma_get_unfinished_empty_post_ids()
+  : array();
 if ($featured_post_id) {
-  $args['post__not_in'] = array($featured_post_id);
+  $excluded_post_ids[] = (int) $featured_post_id;
 }
+$args['post__not_in'] = array_values(array_unique(array_filter(array_map('intval', $excluded_post_ids))));
 
 // Filter by category if selected
 if ($selected_category) {
@@ -165,28 +169,26 @@ get_header();
         <?php endwhile; ?>
       </div>
 
-      <!-- Pagination -->
+      <!-- Pagination: expose every archive page so all stories remain within three clicks. -->
       <?php if ($posts_query->max_num_pages > 1): ?>
-        <div class="flex justify-center gap-4 mt-12">
-          <?php if ($paged > 1): ?>
-            <a href="<?php echo esc_url(add_query_arg('paged', $paged - 1)); ?>"
-              class="px-6 py-3 bg-white border border-brand-ink/10 rounded-full text-sm font-bold text-brand-ink hover:bg-brand-ink hover:text-white transition-colors">
-              <?php _e('&larr; Previous', 'chroma-excellence'); ?>
-            </a>
-          <?php endif; ?>
-
-          <span class="px-6 py-3 text-sm text-brand-ink/60">
-            <?php printf(__('Page %s of %s', 'chroma-excellence'), $paged, $posts_query->max_num_pages); ?>
-          </span>
-
-
-          <?php if ($paged < $posts_query->max_num_pages): ?>
-            <a href="<?php echo esc_url(add_query_arg('paged', $paged + 1)); ?>"
-              class="px-6 py-3 bg-brand-ink text-white rounded-full text-sm font-bold hover:bg-chroma-blue transition-colors">
-              <?php _e('Next &rarr;', 'chroma-excellence'); ?>
-            </a>
-          <?php endif; ?>
-        </div>
+        <nav class="mt-12 flex flex-wrap justify-center gap-2" aria-label="<?php esc_attr_e('Stories pagination', 'chroma-excellence'); ?>">
+          <?php
+          echo wp_kses_post(
+            paginate_links(array(
+              'base' => add_query_arg('paged', '%#%'),
+              'format' => '',
+              'current' => max(1, $paged),
+              'total' => (int) $posts_query->max_num_pages,
+              'show_all' => true,
+              'prev_text' => __('&larr; Previous', 'chroma-excellence'),
+              'next_text' => __('Next &rarr;', 'chroma-excellence'),
+              'type' => 'plain',
+              'before_page_number' => '<span class="inline-flex min-w-11 h-11 items-center justify-center rounded-full border border-brand-ink/10 bg-white px-4 text-sm font-bold text-brand-ink hover:bg-brand-ink hover:text-white transition-colors">',
+              'after_page_number' => '</span>',
+            ))
+          );
+          ?>
+        </nav>
       <?php endif; ?>
 
     <?php else: ?>
@@ -215,7 +217,7 @@ get_header();
           <h3 class="font-serif text-xl font-bold text-brand-ink"><?php esc_html_e('Childcare & Preschool in Austell, GA — South Cobb Campus', 'chroma-excellence'); ?></h3>
           <p class="mt-3 text-sm leading-relaxed text-brand-ink/70"><?php esc_html_e('A guide for families considering Chroma’s South Cobb campus in Austell.', 'chroma-excellence'); ?></p>
         </a>
-        <a href="<?php echo esc_url(home_url('/locations/midway-alpharetta/')); ?>" class="rounded-3xl bg-brand-cream border border-brand-ink/5 p-6 hover:-translate-y-1 transition-transform md:col-span-2 lg:col-span-1">
+        <a href="<?php echo esc_url(home_url('/locations/midway-campus/')); ?>" class="rounded-3xl bg-brand-cream border border-brand-ink/5 p-6 hover:-translate-y-1 transition-transform md:col-span-2 lg:col-span-1">
           <h3 class="font-serif text-xl font-bold text-brand-ink"><?php esc_html_e('Secure the Best Childcare in Alpharetta, GA — Midway Campus', 'chroma-excellence'); ?></h3>
           <p class="mt-3 text-sm leading-relaxed text-brand-ink/70"><?php esc_html_e('What to know about care, curriculum, and campus fit near Midway and Alpharetta.', 'chroma-excellence'); ?></p>
         </a>

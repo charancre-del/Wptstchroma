@@ -13,7 +13,7 @@ get_header();
 $page_id = get_the_ID();
 
 // Get last updated date
-$last_updated = chroma_get_translated_meta($page_id, 'tos_last_updated') ?: 'December 26, 2024';
+$last_updated = chroma_get_translated_meta($page_id, 'tos_last_updated') ?: get_the_modified_date('F j, Y', $page_id);
 
 // Default Terms of Service content
 $default_sections = array(
@@ -28,7 +28,7 @@ $default_sections = array(
         <ul>
             <li><strong>' . __('Age Requirements:', 'chroma-excellence') . '</strong> ' . __('Children must meet age requirements for their specific program (6 weeks to 12 years)', 'chroma-excellence') . '</li>
             <li><strong>' . __('Documentation:', 'chroma-excellence') . '</strong> ' . __('Complete enrollment forms, immunization records, and emergency contact information must be provided', 'chroma-excellence') . '</li>
-            <li><strong>' . __('Registration Fee:', 'chroma-excellence') . '</strong> ' . __('A non-refundable registration fee is required to secure enrollment', 'chroma-excellence') . '</li>
+            <li><strong>' . __('Fees:', 'chroma-excellence') . '</strong> ' . __('Registration, enrollment, and other fees—if applicable—are described in your enrollment agreement', 'chroma-excellence') . '</li>
             <li><strong>' . __('Availability:', 'chroma-excellence') . '</strong> ' . __('Enrollment is subject to space availability at your preferred location', 'chroma-excellence') . '</li>
         </ul>
         <p>' . __('We reserve the right to refuse or terminate enrollment for reasons including but not limited to: safety concerns, inability to meet the child\'s needs, or non-payment of fees.', 'chroma-excellence') . '</p>'
@@ -39,19 +39,18 @@ $default_sections = array(
         <ul>
             <li>' . __('Tuition is due weekly/monthly in advance as specified in your enrollment agreement', 'chroma-excellence') . '</li>
             <li>' . __('Late payments may incur additional fees as outlined in your enrollment contract', 'chroma-excellence') . '</li>
-            <li>' . __('Tuition is due regardless of absences, holidays, or closures (except extended closures beyond 5 consecutive days)', 'chroma-excellence') . '</li>
-            <li>' . __('A minimum of two weeks written notice is required for withdrawal', 'chroma-excellence') . '</li>
-            <li>' . __('We accept major credit cards, ACH transfers, and approved subsidy payments (CAPS)', 'chroma-excellence') . '</li>
+            <li>' . __('Credits, absences, holidays, closures, and withdrawal notice are governed by your signed enrollment agreement', 'chroma-excellence') . '</li>
+            <li>' . __('Available payment methods and subsidy arrangements are confirmed during enrollment', 'chroma-excellence') . '</li>
         </ul>
         <p>' . __('Failure to maintain current payment may result in suspension or termination of enrollment.', 'chroma-excellence') . '</p>'
     ),
     array(
         'title' => __('Hours of Operation & Policies', 'chroma-excellence'),
-        'content' => '<p>' . __('Our standard hours of operation are 6:30 AM to 6:30 PM, Monday through Friday. Specific hours may vary by location.', 'chroma-excellence') . '</p>
+        'content' => '<p>' . __('Operating hours and campus procedures vary by location. Please confirm current hours with your campus and refer to your enrollment materials for the policies that apply to your family.', 'chroma-excellence') . '</p>
         <ul>
             <li><strong>' . __('Drop-off/Pick-up:', 'chroma-excellence') . '</strong> ' . __('Children must be signed in and out daily by an authorized adult', 'chroma-excellence') . '</li>
-            <li><strong>' . __('Late Pick-up:', 'chroma-excellence') . '</strong> ' . __('Late fees apply for pick-ups after closing time ($1 per minute after 6:35 PM)', 'chroma-excellence') . '</li>
-            <li><strong>' . __('Illness Policy:', 'chroma-excellence') . '</strong> ' . __('Sick children may not attend and must be picked up within one hour of notification', 'chroma-excellence') . '</li>
+            <li><strong>' . __('Late Pick-up:', 'chroma-excellence') . '</strong> ' . __('Campus closing times and any late-pickup charges are described in your enrollment agreement', 'chroma-excellence') . '</li>
+            <li><strong>' . __('Illness Policy:', 'chroma-excellence') . '</strong> ' . __('Families must follow the current health and exclusion guidance supplied by their campus', 'chroma-excellence') . '</li>
             <li><strong>' . __('Closures:', 'chroma-excellence') . '</strong> ' . __('We observe major holidays and may close for inclement weather or emergencies', 'chroma-excellence') . '</li>
         </ul>
         <p>' . __('Complete policies are provided in your enrollment packet and posted at each location.', 'chroma-excellence') . '</p>'
