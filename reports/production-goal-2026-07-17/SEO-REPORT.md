@@ -49,6 +49,9 @@ Lighthouse SEO is 69 because staging intentionally returns indexing restrictions
 ## External SEO release gates
 
 1. Export and merge existing production redirects.
-2. Confirm preferred domain, HTTPS, robots, sitemap, canonicals, hreflang, and Search Console after cutover.
-3. Reconcile every campus with GBP, licensing, Quality Rated, and GA Pre-K source records.
-4. Complete owner editorial/factual approval before destructive content disposition.
+2. Confirm preferred domain, HTTPS, robots, sitemap, canonicals, and hreflang after cutover.
+3. Search Console access is verified for `sc-domain:chromaela.com`; re-submit/inspect the live sitemap and priority URLs after cutover.
+4. ELA GBP coverage is authenticated at 24 of 24 unique profiles; clean up the duplicate Midway source row when convenient.
+5. Complete owner editorial/factual approval before destructive content disposition.
+
+Authenticated Search Console and GBP evidence is recorded in `AUTHENTICATED-SYSTEMS-VERIFICATION-2026-07-20.md`.

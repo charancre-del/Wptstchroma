@@ -3,18 +3,18 @@
 | Category | Score / 10 | Evidence-based interpretation |
 | --- | ---: | --- |
 | Content | 8.3 | Full inventory is clean for duplication, thinness, and CTA coverage; owner factual/editorial approval remains. |
-| UX | 9.0 | 78 responsive checks passed with no overflow, clipping, broken imagery, or missing footers. |
-| Conversion | 8.0 | Core paths and interactions work; authenticated CRM/messaging outcomes remain. |
-| SEO | 9.0 | Staging technical crawl is clean; production indexability and Search Console are release gates. |
-| Local SEO | 8.0 | Campus templates and discovery are strong; GBP and credential reconciliation remain external. |
-| Accessibility | 9.2 | Theme-owned automated findings are cleared; manual screen-reader QA and vendor chat semantics remain. |
+| UX | 9.3 | 162 Chrome checks and 30 Edge checks passed with no overflow, clipping, broken imagery, typography drift, or console issues. |
+| Conversion | 9.0 | Core paths and interactions work; GA4/GTM and confirmed GHL outcomes are authenticated, while CRM/messaging operations are owner-confirmed tested. |
+| SEO | 9.3 | Staging technical crawl is clean and Search Console is authenticated; production indexability remains a cutover gate. |
+| Local SEO | 9.0 | Campus templates and discovery are strong; authenticated GBP data covers all 24 unique ELA profiles. |
+| Accessibility | 9.2 | Theme-owned automated findings are cleared and chat is owner-confirmed fixed; manual screen-reader and Safari/iOS checks remain. |
 | Performance | 7.4 | Large before/after gains; Locations mobile, TTFB, third parties, and field INP remain. |
-| Mobile | 8.7 | Desktop/tablet/mobile template matrix passes; production device/RUM evidence remains. |
+| Mobile | 9.0 | Desktop/tablet/mobile Chrome and Edge matrices pass; real Safari/iOS and production RUM remain. |
 | Trust | 7.5 | Unsupported claims were removed; source-backed ratings, credentials, and safety proof remain owner-gated. |
-| Analytics | 5.0 | Attribution-ready surfaces exist, but authenticated GA4/GTM/Ads/CRM proof is not available. |
+| Analytics | 8.8 | GA4/GTM/Ads, lead conversions, confirmed GHL events, and staging intent events are verified; new events need real traffic and post-cutover confirmation. |
 
 ## Overall score
 
-**8.0 / 10**
+**8.9 / 10**
 
-This is an evidence-based staging score, not a production launch guarantee. The difference between 8.0 and a fully verified launch is primarily authenticated operations, legal/factual ownership, production infrastructure, and field measurement rather than unfinished theme implementation.
+This is an evidence-based staging score, not a production launch guarantee. The remaining difference is primarily owner-deferred approval/content work, real Safari/iOS and assistive-technology testing, production infrastructure/cutover proof, and field measurement rather than unfinished Theme 2.0 implementation.

@@ -63,6 +63,7 @@ const selectedRoutes = requestedRoutes.length
   ? routes.filter(([name]) => requestedRoutes.includes(name))
   : routes;
 const runInteractionChecks = process.env.CHROMA_QA_INTERACTIONS !== '0';
+const browserExecutable = process.env.CHROMA_QA_BROWSER_EXECUTABLE || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const fullPageDevices = new Set(
   (process.env.CHROMA_QA_FULL_PAGE_DEVICES || 'desktop,tabletPortrait,mobile')
     .split(',')
@@ -128,7 +129,17 @@ async function inspectPage(page, routeName, routePath, deviceName) {
       }).slice(0, 20).map((element) => ({ label: label(element), clientHeight: element.clientHeight, scrollHeight: element.scrollHeight }));
     const brokenImages = [...document.images].filter((image) => image.complete && image.naturalWidth === 0).map((image) => image.currentSrc || image.src || image.alt).slice(0, 20);
     const duplicateIds = [...document.querySelectorAll('[id]')].map((element) => element.id).filter((id, index, ids) => id && ids.indexOf(id) !== index).filter((id, index, ids) => ids.indexOf(id) === index);
-    const headings = [...document.querySelectorAll('h1,h2,h3')].filter(visible).map((heading) => ({ tag: heading.tagName, text: heading.textContent.trim().replace(/\s+/g, ' ').slice(0, 120), size: parseFloat(getComputedStyle(heading).fontSize), lineHeight: getComputedStyle(heading).lineHeight }));
+    const headings = [...document.querySelectorAll('h1,h2,h3')].filter(visible).map((heading) => {
+      const style = getComputedStyle(heading);
+      return {
+        tag: heading.tagName,
+        text: heading.textContent.trim().replace(/\s+/g, ' ').slice(0, 120),
+        size: parseFloat(style.fontSize),
+        lineHeight: style.lineHeight,
+        family: style.fontFamily,
+        weight: style.fontWeight,
+      };
+    });
     const frames = [...document.querySelectorAll('iframe')].filter(visible).map((frame) => ({ title: frame.title, src: frame.src, width: frame.getBoundingClientRect().width, height: frame.getBoundingClientRect().height }));
     const textElements = [...document.querySelectorAll('main h1,main h2,main h3,main h4,main h5,main h6,main p,main li,main a,main button,main label,main summary')]
       .filter(visible)
@@ -153,6 +164,17 @@ async function inspectPage(page, routeName, routePath, deviceName) {
     }).slice(0, 30).map((element) => ({
       label: label(element),
       family: getComputedStyle(element).fontFamily,
+      size: getComputedStyle(element).fontSize,
+    }));
+    const curriculumEditorialWeightMismatches = textElements.filter((element) => {
+      if (!document.querySelector('.pp-page')) return false;
+      const expectsCurriculumEditorialWeight = element.matches('.pp-title-xl,.pp-page .chroma-program-slider-head h2,.pp-page .chroma-program-slider-copy h3,.pp-page .pp-section-title,.pp-page .pp-flow-title,.pp-page .pp-card-title,.pp-page .pp-evolution-title,.pp-page .pp-resource-title');
+      const style = getComputedStyle(element);
+      return expectsCurriculumEditorialWeight && /Playfair Display/i.test(style.fontFamily) && style.fontWeight !== '400';
+    }).slice(0, 30).map((element) => ({
+      label: label(element),
+      family: getComputedStyle(element).fontFamily,
+      weight: getComputedStyle(element).fontWeight,
       size: getComputedStyle(element).fontSize,
     }));
     const undersizedText = textElements.filter((element) => {
@@ -226,6 +248,7 @@ async function inspectPage(page, routeName, routePath, deviceName) {
         unexpectedFonts,
         legacySerifUsage,
         editorialFontMismatches,
+        curriculumEditorialWeightMismatches,
         fontAvailability,
         expectedBodyFont: /Outfit/i.test(bodyFont) && (!mainFont || /Outfit/i.test(mainFont)),
         undersizedText,
@@ -305,7 +328,7 @@ async function runInteractions(browser) {
 }
 
 (async () => {
-  const browser = await chromium.launch({ headless: true, executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe' });
+  const browser = await chromium.launch({ headless: true, executablePath: browserExecutable });
   for (const [deviceName, viewport] of Object.entries(selectedDevices)) {
     const context = await browser.newContext({ viewport, reducedMotion: 'no-preference' });
     for (const [routeName, routePath] of selectedRoutes) {
@@ -331,6 +354,7 @@ async function runInteractions(browser) {
     unexpectedFonts: results.filter((result) => result.metrics?.typography?.unexpectedFonts?.length),
     legacySerifUsage: results.filter((result) => result.metrics?.typography?.legacySerifUsage?.length),
     editorialFontMismatches: results.filter((result) => result.metrics?.typography?.editorialFontMismatches?.length),
+    curriculumEditorialWeightMismatches: results.filter((result) => result.metrics?.typography?.curriculumEditorialWeightMismatches?.length),
     unavailableFonts: results.filter((result) => result.metrics?.typography?.fontAvailability && (!result.metrics.typography.fontAvailability.outfit || !result.metrics.typography.fontAvailability.playfair)),
     undersizedText: results.filter((result) => result.metrics?.typography?.undersizedText?.length),
     oversizedText: results.filter((result) => result.metrics?.typography?.oversizedText?.length),
@@ -344,5 +368,5 @@ async function runInteractions(browser) {
   };
   fs.writeFileSync(path.join(outputRoot, 'template-qa-results.json'), JSON.stringify(results, null, 2));
   fs.writeFileSync(path.join(outputRoot, 'template-qa-summary.json'), JSON.stringify(summary, null, 2));
-  console.log(JSON.stringify({ totalChecks: summary.totalChecks, failures: summary.failures.length, horizontalOverflow: summary.horizontalOverflow.length, brokenImages: summary.brokenImages.length, clippedText: summary.clippedText.length, typographyMismatches: summary.typographyMismatches.length, unexpectedFonts: summary.unexpectedFonts.length, legacySerifUsage: summary.legacySerifUsage.length, editorialFontMismatches: summary.editorialFontMismatches.length, unavailableFonts: summary.unavailableFonts.length, undersizedText: summary.undersizedText.length, oversizedText: summary.oversizedText.length, oversizedSections: summary.oversizedSections.length, fixedObstructions: summary.fixedObstructions.length, unreachableFooters: summary.unreachableFooters.length, missingFooters: summary.missingFooters.length, consoleIssues: summary.consoleIssues.length, requestFailures: summary.requestFailures.length, interactions }, null, 2));
+  console.log(JSON.stringify({ totalChecks: summary.totalChecks, failures: summary.failures.length, horizontalOverflow: summary.horizontalOverflow.length, brokenImages: summary.brokenImages.length, clippedText: summary.clippedText.length, typographyMismatches: summary.typographyMismatches.length, unexpectedFonts: summary.unexpectedFonts.length, legacySerifUsage: summary.legacySerifUsage.length, editorialFontMismatches: summary.editorialFontMismatches.length, curriculumEditorialWeightMismatches: summary.curriculumEditorialWeightMismatches.length, unavailableFonts: summary.unavailableFonts.length, undersizedText: summary.undersizedText.length, oversizedText: summary.oversizedText.length, oversizedSections: summary.oversizedSections.length, fixedObstructions: summary.fixedObstructions.length, unreachableFooters: summary.unreachableFooters.length, missingFooters: summary.missingFooters.length, consoleIssues: summary.consoleIssues.length, requestFailures: summary.requestFailures.length, interactions }, null, 2));
 })().catch((error) => { console.error(error); process.exitCode = 1; });

@@ -1693,12 +1693,109 @@
   };
 
   /**
+   * Emit privacy-safe intent events through the site's existing gtag/GTM setup.
+   * Do not include phone numbers, email addresses, form values, or coordinates.
+   */
+  const initIntentAnalytics = () => {
+    const emit = (eventName, parameters = {}) => {
+      const payload = {
+        page_path: window.location.pathname,
+        page_language: document.documentElement.lang || 'en',
+        ...parameters,
+      };
+
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', eventName, payload);
+        return;
+      }
+
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event: eventName, ...payload });
+    };
+
+    const cleanLabel = element => (element?.getAttribute('aria-label') || element?.textContent || '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .slice(0, 80);
+
+    const path = window.location.pathname.replace(/\/+$/, '') || '/';
+    if (/^\/(?:es\/)?programs\/[^/]+$/i.test(path)) {
+      emit('program_page_view', { content_type: 'program' });
+    } else if (/^\/(?:es\/)?locations\/[^/]+$/i.test(path)) {
+      emit('location_page_view', { content_type: 'campus' });
+    }
+
+    document.addEventListener('click', event => {
+      const target = event.target instanceof Element ? event.target.closest('a,button') : null;
+      if (!target) return;
+
+      const href = target instanceof HTMLAnchorElement ? target.href : '';
+      const parsedUrl = href ? new URL(href, window.location.href) : null;
+      const label = cleanLabel(target);
+      const shared = label ? { link_text: label } : {};
+      const locationFilter = target.getAttribute('data-location-filter');
+
+      if (locationFilter === 'closest') {
+        emit('use_my_location', { interaction_type: 'geolocation_request' });
+        return;
+      }
+
+      if (locationFilter) {
+        emit('location_region_filter', { region: locationFilter });
+        return;
+      }
+
+      if (target.closest('[data-location-card]') && !href) {
+        emit('location_card_focus', { interaction_type: 'map_focus' });
+        return;
+      }
+
+      if (!parsedUrl) return;
+
+      if (parsedUrl.protocol === 'tel:') {
+        emit('phone_call', shared);
+        return;
+      }
+
+      if (/google\.[^/]+\/maps|maps\.google\.|\/maps\/dir|\/maps\/search/i.test(parsedUrl.href)) {
+        emit('directions_click', shared);
+        return;
+      }
+
+      if (target.classList.contains('booking-btn') || /\/schedule-a-tour\/?$/i.test(parsedUrl.pathname)) {
+        emit('schedule_tour_click', shared);
+        return;
+      }
+
+      if (/\/parent-portal\/?$/i.test(parsedUrl.pathname)) {
+        emit('parent_portal_click', shared);
+        return;
+      }
+
+      if (/\/careers?\/?$/i.test(parsedUrl.pathname)) {
+        emit('careers_click', shared);
+        return;
+      }
+
+      if (/\/locations\/[^/]+\/?$/i.test(parsedUrl.pathname)) {
+        emit('view_campus', shared);
+        return;
+      }
+
+      if (/\/programs\/[^/]+\/?$/i.test(parsedUrl.pathname)) {
+        emit('program_view', shared);
+      }
+    }, { capture: true });
+  };
+
+  /**
    * Core Initialization Handler
    */
   document.addEventListener('DOMContentLoaded', () => {
     // 1. Critical Nav (Immediate)
     initMobileNav();
     initRevealMotion();
+    initIntentAnalytics();
     observeGhlFormEmbeds();
     syncTourFormScroll();
     window.addEventListener('resize', debounce(syncTourFormScroll, 150));

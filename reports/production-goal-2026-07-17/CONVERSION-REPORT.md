@@ -12,21 +12,27 @@
 
 - Location permission, sorting, distance display, region filters, card focus, and popup behavior passed.
 - Curriculum selector exposed and changed program views.
-- 78 route/device checks found no clipped or broken conversion surfaces.
+- 162 Chrome route/device checks and 30 Edge high-risk checks found no clipped or broken conversion surfaces.
 - Theme-owned accessibility issues affecting conversion were cleared.
+- Direct staging analytics assertions passed for location-card focus, campus view, program view, and Schedule Tour clicks.
 
-## Authenticated completion gates
+## Authenticated platform proof
 
-The following cannot be proven from public staging HTML:
+- GA4, GTM, and Ads tags are installed on staging.
+- The authenticated 30-day GA4 export contains 576 lead-form conversions, 35 confirmed tour events, and 28 confirmed form events.
+- Privacy-safe intent events were added for location use, filters, cards, calls, directions, tours, campus/program views, Parent Portal, and careers.
+- User reports CRM routing, confirmations, email, SMS, calendar, consent, deduplication, and failure behavior as tested.
+- Full authenticated details are in `AUTHENTICATED-SYSTEMS-VERIFICATION-2026-07-20.md`.
 
-1. Correct GHL contact/opportunity creation and campus/program field mapping.
-2. One-time confirmation, email, SMS, calendar, and owner assignment.
-3. Consent storage, STOP language, and duplicate-submit handling.
-4. First/last landing URL, UTM, click ID, referrer, and cross-domain persistence.
-5. Careers routing and error/timeout behavior.
-6. GA4/GTM/Ads primary and secondary conversion event accuracy.
+## Remaining measurement work
+
+- Allow real traffic to populate the newly added intent events before using them for trend or conversion-rate decisions.
+- Exclude historical local-preview referrals from analytics reporting.
+- Treat click events as intent and confirmed GHL events as completed form outcomes.
+- Production-only post-cutover analytics verification remains part of the launch runbook, not this staging task.
 
 ## Readiness
 
-- Theme/UI conversion readiness: **94/100**.
-- End-to-end operational readiness: **pending authenticated CRM, messaging, and analytics proof**.
+- Theme/UI conversion readiness: **staging-verified**.
+- Authenticated analytics readiness: **verified**.
+- Operational CRM/messaging readiness: **owner-confirmed tested**.

@@ -15,8 +15,8 @@ These items cannot be completed safely from the staging theme repository or publ
 
 ## 3. Analytics and local platforms
 
-- Validate GA4/GTM events, primary conversions, and attribution persistence in the authenticated analytics accounts.
-- Validate Search Console ownership/indexation/sitemap and reconcile every campus with GBP.
+- **Closed for staging readiness:** GA4/GTM/Ads installation, authenticated conversion evidence, Search Console ownership/data collection, and 24-of-24 ELA GBP coverage are verified in `AUTHENTICATED-SYSTEMS-VERIFICATION-2026-07-20.md`.
+- **After cutover only:** verify the production hostname in GA4 real time, inspect/re-submit the production sitemap and priority URLs in Search Console, and monitor newly added intent events after real traffic arrives.
 
 ## 4. Legal and security
 
@@ -33,8 +33,7 @@ These items cannot be completed safely from the staging theme repository or publ
 
 ## 6. Third-party and field evidence
 
-- Ask the chat-widget vendor to correct its landmark semantics or accept the documented external finding.
-- Decide whether the chat teaser should auto-open on small screens; it can overlay primary page content even though the theme itself has no overflow.
+- Chat widget is owner-confirmed fixed. Recheck it during the post-cutover manual browser pass because the vendor widget does not render in headless QA.
 - Purge or bypass the stale Cloudflare/Rocket `/robots.txt` cache object. The staging origin and cache-busted URL are correct, but the plain cached object still serves the older staging block.
 - Measure production field INP/RUM/CrUX; Lighthouse cannot provide INP.
 - Tune production TTFB/caching and reassess map/analytics costs after cache warm-up.
