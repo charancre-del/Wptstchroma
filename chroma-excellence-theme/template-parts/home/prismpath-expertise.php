@@ -18,8 +18,8 @@ $card_2 = $cards[1] ?? array();
 $card_3 = $cards[2] ?? array();
 $card_4 = $cards[3] ?? array();
 
-$curriculum_heading = $card_1['heading'] ?? __('The Prismpath™ Curriculum', 'chroma-excellence');
-$curriculum_text = $card_1['text'] ?? __('Just as a prism refracts light into a full spectrum of color, Prismpath™ refracts play into a full spectrum of development.', 'chroma-excellence');
+$curriculum_heading = $card_1['heading'] ?? __('The PrismPath™ Curriculum', 'chroma-excellence');
+$curriculum_text = $card_1['text'] ?? __('Just as a prism refracts light into a full spectrum of color, PrismPath™ refracts play into a full spectrum of development.', 'chroma-excellence');
 $care_heading = $card_2['heading'] ?? __('Expert Care, Extended Family.', 'chroma-excellence');
 $care_text = $card_2['text'] ?? __('Our educators build warm, responsive relationships and help each child feel known, secure, and ready to grow.', 'chroma-excellence');
 $fuel_heading = $card_3['heading'] ?? __('Wholesome Fuel', 'chroma-excellence');

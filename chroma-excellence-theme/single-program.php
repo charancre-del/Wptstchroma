@@ -43,7 +43,7 @@ while (have_posts()):
 	}
 
 	// Prismpath section
-	$prism_title = chroma_get_translated_meta($program_id, 'program_prism_title', true) ?: __('Our Prismpath™ Focus', 'chroma-excellence');
+	$prism_title = chroma_get_translated_meta($program_id, 'program_prism_title', true) ?: __('Our PrismPath™ Focus', 'chroma-excellence');
 	$prism_description = chroma_get_translated_meta($program_id, 'program_prism_description', true);
 	$prism_focus_items = chroma_get_translated_meta($program_id, 'program_prism_focus_items', true);
 
@@ -205,12 +205,12 @@ while (have_posts()):
 					<div class="bg-white rounded-[3rem] p-8 shadow-soft border border-brand-ink/5 order-2 lg:order-1">
 						<div
 							class="programChart radarChart"
-							aria-label="<?php esc_attr_e('Prismpath five-pillar development chart', 'chroma-excellence'); ?>"
+							aria-label="<?php esc_attr_e('PrismPath five-pillar development chart', 'chroma-excellence'); ?>"
 							data-radar-chart
 							data-radar-color="<?php echo esc_attr($hex_color); ?>"
 							data-radar-values="<?php echo esc_attr(wp_json_encode(array($prism_physical, $prism_emotional, $prism_social, $prism_academic, $prism_creative))); ?>">
 							<svg class="radarSvg" viewBox="0 0 560 430" role="img" aria-labelledby="singleRadarTitle singleRadarDesc">
-								<title id="singleRadarTitle"><?php esc_html_e('Prismpath five-pillar development chart', 'chroma-excellence'); ?></title>
+								<title id="singleRadarTitle"><?php esc_html_e('PrismPath five-pillar development chart', 'chroma-excellence'); ?></title>
 								<desc id="singleRadarDesc"><?php printf(esc_html__('Radar chart showing the balance across physical, emotional, social, academic, and creative development for %s.', 'chroma-excellence'), esc_html(get_the_title())); ?></desc>
 								<g class="radarGrid" data-radar-grid></g>
 								<polygon class="radarArea" data-radar-area points=""></polygon>
@@ -223,13 +223,13 @@ while (have_posts()):
 								<text class="radarLabel" x="45" y="150" text-anchor="middle"><?php esc_html_e('Creative', 'chroma-excellence'); ?></text>
 							</svg>
 							<p class="chartNote">
-								<?php printf(esc_html__('The Prismpath™ balance for %s shifts across physical, emotional, social, academic, and creative development.', 'chroma-excellence'), esc_html(get_the_title())); ?>
+								<?php printf(esc_html__('The PrismPath™ balance for %s shifts across physical, emotional, social, academic, and creative development.', 'chroma-excellence'), esc_html(get_the_title())); ?>
 							</p>
 						</div>
 					</div>
 					<div class="order-1 lg:order-2">
 						<span
-							class="text-<?php echo esc_attr($colors['main']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Prismpath™ Focus', 'chroma-excellence'); ?></span>
+							class="text-<?php echo esc_attr($colors['main']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('PrismPath™ Focus', 'chroma-excellence'); ?></span>
 						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
 							<?php echo esc_html($prism_title); ?>
 						</h2>

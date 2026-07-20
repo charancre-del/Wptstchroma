@@ -30,8 +30,8 @@ if (empty($options)) {
 }
 
 $fallback_profile = array(
-    'title' => __('A balanced Prismpath™ day', 'chroma-excellence'),
-    'description' => __('The chart shows how Prismpath™ balances physical, emotional, social, academic, and creative development for each program.', 'chroma-excellence'),
+    'title' => __('A balanced PrismPath™ day', 'chroma-excellence'),
+    'description' => __('The chart shows how PrismPath™ balances physical, emotional, social, academic, and creative development for each program.', 'chroma-excellence'),
     'color' => '#4A6C7C',
     'data' => array(68, 72, 70, 66, 74),
 );

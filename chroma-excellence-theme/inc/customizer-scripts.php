@@ -25,6 +25,10 @@ if (!function_exists('chroma_should_skip_global_scripts_output')) {
             return true;
         }
 
+        if (function_exists('chroma_is_staging_request') && chroma_is_staging_request()) {
+            return true;
+        }
+
         return false;
     }
 }

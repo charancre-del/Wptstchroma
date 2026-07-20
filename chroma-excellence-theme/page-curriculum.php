@@ -21,13 +21,13 @@ if ( $parent_pdf_url && function_exists( 'chroma_enqueue_pdf_assets' ) ) {
 	chroma_enqueue_pdf_assets();
 }
 
-$hero_badge           = chroma_get_translated_meta( $page_id, 'curriculum_hero_badge' ) ?: __( 'The Prismpath method', 'chroma-excellence' );
+$hero_badge           = chroma_get_translated_meta( $page_id, 'curriculum_hero_badge' ) ?: __( 'The PrismPath method', 'chroma-excellence' );
 $hero_title           = chroma_get_translated_meta( $page_id, 'curriculum_hero_title' ) ?: __( 'Whole-child learning that grows with <span class="pp-script">your child.</span>', 'chroma-excellence' );
-$hero_description     = chroma_get_translated_meta( $page_id, 'curriculum_hero_description' ) ?: __( 'Prismpath is Chroma Early Learning Academy\'s curriculum framework for helping children grow across five connected areas: physical, emotional, social, academic, and creative development.', 'chroma-excellence' );
+$hero_description     = chroma_get_translated_meta( $page_id, 'curriculum_hero_description' ) ?: __( 'PrismPath is Chroma Early Learning Academy\'s curriculum framework for helping children grow across five connected areas: physical, emotional, social, academic, and creative development.', 'chroma-excellence' );
 $hero_description_two = chroma_get_translated_meta( $page_id, 'curriculum_hero_description_two' ) ?: __( 'It is simple on purpose: teachers notice what children are practicing, plan meaningful next steps, and shape classroom experiences around the children in front of them.', 'chroma-excellence' );
 
 $framework_title       = chroma_get_translated_meta( $page_id, 'curriculum_framework_title' ) ?: __( 'A clearer way to understand the whole child.', 'chroma-excellence' );
-$framework_description = chroma_get_translated_meta( $page_id, 'curriculum_framework_description' ) ?: __( 'Children do not grow in straight lines. A block tower can build hand strength, problem-solving, language, peer cooperation, and imagination all at once. Prismpath helps teachers see those connected moments and plan from them.', 'chroma-excellence' );
+$framework_description = chroma_get_translated_meta( $page_id, 'curriculum_framework_description' ) ?: __( 'Children do not grow in straight lines. A block tower can build hand strength, problem-solving, language, peer cooperation, and imagination all at once. PrismPath helps teachers see those connected moments and plan from them.', 'chroma-excellence' );
 
 $continuum_badge       = chroma_get_translated_meta( $page_id, 'curriculum_continuum_badge' ) ?: __( 'A connected learning continuum', 'chroma-excellence' );
 $continuum_title       = chroma_get_translated_meta( $page_id, 'curriculum_continuum_title' ) ?: __( 'Introduced Early. Deepened Over Time.', 'chroma-excellence' );
@@ -141,7 +141,7 @@ $pillars = array(
 
 $support_badge       = chroma_get_translated_meta( $page_id, 'curriculum_support_badge' ) ?: __( 'How it works', 'chroma-excellence' );
 $support_title       = chroma_get_translated_meta( $page_id, 'curriculum_support_title' ) ?: __( 'Teachers are supported, so children are seen clearly.', 'chroma-excellence' );
-$support_description = chroma_get_translated_meta( $page_id, 'curriculum_support_description' ) ?: __( 'Prismpath is not a script. It is a teacher-guided rhythm: observe children, understand what growth is emerging, plan the next meaningful experience, then share progress with families.', 'chroma-excellence' );
+$support_description = chroma_get_translated_meta( $page_id, 'curriculum_support_description' ) ?: __( 'PrismPath is not a script. It is a teacher-guided rhythm: observe children, understand what growth is emerging, plan the next meaningful experience, then share progress with families.', 'chroma-excellence' );
 
 $support_cards = array(
 	array(
@@ -201,7 +201,7 @@ $milestones = array(
 
 $faq_items = array(
 	array(
-		'q' => __( 'Is Prismpath a packaged curriculum?', 'chroma-excellence' ),
+		'q' => __( 'Is PrismPath a packaged curriculum?', 'chroma-excellence' ),
 		'a' => __( 'No. It is Chroma\'s framework for planning, observing, and supporting whole-child development across classrooms.', 'chroma-excellence' ),
 	),
 	array(
@@ -249,7 +249,7 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 
 				<div class="pp-prism-card pp-reveal pp-delay-1" data-prism-card>
 					<svg class="pp-prism-svg" viewBox="0 0 640 400" role="img" aria-labelledby="pp-prism-title pp-prism-desc">
-						<title id="pp-prism-title"><?php esc_html_e( 'The Prismpath prism', 'chroma-excellence' ); ?></title>
+						<title id="pp-prism-title"><?php esc_html_e( 'The PrismPath prism', 'chroma-excellence' ); ?></title>
 						<desc id="pp-prism-desc"><?php esc_html_e( 'A beam of light enters a prism and refracts into five developmental pillars.', 'chroma-excellence' ); ?></desc>
 						<defs>
 							<linearGradient id="pp-prism-gradient" x1="0" y1="0" x2="1" y2="1">
@@ -279,7 +279,7 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 					</svg>
 					<p class="pp-prism-caption">
 						<?php esc_html_e( 'A prism turns one beam of light into a full spectrum.', 'chroma-excellence' ); ?>
-						<strong><?php esc_html_e( 'Prismpath does the same with play.', 'chroma-excellence' ); ?></strong>
+						<strong><?php esc_html_e( 'PrismPath does the same with play.', 'chroma-excellence' ); ?></strong>
 					</p>
 				</div>
 			</div>
@@ -549,15 +549,16 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 					</div>
 					<div class="pp-gelds pp-reveal pp-delay-1">
 						<h3><?php esc_html_e( 'Aligned to early learning domains', 'chroma-excellence' ); ?></h3>
-						<p><?php esc_html_e( 'Prismpath organizes classroom learning around the whole child, with language that can connect back to Georgia early learning domains while staying parent-friendly.', 'chroma-excellence' ); ?></p>
+						<p><?php esc_html_e( 'PrismPath organizes classroom learning around the whole child, with language that can connect back to Georgia early learning domains while staying parent-friendly.', 'chroma-excellence' ); ?></p>
 						<div class="pp-domain"><i style="background:#7D5BA6"></i><?php esc_html_e( 'Approaches to Play and Learning', 'chroma-excellence' ); ?></div>
 						<div class="pp-domain"><i style="background:#4A6C7C"></i><?php esc_html_e( 'Social and Emotional Development', 'chroma-excellence' ); ?></div>
 						<div class="pp-domain"><i style="background:#4A7C59"></i><?php esc_html_e( 'Communication, Language and Literacy', 'chroma-excellence' ); ?></div>
 						<div class="pp-domain"><i style="background:#C2A024"></i><?php esc_html_e( 'Cognitive Development and General Knowledge', 'chroma-excellence' ); ?></div>
 						<div class="pp-domain"><i style="background:#A84B38"></i><?php esc_html_e( 'Physical Development and Motor Skills', 'chroma-excellence' ); ?></div>
 						<?php if ( $parent_pdf_url ) : ?>
+							<p class="pp-copy-sm"><?php esc_html_e( 'The parent overview explains how teachers connect observations to the five PrismPath pillars, choose age-appropriate experiences, document what children try, and plan a possible next step.', 'chroma-excellence' ); ?></p>
 							<div class="pp-actions">
-								<a class="pp-btn chroma-pdf-trigger" href="#" data-pdf-url="<?php echo esc_url( $parent_pdf_url ); ?>" data-pdf-title="<?php esc_attr_e( 'Prismpath Parent Overview', 'chroma-excellence' ); ?>"><?php esc_html_e( 'View Parent Overview PDF', 'chroma-excellence' ); ?></a>
+								<a class="pp-btn chroma-pdf-trigger" href="<?php echo esc_url( $parent_pdf_url ); ?>" data-pdf-url="<?php echo esc_url( $parent_pdf_url ); ?>" data-pdf-title="<?php esc_attr_e( 'PrismPath Parent Overview', 'chroma-excellence' ); ?>"><?php esc_html_e( 'View Parent Overview PDF', 'chroma-excellence' ); ?></a>
 							</div>
 						<?php endif; ?>
 					</div>
@@ -588,7 +589,7 @@ $locations_url = chroma_get_localized_url( get_post_type_archive_link( 'location
 					<span class="pp-final-glow" aria-hidden="true"></span>
 					<span class="pp-spectrum-line" aria-hidden="true"></span>
 					<h2 class="pp-title pp-title-lg"><?php esc_html_e( 'See the rhythm in a classroom.', 'chroma-excellence' ); ?></h2>
-					<p class="pp-copy"><?php esc_html_e( 'The best way to understand Prismpath is to see children creating, communicating, and trying new things with teachers who know what support comes next.', 'chroma-excellence' ); ?></p>
+					<p class="pp-copy"><?php esc_html_e( 'The best way to understand PrismPath is to see children creating, communicating, and trying new things with teachers who know what support comes next.', 'chroma-excellence' ); ?></p>
 					<div class="pp-actions pp-centered-actions">
 						<a class="pp-btn primary" href="<?php echo esc_url( $tour_url ); ?>"><?php esc_html_e( 'Schedule a Tour', 'chroma-excellence' ); ?></a>
 						<a class="pp-btn" href="<?php echo esc_url( $locations_url ); ?>"><?php esc_html_e( 'Find a Campus', 'chroma-excellence' ); ?></a>

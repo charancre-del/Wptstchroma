@@ -386,7 +386,7 @@ get_header();
 												href="<?php echo esc_url($location['booking_link']); ?>"
 												class="booking-btn flex items-center justify-center gap-2 w-full py-3 <?php echo esc_attr($region['button_bg']); ?> <?php echo esc_attr($region['button_text']); ?> text-xs font-bold uppercase tracking-widest rounded-xl <?php echo esc_attr($region['button_hover']); ?> hover:text-white transition-colors"
 											>
-												<?php _e('Schedule Tour', 'chroma-excellence'); ?>
+												<?php _e('Schedule a Tour', 'chroma-excellence'); ?>
 											</a>
 										<?php else: ?>
 											<a

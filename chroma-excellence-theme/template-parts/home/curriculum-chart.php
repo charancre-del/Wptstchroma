@@ -11,14 +11,14 @@
 		<div class="max-w-6xl mb-14 lg:mb-16 fade-in-up">
 			<div class="inline-flex items-center gap-3 rounded-full bg-chroma-yellow/10 border border-chroma-yellow/10 px-5 py-2.5 text-sm font-semibold text-chroma-yellow mb-7">
 				<span class="w-2 h-2 rounded-full bg-chroma-yellow"></span>
-				<?php esc_html_e('The Prismpath™ method', 'chroma-excellence'); ?>
+				<?php esc_html_e('The PrismPath™ method', 'chroma-excellence'); ?>
 			</div>
 			<h2 class="chroma-prism-title font-serif text-brand-ink text-5xl md:text-7xl lg:text-[5.75rem] leading-[0.95] tracking-tight mb-6">
 				<?php esc_html_e('Five pillars.', 'chroma-excellence'); ?>
 				<em class="inline text-chroma-yellow"><?php esc_html_e('One prism.', 'chroma-excellence'); ?></em>
 			</h2>
 			<p class="text-brand-ink/80 text-lg md:text-xl leading-relaxed max-w-2xl">
-				<?php esc_html_e('A prism refracts light into clear dimensions. Prismpath™ refracts play into five pillars of development — and rebalances the mix at each age.', 'chroma-excellence'); ?>
+				<?php esc_html_e('A prism refracts light into clear dimensions. PrismPath™ refracts play into five pillars of development — and rebalances the mix at each age.', 'chroma-excellence'); ?>
 			</p>
 		</div>
 

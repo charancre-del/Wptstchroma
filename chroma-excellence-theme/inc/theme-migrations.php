@@ -113,3 +113,69 @@ function chroma_migrate_v2_theme_state($old_name = '', $old_theme = null)
 }
 add_action('after_switch_theme', 'chroma_migrate_v2_theme_state', 5, 2);
 add_action('after_setup_theme', 'chroma_migrate_v2_theme_state', 5);
+
+/**
+ * Repair known launch-content relationships without replacing editorial data.
+ */
+function chroma_repair_launch_content_relationships()
+{
+    if ((int) get_option('chroma_launch_content_relationships_version', 0) >= 1) {
+        return;
+    }
+
+    $chadwick = get_page_by_path('chadwick-campus', OBJECT, 'location');
+    if (!$chadwick) {
+        $matches = get_posts(array(
+            'post_type' => 'location',
+            'post_status' => 'publish',
+            'posts_per_page' => 1,
+            's' => 'Chadwick',
+        ));
+        $chadwick = $matches[0] ?? null;
+    }
+
+    if ($chadwick) {
+        foreach (array('infant-care', 'toddler-care', 'preschool', 'pre-k-prep') as $program_slug) {
+            $program = get_page_by_path($program_slug, OBJECT, 'program');
+            if (!$program) {
+                continue;
+            }
+
+            $location_ids = get_post_meta($program->ID, 'program_locations', true);
+            $location_ids = is_array($location_ids) ? array_map('absint', $location_ids) : array();
+            if (!in_array((int) $chadwick->ID, $location_ids, true)) {
+                $location_ids[] = (int) $chadwick->ID;
+                update_post_meta($program->ID, 'program_locations', array_values(array_unique($location_ids)));
+
+                if (function_exists('chroma_sync_program_locations_taxonomy')) {
+                    chroma_sync_program_locations_taxonomy($program->ID, $program);
+                }
+            }
+        }
+    }
+
+    update_option('chroma_launch_content_relationships_version', 1, false);
+}
+add_action('init', 'chroma_repair_launch_content_relationships', 35);
+
+/**
+ * Normalize the PrismPath brand casing in legacy editorial content.
+ *
+ * The replacement has the same byte length, so serialized meta and theme-mod
+ * values remain valid while old page content and schema records are repaired.
+ */
+function chroma_normalize_prismpath_brand_casing()
+{
+    if ((int) get_option('chroma_prismpath_brand_casing_version', 0) >= 1) {
+        return;
+    }
+
+    global $wpdb;
+
+    $wpdb->query("UPDATE {$wpdb->posts} SET post_title = REPLACE(post_title, 'Prismpath', 'PrismPath'), post_excerpt = REPLACE(post_excerpt, 'Prismpath', 'PrismPath'), post_content = REPLACE(post_content, 'Prismpath', 'PrismPath') WHERE post_title LIKE '%Prismpath%' OR post_excerpt LIKE '%Prismpath%' OR post_content LIKE '%Prismpath%'");
+    $wpdb->query("UPDATE {$wpdb->postmeta} SET meta_value = REPLACE(meta_value, 'Prismpath', 'PrismPath') WHERE meta_value LIKE '%Prismpath%'");
+    $wpdb->query("UPDATE {$wpdb->options} SET option_value = REPLACE(option_value, 'Prismpath', 'PrismPath') WHERE option_value LIKE '%Prismpath%'");
+
+    update_option('chroma_prismpath_brand_casing_version', 1, false);
+}
+add_action('init', 'chroma_normalize_prismpath_brand_casing', 36);

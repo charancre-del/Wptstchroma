@@ -15,6 +15,13 @@ while (have_posts()):
 
 	// Get location meta
 	$phone = $location_fields['phone'];
+	$phone_digits = preg_replace('/\D+/', '', (string) $phone);
+	if (strlen($phone_digits) === 11 && substr($phone_digits, 0, 1) === '1') {
+		$phone_digits = substr($phone_digits, 1);
+	}
+	$phone_display = strlen($phone_digits) === 10
+		? sprintf('(%s) %s-%s', substr($phone_digits, 0, 3), substr($phone_digits, 3, 3), substr($phone_digits, 6, 4))
+		: $phone;
 	$email = $location_fields['email'];
 	$address = chroma_location_address_line();
 	$city = $location_fields['city'];
@@ -166,12 +173,12 @@ while (have_posts()):
 					<div class="flex flex-wrap gap-4 mb-10">
 						<a href="#tour"
 							class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-<?php echo esc_attr($region_colors['text']); ?> text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-blueDark transition-all hover:-translate-y-1">
-							<?php _e('Schedule Visit', 'chroma-excellence'); ?>
+							<?php _e('Schedule a Tour', 'chroma-excellence'); ?>
 						</a>
 						<?php if ($phone): ?>
-							<a href="tel:<?php echo esc_attr(preg_replace('/[^0-9]/', '', $phone)); ?>"
+							<a href="tel:<?php echo esc_attr($phone_digits); ?>"
 								class="inline-flex items-center justify-center px-8 py-4 rounded-full border border-brand-ink/10 bg-white text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-<?php echo esc_attr($region_colors['border']); ?> hover:text-<?php echo esc_attr($region_colors['text']); ?> transition-all">
-								<?php echo esc_html($phone); ?>
+								<?php echo esc_html($phone_display); ?>
 							</a>
 						<?php endif; ?>
 					</div>
@@ -213,7 +220,7 @@ while (have_posts()):
 						class="absolute inset-0 bg-<?php echo esc_attr($region_colors['text']); ?>/10 rounded-[3rem] rotate-6 transform translate-x-4 translate-y-4">
 					</div>
 					<div class="relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white aspect-square md:aspect-[4/3]"
-						role="region" aria-live="off" aria-label="<?php echo esc_attr(sprintf(__('%s campus gallery', 'chroma-excellence'), $location_name)); ?>"
+						role="region" aria-live="off" aria-label="<?php echo esc_attr(sprintf(__('%s gallery', 'chroma-excellence'), $location_name)); ?>"
 						<?php if (count($hero_gallery) > 1)
 							echo 'data-location-carousel'; ?>>
 						<?php if (!empty($hero_gallery)): ?>
@@ -225,7 +232,8 @@ while (have_posts()):
 										// Try to get attachment ID to serve responsive images
 										$attachment_id = attachment_url_to_postid($image_url);
 										$attachment_alt = $attachment_id ? trim((string) get_post_meta($attachment_id, '_wp_attachment_image_alt', true)) : '';
-										$slide_alt = $attachment_alt ?: sprintf(__('%1$s campus, image %2$d', 'chroma-excellence'), $location_name, $index + 1);
+										$attachment_alt = preg_replace('/\bcampus\s+campus\b/i', 'Campus', $attachment_alt);
+										$slide_alt = $attachment_alt ?: sprintf(__('%1$s, image %2$d', 'chroma-excellence'), $location_name, $index + 1);
 										?>
 										<div class="w-full h-full flex-shrink-0"
 											data-location-slide="<?php echo esc_attr($index); ?>"
@@ -576,6 +584,7 @@ while (have_posts()):
 			</section>
 		<?php endif; ?>
 
+		<?php if ($hero_review_text && $hero_review_author): ?>
 		<!-- Testimonials Section -->
 		<section class="reviews white borderY py-20 lg:py-24 bg-white border-y border-chroma-blue/10">
 			<div class="max-w-6xl mx-auto px-4 lg:px-6">
@@ -587,21 +596,21 @@ while (have_posts()):
 							</div>
 							<div class="text-chroma-yellow tracking-[0.2em] text-lg mb-4" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
 							<h2 class="font-serif text-4xl md:text-5xl leading-tight mb-4">
-								<?php esc_html_e('Why Families Love Us', 'chroma-excellence'); ?>
+								<?php esc_html_e('What Families Say', 'chroma-excellence'); ?>
 							</h2>
 						</div>
 						<p class="text-white/75 leading-relaxed">
-							<?php printf(esc_html__('Real reviews from parents at the %s campus.', 'chroma-excellence'), esc_html(get_the_title())); ?>
+							<?php printf(esc_html__('A family perspective from %s.', 'chroma-excellence'), esc_html(get_the_title())); ?>
 						</p>
 					</div>
 					<article class="chroma-review-card">
 						<blockquote>
-							<?php echo esc_html(wp_trim_words($hero_review_text ?: __("We absolutely love Chroma! The teachers are so caring and my child has learned so much.", 'chroma-excellence'), 34, '…')); ?>
+							<?php echo esc_html(wp_trim_words($hero_review_text, 34, '…')); ?>
 						</blockquote>
 						<div class="flex items-center gap-4">
 							<div class="chroma-review-avatar">
 								<?php
-								$review_author = $hero_review_author ?: __("Happy Parent", 'chroma-excellence');
+								$review_author = $hero_review_author;
 								$review_initials = '';
 								foreach (array_slice(array_filter(preg_split('/\s+/', trim((string) $review_author))), 0, 2) as $name_part) {
 									$review_initials .= strtoupper(substr($name_part, 0, 1));
@@ -618,6 +627,7 @@ while (have_posts()):
 				</div>
 			</div>
 		</section>
+		<?php endif; ?>
 
 		<!-- FAQ Section -->
 		<section class="cream py-20 bg-brand-cream border-t border-brand-ink/5">
@@ -733,8 +743,8 @@ while (have_posts()):
 									<p class="text-sm text-brand-ink/80">
 										<?php if ($phone): ?>
 											<?php _e('Phone:', 'chroma-excellence'); ?> <a
-												href="tel:<?php echo esc_attr(preg_replace('/[^0-9]/', '', $phone)); ?>"
-												class="hover:text-<?php echo esc_attr($region_colors['text']); ?>"><?php echo esc_html($phone); ?></a><br>
+												href="tel:<?php echo esc_attr($phone_digits); ?>"
+												class="hover:text-<?php echo esc_attr($region_colors['text']); ?>"><?php echo esc_html($phone_display); ?></a><br>
 										<?php endif; ?>
 										<?php if ($email): ?>
 											<?php _e('Email:', 'chroma-excellence'); ?> <a
@@ -762,32 +772,6 @@ while (have_posts()):
 							</div>
 						</div>
 
-						<?php if ($school_pickups):
-							$schools = array_filter(array_map('trim', explode("\n", $school_pickups)));
-							if (!empty($schools)):
-								?>
-								<div class="flex gap-4">
-									<div
-										class="w-12 h-12 rounded-full bg-brand-cream flex items-center justify-center text-<?php echo esc_attr($region_colors['text']); ?> text-lg shrink-0">
-										<i class="fa-solid fa-bus"></i>
-									</div>
-									<div>
-										<h3 class="font-bold text-brand-ink"><?php _e('School Pickups', 'chroma-excellence'); ?>
-										</h3>
-										<p class="text-sm text-brand-ink/80">
-											<?php _e('We provide pickup service to:', 'chroma-excellence'); ?>
-										</p>
-										<ul class="text-sm text-brand-ink/80 mt-2 space-y-1">
-											<?php foreach ($schools as $school): ?>
-												<li class="flex items-start gap-2">
-													<i class="fa-solid fa-check text-chroma-green text-xs mt-1"></i>
-													<span><?php echo esc_html($school); ?></span>
-												</li>
-											<?php endforeach; ?>
-										</ul>
-									</div>
-								</div>
-							<?php endif; endif; ?>
 					</div>
 
 					<!-- Map Embed -->

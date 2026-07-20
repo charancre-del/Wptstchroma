@@ -182,7 +182,7 @@ while (have_posts()):
 				<div class="flex flex-wrap gap-4 mt-10">
 					<a href="<?php echo esc_url($schedule_tour_url); ?>"
 						class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-brand-ink text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-blue transition-colors">
-						<?php esc_html_e('Book Tour', 'chroma-excellence'); ?>
+						<?php esc_html_e('Schedule a Tour', 'chroma-excellence'); ?>
 					</a>
 					<a href="#kinder-focus"
 						class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-white border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-chroma-blue hover:text-chroma-blue transition-colors">
@@ -216,7 +216,7 @@ while (have_posts()):
 				</div>
 				<div class="order-1 lg:order-2">
 					<span class="text-brand-ink font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
-						<?php esc_html_e('Prismpath™ Focus', 'chroma-excellence'); ?>
+						<?php esc_html_e('PrismPath™ Focus', 'chroma-excellence'); ?>
 					</span>
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
 						<?php echo esc_html($prism_title); ?>

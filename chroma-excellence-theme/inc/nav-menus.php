@@ -594,14 +594,14 @@ function chroma_mobile_nav_fallback()
 
 	$pages = $is_es ? array(
 		$program_slug => 'Programas',
-		'prismpath' => 'Prismpath',
+		'prismpath' => 'PrismPath',
 		'curriculum' => 'Currículo',
 		'schedule' => 'Horario',
 		'locations' => 'Ubicaciones',
 		'faq' => 'Preguntas Frecuentes'
 	) : array(
 		$program_slug => 'Programs',
-		'prismpath' => 'Prismpath',
+		'prismpath' => 'PrismPath',
 		'curriculum' => 'Curriculum',
 		'schedule' => 'Schedule',
 		'locations' => 'Locations',

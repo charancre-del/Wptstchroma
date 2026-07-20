@@ -25,6 +25,19 @@ $cities_query = chroma_cached_query(
     7 * DAY_IN_SECONDS
 );
 
+// Hide legacy or incomplete community records without deleting historical content.
+if (is_array($cities_query->posts)) {
+    $cities_query->posts = array_values(array_filter($cities_query->posts, static function ($city_post) {
+        $county = trim((string) chroma_get_translated_meta($city_post->ID, 'city_county'));
+        $excluded_counties = array('other', 'local');
+
+        return 'lafayette' !== $city_post->post_name
+            && '' !== $county
+            && !in_array(strtolower($county), $excluded_counties, true);
+    }));
+    $cities_query->post_count = count($cities_query->posts);
+}
+
 // Counties will be collected during the main loop to avoid double iteration
 $unique_counties = [];
 $cities_count = is_array($cities_query->posts) ? count($cities_query->posts) : 0;

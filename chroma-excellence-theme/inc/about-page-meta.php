@@ -1145,7 +1145,7 @@ function chroma_seed_about_page_defaults( $post_id ) {
 		'about_value2_desc'                => 'Physical safety is our baseline; emotional safety is our goal. Kids learn best when they feel secure.',
 		'about_value3_icon'                => 'fa-solid fa-lightbulb',
 		'about_value3_title'               => 'Academic Excellence',
-		'about_value3_desc'                => 'Using our Prismpath™ model, we deliver rigorous, age-appropriate learning that feels like play.',
+		'about_value3_desc'                => 'Using our PrismPath™ model, we deliver rigorous, age-appropriate learning that feels like play.',
 		'about_value4_icon'                => 'fa-solid fa-users',
 		'about_value4_title'               => 'Open Partnership',
 		'about_value4_desc'                => 'Parents are partners. We maintain open doors, transparent communication, and daily updates.',

@@ -191,12 +191,12 @@ while (have_posts()):
 		<div class="max-w-6xl mx-auto px-4 lg:px-6">
 			<div class="grid lg:grid-cols-2 gap-16 items-center">
 				<div class="bg-brand-cream rounded-[3rem] p-8 shadow-soft border border-brand-ink/5 order-2 lg:order-1 rising-k-chart-shell">
-					<canvas id="risingKinderChart" role="img" aria-label="<?php echo esc_attr(sprintf(__('Radar chart showing the Rising Kindergarten Prismpath focus areas: %1$d%% Physical, %2$d%% Emotional, %3$d%% Social, %4$d%% Academic, and %5$d%% Creative.', 'chroma-excellence'), $chart_values[0], $chart_values[1], $chart_values[2], $chart_values[3], $chart_values[4])); ?>">
+					<canvas id="risingKinderChart" role="img" aria-label="<?php echo esc_attr(sprintf(__('Radar chart showing the Rising Kindergarten PrismPath focus areas: %1$d%% Physical, %2$d%% Emotional, %3$d%% Social, %4$d%% Academic, and %5$d%% Creative.', 'chroma-excellence'), $chart_values[0], $chart_values[1], $chart_values[2], $chart_values[3], $chart_values[4])); ?>">
 						<?php esc_html_e('A radar chart illustrating our curriculum\'s heavy focus on Academic readiness and Executive Function for Kindergarten.', 'chroma-excellence'); ?>
 					</canvas>
 				</div>
 				<div class="order-1 lg:order-2">
-					<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('Prismpath™ Focus', 'chroma-excellence'); ?></span>
+					<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('PrismPath™ Focus', 'chroma-excellence'); ?></span>
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6"><?php esc_html_e('Bridging the Gap.', 'chroma-excellence'); ?></h2>
 					<p class="text-brand-ink/80 text-lg mb-6"><?php echo wp_kses_post(__('Kindergarten moves fast. We spend the summer ensuring your child arrives ahead of the curve, heavily targeting <strong>Academic</strong> mastery and the <strong>Social & Emotional</strong> maturity required for a larger elementary school environment.', 'chroma-excellence')); ?></p>
 					<ul class="space-y-3 text-sm text-brand-ink/80">

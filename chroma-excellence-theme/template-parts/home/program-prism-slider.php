@@ -14,7 +14,7 @@ $component_args = wp_parse_args(
 	array(
 		'eyebrow'     => __( 'Program rhythm', 'chroma-excellence' ),
 		'title'       => __( 'Every program has its own balance.', 'chroma-excellence' ),
-		'description' => __( 'Choose a program to see how Prismpath shifts across physical, emotional, social, academic, and creative growth.', 'chroma-excellence' ),
+		'description' => __( 'Choose a program to see how PrismPath shifts across physical, emotional, social, academic, and creative growth.', 'chroma-excellence' ),
 		'class'       => '',
 	)
 );
@@ -41,8 +41,8 @@ foreach ( ( $curriculum_profiles['profiles'] ?? array() ) as $profile ) {
 }
 
 $fallback_profile = array(
-	'title'       => __( 'A balanced Prismpath day', 'chroma-excellence' ),
-	'description' => __( 'Prismpath keeps the five pillars connected while each program emphasizes the support children need most at that stage.', 'chroma-excellence' ),
+	'title'       => __( 'A balanced PrismPath day', 'chroma-excellence' ),
+	'description' => __( 'PrismPath keeps the five pillars connected while each program emphasizes the support children need most at that stage.', 'chroma-excellence' ),
 	'color'       => '#4A6C7C',
 	'data'        => array( 68, 72, 70, 66, 74 ),
 );
@@ -118,10 +118,10 @@ $component_id   = 'chroma-program-slider-' . wp_unique_id();
 		</article>
 
 		<div class="chroma-program-slider-chart">
-			<div class="radarChart" aria-label="<?php esc_attr_e( 'Prismpath five-pillar program chart', 'chroma-excellence' ); ?>" data-program-slider-radar>
+			<div class="radarChart" aria-label="<?php esc_attr_e( 'PrismPath five-pillar program chart', 'chroma-excellence' ); ?>" data-program-slider-radar>
 				<svg aria-labelledby="<?php echo esc_attr( $component_id ); ?>-title <?php echo esc_attr( $component_id ); ?>-desc" class="radarSvg" role="img" viewBox="0 0 560 430">
-					<title id="<?php echo esc_attr( $component_id ); ?>-title"><?php esc_html_e( 'Prismpath five-pillar program chart', 'chroma-excellence' ); ?></title>
-					<desc id="<?php echo esc_attr( $component_id ); ?>-desc"><?php esc_html_e( 'Radar chart showing how the five Prismpath pillars shift by selected program.', 'chroma-excellence' ); ?></desc>
+					<title id="<?php echo esc_attr( $component_id ); ?>-title"><?php esc_html_e( 'PrismPath five-pillar program chart', 'chroma-excellence' ); ?></title>
+					<desc id="<?php echo esc_attr( $component_id ); ?>-desc"><?php esc_html_e( 'Radar chart showing how the five PrismPath pillars shift by selected program.', 'chroma-excellence' ); ?></desc>
 					<g class="radarGrid" data-program-slider-grid></g>
 					<polygon class="radarArea" data-program-slider-area points=""></polygon>
 					<polygon class="radarStroke" data-program-slider-stroke points=""></polygon>

@@ -790,12 +790,26 @@ function chroma_serve_custom_sitemap()
         '/sitemap-near-me-es.xml',
     ];
     if (in_array($path, $legacy, true)) {
+        if (function_exists('chroma_is_staging_request') && chroma_is_staging_request()) {
+            status_header(404);
+            nocache_headers();
+            header('X-Robots-Tag: noindex, nofollow, noarchive', true);
+            exit;
+        }
+
         wp_safe_redirect(home_url('/sitemap.xml'), 301);
         exit;
     }
 
     if ($path !== '/sitemap.xml') {
         return;
+    }
+
+    if (function_exists('chroma_is_staging_request') && chroma_is_staging_request()) {
+        status_header(404);
+        nocache_headers();
+        header('X-Robots-Tag: noindex, nofollow, noarchive', true);
+        exit;
     }
 
     // Prevent caching issues

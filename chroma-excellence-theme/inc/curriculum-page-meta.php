@@ -26,7 +26,7 @@ function chroma_curriculum_page_meta_boxes() {
 
 	add_meta_box(
 		'chroma-curriculum-framework',
-		__( 'Prismpath Framework (5 Pillars)', 'chroma-excellence' ),
+		__( 'PrismPath Framework (5 Pillars)', 'chroma-excellence' ),
 		'chroma_curriculum_framework_meta_box_render',
 		'page',
 		'normal',
@@ -271,7 +271,7 @@ function chroma_curriculum_framework_meta_box_render( $post ) {
 			<td>
 				<input type="text" id="curriculum_framework_title" name="curriculum_framework_title"
 					   value="<?php echo esc_attr( $framework_title ); ?>"
-					   class="large-text" placeholder="e.g., The Prismpath™ Framework" />
+					   class="large-text" placeholder="e.g., The PrismPath™ Framework" />
 				<br>
 				<input type="text" id="_chroma_es_curriculum_framework_title" name="_chroma_es_curriculum_framework_title"
 					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_framework_title', true ) ); ?>"
@@ -394,7 +394,7 @@ function chroma_curriculum_support_meta_box_render( $post ) {
 			<td>
 				<input type="url" id="curriculum_parent_overview_pdf_url" name="curriculum_parent_overview_pdf_url"
 					   value="<?php echo esc_attr( $parent_overview_pdf_url ); ?>"
-					   class="large-text" placeholder="Leave blank to use the bundled Prismpath parent overview PDF" />
+					   class="large-text" placeholder="Leave blank to use the bundled PrismPath parent overview PDF" />
 				<br>
 				<input type="url" id="_chroma_es_curriculum_parent_overview_pdf_url" name="_chroma_es_curriculum_parent_overview_pdf_url"
 					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_curriculum_parent_overview_pdf_url', true ) ); ?>"
@@ -1066,17 +1066,17 @@ function chroma_seed_curriculum_page_defaults( $post_id ) {
 	}
 
 	$defaults = array(
-		'curriculum_hero_badge'       => 'The Prismpath method',
+		'curriculum_hero_badge'       => 'The PrismPath method',
 		'curriculum_hero_title'       => 'Whole-child learning that grows with <span class="pp-script">your child.</span>',
-		'curriculum_hero_description' => 'Prismpath is Chroma Early Learning Academy\'s curriculum framework for helping children grow across five connected areas: physical, emotional, social, academic, and creative development.',
+		'curriculum_hero_description' => 'PrismPath is Chroma Early Learning Academy\'s curriculum framework for helping children grow across five connected areas: physical, emotional, social, academic, and creative development.',
 		'curriculum_hero_description_two' => 'It is simple on purpose: teachers notice what children are practicing, plan meaningful next steps, and shape classroom experiences around the children in front of them.',
 
 		'curriculum_framework_title'       => 'A clearer way to understand the whole child.',
-		'curriculum_framework_description' => 'Children do not grow in straight lines. A block tower can build hand strength, problem-solving, language, peer cooperation, and imagination all at once. Prismpath helps teachers see those connected moments and plan from them.',
+		'curriculum_framework_description' => 'Children do not grow in straight lines. A block tower can build hand strength, problem-solving, language, peer cooperation, and imagination all at once. PrismPath helps teachers see those connected moments and plan from them.',
 
 		'curriculum_support_badge'       => 'How it works',
 		'curriculum_support_title'       => 'Teachers are supported, so children are seen clearly.',
-		'curriculum_support_description' => 'Prismpath is not a script. It is a teacher-guided rhythm: observe children, understand what growth is emerging, plan the next meaningful experience, then share progress with families.',
+		'curriculum_support_description' => 'PrismPath is not a script. It is a teacher-guided rhythm: observe children, understand what growth is emerging, plan the next meaningful experience, then share progress with families.',
 		'curriculum_support_notice_title' => 'Notice',
 		'curriculum_support_notice_desc' => 'Teachers watch for patterns in play, language, movement, relationships, and problem-solving.',
 		'curriculum_support_plan_title' => 'Plan',
@@ -1192,7 +1192,7 @@ function chroma_seed_curriculum_page_defaults( $post_id ) {
 		'curriculum_milestone_assessments_bullet2' => 'Individualized Lesson Planning',
 
 		'curriculum_cta_title'       => 'See the curriculum in action.',
-		'curriculum_cta_description' => 'Schedule a tour to see our "Third Teacher" classrooms and meet the educators bringing Prismpath™ to life.',
+		'curriculum_cta_description' => 'Schedule a tour to see our "Third Teacher" classrooms and meet the educators bringing PrismPath™ to life.',
 	);
 
 	foreach ( $defaults as $meta_key => $default_value ) {

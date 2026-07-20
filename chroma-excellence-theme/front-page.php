@@ -15,8 +15,11 @@ get_header();
 <!-- Hero Section -->
 <?php get_template_part( 'template-parts/home/hero' ); ?>
 
-<!-- Prismpath Expertise Section (Bento Grid) -->
+<!-- PrismPath Expertise Section (Bento Grid) -->
 <?php get_template_part( 'template-parts/home/prismpath-expertise' ); ?>
+
+<!-- Curriculum Studio Editorial Band -->
+<?php get_template_part( 'template-parts/home/curriculum-studio' ); ?>
 
 <!-- Stats Strip -->
 <?php if ( chroma_home_has_stats() ) : ?>

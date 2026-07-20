@@ -102,6 +102,8 @@ function chroma_location_has_ga_pre_k($post_id = null)
 function chroma_get_program_fields($post_id = null)
 {
     $post_id = $post_id ?: get_the_ID();
+    $age_range = chroma_get_meta_value($post_id, 'program_age_range', '');
+    $age_range = preg_replace('/^\s*Ages?\s*:?\s*/i', '', (string) $age_range);
 
     // Get manual icon override
     $icon = chroma_get_meta_value($post_id, 'program_icon', '');
@@ -134,7 +136,7 @@ function chroma_get_program_fields($post_id = null)
     }
 
     return array(
-        'age_range' => chroma_get_meta_value($post_id, 'program_age_range', ''),
+        'age_range' => $age_range,
         'excerpt' => chroma_get_meta_value($post_id, 'program_short_description', ''),
         'icon' => $icon,
         'color' => chroma_get_meta_value($post_id, 'program_color', 'chroma-teal'),
@@ -224,37 +226,37 @@ function chroma_get_program_faq_items($post_id = null)
                 array('question' => __('How are families kept informed?', 'chroma-excellence'), 'answer' => __('Teachers share observations and classroom updates so families can understand current growth and the skills children are practicing next.', 'chroma-excellence')),
             ),
             'ga-pre-k' => array(
-                array('question' => __('Who is eligible for Georgia Pre-K?', 'chroma-excellence'), 'answer' => __('Georgia\'s state-funded Pre-K serves eligible four-year-old children. Families should confirm state eligibility rules, application dates, and campus availability for the current school year.', 'chroma-excellence')),
+                array('question' => __('Who is eligible for Georgia Pre-K?', 'chroma-excellence'), 'answer' => __('Georgia\'s state-funded Pre-K serves eligible four-year-old children. A campus Director can explain state eligibility rules, application dates, and enrollment steps for the current school year.', 'chroma-excellence')),
                 array('question' => __('How does the lottery and application process work?', 'chroma-excellence'), 'answer' => __('Application and lottery procedures follow Georgia Pre-K requirements and local campus capacity. A campus director can explain current deadlines and placement steps.', 'chroma-excellence')),
                 array('question' => __('Is care available outside the Georgia Pre-K day?', 'chroma-excellence'), 'answer' => __('Before- and after-school wraparound care may be available. Schedules, fees, and space vary by campus, so families should request current details directly.', 'chroma-excellence')),
             ),
             'after-school' => array(
                 array('question' => __('Which schools have transportation to Chroma?', 'chroma-excellence'), 'answer' => __('School pickup routes vary by campus and may change with demand. Contact your preferred campus for the current transportation list.', 'chroma-excellence')),
                 array('question' => __('Is homework support included?', 'chroma-excellence'), 'answer' => __('School-age afternoons make room for homework support, connection, movement, creative activities, and time to decompress after the school day.', 'chroma-excellence')),
-                array('question' => __('Is care available during school breaks?', 'chroma-excellence'), 'answer' => __('Seasonal and school-break options vary by campus and calendar. Families can ask their campus about current full-day care and camp availability.', 'chroma-excellence')),
+                array('question' => __('What care is offered during school breaks?', 'chroma-excellence'), 'answer' => __('Seasonal and school-break options vary by campus and calendar. Families can ask their campus about current full-day care and camp schedules.', 'chroma-excellence')),
             ),
             'camp-summer-winter-fall' => array(
                 array('question' => __('What ages can attend Chroma camp?', 'chroma-excellence'), 'answer' => __('Camp generally serves school-age children, with exact age ranges and available weeks set by each participating campus.', 'chroma-excellence')),
                 array('question' => __('What do children do during camp?', 'chroma-excellence'), 'answer' => __('Camp days may include weekly themes, active play, creative projects, STEM exploration, and field experiences appropriate to the group and campus schedule.', 'chroma-excellence')),
-                array('question' => __('How do I find current camp dates?', 'chroma-excellence'), 'answer' => __('Select a participating campus to review its current calendar, availability, registration details, and tour options.', 'chroma-excellence')),
+                array('question' => __('How do I find current camp dates?', 'chroma-excellence'), 'answer' => __('Select a participating campus to review its current calendar, registration details, and tour options.', 'chroma-excellence')),
             ),
             'kindergarten-1' => array(
-                array('question' => __('How much is Private Kindergarten and what is the class size?', 'chroma-excellence'), 'answer' => __('Tuition and class size vary by campus and enrollment period. Contact enrollment for current figures, scholarship information, and space availability.', 'chroma-excellence')),
+                array('question' => __('What does the Private Kindergarten day include?', 'chroma-excellence'), 'answer' => __('The day connects literacy, writing, mathematics, science, creative work, movement, and independent classroom routines in a warm, developmentally appropriate setting.', 'chroma-excellence')),
                 array('question' => __('How is Kindergarten progress shared with families?', 'chroma-excellence'), 'answer' => __('Teachers provide regular progress updates across literacy, mathematics, classroom independence, and whole-child development.', 'chroma-excellence')),
                 array('question' => __('What academic areas are included?', 'chroma-excellence'), 'answer' => __('Children build reading, writing, mathematics, science, critical thinking, collaboration, and independent learning habits within a developmentally appropriate day.', 'chroma-excellence')),
             ),
             'rising-pre-k' => array(
                 array('question' => __('Who is Rising Pre-K designed for?', 'chroma-excellence'), 'answer' => __('Rising Pre-K is a summer bridge for children preparing to enter a Pre-K classroom and its routines.', 'chroma-excellence')),
                 array('question' => __('What skills does the program support?', 'chroma-excellence'), 'answer' => __('Children practice communication, self-help routines, listening, early literacy, friendship skills, and confidence in group learning.', 'chroma-excellence')),
-                array('question' => __('How do I confirm dates and availability?', 'chroma-excellence'), 'answer' => __('Summer schedules and participating campuses vary. Contact a campus for current dates, hours, and enrollment availability.', 'chroma-excellence')),
+                array('question' => __('How do I confirm dates and hours?', 'chroma-excellence'), 'answer' => __('Summer schedules and participating campuses vary. Contact a campus for current dates, hours, and enrollment steps.', 'chroma-excellence')),
             ),
             'rising-kindergarten' => array(
                 array('question' => __('Who is Rising Kindergarten designed for?', 'chroma-excellence'), 'answer' => __('Rising Kindergarten supports Pre-K graduates who are preparing for the routines and expectations of kindergarten.', 'chroma-excellence')),
                 array('question' => __('Is this a formal academic program?', 'chroma-excellence'), 'answer' => __('It is a joyful summer bridge. Teachers weave literacy, problem solving, independence, and classroom confidence into active, age-appropriate experiences.', 'chroma-excellence')),
-                array('question' => __('How do I find a participating campus?', 'chroma-excellence'), 'answer' => __('Participation and schedules vary by campus. Contact enrollment to confirm current locations, dates, and availability.', 'chroma-excellence')),
+                array('question' => __('How do I find a participating campus?', 'chroma-excellence'), 'answer' => __('Participation and schedules vary by campus. Contact enrollment to confirm current locations, dates, and next steps.', 'chroma-excellence')),
             ),
             'parents-day-out' => array(
-                array('question' => __('Is Parent\'s Day Out a part-time option?', 'chroma-excellence'), 'answer' => __('Yes. It offers a flexible introduction to classroom routines and group care, with schedules and availability varying by campus.', 'chroma-excellence')),
+                array('question' => __('Is Parent\'s Day Out a part-time option?', 'chroma-excellence'), 'answer' => __('Yes. It offers a flexible introduction to classroom routines and group care, with schedules varying by campus.', 'chroma-excellence')),
                 array('question' => __('What ages can participate?', 'chroma-excellence'), 'answer' => __('The program is designed for young children, but exact age ranges and placement options vary by campus. A director can help determine the best fit.', 'chroma-excellence')),
                 array('question' => __('How does the program support a first classroom transition?', 'chroma-excellence'), 'answer' => __('Predictable routines, warm teachers, play, and small-group connection help children build comfort with separation and early friendships.', 'chroma-excellence')),
             ),
@@ -270,8 +272,8 @@ function chroma_get_program_faq_items($post_id = null)
                 'answer' => __('Teachers share classroom observations and updates so families can understand what children are practicing and what support comes next.', 'chroma-excellence'),
             ),
             array(
-                'question' => __('How do I confirm availability?', 'chroma-excellence'),
-                'answer' => __('Program schedules and space vary by campus. Contact enrollment or your preferred campus for current details.', 'chroma-excellence'),
+                'question' => __('How do I find a participating campus?', 'chroma-excellence'),
+                'answer' => __('Program schedules vary by campus. Contact enrollment or your preferred campus for the current program schedule and next steps.', 'chroma-excellence'),
             ),
         );
     }
@@ -285,6 +287,14 @@ function chroma_get_program_faq_items($post_id = null)
 
         if (count($parts) < 2 || !$parts[0] || !$parts[1]) {
             continue;
+        }
+
+        if (preg_match('/(?:tuition|pricing|rates?|how\s+much|cost\s+of\s+care)/i', $parts[0])) {
+            continue;
+        }
+
+        if (preg_match('/(?:Procare|Brightwheel|LineLeader)/i', $parts[1])) {
+            $parts[1] = __('Campuses share daily updates, photos, and messages through the family communication tools used by that campus. Your campus team will provide access details.', 'chroma-excellence');
         }
 
         $faq[] = array(

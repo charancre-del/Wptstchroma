@@ -26,49 +26,27 @@ while (have_posts()):
 
 	// Story Section
 	$story_title = chroma_get_translated_meta($page_id, 'about_story_title') ?: __('From one classroom to a community.', 'chroma-excellence');
-	$story_paragraph1 = chroma_get_translated_meta($page_id, 'about_story_paragraph1') ?: __('Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into one of Georgia\'s largest family-owned and operated early education providers, serving families through a growing network of campuses across Metro Atlanta and surrounding communities.', 'chroma-excellence');
-	$story_paragraph2 = chroma_get_translated_meta($page_id, 'about_story_paragraph2') ?: __('Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.', 'chroma-excellence');
+	$published_locations = wp_count_posts('location');
+	$locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
+	$story_paragraph1 = sprintf(
+		/* translators: %d: number of published Chroma campuses. */
+		__('Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into a network of %d campuses serving families across Metro Atlanta and surrounding Georgia communities.', 'chroma-excellence'),
+		$locations_count
+	);
+	$story_paragraph2 = __('As Chroma has expanded, each campus has remained locally connected while benefiting from shared standards for curriculum, safety, teacher development, and family partnership.', 'chroma-excellence');
 	if (false !== stripos($hero_badge_text, 'Established 2015')) {
 		$hero_badge_text = __('Founded in 2022', 'chroma-excellence');
 	}
-	if (false !== stripos($story_paragraph1, 'single location in Lawrenceville') || preg_match('/\bbegan\s+in\s+[^.]+\s+in\s+\d{4}\b/i', $story_paragraph1)) {
-		$story_paragraph1 = __('Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into one of Georgia\'s largest family-owned and operated early education providers, serving families through a growing network of campuses across Metro Atlanta and surrounding communities.', 'chroma-excellence');
-	}
-	if (false !== stripos($story_paragraph2, 'over the last decade')) {
-		$story_paragraph2 = __('Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.', 'chroma-excellence');
-	}
 	$story_image = chroma_get_translated_meta($page_id, 'about_story_image') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
 
-	$about_stat1_fallback_value = chroma_get_translated_meta($page_id, 'about_stat1_value') ?: '0';
-	$about_stat2_fallback_value = chroma_get_translated_meta($page_id, 'about_stat2_value') ?: __('6 weeks–12 years', 'chroma-excellence');
-	$stat3_value = chroma_get_translated_meta($page_id, 'about_stat3_value') ?: '5';
-	$stat3_label = chroma_get_translated_meta($page_id, 'about_stat3_label') ?: __('PrismPath Pillars', 'chroma-excellence');
-	$stat4_value = chroma_get_translated_meta($page_id, 'about_stat4_value') ?: __('GA', 'chroma-excellence');
-	$stat4_label = chroma_get_translated_meta($page_id, 'about_stat4_label') ?: __('Licensed Campuses', 'chroma-excellence');
-
-	$published_locations = wp_count_posts('location');
-	$locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
-	$families_served_stat = function_exists('chroma_home_get_stat_by_key') ? chroma_home_get_stat_by_key('families_served') : null;
-
 	$stat1_value = (string) $locations_count;
-	if ($stat1_value === '') {
-		$stat1_value = (string) $about_stat1_fallback_value;
-	}
-	$stat1_label = __('Locations', 'chroma-excellence');
-	$stat2_value = !empty($families_served_stat['value']) ? (string) $families_served_stat['value'] : (string) $about_stat2_fallback_value;
-	$stat2_label = !empty($families_served_stat['value']) ? __('Families Served', 'chroma-excellence') : __('Age Range', 'chroma-excellence');
-	if (in_array(trim((string) $stat2_value), array('2k+', '2,000+', '2000+'), true)) {
-		$stat2_value = __('6 weeks–12 years', 'chroma-excellence');
-		$stat2_label = __('Age Range', 'chroma-excellence');
-	}
-	if (in_array(trim((string) $stat3_value), array('450+', '450'), true)) {
-		$stat3_value = '5';
-		$stat3_label = __('PrismPath Pillars', 'chroma-excellence');
-	}
-	if ('100%' === trim((string) $stat4_value)) {
-		$stat4_value = __('GA', 'chroma-excellence');
-		$stat4_label = __('Licensed Campuses', 'chroma-excellence');
-	}
+	$stat1_label = __('Metro Atlanta Campuses', 'chroma-excellence');
+	$stat2_value = __('6 Weeks–12 Years', 'chroma-excellence');
+	$stat2_label = __('Ages Served', 'chroma-excellence');
+	$stat3_value = '100+';
+	$stat3_label = __('Years of Combined Leadership Experience', 'chroma-excellence');
+	$stat4_value = '2022';
+	$stat4_label = __('Founded', 'chroma-excellence');
 
 	// Educators Section
 	$educators_title = chroma_get_translated_meta($page_id, 'about_educators_title') ?: __('The Heart of Chroma.', 'chroma-excellence');
@@ -103,7 +81,7 @@ while (have_posts()):
 
 	$value3_icon = 'fa-solid fa-lightbulb';
 	$value3_title = chroma_get_translated_meta($page_id, 'about_value3_title') ?: __('Academic Excellence', 'chroma-excellence');
-	$value3_desc = chroma_get_translated_meta($page_id, 'about_value3_desc') ?: __('Using our Prismpath™ model, we deliver rigorous, age-appropriate learning that feels like play.', 'chroma-excellence');
+	$value3_desc = chroma_get_translated_meta($page_id, 'about_value3_desc') ?: __('Using our PrismPath™ model, we deliver rigorous, age-appropriate learning that feels like play.', 'chroma-excellence');
 
 	$value4_icon = 'fa-solid fa-users';
 	$value4_title = chroma_get_translated_meta($page_id, 'about_value4_title') ?: __('Open Partnership', 'chroma-excellence');
@@ -111,29 +89,6 @@ while (have_posts()):
 
 	// Leadership Section
 	$leadership_title = __('Led by educators, not investors.', 'chroma-excellence');
-	$leadership_fallbacks = array(
-		array(
-			'name'        => __('Campus Leadership Team', 'chroma-excellence'),
-			'title'       => __('School Operations', 'chroma-excellence'),
-			'description' => __('Experienced directors keep every campus safe, welcoming, and consistent for children and families.', 'chroma-excellence'),
-			'initials'    => 'CL',
-			'color'       => 'chroma-blue',
-		),
-		array(
-			'name'        => __('Prismpath™ Curriculum Team', 'chroma-excellence'),
-			'title'       => __('Learning & Development', 'chroma-excellence'),
-			'description' => __('Education leaders guide classroom rhythm, teacher coaching, and whole-child learning across every age group.', 'chroma-excellence'),
-			'initials'    => 'PT',
-			'color'       => 'chroma-red',
-		),
-		array(
-			'name'        => __('Family Experience Team', 'chroma-excellence'),
-			'title'       => __('Parent Partnership', 'chroma-excellence'),
-			'description' => __('Enrollment and campus support teams help families feel informed, heard, and connected from day one.', 'chroma-excellence'),
-			'initials'    => 'FE',
-			'color'       => 'chroma-green',
-		),
-	);
 
 	// Nutrition Section
 	$nutrition_title = chroma_get_translated_meta($page_id, 'about_nutrition_title') ?: __('Fueling growing minds.', 'chroma-excellence');
@@ -424,6 +379,7 @@ while (have_posts()):
 			</div>
 		</section>
 
+		<?php if ($team_members->have_posts()): ?>
 		<!-- Leadership Team -->
 		<section class="white borderY py-24 bg-white border-y border-chroma-blue/10">
 			<div class="max-w-7xl mx-auto px-4 lg:px-6">
@@ -434,11 +390,11 @@ while (have_posts()):
 					</h2>
 				</div>
 				<div class="chroma-about-team-grid grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-					<?php if ($team_members->have_posts()): ?>
-						<?php while ($team_members->have_posts()):
+					<?php while ($team_members->have_posts()):
 							$team_members->the_post();
 							$member_title = chroma_get_translated_meta(get_the_ID(), 'team_member_title');
 							$member_bio = apply_filters('the_content', get_the_content());
+							$member_bio_modal = $member_bio ? wpautop(esc_html(wp_trim_words(wp_strip_all_tags($member_bio), 120))) : '';
 							$member_excerpt = $member_bio ? wp_trim_words(wp_strip_all_tags($member_bio), 22) : '';
 							?>
 							<div class="chroma-about-team-card group rounded-[2rem] border border-chroma-blue/10 bg-white p-6 text-center shadow-soft transition-transform hover:-translate-y-1">
@@ -466,30 +422,15 @@ while (have_posts()):
 									</button>
 								<?php endif; ?>
 								<div id="bio-<?php the_ID(); ?>" class="hidden">
-									<?php echo wp_kses_post($member_bio); ?>
+									<?php echo wp_kses_post($member_bio_modal); ?>
 								</div>
 							</div>
 						<?php endwhile;
 						wp_reset_postdata(); ?>
-					<?php else: ?>
-						<?php foreach ($leadership_fallbacks as $leader): ?>
-							<div class="chroma-about-team-card text-center group">
-								<div class="chroma-about-team-photo chroma-about-team-initials relative mb-5 overflow-hidden shadow-card bg-brand-cream flex items-center justify-center group-hover:scale-[1.02] transition-transform">
-									<span class="font-serif text-5xl text-<?php echo esc_attr($leader['color']); ?>">
-										<?php echo esc_html($leader['initials']); ?>
-									</span>
-								</div>
-								<h3 class="font-serif text-xl font-bold text-brand-ink"><?php echo esc_html($leader['name']); ?></h3>
-								<p class="text-xs font-bold uppercase tracking-wider text-<?php echo esc_attr($leader['color']); ?> mb-3">
-									<?php echo esc_html($leader['title']); ?>
-								</p>
-								<p class="text-sm text-brand-ink/60 max-w-xs mx-auto"><?php echo esc_html($leader['description']); ?></p>
-							</div>
-						<?php endforeach; ?>
-					<?php endif; ?>
 				</div>
 			</div>
 		</section>
+		<?php endif; ?>
 		<!-- Nutrition & Wellness -->
 		<section class="cream py-24 bg-brand-cream">
 			<div class="chroma-about-split-section max-w-6xl mx-auto px-4 lg:px-6 grid md:grid-cols-2 gap-16 items-center">

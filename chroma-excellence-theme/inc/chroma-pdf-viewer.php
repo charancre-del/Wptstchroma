@@ -11,7 +11,7 @@
 function chroma_pdf_shortcode($atts) {
     $args = shortcode_atts(array(
         'url' => '',
-        'title' => 'Document',
+		'title' => 'Parent resource',
         'button_text' => 'Read Now',
         'cover' => '', // URL to cover image
         'color' => 'chroma-blue', // Theme color for icon
@@ -62,7 +62,7 @@ function chroma_pdf_shortcode($atts) {
                 <?php echo esc_html($args['title']); ?>
             </h3>
             <p class="text-xs text-brand-ink/60 uppercase tracking-wider font-bold">
-                <i class="fa-solid fa-file-pdf mr-1"></i> PDF Document
+				<i class="fa-solid fa-file-pdf mr-1"></i> Parent PDF resource
             </p>
         </div>
     </div>
@@ -129,20 +129,20 @@ function chroma_render_pdf_modal() {
                         <i class="fa-solid fa-file-pdf text-chroma-red"></i>
                     </div>
                     <div class="hidden md:block">
-                        <span class="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block mb-0.5">Pro Viewer</span>
-                        <h3 class="font-serif font-bold text-sm text-white truncate max-w-[200px]" id="chroma-pdf-title">Document</h3>
+						<span class="text-[10px] uppercase tracking-[0.2em] font-bold text-white/50 block mb-0.5">PDF viewer</span>
+						<h3 class="font-serif font-bold text-sm text-white truncate max-w-[200px]" id="chroma-pdf-title">Parent resource</h3>
                     </div>
                 </div>
 
                 <!-- Pagination Tools -->
                 <div class="flex items-center gap-2 md:gap-4 bg-white/5 rounded-full px-4 py-1.5 border border-white/5">
-                    <button id="chroma-pdf-prev" class="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-10 disabled:cursor-not-allowed" title="Previous Page">
+					<button type="button" id="chroma-pdf-prev" class="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-10 disabled:cursor-not-allowed" title="Previous Page" aria-label="Previous PDF page">
                         <i class="fa-solid fa-arrow-left"></i>
                     </button>
                     <span class="text-xs md:text-sm font-mono tracking-[0.2em] text-white/90 px-2 min-w-[60px] text-center">
-                        <span id="chroma-pdf-page-num" class="font-bold text-white">1</span> <span class="mx-1 opacity-40">/</span> <span id="chroma-pdf-page-count">--</span>
+						<span id="chroma-pdf-page-num" class="font-bold text-white">1</span> <span class="mx-1 opacity-40">/</span> <span id="chroma-pdf-page-count">Loading</span>
                     </span>
-                    <button id="chroma-pdf-next" class="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-10 disabled:cursor-not-allowed" title="Next Page">
+					<button type="button" id="chroma-pdf-next" class="w-8 h-8 rounded-full flex items-center justify-center transition-all disabled:opacity-10 disabled:cursor-not-allowed" title="Next Page" aria-label="Next PDF page">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                 </div>
@@ -152,7 +152,7 @@ function chroma_render_pdf_modal() {
                     <a href="#" id="chroma-pdf-download" download class="w-10 h-10 rounded-full hover:bg-chroma-blue flex items-center justify-center transition-all text-white/80 hover:text-white" title="Download">
                         <i class="fa-solid fa-download"></i>
                     </a>
-                    <button id="chroma-pdf-close" class="w-10 h-10 rounded-full hover:bg-chroma-red flex items-center justify-center transition-all text-white/80 hover:text-white" title="Close Content">
+                    <button type="button" id="chroma-pdf-close" class="w-10 h-10 rounded-full hover:bg-chroma-red flex items-center justify-center transition-all text-white/80 hover:text-white" title="Close content" aria-label="Close PDF viewer">
                         <i class="fa-solid fa-xmark text-lg"></i>
                     </button>
                 </div>
@@ -163,7 +163,7 @@ function chroma_render_pdf_modal() {
                 <!-- Loader Widget -->
                 <div id="chroma-pdf-loader" class="absolute inset-0 z-[10] flex flex-col items-center justify-center text-white bg-brand-ink/40 backdrop-blur-sm rounded-3xl">
                     <div class="w-14 h-14 border-4 border-white/10 border-t-chroma-red rounded-full animate-spin mb-6"></div>
-                    <span class="text-xs font-bold tracking-[0.3em] uppercase opacity-80">Enhancing Document...</span>
+					<span class="text-xs font-bold tracking-[0.3em] uppercase opacity-80">Loading PDF...</span>
                 </div>
                 
                 <!-- PDF Render Paper -->

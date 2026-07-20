@@ -58,7 +58,7 @@ $color_map = array(
                     <em class="block md:inline text-chroma-red"><?php esc_html_e('grow with them.', 'chroma-excellence'); ?></em>
                 </h1>
                 <p class="text-lg md:text-xl text-brand-ink/75 leading-relaxed max-w-3xl">
-                    <?php esc_html_e('From sensory discovery in our infant suites to project-based Pre-K, every program uses Prismpath™ to meet children exactly where they are.', 'chroma-excellence'); ?>
+                    <?php esc_html_e('From sensory discovery in our infant suites to project-based Pre-K, every program uses PrismPath™ to meet children exactly where they are.', 'chroma-excellence'); ?>
                 </p>
             </div>
         </div>
@@ -216,7 +216,7 @@ $color_map = array(
         <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.95fr_1.05fr] gap-10 items-center">
             <div>
                 <div class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-4">
-                    <?php esc_html_e('The Prismpath™ Model', 'chroma-excellence'); ?>
+                    <?php esc_html_e('The PrismPath™ Model', 'chroma-excellence'); ?>
                 </div>
                 <h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.04em] leading-[0.98] text-brand-ink mb-6">
                     <?php esc_html_e('Five pillars.', 'chroma-excellence'); ?>
@@ -227,7 +227,7 @@ $color_map = array(
                 </p>
                 <a href="<?php echo esc_url(home_url('/curriculum/')); ?>"
                     class="inline-flex items-center justify-center px-7 py-4 rounded-full bg-brand-ink text-white text-xs font-bold uppercase tracking-[0.18em] hover:bg-chroma-blueDark transition shadow-soft">
-                    <?php esc_html_e('Explore Prismpath™', 'chroma-excellence'); ?>
+                    <?php esc_html_e('Explore PrismPath™', 'chroma-excellence'); ?>
                 </a>
             </div>
 

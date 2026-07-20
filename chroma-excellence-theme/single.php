@@ -123,7 +123,7 @@ $related_query = new WP_Query($related_args);
       </nav>
       <?php $locations_url = chroma_smart_link('locations'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
-        class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft"><?php _e('Book Tour', 'chroma-excellence'); ?></a>
+        class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft"><?php _e('Schedule a Tour', 'chroma-excellence'); ?></a>
     </div>
   </header>
 

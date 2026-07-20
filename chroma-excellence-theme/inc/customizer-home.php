@@ -186,7 +186,7 @@ function chroma_home_customize_register(WP_Customize_Manager $wp_customize)
     $wp_customize->add_section(
         'chroma_home_prismpath_section',
         array(
-            'title' => __('Prismpath', 'chroma-excellence'),
+            'title' => __('PrismPath', 'chroma-excellence'),
             'panel' => 'chroma_home_panel',
         )
     );

@@ -873,8 +873,8 @@ function chroma_program_details_meta_box_render($post)
 	<div class="chroma-program-field">
 		<label for="program_cta_text"><?php _e('CTA Button Text', 'chroma-excellence'); ?></label>
 		<input type="text" id="program_cta_text" name="program_cta_text" value="<?php echo esc_attr($cta_text); ?>"
-			placeholder="e.g., Schedule Tour, Join Waitlist, Learn More" />
-		<small><?php _e('Text for the call-to-action button (default: "Schedule Tour")', 'chroma-excellence'); ?></small>
+			placeholder="e.g., Schedule a Tour, Learn More" />
+		<small><?php _e('Text for the call-to-action button (default: "Schedule a Tour")', 'chroma-excellence'); ?></small>
 	</div>
 
 	<div class="chroma-program-field">
@@ -1063,25 +1063,25 @@ function chroma_program_single_page_meta_box_render($post)
 	</div>
 
 	<div class="chroma-section-divider">
-		<h3 style="margin-top: 0; color: #0073aa;">Prismpath™ Focus Section</h3>
+		<h3 style="margin-top: 0; color: #0073aa;">PrismPath™ Focus Section</h3>
 	</div>
 
 	<div class="chroma-single-field">
 		<label for="program_prism_title"><?php _e('Prism Section Title', 'chroma-excellence'); ?></label>
 		<input type="text" id="program_prism_title" name="program_prism_title" value="<?php echo esc_attr($prism_title); ?>"
 			placeholder="e.g., Building Trust & Body." />
-		<small><?php _e('Title for the Prismpath focus section', 'chroma-excellence'); ?></small>
+		<small><?php _e('Title for the PrismPath focus section', 'chroma-excellence'); ?></small>
 	</div>
 
 	<div class="chroma-single-field">
 		<label for="program_prism_description"><?php _e('Prism Description', 'chroma-excellence'); ?></label>
 		<textarea id="program_prism_description" name="program_prism_description" rows="4"
 			placeholder="In the first year, the brain grows faster than at any other time..."><?php echo esc_textarea($prism_description); ?></textarea>
-		<small><?php _e('Description explaining the program\'s Prismpath focus', 'chroma-excellence'); ?></small>
+		<small><?php _e('Description explaining the program\'s PrismPath focus', 'chroma-excellence'); ?></small>
 	</div>
 
 	<div class="chroma-single-field">
-		<label><?php _e('Prismpath Chart Values (0-100)', 'chroma-excellence'); ?></label>
+		<label><?php _e('PrismPath Chart Values (0-100)', 'chroma-excellence'); ?></label>
 		<div style="margin-bottom: 15px;">
 			<span style="font-size: 12px; font-weight: bold; margin-right: 10px;">Quick Fill:</span>
 			<button type="button" class="button chroma-chart-preset" data-values="[90,90,40,15,40]">Infant</button>

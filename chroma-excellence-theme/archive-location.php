@@ -98,7 +98,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 					<?php esc_html_e('Local roots. One standard.', 'chroma-excellence'); ?>
 				</h2>
 				<p class="text-brand-ink/75 text-lg leading-relaxed">
-					<?php esc_html_e('Every Chroma campus brings a shared commitment to warm care, family communication, and the Prismpath™ curriculum into the neighborhood it serves.', 'chroma-excellence'); ?>
+					<?php esc_html_e('Every Chroma campus brings a shared commitment to warm care, family communication, and the PrismPath™ curriculum into the neighborhood it serves.', 'chroma-excellence'); ?>
 				</p>
 			</div>
 
@@ -112,7 +112,7 @@ if (0 === (int) $locations_query->post_count && $locations_count > 0) {
 					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Georgia Pre-K is available at most Chroma campuses. Contact your preferred campus directly to confirm current availability and enrollment details.', 'chroma-excellence'); ?></p>
 				</div>
 				<div class="rounded-[2rem] bg-white border border-chroma-blue/10 shadow-card p-6">
-					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('Prismpath™', 'chroma-excellence'); ?></h3>
+					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-3"><?php esc_html_e('PrismPath™', 'chroma-excellence'); ?></h3>
 					<p class="text-sm leading-relaxed text-brand-ink/75"><?php esc_html_e('Our five-pillar curriculum balances physical, emotional, social, academic, and creative growth.', 'chroma-excellence'); ?></p>
 				</div>
 				<div class="rounded-[2rem] bg-white border border-chroma-blue/10 shadow-card p-6">

@@ -42,7 +42,7 @@ function chroma_home_default_hero()
 {
         return array(
                 'heading' => __('The art of <span class="italic text-chroma-red">growing up.</span>', 'chroma-excellence'),
-                'subheading' => __('Where thoughtful early learning meets the warmth of home. Our Prismpath™ framework supports children from infancy through school age with joyful, age-appropriate experiences.', 'chroma-excellence'),
+                'subheading' => __('Where thoughtful early learning meets the warmth of home. Our PrismPath™ framework supports children from infancy through school age with joyful, age-appropriate experiences.', 'chroma-excellence'),
                 'cta_label' => __('Schedule a Tour', 'chroma-excellence'),
                 'cta_url' => '#tour',
                 'secondary_label' => __('View Programs', 'chroma-excellence'),
@@ -50,7 +50,7 @@ function chroma_home_default_hero()
                 'pill_format' => __('%d Metro Atlanta Locations', 'chroma-excellence'),
                 'supporting_text' => __('Our experienced educators support each child\'s growth with warm relationships, intentional learning, and close family partnership.', 'chroma-excellence'),
                 'rating_label' => __('Parent stories from our campuses', 'chroma-excellence'),
-                'quality_badge_text' => __('Programs, credentials, and availability vary by campus', 'chroma-excellence'),
+                'quality_badge_text' => __('Programs and credentials vary by campus', 'chroma-excellence'),
                 'fallback_label' => __('Hero Image Coming Soon', 'chroma-excellence'),
                 'badge_heading' => __('Kindergarten Ready', 'chroma-excellence'),
                 'badge_text' => __('Comprehensive Prep', 'chroma-excellence'),
@@ -82,8 +82,8 @@ function chroma_home_default_prismpath()
                 'cards' => array(
                         array(
                                 'badge' => __('Proprietary Model', 'chroma-excellence'),
-                                'heading' => __('The Prismpath™ Curriculum', 'chroma-excellence'),
-                                'text' => __('Just as a prism refracts light into a full spectrum of color, Prismpath™ refracts play into a full spectrum of development.', 'chroma-excellence'),
+                                'heading' => __('The PrismPath™ Curriculum', 'chroma-excellence'),
+                                'text' => __('Just as a prism refracts light into a full spectrum of color, PrismPath™ refracts play into a full spectrum of development.', 'chroma-excellence'),
                                 'icon_bg' => 'fa-solid fa-shapes',
                                 'icon_badge' => 'fa-brands fa-connectdevelop',
                                 'icon_check' => 'fa-solid fa-check-circle',
@@ -631,9 +631,9 @@ function chroma_home_default_curriculum_profiles()
 function chroma_home_default_curriculum_content()
 {
         return array(
-                'eyebrow' => __('The Prismpath™ Curriculum', 'chroma-excellence'),
+                'eyebrow' => __('The PrismPath™ Curriculum', 'chroma-excellence'),
                 'heading' => __('A curriculum that shifts as your child grows', 'chroma-excellence'),
-                'subheading' => __('Our Prismpath™ framework balances five pillars – physical, emotional, social, academic, and creative development. The mix changes at each age so your child gets exactly what they need, when they need it.', 'chroma-excellence'),
+                'subheading' => __('Our PrismPath™ framework balances five pillars — physical, emotional, social, academic, and creative development. The mix changes at each age so your child gets exactly what they need, when they need it.', 'chroma-excellence'),
                 'chart_aria_label' => __('Curriculum focus radar chart', 'chroma-excellence'),
         );
 }
@@ -658,7 +658,7 @@ function chroma_home_default_faq_items()
         return array(
                 array(
                         'question' => __('Do you offer GA Lottery Pre-K?', 'chroma-excellence'),
-						'answer' => __('Georgia Pre-K is available at most Chroma campuses. Contact your preferred campus directly to confirm current availability, eligibility, and enrollment details.', 'chroma-excellence'),
+						'answer' => __('Georgia Pre-K is offered at most Chroma campuses. Chadwick and North Hall are the current exceptions. A campus Director can explain eligibility and enrollment steps.', 'chroma-excellence'),
                 ),
                 array(
                         'question' => __('What ages do you serve?', 'chroma-excellence'),
@@ -739,7 +739,7 @@ function chroma_home_default_schedule_tracks()
                                 ),
                                 array(
                                         'time' => '10:30',
-                                        'title' => 'Prismpath Play',
+										'title' => 'PrismPath Play',
                                         'copy' => 'Block building, art stations, and guided motor skills.',
                                 ),
                                 array(
@@ -1218,6 +1218,7 @@ function chroma_home_schedule_content()
 function chroma_home_normalize_operational_faq_items($items)
 {
 		$normalized_items = array();
+		$has_ratio_question = false;
 		foreach ((array) $items as $item) {
 				if (!is_array($item)) {
 						continue;
@@ -1237,7 +1238,7 @@ function chroma_home_normalize_operational_faq_items($items)
 
 				if (preg_match('/(?:GA\s+(?:Lottery\s+)?Pre-?K|Georgia\s+Pre-?K)/i', $question)) {
 						$question = __('Do you offer Georgia Pre-K?', 'chroma-excellence');
-						$answer = __('Georgia Pre-K is available at most Chroma campuses. Contact your preferred campus directly to confirm current availability, eligibility, and enrollment details.', 'chroma-excellence');
+						$answer = __('Georgia Pre-K is offered at most Chroma campuses. Chadwick and North Hall are the current exceptions. A campus Director can explain eligibility and enrollment steps.', 'chroma-excellence');
 				}
 
 				if (preg_match('/communicate\s+with\s+parents/i', $question) && preg_match('/(?:LineLeader|Procare|Brightwheel)/i', $answer)) {
@@ -1248,13 +1249,27 @@ function chroma_home_normalize_operational_faq_items($items)
 						$answer = __('Chroma campuses operate under applicable Georgia DECAL licensing requirements. Contact your preferred campus directly for current program credentials and participation details.', 'chroma-excellence');
 				}
 
+				if (preg_match('/(?:ratio|teacher\s*(?:to|-)\s*child|class\s+size)/i', $question)) {
+						$question = __('How do classroom ratios work?', 'chroma-excellence');
+						$answer = __('Classroom ratios follow applicable Georgia DECAL requirements and vary by age group and classroom. Your campus Director can explain the current classroom structure for your child\'s program.', 'chroma-excellence');
+						$has_ratio_question = true;
+				}
+
 				$normalized_items[] = array(
 						'question' => $question,
 						'answer' => $answer,
 				);
 		}
 
-		return $normalized_items;
+		if (!$has_ratio_question) {
+				$ratio_item = array(
+						'question' => __('How do classroom ratios work?', 'chroma-excellence'),
+						'answer' => __('Classroom ratios follow applicable Georgia DECAL requirements and vary by age group and classroom. Your campus Director can explain the current classroom structure for your child\'s program.', 'chroma-excellence'),
+				);
+				array_splice($normalized_items, min(6, count($normalized_items)), 0, array($ratio_item));
+		}
+
+		return array_slice($normalized_items, 0, 8);
 }
 
 function chroma_home_faq_items()
@@ -1286,7 +1301,7 @@ function chroma_home_faq_items()
  */
 function chroma_repair_home_operational_claims()
 {
-		if ((int) get_option('chroma_home_operational_claims_version', 0) >= 1) {
+		if ((int) get_option('chroma_home_operational_claims_version', 0) >= 2) {
 				return;
 		}
 
@@ -1299,9 +1314,14 @@ function chroma_repair_home_operational_claims()
 		$normalized_faqs = array();
 		foreach ($faq_meta_keys as $meta_key) {
 				$value = get_post_meta($home_id, $meta_key, true);
+				$value_was_json = is_string($value);
+				if ($value_was_json) {
+						$decoded_value = json_decode($value, true);
+						$value = (JSON_ERROR_NONE === json_last_error() && is_array($decoded_value)) ? $decoded_value : array();
+				}
 				if (is_array($value) && !empty($value)) {
 						$value = chroma_home_normalize_operational_faq_items($value);
-						update_post_meta($home_id, $meta_key, $value);
+						update_post_meta($home_id, $meta_key, $value_was_json ? wp_json_encode($value) : $value);
 						if (empty($normalized_faqs)) {
 								$normalized_faqs = $value;
 						}
@@ -1309,9 +1329,14 @@ function chroma_repair_home_operational_claims()
 		}
 
 		$theme_mod_faqs = get_theme_mod('chroma_home_faq_items_json', array());
+		$theme_mod_was_json = is_string($theme_mod_faqs);
+		if ($theme_mod_was_json) {
+				$decoded_theme_mod = json_decode($theme_mod_faqs, true);
+				$theme_mod_faqs = (JSON_ERROR_NONE === json_last_error() && is_array($decoded_theme_mod)) ? $decoded_theme_mod : array();
+		}
 		if (is_array($theme_mod_faqs) && !empty($theme_mod_faqs)) {
 				$theme_mod_faqs = chroma_home_normalize_operational_faq_items($theme_mod_faqs);
-				set_theme_mod('chroma_home_faq_items_json', $theme_mod_faqs);
+				set_theme_mod('chroma_home_faq_items_json', $theme_mod_was_json ? wp_json_encode($theme_mod_faqs) : $theme_mod_faqs);
 				if (empty($normalized_faqs)) {
 						$normalized_faqs = $theme_mod_faqs;
 				}
@@ -1354,7 +1379,7 @@ function chroma_repair_home_operational_claims()
 		update_post_meta($home_id, '_chroma_post_schemas', $schemas);
 		update_post_meta($home_id, '_chroma_schema_override', wp_json_encode($faq_schema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE));
 
-		update_option('chroma_home_operational_claims_version', 1, false);
+		update_option('chroma_home_operational_claims_version', 2, false);
 }
 add_action('init', 'chroma_repair_home_operational_claims', 30);
 
@@ -1581,7 +1606,7 @@ function chroma_home_default_tour_cta()
                         __('Daily parent communication', 'chroma-excellence'),
                         __('Healthy meals included', 'chroma-excellence'),
                         __('Age-appropriate security', 'chroma-excellence'),
-						__('Ask about Georgia Pre-K availability', 'chroma-excellence'),
+						__('Georgia Pre-K at most campuses', 'chroma-excellence'),
                 ),
                 'time_label' => __('Tour: 20–30 min', 'chroma-excellence'),
                 'trust_text' => __('No obligation. We’ll never share your information.', 'chroma-excellence'),
@@ -1631,7 +1656,7 @@ function chroma_home_featured_stories()
 {
         return array(
                 array(
-                        'title' => __('Inside the Prismpath™ Classroom', 'chroma-excellence'),
+                        'title' => __('Inside the PrismPath™ Classroom', 'chroma-excellence'),
                         'excerpt' => __('Take a peek at how our educators weave play and academics together each day.', 'chroma-excellence'),
                         'url' => '/stories/prismpath-classroom/',
                 ),
@@ -1653,26 +1678,7 @@ function chroma_home_featured_stories()
  */
 function chroma_home_default_parent_reviews()
 {
-        return array(
-                array(
-                        'name' => 'Sarah M.',
-                        'location' => __('Marietta Campus', 'chroma-excellence'),
-                        'rating' => '5',
-                        'review' => __('Our daughter has flourished at Chroma. The teachers genuinely care, and the Prismpath curriculum has her excited to learn every day. We couldn\'t ask for a better early learning experience.', 'chroma-excellence'),
-                ),
-                array(
-                        'name' => 'James & Lisa T.',
-                        'location' => __('Johns Creek Campus', 'chroma-excellence'),
-                        'rating' => '5',
-                        'review' => __('After touring several centers, Chroma stood out immediately. The transparency, the warmth, and the expert care made our decision easy. Our son has been there for two years and we\'ve never looked back.', 'chroma-excellence'),
-                ),
-                array(
-                        'name' => 'Maria G.',
-                        'location' => __('Austell Campus', 'chroma-excellence'),
-                        'rating' => '5',
-                        'review' => __('The family-style meals, the daily communication, the beautiful facilities — everything exceeds expectations. Chroma feels like an extension of our family, and our twins are thriving.', 'chroma-excellence'),
-                ),
-        );
+        return array();
 }
 
 function chroma_home_default_parent_reviews_content()
@@ -1705,7 +1711,7 @@ function chroma_home_parent_reviews()
 {
         $reviews = chroma_home_get_theme_mod_json('chroma_home_parent_reviews_json', chroma_home_default_parent_reviews());
 
-        return array_map(
+        $reviews = array_map(
                 function ($review) {
                         return array(
                                 'name' => sanitize_text_field($review['name'] ?? ''),
@@ -1716,6 +1722,10 @@ function chroma_home_parent_reviews()
                 },
                 $reviews
         );
+
+        return array_values(array_filter($reviews, static function ($review) {
+                return '' !== $review['name'] && '' !== $review['review'];
+        }));
 }
 
 /**

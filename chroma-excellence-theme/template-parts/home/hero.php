@@ -63,13 +63,21 @@ if ($loc_count > 0 && !preg_match('/\b' . preg_quote((string) $loc_count, '/') .
 
             <div class="flex min-w-0 flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-5 text-[12px] text-brand-ink">
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <span class="text-chroma-yellow text-lg">★★★★★</span>
+                    <span class="text-chroma-yellow text-lg" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
                     <span><?php echo esc_html($hero['rating_label']); ?></span>
                 </div>
                 <div class="hidden sm:block w-[1px] h-5 bg-chroma-blue/20"></div>
                 <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto min-w-0">
                     <span class="w-2 h-2 rounded-full bg-chroma-green"></span>
                     <span class="leading-relaxed"><?php echo esc_html($hero['quality_badge_text']); ?></span>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <span class="rounded-full border border-chroma-blue/20 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink">
+                        <?php esc_html_e('NAEYC Recognized', 'chroma-excellence'); ?>
+                    </span>
+                    <span class="rounded-full border border-chroma-red/20 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink">
+                        <?php esc_html_e('GAC Accredited GA Pre-K', 'chroma-excellence'); ?>
+                    </span>
                 </div>
             </div>
         </div>

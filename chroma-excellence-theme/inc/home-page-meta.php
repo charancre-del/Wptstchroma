@@ -34,7 +34,7 @@ function chroma_home_page_meta_boxes() {
 
 	add_meta_box(
 		'chroma-home-prismpath',
-		__( 'Home: Prismpath Section', 'chroma-excellence' ),
+		__( 'Home: PrismPath Section', 'chroma-excellence' ),
 		'chroma_home_prismpath_meta_box_render',
 		'page',
 		'normal',
@@ -254,7 +254,7 @@ function chroma_home_json_meta_box_render( $post ) {
 			</td>
 		</tr>
 		<tr>
-			<th><label>Prismpath Cards JSON [ES]</label></th>
+			<th><label>PrismPath Cards JSON [ES]</label></th>
 			<td>
 				<textarea name="_chroma_es_home_prismpath_cards_json" rows="5" class="large-text code"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_home_prismpath_cards_json', true ) ); ?></textarea>
 			</td>

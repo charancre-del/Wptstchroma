@@ -28,6 +28,10 @@ if (preg_match('/\b(?:Procare|Brightwheel)\b/i', $family_app_title)) {
 	$family_app_title = __('Family Communication App', 'chroma-excellence');
 }
 $family_app_description = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_resource_procare_desc') ?: __('Daily reports, photos, and attendance updates in your campus communication app.', 'chroma-excellence'));
+$family_app_url = chroma_get_translated_meta($page_id, 'parents_resource_procare_url') ?: '#';
+if (preg_match('/(?:procare|brightwheel)/i', (string) $family_app_url)) {
+	$family_app_url = '#';
+}
 
 $resources = array(
 	array(
@@ -35,7 +39,7 @@ $resources = array(
 		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_procare_icon') ?: 'fa-solid fa-cloud',
 		'title' => $family_app_title,
 		'description' => $family_app_description,
-		'url' => chroma_get_translated_meta($page_id, 'parents_resource_procare_url') ?: '#',
+		'url' => $family_app_url,
 		'colorClass' => 'chroma-blue',
 	),
 	array(
@@ -110,7 +114,10 @@ $events = array(
 // Nutrition Section
 $nutrition_badge = chroma_get_translated_meta($page_id, 'parents_nutrition_badge') ?: __('Wellness', 'chroma-excellence');
 $nutrition_title = chroma_get_translated_meta($page_id, 'parents_nutrition_title') ?: __('What\'s for lunch?', 'chroma-excellence');
-$nutrition_description = chroma_get_translated_meta($page_id, 'parents_nutrition_description') ?: __('Our in-house chefs prepare balanced, CACFP-compliant meals fresh daily. We are a nut-aware facility.', 'chroma-excellence');
+$nutrition_description = chroma_get_translated_meta($page_id, 'parents_nutrition_description') ?: __('Our in-house chefs prepare balanced, CACFP-compliant meals fresh daily. Our campuses operate under Chroma\'s nut-free food policy and allergy-management procedures.', 'chroma-excellence');
+if (preg_match('/nut[- ]aware/i', $nutrition_description)) {
+	$nutrition_description = __('Our in-house chefs prepare balanced, CACFP-compliant meals fresh daily. Our campuses operate under Chroma\'s nut-free food policy and allergy-management procedures.', 'chroma-excellence');
+}
 $nutrition_image = chroma_get_translated_meta($page_id, 'parents_nutrition_image') ?: 'https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?q=80&w=800&auto=format&fit=crop';
 
 $menus = array(
@@ -135,7 +142,7 @@ $menus = array(
 		'color' => 'chroma-red',
 		'bgClass' => 'chroma-redLight',
 		'title' => chroma_get_translated_meta($page_id, 'parents_menu3_title') ?: __('Allergy Statement', 'chroma-excellence'),
-		'subtitle' => chroma_get_translated_meta($page_id, 'parents_menu3_subtitle') ?: __('Our Nut-Free Protocols', 'chroma-excellence'),
+		'subtitle' => __('Nut-Free Food & Allergy Procedures', 'chroma-excellence'),
 		'url' => chroma_get_translated_meta($page_id, 'parents_menu3_url') ?: '#',
 	),
 );
