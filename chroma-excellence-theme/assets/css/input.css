@@ -8475,7 +8475,7 @@
     --chroma-form-default-viewport: 34rem;
   }
 
-  .chroma-location-explorer {
+  .chroma-location-explorer.grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
 
@@ -8510,10 +8510,11 @@
     padding: 0.8rem 1rem !important;
   }
 
-  .chroma-location-card-scroll,
-  .chroma-locations-stacked .chroma-location-card-scroll {
+  .chroma-location-list-panel .chroma-location-card-scroll,
+  .chroma-locations-stacked .chroma-location-list-panel .chroma-location-card-scroll {
     display: grid !important;
     gap: 0.8rem !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     max-height: 34rem !important;
     overflow-y: auto !important;
   }
@@ -8587,8 +8588,8 @@
 }
 
 @media (min-width: 820px) and (max-width: 1023px) {
-  .chroma-location-card-scroll,
-  .chroma-locations-stacked .chroma-location-card-scroll {
+  .chroma-location-list-panel .chroma-location-card-scroll,
+  .chroma-locations-stacked .chroma-location-list-panel .chroma-location-card-scroll {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }

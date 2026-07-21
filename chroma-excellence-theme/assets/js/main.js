@@ -157,6 +157,17 @@
     const formCards = document.querySelectorAll('.chroma-form-scroll-card, .chroma-tour-form-card');
     if (!formCards.length) return;
 
+    const setImportantStyle = (element, property, value) => {
+      if (
+        element.style.getPropertyValue(property) === value
+        && element.style.getPropertyPriority(property) === 'important'
+      ) {
+        return;
+      }
+
+      element.style.setProperty(property, value, 'important');
+    };
+
     formCards.forEach((card) => {
       card.classList.add('has-embedded-form');
 
@@ -183,19 +194,30 @@
 
         iframe.setAttribute('scrolling', 'yes');
 
-        iframe.style.setProperty('position', 'relative', 'important');
-        iframe.style.setProperty('inset', 'auto', 'important');
-        iframe.style.setProperty('left', '0', 'important');
-        iframe.style.setProperty('right', 'auto', 'important');
-        iframe.style.setProperty('top', '0', 'important');
-        iframe.style.setProperty('bottom', 'auto', 'important');
-        iframe.style.setProperty('transform', 'none', 'important');
-        iframe.style.setProperty('display', 'block', 'important');
-        iframe.style.setProperty('visibility', 'visible', 'important');
-        iframe.style.setProperty('opacity', '1', 'important');
-        iframe.style.setProperty('width', '100%', 'important');
-        iframe.style.setProperty('max-width', '100%', 'important');
-        iframe.style.setProperty('min-width', '0', 'important');
+        if (iframe.dataset.chromaFormSizeListener !== 'true') {
+          iframe.dataset.chromaFormSizeListener = 'true';
+          iframe.addEventListener('load', () => {
+            window.setTimeout(normalizeGhlFormEmbeds, 120);
+            window.setTimeout(normalizeGhlFormEmbeds, 700);
+          });
+        }
+
+        setImportantStyle(iframe, 'position', 'relative');
+        setImportantStyle(iframe, 'left', '0px');
+        setImportantStyle(iframe, 'right', 'auto');
+        setImportantStyle(iframe, 'top', '0px');
+        setImportantStyle(iframe, 'bottom', 'auto');
+        setImportantStyle(iframe, 'transform', 'none');
+        setImportantStyle(iframe, 'display', 'block');
+        setImportantStyle(iframe, 'visibility', 'visible');
+        setImportantStyle(iframe, 'opacity', '1');
+        setImportantStyle(iframe, 'width', '100%');
+        setImportantStyle(iframe, 'max-width', '100%');
+        setImportantStyle(iframe, 'min-width', '0px');
+        setImportantStyle(iframe, 'height', '100%');
+        setImportantStyle(iframe, 'max-height', '100%');
+        setImportantStyle(iframe, 'min-height', '100%');
+        setImportantStyle(iframe, 'overflow', 'auto');
       });
     });
   };
@@ -214,7 +236,7 @@
     document.querySelectorAll('.chroma-form-scroll-card, .chroma-tour-form-card').forEach((card) => {
       observer.observe(card, {
         attributes: true,
-        attributeFilter: ['style', 'src', 'data-src', 'class'],
+        attributeFilter: ['src', 'data-src', 'class'],
         childList: true,
         subtree: true,
       });
@@ -223,6 +245,8 @@
     window.setTimeout(normalizeGhlFormEmbeds, 100);
     window.setTimeout(normalizeGhlFormEmbeds, 800);
     window.setTimeout(normalizeGhlFormEmbeds, 2200);
+    window.setTimeout(normalizeGhlFormEmbeds, 4500);
+    window.setTimeout(normalizeGhlFormEmbeds, 7000);
   };
 
   /**
@@ -1265,6 +1289,10 @@
       startAutoplay();
     });
     window.addEventListener('resize', debounce(syncViewportHeight, 120));
+    if ('ResizeObserver' in window) {
+      const resizeObserver = new ResizeObserver(() => syncViewportHeight());
+      slides.forEach((slide) => resizeObserver.observe(slide));
+    }
     goToSlide(0);
     syncMotionPreference();
     syncPauseControl();
