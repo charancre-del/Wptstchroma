@@ -97,7 +97,16 @@ $default_option_image = !empty($default_option['image']) ? $default_option['imag
                 <?php echo wp_json_encode($enhanced_options, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
             </script>
             <div class="chroma-program-shell-grid grid lg:grid-cols-[330px_minmax(0,1fr)] gap-6 lg:gap-7">
-                <div class="chroma-program-tabs grid gap-3 content-start max-h-[46rem] overflow-y-auto pr-1" data-program-wizard-options>
+                <div class="chroma-program-tabs-column min-w-0">
+                    <div class="chroma-program-rail-controls" data-program-rail-controls>
+                        <button type="button" data-program-rail-prev aria-label="<?php esc_attr_e('View previous programs', 'chroma-excellence'); ?>">
+                            <span aria-hidden="true">&larr;</span>
+                        </button>
+                        <button type="button" data-program-rail-next aria-label="<?php esc_attr_e('View more programs', 'chroma-excellence'); ?>">
+                            <span aria-hidden="true">&rarr;</span>
+                        </button>
+                    </div>
+                    <div class="chroma-program-tabs grid gap-3 content-start max-h-[46rem] overflow-y-auto pr-1" data-program-wizard-options>
                     <?php foreach ($enhanced_options as $index => $option): ?>
                         <?php $is_default = $index === $default_index; ?>
                         <button
@@ -116,6 +125,7 @@ $default_option_image = !empty($default_option['image']) ? $default_option['imag
                             <?php endif; ?>
                         </button>
                     <?php endforeach; ?>
+                    </div>
                 </div>
 
                 <article class="chroma-program-card bg-white rounded-[2rem] border border-chroma-blue/10 shadow-card"

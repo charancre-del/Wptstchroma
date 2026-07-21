@@ -14,7 +14,7 @@
 
   const createPopupContent = (location) => {
     const image = location.image
-      ? `<img class="chroma-map-popup-photo" src="${escapeHTML(location.image)}" alt="${escapeHTML(location.name)}" loading="lazy">`
+      ? `<img class="chroma-map-popup-photo" src="${escapeHTML(location.image)}" alt="${escapeHTML(location.name)}" width="640" height="360" loading="lazy" decoding="async">`
       : '';
     const cityState = [location.city, location.state].filter(Boolean).join(', ');
     const addressLine = location.address ? `<p>${escapeHTML(location.address)}</p>` : '';
@@ -87,12 +87,15 @@
       }).setView([locations[0].lat, locations[0].lng], 11);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
+        attribution: '&copy; OpenStreetMap contributors',
+        updateWhenIdle: true,
+        keepBuffer: 2,
+        detectRetina: true,
       }).addTo(map);
 
       const markerById = new Map();
       let activeMarkerIds = null;
-      const compactMap = window.matchMedia('(max-width: 619px)').matches;
+      const compactMap = window.matchMedia('(max-width: 767px)').matches;
       const popupPaddingTopLeft = compactMap ? [20, 72] : [92, 168];
       const popupPaddingBottomRight = compactMap ? [20, 44] : [92, 112];
       const themeUrl = window.chromaData && window.chromaData.themeUrl;
@@ -271,6 +274,13 @@
         filterLocations,
         focusLocation,
       };
+
+      if ('ResizeObserver' in window) {
+        const resizeObserver = new ResizeObserver(() => {
+          window.requestAnimationFrame(() => map.invalidateSize({ pan: false }));
+        });
+        resizeObserver.observe(container);
+      }
 
       fitLocations(map, locations);
 

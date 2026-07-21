@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }, {
-        rootMargin: '200px' // Start loading before it comes into view
+        rootMargin: '100px' // Load shortly before the explorer enters view.
     });
 
     mapContainers.forEach(container => observer.observe(container));

@@ -8230,3 +8230,414 @@
   text-decoration-thickness: 1px !important;
   text-underline-offset: 2px !important;
 }
+
+/* Launch remediation: canonical form, review, location, and tablet behavior. */
+:root {
+  --chroma-form-contact-viewport: 34rem;
+  --chroma-form-tour-viewport: 42rem;
+  --chroma-form-default-viewport: 36rem;
+  --chroma-location-panel-height: clamp(38rem, 52vw, 44rem);
+}
+
+.chroma-form-scroll-card,
+.chroma-tour-form-card,
+.page-template-page-contact .chroma-form-scroll-card--contact {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+  overscroll-behavior: auto !important;
+  scrollbar-gutter: auto !important;
+}
+
+.chroma-form-scroll-card {
+  --chroma-form-viewport: var(--chroma-form-default-viewport);
+}
+
+.chroma-form-scroll-card--contact {
+  --chroma-form-viewport: var(--chroma-form-contact-viewport);
+}
+
+.chroma-tour-form-card {
+  --chroma-form-viewport: var(--chroma-form-tour-viewport);
+}
+
+.chroma-form-scroll-card .chroma-contact-form-wrapper,
+.chroma-form-scroll-card .chroma-tour-form-wrapper,
+.chroma-form-scroll-card [data-chroma-ghl-container],
+.chroma-form-scroll-card .chroma-ghl-iframe-container,
+.chroma-tour-form-card .chroma-contact-form-wrapper,
+.chroma-tour-form-card .chroma-tour-form-wrapper,
+.chroma-tour-form-card [data-chroma-ghl-container],
+.chroma-tour-form-card .chroma-ghl-iframe-container {
+  border-radius: 1rem;
+  height: var(--chroma-form-viewport) !important;
+  max-height: var(--chroma-form-viewport) !important;
+  min-height: var(--chroma-form-viewport) !important;
+  overflow: hidden !important;
+  position: relative !important;
+  width: 100% !important;
+}
+
+.chroma-form-scroll-card iframe,
+.chroma-tour-form-card iframe,
+.chroma-form-scroll-card iframe[data-src],
+.chroma-tour-form-card iframe[data-src],
+.chroma-form-scroll-card iframe[src*="leadconnectorhq.com"],
+.chroma-tour-form-card iframe[src*="leadconnectorhq.com"],
+.chroma-form-scroll-card iframe[src*="msgsndr.com"],
+.chroma-tour-form-card iframe[src*="msgsndr.com"] {
+  display: block !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 100% !important;
+  overflow: auto !important;
+  width: 100% !important;
+}
+
+.chroma-booking-modal-shell,
+.chroma-booking-scroll-frame {
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.chroma-booking-scroll-frame iframe {
+  display: block;
+  height: 100% !important;
+  min-height: 0 !important;
+  overflow: auto !important;
+  width: 100% !important;
+}
+
+.chroma-review-viewport {
+  height: auto;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+
+.chroma-review-viewport [data-reviews-track] {
+  align-items: flex-start !important;
+  height: auto !important;
+}
+
+.chroma-review-card {
+  height: auto !important;
+  justify-content: flex-start !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+.chroma-location-map-panel .leaflet-popup-pane {
+  z-index: 700 !important;
+}
+
+.chroma-location-map-panel .leaflet-marker-pane {
+  z-index: 600 !important;
+}
+
+.chroma-location-map-panel .leaflet-control-container {
+  position: relative;
+  z-index: 800 !important;
+}
+
+.chroma-location-card-scroll {
+  align-content: start;
+  min-height: 0 !important;
+}
+
+.chroma-program-rail-controls {
+  display: none;
+  gap: 0.6rem;
+  justify-content: flex-end;
+  margin-bottom: 0.7rem;
+}
+
+.chroma-program-rail-controls button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid rgba(74, 108, 124, 0.22);
+  border-radius: 9999px;
+  color: #263238;
+  display: inline-flex;
+  font-size: 1rem;
+  height: 2.75rem;
+  justify-content: center;
+  transition: border-color 180ms ease, color 180ms ease, opacity 180ms ease;
+  width: 2.75rem;
+}
+
+.chroma-program-rail-controls button:hover:not(:disabled),
+.chroma-program-rail-controls button:focus-visible {
+  border-color: var(--program-accent, #4A6C7C);
+  color: var(--program-accent, #4A6C7C);
+}
+
+.chroma-program-rail-controls button:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+@media (min-width: 1024px) {
+  .chroma-location-map-panel,
+  .chroma-location-list-panel {
+    height: var(--chroma-location-panel-height) !important;
+    min-height: var(--chroma-location-panel-height) !important;
+  }
+
+  .chroma-location-list-panel {
+    padding: 1.25rem !important;
+  }
+
+  .chroma-location-discovery,
+  .chroma-location-list-panel [data-location-filters],
+  .chroma-location-status {
+    margin-bottom: 0.85rem !important;
+  }
+
+  .chroma-location-status {
+    padding: 0.8rem 1rem !important;
+  }
+
+  .chroma-location-card-scroll {
+    flex: 1 1 auto !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    padding-bottom: 0.2rem;
+  }
+
+  .chroma-location-card {
+    margin-bottom: 0.7rem !important;
+  }
+
+  .chroma-location-card > button {
+    padding: 1rem !important;
+  }
+
+  .chroma-location-card > button > span:first-child {
+    font-size: clamp(1.1rem, 1.35vw, 1.35rem) !important;
+  }
+
+  .chroma-location-card > div:last-child {
+    padding: 0 1rem 1rem !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-list-panel {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-card-scroll {
+    display: grid !important;
+    gap: 0.8rem !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    max-height: 46rem !important;
+    overflow-y: auto !important;
+  }
+
+  .chroma-locations-stacked .chroma-location-card {
+    margin-bottom: 0 !important;
+  }
+
+  .chroma-reviews-grid {
+    align-items: start !important;
+  }
+
+  .reviewSide {
+    min-height: clamp(26rem, 31vw, 30rem) !important;
+  }
+
+  .chroma-review-card {
+    padding: clamp(2.25rem, 3.2vw, 3.5rem) !important;
+  }
+
+  .chroma-review-card blockquote {
+    font-size: clamp(2rem, 2.65vw, 2.85rem) !important;
+    line-height: 1.04 !important;
+  }
+
+  .chroma-review-card.is-long-review blockquote {
+    font-size: clamp(1.55rem, 2vw, 2.15rem) !important;
+    line-height: 1.12 !important;
+  }
+
+  .chroma-review-card.is-extra-long-review blockquote {
+    font-size: clamp(1.25rem, 1.55vw, 1.7rem) !important;
+    line-height: 1.18 !important;
+  }
+}
+
+@media (min-width: 620px) and (max-width: 1023px) {
+  :root {
+    --chroma-form-contact-viewport: 32rem;
+    --chroma-form-tour-viewport: 38rem;
+    --chroma-form-default-viewport: 34rem;
+  }
+
+  .chroma-location-explorer {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .chroma-location-map-panel {
+    height: clamp(25rem, 54vw, 31rem) !important;
+    min-height: clamp(25rem, 54vw, 31rem) !important;
+  }
+
+  .chroma-location-list-panel {
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 1.15rem !important;
+  }
+
+  .chroma-location-discovery-grid {
+    gap: 0.7rem !important;
+    grid-template-columns: minmax(0, 1fr) minmax(12rem, 0.72fr) !important;
+  }
+
+  .chroma-location-list-panel [data-location-filters] {
+    gap: 0.55rem !important;
+    margin-bottom: 0.85rem !important;
+  }
+
+  .chroma-location-filter {
+    font-size: 0.7rem !important;
+    padding: 0.72rem 0.9rem !important;
+  }
+
+  .chroma-location-status {
+    margin-bottom: 0.85rem !important;
+    padding: 0.8rem 1rem !important;
+  }
+
+  .chroma-location-card-scroll,
+  .chroma-locations-stacked .chroma-location-card-scroll {
+    display: grid !important;
+    gap: 0.8rem !important;
+    max-height: 34rem !important;
+    overflow-y: auto !important;
+  }
+
+  .chroma-location-card {
+    margin-bottom: 0 !important;
+  }
+
+  .reviewSide {
+    min-height: 14rem !important;
+    padding: clamp(1.7rem, 4vw, 2.5rem) !important;
+  }
+
+  .reviewSide h2 {
+    font-size: clamp(2.3rem, 5vw, 3.25rem) !important;
+  }
+
+  .chroma-review-card {
+    padding: clamp(1.8rem, 4vw, 3rem) !important;
+  }
+
+  .chroma-review-card blockquote {
+    font-size: clamp(1.55rem, 3.4vw, 2rem) !important;
+    line-height: 1.12 !important;
+  }
+
+  .chroma-review-card.is-long-review blockquote,
+  .chroma-review-card.is-extra-long-review blockquote {
+    font-size: clamp(1.1rem, 2.6vw, 1.42rem) !important;
+    line-height: 1.22 !important;
+  }
+
+  .chroma-program-tabs {
+    display: flex !important;
+    gap: 0.8rem !important;
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 1rem, #000 calc(100% - 1rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 1rem, #000 calc(100% - 1rem), transparent);
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding-inline: 1rem !important;
+    scrollbar-width: none !important;
+    scroll-snap-type: x proximity;
+  }
+
+  .chroma-program-rail-controls {
+    display: flex;
+  }
+
+  .chroma-program-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .chroma-program-tab {
+    flex: 0 0 min(18rem, 74vw) !important;
+    scroll-snap-align: start;
+  }
+}
+
+@media (max-width: 767px) {
+  .chroma-map-popup-shell.chroma-map-popup-contained {
+    bottom: auto !important;
+    left: var(--chroma-popup-left, 8px) !important;
+    margin: 0 !important;
+    top: var(--chroma-popup-top, 8px) !important;
+    transform: none !important;
+  }
+
+  .chroma-map-popup-shell.chroma-map-popup-contained .leaflet-popup-tip-container {
+    display: none !important;
+  }
+}
+
+@media (min-width: 820px) and (max-width: 1023px) {
+  .chroma-location-card-scroll,
+  .chroma-locations-stacked .chroma-location-card-scroll {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 619px) {
+  :root {
+    --chroma-form-contact-viewport: 31rem;
+    --chroma-form-tour-viewport: 34rem;
+    --chroma-form-default-viewport: 32rem;
+  }
+
+  .chroma-location-card-scroll,
+  .chroma-locations-stacked .chroma-location-card-scroll {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    max-height: 31rem !important;
+    overflow-y: auto !important;
+  }
+
+  .chroma-location-discovery-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .reviewSide {
+    min-height: 13rem !important;
+    padding: 1.6rem !important;
+  }
+
+  .reviewSide h2 {
+    font-size: clamp(2rem, 10vw, 2.65rem) !important;
+  }
+
+  .chroma-review-card {
+    padding: 1.6rem !important;
+  }
+
+  .chroma-program-tabs {
+    -webkit-mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 0.75rem), transparent);
+    mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 0.75rem), transparent);
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    scrollbar-width: none !important;
+  }
+
+  .chroma-program-tabs::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .chroma-program-rail-controls {
+    display: flex;
+  }
+}

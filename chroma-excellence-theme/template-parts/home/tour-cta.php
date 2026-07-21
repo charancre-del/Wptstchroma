@@ -34,7 +34,7 @@ if (!$tour_cta) {
                                 </div>
                         </div>
 
-                        <div class="chroma-tour-form-card chroma-form-scroll-card bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 p-5 lg:p-7" data-tour-form-card tabindex="0" aria-label="<?php esc_attr_e( 'Schedule a tour form', 'chroma-excellence' ); ?>">
+                        <div class="chroma-tour-form-card chroma-form-scroll-card bg-white rounded-[2.5rem] shadow-soft border border-chroma-blue/10 p-5 lg:p-7" data-tour-form-card data-embedded-form-shell>
                                 <?php if (shortcode_exists('chroma_tour_form')): ?>
                                         <?php echo do_shortcode('[chroma_tour_form]'); ?>
                                 <?php else: ?>

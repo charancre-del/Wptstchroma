@@ -233,7 +233,7 @@ $related_query = new WP_Query($related_args);
           </p>
         </div>
 
-        <div class="chroma-form-scroll-card chroma-form-scroll-card--story bg-white rounded-3xl shadow-soft border border-brand-ink/5 p-4 md:p-8" tabindex="0" aria-label="<?php esc_attr_e( 'Contact form', 'chroma-excellence' ); ?>">
+        <div class="chroma-form-scroll-card chroma-form-scroll-card--story bg-white rounded-3xl shadow-soft border border-brand-ink/5 p-4 md:p-8" data-embedded-form-shell>
           <?php
           if (function_exists('chroma_render_contact_form')) {
             echo chroma_render_contact_form(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

@@ -158,7 +158,9 @@
     if (!formCards.length) return;
 
     formCards.forEach((card) => {
-      card.querySelectorAll('.chroma-tour-form-wrapper, [data-chroma-ghl-container], .chroma-ghl-iframe-container').forEach((container) => {
+      card.classList.add('has-embedded-form');
+
+      card.querySelectorAll('.chroma-contact-form-wrapper, .chroma-tour-form-wrapper, [data-chroma-ghl-container], .chroma-ghl-iframe-container').forEach((container) => {
         if (!(container instanceof HTMLElement)) return;
 
         container.style.setProperty('position', 'relative', 'important');
@@ -178,6 +180,8 @@
         if (dataSource && !iframe.getAttribute('src')) {
           iframe.setAttribute('src', dataSource);
         }
+
+        iframe.setAttribute('scrolling', 'yes');
 
         iframe.style.setProperty('position', 'relative', 'important');
         iframe.style.setProperty('inset', 'auto', 'important');
@@ -219,30 +223,6 @@
     window.setTimeout(normalizeGhlFormEmbeds, 100);
     window.setTimeout(normalizeGhlFormEmbeds, 800);
     window.setTimeout(normalizeGhlFormEmbeds, 2200);
-  };
-
-  const syncTourFormScroll = () => {
-    normalizeGhlFormEmbeds();
-
-    const grids = document.querySelectorAll('[data-tour-scroll-grid]');
-    if (!grids.length) return;
-
-    const shouldSync = window.matchMedia('(min-width: 1024px)').matches;
-
-    grids.forEach((grid) => {
-      const infoCard = grid.querySelector('[data-tour-info-card]');
-      const formCard = grid.querySelector('[data-tour-form-card]');
-
-      if (!infoCard || !formCard || !shouldSync) {
-        grid.style.removeProperty('--tour-card-height');
-        return;
-      }
-
-      const infoHeight = Math.ceil(infoCard.offsetHeight);
-      if (infoHeight > 0) {
-        grid.style.setProperty('--tour-card-height', `${infoHeight}px`);
-      }
-    });
   };
 
   /**
@@ -403,6 +383,9 @@
     const options = readJSONPayload(wizard, '[data-program-wizard-payload]', 'data-options', []);
     const chartLabels = readJSONPayload(wizard, '[data-program-chart-labels]', null, []);
     const optionButtons = wizard.querySelectorAll('[data-program-wizard-option]');
+    const optionScroller = wizard.querySelector('[data-program-wizard-options]');
+    const railPrev = wizard.querySelector('[data-program-rail-prev]');
+    const railNext = wizard.querySelector('[data-program-rail-next]');
     const result = wizard.querySelector('[data-program-wizard-result]');
     const title = wizard.querySelector('[data-program-wizard-title]');
     const age = wizard.querySelector('[data-program-wizard-age]');
@@ -560,8 +543,7 @@
         button.classList.toggle('is-active', isActive);
         button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
 
-        if (isActive && window.matchMedia('(max-width: 768px)').matches) {
-          const optionScroller = button.closest('[data-program-wizard-options]');
+        if (isActive && window.matchMedia('(max-width: 1023px)').matches) {
           if (optionScroller && optionScroller.scrollWidth > optionScroller.clientWidth) {
             const targetLeft = button.offsetLeft - ((optionScroller.clientWidth - button.offsetWidth) / 2);
             optionScroller.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
@@ -627,6 +609,29 @@
       });
     });
     if (resetBtn) resetBtn.addEventListener('click', resetWizard);
+
+    const updateRailControls = () => {
+      if (!optionScroller) return;
+      const maxScroll = Math.max(0, optionScroller.scrollWidth - optionScroller.clientWidth);
+      if (railPrev) railPrev.disabled = optionScroller.scrollLeft <= 4;
+      if (railNext) railNext.disabled = optionScroller.scrollLeft >= maxScroll - 4;
+    };
+
+    const moveProgramRail = (direction) => {
+      if (!optionScroller) return;
+      optionScroller.scrollBy({
+        left: direction * Math.max(220, optionScroller.clientWidth * 0.78),
+        behavior: 'smooth',
+      });
+    };
+
+    if (railPrev) railPrev.addEventListener('click', () => moveProgramRail(-1));
+    if (railNext) railNext.addEventListener('click', () => moveProgramRail(1));
+    if (optionScroller) {
+      optionScroller.addEventListener('scroll', debounce(updateRailControls, 60), { passive: true });
+      window.addEventListener('resize', debounce(updateRailControls, 120));
+      updateRailControls();
+    }
 
     if (defaultOption) {
       updateRadar(currentRadarValues, false);
@@ -1797,13 +1802,9 @@
     initRevealMotion();
     initIntentAnalytics();
     observeGhlFormEmbeds();
-    syncTourFormScroll();
-    window.addEventListener('resize', debounce(syncTourFormScroll, 150));
     window.addEventListener('load', () => {
       observeGhlFormEmbeds();
-      syncTourFormScroll();
     });
-    setTimeout(syncTourFormScroll, 500);
     setTimeout(observeGhlFormEmbeds, 2400);
 
     const initializeLazyComponent = (el, type) => {
