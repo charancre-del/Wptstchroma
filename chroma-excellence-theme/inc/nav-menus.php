@@ -425,8 +425,10 @@ function chroma_footer_contact_nav()
 
 	ob_start();
 	$location = $is_es ? 'footer_contact_es' : 'footer_contact';
+	$rendered_virtual_menu = chroma_is_virtual_nav_request()
+		&& chroma_render_flat_menu_location($location, 'block hover:text-white transition');
 
-	if (has_nav_menu($location)) {
+	if (!$rendered_virtual_menu && has_nav_menu($location)) {
 		wp_nav_menu(array(
 			'theme_location' => $location,
 			'container' => false,
@@ -436,7 +438,7 @@ function chroma_footer_contact_nav()
 			'depth' => 1,
 			'walker' => new Chroma_Footer_Nav_Walker(),
 		));
-	} else {
+	} elseif (!$rendered_virtual_menu) {
 		$program_slug = chroma_get_program_base_slug();
 
 		$pages = $is_es ? array(
