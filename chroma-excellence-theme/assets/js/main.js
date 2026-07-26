@@ -171,7 +171,7 @@
     formCards.forEach((card) => {
       card.classList.add('has-embedded-form');
 
-      card.querySelectorAll('.chroma-contact-form-wrapper, .chroma-tour-form-wrapper, [data-chroma-ghl-container], .chroma-ghl-iframe-container').forEach((container) => {
+      card.querySelectorAll('.chroma-contact-form-wrapper, .chroma-tour-form-wrapper, [data-chroma-ghl-container]').forEach((container) => {
         if (!(container instanceof HTMLElement)) return;
 
         container.style.setProperty('position', 'relative', 'important');
@@ -182,6 +182,30 @@
         container.style.setProperty('transform', 'none', 'important');
         container.style.setProperty('width', '100%', 'important');
         container.style.setProperty('max-width', '100%', 'important');
+        container.style.setProperty('height', 'auto', 'important');
+        container.style.setProperty('max-height', 'none', 'important');
+        container.style.setProperty('min-height', '0px', 'important');
+        container.style.setProperty('overflow', 'visible', 'important');
+      });
+
+      card.querySelectorAll('.chroma-ghl-iframe-container').forEach((viewport) => {
+        if (!(viewport instanceof HTMLElement)) return;
+
+        viewport.style.setProperty('position', 'relative', 'important');
+        viewport.style.setProperty('left', 'auto', 'important');
+        viewport.style.setProperty('right', 'auto', 'important');
+        viewport.style.setProperty('top', 'auto', 'important');
+        viewport.style.setProperty('bottom', 'auto', 'important');
+        viewport.style.setProperty('transform', 'none', 'important');
+        viewport.style.setProperty('width', '100%', 'important');
+        viewport.style.setProperty('max-width', '100%', 'important');
+        viewport.style.setProperty('overflow-x', 'hidden', 'important');
+        viewport.style.setProperty('overflow-y', 'auto', 'important');
+
+        if (viewport.dataset.chromaScrollInitialized !== 'true') {
+          viewport.dataset.chromaScrollInitialized = 'true';
+          viewport.scrollTop = 0;
+        }
       });
 
       card.querySelectorAll('iframe[data-src], iframe[src*="leadconnectorhq.com"], iframe[src*="msgsndr.com"], iframe[src*="gohighlevel"]').forEach((iframe) => {
@@ -192,11 +216,18 @@
           iframe.setAttribute('src', dataSource);
         }
 
-        iframe.setAttribute('scrolling', 'yes');
+        iframe.setAttribute('scrolling', 'no');
 
         if (iframe.dataset.chromaFormSizeListener !== 'true') {
           iframe.dataset.chromaFormSizeListener = 'true';
           iframe.addEventListener('load', () => {
+            const viewport = iframe.closest('.chroma-ghl-iframe-container');
+            if (viewport instanceof HTMLElement) {
+              viewport.scrollTop = 0;
+              window.setTimeout(() => {
+                viewport.scrollTop = 0;
+              }, 180);
+            }
             window.setTimeout(normalizeGhlFormEmbeds, 120);
             window.setTimeout(normalizeGhlFormEmbeds, 700);
           });
@@ -214,10 +245,23 @@
         setImportantStyle(iframe, 'width', '100%');
         setImportantStyle(iframe, 'max-width', '100%');
         setImportantStyle(iframe, 'min-width', '0px');
-        setImportantStyle(iframe, 'height', '100%');
-        setImportantStyle(iframe, 'max-height', '100%');
-        setImportantStyle(iframe, 'min-height', '100%');
-        setImportantStyle(iframe, 'overflow', 'auto');
+        const configuredHeight = Number.parseInt(iframe.dataset.height || '', 10);
+        const baseHeight = Number.isFinite(configuredHeight) && configuredHeight > 0
+          ? configuredHeight
+          : 1152;
+        const iframeWidth = Math.round(iframe.getBoundingClientRect().width);
+        const minimumContentHeight = iframeWidth > 0 && iframeWidth < 320
+          ? 1660
+          : iframeWidth > 0 && iframeWidth < 420
+            ? 1560
+            : 1020;
+        const contentHeight = `${Math.max(baseHeight, minimumContentHeight)}px`;
+
+        setImportantStyle(iframe, 'height', contentHeight);
+        setImportantStyle(iframe, 'max-height', 'none');
+        setImportantStyle(iframe, 'min-height', contentHeight);
+        setImportantStyle(iframe, 'overflow', 'hidden');
+
       });
     });
   };
@@ -247,6 +291,7 @@
     window.setTimeout(normalizeGhlFormEmbeds, 2200);
     window.setTimeout(normalizeGhlFormEmbeds, 4500);
     window.setTimeout(normalizeGhlFormEmbeds, 7000);
+    window.addEventListener('resize', debounce(normalizeGhlFormEmbeds, 120), { passive: true });
   };
 
   /**

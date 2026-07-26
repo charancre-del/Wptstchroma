@@ -145,11 +145,10 @@ function chroma_parents_resources_meta_box_render($post)
     $essentials_title = get_post_meta($post->ID, 'parents_essentials_title', true);
 
     $resources = array(
-        'procare' => 'Family App (Procare)',
+        'procare' => 'Family Communication App (LineLeader)',
         'tuition' => 'Pay Tuition',
         'handbook' => 'Parent Handbook',
         'enrollment' => 'Enrollment Forms',
-        'prekga' => 'Pre-K GA',
         'waitlist' => 'Join Waitlist',
     );
     ?>

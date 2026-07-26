@@ -104,11 +104,13 @@ function chroma_tour_form_shortcode()
     <div class="chroma-tour-form-wrapper" data-lazy="<?php echo $lazy_load ? 'true' : 'false'; ?>"
         data-chroma-ghl-container="1"
         data-delay="<?php echo esc_attr($lazy_delay); ?>">
-        <div class="chroma-ghl-iframe-container" style="min-height: <?php echo esc_attr($form_height); ?>px;">
+        <div class="chroma-ghl-iframe-container"
+            style="--chroma-ghl-form-height: <?php echo esc_attr($form_height); ?>px;">
             <template data-chroma-ghl-template>
                 <iframe data-src="<?php echo esc_url($form_url); ?>"
                     loading="<?php echo esc_attr($loading_attr); ?>"
-                    style="width:100%;height:100%;border:none;border-radius:3px;min-height:<?php echo esc_attr($form_height); ?>px;"
+                    scrolling="no"
+                    style="width:100%;height:<?php echo esc_attr($form_height); ?>px;border:none;border-radius:3px;min-height:<?php echo esc_attr($form_height); ?>px;"
                     id="inline-<?php echo esc_attr($form_id); ?>" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow"
                     data-trigger-value="" data-activation-type="alwaysActivated" data-activation-value=""
                     data-deactivation-type="neverDeactivate" data-deactivation-value=""
@@ -129,16 +131,25 @@ function chroma_tour_form_shortcode()
 
         .chroma-ghl-iframe-container {
             position: relative;
-            overflow: hidden;
+            height: 36rem;
+            min-height: 36rem;
+            max-height: 36rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+            overscroll-behavior: contain;
             border-radius: 0.75rem;
         }
 
         .chroma-ghl-iframe-container iframe {
             display: block;
+            height: var(--chroma-ghl-form-height, 70.3125rem);
+            min-height: var(--chroma-ghl-form-height, 70.3125rem);
+            width: 100%;
         }
 
         .chroma-ghl-form-placeholder {
-            min-height: inherit;
+            height: 100%;
+            min-height: 100%;
             border-radius: inherit;
             background: linear-gradient(110deg, #fbfaf8 8%, #f3efeb 18%, #fbfaf8 33%);
         }
@@ -172,10 +183,10 @@ function chroma_tour_form_shortcode()
                             return;
                         }
 
+                        var frameHost = container.querySelector('.chroma-ghl-iframe-container');
                         var iframe = container.querySelector('iframe[data-src]');
                         if (!iframe) {
                             var template = container.querySelector('template[data-chroma-ghl-template]');
-                            var frameHost = container.querySelector('.chroma-ghl-iframe-container');
                             if (template && frameHost) {
                                 var fragment = template.content.cloneNode(true);
                                 iframe = fragment.querySelector('iframe[data-src]');
@@ -196,6 +207,31 @@ function chroma_tour_form_shortcode()
                         this.activated.add(container);
 
                         var self = this;
+                        var configuredHeight = parseInt(iframe.getAttribute('data-height') || '', 10);
+                        var baseHeight = Number.isFinite(configuredHeight) && configuredHeight > 0
+                            ? configuredHeight
+                            : 1152;
+                        var frameWidth = frameHost ? frameHost.clientWidth : 0;
+                        var minimumContentHeight = frameWidth > 0 && frameWidth < 320
+                            ? 1660
+                            : frameWidth > 0 && frameWidth < 420
+                                ? 1560
+                                : 1020;
+                        var contentHeight = Math.max(baseHeight, minimumContentHeight) + 'px';
+                        iframe.style.height = contentHeight;
+                        iframe.style.minHeight = contentHeight;
+                        if (frameHost) {
+                            frameHost.scrollTop = 0;
+                        }
+                        iframe.addEventListener('load', function () {
+                            if (!frameHost) {
+                                return;
+                            }
+                            frameHost.scrollTop = 0;
+                            window.setTimeout(function () {
+                                frameHost.scrollTop = 0;
+                            }, 180);
+                        }, { once: true });
                         window.requestAnimationFrame(function () {
                             if (!iframe.src) {
                                 iframe.src = iframe.getAttribute('data-src');

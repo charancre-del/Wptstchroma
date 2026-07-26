@@ -11,8 +11,8 @@ $has_usable_link = static function ($url) {
 	$url = trim((string) $url);
 	return $url !== '' && $url !== '#';
 };
-$neutralize_family_app_name = static function ($text) {
-	return preg_replace('/\b(?:Procare(?: Cloud)?|Brightwheel)\b/i', __('the family communication app', 'chroma-excellence'), (string) $text);
+$normalize_family_app_name = static function ($text) {
+	return preg_replace('/\b(?:Procare(?: Cloud)?|Brightwheel|the family communication app|family communication app)\b/i', 'LineLeader', (string) $text);
 };
 
 // Hero Section
@@ -23,11 +23,11 @@ $hero_description = chroma_get_translated_meta($page_id, 'parents_hero_descripti
 // Parent Essentials Section
 $essentials_title = chroma_get_translated_meta($page_id, 'parents_essentials_title') ?: __('Parent Essentials', 'chroma-excellence');
 $essentials_heading = chroma_get_translated_meta($page_id, 'parents_essentials_heading') ?: __('Your quick links.', 'chroma-excellence');
-$family_app_title = chroma_get_translated_meta($page_id, 'parents_resource_procare_title') ?: __('Family Communication App', 'chroma-excellence');
-if (preg_match('/\b(?:Procare|Brightwheel)\b/i', $family_app_title)) {
-	$family_app_title = __('Family Communication App', 'chroma-excellence');
+$family_app_title = chroma_get_translated_meta($page_id, 'parents_resource_procare_title') ?: 'LineLeader';
+if (preg_match('/\b(?:Procare|Brightwheel|Family Communication App)\b/i', $family_app_title)) {
+	$family_app_title = 'LineLeader';
 }
-$family_app_description = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_resource_procare_desc') ?: __('Daily reports, photos, and attendance updates in your campus communication app.', 'chroma-excellence'));
+$family_app_description = $normalize_family_app_name(chroma_get_translated_meta($page_id, 'parents_resource_procare_desc') ?: __('Daily reports, photos, attendance updates, and family communication in LineLeader.', 'chroma-excellence'));
 $family_app_url = chroma_get_translated_meta($page_id, 'parents_resource_procare_url') ?: '#';
 if (preg_match('/(?:procare|brightwheel)/i', (string) $family_app_url)) {
 	$family_app_url = '#';
@@ -64,14 +64,6 @@ $resources = array(
 		'title' => chroma_get_translated_meta($page_id, 'parents_resource_enrollment_title') ?: __('Enrollment Agreement', 'chroma-excellence'),
 		'description' => chroma_get_translated_meta($page_id, 'parents_resource_enrollment_desc') ?: __('Update your annual enrollment documents.', 'chroma-excellence'),
 		'url' => chroma_get_translated_meta($page_id, 'parents_resource_enrollment_url') ?: '#',
-		'colorClass' => 'chroma-red',
-	),
-	array(
-		'name' => 'prek',
-		'icon' => chroma_get_translated_meta($page_id, 'parents_resource_prek_icon') ?: 'fa-solid fa-apple-whole',
-		'title' => chroma_get_translated_meta($page_id, 'parents_resource_prek_title') ?: __('GA Pre-K Enrollment', 'chroma-excellence'),
-		'description' => chroma_get_translated_meta($page_id, 'parents_resource_prek_desc') ?: __('Lottery registration and required state forms.', 'chroma-excellence'),
-		'url' => chroma_get_translated_meta($page_id, 'parents_resource_prek_url') ?: home_url('/programs/ga-pre-k/'),
 		'colorClass' => 'chroma-red',
 	),
 	array(
@@ -150,7 +142,7 @@ $menus = array(
 // Safety Section
 $safety_title = chroma_get_translated_meta($page_id, 'parents_safety_title') ?: __('Safe. Secure. Connected.', 'chroma-excellence');
 $safety_description = chroma_get_translated_meta($page_id, 'parents_safety_description') ?: __('Campus teams follow established supervision, access, communication, and safety procedures so families know how care is coordinated throughout the day.', 'chroma-excellence');
-$family_updates_description = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_safety2_desc') ?: __('Your campus communication app can share daily updates such as meals, naps, classroom moments, and photos, based on the tools used by your campus.', 'chroma-excellence'));
+$family_updates_description = $normalize_family_app_name(chroma_get_translated_meta($page_id, 'parents_safety2_desc') ?: __('LineLeader can share daily updates such as meals, naps, classroom moments, and photos, based on the tools used by your campus.', 'chroma-excellence'));
 
 $safety_items = array(
 	array(
@@ -193,7 +185,7 @@ if (false !== stripos($late_pickup_answer, 'close promptly at 6:00 PM') || false
 	$late_pickup_answer = __('Operating hours and late-pickup policies vary by campus. Please review your enrollment agreement or contact your campus Director for the current schedule and applicable fees.', 'chroma-excellence');
 }
 
-$weather_answer = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_faq2_answer') ?: __('Weather decisions are made with staff and family safety in mind. Updates are shared through the family communication app and other campus communication channels.', 'chroma-excellence'));
+$weather_answer = $normalize_family_app_name(chroma_get_translated_meta($page_id, 'parents_faq2_answer') ?: __('Weather decisions are made with staff and family safety in mind. Updates are shared through LineLeader and other campus communication channels.', 'chroma-excellence'));
 
 $faqs = array(
 	array(
@@ -304,7 +296,7 @@ get_header();
 				<div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
 					<?php foreach ($resources as $resource): 
 						$is_pdf = in_array($resource['name'], array('handbook'));
-						$is_external_portal = in_array($resource['name'], array('procare', 'tuition', 'enrollment', 'prekga', 'waitlist'));
+						$is_external_portal = in_array($resource['name'], array('procare', 'tuition', 'enrollment', 'waitlist'));
 						$resource_has_url = $has_usable_link($resource['url']);
 						
 						$link_class = 'chroma-parent-resource-card bg-white p-8 rounded-[2rem] shadow-card transition-transform group border border-brand-ink/5 flex flex-col items-center text-center';

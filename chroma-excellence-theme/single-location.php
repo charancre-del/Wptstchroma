@@ -355,7 +355,7 @@ while (have_posts()):
 					</p>
 				</div>
 
-				<div class="grid md:grid-cols-2 <?php echo $has_ga_pre_k ? 'lg:grid-cols-4' : 'lg:grid-cols-3'; ?> gap-6">
+				<div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
 					<!-- Feature 1 -->
 					<div
 						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-blue/30 transition-all hover:-translate-y-1">
@@ -373,50 +373,61 @@ while (have_posts()):
 
 					<!-- Feature 2 -->
 					<div
-						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-red/30 transition-all hover:-translate-y-1">
+						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-purple/30 transition-all hover:-translate-y-1">
 						<div
-							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-red text-xl mb-6 group-hover:scale-110 transition-transform">
-							<i class="fa-solid fa-hand-holding-heart"></i>
+							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-purple text-xl mb-6 group-hover:scale-110 transition-transform">
+							<i class="fa-solid fa-flask"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('CAPS Accepted', 'chroma-excellence'); ?>
+							<?php _e('STEM Atelier', 'chroma-excellence'); ?>
 						</h3>
 						<p class="text-sm text-brand-ink/80 leading-relaxed">
-							<?php _e('All Chroma campuses accept CAPS. Authorization, program eligibility, and space availability apply; contact the campus team for details.', 'chroma-excellence'); ?>
+							<?php _e('A hands-on studio where children investigate, build, test ideas, and learn through guided discovery.', 'chroma-excellence'); ?>
 						</p>
 					</div>
 
 					<!-- Feature 3 -->
 					<div
-						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-yellow/30 transition-all hover:-translate-y-1">
+						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-green/30 transition-all hover:-translate-y-1">
 						<div
-							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-yellow text-xl mb-6 group-hover:scale-110 transition-transform">
-							<i class="fa-solid fa-hands-holding-child"></i>
+							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-green text-xl mb-6 group-hover:scale-110 transition-transform">
+							<i class="fa-solid fa-person-running"></i>
 						</div>
 						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-							<?php _e('Early Start Services', 'chroma-excellence'); ?>
+							<?php _e('Turf Playground', 'chroma-excellence'); ?>
 						</h3>
 						<p class="text-sm text-brand-ink/80 leading-relaxed">
-							<?php _e('Chroma Early Start services are available through every campus. Eligibility, scheduling, and the appropriate care setting are coordinated with each family.', 'chroma-excellence'); ?>
+							<?php _e('A welcoming outdoor space designed for active play, gross-motor growth, and everyday movement.', 'chroma-excellence'); ?>
 						</p>
 					</div>
 
-					<?php if ($has_ga_pre_k): ?>
-						<!-- Feature 4 -->
+					<!-- Feature 4 -->
+					<div
+						class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-yellow/30 transition-all hover:-translate-y-1">
 						<div
-							class="group p-8 rounded-[2rem] bg-brand-cream border border-chroma-blue/10 hover:border-chroma-green/30 transition-all hover:-translate-y-1">
-							<div
-								class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-green text-xl mb-6 group-hover:scale-110 transition-transform">
-								<i class="fa-solid fa-graduation-cap"></i>
-							</div>
-							<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
-								<?php _e('Georgia Pre-K', 'chroma-excellence'); ?>
-							</h3>
-							<p class="text-sm text-brand-ink/80 leading-relaxed">
-								<?php _e('This campus offers Georgia Pre-K. Contact the campus team for current eligibility, enrollment, and availability details.', 'chroma-excellence'); ?>
-							</p>
+							class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-chroma-yellow text-xl mb-6 group-hover:scale-110 transition-transform">
+							<i class="fa-solid <?php echo $has_ga_pre_k ? 'fa-graduation-cap' : 'fa-palette'; ?>"></i>
 						</div>
-					<?php endif; ?>
+						<h3 class="font-serif text-xl font-bold text-brand-ink mb-3">
+							<?php echo $has_ga_pre_k ? esc_html__('Georgia Pre-K', 'chroma-excellence') : esc_html__('Creative Learning Spaces', 'chroma-excellence'); ?>
+						</h3>
+						<p class="text-sm text-brand-ink/80 leading-relaxed">
+							<?php echo $has_ga_pre_k
+								? esc_html__('This campus offers Georgia Pre-K. Contact the campus team for current eligibility and enrollment details.', 'chroma-excellence')
+								: esc_html__('Purposeful classroom spaces support art, music, dramatic play, and open-ended exploration.', 'chroma-excellence'); ?>
+						</p>
+					</div>
+				</div>
+
+				<div class="mt-8 flex flex-wrap justify-center gap-3" aria-label="<?php esc_attr_e('Family support options', 'chroma-excellence'); ?>">
+					<span class="inline-flex items-center gap-2 rounded-full border border-brand-ink/10 bg-white px-5 py-3 text-sm font-semibold text-brand-ink">
+						<i class="fa-solid fa-hand-holding-heart text-chroma-red" aria-hidden="true"></i>
+						<?php _e('CAPS accepted', 'chroma-excellence'); ?>
+					</span>
+					<span class="inline-flex items-center gap-2 rounded-full border border-brand-ink/10 bg-white px-5 py-3 text-sm font-semibold text-brand-ink">
+						<i class="fa-solid fa-hands-holding-child text-chroma-blue" aria-hidden="true"></i>
+						<?php _e('Early Start services coordinated with families', 'chroma-excellence'); ?>
+					</span>
 				</div>
 			</div>
 		</section>
@@ -441,7 +452,7 @@ while (have_posts()):
 
 					<div>
 						<span
-							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Meet the Director', 'chroma-excellence'); ?></span>
+							class="chroma-director-kicker font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Meet the Director', 'chroma-excellence'); ?></span>
 						<h2 class="text-3xl md:text-4xl font-serif font-bold mb-6 text-white">
 							<?php
 							echo $director_heading ?: sprintf(__('Welcome to Chroma %s.', 'chroma-excellence'), esc_html($city));
@@ -511,77 +522,77 @@ while (have_posts()):
 			</section>
 		<?php endif; ?>
 
-		<!-- Programs Grid -->
-		<?php if (false && $programs_query->have_posts()): ?>
-			<section id="programs" class="cream py-24 bg-brand-cream">
+		<!-- Programs available at this campus -->
+		<?php if ($programs_query->have_posts()): ?>
+			<section id="programs" class="chroma-campus-programs" aria-labelledby="chroma-campus-programs-title">
 				<div class="max-w-7xl mx-auto px-4 lg:px-6">
-					<div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+					<div class="chroma-campus-programs-heading">
 						<div>
-							<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-3">
-								<?php _e('Programs at this location', 'chroma-excellence'); ?>
+							<span class="chroma-campus-programs-kicker"><?php esc_html_e('Growing with your child', 'chroma-excellence'); ?></span>
+							<h2 id="chroma-campus-programs-title">
+								<?php esc_html_e('Programs for every stage.', 'chroma-excellence'); ?>
 							</h2>
-							<p class="text-brand-ink/80">
-								<?php _e('Curriculum tailored to the specific developmental window of your child.', 'chroma-excellence'); ?>
-							</p>
 						</div>
-						<a href="<?php echo esc_url(chroma_get_program_archive_url()); ?>"
-							class="text-<?php echo esc_attr($region_colors['text']); ?> font-bold text-sm uppercase tracking-wider hover:text-chroma-blueDark flex items-center gap-2">
-							<?php _e('View Curriculum Details', 'chroma-excellence'); ?> <i class="fa-solid fa-arrow-right"></i>
-						</a>
+						<p>
+							<?php printf(esc_html__('Explore the age-appropriate programs currently offered at our %s campus. Each one follows the connected PrismPath™ learning journey.', 'chroma-excellence'), esc_html($city)); ?>
+						</p>
 					</div>
 
-					<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+					<div class="chroma-campus-program-grid">
 						<?php
-						$color_map = array(
-							'infant' => array('bg' => 'chroma-redLight', 'text' => 'chroma-red', 'border' => 'chroma-red/30'),
-							'toddler' => array('bg' => 'chroma-blueLight', 'text' => 'chroma-blue', 'border' => 'chroma-blue/30'),
-							'preschool' => array('bg' => 'chroma-yellowLight', 'text' => 'chroma-yellow', 'border' => 'chroma-yellow/30'),
-							'prek' => array('bg' => 'chroma-greenLight', 'text' => 'chroma-green', 'border' => 'chroma-green/30'),
-							'afterschool' => array('bg' => 'chroma-blueLight', 'text' => 'chroma-blue', 'border' => 'chroma-blue/30'),
-						);
-
 						while ($programs_query->have_posts()):
 							$programs_query->the_post();
-							$program_fields = chroma_get_program_fields();
+							$program_id = get_the_ID();
+							$program_fields = chroma_get_program_fields($program_id);
 							$age_range = $program_fields['age_range'];
-							$excerpt = $program_fields['excerpt'] ?: ($programs_query->post->post_excerpt ?: wp_trim_words(wp_strip_all_tags($programs_query->post->post_content), 25, '...'));
-							$slug = get_post_field('post_name');
-							$colors = $color_map[$slug] ?? $color_map['toddler'];
-							$prog_img = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
+							$excerpt_source = $program_fields['excerpt'] ?: (get_the_excerpt() ?: get_the_content());
+							$excerpt = wp_trim_words(wp_strip_all_tags($excerpt_source), 24, '…');
+							$program_title = get_the_title();
 							?>
-							<div
-								class="bg-white rounded-3xl shadow-card border border-brand-ink/5 hover:border-<?php echo esc_attr($colors['border']); ?> transition group overflow-hidden flex flex-col relative">
-								<a href="<?php the_permalink(); ?>" class="absolute inset-0 z-0 pointer-events-none"
-									aria-label="Learn more about <?php the_title_attribute(); ?>"></a>
-								<?php if ($prog_img): ?>
-									<div class="h-48 overflow-hidden relative z-0">
-										<img src="<?php echo esc_url($prog_img); ?>" alt="<?php the_title(); ?>"
-											class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
-									</div>
-								<?php endif; ?>
-								<div class="p-6 flex-1 flex flex-col relative z-0">
-									<div class="flex justify-between items-start mb-4">
-										<?php if ($age_range): ?>
-											<span
-												class="bg-<?php echo esc_attr($colors['bg']); ?> text-<?php echo esc_attr($colors['text']); ?> px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
-												<?php echo esc_html($age_range); ?>
-											</span>
-										<?php endif; ?>
-									</div>
-									<h3 class="font-serif text-xl font-bold text-brand-ink mb-2"><?php the_title(); ?></h3>
-									<p class="text-sm text-brand-ink/90 mb-6 flex-1"><?php echo esc_html($excerpt); ?></p>
-									<a href="<?php the_permalink(); ?>"
-										class="relative z-10 text-xs font-bold text-<?php echo esc_attr($colors['text']); ?> uppercase tracking-wider hover:underline mt-auto">
-										<?php _e('Learn More', 'chroma-excellence'); ?> <i
-											class="fa-solid fa-arrow-right text-[10px]"></i>
+							<article class="chroma-campus-program-card">
+								<a class="chroma-campus-program-media" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
+									<?php if (has_post_thumbnail()): ?>
+										<?php the_post_thumbnail('medium_large', array(
+											'alt' => '',
+											'loading' => 'lazy',
+											'decoding' => 'async',
+										)); ?>
+									<?php else: ?>
+										<span class="chroma-campus-program-media-fallback" aria-hidden="true">
+											<i class="fa-solid fa-shapes"></i>
+										</span>
+									<?php endif; ?>
+								</a>
+								<div class="chroma-campus-program-content">
+									<?php if ($age_range): ?>
+										<span class="chroma-campus-program-age"><?php echo esc_html($age_range); ?></span>
+									<?php endif; ?>
+									<h3>
+										<a href="<?php the_permalink(); ?>"><?php echo esc_html($program_title); ?></a>
+									</h3>
+									<p><?php echo esc_html($excerpt); ?></p>
+									<a class="chroma-campus-program-link" href="<?php the_permalink(); ?>">
+										<?php printf(esc_html__('Explore %s', 'chroma-excellence'), esc_html($program_title)); ?>
+										<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
 									</a>
 								</div>
-							</div>
-						<?php endwhile;
-						wp_reset_postdata(); ?>
+							</article>
+						<?php endwhile; ?>
+					</div>
+
+					<div class="chroma-campus-program-cta">
+						<div>
+							<strong><?php esc_html_e('Not sure which program fits?', 'chroma-excellence'); ?></strong>
+							<span><?php esc_html_e('Our campus team can help you choose the right next step for your child.', 'chroma-excellence'); ?></span>
+						</div>
+						<div class="chroma-campus-program-cta-links">
+							<a href="#tour"><?php esc_html_e('Talk with our campus team', 'chroma-excellence'); ?></a>
+							<a class="is-secondary" href="<?php echo esc_url(chroma_get_program_archive_url()); ?>"><?php esc_html_e('View all programs', 'chroma-excellence'); ?></a>
+						</div>
 					</div>
 				</div>
 			</section>
+			<?php wp_reset_postdata(); ?>
 		<?php endif; ?>
 
 		<?php if ($hero_review_text && $hero_review_author): ?>
@@ -628,31 +639,6 @@ while (have_posts()):
 			</div>
 		</section>
 		<?php endif; ?>
-
-		<!-- FAQ Section -->
-		<section class="cream py-20 bg-brand-cream border-t border-brand-ink/5">
-			<div class="max-w-3xl mx-auto px-4 lg:px-6">
-				<div class="text-center mb-12">
-					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-4">
-						<?php _e('Frequently Asked Questions', 'chroma-excellence'); ?>
-					</h2>
-				</div>
-
-				<div class="space-y-6">
-					<?php
-					$location_faqs = chroma_get_location_faq_items($location_id);
-					foreach ($location_faqs as $item):
-						?>
-						<div class="bg-white rounded-2xl p-6 shadow-sm border border-brand-ink/5">
-							<h3 class="font-bold text-brand-ink mb-2"><?php echo esc_html($item['question']); ?></h3>
-							<div class="text-brand-ink/80 text-sm leading-relaxed">
-								<?php echo wp_kses_post($item['answer']); ?>
-							</div>
-						</div>
-					<?php endforeach; ?>
-				</div>
-			</div>
-		</section>
 
 		<?php
 		$transportation_schools = $school_pickups ? array_filter(array_map('trim', explode("\n", $school_pickups))) : array();
@@ -723,7 +709,7 @@ while (have_posts()):
 									</p>
 									<?php if ($lat && $lng): ?>
 										<a href="https://www.google.com/maps/search/?api=1&query=<?php echo esc_attr($lat); ?>,<?php echo esc_attr($lng); ?>"
-											target="_blank"
+											target="_blank" rel="noopener noreferrer"
 											class="text-xs font-bold text-<?php echo esc_attr($region_colors['text']); ?> uppercase mt-1 inline-block">
 											<?php _e('Get Directions', 'chroma-excellence'); ?>
 										</a>
@@ -804,8 +790,8 @@ while (have_posts()):
 
 				<!-- Form Side -->
 				<div id="tour"
-					class="chroma-form-scroll-card chroma-form-scroll-card--location bg-brand-cream p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-<?php echo esc_attr($region_colors['border']); ?>/10 h-fit sticky top-28"
-					tabindex="0" aria-label="<?php esc_attr_e( 'Campus tour request form', 'chroma-excellence' ); ?>">
+					class="chroma-form-scroll-card chroma-form-scroll-card--location bg-brand-cream p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-<?php echo esc_attr($region_colors['border']); ?>/10 h-fit"
+					aria-label="<?php esc_attr_e( 'Campus tour request form', 'chroma-excellence' ); ?>">
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-2">
 						<?php _e('Request a Tour', 'chroma-excellence'); ?>
 					</h3>
@@ -834,6 +820,29 @@ while (have_posts()):
 			</div>
 		</section>
 
+		<!-- FAQ Section -->
+		<section class="chroma-location-faq" aria-labelledby="chroma-location-faq-title">
+			<div class="max-w-6xl mx-auto px-4 lg:px-6">
+				<div class="chroma-location-faq-heading">
+					<span><?php esc_html_e('Helpful answers', 'chroma-excellence'); ?></span>
+					<h2 id="chroma-location-faq-title"><?php esc_html_e('Frequently asked questions.', 'chroma-excellence'); ?></h2>
+					<p><?php printf(esc_html__('A few things families often ask before visiting our %s campus.', 'chroma-excellence'), esc_html($city)); ?></p>
+				</div>
+
+				<div class="chroma-location-faq-grid">
+					<?php
+					$location_faqs = chroma_get_location_faq_items($location_id);
+					foreach ($location_faqs as $item):
+						?>
+						<article class="chroma-location-faq-card">
+							<h3><?php echo esc_html($item['question']); ?></h3>
+							<div><?php echo wp_kses_post($item['answer']); ?></div>
+						</article>
+					<?php endforeach; ?>
+				</div>
+			</div>
+		</section>
+
 		<?php if ($seo_content_title || $seo_content_text): ?>
 			<!-- Location SEO Content Section -->
 			<section class="py-24 bg-brand-cream relative">
@@ -852,13 +861,6 @@ while (have_posts()):
 				</div>
 			</section>
 		<?php endif; ?>
-
-		<!-- Filtered Content (Badges, Related Locations, etc.) -->
-		<section class="pb-24 bg-brand-cream">
-			<div class="max-w-7xl mx-auto px-4 lg:px-6">
-				<?php the_content(); ?>
-			</div>
-		</section>
 
 	</main>
 
@@ -881,12 +883,12 @@ endwhile;
 				<?php _e('Schedule Your Visit', 'chroma-excellence'); ?>
 			</h3>
 			<div class="flex items-center gap-4">
-				<a href="#" id="chroma-tour-external" target="_blank"
+			<a href="#" id="chroma-tour-external" target="_blank" rel="noopener noreferrer"
 					class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">
 					<?php _e('Open in new tab', 'chroma-excellence'); ?> <i
 						class="fa-solid fa-external-link-alt ml-1"></i>
 				</a>
-				<button id="chroma-tour-close"
+				<button id="chroma-tour-close" type="button" aria-label="<?php esc_attr_e('Close tour booking dialog', 'chroma-excellence'); ?>"
 					class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
 					<i class="fa-solid fa-xmark text-lg"></i>
 				</button>
