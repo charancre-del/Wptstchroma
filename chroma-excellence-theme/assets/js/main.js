@@ -199,8 +199,7 @@
         viewport.style.setProperty('transform', 'none', 'important');
         viewport.style.setProperty('width', '100%', 'important');
         viewport.style.setProperty('max-width', '100%', 'important');
-        viewport.style.setProperty('overflow-x', 'hidden', 'important');
-        viewport.style.setProperty('overflow-y', 'auto', 'important');
+        viewport.style.setProperty('overflow', 'hidden', 'important');
 
         if (viewport.dataset.chromaScrollInitialized !== 'true') {
           viewport.dataset.chromaScrollInitialized = 'true';
@@ -216,7 +215,7 @@
           iframe.setAttribute('src', dataSource);
         }
 
-        iframe.setAttribute('scrolling', 'no');
+        iframe.setAttribute('scrolling', 'yes');
 
         if (iframe.dataset.chromaFormSizeListener !== 'true') {
           iframe.dataset.chromaFormSizeListener = 'true';
@@ -245,22 +244,25 @@
         setImportantStyle(iframe, 'width', '100%');
         setImportantStyle(iframe, 'max-width', '100%');
         setImportantStyle(iframe, 'min-width', '0px');
-        const configuredHeight = Number.parseInt(iframe.dataset.height || '', 10);
-        const baseHeight = Number.isFinite(configuredHeight) && configuredHeight > 0
-          ? configuredHeight
-          : 1152;
-        const iframeWidth = Math.round(iframe.getBoundingClientRect().width);
-        const minimumContentHeight = iframeWidth > 0 && iframeWidth < 320
-          ? 1660
-          : iframeWidth > 0 && iframeWidth < 420
-            ? 1560
-            : 1020;
-        const contentHeight = `${Math.max(baseHeight, minimumContentHeight)}px`;
+        setImportantStyle(iframe, 'height', '100%');
+        setImportantStyle(iframe, 'max-height', '100%');
+        setImportantStyle(iframe, 'min-height', '100%');
+        setImportantStyle(iframe, 'overflow', 'auto');
 
-        setImportantStyle(iframe, 'height', contentHeight);
-        setImportantStyle(iframe, 'max-height', 'none');
-        setImportantStyle(iframe, 'min-height', contentHeight);
-        setImportantStyle(iframe, 'overflow', 'hidden');
+        let embedWrapper = iframe.parentElement;
+        while (embedWrapper && embedWrapper !== viewport) {
+          if (
+            embedWrapper.classList.contains('ep-wrapper')
+            || embedWrapper.classList.contains('ep-iFrameContainer')
+          ) {
+            setImportantStyle(embedWrapper, 'height', '100%');
+            setImportantStyle(embedWrapper, 'max-height', '100%');
+            setImportantStyle(embedWrapper, 'min-height', '100%');
+            setImportantStyle(embedWrapper, 'overflow', 'hidden');
+            setImportantStyle(embedWrapper, 'width', '100%');
+          }
+          embedWrapper = embedWrapper.parentElement;
+        }
 
       });
     });

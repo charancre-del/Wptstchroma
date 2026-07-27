@@ -8260,7 +8260,7 @@
 }
 
 .chroma-form-scroll-card--location {
-  --chroma-form-viewport: 36rem;
+  --chroma-form-viewport: clamp(40rem, 72svh, 52rem);
 }
 
 .chroma-tour-form-card {
@@ -8287,11 +8287,9 @@
   height: var(--chroma-form-viewport) !important;
   max-height: var(--chroma-form-viewport) !important;
   min-height: var(--chroma-form-viewport) !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  overflow: hidden !important;
   overscroll-behavior: contain;
   position: relative !important;
-  scrollbar-gutter: stable;
   width: 100% !important;
 }
 
@@ -8310,28 +8308,22 @@
 .chroma-form-scroll-card iframe[src*="msgsndr.com"],
 .chroma-tour-form-card iframe[src*="msgsndr.com"] {
   display: block !important;
-  height: 72rem !important;
-  max-height: none !important;
-  min-height: 72rem !important;
-  overflow: hidden !important;
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 100% !important;
+  overflow: auto !important;
   width: 100% !important;
 }
 
-.chroma-form-scroll-card .chroma-ghl-iframe-container::-webkit-scrollbar,
-.chroma-tour-form-card .chroma-ghl-iframe-container::-webkit-scrollbar {
-  width: 0.55rem;
-}
-
-.chroma-form-scroll-card .chroma-ghl-iframe-container::-webkit-scrollbar-track,
-.chroma-tour-form-card .chroma-ghl-iframe-container::-webkit-scrollbar-track {
-  background: rgba(38, 50, 56, 0.05);
-  border-radius: 999px;
-}
-
-.chroma-form-scroll-card .chroma-ghl-iframe-container::-webkit-scrollbar-thumb,
-.chroma-tour-form-card .chroma-ghl-iframe-container::-webkit-scrollbar-thumb {
-  background: rgba(38, 50, 56, 0.34);
-  border-radius: 999px;
+.chroma-form-scroll-card .chroma-ghl-iframe-container > .ep-iFrameContainer,
+.chroma-tour-form-card .chroma-ghl-iframe-container > .ep-iFrameContainer,
+.chroma-form-scroll-card .chroma-ghl-iframe-container > .ep-iFrameContainer > .ep-wrapper,
+.chroma-tour-form-card .chroma-ghl-iframe-container > .ep-iFrameContainer > .ep-wrapper {
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 100% !important;
+  overflow: hidden !important;
+  width: 100% !important;
 }
 
 .chroma-booking-modal-shell,
@@ -8514,6 +8506,10 @@
     --chroma-form-default-viewport: 34rem;
   }
 
+  .chroma-form-scroll-card--location {
+    --chroma-form-viewport: clamp(38rem, 70svh, 46rem);
+  }
+
   .chroma-location-explorer.grid {
     grid-template-columns: minmax(0, 1fr) !important;
   }
@@ -8638,6 +8634,10 @@
     --chroma-form-contact-viewport: 31rem;
     --chroma-form-tour-viewport: 34rem;
     --chroma-form-default-viewport: 32rem;
+  }
+
+  .chroma-form-scroll-card--location {
+    --chroma-form-viewport: clamp(32rem, 68svh, 38rem);
   }
 
   .chroma-location-card-scroll,
