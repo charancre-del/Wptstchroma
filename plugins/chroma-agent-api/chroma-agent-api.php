@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Chroma Agent API
  * Description: Secure API-key automation layer for content, theme, and SEO management.
- * Version: 1.0.0
+ * Version: 1.0.1
  * Author: Chroma
  */
 
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
 }
 
 if (!defined('CHROMA_AGENT_API_VERSION')) {
-    define('CHROMA_AGENT_API_VERSION', '1.0.0');
+    define('CHROMA_AGENT_API_VERSION', '1.0.1');
 }
 
 if (!defined('CHROMA_AGENT_API_FILE')) {
