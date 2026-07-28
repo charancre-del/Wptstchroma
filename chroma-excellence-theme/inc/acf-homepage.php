@@ -47,7 +47,7 @@ function chroma_home_default_hero()
                 'cta_url' => '#tour',
                 'secondary_label' => __('View Programs', 'chroma-excellence'),
                 'secondary_url' => chroma_get_program_archive_url(),
-                'pill_format' => __('%d Metro Atlanta Locations', 'chroma-excellence'),
+                'pill_format' => __('%d Metro Atlanta Campuses', 'chroma-excellence'),
                 'supporting_text' => __('Our experienced educators support each child\'s growth with warm relationships, intentional learning, and close family partnership.', 'chroma-excellence'),
                 'rating_label' => __('Parent stories from our campuses', 'chroma-excellence'),
                 'quality_badge_text' => __('Programs and credentials vary by campus', 'chroma-excellence'),
@@ -63,8 +63,8 @@ function chroma_home_default_stats()
         return array(
                 array('key' => 'locations', 'value' => '0', 'label' => __('Metro campuses', 'chroma-excellence')),
                 array('key' => 'programs', 'value' => '0', 'label' => __('Programs', 'chroma-excellence')),
-                array('key' => 'founded', 'value' => '2022', 'label' => __('Founded', 'chroma-excellence')),
-                array('key' => 'age_range', 'value' => '6w–12y', 'label' => __('Age range', 'chroma-excellence')),
+                array('key' => 'families_served', 'value' => '6,000+', 'label' => __('Families Served', 'chroma-excellence')),
+                array('key' => 'age_range', 'value' => '6 Weeks–12 Years', 'label' => __('Age Range', 'chroma-excellence')),
         );
 }
 
@@ -318,7 +318,7 @@ function chroma_home_stats()
 
         foreach ($stats as $stat) {
                 $key = chroma_home_infer_stat_key($stat, $index);
-                if (in_array($key, array('families_served', 'avg_parent_rating', 'years_excellence'), true)) {
+                if (in_array($key, array('founded', 'avg_parent_rating', 'years_excellence'), true)) {
                         continue;
                 }
                 $value = sanitize_text_field($stat['value'] ?? '');
@@ -326,6 +326,8 @@ function chroma_home_stats()
                         $value = chroma_home_format_location_stat_value($value, $location_count);
                 } elseif ($key === 'programs' && $program_count > 0) {
                         $value = (string) $program_count;
+                } elseif ($key === 'families_served') {
+                        $value = '6,000+';
                 }
 
                 $cleaned[] = array(
@@ -346,11 +348,11 @@ function chroma_home_stats()
                         'color' => $colors[count($cleaned) % count($colors)],
                 );
         }
-        if (!in_array('founded', $present_keys, true)) {
+        if (!in_array('families_served', $present_keys, true)) {
                 $cleaned[] = array(
-                        'key' => 'founded',
-                        'value' => '2022',
-                        'label' => __('Founded', 'chroma-excellence'),
+                        'key' => 'families_served',
+                        'value' => '6,000+',
+                        'label' => __('Families Served', 'chroma-excellence'),
                         'color' => $colors[count($cleaned) % count($colors)],
                 );
         }

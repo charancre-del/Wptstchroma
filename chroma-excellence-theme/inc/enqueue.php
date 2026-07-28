@@ -156,7 +156,7 @@ function chroma_page_has_shortcode(array $shortcodes)
 function chroma_should_load_effects_bundle()
 {
         return is_front_page()
-                || is_page(array('about', 'locations', 'programs', 'schedule-tour', 'schedule-a-tour'))
+                || is_page(array('about', 'locations', 'programs', 'schedule-tour', 'schedule-a-tour', 'the-year-at-chroma'))
                 || is_page_template('page-summer-camp.php')
                 || is_post_type_archive('location')
                 || is_post_type_archive('program')
@@ -298,6 +298,17 @@ function chroma_enqueue_assets()
                 wp_enqueue_style('chroma-page-careers', $careers_asset['url'], array('chroma-main'), $careers_asset['version'], 'all');
         }
 
+        if (is_page('the-year-at-chroma')) {
+                $year_css_asset = chroma_get_theme_asset('assets/css/page-the-year.css');
+                wp_enqueue_style(
+                        'chroma-page-the-year',
+                        $year_css_asset['url'],
+                        array('chroma-main'),
+                        $year_css_asset['version'],
+                        'all'
+                );
+        }
+
         // Main JavaScript.
         $main_js_asset = chroma_get_theme_asset('assets/js/main.js');
 
@@ -312,6 +323,18 @@ function chroma_enqueue_assets()
 
                 // Defer re-enabled for FCP optimization
                 wp_script_add_data('chroma-main-js', 'defer', true);
+
+                if (is_page('the-year-at-chroma')) {
+                        $year_js_asset = chroma_get_theme_asset('assets/js/the-year.js');
+                        wp_enqueue_script(
+                                'chroma-page-the-year',
+                                $year_js_asset['url'],
+                                array('chroma-main-js'),
+                                $year_js_asset['version'],
+                                true
+                        );
+                        wp_script_add_data('chroma-page-the-year', 'defer', true);
+                }
 
                 // Map Facade (Lazy Load Leaflet).
                 $should_load_maps = chroma_should_load_maps();

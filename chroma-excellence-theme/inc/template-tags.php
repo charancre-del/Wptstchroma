@@ -68,6 +68,60 @@ function chroma_get_location_fields($post_id = null)
 }
 
 /**
+ * Normalize public program age labels while keeping the stored value editable.
+ */
+function chroma_normalize_program_age_label($age_range, $program_slug = '')
+{
+    $age_range = trim(wp_strip_all_tags((string) $age_range));
+    $age_range = preg_replace('/^\s*Ages?\s*:?\s*/i', '', $age_range);
+    $slug = sanitize_title((string) $program_slug);
+
+    $canonical = array(
+        'infant-care' => '6 Weeks–15 Months | Non-Walkers',
+        'toddler-care' => '12–24 Months | Walkers',
+        'preschool' => '24–36 Months',
+        'pre-k-prep' => '3–4 Years',
+        'ga-pre-k' => '4–5 Years',
+        'after-school' => '5–12 Years',
+        'camp-summer-winter-fall' => 'Seasonal | Ages 5–12',
+    );
+
+    if (isset($canonical[$slug])) {
+        return $canonical[$slug];
+    }
+
+    $age_range = preg_replace('/\s*-\s*/', '–', $age_range);
+    $age_range = preg_replace('/\bYrs?\b/i', 'Years', $age_range);
+    $age_range = preg_replace('/\bMos?\b/i', 'Months', $age_range);
+    $age_range = preg_replace('/\bNon[\s-]*walker\b/i', 'Non-Walkers', $age_range);
+    $age_range = preg_replace('/\bWalkers?\b/i', 'Walkers', $age_range);
+
+    return trim($age_range);
+}
+
+/**
+ * Format a North American phone number consistently for public display.
+ */
+function chroma_format_phone_number($phone)
+{
+    $digits = preg_replace('/\D+/', '', (string) $phone);
+    if (11 === strlen($digits) && '1' === substr($digits, 0, 1)) {
+        $digits = substr($digits, 1);
+    }
+
+    if (10 !== strlen($digits)) {
+        return trim((string) $phone);
+    }
+
+    return sprintf(
+        '(%s) %s-%s',
+        substr($digits, 0, 3),
+        substr($digits, 3, 3),
+        substr($digits, 6, 4)
+    );
+}
+
+/**
  * Determine whether a campus currently offers Georgia Pre-K.
  *
  * Campus editors can explicitly override the operational default. Until an
@@ -103,7 +157,7 @@ function chroma_get_program_fields($post_id = null)
 {
     $post_id = $post_id ?: get_the_ID();
     $age_range = chroma_get_meta_value($post_id, 'program_age_range', '');
-    $age_range = preg_replace('/^\s*Ages?\s*:?\s*/i', '', (string) $age_range);
+    $age_range = chroma_normalize_program_age_label($age_range, get_post_field('post_name', $post_id));
 
     // Get manual icon override
     $icon = chroma_get_meta_value($post_id, 'program_icon', '');
@@ -294,7 +348,7 @@ function chroma_get_program_faq_items($post_id = null)
         }
 
         if (preg_match('/(?:Procare|Brightwheel|LineLeader)/i', $parts[1])) {
-            $parts[1] = __('Campuses share daily updates, photos, and messages through the family communication tools used by that campus. Your campus team will provide access details.', 'chroma-excellence');
+            $parts[1] = __('Families receive daily updates, photos, attendance information, and messages through LineLeader. Your campus team will provide access details.', 'chroma-excellence');
         }
 
         $faq[] = array(
@@ -334,7 +388,7 @@ function chroma_get_location_faq_items($post_id = null)
         ),
         array(
             'question' => __('What safety and security measures are in place?', 'chroma-excellence'),
-            'answer' => __('All Chroma Locations have Keypad Controlled Access, 24/7 monitored Cameras, Carbon monoxide and Smoke Alarm Systems, Defibrillators, and Emergency Plans that are performed regularly.', 'chroma-excellence'),
+            'answer' => __('All Chroma campuses use keypad-controlled access, monitored camera systems, carbon-monoxide and smoke detection, automated external defibrillators, and regularly practiced emergency procedures.', 'chroma-excellence'),
         ),
         array(
             'question' => __('Do you accept CAPS?', 'chroma-excellence'),
@@ -343,8 +397,9 @@ function chroma_get_location_faq_items($post_id = null)
     );
 
     foreach ($defaults as $default) {
-        $faq[] = array(
-            'question' => wp_strip_all_tags($default['question']),
+        $question = wp_strip_all_tags($default['question']);
+        $faq[sanitize_title($question)] = array(
+            'question' => $question,
             'answer' => wp_kses_post($default['answer']),
         );
     }
@@ -369,14 +424,18 @@ function chroma_get_location_faq_items($post_id = null)
                 $answer = __('CAPS (Childcare and Parent Services) is accepted at all Chroma campuses. Authorization, program eligibility, and space availability apply; please confirm details with your preferred campus.', 'chroma-excellence');
             }
 
-            $faq[] = array(
+            if (preg_match('/safety|security/i', $question)) {
+                $answer = __('All Chroma campuses use keypad-controlled access, monitored camera systems, carbon-monoxide and smoke detection, automated external defibrillators, and regularly practiced emergency procedures.', 'chroma-excellence');
+            }
+
+            $faq[sanitize_title($question)] = array(
                 'question' => $question,
                 'answer' => $answer,
             );
         }
     }
 
-    return $faq;
+    return array_values($faq);
 }
 
 /**

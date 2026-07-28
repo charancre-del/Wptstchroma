@@ -86,3 +86,51 @@ function chroma_filter_staging_html_cache_headers($headers)
     return $headers;
 }
 add_filter('wp_headers', 'chroma_filter_staging_html_cache_headers', PHP_INT_MAX);
+
+/**
+ * Keep the verification host out of search indexes even when an SEO plugin
+ * replaces WordPress core robots output.
+ *
+ * @param array $robots Robots directives.
+ * @return array
+ */
+function chroma_noindex_staging_robots($robots)
+{
+    if (!chroma_is_staging_request()) {
+        return $robots;
+    }
+
+    $robots['noindex'] = true;
+    $robots['nofollow'] = true;
+    $robots['noarchive'] = true;
+
+    unset($robots['index'], $robots['follow']);
+
+    return $robots;
+}
+add_filter('wp_robots', 'chroma_noindex_staging_robots', PHP_INT_MAX);
+
+/**
+ * Mirror the staging directive for Yoast-compatible robots filters.
+ *
+ * @param string $robots Existing directive.
+ * @return string
+ */
+function chroma_noindex_staging_wpseo_robots($robots)
+{
+    return chroma_is_staging_request() ? 'noindex,nofollow,noarchive' : $robots;
+}
+add_filter('wpseo_robots', 'chroma_noindex_staging_wpseo_robots', PHP_INT_MAX);
+
+/**
+ * Send an HTTP-level staging directive as the definitive safety net.
+ */
+function chroma_send_staging_robots_header()
+{
+    if (is_admin() || headers_sent() || !chroma_is_staging_request()) {
+        return;
+    }
+
+    header('X-Robots-Tag: noindex, nofollow, noarchive', true);
+}
+add_action('send_headers', 'chroma_send_staging_robots_header', PHP_INT_MAX);

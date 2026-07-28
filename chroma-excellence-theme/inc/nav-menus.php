@@ -324,7 +324,7 @@ function chroma_primary_nav_fallback()
 		'early-learning' => $early_learning_label,
 		'contact-us' => 'Contact',
 		'locations' => 'Locations',
-		'summer-camp-discover-go' => 'Summer 2026'
+		'the-year-at-chroma' => 'The Year'
 	);
 
 	foreach ($pages as $slug => $title) {

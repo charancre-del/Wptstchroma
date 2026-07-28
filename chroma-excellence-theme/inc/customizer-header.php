@@ -74,24 +74,24 @@ function chroma_header_customizer_settings($wp_customize)
 		),
 	));
 
-	// Book a Tour Button Text
+	// Schedule a Tour Button Text
 	$wp_customize->add_setting('chroma_header_cta_text', array(
-		'default' => 'Book a Tour',
+		'default' => 'Schedule a Tour',
 		'sanitize_callback' => 'sanitize_text_field',
 		'transport' => 'refresh',
 	));
 
 	$wp_customize->add_control('chroma_header_cta_text', array(
-		'label' => __('Book a Tour Button Text', 'chroma-excellence'),
+		'label' => __('Schedule a Tour Button Text', 'chroma-excellence'),
 		'description' => __('Enter the text for the CTA button in the header.', 'chroma-excellence'),
 		'section' => 'chroma_header_settings',
 		'type' => 'text',
 		'input_attrs' => array(
-			'placeholder' => 'Book a Tour',
+			'placeholder' => 'Schedule a Tour',
 		),
 	));
 
-	// Book a Tour Button URL
+	// Schedule a Tour Button URL
 	$wp_customize->add_setting('chroma_book_tour_url', array(
 		'default' => home_url('/contact-us/#tour'),
 		'sanitize_callback' => 'esc_url_raw',
@@ -99,8 +99,8 @@ function chroma_header_customizer_settings($wp_customize)
 	));
 
 	$wp_customize->add_control('chroma_book_tour_url', array(
-		'label' => __('Book a Tour Button URL', 'chroma-excellence'),
-		'description' => __('Enter the URL for the "Book a Tour" button in the header.', 'chroma-excellence'),
+		'label' => __('Schedule a Tour Button URL', 'chroma-excellence'),
+		'description' => __('Enter the URL for the "Schedule a Tour" button in the header.', 'chroma-excellence'),
 		'section' => 'chroma_header_settings',
 		'type' => 'url',
 		'input_attrs' => array(

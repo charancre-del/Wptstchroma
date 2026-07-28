@@ -119,42 +119,117 @@ add_action('after_setup_theme', 'chroma_migrate_v2_theme_state', 5);
  */
 function chroma_repair_launch_content_relationships()
 {
-    if ((int) get_option('chroma_launch_content_relationships_version', 0) >= 1) {
+    if ((int) get_option('chroma_launch_content_relationships_version', 0) >= 2) {
         return;
     }
 
-    $chadwick = get_page_by_path('chadwick-campus', OBJECT, 'location');
-    if (!$chadwick) {
+    $find_location = static function (array $slugs, $search_term) {
+        foreach ($slugs as $slug) {
+            $location = get_page_by_path($slug, OBJECT, 'location');
+            if ($location) {
+                return $location;
+            }
+        }
+
         $matches = get_posts(array(
             'post_type' => 'location',
             'post_status' => 'publish',
             'posts_per_page' => 1,
-            's' => 'Chadwick',
+            's' => $search_term,
         ));
-        $chadwick = $matches[0] ?? null;
-    }
 
-    if ($chadwick) {
-        foreach (array('infant-care', 'toddler-care', 'preschool', 'pre-k-prep') as $program_slug) {
-            $program = get_page_by_path($program_slug, OBJECT, 'program');
-            if (!$program) {
-                continue;
-            }
+        return $matches[0] ?? null;
+    };
 
-            $location_ids = get_post_meta($program->ID, 'program_locations', true);
-            $location_ids = is_array($location_ids) ? array_map('absint', $location_ids) : array();
-            if (!in_array((int) $chadwick->ID, $location_ids, true)) {
-                $location_ids[] = (int) $chadwick->ID;
-                update_post_meta($program->ID, 'program_locations', array_values(array_unique($location_ids)));
+    $chadwick = $find_location(
+        array('chroma-early-learning-academy-chadwick', 'chadwick-campus'),
+        'Chadwick'
+    );
+    $north_hall = $find_location(
+        array('north-hall-campus-murraysville', 'north-hall-campus'),
+        'North Hall'
+    );
 
-                if (function_exists('chroma_sync_program_locations_taxonomy')) {
-                    chroma_sync_program_locations_taxonomy($program->ID, $program);
-                }
+    $standard_program_slugs = array(
+        'infant-care',
+        'toddler-care',
+        'preschool',
+        'pre-k-prep',
+        'after-school',
+        'camp-summer-winter-fall',
+        'parents-day-out',
+    );
+    $target_location_ids = array_values(array_filter(array(
+        $chadwick ? (int) $chadwick->ID : 0,
+        $north_hall ? (int) $north_hall->ID : 0,
+    )));
+
+    foreach ($standard_program_slugs as $program_slug) {
+        $program = get_page_by_path($program_slug, OBJECT, 'program');
+        if (!$program) {
+            continue;
+        }
+
+        $location_ids = get_post_meta($program->ID, 'program_locations', true);
+        $location_ids = is_array($location_ids) ? array_map('absint', $location_ids) : array();
+        $updated_ids = array_values(array_unique(array_merge($location_ids, $target_location_ids)));
+
+        if ($updated_ids !== $location_ids) {
+            update_post_meta($program->ID, 'program_locations', $updated_ids);
+            if (function_exists('chroma_sync_program_locations_taxonomy')) {
+                chroma_sync_program_locations_taxonomy($program->ID, $program);
             }
         }
     }
 
-    update_option('chroma_launch_content_relationships_version', 1, false);
+    $ga_pre_k = get_page_by_path('ga-pre-k', OBJECT, 'program');
+    if ($ga_pre_k && $target_location_ids) {
+        $location_ids = get_post_meta($ga_pre_k->ID, 'program_locations', true);
+        $location_ids = is_array($location_ids) ? array_map('absint', $location_ids) : array();
+        $updated_ids = array_values(array_diff($location_ids, $target_location_ids));
+        if ($updated_ids !== $location_ids) {
+            update_post_meta($ga_pre_k->ID, 'program_locations', $updated_ids);
+            if (function_exists('chroma_sync_program_locations_taxonomy')) {
+                chroma_sync_program_locations_taxonomy($ga_pre_k->ID, $ga_pre_k);
+            }
+        }
+    }
+
+    $program_ages = array(
+        'infant-care' => '6 Weeks–15 Months | Non-Walkers',
+        'toddler-care' => '12–24 Months | Walkers',
+        'preschool' => '24–36 Months',
+        'pre-k-prep' => '3–4 Years',
+        'ga-pre-k' => '4–5 Years',
+        'after-school' => '5–12 Years',
+        'camp-summer-winter-fall' => 'Seasonal | Ages 5–12',
+        'kindergarten-1' => '5–6 Years',
+        'parents-day-out' => '3–5 Years',
+    );
+    foreach ($program_ages as $program_slug => $age_range) {
+        $program = get_page_by_path($program_slug, OBJECT, 'program');
+        if ($program) {
+            update_post_meta($program->ID, 'program_age_range', $age_range);
+        }
+    }
+
+    $location_titles = array(
+        'east-cobb-campus' => 'East Cobb Campus',
+        'west-cobb-campus' => 'West Cobb Campus',
+        'mcdonough' => 'McDonough Campus',
+        'north-hall-campus-murraysville' => 'North Hall Campus',
+    );
+    foreach ($location_titles as $location_slug => $public_title) {
+        $location = get_page_by_path($location_slug, OBJECT, 'location');
+        if ($location && $location->post_title !== $public_title) {
+            wp_update_post(array(
+                'ID' => $location->ID,
+                'post_title' => $public_title,
+            ));
+        }
+    }
+
+    update_option('chroma_launch_content_relationships_version', 2, false);
 }
 add_action('init', 'chroma_repair_launch_content_relationships', 35);
 

@@ -130,7 +130,6 @@
 							<?php endwhile; ?>
 						</div>
 						<div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-bold uppercase tracking-wider text-white/75">
-							<a href="<?php echo esc_url(chroma_get_localized_url(home_url('/stories/'))); ?>" class="hover:text-white transition-colors"><?php esc_html_e('All Stories', 'chroma-excellence'); ?></a>
 							<a href="<?php echo esc_url(chroma_get_localized_url(home_url('/newsroom/'))); ?>" class="hover:text-white transition-colors"><?php esc_html_e('Newsroom', 'chroma-excellence'); ?></a>
 						</div>
 						<?php wp_reset_postdata(); ?>

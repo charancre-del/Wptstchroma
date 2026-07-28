@@ -220,7 +220,7 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                 ]);
                 ?>
                 <?php while ($programs_query->have_posts()): $programs_query->the_post(); ?>
-                    <?php $age_range = trim((string) get_post_meta(get_the_ID(), 'program_age_range', true)); ?>
+                    <?php $age_range = chroma_normalize_program_age_label(get_post_meta(get_the_ID(), 'program_age_range', true), get_post_field('post_name', get_the_ID())); ?>
                     <article class="group p-6 rounded-3xl bg-white border border-brand-ink/5 hover:border-chroma-blue/30 transition-all hover:-translate-y-1 flex flex-col shadow-card">
                         <div class="h-48 rounded-2xl bg-chroma-blue/5 mb-6 overflow-hidden relative">
                             <?php if (has_post_thumbnail()): ?>
@@ -232,7 +232,7 @@ $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacrop
                         <h3 class="font-serif text-xl font-bold text-brand-ink mb-2"><?php the_title(); ?></h3>
                         <?php if ($age_range !== ''): ?>
                             <p class="text-xs text-brand-ink/60 font-bold uppercase tracking-widest mb-6">
-                                <?php printf(esc_html__('Ages %s', 'chroma-excellence'), esc_html($age_range)); ?>
+                                <?php echo esc_html($age_range); ?>
                             </p>
                         <?php endif; ?>
                         <div class="mt-auto">

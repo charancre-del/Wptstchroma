@@ -14,7 +14,7 @@ while (have_posts()):
 	$page_id = get_the_ID();
 
 	// Hero Section
-	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: __('Founded in 2022', 'chroma-excellence');
+	$hero_badge_text = chroma_get_translated_meta($page_id, 'about_hero_badge_text') ?: __('Family-Owned & Educator-Led', 'chroma-excellence');
 	$hero_badge_text = trim((string) $hero_badge_text, " \t\n\r\0\x0B\"'“”‘’");
 	$hero_title = chroma_get_translated_meta($page_id, 'about_hero_title') ?: __('More than a school. <span class="text-chroma-red italic">A second home.</span>', 'chroma-excellence');
 	$hero_title = html_entity_decode((string) $hero_title, ENT_QUOTES, get_bloginfo('charset') ?: 'UTF-8');
@@ -28,14 +28,14 @@ while (have_posts()):
 	$story_title = chroma_get_translated_meta($page_id, 'about_story_title') ?: __('From one classroom to a community.', 'chroma-excellence');
 	$published_locations = wp_count_posts('location');
 	$locations_count = isset($published_locations->publish) ? (int) $published_locations->publish : 0;
-	$story_paragraph1 = sprintf(
+	$story_paragraph1 = chroma_get_translated_meta($page_id, 'about_story_paragraph1') ?: sprintf(
 		/* translators: %d: number of published Chroma campuses. */
-		__('Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into a network of %d campuses serving families across Metro Atlanta and surrounding Georgia communities.', 'chroma-excellence'),
+		__('From one classroom to a growing network of %d campuses, Chroma Early Learning Academy has remained focused on helping children feel known, supported, and ready for what comes next.', 'chroma-excellence'),
 		$locations_count
 	);
-	$story_paragraph2 = __('As Chroma has expanded, each campus has remained locally connected while benefiting from shared standards for curriculum, safety, teacher development, and family partnership.', 'chroma-excellence');
-	if (false !== stripos($hero_badge_text, 'Established 2015')) {
-		$hero_badge_text = __('Founded in 2022', 'chroma-excellence');
+	$story_paragraph2 = chroma_get_translated_meta($page_id, 'about_story_paragraph2') ?: __('As Chroma has expanded, each campus has remained locally connected while benefiting from shared standards for curriculum, safety, teacher development, and family partnership.', 'chroma-excellence');
+	if (false !== stripos($hero_badge_text, 'Established') || false !== stripos($hero_badge_text, 'Founded')) {
+		$hero_badge_text = __('Family-Owned & Educator-Led', 'chroma-excellence');
 	}
 	$story_image = chroma_get_translated_meta($page_id, 'about_story_image') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop';
 
@@ -45,8 +45,8 @@ while (have_posts()):
 	$stat2_label = __('Ages Served', 'chroma-excellence');
 	$stat3_value = '100+';
 	$stat3_label = __('Years of Combined Leadership Experience', 'chroma-excellence');
-	$stat4_value = '2022';
-	$stat4_label = __('Founded', 'chroma-excellence');
+	$stat4_value = '6,000+';
+	$stat4_label = __('Families Served', 'chroma-excellence');
 
 	// Educators Section
 	$educators_title = chroma_get_translated_meta($page_id, 'about_educators_title') ?: __('The Heart of Chroma.', 'chroma-excellence');

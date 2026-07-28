@@ -20,7 +20,7 @@ $location_pill = function_exists('chroma_home_normalize_location_count_copy')
     ? chroma_home_normalize_location_count_copy($location_pill, $loc_count)
     : $location_pill;
 if ($loc_count > 0 && !preg_match('/\b' . preg_quote((string) $loc_count, '/') . '\b/', $location_pill)) {
-    $location_pill = sprintf(__('%d Metro Atlanta Locations', 'chroma-excellence'), $loc_count);
+    $location_pill = sprintf(__('%d Metro Atlanta Campuses', 'chroma-excellence'), $loc_count);
 }
 ?>
 

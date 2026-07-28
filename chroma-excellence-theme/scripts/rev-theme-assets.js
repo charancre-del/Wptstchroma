@@ -12,10 +12,12 @@ const ASSETS_TO_REV = [
   'assets/css/page-effects.css',
   'assets/css/page-forms.css',
   'assets/css/page-careers.css',
+  'assets/css/page-the-year.css',
   'assets/js/main.js',
   'assets/js/map-facade.js',
   'assets/js/map-layer.js',
   'assets/js/admin.js',
+  'assets/js/the-year.js',
 ];
 
 const hashedNamePattern = (baseName, ext) =>

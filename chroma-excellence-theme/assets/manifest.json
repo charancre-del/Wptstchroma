@@ -1,11 +1,13 @@
 {
   "assets/css/main.css": "assets/css/main.1f70907e33ff.css",
-  "assets/css/font-awesome-subset.css": "assets/css/font-awesome-subset.0f48cea3c569.css",
-  "assets/css/page-effects.css": "assets/css/page-effects.bc9294bb75ba.css",
-  "assets/css/page-forms.css": "assets/css/page-forms.3d953a5a038e.css",
-  "assets/css/page-careers.css": "assets/css/page-careers.468522d0eded.css",
+  "assets/css/font-awesome-subset.css": "assets/css/font-awesome-subset.b101b689bdb7.css",
+  "assets/css/page-effects.css": "assets/css/page-effects.1cc8a81d48e2.css",
+  "assets/css/page-forms.css": "assets/css/page-forms.10af5f2e1e12.css",
+  "assets/css/page-careers.css": "assets/css/page-careers.7b11344c04fb.css",
+  "assets/css/page-the-year.css": "assets/css/page-the-year.b945147dfebd.css",
   "assets/js/main.js": "assets/js/main.24fc7a318bca.js",
   "assets/js/map-facade.js": "assets/js/map-facade.77bf260234dc.js",
   "assets/js/map-layer.js": "assets/js/map-layer.55e21eeed847.js",
-  "assets/js/admin.js": "assets/js/admin.b59808020d86.js"
+  "assets/js/admin.js": "assets/js/admin.b59808020d86.js",
+  "assets/js/the-year.js": "assets/js/the-year.edb9752d4ac7.js"
 }

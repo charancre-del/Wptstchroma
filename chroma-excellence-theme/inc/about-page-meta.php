@@ -130,12 +130,12 @@ function chroma_about_hero_meta_box_render( $post ) {
 			<td>
 				<input type="text" id="about_hero_badge_text" name="about_hero_badge_text"
 					   value="<?php echo esc_attr( $hero_badge_text ); ?>"
-					   class="large-text" placeholder="e.g., Founded in 2022" />
+					   class="large-text" placeholder="e.g., Family-Owned & Educator-Led" />
 				<br>
 				<input type="text" id="_chroma_es_about_hero_badge_text" name="_chroma_es_about_hero_badge_text"
 					   value="<?php echo esc_attr( get_post_meta( $post->ID, '_chroma_es_about_hero_badge_text', true ) ); ?>"
 					   class="large-text" placeholder="[ES] Badge Text" style="margin-top: 5px;" />
-				<p class="description">Text for the badge at the top (e.g., "Founded in 2022")</p>
+				<p class="description">Text for the badge at the top (e.g., "Family-Owned & Educator-Led")</p>
 			</td>
 		</tr>
 		<tr>
@@ -1107,23 +1107,23 @@ function chroma_seed_about_page_defaults( $post_id ) {
 
 	// Default values array
 	$defaults = array(
-		'about_hero_badge_text'            => 'Founded in 2022',
+		'about_hero_badge_text'            => 'Family-Owned & Educator-Led',
 		'about_hero_title'                 => 'More than a school. <span class="text-chroma-yellow italic">A second home.</span>',
 		'about_hero_description'           => 'We founded Chroma on a simple belief: Early education should be a perfect blend of rigorous cognitive development and the comforting warmth of family.',
 		'about_hero_image'                 => 'https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=1000&auto=format&fit=crop',
 		'about_mission_quote'              => '"To cultivate a vibrant community of lifelong learners by blending academic rigor with the nurturing warmth of home, ensuring every child feels seen, valued, and capable."',
 		'about_story_title'                => 'From one classroom to a community.',
-		'about_story_paragraph1'           => 'Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into one of Georgia\'s largest family-owned and operated early education providers, serving families through a growing network of campuses across Metro Atlanta and surrounding communities.',
-		'about_story_paragraph2'           => 'Since then, Chroma has grown across Metro Atlanta while keeping each campus connected to its neighborhood. Our educators remain focused on helping children feel known, supported, and ready for what comes next.',
+		'about_story_paragraph1'           => 'From one classroom to a growing network of campuses, Chroma Early Learning Academy has remained focused on helping children feel known, supported, and ready for what comes next.',
+		'about_story_paragraph2'           => 'As Chroma has expanded, each campus has remained locally connected while benefiting from shared standards for curriculum, safety, teacher development, and family partnership.',
 		'about_story_image'                => 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=800&auto=format&fit=crop',
 		'about_stat1_value'                => '0',
 		'about_stat1_label'                => 'Locations',
-		'about_stat2_value'                => '6 weeks–12 years',
+		'about_stat2_value'                => '6 Weeks–12 Years',
 		'about_stat2_label'                => 'Age Range',
 		'about_stat3_value'                => '5',
 		'about_stat3_label'                => 'PrismPath Pillars',
-		'about_stat4_value'                => 'GA',
-		'about_stat4_label'                => 'Licensed Campuses',
+		'about_stat4_value'                => '6,000+',
+		'about_stat4_label'                => 'Families Served',
 		'about_educators_title'            => 'The Heart of Chroma.',
 		'about_educators_description'      => 'We don\'t just hire supervisors; we hire career educators. Our teachers are the most valuable asset in our classrooms, selected for their passion, patience, and professional credentials.',
 		'about_educator1_icon'             => 'fa-solid fa-certificate',

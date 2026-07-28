@@ -16,12 +16,7 @@ while (have_posts()):
 	// Get location meta
 	$phone = $location_fields['phone'];
 	$phone_digits = preg_replace('/\D+/', '', (string) $phone);
-	if (strlen($phone_digits) === 11 && substr($phone_digits, 0, 1) === '1') {
-		$phone_digits = substr($phone_digits, 1);
-	}
-	$phone_display = strlen($phone_digits) === 10
-		? sprintf('(%s) %s-%s', substr($phone_digits, 0, 3), substr($phone_digits, 3, 3), substr($phone_digits, 6, 4))
-		: $phone;
+	$phone_display = chroma_format_phone_number($phone);
 	$email = $location_fields['email'];
 	$address = chroma_location_address_line();
 	$city = $location_fields['city'];
@@ -56,7 +51,7 @@ while (have_posts()):
 	}
 	$google_rating = chroma_get_translated_meta($location_id, 'location_google_rating');
 	$hours = chroma_get_translated_meta($location_id, 'location_hours') ?: __('Contact campus for current hours', 'chroma-excellence');
-	$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('6w - 12y', 'chroma-excellence');
+	$ages_served = chroma_get_translated_meta($location_id, 'location_ages_served') ?: __('6 Weeks–12 Years', 'chroma-excellence');
 
 	// Director info
 	$director_name = chroma_get_translated_meta($location_id, 'location_director_name');
@@ -607,7 +602,12 @@ while (have_posts()):
 							</div>
 							<div class="text-chroma-yellow tracking-[0.2em] text-lg mb-4" aria-hidden="true">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
 							<h2 class="font-serif text-4xl md:text-5xl leading-tight mb-4">
-								<?php esc_html_e('What Families Say', 'chroma-excellence'); ?>
+								<?php
+								printf(
+									esc_html__('What %s Families Say', 'chroma-excellence'),
+									esc_html(preg_replace('/\s+(?:Campus|Academy).*$/i', '', $location_name))
+								);
+								?>
 							</h2>
 						</div>
 						<p class="text-white/75 leading-relaxed">
@@ -793,7 +793,7 @@ while (have_posts()):
 					class="chroma-form-scroll-card chroma-form-scroll-card--location bg-brand-cream p-8 md:p-10 rounded-[2.5rem] shadow-soft border border-<?php echo esc_attr($region_colors['border']); ?>/10 h-fit"
 					aria-label="<?php esc_attr_e( 'Campus tour request form', 'chroma-excellence' ); ?>">
 					<h3 class="font-serif text-2xl font-bold text-brand-ink mb-2">
-						<?php _e('Request a Tour', 'chroma-excellence'); ?>
+						<?php _e('Schedule a Tour', 'chroma-excellence'); ?>
 					</h3>
 					<p class="text-sm text-brand-ink/90 mb-6">
 						<?php _e("Fill out the form below and we'll contact you to confirm a time.", 'chroma-excellence'); ?>
@@ -811,7 +811,7 @@ while (have_posts()):
 							</div>
 							<a href="<?php echo esc_url($tour_booking_link); ?>"
 								class="booking-btn inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-green text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-greenDark transition-all hover:-translate-y-1">
-								<?php _e('Book a Tour Now', 'chroma-excellence'); ?>
+								<?php _e('Schedule a Tour', 'chroma-excellence'); ?>
 							</a>
 						</div>
 					<?php endif; ?>

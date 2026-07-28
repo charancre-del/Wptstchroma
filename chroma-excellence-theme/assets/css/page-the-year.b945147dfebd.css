@@ -1,0 +1,276 @@
+.chroma-year-page {
+	--year-ink: #263238;
+	--year-cream: #fffcf8;
+	--year-red: #a84b38;
+	--year-orange: #c26524;
+	--year-blue: #4a6c7c;
+	--year-green: #4a7c59;
+	--year-yellow: #c2a024;
+	--year-purple: #7d5ba6;
+	--year-accent: #a84b38;
+	--year-soft: rgba(168, 75, 56, .11);
+	--year-line: rgba(74, 108, 124, .14);
+	--year-shadow: 0 22px 70px rgba(38, 50, 56, .13);
+	--year-soft-shadow: 0 12px 34px rgba(38, 50, 56, .09);
+	--year-radius: 34px;
+	--year-spectrum: linear-gradient(90deg, #7d5ba6, #4a6c7c, #4a7c59, #c2a024, #c26524, #a84b38);
+	background:
+		radial-gradient(circle at 8% 4%, rgba(168, 75, 56, .12), transparent 28rem),
+		radial-gradient(circle at 92% 12%, rgba(74, 108, 124, .12), transparent 30rem),
+		linear-gradient(rgba(38, 50, 56, .026) 1px, transparent 1px),
+		linear-gradient(90deg, rgba(38, 50, 56, .026) 1px, transparent 1px),
+		linear-gradient(180deg, var(--year-cream), #fff);
+	background-size: auto, auto, 44px 44px, 44px 44px, auto;
+	color: var(--year-ink);
+	overflow: hidden;
+}
+
+.chroma-year-page .wrap {
+	width: min(1240px, calc(100% - 36px));
+	margin-inline: auto;
+}
+
+.chroma-year-page section {
+	position: relative;
+	padding: clamp(4.5rem, 8vw, 6.25rem) 0;
+}
+
+.chroma-year-page .white { background: #fff; }
+.chroma-year-page .cream { background: var(--year-cream); }
+.chroma-year-page .borderY { border-block: 1px solid rgba(74, 108, 124, .1); }
+.chroma-year-page .serif { font-family: "Playfair Display", Georgia, serif; font-weight: 500; }
+.chroma-year-page em { color: var(--year-accent); }
+
+.chroma-year-page .pill,
+.chroma-year-page .swTag {
+	display: inline-flex;
+	align-items: center;
+	gap: .625rem;
+	border-radius: 999px;
+	font-size: .72rem;
+	font-weight: 800;
+	letter-spacing: .18em;
+	text-transform: uppercase;
+}
+
+.chroma-year-page .pill {
+	padding: .55rem 1rem;
+	background: #fff;
+	border: 1px solid rgba(74, 108, 124, .15);
+	box-shadow: 0 8px 26px rgba(38, 50, 56, .07);
+}
+
+.chroma-year-page .dot {
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: var(--year-accent);
+}
+
+.chroma-year-page .hero { padding: clamp(4rem, 8vw, 6rem) 0; }
+.chroma-year-page .heroGrid {
+	display: grid;
+	grid-template-columns: minmax(0, 1.02fr) minmax(0, .98fr);
+	gap: clamp(2rem, 5vw, 3.5rem);
+	align-items: center;
+}
+
+.chroma-year-page .hTitle {
+	max-width: 11ch;
+	margin: 1.25rem 0;
+	font-size: clamp(3rem, 6.2vw, 5.25rem);
+	line-height: .98;
+	letter-spacing: -.04em;
+}
+
+.chroma-year-page .shimmer {
+	background: var(--year-spectrum);
+	background-size: 300% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	font-style: italic;
+	animation: chroma-year-sheen 7s linear infinite;
+}
+
+@keyframes chroma-year-sheen { to { background-position: 300% 0; } }
+
+.chroma-year-page .hLead,
+.chroma-year-page .hSub,
+.chroma-year-page .head p {
+	color: rgba(38, 50, 56, .76);
+	line-height: 1.72;
+}
+
+.chroma-year-page .hLead { max-width: 38rem; margin: 0 0 1rem; font-size: 1.18rem; }
+.chroma-year-page .hSub { max-width: 35rem; margin: 0 0 1.75rem; font-size: 1rem; }
+.chroma-year-page .actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+
+.chroma-year-page .btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 48px;
+	padding: .9rem 1.5rem;
+	border-radius: 999px;
+	font-size: .75rem;
+	font-weight: 800;
+	letter-spacing: .16em;
+	text-transform: uppercase;
+	transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.chroma-year-page .btn:hover { transform: translateY(-2px); box-shadow: var(--year-soft-shadow); }
+.chroma-year-page .primary { background: var(--year-red); color: #fff; }
+.chroma-year-page .ghost { background: #fff; border: 1px solid rgba(74, 108, 124, .25); color: var(--year-ink); }
+
+.chroma-year-page .nowCard,
+.chroma-year-page .scrubCard {
+	position: relative;
+	overflow: hidden;
+	background: #fff;
+	border: 1px solid var(--year-line);
+	border-radius: var(--year-radius);
+	box-shadow: var(--year-shadow);
+}
+
+.chroma-year-page .nowCard { padding: clamp(1.75rem, 4vw, 2.5rem); }
+.chroma-year-page .nowCard::after,
+.chroma-year-page .scrubCard::after {
+	content: "";
+	position: absolute;
+	width: 13rem;
+	height: 13rem;
+	border-radius: 50%;
+	background: var(--year-soft);
+	pointer-events: none;
+}
+.chroma-year-page .nowCard::after { right: -5rem; bottom: -5rem; }
+.chroma-year-page .scrubCard::after { left: -5rem; top: -5rem; }
+.chroma-year-page .nowTag,
+.chroma-year-page .nowWeek,
+.chroma-year-page .nowTheme,
+.chroma-year-page .nowLine,
+.chroma-year-page .nowHome { position: relative; z-index: 1; }
+.chroma-year-page .nowTag { color: var(--year-accent); font-size: .7rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+.chroma-year-page .nowWeek { margin-top: .85rem; color: rgba(38, 50, 56, .55); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.chroma-year-page .nowTheme { margin: .25rem 0 .75rem; font-size: clamp(2rem, 4vw, 2.9rem); line-height: 1.04; }
+.chroma-year-page .nowLine { color: rgba(38, 50, 56, .76); line-height: 1.7; }
+.chroma-year-page .nowHome { margin-top: 1rem; padding-left: 1rem; border-left: 3px solid var(--year-accent); }
+.chroma-year-page .nowHome b { display: block; margin-bottom: .3rem; color: var(--year-accent); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; }
+
+.chroma-year-page .head { max-width: 55rem; margin: 0 auto 3.25rem; text-align: center; }
+.chroma-year-page .kicker { margin-bottom: .75rem; color: var(--year-accent); font-size: .75rem; font-weight: 800; letter-spacing: .2em; text-transform: uppercase; }
+.chroma-year-page .head h2 { margin: 0 0 .9rem; font-size: clamp(2.5rem, 5.4vw, 4.1rem); line-height: 1.03; letter-spacing: -.03em; }
+.chroma-year-page .head p { margin: 0; font-size: 1.05rem; }
+
+.chroma-year-page .scrubCard { padding: clamp(1.6rem, 4vw, 2.65rem); }
+.chroma-year-page .scrubTop { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(16rem, .85fr); gap: 2.4rem; min-height: 14rem; }
+.chroma-year-page .swTag { margin-bottom: .75rem; padding: .42rem .8rem; background: var(--year-soft); color: var(--year-accent); }
+.chroma-year-page .swMeta { color: rgba(38, 50, 56, .52); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.chroma-year-page .swTheme { margin: .35rem 0 .85rem; font-size: clamp(2rem, 3.7vw, 3rem); line-height: 1.04; transition: opacity .22s; }
+.chroma-year-page .swLine { margin: 0; color: rgba(38, 50, 56, .76); font-size: 1.02rem; line-height: 1.72; transition: opacity .22s; }
+.chroma-year-page .swRoomsLink { display: inline-flex; margin-top: 1rem; color: var(--year-accent); font-size: .75rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.chroma-year-page .swRoomsLink[hidden] { display: none; }
+.chroma-year-page .swSide { padding: 1.5rem; background: var(--year-cream); border: 1px solid var(--year-line); border-radius: 24px; }
+.chroma-year-page .swSide h4 { margin: 0 0 .5rem; color: var(--year-accent); font-size: .7rem; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
+.chroma-year-page .swSide p { margin: 0; line-height: 1.65; }
+.chroma-year-page .fade { opacity: 0; }
+
+.chroma-year-page .scrubZone { position: relative; z-index: 1; margin-top: 2.25rem; }
+.chroma-year-page .scrubHint { margin-bottom: .5rem; color: var(--year-accent); text-align: center; font-size: 1.25rem; }
+.chroma-year-page .weekSlider { width: 100%; height: 14px; appearance: none; border-radius: 20px; background: var(--year-spectrum); cursor: grab; }
+.chroma-year-page .weekSlider::-webkit-slider-thumb { width: 34px; height: 34px; appearance: none; border: 4px solid var(--year-ink); border-radius: 50%; background: #fff; box-shadow: 0 6px 20px rgba(38, 50, 56, .3); }
+.chroma-year-page .weekSlider::-moz-range-thumb { width: 34px; height: 34px; border: 4px solid var(--year-ink); border-radius: 50%; background: #fff; box-shadow: 0 6px 20px rgba(38, 50, 56, .3); }
+.chroma-year-page .monthRow { display: flex; margin-top: .9rem; }
+.chroma-year-page .mTick { flex: 1; min-width: 0; padding: .4rem .1rem; border-radius: 11px; color: rgba(38, 50, 56, .55); font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.chroma-year-page .mTick.on { background: var(--year-soft); color: var(--year-ink); }
+.chroma-year-page .anyWeek { position: relative; z-index: 1; margin: 1.6rem 0 0; color: rgba(38, 50, 56, .7); text-align: center; }
+
+.chroma-year-page .roomPicker { display: flex; flex-wrap: wrap; justify-content: center; gap: .5rem; margin-bottom: 2rem; }
+.chroma-year-page .rpBtn { min-height: 44px; padding: .65rem 1.1rem; border: 1.5px solid var(--year-line); border-radius: 999px; background: #fff; font-size: .85rem; font-weight: 700; }
+.chroma-year-page .rpBtn.on { border-color: var(--year-ink); background: var(--year-ink); color: #fff; }
+.chroma-year-page .rooms,
+.chroma-year-page .trad,
+.chroma-year-page .assurance { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.15rem; }
+.chroma-year-page .growth { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.15rem; }
+.chroma-year-page .room,
+.chroma-year-page .gCard,
+.chroma-year-page .tCard,
+.chroma-year-page .aCard { position: relative; overflow: hidden; padding: 1.75rem; border: 1px solid var(--year-line); border-radius: 26px; background: #fff; box-shadow: var(--year-soft-shadow); }
+.chroma-year-page .room::before { content: ""; position: absolute; inset: 0 0 auto; height: 4px; background: var(--rc); }
+.chroma-year-page .rAge,
+.chroma-year-page .gAge,
+.chroma-year-page .tWhen { color: var(--rc, var(--gc, var(--year-accent))); font-size: .7rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.chroma-year-page .room h3,
+.chroma-year-page .tCard h3,
+.chroma-year-page .aCard h3 { margin: .35rem 0 .65rem; font-size: 1.55rem; }
+.chroma-year-page .room p,
+.chroma-year-page .tCard p,
+.chroma-year-page .aCard p { margin: 0; color: rgba(38, 50, 56, .74); line-height: 1.65; }
+.chroma-year-page .roomsNote { margin: 1.8rem auto 0; max-width: 52rem; color: rgba(38, 50, 56, .72); text-align: center; }
+.chroma-year-page .gRow { display: grid; grid-template-columns: 3.25rem 1fr; gap: .85rem; padding: .8rem 0; border-bottom: 1px solid var(--year-line); }
+.chroma-year-page .gRow:last-child { border-bottom: 0; }
+.chroma-year-page .gWhen { color: var(--gc); font-size: 1.1rem; font-style: italic; }
+.chroma-year-page .gArrow { color: var(--gc); text-align: center; }
+.chroma-year-page .tCard .ic { display: grid; width: 56px; height: 56px; margin-bottom: 1rem; place-items: center; border-radius: 50%; background: var(--tc, var(--year-soft)); font-size: 1.5rem; }
+.chroma-year-page .tWhen { display: inline-block; margin-top: .8rem; }
+
+.chroma-year-page .yearList { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; margin: 0; padding: 0; list-style: none; }
+.chroma-year-page .wk { padding: 1.25rem; border: 1px solid var(--year-line); border-radius: 20px; background: #fff; box-shadow: 0 6px 18px rgba(38, 50, 56, .05); }
+.chroma-year-page .wkNo { color: rgba(38, 50, 56, .48); font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.chroma-year-page .wkName { display: block; margin: .25rem 0 .5rem; font-size: 1.3rem; line-height: 1.2; }
+.chroma-year-page .wkLine,
+.chroma-year-page .wkHome { display: block; color: rgba(38, 50, 56, .72); font-size: .9rem; line-height: 1.58; }
+.chroma-year-page .wkHome { margin-top: .7rem; padding-top: .6rem; border-top: 1px solid var(--year-line); color: rgba(38, 50, 56, .62); }
+.chroma-year-page .wkHome b { display: block; margin-bottom: .2rem; color: var(--year-accent); font-size: .64rem; letter-spacing: .09em; text-transform: uppercase; }
+.chroma-year-page .wkRooms { display: none; }
+.chroma-year-page .wkStar { color: var(--year-yellow); }
+
+.chroma-year-page .newBlock,
+.chroma-year-page .ctaBand { position: relative; overflow: hidden; padding: clamp(2rem, 5vw, 3rem); border-radius: var(--year-radius); background: var(--year-ink); color: var(--year-cream); }
+.chroma-year-page .newGrid { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.4rem; }
+.chroma-year-page .newBlock h2 { position: relative; z-index: 1; margin: 0 0 1.4rem; font-size: clamp(2rem, 4vw, 2.8rem); }
+.chroma-year-page .newItem b { display: block; margin-bottom: .4rem; font-family: "Playfair Display", Georgia, serif; font-size: 1.25rem; }
+.chroma-year-page .newItem span { opacity: .85; line-height: 1.65; }
+.chroma-year-page .ctaBand { padding-block: clamp(3.2rem, 8vw, 4.75rem); text-align: center; }
+.chroma-year-page .ctaBand h2 { position: relative; z-index: 1; margin: 0 0 .8rem; font-size: clamp(2.4rem, 5vw, 3.9rem); }
+.chroma-year-page .ctaBand p { position: relative; z-index: 1; max-width: 38rem; margin: 0 auto 1.8rem; opacity: .86; font-size: 1.1rem; }
+.chroma-year-page .ctaBand .actions { position: relative; z-index: 1; justify-content: center; }
+.chroma-year-page .ctaBand .ghost { border-color: rgba(255, 255, 255, .3); background: transparent; color: #fff; }
+.chroma-year-page .spectrumHairline { position: relative; z-index: 1; width: min(220px, 60%); height: 4px; margin: 0 auto 1.6rem; border-radius: 4px; background: var(--year-spectrum); }
+
+.chroma-year-page .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+.chroma-year-page .reveal.in { opacity: 1; transform: none; }
+.chroma-year-page .d1 { transition-delay: .08s; }
+.chroma-year-page .d2 { transition-delay: .16s; }
+
+@media (max-width: 1023px) {
+	.chroma-year-page .heroGrid,
+	.chroma-year-page .scrubTop { grid-template-columns: 1fr; }
+	.chroma-year-page .rooms,
+	.chroma-year-page .trad,
+	.chroma-year-page .assurance,
+	.chroma-year-page .newGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+	.chroma-year-page .yearList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 640px) {
+	.chroma-year-page .wrap { width: min(100% - 28px, 1240px); }
+	.chroma-year-page section { padding: 4rem 0; }
+	.chroma-year-page .hTitle { max-width: none; }
+	.chroma-year-page .rooms,
+	.chroma-year-page .trad,
+	.chroma-year-page .assurance,
+	.chroma-year-page .newGrid,
+	.chroma-year-page .growth,
+	.chroma-year-page .yearList { grid-template-columns: 1fr; }
+	.chroma-year-page .monthRow { overflow-x: auto; padding-bottom: .35rem; }
+	.chroma-year-page .mTick { flex: 0 0 3.4rem !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.chroma-year-page *,
+	.chroma-year-page *::before,
+	.chroma-year-page *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
