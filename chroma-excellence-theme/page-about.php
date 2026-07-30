@@ -394,7 +394,7 @@ while (have_posts()):
 							$team_members->the_post();
 							$member_title = chroma_get_translated_meta(get_the_ID(), 'team_member_title');
 							$member_bio = apply_filters('the_content', get_the_content());
-							$member_bio_modal = $member_bio ? wpautop(esc_html(wp_trim_words(wp_strip_all_tags($member_bio), 120))) : '';
+							$member_bio_modal = $member_bio ? wp_kses_post($member_bio) : '';
 							$member_excerpt = $member_bio ? wp_trim_words(wp_strip_all_tags($member_bio), 22) : '';
 							?>
 							<div class="chroma-about-team-card group rounded-[2rem] border border-chroma-blue/10 bg-white p-6 text-center shadow-soft transition-transform hover:-translate-y-1">

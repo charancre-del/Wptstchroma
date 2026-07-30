@@ -8881,6 +8881,119 @@
   overflow: hidden;
 }
 
+/* Contact and leadership finishing pass.
+ * Keep the page itself fluid while limiting scrolling to the embedded form.
+ */
+.page-template-page-contact #tour {
+  overflow-x: clip;
+}
+
+.page-template-page-contact #tour .formGrid {
+  align-items: start !important;
+}
+
+.page-template-page-contact #tour .formGrid > * {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+.page-template-page-contact .chroma-form-scroll-card--contact {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  overflow: visible !important;
+}
+
+.page-template-page-contact .chroma-form-scroll-card--contact .chroma-ghl-iframe-container {
+  height: clamp(38rem, 66svh, 42rem) !important;
+  max-height: clamp(38rem, 66svh, 42rem) !important;
+  min-height: clamp(38rem, 66svh, 42rem) !important;
+  overflow: hidden !important;
+}
+
+.page-template-page-contact .chroma-form-scroll-card--contact .chroma-contact-form-wrapper {
+  height: clamp(38rem, 66svh, 42rem) !important;
+  max-height: clamp(38rem, 66svh, 42rem) !important;
+  min-height: clamp(38rem, 66svh, 42rem) !important;
+  overflow: hidden !important;
+}
+
+.page-template-page-contact .chroma-form-scroll-card--contact iframe,
+.page-template-page-contact .chroma-form-scroll-card--contact iframe[data-src],
+.page-template-page-contact .chroma-form-scroll-card--contact iframe[src*="leadconnectorhq.com"],
+.page-template-page-contact .chroma-form-scroll-card--contact iframe[src*="msgsndr.com"],
+.page-template-page-contact .chroma-form-scroll-card--contact iframe[src*="gohighlevel"] {
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 100% !important;
+  overflow: auto !important;
+}
+
+.page-template-page-about .chroma-about-team-card,
+.page-template-page-about .chroma-about-team-card p {
+  max-height: none !important;
+}
+
+.page-template-page-about .chroma-about-team-card {
+  overflow: visible !important;
+}
+
+@media (max-width: 1023px) {
+  .page-template-page-contact #tour {
+    padding-block: clamp(3.75rem, 8vw, 5rem) !important;
+  }
+
+  .page-template-page-contact #tour .formGrid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: clamp(2rem, 6vw, 3.5rem) !important;
+    margin-inline: auto !important;
+    max-width: min(100% - 2rem, 48rem) !important;
+    padding-inline: 0 !important;
+  }
+
+  .page-template-page-contact #tour .formGrid > .space-y-10 {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact .chroma-ghl-iframe-container {
+    height: clamp(38rem, 76svh, 44rem) !important;
+    max-height: clamp(38rem, 76svh, 44rem) !important;
+    min-height: clamp(38rem, 76svh, 44rem) !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact .chroma-contact-form-wrapper {
+    height: clamp(38rem, 76svh, 44rem) !important;
+    max-height: clamp(38rem, 76svh, 44rem) !important;
+    min-height: clamp(38rem, 76svh, 44rem) !important;
+  }
+}
+
+@media (max-width: 619px) {
+  .page-template-page-contact #tour .formGrid {
+    max-width: calc(100% - 1rem) !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact {
+    border-radius: 2rem !important;
+    padding: 1.25rem !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact .chroma-ghl-iframe-container {
+    height: clamp(34rem, 72svh, 39rem) !important;
+    max-height: clamp(34rem, 72svh, 39rem) !important;
+    min-height: clamp(34rem, 72svh, 39rem) !important;
+  }
+
+  .page-template-page-contact .chroma-form-scroll-card--contact .chroma-contact-form-wrapper {
+    height: clamp(34rem, 72svh, 39rem) !important;
+    max-height: clamp(34rem, 72svh, 39rem) !important;
+    min-height: clamp(34rem, 72svh, 39rem) !important;
+  }
+}
+
 .chroma-campus-program-link {
   align-items: center;
   align-self: flex-start;

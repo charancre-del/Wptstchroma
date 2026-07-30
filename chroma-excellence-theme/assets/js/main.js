@@ -182,10 +182,6 @@
         container.style.setProperty('transform', 'none', 'important');
         container.style.setProperty('width', '100%', 'important');
         container.style.setProperty('max-width', '100%', 'important');
-        container.style.setProperty('height', 'auto', 'important');
-        container.style.setProperty('max-height', 'none', 'important');
-        container.style.setProperty('min-height', '0px', 'important');
-        container.style.setProperty('overflow', 'visible', 'important');
       });
 
       card.querySelectorAll('.chroma-ghl-iframe-container').forEach((viewport) => {
