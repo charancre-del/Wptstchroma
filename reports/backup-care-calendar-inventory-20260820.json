@@ -1,0 +1,275 @@
+{
+  "mode": "read_only_backup_care_calendar_inventory",
+  "ok": true,
+  "credential_values_printed": false,
+  "credential_source": "/opt/chroma-onboarding/.env",
+  "location_fingerprint": "euN4...yh3p",
+  "campus_count": 24,
+  "single_member_calendar_count": 24,
+  "campuses": [
+    {
+      "campus_id": "chadwick",
+      "campus_name": "Chadwick Campus",
+      "calendar_id": "TzXosrwlnxsSNCsmwWGq",
+      "calendar_name": "Chadwick - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "F9OUIgb6rmUSuQc4zT4z"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "cherokee",
+      "campus_name": "Cherokee Academy by Chroma",
+      "calendar_id": "zECE5s1LMyXEhyBX9f38",
+      "calendar_name": "Cherokee- Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "I46dy3if6sDCyflek25l"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "tramore",
+      "campus_name": "Tramore Campus",
+      "calendar_id": "c1YRju3iSSjKS30ZU6SG",
+      "calendar_name": "Tramore - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "uqUc5bXZHbXnLR4JOmcU"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "downtown-duluth",
+      "campus_name": "Downtown Duluth Campus",
+      "calendar_id": "qqekul20rH0iU9Yrhfp2",
+      "calendar_name": "Pleasant Hill- Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "ujUjOn7tcEvBcpTkfoNG"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "east-cobb",
+      "campus_name": "East Cobb Campus",
+      "calendar_id": "SKL3QivWiTnZZpXCsWKm",
+      "calendar_name": "Marietta East Cobb- Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "f5gGzhCjo6laV3M1pptH"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "ellenwood",
+      "campus_name": "Ellenwood Campus",
+      "calendar_id": "tIPQTdmWIh0f5bix6BYI",
+      "calendar_name": "Ellenwood- Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "2h0ixdPCoVS7tryYggfQ"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "grayson",
+      "campus_name": "Grayson Campus",
+      "calendar_id": "OlqV5D5p6VyWJx05hcm6",
+      "calendar_name": "Grayson - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "5CGj1XPm7br6rdChPfa2"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "johns-creek",
+      "campus_name": "Johns Creek Campus",
+      "calendar_id": "bvRtKWyDdeT04M7xqMFp",
+      "calendar_name": "Johns Creek - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "tVIdjcPGuo7nZGUnhSwV"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "jonesboro",
+      "campus_name": "Jonesboro Campus",
+      "calendar_id": "xWGlsOdqIKse4lsMLc7l",
+      "calendar_name": "Jonesboro - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "e6vJOLp4CbWOIdqpxK4c"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "lawrenceville",
+      "campus_name": "Lawrenceville Campus",
+      "calendar_id": "67769JnL2EBl6QgdmKQE",
+      "calendar_name": "Lawrenceville - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "uBRLzziGUYbb4pbVwi8U"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "lilburn",
+      "campus_name": "Lilburn Campus",
+      "calendar_id": "JeuEbfbkP6QQmVWzsWtC",
+      "calendar_name": "Lilburn - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "PjNKjk1xZyrAJEROl6fk"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "mcdonough",
+      "campus_name": "McDonough Campus",
+      "calendar_id": "3thRnaBKafPMVuUkOSdw",
+      "calendar_name": "Mcdonough - Tour Appointment-",
+      "calendar_status": true,
+      "team_member_ids": [
+        "HKqmBP0ThKHCckUDxYiT"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "midway",
+      "campus_name": "Midway Campus",
+      "calendar_id": "eBCQKlKCgf29jlX9k29e",
+      "calendar_name": "Midway Tour Calendar",
+      "calendar_status": true,
+      "team_member_ids": [
+        "9t8LIUXmZvpsdlITpe9k"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "north-hall",
+      "campus_name": "North Hall Campus",
+      "calendar_id": "xKWofoDv0arqql9eWSEb",
+      "calendar_name": "North Hall - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "JHTlCE6DCdljOs1J0Bwh"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "parklake",
+      "campus_name": "Parklake Campus",
+      "calendar_id": "oBWiUT60u40kpCsAM0CE",
+      "calendar_name": "Parklake - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "kmTgHvtU8ByfslTgbUtt"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "rivergreen",
+      "campus_name": "Rivergreen Campus",
+      "calendar_id": "rXhS111FzGCyP4wL6AxX",
+      "calendar_name": "Rivergreen - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "38IFT36ZvkhQ67ambgjK"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "roswell",
+      "campus_name": "Roswell Campus",
+      "calendar_id": "UiR6wCBt9bHaEqymFSYN",
+      "calendar_name": "Roswell - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "4mtmFoMzp3NAP1oxJDlW"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "satellite",
+      "campus_name": "Satellite Boulevard Campus",
+      "calendar_id": "ukoSiUWI3SmpZmOdAqKk",
+      "calendar_name": "Satellite - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "w4vpe3cpbGEb5lTJKpOw"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "shenandoah",
+      "campus_name": "Shenandoah Campus",
+      "calendar_id": "Gh2zOnIVd1IBVglg6J5A",
+      "calendar_name": "Newnan - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "JQ9QFQV7ssmqbndrvcdH"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "south-cobb",
+      "campus_name": "South Cobb Campus",
+      "calendar_id": "XTJdgrBnFuTEdlUHVkm5",
+      "calendar_name": "South Cobb - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "3aqdCo2ZG7485S7n4JyL"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "stockbridge",
+      "campus_name": "Stockbridge Campus",
+      "calendar_id": "UunvQpYp4MufqpMpXTGa",
+      "calendar_name": "Stockbridge - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "XHxYNiJ7QKw6ojdTlUBc"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "sugarloaf",
+      "campus_name": "Sugarloaf Parkway Campus",
+      "calendar_id": "IsadYsjzQaoU4sfxIrfR",
+      "calendar_name": "Sugarloaf - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "s6UGbEY2zF0MdRvecHrY"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "tyrone",
+      "campus_name": "Tyrone Campus",
+      "calendar_id": "zYzlgeGyekHDHA7krGXI",
+      "calendar_name": "Tyrone - Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "6eWyWMqUqrbqe1Yislmm"
+      ],
+      "projection_ready": true
+    },
+    {
+      "campus_id": "west-cobb",
+      "campus_name": "West Cobb Campus",
+      "calendar_id": "mM8ZYTz4ihytfH7fOuwn",
+      "calendar_name": "Marietta West Cobb- Tour Appointment",
+      "calendar_status": true,
+      "team_member_ids": [
+        "5bDsW79WfkmPXeRKi1jZ"
+      ],
+      "projection_ready": true
+    }
+  ]
+}

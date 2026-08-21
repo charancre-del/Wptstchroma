@@ -595,6 +595,13 @@ while (have_posts()):
 			<?php wp_reset_postdata(); ?>
 		<?php endif; ?>
 
+		<?php
+		get_template_part('template-parts/location/backup-care', null, array(
+			'campus_id' => chroma_backup_care_campus_id($location_id),
+			'location_name' => $location_name,
+		));
+		?>
+
 		<?php if ($hero_review_text && $hero_review_author): ?>
 		<!-- Testimonials Section -->
 		<section class="reviews white borderY py-20 lg:py-24 bg-white border-y border-chroma-blue/10">

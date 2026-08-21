@@ -44,6 +44,9 @@ get_header();
 <!-- Locations Preview -->
 <?php get_template_part( 'template-parts/home/locations-preview' ); ?>
 
+<!-- Backup Care -->
+<?php get_template_part( 'template-parts/home/backup-care' ); ?>
+
 <!-- Tour CTA -->
 <?php get_template_part( 'template-parts/home/tour-cta' ); ?>
 

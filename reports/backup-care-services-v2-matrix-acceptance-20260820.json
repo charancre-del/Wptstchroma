@@ -1,0 +1,110 @@
+{
+  "mode": "temporary_services_v2_matrix_acceptance",
+  "ok": true,
+  "credential_values_printed": false,
+  "credential_source": "/opt/chroma-onboarding/.env",
+  "location_fingerprint": "euN4...yh3p",
+  "test_contact": {
+    "contact_id": "5xmuFgXfO6xEZGlCcKId",
+    "email_domain": "example.com",
+    "reserved_test_domain": true,
+    "test_marker_present": true,
+    "dnd": false
+  },
+  "matrix": {
+    "children": [
+      "TEST CHILD A",
+      "TEST CHILD B"
+    ],
+    "dates": [
+      "2026-09-14",
+      "2026-09-15"
+    ],
+    "expected_appointments": 4,
+    "created_appointments": 4,
+    "appointments": [
+      {
+        "booking_id": "dN2BvWnY6vTChGDVgklN",
+        "title": "BC MATRIX ACCEPTANCE | TEST CHILD A | 2026-09-14",
+        "start_time": "2026-09-14T09:30:00-04:00",
+        "end_time": "2026-09-14T10:00:00-04:00",
+        "status": "new",
+        "service_location_id": "6a852f7ab35331651b810836",
+        "service_count": 1,
+        "service_ids": [
+          "6a852f7edd9a7f8f82f4fa36"
+        ]
+      },
+      {
+        "booking_id": "6SkcX88CvEQpAy0Ryjjx",
+        "title": "BC MATRIX ACCEPTANCE | TEST CHILD A | 2026-09-15",
+        "start_time": "2026-09-15T09:30:00-04:00",
+        "end_time": "2026-09-15T10:00:00-04:00",
+        "status": "new",
+        "service_location_id": "6a852f7ab35331651b810836",
+        "service_count": 1,
+        "service_ids": [
+          "6a852f7edd9a7f8f82f4fa36"
+        ]
+      },
+      {
+        "booking_id": "4pmrAIjDtXFKFEvGAf1W",
+        "title": "BC MATRIX ACCEPTANCE | TEST CHILD B | 2026-09-14",
+        "start_time": "2026-09-14T09:30:00-04:00",
+        "end_time": "2026-09-14T10:00:00-04:00",
+        "status": "new",
+        "service_location_id": "6a852f7ab35331651b810836",
+        "service_count": 1,
+        "service_ids": [
+          "6a852f7edd9a7f8f82f4fa36"
+        ]
+      },
+      {
+        "booking_id": "pHFdtavEYWxl51q7WJRI",
+        "title": "BC MATRIX ACCEPTANCE | TEST CHILD B | 2026-09-15",
+        "start_time": "2026-09-15T09:30:00-04:00",
+        "end_time": "2026-09-15T10:00:00-04:00",
+        "status": "new",
+        "service_location_id": "6a852f7ab35331651b810836",
+        "service_count": 1,
+        "service_ids": [
+          "6a852f7edd9a7f8f82f4fa36"
+        ]
+      }
+    ]
+  },
+  "payment_attempted": false,
+  "workflow_activation_attempted": false,
+  "cleanup": [
+    {
+      "booking_id": "pHFdtavEYWxl51q7WJRI",
+      "delete_status": 200,
+      "delete_error": null,
+      "readback_status": 200,
+      "deleted_flag": true
+    },
+    {
+      "booking_id": "4pmrAIjDtXFKFEvGAf1W",
+      "delete_status": 200,
+      "delete_error": null,
+      "readback_status": 200,
+      "deleted_flag": true
+    },
+    {
+      "booking_id": "6SkcX88CvEQpAy0Ryjjx",
+      "delete_status": 200,
+      "delete_error": null,
+      "readback_status": 200,
+      "deleted_flag": true
+    },
+    {
+      "booking_id": "dN2BvWnY6vTChGDVgklN",
+      "delete_status": 200,
+      "delete_error": null,
+      "readback_status": 200,
+      "deleted_flag": true
+    }
+  ],
+  "cleanup_ok": true,
+  "remaining_acceptance_bookings": 0
+}

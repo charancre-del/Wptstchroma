@@ -1,0 +1,129 @@
+{
+  "mode": "live_data_model_provisioning",
+  "ok": true,
+  "credential_values_printed": false,
+  "credential_source": "/opt/chroma-onboarding/.env",
+  "location_fingerprint": "euN4...yh3p",
+  "objects": {
+    "child": {
+      "id": "6a852e7562da46e06430da62",
+      "key": "custom_objects.backup_care_child",
+      "created": false,
+      "fields": {
+        "folder_id": "V6PGG4GoaoIRszVOJPXQ",
+        "folder_created": false,
+        "created_fields": [],
+        "existing_field_count": 20,
+        "unique_fields_requiring_ui_confirmation": [
+          "child_record_key"
+        ]
+      }
+    },
+    "order": {
+      "id": "6a852ebaa7774810c512c4ed",
+      "key": "custom_objects.backup_care_order",
+      "created": false,
+      "fields": {
+        "folder_id": "FqMdnJ74t4vsUoRuiV6o",
+        "folder_created": false,
+        "created_fields": [],
+        "existing_field_count": 14,
+        "unique_fields_requiring_ui_confirmation": [
+          "order_id",
+          "client_request_id"
+        ]
+      }
+    },
+    "attendance": {
+      "id": "6a852ec31463ebf47e51e6d5",
+      "key": "custom_objects.backup_care_attendance",
+      "created": false,
+      "fields": {
+        "folder_id": "lHYOLUE0oSwHWLF3egsx",
+        "folder_created": false,
+        "created_fields": [],
+        "existing_field_count": 9,
+        "unique_fields_requiring_ui_confirmation": [
+          "attendance_id"
+        ]
+      }
+    }
+  },
+  "associations": [
+    {
+      "id": "6a852eca174e726a1f2052c7",
+      "key": "backup_care_parent_child",
+      "firstObjectKey": "contact",
+      "firstObjectLabel": "Backup Care Children",
+      "secondObjectKey": "custom_objects.backup_care_child",
+      "secondObjectLabel": "Parent or Guardian",
+      "created": false,
+      "cardinality_requires_ui_confirmation": true
+    },
+    {
+      "id": "6a852ecad25fbbdfa617c238",
+      "key": "backup_care_parent_order",
+      "firstObjectKey": "contact",
+      "firstObjectLabel": "Backup Care Orders",
+      "secondObjectKey": "custom_objects.backup_care_order",
+      "secondObjectLabel": "Booking Parent",
+      "created": false,
+      "cardinality_requires_ui_confirmation": true
+    },
+    {
+      "id": "6a852ecba554dac119278f52",
+      "key": "backup_care_order_attendance",
+      "firstObjectKey": "custom_objects.backup_care_attendance",
+      "firstObjectLabel": "Backup Care Order",
+      "secondObjectKey": "custom_objects.backup_care_order",
+      "secondObjectLabel": "Attendance Units",
+      "created": false,
+      "cardinality_requires_ui_confirmation": true
+    },
+    {
+      "id": "6a852ecbb26a3f28d786f90b",
+      "key": "backup_care_child_attendance",
+      "firstObjectKey": "custom_objects.backup_care_attendance",
+      "firstObjectLabel": "Backup Care Child",
+      "secondObjectKey": "custom_objects.backup_care_child",
+      "secondObjectLabel": "Attendance Units",
+      "created": false,
+      "cardinality_requires_ui_confirmation": true
+    }
+  ],
+  "tags": [
+    {
+      "id": "7UVOoaxV1lwbo9oThN0n",
+      "name": "backup-care",
+      "created": true
+    },
+    {
+      "id": "AGnyP28f7xqp7TjBbHYw",
+      "name": "backup-care-paid",
+      "created": true
+    },
+    {
+      "id": "RhvChUQ8wRonKZ49dbgY",
+      "name": "backup-care-cancelled",
+      "created": true
+    },
+    {
+      "id": "pOxY9EipWIaZEODyWCjA",
+      "name": "backup-care-partially-refunded",
+      "created": true
+    },
+    {
+      "id": "u2IQnHKJxzvDk9XO3BEt",
+      "name": "backup-care-refunded",
+      "created": true
+    },
+    {
+      "id": "YYSwa7uahyiH07Jr01wh",
+      "name": "backup-care-rescheduled",
+      "created": true
+    }
+  ],
+  "forms_created": 0,
+  "workflows_activated": 0,
+  "services_created": 0
+}

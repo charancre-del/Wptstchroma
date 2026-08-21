@@ -309,6 +309,7 @@ if (is_admin()) {
 require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
+require_once CHROMA_THEME_DIR . '/inc/backup-care.php';
 require_once CHROMA_THEME_DIR . '/inc/guide-aliases.php';
 require_once CHROMA_THEME_DIR . '/inc/staging-cache.php';
 require_once CHROMA_THEME_DIR . '/inc/archive-root-query-context.php';

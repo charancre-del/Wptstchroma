@@ -10,6 +10,10 @@ lighthouse-automation/lighthouse-master-out/
 
 # Local scratch/debug artifacts
 .playwright-mcp/
+.playwright-cli/
+output/playwright/
+__pycache__/
+*.py[cod]
 chromaela.html
 temp_canonical.txt
 live-kindergarten.json

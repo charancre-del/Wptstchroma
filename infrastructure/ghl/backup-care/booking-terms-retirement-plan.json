@@ -1,0 +1,15 @@
+{
+  "form_id": "0bn3ZGjBmOjWLMr5cb39",
+  "form_name": "BC | Booking Terms",
+  "status": "retirement_required_before_launch",
+  "public_embedding_allowed": false,
+  "authoritative": false,
+  "replacement": "WordPress policy acceptance audit plus Stripe-webhook-authorized GHL order writes",
+  "required_actions": [
+    "Archive or disable the form in GHL",
+    "Verify the standard widget URL no longer accepts a submission",
+    "Confirm no workflow, funnel, page, or public configuration references the form",
+    "Record readback evidence and complete deployment gate ghl_booking_terms_form_retired"
+  ],
+  "live_action_performed_by_this_package": false
+}

@@ -1,0 +1,263 @@
+{
+  "mode": "read_only_inventory",
+  "credential_values_printed": false,
+  "credential_source": "/opt/chroma-onboarding/.env",
+  "location_fingerprint": "euN4...yh3p",
+  "objects": {
+    "status": 200,
+    "count": 3,
+    "items": [
+      {
+        "id": "6728bf013e87656a8b8c95b3",
+        "key": "business",
+        "labels": {
+          "singular": "Company",
+          "plural": "Companies"
+        },
+        "description": "Contains list of all businesses, their details, and contact information.",
+        "primaryDisplayProperty": "business.name"
+      },
+      {
+        "id": "66f5858f4e11b26b181c81cb",
+        "key": "opportunity",
+        "labels": {
+          "singular": "Opportunity",
+          "plural": "Opportunities"
+        },
+        "description": "Contains list of all deals, their stages, statuses and pipeline progress.",
+        "primaryDisplayProperty": "opportunity.name"
+      },
+      {
+        "id": "66f5858f4e11b22cca1c81ca",
+        "key": "contact",
+        "labels": {
+          "singular": "Contact",
+          "plural": "Contacts"
+        },
+        "description": "Contains list of all leads, their details, and specifications",
+        "primaryDisplayProperty": "contact.email"
+      }
+    ]
+  },
+  "forms": {
+    "status": 200,
+    "count": 10,
+    "items": [
+      {
+        "id": "848tl2LjoZVsUIhhNOxd",
+        "name": "PARENT INFORMATION -\u00a0Chroma Early Learning"
+      },
+      {
+        "id": "pAHrPXnibJJw2WnguCbf",
+        "name": "Tour Form"
+      },
+      {
+        "id": "ibinKhrBmF0n4S5tFcz6",
+        "name": "Contact Us-\u00a0Chroma Early Learning"
+      },
+      {
+        "id": "fBmcElJ7ofhjSiS2IXcA",
+        "name": "PARENT INFORMATION -\u00a0Chroma Early Learning -social media "
+      },
+      {
+        "id": "XzOKTb4XtyjMw1mUwbzo",
+        "name": "PARENT INFORMATION -\u00a0Chroma Early Learning - a2p"
+      },
+      {
+        "id": "X76GgaQ44xduJmPp1Li2",
+        "name": "Patch Form "
+      },
+      {
+        "id": "WYGFB2WBYuti6S6ys30H",
+        "name": "Careers Form - Chroma Early Learning"
+      },
+      {
+        "id": "UbeOKlsmgOM1Auq0W1Ux",
+        "name": "PARENT INFORMATION -\u00a0Chroma Early Learning - test"
+      },
+      {
+        "id": "JpecxfWJrxyWE7Ufdtkd",
+        "name": "VIRTUAL TOUR INFORMATION -\u00a0Chroma Early Learning"
+      },
+      {
+        "id": "MnGaXd693n9mnb2W6sLX",
+        "name": "PARENT INFORMATION -\u00a0Ellenwood"
+      }
+    ]
+  },
+  "services": {
+    "status": 200,
+    "count": 4,
+    "items": [
+      {
+        "id": "688a44adad7f148466dcfb17",
+        "name": "Lilburn - Tour Appointment",
+        "slug": "lilburn/virtualtour",
+        "description": "",
+        "isPrivate": false,
+        "payment": {
+          "amount": 0
+        },
+        "serviceDuration": 30,
+        "serviceDurationUnit": "mins"
+      },
+      {
+        "id": "6889c0e6ad7f14983f9c8cc0",
+        "name": "Lawrenceville - Tour Appointment",
+        "slug": "lawrenceville/virtualtour",
+        "description": "",
+        "isPrivate": false,
+        "payment": {
+          "amount": 0
+        },
+        "serviceDuration": 30,
+        "serviceDurationUnit": "mins"
+      },
+      {
+        "id": "6889af71ad7f140db2912b9b",
+        "name": "Mcdonough - Tour Appointment-",
+        "slug": "mcdonough/appointment",
+        "description": "",
+        "isPrivate": false,
+        "payment": {
+          "amount": 0
+        },
+        "serviceDuration": 30,
+        "serviceDurationUnit": "mins"
+      },
+      {
+        "id": "68899ea2ad7f14d3be86dad5",
+        "name": "Chroma Early Learning Tour Appointment",
+        "slug": "roswell/virtualtourbmos0j",
+        "description": "Please select the location where it displays Any Available",
+        "isPrivate": false,
+        "payment": {
+          "amount": 0
+        },
+        "serviceDuration": 30,
+        "serviceDurationUnit": "mins"
+      }
+    ]
+  },
+  "associations": {
+    "status": 200,
+    "count": 2,
+    "items": [
+      {
+        "id": "OPPORTUNITIES_CONTACTS_ASSOCIATION",
+        "key": "OPPORTUNITIES_CONTACTS_ASSOCIATION",
+        "associationType": "SYSTEM_DEFINED",
+        "firstObjectKey": "opportunity",
+        "firstObjectLabel": "OPPORTUNITY_TO_CONTACT",
+        "secondObjectKey": "contact",
+        "secondObjectLabel": "CONTACT_TO_OPPORTUNITY"
+      },
+      {
+        "id": "BUSINESSES_CONTACTS_ASSOCIATION",
+        "key": "BUSINESSES_CONTACTS_ASSOCIATION",
+        "associationType": "SYSTEM_DEFINED",
+        "firstObjectKey": "business",
+        "firstObjectLabel": "Primary Company",
+        "secondObjectKey": "contact",
+        "secondObjectLabel": "Contact"
+      }
+    ]
+  },
+  "custom_fields": {
+    "business": {
+      "status": 200,
+      "fields": [
+        {
+          "id": "B4wVpfXbY8HNQbvwTAIA",
+          "name": "Company Name",
+          "fieldKey": "business.name",
+          "dataType": "TEXT",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "MZnQYNLX0Ac1zvyhJroj",
+          "name": "Phone",
+          "fieldKey": "business.phone",
+          "dataType": "PHONE",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "kEupp1XrKI7WUWKY6gLo",
+          "name": "Email",
+          "fieldKey": "business.email",
+          "dataType": "EMAIL",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "9JxLYMWndR3mlRg0exhi",
+          "name": "Website",
+          "fieldKey": "business.website",
+          "dataType": "TEXT",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "UlqNdtYaIUDn50EAisQb",
+          "name": "Address",
+          "fieldKey": "business.address",
+          "dataType": "TEXT",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "OE1DZTSHJpqlIjV84eXi",
+          "name": "State",
+          "fieldKey": "business.state",
+          "dataType": "TEXT",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "j7PNyXQ8ppY37LfLAnsh",
+          "name": "City",
+          "fieldKey": "business.city",
+          "dataType": "TEXT",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "c2IAnmqH5IbE1kGfRfBE",
+          "name": "Description",
+          "fieldKey": "business.description",
+          "dataType": "LARGE_TEXT",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "gjeHqvXmTsWkZXxb0Q3P",
+          "name": "Postal Code",
+          "fieldKey": "business.postalcode",
+          "dataType": "TEXT",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        },
+        {
+          "id": "kHLrOO5doBolQuhSrfXW",
+          "name": "Country",
+          "fieldKey": "business.country",
+          "dataType": "SINGLE_OPTIONS",
+          "parentId": "eFcEpznaYcPpjUp0UlPu"
+        }
+      ],
+      "folders": [
+        {
+          "id": "eFcEpznaYcPpjUp0UlPu",
+          "name": "Company Info",
+          "objectKey": "business"
+        }
+      ]
+    },
+    "opportunity": {
+      "status": 400,
+      "fields": [],
+      "folders": [],
+      "error": "Api does not support objectKey of type contact or opportunity"
+    },
+    "contact": {
+      "status": 400,
+      "fields": [],
+      "folders": [],
+      "error": "Api does not support objectKey of type contact or opportunity"
+    }
+  },
+  "ok": true
+}

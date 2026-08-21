@@ -1,0 +1,241 @@
+{
+  "mode": "live_private_service_provisioning",
+  "ok": true,
+  "credential_values_printed": false,
+  "credential_source": "/opt/chroma-onboarding/.env",
+  "location_fingerprint": "euN4...yh3p",
+  "service": {
+    "id": "6a852f7edd9a7f8f82f4fa36",
+    "name": "BC | Backup Care Day | TEST",
+    "slug": "backup-care-day-test",
+    "isPrivate": true,
+    "payment": {
+      "amount": 115,
+      "deposit": 115,
+      "depositType": "amount"
+    },
+    "created": true
+  },
+  "service_locations": [
+    {
+      "id": "6a852f79657b0fa5fff9333d",
+      "name": "Chadwick Campus",
+      "slug": "backup-care-chadwick",
+      "address": "1479 Purcell Rd, Lawrenceville, GA 30043",
+      "locationType": "offline",
+      "campus_id": "chadwick",
+      "created": true
+    },
+    {
+      "id": "6a852f7980396748faf16833",
+      "name": "Cherokee Academy by Chroma",
+      "slug": "backup-care-cherokee",
+      "address": "1205 Upper Burris Road, Canton, GA 30114",
+      "locationType": "offline",
+      "campus_id": "cherokee",
+      "created": true
+    },
+    {
+      "id": "6a852f793d659beb309c1c88",
+      "name": "Tramore Campus",
+      "slug": "backup-care-tramore",
+      "address": "2081 Mesa Valley Way, Austell, GA 30106",
+      "locationType": "offline",
+      "campus_id": "tramore",
+      "created": true
+    },
+    {
+      "id": "6a852f792811afba8a35d6df",
+      "name": "Downtown Duluth Campus",
+      "slug": "backup-care-downtown-duluth",
+      "address": "3152 Creek Dr NW, Duluth, GA 30096",
+      "locationType": "offline",
+      "campus_id": "downtown-duluth",
+      "created": true
+    },
+    {
+      "id": "6a852f7a650991ceb6a7d30b",
+      "name": "East Cobb Campus",
+      "slug": "backup-care-east-cobb",
+      "address": "2499 Shallowford Road NE, Marietta, GA 30066",
+      "locationType": "offline",
+      "campus_id": "east-cobb",
+      "created": true
+    },
+    {
+      "id": "6a852f7a2986f43169568442",
+      "name": "Ellenwood Campus",
+      "slug": "backup-care-ellenwood",
+      "address": "2765 E Atlanta Rd, Ellenwood, GA 30294",
+      "locationType": "offline",
+      "campus_id": "ellenwood",
+      "created": true
+    },
+    {
+      "id": "6a852f7ab35331651b810836",
+      "name": "Grayson Campus",
+      "slug": "backup-care-grayson",
+      "address": "550 Grayson Pkwy, Grayson, GA 30017",
+      "locationType": "offline",
+      "campus_id": "grayson",
+      "created": true
+    },
+    {
+      "id": "6a852f7b841e7f57330fd810",
+      "name": "Johns Creek Campus",
+      "slug": "backup-care-johns-creek",
+      "address": "3580 Old Alabama Rd, Johns Creek, GA 30022",
+      "locationType": "offline",
+      "campus_id": "johns-creek",
+      "created": true
+    },
+    {
+      "id": "6a852f7b0747e48b08f8a7db",
+      "name": "Jonesboro Campus",
+      "slug": "backup-care-jonesboro",
+      "address": "1832 Noahs Ark Road, Jonesboro, GA 30236",
+      "locationType": "offline",
+      "campus_id": "jonesboro",
+      "created": true
+    },
+    {
+      "id": "6a852f7b618ed2a1169acccc",
+      "name": "Lawrenceville Campus",
+      "slug": "backup-care-lawrenceville",
+      "address": "3650 Club Drive, Lawrenceville, GA 30044",
+      "locationType": "offline",
+      "campus_id": "lawrenceville",
+      "created": true
+    },
+    {
+      "id": "6a852f7b91badd4631cbef97",
+      "name": "Lilburn Campus",
+      "slug": "backup-care-lilburn",
+      "address": "917 Killian Hill Road Southwest, Lilburn, GA 30047",
+      "locationType": "offline",
+      "campus_id": "lilburn",
+      "created": true
+    },
+    {
+      "id": "6a852f7b618ed2a1169accd5",
+      "name": "McDonough Campus",
+      "slug": "backup-care-mcdonough",
+      "address": "90 Hunters Chase, McDonough, GA 30253",
+      "locationType": "offline",
+      "campus_id": "mcdonough",
+      "created": true
+    },
+    {
+      "id": "6a852f7b7b068bf85c020f58",
+      "name": "Midway Campus",
+      "slug": "backup-care-midway",
+      "address": "4015 Discovery Dr, Alpharetta, GA 30004",
+      "locationType": "offline",
+      "campus_id": "midway",
+      "created": true
+    },
+    {
+      "id": "6a852f7b8e7594f5de268108",
+      "name": "North Hall Campus",
+      "slug": "backup-care-north-hall",
+      "address": "5760 Wade Whelchel Road, Murrayville, GA 30564",
+      "locationType": "offline",
+      "campus_id": "north-hall",
+      "created": true
+    },
+    {
+      "id": "6a852f7c91badd4631cbefa0",
+      "name": "Parklake Campus",
+      "slug": "backup-care-parklake",
+      "address": "2309 Parklake Dr NE #250, Atlanta, GA 30345",
+      "locationType": "offline",
+      "campus_id": "parklake",
+      "created": true
+    },
+    {
+      "id": "6a852f7c618ed2a1169accec",
+      "name": "Rivergreen Campus",
+      "slug": "backup-care-rivergreen",
+      "address": "200 River Green Avenue, Canton, GA 30114",
+      "locationType": "offline",
+      "campus_id": "rivergreen",
+      "created": true
+    },
+    {
+      "id": "6a852f7d3b0d174bf9c4142f",
+      "name": "Roswell Campus",
+      "slug": "backup-care-roswell",
+      "address": "1255 Upper Hembree Rd, Roswell, GA 30076",
+      "locationType": "offline",
+      "campus_id": "roswell",
+      "created": true
+    },
+    {
+      "id": "6a852f7d7a2822e84a439313",
+      "name": "Satellite Boulevard Campus",
+      "slug": "backup-care-satellite",
+      "address": "3730 Satellite Blvd, Duluth, GA 30096",
+      "locationType": "offline",
+      "campus_id": "satellite",
+      "created": true
+    },
+    {
+      "id": "6a852f7db35331651b810846",
+      "name": "Shenandoah Campus",
+      "slug": "backup-care-shenandoah",
+      "address": "40 Bledsoe Rd, Newnan, GA 30265",
+      "locationType": "offline",
+      "campus_id": "shenandoah",
+      "created": true
+    },
+    {
+      "id": "6a852f7df1d5ffcee926e5b1",
+      "name": "South Cobb Campus",
+      "slug": "backup-care-south-cobb",
+      "address": "7225 Premier Lane, Austell, GA 30168",
+      "locationType": "offline",
+      "campus_id": "south-cobb",
+      "created": true
+    },
+    {
+      "id": "6a852f7d0747e48b08f8a7f3",
+      "name": "Stockbridge Campus",
+      "slug": "backup-care-stockbridge",
+      "address": "300 Inverness Ave, McDonough, GA 30253",
+      "locationType": "offline",
+      "campus_id": "stockbridge",
+      "created": true
+    },
+    {
+      "id": "6a852f7d46250e1b14ef4c0f",
+      "name": "Sugarloaf Parkway Campus",
+      "slug": "backup-care-sugarloaf",
+      "address": "3155 Sugarloaf Pkwy, Lawrenceville, GA 30045",
+      "locationType": "offline",
+      "campus_id": "sugarloaf",
+      "created": true
+    },
+    {
+      "id": "6a852f7ece1d72e2f88c719e",
+      "name": "Tyrone Campus",
+      "slug": "backup-care-tyrone",
+      "address": "291 Jenkins Road, Tyrone, GA 30290",
+      "locationType": "offline",
+      "campus_id": "tyrone",
+      "created": true
+    },
+    {
+      "id": "6a852f7eaf746a520bd48480",
+      "name": "West Cobb Campus",
+      "slug": "backup-care-west-cobb",
+      "address": "2424 Powder Springs Rd SW, Marietta, GA 30064",
+      "locationType": "offline",
+      "campus_id": "west-cobb",
+      "created": true
+    }
+  ],
+  "service_locations_created": 24,
+  "service_is_private": true,
+  "payment_charged": false,
+  "global_settings_require_ui": true
+}

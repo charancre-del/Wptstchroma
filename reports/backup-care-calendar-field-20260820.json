@@ -1,0 +1,36 @@
+{
+  "mode": "live_backup_care_attendance_field_provisioning",
+  "ok": true,
+  "credential_values_printed": false,
+  "credential_source": "/opt/chroma-onboarding/.env",
+  "location_fingerprint": "euN4...yh3p",
+  "object_key": "custom_objects.backup_care_attendance",
+  "field_key": "custom_objects.backup_care_attendance.ghl_calendar_event_id",
+  "preexisting": false,
+  "before": null,
+  "provision_result": {
+    "folder_id": "qhrmcvGAR1llxpcjrtPn",
+    "folder_created": false,
+    "created_fields": [
+      {
+        "id": "kH5Ay2dYWCFHyhrHckUi",
+        "name": "GHL Calendar Event ID",
+        "fieldKey": "custom_objects.backup_care_attendance.ghl_calendar_event_id",
+        "dataType": "TEXT"
+      }
+    ],
+    "existing_field_count": 0,
+    "unique_fields_requiring_ui_confirmation": []
+  },
+  "after": {
+    "id": "kH5Ay2dYWCFHyhrHckUi",
+    "name": "GHL Calendar Event ID",
+    "fieldKey": "custom_objects.backup_care_attendance.ghl_calendar_event_id",
+    "dataType": "TEXT",
+    "showInForms": true,
+    "isUnique": null
+  },
+  "forms_created": 0,
+  "workflows_activated": 0,
+  "payments_attempted": 0
+}
