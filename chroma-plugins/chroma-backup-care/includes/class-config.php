@@ -71,36 +71,102 @@ final class Chroma_Backup_Care_Config
 
     public function public_settings()
     {
-        $rules = $this->manifest['business_rules'];
+        $rules = isset($this->manifest['business_rules']) && is_array($this->manifest['business_rules'])
+            ? $this->manifest['business_rules']
+            : array();
+        $price = isset($rules['price']) && is_array($rules['price']) ? $rules['price'] : array();
+        $eligibility = isset($rules['eligibility']) && is_array($rules['eligibility'])
+            ? $rules['eligibility']
+            : array();
+        $booking = isset($rules['booking']) && is_array($rules['booking']) ? $rules['booking'] : array();
+        $cancellation = isset($rules['cancellation']) && is_array($rules['cancellation'])
+            ? $rules['cancellation']
+            : array();
+        $notifications = isset($rules['notifications']) && is_array($rules['notifications'])
+            ? $rules['notifications']
+            : array();
+        $ghl = isset($this->manifest['ghl']) && is_array($this->manifest['ghl'])
+            ? $this->manifest['ghl']
+            : array();
+        $form_ids = isset($ghl['form_ids']) && is_array($ghl['form_ids']) ? $ghl['form_ids'] : array();
         $campuses = array();
         foreach ($this->campuses() as $campus) {
+            $address = sanitize_text_field(isset($campus['address']) ? $campus['address'] : '');
             $campuses[] = array(
-                'id' => $campus['id'],
-                'name' => $campus['name'],
-                'address' => $campus['address'],
-                'opens' => $campus['published_open'],
-                'closes' => $campus['published_close'],
+                'id' => sanitize_key(isset($campus['id']) ? $campus['id'] : ''),
+                'name' => sanitize_text_field(isset($campus['name']) ? $campus['name'] : ''),
+                'address' => $address,
+                'opens' => sanitize_text_field(isset($campus['published_open']) ? $campus['published_open'] : '06:30'),
+                'closes' => sanitize_text_field(isset($campus['published_close']) ? $campus['published_close'] : '18:30'),
+                'directionsUrl' => $address !== ''
+                    ? 'https://www.google.com/maps/search/?api=1&query=' . rawurlencode($address)
+                    : '',
             );
         }
 
+        $amount_cents = isset($price['amount_cents']) ? max(0, (int) $price['amount_cents']) : 11500;
+        $currency = isset($price['currency']) ? sanitize_text_field($price['currency']) : 'USD';
+        $same_day_deadline = isset($booking['same_day_booking_deadline_local'])
+            ? sanitize_text_field($booking['same_day_booking_deadline_local'])
+            : '07:30';
+        $dropoff_cutoff = isset($booking['dropoff_cutoff_local'])
+            ? sanitize_text_field($booking['dropoff_cutoff_local'])
+            : '09:30';
+        $central_email = sanitize_email(isset($notifications['central_email'])
+            ? $notifications['central_email']
+            : 'info@chromaela.com');
+        $billing_email = sanitize_email(isset($cancellation['refund_owner_email'])
+            ? $cancellation['refund_owner_email']
+            : 'billing@chromaela.com');
+
         return array(
-            'contractVersion' => 1,
-            'currency' => $rules['price']['currency'],
-            'unitAmountCents' => (int) $rules['price']['amount_cents'],
-            'bookingHorizonDays' => (int) $rules['booking']['booking_horizon_days'],
-            'maxCareDatesPerOrder' => (int) $rules['booking']['max_care_dates_per_order'],
-            'minimumNoticeMinutes' => (int) $rules['booking']['minimum_notice_minutes'],
-            'sameDayDeadline' => $rules['booking']['same_day_booking_deadline_local'],
-            'dropoffCutoff' => $rules['booking']['dropoff_cutoff_local'],
-            'refundCutoffHours' => (int) $rules['cancellation']['refundable_until_hours_before_care'],
-            'rescheduleCutoffHours' => (int) $rules['cancellation']['reschedulable_until_hours_before_care'],
+            'contractVersion' => 2,
+            'currency' => $currency,
+            'unitAmountCents' => $amount_cents,
+            'priceDisplay' => '$' . number_format($amount_cents / 100, 0),
+            'billingUnit' => isset($price['billing_unit']) ? sanitize_key($price['billing_unit']) : 'per_child_per_care_date',
+            'billingUnitLabel' => 'per child, per care date',
+            'eligibleAgeRange' => sanitize_text_field(isset($eligibility['display_age_range'])
+                ? $eligibility['display_age_range']
+                : '6 weeks to 12 years'),
+            'operatingDays' => isset($booking['operating_days']) && is_array($booking['operating_days'])
+                ? array_values(array_map('intval', $booking['operating_days']))
+                : array(1, 2, 3, 4, 5),
+            'operatingDaysLabel' => 'Weekdays',
+            'bookingHorizonDays' => isset($booking['booking_horizon_days']) ? (int) $booking['booking_horizon_days'] : 365,
+            'maxCareDatesPerOrder' => isset($booking['max_care_dates_per_order']) ? (int) $booking['max_care_dates_per_order'] : 31,
+            'minimumNoticeMinutes' => isset($booking['minimum_notice_minutes']) ? (int) $booking['minimum_notice_minutes'] : 120,
+            'sameDayDeadline' => $same_day_deadline,
+            'sameDayDeadlineLabel' => $this->format_time_label($same_day_deadline),
+            'dropoffCutoff' => $dropoff_cutoff,
+            'dropoffCutoffLabel' => $this->format_time_label($dropoff_cutoff),
+            'refundCutoffHours' => isset($cancellation['refundable_until_hours_before_care'])
+                ? (int) $cancellation['refundable_until_hours_before_care']
+                : 72,
+            'rescheduleCutoffHours' => isset($cancellation['reschedulable_until_hours_before_care'])
+                ? (int) $cancellation['reschedulable_until_hours_before_care']
+                : 72,
+            'completedEnrollmentRequired' => !empty($eligibility['completed_enrollment_record_required_before_care']),
+            'enrollmentRequirementMessage' => 'Required enrollment and health records must be complete before care begins.',
+            'availabilityNotice' => 'Campus and date options are subject to operational closures, staffing, and classroom ratio requirements.',
+            'supportEmail' => $central_email ?: 'info@chromaela.com',
+            'billingSupportEmail' => $billing_email ?: 'billing@chromaela.com',
+            'timezone' => isset($this->manifest['program']['timezone'])
+                ? sanitize_text_field($this->manifest['program']['timezone'])
+                : 'America/New_York',
             'campuses' => $campuses,
             'forms' => array(
-                'family_profile' => $this->manifest['ghl']['form_ids']['family_profile'],
-                'child_enrollment' => $this->manifest['ghl']['form_ids']['child_enrollment'],
+                'family_profile' => sanitize_text_field(isset($form_ids['family_profile']) ? $form_ids['family_profile'] : ''),
+                'child_enrollment' => sanitize_text_field(isset($form_ids['child_enrollment']) ? $form_ids['child_enrollment'] : ''),
             ),
             'campusSelectionMode' => 'explicit_list',
         );
+    }
+
+    private function format_time_label($time)
+    {
+        $date = DateTimeImmutable::createFromFormat('!H:i', (string) $time);
+        return $date ? $date->format('g:i A') : sanitize_text_field((string) $time);
     }
 
     public function mode()

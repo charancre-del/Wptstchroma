@@ -39,6 +39,8 @@
 
   function render() {
     var confirmed = state.order.units.filter(function (unit) { return unit.status === "confirmed"; });
+    var refundHours = Number(state.config.refundCutoffHours || 72);
+    var rescheduleHours = Number(state.config.rescheduleCutoffHours || refundHours);
     var units = state.order.units.map(function (unit) {
       var active = unit.status === "confirmed";
       return '<article class="cbc-manage-unit" data-manage-unit="' + escapeHtml(unit.line_item_key) + '">' +
@@ -49,7 +51,7 @@
     }).join("");
 
     root.innerHTML = '<div class="cbc-form"><header class="cbc-heading"><p class="cbc-eyebrow">Reservation ' + escapeHtml(state.order.request_id) + '</p><h2>Manage backup care</h2><p>' + money(state.order.amount_cents) + ' paid at the ' + escapeHtml(state.order.campus_id) + ' campus.</p></header>' +
-      '<section class="cbc-section"><p>Refundable cancellation and rescheduling close 72 hours before each care date. No late exceptions apply.</p><div class="cbc-manage-list">' + units + '</div></section>' +
+      '<section class="cbc-section"><p>Refundable cancellation closes ' + refundHours + ' hours before each care date. Rescheduling closes ' + rescheduleHours + ' hours before each care date. No late exceptions apply.</p><div class="cbc-manage-list">' + units + '</div></section>' +
       (confirmed.length ? '<div class="cbc-actions"><button type="button" class="cbc-primary-button" data-cancel-selected>Cancel selected dates</button><p class="cbc-status" data-status aria-live="polite"></p></div>' : '<div class="cbc-actions"><p class="cbc-status">There are no active child-date units to change.</p></div>') +
       '</div>';
 

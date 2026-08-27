@@ -191,17 +191,25 @@ final class Chroma_Backup_Care_Plugin
             CHROMA_BACKUP_CARE_VERSION
         );
         wp_enqueue_script(
-            'chroma-backup-care-cart',
-            CHROMA_BACKUP_CARE_URL . 'assets/backup-care-cart.js',
+            'chroma-backup-care-flow',
+            CHROMA_BACKUP_CARE_URL . 'assets/backup-care-flow.js',
             array(),
             CHROMA_BACKUP_CARE_VERSION,
             true
         );
-        wp_localize_script('chroma-backup-care-cart', 'ChromaBackupCare', array(
+        wp_enqueue_script(
+            'chroma-backup-care-cart',
+            CHROMA_BACKUP_CARE_URL . 'assets/backup-care-flow-actions.js',
+            array('chroma-backup-care-flow'),
+            CHROMA_BACKUP_CARE_VERSION,
+            true
+        );
+        wp_localize_script('chroma-backup-care-flow', 'ChromaBackupCare', array(
             'configUrl' => rest_url('chroma-backup-care/v1/config'),
             'quoteUrl' => rest_url('chroma-backup-care/v1/quote'),
             'requestAccessUrl' => rest_url('chroma-backup-care/v1/parent-access/request'),
             'verifyAccessUrl' => rest_url('chroma-backup-care/v1/parent-access/verify'),
+            'profilesUrl' => rest_url('chroma-backup-care/v1/parent-profiles'),
             'checkoutUrl' => rest_url('chroma-backup-care/v1/checkout'),
             'paymentStatusUrl' => rest_url('chroma-backup-care/v1/payment-status'),
             'manageUrl' => rest_url('chroma-backup-care/v1/manage'),

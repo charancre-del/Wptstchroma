@@ -85,3 +85,24 @@ function chroma_backup_care_private_page_robots($robots)
     return $robots;
 }
 add_filter('wp_robots', 'chroma_backup_care_private_page_robots');
+
+/**
+ * Load the focused Backup Care page styles after the main theme bundle.
+ */
+function chroma_backup_care_page_assets()
+{
+    if (!is_page(array('backup-care', 'backup-care-confirmation', 'backup-care-manage'))) {
+        return;
+    }
+
+    $page_relative_path = '/assets/css/backup-care-page.css';
+    $page_absolute_path = CHROMA_THEME_DIR . $page_relative_path;
+
+    wp_enqueue_style(
+        'chroma-backup-care-page',
+        get_theme_file_uri($page_relative_path),
+        array('chroma-main'),
+        file_exists($page_absolute_path) ? (string) filemtime($page_absolute_path) : CHROMA_THEME_VERSION
+    );
+}
+add_action('wp_enqueue_scripts', 'chroma_backup_care_page_assets', 30);

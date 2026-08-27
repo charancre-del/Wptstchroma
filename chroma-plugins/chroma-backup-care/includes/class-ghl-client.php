@@ -83,6 +83,91 @@ final class Chroma_Backup_Care_GHL_Client
             && strpos($encoded, '"' . (string) $related_record_id . '"') !== false;
     }
 
+    public function list_related_child_profiles($contact_id)
+    {
+        $manifest = $this->config->manifest();
+        $association_id = isset($manifest['ghl']['association_ids']['parent_to_child'])
+            ? (string) $manifest['ghl']['association_ids']['parent_to_child']
+            : '';
+        $schema_key = isset($manifest['ghl']['custom_object_schema_keys']['child'])
+            ? (string) $manifest['ghl']['custom_object_schema_keys']['child']
+            : '';
+        if ($association_id === '' || $schema_key === '') {
+            return array();
+        }
+
+        $response = $this->request(
+            'GET',
+            '/associations/relations/' . rawurlencode((string) $contact_id)
+                . '?locationId=' . rawurlencode(Chroma_Backup_Care_Config::GHL_LOCATION_ID)
+                . '&skip=0&limit=100&associationIds=' . rawurlencode($association_id),
+            array(),
+            'v3'
+        );
+        $candidate_ids = array_values(array_unique($this->association_record_ids($response)));
+        $excluded = array((string) $contact_id, $association_id, Chroma_Backup_Care_Config::GHL_LOCATION_ID);
+        $profiles = array();
+        foreach ($candidate_ids as $record_id) {
+            if ($record_id === '' || in_array($record_id, $excluded, true)) {
+                continue;
+            }
+            try {
+                $record = $this->get_record($schema_key, $record_id);
+                if (!$this->relation_exists($record_id, $contact_id, $association_id)) {
+                    continue;
+                }
+            } catch (Throwable $error) {
+                continue;
+            }
+            $properties = isset($record['properties']) && is_array($record['properties'])
+                ? $record['properties']
+                : array();
+            if (empty($properties['first_name']) || empty($properties['last_name']) || empty($properties['date_of_birth'])) {
+                continue;
+            }
+            $required_fields = isset($manifest['ghl']['child_record_required_fields'])
+                && is_array($manifest['ghl']['child_record_required_fields'])
+                ? $manifest['ghl']['child_record_required_fields']
+                : array();
+            $missing = array();
+            foreach ($required_fields as $field) {
+                if (!isset($properties[$field]) || trim((string) $properties[$field]) === '') {
+                    $missing[] = $field;
+                }
+            }
+            $profiles[] = array(
+                'id' => sanitize_text_field((string) $record['id']),
+                'first_name' => sanitize_text_field((string) $properties['first_name']),
+                'last_name' => sanitize_text_field((string) $properties['last_name']),
+                'date_of_birth' => sanitize_text_field((string) $properties['date_of_birth']),
+                'age_group' => sanitize_text_field(isset($properties['age_group']) ? $properties['age_group'] : ''),
+                'enrollment_complete' => empty($missing),
+            );
+        }
+        usort($profiles, function ($first, $second) {
+            return strcasecmp($first['first_name'] . ' ' . $first['last_name'], $second['first_name'] . ' ' . $second['last_name']);
+        });
+        return $profiles;
+    }
+
+    private function association_record_ids($value, $key = '')
+    {
+        $ids = array();
+        if (!is_array($value)) {
+            if (is_scalar($value) && preg_match('/(?:record.*id|recordid|id)$/i', (string) $key)) {
+                $candidate = trim((string) $value);
+                if ($candidate !== '') {
+                    $ids[] = $candidate;
+                }
+            }
+            return $ids;
+        }
+        foreach ($value as $child_key => $child_value) {
+            $ids = array_merge($ids, $this->association_record_ids($child_value, (string) $child_key));
+        }
+        return $ids;
+    }
+
     public function create_record($schema_key, array $properties)
     {
         $response = $this->request('POST', '/objects/' . rawurlencode($schema_key) . '/records', array(
@@ -263,7 +348,7 @@ final class Chroma_Backup_Care_GHL_Client
             'currency' => 'USD',
             'items' => $items,
             'discount' => array('value' => 0, 'type' => 'percentage'),
-            'termsNotes' => 'Full payment confirms the selected child-date units. Cancellation and rescheduling are available until 72 hours before care.',
+            'termsNotes' => $this->invoice_terms_note(),
             'title' => 'BACKUP CARE INVOICE',
             'contactDetails' => array(
                 'id' => (string) $contact_id,
@@ -291,6 +376,26 @@ final class Chroma_Backup_Care_GHL_Client
             throw new RuntimeException('GHL did not return an invoice ID.');
         }
         return $invoice;
+    }
+
+    private function invoice_terms_note()
+    {
+        $manifest = $this->config->manifest();
+        $cancellation = isset($manifest['business_rules']['cancellation'])
+            && is_array($manifest['business_rules']['cancellation'])
+            ? $manifest['business_rules']['cancellation']
+            : array();
+        $refund_hours = isset($cancellation['refundable_until_hours_before_care'])
+            ? max(0, (int) $cancellation['refundable_until_hours_before_care'])
+            : 72;
+        $reschedule_hours = isset($cancellation['reschedulable_until_hours_before_care'])
+            ? max(0, (int) $cancellation['reschedulable_until_hours_before_care'])
+            : $refund_hours;
+        return sprintf(
+            'Full payment confirms the selected child-date units. Refundable cancellation closes %d hours before care; rescheduling closes %d hours before care.',
+            $refund_hours,
+            $reschedule_hours
+        );
     }
 
     public function find_backup_care_invoice($request_id, $contact_id)

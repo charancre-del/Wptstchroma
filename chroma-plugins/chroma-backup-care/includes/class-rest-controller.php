@@ -48,6 +48,11 @@ final class Chroma_Backup_Care_REST_Controller
             'callback' => array($this, 'verify_parent_access'),
             'permission_callback' => array($this, 'check_public_request'),
         ));
+        register_rest_route(self::NAMESPACE_NAME, '/parent-profiles', array(
+            'methods' => WP_REST_Server::CREATABLE,
+            'callback' => array($this, 'parent_profiles'),
+            'permission_callback' => array($this, 'check_public_request'),
+        ));
         register_rest_route(self::NAMESPACE_NAME, '/checkout', array(
             'methods' => WP_REST_Server::CREATABLE,
             'callback' => array($this, 'create_checkout'),
@@ -173,6 +178,29 @@ final class Chroma_Backup_Care_REST_Controller
                 isset($parameters['quote_token']) ? (string) $parameters['quote_token'] : ''
             );
             return new WP_REST_Response($result, 201);
+        } catch (DomainException $error) {
+            return $this->safe_error($error, 422);
+        } catch (Throwable $error) {
+            return $this->safe_error($error, 503);
+        }
+    }
+
+    public function parent_profiles(WP_REST_Request $request)
+    {
+        if (!$this->consume_rate_limit('parent_profiles', 20, 15 * MINUTE_IN_SECONDS)) {
+            return new WP_Error('rate_limited', 'Please wait before refreshing saved children.', array('status' => 429));
+        }
+        if (strlen($request->get_body()) > 4096) {
+            return new WP_Error('request_too_large', 'The saved-child request is too large.', array('status' => 413));
+        }
+        $parameters = $request->get_json_params();
+        try {
+            return rest_ensure_response($this->service->parent_profiles(
+                is_array($parameters) && isset($parameters['email']) ? $parameters['email'] : '',
+                is_array($parameters) && isset($parameters['parent_access_token'])
+                    ? $parameters['parent_access_token']
+                    : ''
+            ));
         } catch (DomainException $error) {
             return $this->safe_error($error, 422);
         } catch (Throwable $error) {

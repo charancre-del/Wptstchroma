@@ -1,160 +1,184 @@
 <?php
 /**
- * Backup Care Page Template.
+ * Parent-first Backup Care page template.
  *
  * @package Chroma_Excellence
  */
 
 get_header();
 
-$booking_url = '#book-backup-care';
+$fallback_settings = array(
+    'priceDisplay' => '$115',
+    'billingUnitLabel' => 'per child, per care date',
+    'eligibleAgeRange' => '6 weeks to 12 years',
+    'operatingDaysLabel' => 'Weekdays',
+    'sameDayDeadlineLabel' => '7:30 AM',
+    'dropoffCutoffLabel' => '9:30 AM',
+    'bookingHorizonDays' => 365,
+    'refundCutoffHours' => 72,
+    'supportEmail' => 'info@chromaela.com',
+    'billingSupportEmail' => 'billing@chromaela.com',
+    'completedEnrollmentRequired' => true,
+    'enrollmentRequirementMessage' => 'Required enrollment and health records must be complete before care begins.',
+    'availabilityNotice' => 'Campus and date options are subject to operational closures, staffing, and classroom ratio requirements.',
+);
+$plugin_settings = function_exists('chroma_backup_care_public_settings')
+    ? chroma_backup_care_public_settings()
+    : array();
+$settings = array_merge($fallback_settings, is_array($plugin_settings) ? $plugin_settings : array());
+$booking_url = '#reserve-backup-care';
 $hero_image = get_the_post_thumbnail_url(get_queried_object_id(), 'full');
 if (!$hero_image) {
     $hero_image = get_theme_file_uri('assets/images/early-start/synergy-classroom.jpg');
 }
+
+$facts = array(
+    array($settings['eligibleAgeRange'], __('eligible ages', 'chroma-excellence')),
+    array($settings['priceDisplay'], $settings['billingUnitLabel']),
+    array($settings['operatingDaysLabel'], __('choose your campus', 'chroma-excellence')),
+    array(sprintf(__('Book by %s', 'chroma-excellence'), $settings['sameDayDeadlineLabel']), __('for same-day care', 'chroma-excellence')),
+);
+
+$expectations = array(
+    array('fa-door-open', __('Arrival', 'chroma-excellence'), __('The campus team reviews your reservation, confirms classroom placement, and helps your child settle in calmly.', 'chroma-excellence')),
+    array('fa-people-roof', __('Classroom placement', 'chroma-excellence'), __('Children join an age-appropriate classroom based on the selected campus, the day’s staffing, and required ratios.', 'chroma-excellence')),
+    array('fa-utensils', __('Meals and rest', 'chroma-excellence'), __('The campus shares the day’s meal, rest, and routine guidance so you know what is provided and what your child may need.', 'chroma-excellence')),
+    array('fa-person-walking-arrow-right', __('Pickup', 'chroma-excellence'), __('Only authorized adults may pick up. Bring photo identification and follow the campus team’s pickup instructions.', 'chroma-excellence')),
+);
+
+$faqs = array(
+    array(
+        __('Does my child need to be enrolled at Chroma?', 'chroma-excellence'),
+        __('No. Backup Care is available to enrolled and non-enrolled families. Each child must have complete required enrollment and health records before care begins.', 'chroma-excellence'),
+    ),
+    array(
+        __('Can I reserve more than one child or date?', 'chroma-excellence'),
+        __('Yes. One reservation can include siblings, multiple eligible weekdays, or both. Your summary shows every child-date and the complete total before payment.', 'chroma-excellence'),
+    ),
+    array(
+        __('How does same-day booking work?', 'chroma-excellence'),
+        sprintf(__('Same-day reservations must be completed by %1$s, provide the required notice, and plan for arrival by %2$s.', 'chroma-excellence'), $settings['sameDayDeadlineLabel'], $settings['dropoffCutoffLabel']),
+    ),
+    array(
+        __('Can I cancel or move a reservation?', 'chroma-excellence'),
+        sprintf(__('A paid child-date may be cancelled for a refund or moved to another eligible date at the same campus until %d hours before planned drop-off. Refund questions are handled by %s.', 'chroma-excellence'), (int) $settings['refundCutoffHours'], $settings['billingSupportEmail']),
+    ),
+    array(
+        __('Is a selected campus or date guaranteed?', 'chroma-excellence'),
+        $settings['availabilityNotice'],
+    ),
+    array(
+        __('What if required records are incomplete?', 'chroma-excellence'),
+        __('The reservation flow provides the enrollment links needed for each child. Care cannot begin until the required records have been reviewed and completed.', 'chroma-excellence'),
+    ),
+);
 ?>
 
-<main id="primary" class="site-main bg-white" role="main">
-    <section class="relative min-h-[34rem] h-[72vh] max-h-[48rem] flex items-end overflow-hidden bg-brand-ink"
-        aria-labelledby="backup-care-title"
-        style="background-image:url('<?php echo esc_url($hero_image); ?>');background-size:cover;background-position:center;">
-        <div class="absolute inset-0" style="background-color:rgba(25,35,43,.72)" aria-hidden="true"></div>
-        <div class="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-14 md:pb-20 text-white">
-            <p class="text-xs font-bold uppercase tracking-normal text-chroma-yellowLight mb-4">
-                <?php esc_html_e('Care when plans change', 'chroma-excellence'); ?>
-            </p>
-            <h1 id="backup-care-title" class="font-serif text-5xl md:text-7xl font-semibold leading-tight tracking-normal max-w-4xl">
-                <?php esc_html_e('Backup Care', 'chroma-excellence'); ?>
-            </h1>
-            <p class="mt-5 text-lg md:text-xl leading-relaxed text-white/90 max-w-2xl">
-                    <?php esc_html_e('Choose the Chroma campus that works for your family, then reserve weekday care for one child or several, on one date or many.', 'chroma-excellence'); ?>
-            </p>
-            <div class="mt-8 flex flex-wrap gap-3">
-                <a href="<?php echo esc_url($booking_url); ?>" class="inline-flex items-center justify-center min-h-12 px-7 py-3 bg-chroma-red text-white font-bold hover:bg-white hover:text-brand-ink transition">
-                    <?php esc_html_e('Book backup care', 'chroma-excellence'); ?>
-                </a>
-                <a href="tel:+14704198981" class="inline-flex items-center justify-center min-h-12 px-7 py-3 border border-white/70 text-white font-bold hover:bg-white hover:text-brand-ink transition">
-                    <i class="fa-solid fa-phone mr-2" aria-hidden="true"></i>
-                    <?php esc_html_e('Call Chroma', 'chroma-excellence'); ?>
-                </a>
-            </div>
+<main id="primary" class="site-main backup-care-page" role="main">
+    <section class="backup-care-hero" aria-labelledby="backup-care-title" style="background-image:url('<?php echo esc_url($hero_image); ?>')">
+        <div class="backup-care-hero__overlay" aria-hidden="true"></div>
+        <div class="backup-care-container backup-care-hero__content">
+            <p class="backup-care-kicker"><?php esc_html_e('Care when plans change', 'chroma-excellence'); ?></p>
+            <h1 id="backup-care-title"><?php esc_html_e('A dependable place for an unexpected day.', 'chroma-excellence'); ?></h1>
+            <p><?php esc_html_e('Reserve warm, age-appropriate care when school is closed, a caregiver is unavailable, or work plans change.', 'chroma-excellence'); ?></p>
+            <a class="backup-care-primary-button" href="<?php echo esc_url($booking_url); ?>"><?php esc_html_e('Reserve Backup Care', 'chroma-excellence'); ?></a>
         </div>
     </section>
 
-    <section class="border-b border-brand-ink/10 bg-brand-cream" aria-label="Backup care highlights">
-        <div class="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 px-4 sm:px-6 lg:px-8">
-            <?php
-            $highlights = array(
-                array('$115', __('per child, per day', 'chroma-excellence')),
-                array(__('12 months', 'chroma-excellence'), __('advance booking', 'chroma-excellence')),
-                array(__('2 hours', 'chroma-excellence'), __('minimum notice', 'chroma-excellence')),
-                array(__('9:30 AM', 'chroma-excellence'), __('latest drop-off', 'chroma-excellence')),
-            );
-            foreach ($highlights as $highlight) :
-                ?>
-                <div class="py-7 px-3 md:px-6 border-l border-brand-ink/10 first:border-l-0">
-                    <strong class="block text-xl md:text-2xl text-brand-ink"><?php echo esc_html($highlight[0]); ?></strong>
-                    <span class="block mt-1 text-sm text-brand-ink/70"><?php echo esc_html($highlight[1]); ?></span>
+    <section class="backup-care-facts" aria-label="Backup Care essentials">
+        <div class="backup-care-container backup-care-facts__grid">
+            <?php foreach ($facts as $fact) : ?>
+                <div class="backup-care-fact">
+                    <strong><?php echo esc_html($fact[0]); ?></strong>
+                    <span><?php echo esc_html($fact[1]); ?></span>
                 </div>
             <?php endforeach; ?>
         </div>
     </section>
 
-    <section class="py-16 md:py-24 bg-white" aria-labelledby="backup-care-how-title">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-[0.72fr_1.28fr] gap-12 lg:gap-20">
-            <div>
-                <p class="text-xs font-bold uppercase tracking-normal text-chroma-red mb-3"><?php esc_html_e('Simple by design', 'chroma-excellence'); ?></p>
-                <h2 id="backup-care-how-title" class="font-serif text-4xl md:text-5xl font-semibold leading-tight tracking-normal text-brand-ink">
-                    <?php esc_html_e('A direct path to care.', 'chroma-excellence'); ?>
-                </h2>
-                <p class="mt-5 text-lg leading-relaxed text-brand-ink/70">
-                    <?php esc_html_e('Any family may book. Campus approval is not required, and full payment securely confirms the reservation.', 'chroma-excellence'); ?>
-                </p>
-            </div>
-            <ol class="grid md:grid-cols-3 gap-px bg-brand-ink/10 border border-brand-ink/10">
-                <li class="bg-brand-cream p-6 md:p-8">
-                    <span class="text-sm font-bold text-chroma-red">01</span>
-                    <h3 class="mt-4 text-xl font-bold text-brand-ink"><?php esc_html_e('Choose campus and dates', 'chroma-excellence'); ?></h3>
-                    <p class="mt-3 text-brand-ink/70 leading-relaxed"><?php esc_html_e('Select a campus from the full Chroma campus list and choose every needed care date in one order.', 'chroma-excellence'); ?></p>
-                </li>
-                <li class="bg-brand-cream p-6 md:p-8">
-                    <span class="text-sm font-bold text-chroma-red">02</span>
-                    <h3 class="mt-4 text-xl font-bold text-brand-ink"><?php esc_html_e('Complete child records', 'chroma-excellence'); ?></h3>
-                    <p class="mt-3 text-brand-ink/70 leading-relaxed"><?php esc_html_e('We will request a secure GHL enrollment form only when a child record is missing or incomplete.', 'chroma-excellence'); ?></p>
-                </li>
-                <li class="bg-brand-cream p-6 md:p-8">
-                    <span class="text-sm font-bold text-chroma-red">03</span>
-                    <h3 class="mt-4 text-xl font-bold text-brand-ink"><?php esc_html_e('Pay and receive confirmation', 'chroma-excellence'); ?></h3>
-                    <p class="mt-3 text-brand-ink/70 leading-relaxed"><?php esc_html_e('Review the total and use the secure GHL invoice emailed to you to pay through Chroma\'s connected Stripe account.', 'chroma-excellence'); ?></p>
-                </li>
-            </ol>
-        </div>
-    </section>
-
-    <section id="book-backup-care" class="py-16 md:py-24 bg-brand-cream border-y border-brand-ink/10" aria-labelledby="backup-care-book-title">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="max-w-3xl mb-10">
-                <p class="text-xs font-bold uppercase tracking-normal text-chroma-red mb-3"><?php esc_html_e('Secure reservation', 'chroma-excellence'); ?></p>
-                <h2 id="backup-care-book-title" class="font-serif text-4xl md:text-5xl font-semibold leading-tight tracking-normal text-brand-ink">
-                    <?php esc_html_e('Book all children and dates together.', 'chroma-excellence'); ?>
-                </h2>
-                <p class="mt-4 text-brand-ink/70 text-lg leading-relaxed">
-                    <?php esc_html_e('Same-day reservations close at 7:30 AM. Drop-off must be no later than 9:30 AM.', 'chroma-excellence'); ?>
-                </p>
+    <section id="reserve-backup-care" class="backup-care-booking" aria-labelledby="backup-care-booking-title">
+        <div class="backup-care-container">
+            <div class="backup-care-section-heading">
+                <p class="backup-care-kicker"><?php esc_html_e('Reserve your dates', 'chroma-excellence'); ?></p>
+                <h2 id="backup-care-booking-title"><?php esc_html_e('Build one reservation for your family.', 'chroma-excellence'); ?></h2>
+                <p><?php esc_html_e('Verify your email, choose a campus and dates, add each child, then review the complete total before secure payment.', 'chroma-excellence'); ?></p>
             </div>
             <?php if (shortcode_exists('chroma_backup_care_cart')) : ?>
                 <?php echo do_shortcode('[chroma_backup_care_cart]'); ?>
             <?php else : ?>
-                <div class="border border-brand-ink/20 bg-white p-6 text-brand-ink">
-                    <p><?php esc_html_e('Online backup-care booking is not available right now. Please call Chroma for assistance.', 'chroma-excellence'); ?></p>
+                <div class="backup-care-notice">
+                    <p><?php esc_html_e('Online Backup Care booking is not available right now.', 'chroma-excellence'); ?></p>
+                    <a href="mailto:<?php echo esc_attr($settings['supportEmail']); ?>"><?php echo esc_html($settings['supportEmail']); ?></a>
                 </div>
             <?php endif; ?>
         </div>
     </section>
 
-    <section class="py-16 md:py-24 bg-white" aria-labelledby="backup-care-policy-title">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 lg:gap-20">
-            <div>
-                <p class="text-xs font-bold uppercase tracking-normal text-chroma-red mb-3"><?php esc_html_e('Before you reserve', 'chroma-excellence'); ?></p>
-                <h2 id="backup-care-policy-title" class="font-serif text-4xl md:text-5xl font-semibold leading-tight tracking-normal text-brand-ink">
-                    <?php esc_html_e('Clear policies, with no surprises.', 'chroma-excellence'); ?>
-                </h2>
+    <section class="backup-care-support" aria-labelledby="backup-care-expect-title">
+        <div class="backup-care-container">
+            <div class="backup-care-section-heading backup-care-section-heading--center">
+                <p class="backup-care-kicker"><?php esc_html_e('What to expect', 'chroma-excellence'); ?></p>
+                <h2 id="backup-care-expect-title"><?php esc_html_e('A clear plan from arrival through pickup.', 'chroma-excellence'); ?></h2>
             </div>
-            <dl class="divide-y divide-brand-ink/10 border-y border-brand-ink/10">
-                <div class="py-5 grid sm:grid-cols-[10rem_1fr] gap-2 sm:gap-6">
-                    <dt class="font-bold text-brand-ink"><?php esc_html_e('Eligibility', 'chroma-excellence'); ?></dt>
-                    <dd class="text-brand-ink/70"><?php esc_html_e('Any family may reserve for children from 6 weeks through age 12; prior enrollment at Chroma is not required.', 'chroma-excellence'); ?></dd>
-                </div>
-                <div class="py-5 grid sm:grid-cols-[10rem_1fr] gap-2 sm:gap-6">
-                    <dt class="font-bold text-brand-ink"><?php esc_html_e('Payment', 'chroma-excellence'); ?></dt>
-                    <dd class="text-brand-ink/70"><?php esc_html_e('The full $115 child-date price is due through the secure GHL invoice emailed after checkout. Payment is processed by Chroma\'s connected Stripe account.', 'chroma-excellence'); ?></dd>
-                </div>
-                <div class="py-5 grid sm:grid-cols-[10rem_1fr] gap-2 sm:gap-6">
-                    <dt class="font-bold text-brand-ink"><?php esc_html_e('Changes', 'chroma-excellence'); ?></dt>
-                    <dd class="text-brand-ink/70"><?php esc_html_e('Cancellation is refundable and rescheduling is allowed until 72 hours before care.', 'chroma-excellence'); ?></dd>
-                </div>
-                <div class="py-5 grid sm:grid-cols-[10rem_1fr] gap-2 sm:gap-6">
-                    <dt class="font-bold text-brand-ink"><?php esc_html_e('Late changes', 'chroma-excellence'); ?></dt>
-                    <dd class="text-brand-ink/70"><?php esc_html_e('Changes inside 72 hours are not refundable or reschedulable. No exceptions apply.', 'chroma-excellence'); ?></dd>
-                </div>
-                <div class="py-5 grid sm:grid-cols-[10rem_1fr] gap-2 sm:gap-6">
-                    <dt class="font-bold text-brand-ink"><?php esc_html_e('Campus closures', 'chroma-excellence'); ?></dt>
-                    <dd class="text-brand-ink/70"><?php esc_html_e('If Chroma closes the selected campus, the parent may choose a refund or reschedule.', 'chroma-excellence'); ?></dd>
-                </div>
-            </dl>
+            <div class="backup-care-expect-grid">
+                <?php foreach ($expectations as $expectation) : ?>
+                    <article class="backup-care-info-card">
+                        <span class="backup-care-info-card__icon" aria-hidden="true"><i class="fa-solid <?php echo esc_attr($expectation[0]); ?>"></i></span>
+                        <h3><?php echo esc_html($expectation[1]); ?></h3>
+                        <p><?php echo esc_html($expectation[2]); ?></p>
+                    </article>
+                <?php endforeach; ?>
+            </div>
+
+            <div class="backup-care-practical-grid">
+                <article class="backup-care-practical-card">
+                    <p class="backup-care-kicker"><?php esc_html_e('What to bring', 'chroma-excellence'); ?></p>
+                    <h2><?php esc_html_e('Pack for your child’s age and routine.', 'chroma-excellence'); ?></h2>
+                    <ul>
+                        <li><?php esc_html_e('A labeled change of clothes and any comfort item your child uses.', 'chroma-excellence'); ?></li>
+                        <li><?php esc_html_e('Diapers, wipes, bottles, formula, or sleep items when requested by the campus.', 'chroma-excellence'); ?></li>
+                        <li><?php esc_html_e('Required medication or procedure documentation arranged with the campus before care.', 'chroma-excellence'); ?></li>
+                        <li><?php esc_html_e('Photo identification for the authorized adult handling pickup.', 'chroma-excellence'); ?></li>
+                    </ul>
+                    <p class="backup-care-small-copy"><?php esc_html_e('Your selected campus will confirm its location-specific instructions before care.', 'chroma-excellence'); ?></p>
+                </article>
+                <article class="backup-care-practical-card backup-care-practical-card--accent">
+                    <p class="backup-care-kicker"><?php esc_html_e('Before care begins', 'chroma-excellence'); ?></p>
+                    <h2><?php esc_html_e('Records help us welcome your child safely.', 'chroma-excellence'); ?></h2>
+                    <p><?php echo esc_html($settings['enrollmentRequirementMessage']); ?></p>
+                    <p><?php echo esc_html($settings['availabilityNotice']); ?></p>
+                    <a href="mailto:<?php echo esc_attr($settings['supportEmail']); ?>"><?php echo esc_html($settings['supportEmail']); ?></a>
+                </article>
+            </div>
         </div>
     </section>
 
-    <section class="py-16 md:py-24 bg-chroma-blueDark text-white" aria-labelledby="backup-care-help-title">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between gap-7">
-            <div class="max-w-3xl">
-                <h2 id="backup-care-help-title" class="font-serif text-3xl md:text-4xl font-semibold tracking-normal"><?php esc_html_e('Need help with an existing reservation?', 'chroma-excellence'); ?></h2>
-                <p class="mt-3 text-white/80 text-lg"><?php esc_html_e('Use the secure link in your confirmation email or contact our billing team.', 'chroma-excellence'); ?></p>
+    <section class="backup-care-faq" aria-labelledby="backup-care-faq-title">
+        <div class="backup-care-container backup-care-faq__layout">
+            <div class="backup-care-faq__intro">
+                <p class="backup-care-kicker"><?php esc_html_e('Good to know', 'chroma-excellence'); ?></p>
+                <h2 id="backup-care-faq-title"><?php esc_html_e('Clear answers before you reserve.', 'chroma-excellence'); ?></h2>
+                <p><?php esc_html_e('For general help with Backup Care, contact our family support team.', 'chroma-excellence'); ?></p>
+                <a href="mailto:<?php echo esc_attr($settings['supportEmail']); ?>"><?php echo esc_html($settings['supportEmail']); ?></a>
             </div>
-            <a href="mailto:billing@chromaela.com" class="inline-flex items-center justify-center min-h-12 px-7 py-3 bg-white text-brand-ink font-bold hover:bg-chroma-yellowLight transition">
-                <i class="fa-solid fa-envelope mr-2" aria-hidden="true"></i>
-                billing@chromaela.com
-            </a>
+            <div class="backup-care-faq__items">
+                <?php foreach ($faqs as $index => $faq) : ?>
+                    <details<?php echo 0 === $index ? ' open' : ''; ?>>
+                        <summary><span><?php echo esc_html($faq[0]); ?></span><span aria-hidden="true">+</span></summary>
+                        <p><?php echo esc_html($faq[1]); ?></p>
+                    </details>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <section class="backup-care-closing" aria-labelledby="backup-care-closing-title">
+        <div class="backup-care-container backup-care-closing__inner">
+            <div>
+                <p class="backup-care-kicker"><?php esc_html_e('One less thing to worry about', 'chroma-excellence'); ?></p>
+                <h2 id="backup-care-closing-title"><?php esc_html_e('When your plan changes, Chroma can help the day keep moving.', 'chroma-excellence'); ?></h2>
+            </div>
+            <a class="backup-care-secondary-button" href="<?php echo esc_url($booking_url); ?>"><?php esc_html_e('Reserve Backup Care', 'chroma-excellence'); ?></a>
         </div>
     </section>
 </main>

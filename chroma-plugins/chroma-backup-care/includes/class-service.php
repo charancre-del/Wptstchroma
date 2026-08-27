@@ -44,6 +44,17 @@ final class Chroma_Backup_Care_Service
         return $result;
     }
 
+    public function parent_profiles($email, $parent_access_token)
+    {
+        $email = strtolower(trim(sanitize_email((string) $email)));
+        $this->parent_access->assert_token((string) $parent_access_token, $email);
+        $contact = $this->ghl->find_contact_by_email($email);
+        if (!$contact || empty($contact['id'])) {
+            return array('profiles' => array());
+        }
+        return array('profiles' => $this->ghl->list_related_child_profiles($contact['id']));
+    }
+
     public function checkout(array $order, $quote_token)
     {
         $readiness = $this->config->readiness();
@@ -318,13 +329,17 @@ final class Chroma_Backup_Care_Service
                 $units[$key]['care_date'] . ' ' . ($units[$key]['planned_dropoff_local'] ?: '06:30'),
                 new DateTimeZone('America/New_York')
             );
-            if ($care_at->getTimestamp() - $now->getTimestamp() < 72 * HOUR_IN_SECONDS) {
+            $cutoff_hours = $this->policy_cutoff_hours('refundable_until_hours_before_care');
+            if ($care_at->getTimestamp() - $now->getTimestamp() < $cutoff_hours * HOUR_IN_SECONDS) {
                 do_action('chroma_backup_care_late_cancellation', array(
                     'request_id' => $stored['request_id'],
                     'contact_id' => $stored['contact_id'],
                     'line_item_key' => $key,
                 ));
-                throw new DomainException('Cancellation is not refundable within 72 hours of care.');
+                throw new DomainException(sprintf(
+                    'Cancellation is not refundable within %d hours of care.',
+                    $cutoff_hours
+                ));
             }
             $selected[] = $units[$key];
         }
@@ -420,13 +435,17 @@ final class Chroma_Backup_Care_Service
             $unit['care_date'] . ' ' . ($unit['planned_dropoff_local'] ?: '06:30'),
             new DateTimeZone('America/New_York')
         );
-        if ($care_at->getTimestamp() - $now->getTimestamp() < 72 * HOUR_IN_SECONDS) {
+        $cutoff_hours = $this->policy_cutoff_hours('reschedulable_until_hours_before_care');
+        if ($care_at->getTimestamp() - $now->getTimestamp() < $cutoff_hours * HOUR_IN_SECONDS) {
             do_action('chroma_backup_care_late_reschedule', array(
                 'request_id' => $stored['request_id'],
                 'contact_id' => $stored['contact_id'],
                 'line_item_key' => $line_item_key,
             ));
-            throw new DomainException('Rescheduling is not allowed within 72 hours of care.');
+            throw new DomainException(sprintf(
+                'Rescheduling is not allowed within %d hours of care.',
+                $cutoff_hours
+            ));
         }
 
         $closures = $this->ghl->closures(array($new_date), $stored['campus_id']);
@@ -926,6 +945,16 @@ final class Chroma_Backup_Care_Service
             }
         }
         return array_values(array_unique($dates));
+    }
+
+    private function policy_cutoff_hours($key, $fallback = 72)
+    {
+        $manifest = $this->config->manifest();
+        $cancellation = isset($manifest['business_rules']['cancellation'])
+            && is_array($manifest['business_rules']['cancellation'])
+            ? $manifest['business_rules']['cancellation']
+            : array();
+        return isset($cancellation[$key]) ? max(0, (int) $cancellation[$key]) : (int) $fallback;
     }
 
     private function evaluate(array $order, DateTimeImmutable $now)

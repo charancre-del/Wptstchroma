@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Chroma Backup Care
  * Description: Server-side backup-care cart with GHL records, invoices, connected Stripe payments, and calendar coordination.
- * Version: 0.8.0
+ * Version: 0.9.0
  * Author: Chroma Development Team
  * Text Domain: chroma-backup-care
  */
@@ -11,7 +11,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('CHROMA_BACKUP_CARE_VERSION', '0.8.0');
+define('CHROMA_BACKUP_CARE_VERSION', '0.9.0');
 define('CHROMA_BACKUP_CARE_FILE', __FILE__);
 define('CHROMA_BACKUP_CARE_DIR', plugin_dir_path(__FILE__));
 define('CHROMA_BACKUP_CARE_URL', plugin_dir_url(__FILE__));
@@ -34,3 +34,15 @@ if (defined('WP_CLI') && WP_CLI) {
 register_activation_hook(__FILE__, array('Chroma_Backup_Care_Plugin', 'activate'));
 register_deactivation_hook(__FILE__, array('Chroma_Backup_Care_Plugin', 'deactivate'));
 Chroma_Backup_Care_Plugin::boot();
+
+if (!function_exists('chroma_backup_care_public_settings')) {
+    function chroma_backup_care_public_settings()
+    {
+        try {
+            return (new Chroma_Backup_Care_Config())->public_settings();
+        } catch (Throwable $error) {
+            error_log('Chroma Backup Care public settings unavailable: ' . get_class($error));
+            return array();
+        }
+    }
+}

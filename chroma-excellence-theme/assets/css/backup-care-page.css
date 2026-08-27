@@ -1,0 +1,408 @@
+.backup-care-page {
+  --bc-ink: #273137;
+  --bc-red: #9a4936;
+  --bc-blue: #3d5565;
+  --bc-cream: #fbf8f2;
+  --bc-border: rgba(39, 49, 55, 0.12);
+  color: var(--bc-ink);
+  background: #fff;
+}
+
+.backup-care-container {
+  width: min(100% - 2rem, 78rem);
+  margin-inline: auto;
+}
+
+.backup-care-kicker {
+  margin: 0 0 0.8rem;
+  color: var(--bc-red);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.backup-care-hero {
+  position: relative;
+  min-height: 34rem;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+  background-position: center;
+  background-size: cover;
+}
+
+.backup-care-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(24, 34, 41, 0.94) 0%, rgba(24, 34, 41, 0.76) 54%, rgba(24, 34, 41, 0.22) 100%);
+}
+
+.backup-care-hero__content {
+  position: relative;
+  z-index: 1;
+  padding-block: 6rem 4.5rem;
+  color: #fff;
+}
+
+.backup-care-hero__content > * {
+  max-width: 43rem;
+}
+
+.backup-care-hero__content .backup-care-kicker {
+  color: #efd178;
+}
+
+.backup-care-hero h1,
+.backup-care-section-heading h2,
+.backup-care-practical-card h2,
+.backup-care-faq__intro h2,
+.backup-care-closing h2 {
+  margin: 0;
+  font-family: var(--font-serif, Georgia, serif);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+.backup-care-hero h1 {
+  font-size: clamp(3.1rem, 6vw, 5.8rem);
+}
+
+.backup-care-hero__content > p:not(.backup-care-kicker) {
+  margin: 1.4rem 0 0;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.backup-care-primary-button,
+.backup-care-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3.25rem;
+  margin-top: 2rem;
+  padding: 0.85rem 1.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.backup-care-primary-button {
+  background: var(--bc-red);
+  color: #fff;
+}
+
+.backup-care-secondary-button {
+  margin-top: 0;
+  background: #fff;
+  color: var(--bc-ink);
+}
+
+.backup-care-facts {
+  border-bottom: 1px solid var(--bc-border);
+  background: var(--bc-cream);
+}
+
+.backup-care-facts__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.backup-care-fact {
+  min-width: 0;
+  padding: 1.65rem 1.4rem;
+  border-left: 1px solid var(--bc-border);
+}
+
+.backup-care-fact:first-child {
+  border-left: 0;
+}
+
+.backup-care-fact strong,
+.backup-care-fact span {
+  display: block;
+}
+
+.backup-care-fact strong {
+  font-size: 1.05rem;
+}
+
+.backup-care-fact span {
+  margin-top: 0.25rem;
+  color: rgba(39, 49, 55, 0.68);
+  font-size: 0.86rem;
+}
+
+.backup-care-booking,
+.backup-care-support,
+.backup-care-faq,
+.backup-care-closing {
+  padding-block: clamp(4rem, 8vw, 7rem);
+}
+
+.backup-care-booking {
+  background: var(--bc-cream);
+  border-bottom: 1px solid var(--bc-border);
+}
+
+.backup-care-section-heading {
+  max-width: 50rem;
+  margin-bottom: 2.5rem;
+}
+
+.backup-care-section-heading--center {
+  margin-inline: auto;
+  text-align: center;
+}
+
+.backup-care-section-heading h2,
+.backup-care-practical-card h2,
+.backup-care-faq__intro h2 {
+  font-size: clamp(2.5rem, 5vw, 4.5rem);
+}
+
+.backup-care-section-heading > p:last-child,
+.backup-care-faq__intro > p:not(.backup-care-kicker),
+.backup-care-practical-card > p,
+.backup-care-practical-card li {
+  color: rgba(39, 49, 55, 0.72);
+  line-height: 1.7;
+}
+
+.backup-care-section-heading > p:last-child {
+  margin-top: 1rem;
+  font-size: 1.05rem;
+}
+
+.backup-care-expect-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.backup-care-info-card,
+.backup-care-practical-card,
+.backup-care-faq__items details,
+.backup-care-notice {
+  border: 1px solid var(--bc-border);
+  border-radius: 1.75rem;
+  background: #fff;
+  box-shadow: 0 1rem 2.5rem rgba(39, 49, 55, 0.06);
+}
+
+.backup-care-info-card {
+  padding: 1.6rem;
+}
+
+.backup-care-info-card__icon {
+  display: inline-flex;
+  width: 2.8rem;
+  height: 2.8rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f1e8e4;
+  color: var(--bc-red);
+}
+
+.backup-care-info-card h3 {
+  margin: 1rem 0 0.55rem;
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 1.45rem;
+}
+
+.backup-care-info-card p {
+  margin: 0;
+  color: rgba(39, 49, 55, 0.7);
+  line-height: 1.6;
+}
+
+.backup-care-practical-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.backup-care-practical-card {
+  padding: clamp(1.8rem, 4vw, 3rem);
+}
+
+.backup-care-practical-card--accent {
+  background: var(--bc-cream);
+}
+
+.backup-care-practical-card h2 {
+  font-size: clamp(2rem, 4vw, 3.25rem);
+}
+
+.backup-care-practical-card ul {
+  margin: 1.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.backup-care-practical-card li + li {
+  margin-top: 0.65rem;
+}
+
+.backup-care-practical-card a,
+.backup-care-faq a,
+.backup-care-notice a {
+  color: var(--bc-red);
+  font-weight: 800;
+}
+
+.backup-care-small-copy {
+  margin-bottom: 0;
+  font-size: 0.9rem;
+}
+
+.backup-care-faq {
+  background: var(--bc-cream);
+  border-block: 1px solid var(--bc-border);
+}
+
+.backup-care-faq__layout {
+  display: grid;
+  grid-template-columns: 0.72fr 1.28fr;
+  gap: clamp(2rem, 6vw, 5rem);
+}
+
+.backup-care-faq__intro {
+  align-self: start;
+  position: sticky;
+  top: 7rem;
+}
+
+.backup-care-faq__items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.backup-care-faq__items details {
+  padding: 1.25rem;
+}
+
+.backup-care-faq__items summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 800;
+}
+
+.backup-care-faq__items details[open] summary span:last-child {
+  transform: rotate(45deg);
+}
+
+.backup-care-faq__items details p {
+  margin: 1rem 0 0;
+  color: rgba(39, 49, 55, 0.72);
+  line-height: 1.65;
+}
+
+.backup-care-closing {
+  background: var(--bc-blue);
+  color: #fff;
+}
+
+.backup-care-closing__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.backup-care-closing .backup-care-kicker {
+  color: #efd178;
+}
+
+.backup-care-closing h2 {
+  max-width: 52rem;
+  font-size: clamp(2.2rem, 5vw, 4.25rem);
+}
+
+.backup-care-notice {
+  padding: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .backup-care-facts__grid,
+  .backup-care-expect-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .backup-care-fact:nth-child(3) {
+    border-left: 0;
+    border-top: 1px solid var(--bc-border);
+  }
+
+  .backup-care-fact:nth-child(4) {
+    border-top: 1px solid var(--bc-border);
+  }
+
+  .backup-care-practical-grid,
+  .backup-care-faq__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .backup-care-faq__intro {
+    position: static;
+  }
+
+  .backup-care-closing__inner {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .backup-care-container {
+    width: min(100% - 1.25rem, 78rem);
+  }
+
+  .backup-care-hero {
+    min-height: 31rem;
+  }
+
+  .backup-care-hero__content {
+    padding-block: 6rem 3rem;
+  }
+
+  .backup-care-hero__overlay {
+    background: linear-gradient(90deg, rgba(24, 34, 41, 0.94), rgba(24, 34, 41, 0.68));
+  }
+
+  .backup-care-fact {
+    padding: 1.2rem 0.9rem;
+  }
+
+  .backup-care-expect-grid,
+  .backup-care-faq__items {
+    grid-template-columns: 1fr;
+  }
+
+  .backup-care-booking,
+  .backup-care-support,
+  .backup-care-faq,
+  .backup-care-closing {
+    padding-block: 3.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .backup-care-page *,
+  .backup-care-page *::before,
+  .backup-care-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
