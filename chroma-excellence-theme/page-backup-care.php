@@ -22,10 +22,10 @@ $fallback_settings = array(
     'enrollmentRequirementMessage' => 'Required enrollment and health records must be complete before care begins.',
     'availabilityNotice' => 'Campus and date options are subject to operational closures, staffing, and classroom ratio requirements.',
 );
-$plugin_settings = function_exists('chroma_backup_care_public_settings')
+$runtime_settings = function_exists('chroma_backup_care_public_settings')
     ? chroma_backup_care_public_settings()
     : array();
-$settings = array_merge($fallback_settings, is_array($plugin_settings) ? $plugin_settings : array());
+$settings = array_merge($fallback_settings, is_array($runtime_settings) ? $runtime_settings : array());
 $booking_url = '#reserve-backup-care';
 $hero_image = get_the_post_thumbnail_url(get_queried_object_id(), 'full');
 if (!$hero_image) {
@@ -103,14 +103,19 @@ $faqs = array(
                 <h2 id="backup-care-booking-title"><?php esc_html_e('Build one reservation for your family.', 'chroma-excellence'); ?></h2>
                 <p><?php esc_html_e('Verify your email, choose a campus and dates, add each child, then review the complete total before secure payment.', 'chroma-excellence'); ?></p>
             </div>
-            <?php if (shortcode_exists('chroma_backup_care_cart')) : ?>
-                <?php echo do_shortcode('[chroma_backup_care_cart]'); ?>
-            <?php else : ?>
-                <div class="backup-care-notice">
-                    <p><?php esc_html_e('Online Backup Care booking is not available right now.', 'chroma-excellence'); ?></p>
-                    <a href="mailto:<?php echo esc_attr($settings['supportEmail']); ?>"><?php echo esc_html($settings['supportEmail']); ?></a>
-                </div>
-            <?php endif; ?>
+            <div
+                class="chroma-backup-care-cart"
+                data-chroma-backup-care-ghl
+                data-campus="<?php echo esc_attr(isset($_GET['campus']) ? sanitize_key(wp_unslash($_GET['campus'])) : ''); ?>"
+            >
+                <p class="cbc-status"><?php esc_html_e('Loading secure GHL booking...', 'chroma-excellence'); ?></p>
+                <noscript>
+                    <div class="backup-care-notice">
+                        <p><?php esc_html_e('JavaScript is required to build a multi-child, multi-date reservation.', 'chroma-excellence'); ?></p>
+                        <a href="mailto:<?php echo esc_attr($settings['supportEmail']); ?>"><?php echo esc_html($settings['supportEmail']); ?></a>
+                    </div>
+                </noscript>
+            </div>
         </div>
     </section>
 

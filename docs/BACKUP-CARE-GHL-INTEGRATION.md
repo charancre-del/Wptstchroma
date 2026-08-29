@@ -1,5 +1,11 @@
 # Backup Care Integration
 
+> **Architecture update (August 29, 2026):** The Backup Care page now uses the
+> theme-owned reservation builder and native GHL form documented in
+> `BACKUP-CARE-GHL-NATIVE-FORM.md`. The coordinator-plugin design below is
+> retained as historical implementation evidence and is not required by the
+> current page runtime.
+
 ## Release Boundary
 
 The backend, GHL configuration, theme templates, and test harness are prepared. Nothing in this package authorizes publication.
