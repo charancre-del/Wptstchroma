@@ -9,6 +9,7 @@ namespace ChromaQA\Notifications;
 
 use ChromaQA\Models\Report;
 use ChromaQA\Models\School;
+use ChromaQA\Utils\Private_Temp_Storage;
 
 /**
  * Handles email notifications for QA reports.
@@ -122,6 +123,7 @@ class Email_Notifications {
      * @param string $subject Email subject.
      * @param string $body HTML body.
      * @param string $attachment Optional attachment path.
+     * @return bool Whether WordPress accepted the message for delivery.
      */
     private static function send_email( $to, $subject, $body, $attachment = '' ) {
         $headers = [
@@ -129,9 +131,24 @@ class Email_Notifications {
             'From: Chroma QA Reports <noreply@' . parse_url( \home_url(), PHP_URL_HOST ) . '>',
         ];
 
-        $attachments = $attachment ? [ $attachment ] : [];
+        $send = static function ( $attachment_path = '' ) use ( $to, $subject, $body, $headers ) {
+            $attachments = $attachment_path !== '' ? [ $attachment_path ] : [];
+            return (bool) \wp_mail( $to, $subject, self::wrap_template( $body ), $headers, $attachments );
+        };
 
-        \wp_mail( $to, $subject, self::wrap_template( $body ), $headers, $attachments );
+        if ( $attachment === '' ) {
+            return $send();
+        }
+
+        // Report attachments are short-lived private files. Refuse arbitrary
+        // paths and delete the file after wp_mail has consumed it synchronously.
+        if ( ! is_string( $attachment ) || ! Private_Temp_Storage::is_managed_file( $attachment ) ) {
+            return false;
+        }
+
+        return Private_Temp_Storage::consume( $attachment, static function ( $path ) use ( $send ) {
+            return $send( $path );
+        } );
     }
 
     /**

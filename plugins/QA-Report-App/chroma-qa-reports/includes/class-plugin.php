@@ -77,6 +77,9 @@ class Plugin
      */
     private function load_dependencies()
     {
+        // Security-critical temporary storage boundary.
+        require_once CQA_PLUGIN_DIR . 'includes/utils/class-private-temp-storage.php';
+
         // Services
         require_once CQA_PLUGIN_DIR . 'includes/services/class-cleanup-service.php';
 

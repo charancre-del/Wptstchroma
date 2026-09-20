@@ -22,7 +22,10 @@ namespace ChromaQA\Tests\Export {
             $original_cache = $cache->getValue();
             $original_db = $GLOBALS['wpdb'] ?? null;
             $directory = getenv('CQA_PDF_TEST_OUTPUT_DIR') ?: sys_get_temp_dir() . '/cqa-pdf-' . bin2hex(random_bytes(8));
+            $private_directory = $directory . '/private';
+            $original_private_directory = getenv('CQA_PRIVATE_TEMP_DIR');
             $GLOBALS['cqa_pdf_test_dir'] = $directory;
+            putenv('CQA_PRIVATE_TEMP_DIR=' . $private_directory);
             $GLOBALS['wpdb'] = new class {
                 public $prefix = 'wp_';
                 public function prepare($query, ...$args) { return $query; }
@@ -71,9 +74,14 @@ namespace ChromaQA\Tests\Export {
                 $GLOBALS['wpdb'] = $original_db;
                 $cache->setValue(null, $original_cache);
                 unset($GLOBALS['cqa_pdf_test_dir']);
+                if ($original_private_directory === false) {
+                    putenv('CQA_PRIVATE_TEMP_DIR');
+                } else {
+                    putenv('CQA_PRIVATE_TEMP_DIR=' . $original_private_directory);
+                }
                 if (!getenv('CQA_PDF_TEST_OUTPUT_DIR')) {
                     foreach ($files as $file) { unlink($file); }
-                    if (is_dir($directory . '/cqa-temp')) { rmdir($directory . '/cqa-temp'); }
+                    if (is_dir($private_directory)) { rmdir($private_directory); }
                     if (is_dir($directory)) { rmdir($directory); }
                 }
             }

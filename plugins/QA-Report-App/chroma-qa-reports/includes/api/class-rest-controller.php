@@ -16,6 +16,7 @@ use ChromaQA\Integrations\Monday;
 use ChromaQA\Checklists\Checklist_Manager;
 use ChromaQA\Services\Monday_Sync_Service;
 use ChromaQA\Utils\Docx_Parser;
+use ChromaQA\Utils\Private_Temp_Storage;
 use ChromaQA\AI\Gemini_Service;
 use WP_REST_Server;
 use WP_REST_Request;
@@ -1952,10 +1953,23 @@ class REST_Controller
         $mime = $ext === 'html' ? 'text/html' : 'application/pdf';
         $filename = \sanitize_file_name($report->get_school()->name . '-QA-Report.' . $ext);
 
-        // Stream the file
+        if (!Private_Temp_Storage::is_managed_file($pdf_path)) {
+            return new WP_Error('unsafe_export_path', __('The report export could not be prepared securely.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        // Stream the file without allowing browsers or intermediaries to retain it.
         header('Content-Type: ' . $mime);
         header('Content-Disposition: inline; filename="' . $filename . '"');
-        readfile($pdf_path);
+        header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+        header('Expires: 0');
+        header('X-Content-Type-Options: nosniff');
+
+        Private_Temp_Storage::consume($pdf_path, static function ($path) {
+            if (readfile($path) === false) {
+                throw new \RuntimeException('Unable to stream the private report export.');
+            }
+        });
         exit;
     }
 
@@ -2291,30 +2305,46 @@ class REST_Controller
         }
 
         $file = $files['file'];
-
-        // 1. Move to temp location
-        $upload = \wp_handle_upload($file, ['test_form' => false]);
-        if (isset($upload['error'])) {
-            return new WP_Error('upload_error', $upload['error'], ['status' => 500]);
+        $error = isset($file['error']) ? (int) $file['error'] : UPLOAD_ERR_NO_FILE;
+        if ($error !== UPLOAD_ERR_OK || empty($file['tmp_name']) || empty($file['name'])) {
+            return new WP_Error('upload_error', __('The DOCX upload did not complete successfully.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
-        $file_path = $upload['file'];
-
-        // 2. Extract Text
-        require_once CQA_PLUGIN_DIR . 'includes/utils/class-docx-parser.php';
-        $text = Docx_Parser::extract_text($file_path);
-
-        if (\is_wp_error($text)) {
-            // cleanup
-            @unlink($file_path);
-            return $text;
+        if (!\is_uploaded_file($file['tmp_name'])) {
+            return new WP_Error('upload_error', __('The DOCX upload could not be verified.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
-        // 3. Parse with AI
-        $parsed_data = Gemini_Service::parse_document($text);
+        if (function_exists('wp_max_upload_size') && !empty($file['size']) && (int) $file['size'] > \wp_max_upload_size()) {
+            return new WP_Error('upload_too_large', __('The DOCX upload exceeds the configured size limit.', 'chroma-qa-reports'), ['status' => 413]);
+        }
 
-        // Cleanup temp file
-        @unlink($file_path);
+        $type = \wp_check_filetype_and_ext(
+            $file['tmp_name'],
+            $file['name'],
+            ['docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+        );
+        if (empty($type['ext']) || $type['ext'] !== 'docx') {
+            return new WP_Error('invalid_file_type', __('Only valid DOCX files can be imported.', 'chroma-qa-reports'), ['status' => 415]);
+        }
+
+        try {
+            $file_path = Private_Temp_Storage::import($file['tmp_name'], 'docx', 'report-docx');
+        } catch (\RuntimeException $error) {
+            return new WP_Error('private_upload_error', __('The DOCX upload could not be stored securely.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        try {
+            // Extract and parse directly from private temporary storage.
+            require_once CQA_PLUGIN_DIR . 'includes/utils/class-docx-parser.php';
+            $text = Docx_Parser::extract_text($file_path);
+            if (\is_wp_error($text)) {
+                return $text;
+            }
+
+            $parsed_data = Gemini_Service::parse_document($text);
+        } finally {
+            Private_Temp_Storage::delete($file_path);
+        }
 
         if (\is_wp_error($parsed_data)) {
             return $parsed_data;
