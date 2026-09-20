@@ -13,6 +13,10 @@ namespace ChromaQA\Utils;
 class Private_Temp_Storage
 {
     const DIRECTORY_NAME = 'chroma-qa-reports-private';
+    const MAX_CLEANUP_WARNINGS = 3;
+
+    /** @var int Number of cleanup warnings emitted during this request. */
+    private static $cleanup_warning_count = 0;
 
     /**
      * Return the validated private temporary directory.
@@ -120,7 +124,7 @@ class Private_Temp_Storage
         $path = self::create($extension, $prefix);
         $bytes = @file_put_contents($path, $contents, LOCK_EX);
         if ($bytes === false) {
-            self::delete($path);
+            self::delete($path, 'write_rollback');
             throw new \RuntimeException('Unable to write a private temporary file.');
         }
 
@@ -128,7 +132,7 @@ class Private_Temp_Storage
         try {
             self::assert_permissions($path, 0600, 'file');
         } catch (\RuntimeException $error) {
-            self::delete($path);
+            self::delete($path, 'write_rollback');
             throw $error;
         }
         return $path;
@@ -160,7 +164,7 @@ class Private_Temp_Storage
             if (is_resource($output)) {
                 fclose($output);
             }
-            self::delete($destination);
+            self::delete($destination, 'import_rollback');
             throw new \RuntimeException('Unable to open the uploaded temporary file.');
         }
 
@@ -175,7 +179,7 @@ class Private_Temp_Storage
             fclose($input);
             fclose($output);
             if (!$copied) {
-                self::delete($destination);
+                self::delete($destination, 'import_rollback');
             }
         }
 
@@ -183,7 +187,7 @@ class Private_Temp_Storage
         try {
             self::assert_permissions($destination, 0600, 'file');
         } catch (\RuntimeException $error) {
-            self::delete($destination);
+            self::delete($destination, 'import_rollback');
             throw $error;
         }
         return $destination;
@@ -193,11 +197,13 @@ class Private_Temp_Storage
      * Run a synchronous consumer and always remove the managed file afterward.
      *
      * @param string   $path     Managed path.
-     * @param callable $consumer Consumer receiving the path.
+     * @param callable      $consumer Consumer receiving the path.
+     * @param string        $context  Bounded, non-sensitive cleanup context.
+     * @param callable|null $cleanup  Test seam for the unlink operation.
      * @return mixed
      * @throws \RuntimeException When the path is not a managed regular file.
      */
-    public static function consume($path, callable $consumer)
+    public static function consume($path, callable $consumer, $context = 'consume', callable $cleanup = null)
     {
         if (!self::is_managed_file($path)) {
             throw new \RuntimeException('Refusing to consume an unmanaged temporary file.');
@@ -206,7 +212,19 @@ class Private_Temp_Storage
         try {
             return $consumer($path);
         } finally {
-            self::delete($path);
+            if ($cleanup === null) {
+                self::delete($path, $context);
+            } else {
+                try {
+                    $removed = (bool) $cleanup($path);
+                } catch (\Throwable $error) {
+                    $removed = false;
+                }
+
+                if (!$removed && file_exists($path)) {
+                    self::report_cleanup_failure($context);
+                }
+            }
         }
     }
 
@@ -239,16 +257,22 @@ class Private_Temp_Storage
     /**
      * Delete only a managed regular file.
      *
-     * @param string $path Candidate path.
+     * @param string $path    Candidate path.
+     * @param string $context Bounded, non-sensitive cleanup context.
      * @return bool
      */
-    public static function delete($path)
+    public static function delete($path, $context = 'delete')
     {
         if (!self::is_managed_file($path)) {
             return false;
         }
 
-        return @unlink($path);
+        $removed = @unlink($path);
+        if (!$removed && file_exists($path)) {
+            self::report_cleanup_failure($context);
+        }
+
+        return $removed || !file_exists($path);
     }
 
     /**
@@ -279,7 +303,7 @@ class Private_Temp_Storage
             }
 
             $modified = filemtime($path);
-            if ($modified !== false && $modified < $cutoff && self::delete($path)) {
+            if ($modified !== false && $modified < $cutoff && self::delete($path, 'scheduled_cleanup')) {
                 $removed++;
             }
         }
@@ -372,6 +396,42 @@ class Private_Temp_Storage
         if ($permissions === false || ($permissions & 0777) !== $expected) {
             throw new \RuntimeException('The private temporary ' . $label . ' permissions are not restrictive enough.');
         }
+    }
+
+    /**
+     * Emit a bounded, path-free signal without disrupting completed work.
+     *
+     * @param string $context Cleanup call-site context.
+     */
+    private static function report_cleanup_failure($context)
+    {
+        if (self::$cleanup_warning_count >= self::MAX_CLEANUP_WARNINGS) {
+            return;
+        }
+
+        $allowed = [
+            'consume',
+            'delete',
+            'docx_upload',
+            'import_rollback',
+            'mail_attachment',
+            'pdf_generation',
+            'rest_export',
+            'scheduled_cleanup',
+            'write_rollback',
+        ];
+        $context = in_array($context, $allowed, true) ? $context : 'unspecified';
+        self::$cleanup_warning_count++;
+
+        if (function_exists('do_action')) {
+            try {
+                \do_action('cqa_private_temp_cleanup_failed', $context);
+            } catch (\Throwable $error) {
+                // Observability hooks must never change a completed operation.
+            }
+        }
+
+        @error_log('[CQA][WARNING] Private temporary cleanup failed; context=' . $context);
     }
 
     /**

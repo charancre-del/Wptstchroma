@@ -1957,20 +1957,54 @@ class REST_Controller
             return new WP_Error('unsafe_export_path', __('The report export could not be prepared securely.', 'chroma-qa-reports'), ['status' => 500]);
         }
 
-        // Stream the file without allowing browsers or intermediaries to retain it.
-        header('Content-Type: ' . $mime);
-        header('Content-Disposition: inline; filename="' . $filename . '"');
-        header('Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0');
-        header('Pragma: no-cache');
-        header('Expires: 0');
-        header('X-Content-Type-Options: nosniff');
+        $this->stream_private_export($pdf_path, $mime, $filename);
+        exit;
+    }
 
-        Private_Temp_Storage::consume($pdf_path, static function ($path) {
-            if (readfile($path) === false) {
+    /**
+     * Emit private export headers, stream the managed file, and clean it up.
+     *
+     * Callable parameters are test seams; production always uses header/readfile.
+     *
+     * @param string        $path           Managed private export path.
+     * @param string        $mime           Response content type.
+     * @param string        $filename       Download filename.
+     * @param callable|null $streamer       Optional stream callback.
+     * @param callable|null $header_emitter Optional header callback.
+     * @return mixed Stream callback result.
+     */
+    private function stream_private_export($path, $mime, $filename, callable $streamer = null, callable $header_emitter = null)
+    {
+        if (!Private_Temp_Storage::is_managed_file($path)) {
+            throw new \RuntimeException('Refusing to stream an unmanaged report export.');
+        }
+
+        $header_emitter = $header_emitter ?: static function ($header) {
+            header($header);
+        };
+        $streamer = $streamer ?: static function ($private_path) {
+            $bytes = readfile($private_path);
+            if ($bytes === false) {
                 throw new \RuntimeException('Unable to stream the private report export.');
             }
-        });
-        exit;
+            return $bytes;
+        };
+
+        $filename = str_replace(["\r", "\n"], '', (string) $filename);
+        $headers = [
+            'Content-Type: ' . $mime,
+            'Content-Disposition: inline; filename="' . $filename . '"',
+            'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma: no-cache',
+            'Expires: 0',
+            'X-Content-Type-Options: nosniff',
+        ];
+        return Private_Temp_Storage::consume($path, static function ($private_path) use ($headers, $header_emitter, $streamer) {
+            foreach ($headers as $header) {
+                $header_emitter($header);
+            }
+            return $streamer($private_path);
+        }, 'rest_export');
     }
 
 
@@ -2328,22 +2362,9 @@ class REST_Controller
         }
 
         try {
-            $file_path = Private_Temp_Storage::import($file['tmp_name'], 'docx', 'report-docx');
+            $parsed_data = $this->process_uploaded_report_doc($file['tmp_name']);
         } catch (\RuntimeException $error) {
-            return new WP_Error('private_upload_error', __('The DOCX upload could not be stored securely.', 'chroma-qa-reports'), ['status' => 500]);
-        }
-
-        try {
-            // Extract and parse directly from private temporary storage.
-            require_once CQA_PLUGIN_DIR . 'includes/utils/class-docx-parser.php';
-            $text = Docx_Parser::extract_text($file_path);
-            if (\is_wp_error($text)) {
-                return $text;
-            }
-
-            $parsed_data = Gemini_Service::parse_document($text);
-        } finally {
-            Private_Temp_Storage::delete($file_path);
+            return new WP_Error('private_upload_error', __('The DOCX upload could not be processed securely.', 'chroma-qa-reports'), ['status' => 500]);
         }
 
         if (\is_wp_error($parsed_data)) {
@@ -2351,6 +2372,37 @@ class REST_Controller
         }
 
         return new WP_REST_Response($parsed_data, 200);
+    }
+
+    /**
+     * Copy an uploaded DOCX into private storage, parse it, and always clean up.
+     *
+     * Callable parameters are test seams; production uses the real parser and
+     * Gemini service after the REST boundary has validated the PHP upload.
+     *
+     * @param string        $source    PHP upload temporary path.
+     * @param callable|null $extractor Optional DOCX text extractor.
+     * @param callable|null $parser    Optional document parser.
+     * @return mixed Parsed data or WP_Error.
+     */
+    private function process_uploaded_report_doc($source, callable $extractor = null, callable $parser = null)
+    {
+        $file_path = Private_Temp_Storage::import($source, 'docx', 'report-docx');
+
+        try {
+            require_once CQA_PLUGIN_DIR . 'includes/utils/class-docx-parser.php';
+            $extractor = $extractor ?: [Docx_Parser::class, 'extract_text'];
+            $parser = $parser ?: [Gemini_Service::class, 'parse_document'];
+
+            $text = $extractor($file_path);
+            if (\is_wp_error($text)) {
+                return $text;
+            }
+
+            return $parser($text);
+        } finally {
+            Private_Temp_Storage::delete($file_path, 'docx_upload');
+        }
     }
 
     /**

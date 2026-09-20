@@ -148,7 +148,7 @@ class Email_Notifications {
 
         return Private_Temp_Storage::consume( $attachment, static function ( $path ) use ( $send ) {
             return $send( $path );
-        } );
+        }, 'mail_attachment' );
     }
 
     /**

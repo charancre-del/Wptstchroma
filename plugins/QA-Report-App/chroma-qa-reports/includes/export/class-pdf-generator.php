@@ -827,7 +827,7 @@ class PDF_Generator
             @chmod($filepath, 0600);
             return $filepath;
         } catch (\Throwable $error) {
-            Private_Temp_Storage::delete($filepath);
+            Private_Temp_Storage::delete($filepath, 'pdf_generation');
             throw $error;
         }
     }

@@ -11,7 +11,12 @@ and does not assert that historical report media is private.
 - REST export responses use private/no-store/nosniff headers and synchronously
   delete the generated file after streaming, including exceptional paths.
 - Approval-mail attachments are accepted only from the managed private temp
-  directory and are deleted after synchronous `wp_mail` consumption.
+  directory and are deleted after `wp_mail` returns. This is verified only for
+  synchronous consumption; an active asynchronous `pre_wp_mail`/mail transport
+  may require its own durable private copy before returning.
+- Cleanup failures emit at most three path-free warning signals per request via
+  the error log and `cqa_private_temp_cleanup_failed` action. Signal failures do
+  not turn a completed stream or accepted synchronous mail call into a failure.
 - Daily cleanup targets abandoned private files and safely retains non-recursive
   cleanup of both historical upload-temp directory names.
 - The service worker caches only an exact list of static plugin assets. API,
@@ -29,6 +34,7 @@ fails closed if that location resolves inside a web root.
 | Area | Status | Required before confidentiality can be called verified |
 |---|---|---|
 | Newly generated export/DOCX temporary files | PARTIAL | Deploy to staging; verify the resolved directory and permissions as the WordPress runtime user; exercise successful and failed stream/parser/mail paths; verify no file remains and direct HTTP requests cannot reach the directory. |
+| WordPress mail attachment consumption | BLOCKED_EXTERNAL_VERIFICATION | Inspect the real `pre_wp_mail` filters and active mail transport. Verify whether attachments are consumed synchronously or copied to durable private queue storage before `wp_mail` returns. Until then, asynchronous mail attachment delivery is not verified even though synchronous source-level cleanup is covered. |
 | Active report-photo storage in WordPress media | PARTIAL | Design and implement private storage plus an authenticated photo-by-ID delivery endpoint using the existing report access policy. Add a server-side byte resolver so PDF and AI consumers do not depend on public URLs. Do not move active photos until compatibility and rollback tests pass. |
 | Google Drive report-photo permissions | BLOCKED_EXTERNAL_VERIFICATION | Inspect the real folder/file ACL and inherited sharing in staging/production with read-only credentials. Decide whether private proxy delivery or provider ACL repair is authoritative, then test direct anonymous denial. |
 | Historical originals, thumbnails, aliases, and CDN copies | BLOCKED_EXTERNAL_VERIFICATION | Inventory by retained attachment/provider identifiers, not filename alone; approve a migration and rollback plan; migrate in a controlled release; verify original and generated-size URLs are denied; purge and read back CDN state. |

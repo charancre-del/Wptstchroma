@@ -84,6 +84,46 @@ class PrivateTempStorageTest extends TestCase
         $this->assertFileDoesNotExist($failure);
     }
 
+    public function test_cleanup_failures_are_bounded_observable_and_do_not_replace_success()
+    {
+        $log = tempnam(sys_get_temp_dir(), 'cqa-cleanup-log-');
+        $original_log = ini_get('error_log');
+        $counter = new \ReflectionProperty(Private_Temp_Storage::class, 'cleanup_warning_count');
+        $counter->setAccessible(true);
+        $counter->setValue(null, 0);
+        ini_set('error_log', $log);
+
+        try {
+            for ($index = 0; $index < 4; $index++) {
+                $path = Private_Temp_Storage::write('content', 'pdf');
+                $result = Private_Temp_Storage::consume(
+                    $path,
+                    static function () {
+                        return 'consumer-success';
+                    },
+                    'rest_export',
+                    static function () {
+                        return false;
+                    }
+                );
+
+                $this->assertSame('consumer-success', $result);
+                $this->assertFileExists($path);
+            }
+
+            $entries = array_values(array_filter(file($log, FILE_IGNORE_NEW_LINES) ?: []));
+            $this->assertCount(Private_Temp_Storage::MAX_CLEANUP_WARNINGS, $entries);
+            foreach ($entries as $entry) {
+                $this->assertStringContainsString('Private temporary cleanup failed; context=rest_export', $entry);
+                $this->assertStringNotContainsString($this->root, $entry);
+                $this->assertStringNotContainsString('.pdf', $entry);
+            }
+        } finally {
+            ini_set('error_log', $original_log);
+            unlink($log);
+        }
+    }
+
     public function test_import_and_age_based_purge_stay_within_managed_root()
     {
         $source = tempnam(sys_get_temp_dir(), 'cqa-source-');
