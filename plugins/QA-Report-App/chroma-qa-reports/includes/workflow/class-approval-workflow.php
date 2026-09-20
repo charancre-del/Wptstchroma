@@ -67,13 +67,13 @@ class Approval_Workflow {
         switch ( $action ) {
             case 'submit':
                 // Author can submit
-                return $report->user_id == \get_current_user_id() || \current_user_can( 'cqa_edit_all_reports' );
+                return \ChromaQA\Auth\Access_Policy::report($report, 'edit');
 
             case 'start_review':
             case 'approve':
             case 'request_revision':
                 // Regional Director or Super Admin
-                return \current_user_can( 'cqa_edit_all_reports' );
+                return \ChromaQA\Auth\Access_Policy::report($report, 'approve');
 
             default:
                 return false;
@@ -84,7 +84,7 @@ class Approval_Workflow {
      * Check view permission.
      */
     public static function check_view_permission( $request ) {
-        return \current_user_can( 'cqa_view_all_reports' );
+        return \ChromaQA\Auth\Access_Policy::report(Report::find((int) $request['id']));
     }
 
     /**

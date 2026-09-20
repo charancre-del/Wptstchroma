@@ -198,7 +198,8 @@ class Admin_Menu
             'restUrl' => rest_url('cqa/v1/'),
             'nonce' => wp_create_nonce('wp_rest'),
             'googleClientId' => get_option('cqa_google_client_id'),
-            'developerKey' => get_option('cqa_google_developer_key'),
+            'developerKey' => \ChromaQA\Auth\Access_Policy::capability('cqa_create_reports')
+                ? get_option('cqa_google_picker_browser_key', '') : '',
             'debug' => defined('CQA_DEBUG') ? CQA_DEBUG : false,
             'strings' => [
                 'confirm_delete' => __('Are you sure you want to delete this?', 'chroma-qa-reports'),
@@ -651,10 +652,8 @@ class Admin_Menu
                 }
 
                 // Masking check: If value is all asterisks, do not update (keep existing)
-                if (in_array($field, ['google_client_secret', 'gemini_api_key', 'google_developer_key', 'google_maps_api_key'])) {
-                    if (preg_match('/^\*+$/', $value)) {
-                        continue;
-                    }
+                if (\ChromaQA\Settings::preserve_secret($field, $value)) {
+                    continue;
                 }
 
                 update_option("cqa_{$field}", $value);

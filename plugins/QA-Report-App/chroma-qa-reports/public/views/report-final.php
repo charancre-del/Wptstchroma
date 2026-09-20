@@ -14,6 +14,7 @@ use ChromaQA\Checklists\Checklist_Manager;
 
 $report_id = get_query_var( 'cqa_report_id' );
 $report = Report::find( $report_id );
+\ChromaQA\Auth\Access_Policy::require_access(\ChromaQA\Auth\Access_Policy::report($report, 'export'));
 
 if ( ! $report ) {
     include CQA_PLUGIN_DIR . 'public/views/404.php';
@@ -21,7 +22,7 @@ if ( ! $report ) {
 }
 
 $school = School::find( $report->school_id );
-$previous_report = $report->previous_report_id ? Report::find( $report->previous_report_id ) : null;
+$previous_report = $report->get_previous_report();
 $photos = Photo::get_by_report( $report_id );
 $photo_comparisons = $previous_report ? Photo_Comparison::get_comparison_pairs( $report_id, $previous_report->id ) : [];
 $responses = Checklist_Response::get_by_report_grouped( $report_id );

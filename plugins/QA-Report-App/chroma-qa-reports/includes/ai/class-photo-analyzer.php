@@ -274,7 +274,11 @@ PROMPT;
         \register_rest_route( 'cqa/v1', '/photos/analyze', [
             'methods'             => 'POST',
             'callback'            => function( $request ) {
-                $url = $request['url'] ?? '';
+                $photo = \ChromaQA\Models\Photo::find((int) $request['photo_id']);
+                if (!$photo || !\ChromaQA\Auth\Access_Policy::report(\ChromaQA\Models\Report::find($photo->report_id), 'ai')) {
+                    return \ChromaQA\Auth\Access_Policy::deny();
+                }
+                $url = $photo->get_thumbnail_url(1600);
                 $context = $request['context'] ?? '';
 
                 if ( empty( $url ) ) {
@@ -291,7 +295,14 @@ PROMPT;
         \register_rest_route( 'cqa/v1', '/photos/batch-analyze', [
             'methods'             => 'POST',
             'callback'            => function( $request ) {
-                $photos = $request['photos'] ?? [];
+                $photos = [];
+                foreach ((array) $request['photo_ids'] as $id) {
+                    $photo = \ChromaQA\Models\Photo::find((int) $id);
+                    if (!$photo || !\ChromaQA\Auth\Access_Policy::report(\ChromaQA\Models\Report::find($photo->report_id), 'ai')) {
+                        return \ChromaQA\Auth\Access_Policy::deny();
+                    }
+                    $photos[] = ['url' => $photo->get_thumbnail_url(1600), 'section' => $photo->section_key];
+                }
                 return self::batch_analyze( $photos );
             },
             'permission_callback' => function() {

@@ -113,13 +113,73 @@ if (!function_exists('current_time')) {
 
 if (!function_exists('get_current_user_id')) {
     function get_current_user_id() {
-        return 99;
+        return $GLOBALS['cqa_test_user_id'] ?? 99;
     }
 }
 
 if (!function_exists('get_option')) {
     function get_option($name, $default = false) {
-        return $default;
+        return $GLOBALS['cqa_test_options'][$name] ?? $default;
+    }
+}
+
+if (!function_exists('get_user_meta')) {
+    function get_user_meta($id, $key, $single = true) {
+        return $GLOBALS['cqa_test_meta'][$id][$key] ?? '';
+    }
+}
+if (!function_exists('current_user_can')) {
+    function current_user_can($cap) {
+        return !empty($GLOBALS['cqa_test_caps'][$cap]);
+    }
+}
+if (!function_exists('update_option')) {
+    function update_option($key, $value) {
+        $GLOBALS['cqa_test_options'][$key] = $value;
+        return true;
+    }
+}
+if (!function_exists('is_wp_error')) {
+    function is_wp_error($value) { return $value instanceof WP_Error; }
+}
+if (!function_exists('wp_die')) {
+    function wp_die($message, $title = '', $args = []) { throw new RuntimeException($message, (int) ($args['response'] ?? 500)); }
+}
+if (!class_exists('WP_Error')) {
+    class WP_Error {
+        private $code;
+        private $message;
+        private $data;
+        public function __construct($code = '', $message = '', $data = []) { $this->code = $code; $this->message = $message; $this->data = $data; }
+        public function get_error_code() { return $this->code; }
+        public function get_error_message() { return $this->message; }
+        public function get_error_data() { return $this->data; }
+    }
+}
+if (!class_exists('WP_REST_Request')) {
+    class WP_REST_Request implements ArrayAccess {
+        private $params;
+        private $route;
+        private $method;
+        public function __construct($method = 'GET', $route = '', $params = []) { $this->params = $params; $this->route = $route; $this->method = $method; }
+        public function get_route() { return $this->route; }
+        public function get_method() { return $this->method; }
+        public function get_params() { return $this->params; }
+        public function get_param($key) { return $this->params[$key] ?? null; }
+        public function has_param($key) { return array_key_exists($key, $this->params); }
+        public function offsetExists($key): bool { return isset($this->params[$key]); }
+        public function offsetGet($key): mixed { return $this->get_param($key); }
+        public function offsetSet($key, $value): void { $this->params[$key] = $value; }
+        public function offsetUnset($key): void { unset($this->params[$key]); }
+    }
+}
+if (!class_exists('WP_REST_Response')) {
+    class WP_REST_Response {
+        private $data;
+        private $status;
+        public function __construct($data, $status = 200) { $this->data = $data; $this->status = $status; }
+        public function get_data() { return $this->data; }
+        public function get_status() { return $this->status; }
     }
 }
 

@@ -174,12 +174,13 @@ class Trends {
     public static function get_company_stats() {
         global $wpdb;
         $table = $wpdb->prefix . 'cqa_reports';
+        $scope = \ChromaQA\Auth\Access_Policy::report_sql();
 
         // Rating distribution
         $ratings = $wpdb->get_results( "
             SELECT overall_rating, COUNT(*) as count 
             FROM {$table} 
-            WHERE status = 'approved' 
+            WHERE status = 'approved' AND {$scope}
             GROUP BY overall_rating
         ", \ARRAY_A );
 
@@ -192,7 +193,7 @@ class Trends {
         $monthly = $wpdb->get_results( "
             SELECT DATE_FORMAT(inspection_date, '%Y-%m') as month, COUNT(*) as count
             FROM {$table}
-            WHERE status = 'approved'
+            WHERE status = 'approved' AND {$scope}
             GROUP BY month
             ORDER BY month DESC
             LIMIT 12
@@ -219,11 +220,13 @@ class Trends {
     public static function get_common_issues( $limit = 10 ) {
         global $wpdb;
         $table = $wpdb->prefix . 'cqa_responses';
+        $reports_table = $wpdb->prefix . 'cqa_reports';
+        $scope = \ChromaQA\Auth\Access_Policy::report_sql('scoped_report');
 
         $results = $wpdb->get_results( $wpdb->prepare( "
             SELECT section_key, item_key, COUNT(*) as count
             FROM {$table}
-            WHERE rating = 'no'
+            WHERE rating = 'no' AND report_id IN (SELECT scoped_report.id FROM {$reports_table} scoped_report WHERE {$scope})
             GROUP BY section_key, item_key
             ORDER BY count DESC
             LIMIT %d

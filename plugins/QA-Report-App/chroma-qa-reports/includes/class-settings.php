@@ -18,6 +18,17 @@ class Settings
      */
     const OPTION_KEY = 'cqa_settings';
 
+    public static function secret_fields()
+    {
+        return ['google_client_secret', 'google_developer_key', 'google_maps_api_key', 'gemini_api_key', 'monday_api_token'];
+    }
+
+    public static function preserve_secret($key, $value)
+    {
+        return in_array($key, self::secret_fields(), true) &&
+            (!is_string($value) || trim($value) === '' || preg_match('/^[*•.]+$/u', trim($value)));
+    }
+
     /**
      * Get a setting value.
      *
@@ -47,6 +58,9 @@ class Settings
      */
     public static function update($key, $value)
     {
+        if (self::preserve_secret($key, $value)) {
+            return false;
+        }
         $settings = get_option(self::OPTION_KEY, []);
         if (!is_array($settings)) {
             $settings = [];

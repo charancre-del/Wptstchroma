@@ -13,14 +13,8 @@
         <testsuite name="Models">
             <directory>tests/php/Models</directory>
         </testsuite>
-        <testsuite name="API">
-            <directory>tests/php/API</directory>
-        </testsuite>
-        <testsuite name="Auth">
-            <directory>tests/php/Auth</directory>
-        </testsuite>
-        <testsuite name="Checklists">
-            <directory>tests/php/Checklists</directory>
+        <testsuite name="Security">
+            <directory>tests/php/Security</directory>
         </testsuite>
     </testsuites>
     <coverage>

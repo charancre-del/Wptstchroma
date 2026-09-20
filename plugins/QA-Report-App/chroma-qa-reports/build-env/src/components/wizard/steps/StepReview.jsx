@@ -117,15 +117,15 @@ export function StepReview( { isViewMode = false, readOnly = false } ) {
         ? reportStatus === 'submitted'
             ? 'This report has been submitted and is awaiting approval.'
             : reportStatus === 'approved'
-                ? 'This report has been approved and is read-only unless reverted by an approver.'
-                : 'Review the current report details.'
+            ? 'This report has been approved and is read-only unless reverted by an approver.'
+            : 'Review the current report details.'
         : 'Review your report before submitting. You can go back to make changes.';
     const completeMessage = isViewMode
         ? reportStatus === 'submitted'
             ? 'Report is submitted and ready for approval'
             : reportStatus === 'approved'
-                ? 'Report is approved'
-                : 'Report is complete'
+            ? 'Report is approved'
+            : 'Report is complete'
         : 'Report is complete and ready to submit';
 
     return (

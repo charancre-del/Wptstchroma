@@ -48,6 +48,7 @@ class Plugin
     public function run()
     {
         $this->load_dependencies();
+        Auth\Access_Policy::init();
         $this->set_locale();
         $this->define_admin_hooks();
         $this->define_api_hooks();

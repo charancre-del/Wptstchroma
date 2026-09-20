@@ -158,7 +158,7 @@ class Report
 
         $args = \wp_parse_args($args, $defaults);
 
-        $where = [];
+        $where = [\ChromaQA\Auth\Access_Policy::report_sql('r')];
         $values = [];
         $join = '';
 
@@ -259,7 +259,7 @@ class Report
         $schools_table = School::get_table_name();
         $users_table = $wpdb->users;
 
-        $where = [];
+        $where = [\ChromaQA\Auth\Access_Policy::report_sql('r')];
         $values = [];
         $join = '';
 
@@ -306,7 +306,7 @@ class Report
             ));
         }
 
-        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} r {$join}");
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} r {$join} {$where_clause}");
     }
 
     /**
@@ -627,7 +627,9 @@ class Report
     public function get_previous_report()
     {
         if ($this->previous_report_id) {
-            return self::find($this->previous_report_id);
+            $previous = self::find($this->previous_report_id);
+            return $previous && (int) $previous->school_id === (int) $this->school_id &&
+                \ChromaQA\Auth\Access_Policy::report($previous) ? $previous : null;
         }
         return null;
     }

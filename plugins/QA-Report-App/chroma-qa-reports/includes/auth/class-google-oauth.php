@@ -334,8 +334,10 @@ class Google_OAuth
             // For now, we defaults to subscriber which has NO CQA capabilities (per FIX-106).
             // Real role is assigned after checks or if auto-approve is on.
 
-            $default_role = \ChromaQA\Settings::get('sso_default_role', 'cqa_qa_officer');
-            $require_approval = \ChromaQA\Settings::get('sso_require_approval', false);
+            // Authentication never provisions QA authorization. An administrator
+            // must assign role, active state, and explicit school/region scope.
+            $default_role = 'subscriber';
+            $require_approval = true;
 
             if (!$require_approval) {
                 $userdata['role'] = $default_role;
