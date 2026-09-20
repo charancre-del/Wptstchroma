@@ -16,6 +16,9 @@
         <testsuite name="Security">
             <directory>tests/php/Security</directory>
         </testsuite>
+        <testsuite name="Export">
+            <directory>tests/php/Export</directory>
+        </testsuite>
     </testsuites>
     <coverage>
         <include>

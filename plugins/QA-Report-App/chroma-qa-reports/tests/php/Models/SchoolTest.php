@@ -8,7 +8,6 @@ namespace ChromaQA\Tests\Models;
 use PHPUnit\Framework\TestCase;
 use ChromaQA\Models\School;
 use Brain\Monkey;
-use Brain\Monkey\Functions;
 use Mockery;
 
 class SchoolTest extends TestCase {
@@ -78,10 +77,10 @@ class SchoolTest extends TestCase {
      * Test table name generation
      */
     public function test_get_table_name() {
-        Functions\expect('wpdb')->once();
-        
         $tableName = School::get_table_name();
-        $this->assertStringContainsString('cqa_schools', $tableName);
+        $this->assertSame('wp_cqa_schools', $tableName);
+        $GLOBALS['wpdb']->prefix = 'synthetic_';
+        $this->assertSame('synthetic_cqa_schools', School::get_table_name());
     }
     
     /**
@@ -94,9 +93,11 @@ class SchoolTest extends TestCase {
             'location' => 'Factory City',
             'region' => 'South',
             'status' => 'active',
+            'acquired_date' => null,
             'drive_folder_id' => '12345',
             'classroom_config' => '[]',
-            'created_at' => '2026-01-01 00:00:00'
+            'created_at' => '2026-01-01 00:00:00',
+            'updated_at' => '2026-01-02 00:00:00'
         ];
         
         $school = School::from_row($row);
@@ -105,6 +106,8 @@ class SchoolTest extends TestCase {
         $this->assertEquals(1, $school->id);
         $this->assertEquals('Factory School', $school->name);
         $this->assertEquals('12345', $school->drive_folder_id);
+        $this->assertNull($school->acquired_date);
+        $this->assertSame('2026-01-02 00:00:00', $school->updated_at);
     }
     
     /**

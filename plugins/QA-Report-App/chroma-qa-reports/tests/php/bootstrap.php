@@ -123,6 +123,13 @@ if (!function_exists('get_option')) {
     }
 }
 
+if (!function_exists('sanitize_key')) {
+    // Match the WordPress default sanitization; this harness has no filters.
+    function sanitize_key($key) {
+        return is_scalar($key) ? preg_replace('/[^a-z0-9_\-]/', '', strtolower((string) $key)) : '';
+    }
+}
+
 if (!function_exists('get_user_meta')) {
     function get_user_meta($id, $key, $single = true) {
         return $GLOBALS['cqa_test_meta'][$id][$key] ?? '';

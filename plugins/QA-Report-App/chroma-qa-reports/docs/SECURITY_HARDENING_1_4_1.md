@@ -2,6 +2,8 @@
 
 Baseline: Wptstchroma `162a79b5d76c540b4eed7e15c062a017f7b5447a`.
 
+Latest dependency/harness results: [dependency remediation follow-up](DEPENDENCY_REMEDIATION_1_4_1.md). The follow-up resolves the four initial PHPUnit errors and clears Composer/root npm audits; build-env, staging and direct-media gates remain open.
+
 ## Invariants and compatibility
 
 Every interactive QA data request requires an active account, an applicable capability, and an explicit data scope. Own-report capabilities additionally require authorship. Broad view/edit capabilities do not imply global school access. Approval requires `cqa_approve_reports` through creation, updates, workflow, legacy actions, and both restore paths. Historical school and previous-report references must also satisfy current scope.
@@ -34,7 +36,7 @@ QA photos may exist as ordinary WordPress media files and Drive files; generated
 
 An isolated staging WordPress instance with synthetic accounts must exercise REST cookie/nonce and legacy forms, SSO provisioning, scoped SQL results, exports, and stubbed provider failures before rollout. Unit tests do not establish live deployment readiness. Record approval, artifact digest, rollback package, and account-assignment evidence separately.
 
-## Verification record (2026-09-20)
+## Initial authorization-only verification record (2026-09-20, commit 5213c57ef)
 
 Outcome: implemented, **verification blocked**; this is not a release-ready or fully verified finding closure.
 
