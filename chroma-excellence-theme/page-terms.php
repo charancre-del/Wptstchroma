@@ -13,7 +13,7 @@ get_header();
 $page_id = get_the_ID();
 
 // Get last updated date
-$last_updated = chroma_get_translated_meta($page_id, 'tos_last_updated') ?: 'December 26, 2024';
+$last_updated = chroma_get_translated_meta($page_id, 'tos_last_updated') ?: get_the_modified_date('F j, Y', $page_id);
 
 // Default Terms of Service content
 $default_sections = array(
@@ -28,7 +28,7 @@ $default_sections = array(
         <ul>
             <li><strong>' . __('Age Requirements:', 'chroma-excellence') . '</strong> ' . __('Children must meet age requirements for their specific program (6 weeks to 12 years)', 'chroma-excellence') . '</li>
             <li><strong>' . __('Documentation:', 'chroma-excellence') . '</strong> ' . __('Complete enrollment forms, immunization records, and emergency contact information must be provided', 'chroma-excellence') . '</li>
-            <li><strong>' . __('Registration Fee:', 'chroma-excellence') . '</strong> ' . __('A non-refundable registration fee is required to secure enrollment', 'chroma-excellence') . '</li>
+            <li><strong>' . __('Fees:', 'chroma-excellence') . '</strong> ' . __('Registration, enrollment, and other fees—if applicable—are described in your enrollment agreement', 'chroma-excellence') . '</li>
             <li><strong>' . __('Availability:', 'chroma-excellence') . '</strong> ' . __('Enrollment is subject to space availability at your preferred location', 'chroma-excellence') . '</li>
         </ul>
         <p>' . __('We reserve the right to refuse or terminate enrollment for reasons including but not limited to: safety concerns, inability to meet the child\'s needs, or non-payment of fees.', 'chroma-excellence') . '</p>'
@@ -39,19 +39,18 @@ $default_sections = array(
         <ul>
             <li>' . __('Tuition is due weekly/monthly in advance as specified in your enrollment agreement', 'chroma-excellence') . '</li>
             <li>' . __('Late payments may incur additional fees as outlined in your enrollment contract', 'chroma-excellence') . '</li>
-            <li>' . __('Tuition is due regardless of absences, holidays, or closures (except extended closures beyond 5 consecutive days)', 'chroma-excellence') . '</li>
-            <li>' . __('A minimum of two weeks written notice is required for withdrawal', 'chroma-excellence') . '</li>
-            <li>' . __('We accept major credit cards, ACH transfers, and approved subsidy payments (CAPS)', 'chroma-excellence') . '</li>
+            <li>' . __('Credits, absences, holidays, closures, and withdrawal notice are governed by your signed enrollment agreement', 'chroma-excellence') . '</li>
+            <li>' . __('Available payment methods and subsidy arrangements are confirmed during enrollment', 'chroma-excellence') . '</li>
         </ul>
         <p>' . __('Failure to maintain current payment may result in suspension or termination of enrollment.', 'chroma-excellence') . '</p>'
     ),
     array(
         'title' => __('Hours of Operation & Policies', 'chroma-excellence'),
-        'content' => '<p>' . __('Our standard hours of operation are 6:30 AM to 6:30 PM, Monday through Friday. Specific hours may vary by location.', 'chroma-excellence') . '</p>
+        'content' => '<p>' . __('Operating hours and campus procedures vary by location. Please confirm current hours with your campus and refer to your enrollment materials for the policies that apply to your family.', 'chroma-excellence') . '</p>
         <ul>
             <li><strong>' . __('Drop-off/Pick-up:', 'chroma-excellence') . '</strong> ' . __('Children must be signed in and out daily by an authorized adult', 'chroma-excellence') . '</li>
-            <li><strong>' . __('Late Pick-up:', 'chroma-excellence') . '</strong> ' . __('Late fees apply for pick-ups after closing time ($1 per minute after 6:35 PM)', 'chroma-excellence') . '</li>
-            <li><strong>' . __('Illness Policy:', 'chroma-excellence') . '</strong> ' . __('Sick children may not attend and must be picked up within one hour of notification', 'chroma-excellence') . '</li>
+            <li><strong>' . __('Late Pick-up:', 'chroma-excellence') . '</strong> ' . __('Campus closing times and any late-pickup charges are described in your enrollment agreement', 'chroma-excellence') . '</li>
+            <li><strong>' . __('Illness Policy:', 'chroma-excellence') . '</strong> ' . __('Families must follow the current health and exclusion guidance supplied by their campus', 'chroma-excellence') . '</li>
             <li><strong>' . __('Closures:', 'chroma-excellence') . '</strong> ' . __('We observe major holidays and may close for inclement weather or emergencies', 'chroma-excellence') . '</li>
         </ul>
         <p>' . __('Complete policies are provided in your enrollment packet and posted at each location.', 'chroma-excellence') . '</p>'
@@ -98,7 +97,7 @@ $default_sections = array(
             <li>' . __('Links to third-party websites are provided for convenience and do not imply endorsement', 'chroma-excellence') . '</li>
             <li>' . __('Unauthorized use of our website may give rise to a claim for damages', 'chroma-excellence') . '</li>
         </ul>
-        <p>' . __('Our website uses cookies to improve your experience. See our', 'chroma-excellence') . ' <a href="/privacy-policy/" class="text-chroma-blue hover:underline">' . __('Privacy Policy', 'chroma-excellence') . '</a> ' . __('for details.', 'chroma-excellence') . '</p>'
+        <p>' . __('Our website uses cookies to improve your experience. See our', 'chroma-excellence') . ' <a href="/privacy-policy/" class="text-chroma-blue underline underline-offset-2">' . __('Privacy Policy', 'chroma-excellence') . '</a> ' . __('for details.', 'chroma-excellence') . '</p>'
     ),
     array(
         'title' => __('Governing Law', 'chroma-excellence'),
@@ -137,12 +136,21 @@ if (!$has_custom_content) {
 }
 ?>
 
-<main class="min-h-screen bg-brand-cream py-24">
-    <div class="max-w-3xl mx-auto px-4 lg:px-6">
-        <h1 class="font-serif text-4xl md:text-5xl font-bold text-brand-ink mb-8"><?php the_title(); ?></h1>
-        <p class="text-sm text-brand-ink/60 mb-12"><?php _e('Last Updated:', 'chroma-excellence'); ?> <?php echo esc_html($last_updated); ?></p>
+<main class="min-h-screen bg-brand-cream">
+    <section class="pageHero chroma-v2-page-hero bg-white border-b border-chroma-blue/10 py-16 lg:py-20 text-center">
+        <div class="max-w-4xl mx-auto px-4 lg:px-6">
+            <span class="inline-flex items-center gap-2 rounded-full bg-chroma-red/10 border border-chroma-red/10 px-5 py-2.5 text-[11px] font-bold uppercase tracking-[0.2em] text-chroma-red mb-7">
+                <span class="w-2 h-2 rounded-full bg-chroma-red"></span>
+                <?php _e('Enrollment Terms', 'chroma-excellence'); ?>
+            </span>
+            <h1 class="font-serif text-[2.65rem] md:text-6xl lg:text-7xl text-brand-ink tracking-[-0.04em] leading-[0.95] mb-5"><?php the_title(); ?></h1>
+            <p class="text-sm text-brand-ink/60"><?php _e('Last Updated:', 'chroma-excellence'); ?> <?php echo esc_html($last_updated); ?></p>
+        </div>
+    </section>
 
-        <div class="prose prose-lg text-brand-ink/80 max-w-none">
+    <section class="py-16 lg:py-20">
+    <div class="max-w-3xl mx-auto px-4 lg:px-6">
+        <div class="bg-white rounded-[2.5rem] border border-chroma-blue/10 shadow-soft p-7 md:p-10 lg:p-12 prose prose-lg text-brand-ink/80 max-w-none">
             <p class="text-lg leading-relaxed mb-8">
                 <?php _e('Welcome to Chroma Early Learning Academy. These Terms of Service ("Terms") govern your use of our childcare services and website. Please read them carefully before enrolling your child or using our services.', 'chroma-excellence'); ?>
             </p>
@@ -162,11 +170,12 @@ if (!$has_custom_content) {
         </div>
 
         <div class="mt-16 pt-8 border-t border-chroma-blue/20">
-            <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="text-chroma-blue hover:underline">
+            <a href="<?php echo esc_url(home_url('/privacy-policy/')); ?>" class="text-chroma-blue underline underline-offset-2">
                 <?php _e('View our Privacy Policy →', 'chroma-excellence'); ?>
             </a>
         </div>
     </div>
+    </section>
 </main>
 
 <?php get_footer(); ?>

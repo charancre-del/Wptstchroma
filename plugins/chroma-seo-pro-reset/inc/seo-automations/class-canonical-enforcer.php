@@ -37,6 +37,7 @@ class Chroma_Canonical_Enforcer
     {
         // Remove WordPress default canonical
         remove_action('wp_head', 'rel_canonical');
+        add_action('wp', [$this, 'remove_core_canonical'], PHP_INT_MAX);
 
         // Add our canonical
         add_action('wp_head', [$this, 'output_canonical'], 1);
@@ -49,6 +50,14 @@ class Chroma_Canonical_Enforcer
 
         // Redirect non-canonical URLs
         add_action('template_redirect', [$this, 'enforce_canonical'], 1);
+    }
+
+    /**
+     * Remove the core canonical after themes and plugins finish registering hooks.
+     */
+    public function remove_core_canonical()
+    {
+        remove_action('wp_head', 'rel_canonical');
     }
 
     /**

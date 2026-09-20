@@ -62,6 +62,18 @@
         }, 800);
     }
 
+    function labelLoginInputs() {
+        var inputs = document.querySelectorAll('.chroma-login-screen input');
+        Array.prototype.forEach.call(inputs, function (input, index) {
+            if (input.getAttribute('aria-label') || input.getAttribute('aria-labelledby')) {
+                return;
+            }
+
+            var label = input.getAttribute('placeholder') || input.getAttribute('name');
+            input.setAttribute('aria-label', label || (index === 0 ? 'Parent portal access code' : 'Parent portal field'));
+        });
+    }
+
     function bindKeyboardSupport() {
         document.addEventListener('keydown', function (event) {
             if (!isLoginScreenActive()) {
@@ -101,6 +113,7 @@
 
     function watchPinDisplay() {
         var observer = new MutationObserver(function () {
+            labelLoginInputs();
             submitIfComplete();
         });
 
@@ -113,5 +126,6 @@
     }
 
     bindKeyboardSupport();
+    labelLoginInputs();
     watchPinDisplay();
 })();

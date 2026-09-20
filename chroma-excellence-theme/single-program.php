@@ -5,6 +5,12 @@
  * @package Chroma_Excellence
  */
 
+$chroma_program_object = get_queried_object();
+if ($chroma_program_object instanceof WP_Post && $chroma_program_object->post_type === 'program' && $chroma_program_object->post_name === 'kindergarten-1') {
+	require get_template_directory() . '/template-program-kindergarten.php';
+	return;
+}
+
 get_header();
 
 while (have_posts()):
@@ -20,12 +26,24 @@ while (have_posts()):
 	}
 	$has_lesson_plan = trim((string) $lesson_plan_url) !== '' && trim((string) $lesson_plan_url) !== '#';
 
+	$is_preschool_reference = 'preschool' === get_post_field('post_name', $program_id);
+	$program_slug = (string) get_post_field('post_name', $program_id);
+	$program_title_normalized = strtolower(wp_strip_all_tags((string) get_the_title($program_id)));
+	$is_prek_literacy_program = in_array($program_slug, array('pre-k-ga-pre-k', 'ga-pre-k', 'pre-k', 'prek'), true)
+		|| false !== strpos($program_title_normalized, 'ga pre')
+		|| false !== strpos($program_title_normalized, 'pre-k')
+		|| false !== strpos($program_title_normalized, 'pre k');
+
 	// Hero section
 	$hero_title = chroma_get_translated_meta($program_id, 'program_hero_title', true) ?: get_the_title();
 	$hero_description = chroma_get_translated_meta($program_id, 'program_hero_description', true) ?: get_the_excerpt();
+	if ($is_preschool_reference) {
+		$hero_title = __('Centers of wonder.', 'chroma-excellence');
+		$hero_description = __('Introduction to structured learning centers and collaborative play. We channel their boundless energy into creative expression and early concepts.', 'chroma-excellence');
+	}
 
 	// Prismpath section
-	$prism_title = chroma_get_translated_meta($program_id, 'program_prism_title', true) ?: __('Our Prismpath™ Focus', 'chroma-excellence');
+	$prism_title = chroma_get_translated_meta($program_id, 'program_prism_title', true) ?: __('Our PrismPath™ Focus', 'chroma-excellence');
 	$prism_description = chroma_get_translated_meta($program_id, 'program_prism_description', true);
 	$prism_focus_items = chroma_get_translated_meta($program_id, 'program_prism_focus_items', true);
 
@@ -41,7 +59,21 @@ while (have_posts()):
 
 	// Schedule
 	$schedule_title = chroma_get_translated_meta($program_id, 'program_schedule_title', true) ?: __('A Rhythm, Not a Routine', 'chroma-excellence');
+	$schedule_title = str_ireplace('Rythm', 'Rhythm', $schedule_title);
 	$schedule_items = chroma_get_translated_meta($program_id, 'program_schedule_items', true);
+	$schedule_steps = array();
+	if ($schedule_items) {
+		foreach (array_filter(array_map('trim', explode("\n", (string) $schedule_items))) as $item) {
+			$parts = array_map('trim', explode('|', $item));
+			if (count($parts) >= 3 && stripos($parts[0], 'note') === false) {
+				$schedule_steps[] = array(
+					'time' => $parts[0],
+					'title' => $parts[1],
+					'copy' => implode(' | ', array_slice($parts, 2)),
+				);
+			}
+		}
+	}
 
 	// Color mapping
 	$color_map = array(
@@ -55,6 +87,16 @@ while (have_posts()):
 	);
 
 	$colors = $color_map[$color_scheme] ?? $color_map['red'];
+	$chart_colors = array(
+		'red' => '#A84B38',
+		'blue' => '#4A6C7C',
+		'yellow' => '#C2A024',
+		'blueDark' => '#2F4858',
+		'green' => '#4A7C59',
+		'orange' => '#C26524',
+		'teal' => '#248EC2',
+	);
+	$hex_color = $chart_colors[$color_scheme] ?? '#A84B38';
 
 	// Get featured image
 	$hero_image = get_the_post_thumbnail_url($program_id, 'large');
@@ -69,7 +111,7 @@ while (have_posts()):
 
 	<main>
 		<!-- Hero -->
-		<section class="relative pt-20 pb-20 bg-white overflow-hidden">
+		<section class="pageHero chroma-v2-page-hero relative pt-20 pb-20 bg-brand-cream overflow-hidden">
 			<div
 				class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-<?php echo esc_attr($colors['light']); ?>/30 to-transparent">
 			</div>
@@ -130,16 +172,64 @@ while (have_posts()):
 			</div>
 		</section>
 
+		<?php if ($is_preschool_reference): ?>
+			<section class="white borderY py-20 bg-white border-y border-chroma-blue/10">
+				<div class="max-w-6xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.9fr_1.1fr] gap-10 items-center">
+					<div>
+						<div class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-4"><?php esc_html_e('Preschool', 'chroma-excellence'); ?></div>
+						<h2 class="font-serif text-4xl md:text-5xl font-semibold tracking-[-0.035em] text-brand-ink mb-5">
+							<?php esc_html_e('Busy hands, calm hearts.', 'chroma-excellence'); ?>
+						</h2>
+						<p class="text-brand-ink/75 text-lg leading-relaxed">
+							<?php esc_html_e('Preschoolers are ready for bigger ideas, bigger friendships, and more independent routines. Chroma gives them the structure to feel safe and the freedom to explore.', 'chroma-excellence'); ?>
+						</p>
+					</div>
+					<div class="rounded-[2.5rem] bg-brand-cream p-8 border border-chroma-blue/10 shadow-soft">
+						<ul class="grid sm:grid-cols-2 gap-4 text-brand-ink/80">
+							<li class="rounded-2xl bg-white p-4">
+								<h3 class="font-bold"><?php esc_html_e('Learning Centers', 'chroma-excellence'); ?></h3>
+							</li>
+							<li class="rounded-2xl bg-white p-4 font-bold"><?php esc_html_e('Collaborative play', 'chroma-excellence'); ?></li>
+							<li class="rounded-2xl bg-white p-4 font-bold"><?php esc_html_e('Early literacy', 'chroma-excellence'); ?></li>
+							<li class="rounded-2xl bg-white p-4 font-bold"><?php esc_html_e('Creative expression', 'chroma-excellence'); ?></li>
+						</ul>
+					</div>
+				</div>
+			</section>
+		<?php endif; ?>
+
 		<!-- The Prismpath Focus (Chart) -->
-		<section id="prism" class="py-24 bg-brand-cream">
+		<section id="prism" class="cream py-24 bg-brand-cream">
 			<div class="max-w-6xl mx-auto px-4 lg:px-6">
 				<div class="grid lg:grid-cols-2 gap-16 items-center">
 					<div class="bg-white rounded-[3rem] p-8 shadow-soft border border-brand-ink/5 order-2 lg:order-1">
-						<canvas id="programChart"></canvas>
+						<div
+							class="programChart radarChart"
+							aria-label="<?php esc_attr_e('PrismPath five-pillar development chart', 'chroma-excellence'); ?>"
+							data-radar-chart
+							data-radar-color="<?php echo esc_attr($hex_color); ?>"
+							data-radar-values="<?php echo esc_attr(wp_json_encode(array($prism_physical, $prism_emotional, $prism_social, $prism_academic, $prism_creative))); ?>">
+							<svg class="radarSvg" viewBox="0 0 560 430" role="img" aria-labelledby="singleRadarTitle singleRadarDesc">
+								<title id="singleRadarTitle"><?php esc_html_e('PrismPath five-pillar development chart', 'chroma-excellence'); ?></title>
+								<desc id="singleRadarDesc"><?php printf(esc_html__('Radar chart showing the balance across physical, emotional, social, academic, and creative development for %s.', 'chroma-excellence'), esc_html(get_the_title())); ?></desc>
+								<g class="radarGrid" data-radar-grid></g>
+								<polygon class="radarArea" data-radar-area points=""></polygon>
+								<polygon class="radarStroke" data-radar-stroke points=""></polygon>
+								<g data-radar-points></g>
+								<text class="radarLabel" x="280" y="35" text-anchor="middle"><?php esc_html_e('Physical', 'chroma-excellence'); ?></text>
+								<text class="radarLabel" x="515" y="150" text-anchor="middle"><?php esc_html_e('Emotional', 'chroma-excellence'); ?></text>
+								<text class="radarLabel" x="460" y="365" text-anchor="middle"><?php esc_html_e('Social', 'chroma-excellence'); ?></text>
+								<text class="radarLabel" x="100" y="365" text-anchor="middle"><?php esc_html_e('Academic', 'chroma-excellence'); ?></text>
+								<text class="radarLabel" x="45" y="150" text-anchor="middle"><?php esc_html_e('Creative', 'chroma-excellence'); ?></text>
+							</svg>
+							<p class="chartNote">
+								<?php printf(esc_html__('The PrismPath™ balance for %s shifts across physical, emotional, social, academic, and creative development.', 'chroma-excellence'), esc_html(get_the_title())); ?>
+							</p>
+						</div>
 					</div>
 					<div class="order-1 lg:order-2">
 						<span
-							class="text-<?php echo esc_attr($colors['main']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('Prismpath™ Focus', 'chroma-excellence'); ?></span>
+							class="text-<?php echo esc_attr($colors['main']); ?> font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('PrismPath™ Focus', 'chroma-excellence'); ?></span>
 						<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
 							<?php echo esc_html($prism_title); ?>
 						</h2>
@@ -172,95 +262,139 @@ while (have_posts()):
 			</div>
 		</section>
 
+		<?php if ($is_prek_literacy_program): ?>
+			<section class="chroma-prek-literacy-section white borderY py-20 md:py-24 bg-white border-y border-chroma-blue/10" style="--program-accent: <?php echo esc_attr($hex_color); ?>;">
+				<div class="max-w-6xl mx-auto px-4 lg:px-6 grid lg:grid-cols-[0.95fr_1.05fr] gap-10 lg:gap-14 items-center">
+					<div>
+						<span class="inline-flex items-center gap-2 bg-brand-cream border border-brand-ink/10 px-4 py-2 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold mb-7" style="color: <?php echo esc_attr($hex_color); ?>;">
+							<span class="w-2 h-2 rounded-full" style="background: <?php echo esc_attr($hex_color); ?>;" aria-hidden="true"></span>
+							<?php esc_html_e('Pre-K literacy readiness', 'chroma-excellence'); ?>
+						</span>
+						<h2 class="font-serif text-4xl md:text-6xl font-semibold tracking-[-0.04em] leading-[0.98] text-brand-ink mb-6">
+							<?php esc_html_e('Sound awareness that helps children step into kindergarten with confidence.', 'chroma-excellence'); ?>
+						</h2>
+						<p class="text-lg text-brand-ink/75 leading-relaxed">
+							<?php esc_html_e('In Pre-K and GA Pre-K classrooms, literacy readiness grows through stories, songs, conversation, vocabulary, and playful sound work. Heggerty Phonics supports children as they learn to hear, blend, segment, and play with sounds.', 'chroma-excellence'); ?>
+						</p>
+					</div>
+					<div class="chroma-prek-literacy-card">
+						<article>
+							<h3><?php esc_html_e('Heggerty Phonics', 'chroma-excellence'); ?></h3>
+							<p><?php esc_html_e('Daily phonemic awareness practice helps children hear and work with sounds before formal reading begins.', 'chroma-excellence'); ?></p>
+						</article>
+						<article>
+							<h3><?php esc_html_e('Language-rich classrooms', 'chroma-excellence'); ?></h3>
+							<p><?php esc_html_e('Teachers reinforce literacy through read-alouds, songs, vocabulary, conversation, and purposeful play.', 'chroma-excellence'); ?></p>
+						</article>
+						<article>
+							<h3><?php esc_html_e('Kindergarten confidence', 'chroma-excellence'); ?></h3>
+							<p><?php esc_html_e('Children build listening, oral language, and sound-awareness skills that support a smoother next step.', 'chroma-excellence'); ?></p>
+						</article>
+					</div>
+				</div>
+			</section>
+		<?php endif; ?>
+
 		<!-- Schedule -->
-		<?php if ($schedule_items):
-			$schedule_items_array = array_filter(array_map('trim', explode("\n", $schedule_items)));
-			if (!empty($schedule_items_array)):
-				$steps = array();
-				foreach ($schedule_items_array as $item) {
-					$parts = explode('|', $item);
-					if (count($parts) >= 3) {
-						$steps[] = array(
-							'time' => trim($parts[0]),
-							'title' => trim($parts[1]),
-							'copy' => trim($parts[2]),
-						);
-					}
-				}
+		<?php if (!empty($schedule_steps)):
+			$first_schedule_step = $schedule_steps[0];
+			?>
+			<section id="schedule" class="cream py-20 lg:py-24 bg-brand-cream relative">
+				<div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-chroma-red via-chroma-yellow to-chroma-blue opacity-40"></div>
+				<div class="max-w-6xl mx-auto px-4 lg:px-6">
+					<div class="head reveal text-center max-w-3xl mx-auto mb-12">
+						<span class="font-bold tracking-[0.2em] text-xs uppercase mb-4 block" style="color: <?php echo esc_attr($hex_color); ?>;">
+							<?php esc_html_e('Sample Day', 'chroma-excellence'); ?>
+						</span>
+						<h2 class="text-3xl md:text-4xl font-serif text-brand-ink mb-3">
+							<?php echo esc_html($schedule_title); ?>
+						</h2>
+						<p class="text-brand-ink max-w-2xl mx-auto">
+							<?php printf(esc_html__('Slide through a sample %s day built from this program schedule.', 'chroma-excellence'), esc_html(get_the_title())); ?>
+						</p>
+					</div>
 
-				if (!empty($steps)):
-					$total_steps = count($steps);
-					$split_index = ceil($total_steps / 2);
-					$top_steps = array_slice($steps, 0, $split_index);
-					$bottom_steps = array_slice($steps, $split_index);
-					?>
-					<section id="schedule" class="py-24 bg-white">
-						<div class="max-w-6xl mx-auto px-4 lg:px-6" data-schedule>
-							<h2 class="text-3xl font-serif font-bold text-center mb-12 text-brand-ink">
-								<?php echo esc_html($schedule_title); ?>
-							</h2>
-
-							<div class="tab-content active" data-schedule-panel="program">
-								<div class="rounded-[3rem] p-8 md:p-12 bg-brand-cream text-center">
-
-									<!-- Time Bubbles -->
-									<div class="relative max-w-5xl mx-auto mb-10">
-										<!-- Top Row -->
-										<div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-4 relative z-10 max-w-full">
-											<?php foreach ($top_steps as $i => $step): ?>
-												<?php
-												$is_first = 0 === $i;
-												$btn_classes = $is_first
-													? 'bg-brand-ink text-white shadow-md transform scale-105'
-													: 'bg-white text-brand-ink/80 hover:text-brand-ink hover:bg-white/80';
-												?>
-												<button
-													class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
-													data-schedule-step-trigger data-title="<?php echo esc_attr($step['title']); ?>"
-													data-copy="<?php echo esc_attr($step['copy']); ?>"
-													aria-label="<?php echo esc_attr($step['time']); ?>">
-													<?php echo esc_html($step['time']); ?>
-												</button>
-											<?php endforeach; ?>
-										</div>
-
-										<!-- Bottom Row -->
-										<div class="flex flex-wrap justify-center gap-2 md:gap-4 relative z-10 max-w-full">
-											<?php foreach ($bottom_steps as $i => $step): ?>
-												<?php
-												$btn_classes = 'bg-white text-brand-ink/80 hover:text-brand-ink hover:bg-white/80';
-												?>
-												<button
-													class="w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
-													data-schedule-step-trigger data-title="<?php echo esc_attr($step['title']); ?>"
-													data-copy="<?php echo esc_attr($step['copy']); ?>"
-													aria-label="<?php echo esc_attr($step['time']); ?>">
-													<?php echo esc_html($step['time']); ?>
-												</button>
-											<?php endforeach; ?>
-										</div>
-									</div>
-
-									<!-- Dynamic Content -->
-									<div class="max-w-2xl mx-auto min-h-[120px]" data-schedule-content>
-										<?php if (!empty($steps[0])): ?>
-											<h4 class="text-xl font-bold text-brand-ink mb-3 transition-colors duration-300"
-												data-content-title>
-												<?php echo esc_html($steps[0]['title']); ?>
-											</h4>
-											<p class="text-brand-ink/90 leading-relaxed transition-opacity duration-300" data-content-copy>
-												<?php echo esc_html($steps[0]['copy']); ?>
-											</p>
-										<?php endif; ?>
-									</div>
-
-								</div>
-							</div>
+					<div class="day reveal single-program-sun-schedule" data-sun-schedule style="--program-accent: <?php echo esc_attr($hex_color); ?>;">
+						<script type="application/json" data-sun-steps>
+							<?php echo wp_json_encode($schedule_steps, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
+						</script>
+						<div class="sky" aria-hidden="true">
+							<div class="sun" data-sun-orb></div>
+							<div class="cloud c1"></div>
+							<div class="cloud c2"></div>
 						</div>
-					</section>
-				<?php endif; ?>
-			<?php endif; endif; ?>
+						<div class="panel">
+							<div class="font-bold tracking-[0.2em] text-xs uppercase mb-3" style="color: <?php echo esc_attr($hex_color); ?>;">
+								<?php echo esc_html(get_the_title()); ?>
+							</div>
+							<div class="time font-serif" data-sun-time><?php echo esc_html($first_schedule_step['time']); ?></div>
+							<h3 class="font-serif text-4xl md:text-5xl font-semibold tracking-[-0.035em] text-brand-ink mb-4" data-sun-title>
+								<?php echo esc_html($first_schedule_step['title']); ?>
+							</h3>
+							<p class="text-brand-ink/75 text-lg leading-relaxed min-h-[7rem]" data-sun-copy>
+								<?php echo esc_html($first_schedule_step['copy']); ?>
+							</p>
+							<div class="track mt-8"><div class="progress" data-sun-progress></div></div>
+							<input
+								class="mt-5 w-full accent-chroma-yellow"
+								data-sun-range
+								type="range"
+								min="0"
+								max="<?php echo esc_attr(max(0, count($schedule_steps) - 1)); ?>"
+								value="0"
+								step="1"
+								aria-label="<?php echo esc_attr($schedule_title); ?>"
+							/>
+						</div>
+					</div>
+				</div>
+			</section>
+		<?php endif; ?>
 
+		<?php
+		get_template_part(
+			'template-parts/program/required-details',
+			null,
+			array(
+				'program_id' => $program_id,
+				'program_title' => get_the_title($program_id),
+				'program_slug' => $program_slug,
+				'accent' => $hex_color,
+			)
+		);
+		?>
+
+		<?php if ($is_preschool_reference): ?>
+			<section class="white borderY py-20 bg-white border-y border-chroma-blue/10">
+				<div class="max-w-6xl mx-auto px-4 lg:px-6">
+					<div class="max-w-3xl mb-10">
+						<h2 class="font-serif text-4xl md:text-5xl font-semibold tracking-[-0.035em] text-brand-ink mb-4">
+							<?php esc_html_e('No surprise add-ons.', 'chroma-excellence'); ?>
+						</h2>
+						<p class="text-brand-ink/70 text-lg leading-relaxed">
+							<?php esc_html_e('Chroma keeps daily care practical for families, with the essentials built into the experience.', 'chroma-excellence'); ?>
+						</p>
+					</div>
+					<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+						<?php foreach (array(__('Fresh meals', 'chroma-excellence'), __('Daily updates', 'chroma-excellence'), __('All materials', 'chroma-excellence'), __('Secure care', 'chroma-excellence')) as $included_item): ?>
+							<article class="chroma-v2-card rounded-[1.5rem] p-6">
+								<h3 class="font-serif text-2xl font-semibold text-brand-ink"><?php echo esc_html($included_item); ?></h3>
+							</article>
+						<?php endforeach; ?>
+					</div>
+				</div>
+			</section>
+			<section class="cream py-20 bg-brand-cream">
+				<div class="max-w-4xl mx-auto px-4 lg:px-6 text-center">
+					<h2 class="font-serif text-4xl md:text-5xl font-semibold tracking-[-0.035em] text-brand-ink mb-5">
+						<?php esc_html_e('Ready to see the preschool room?', 'chroma-excellence'); ?>
+					</h2>
+					<a href="#tour" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-chroma-red text-white text-xs font-bold uppercase tracking-[0.18em] shadow-soft">
+						<?php esc_html_e('Schedule a Tour', 'chroma-excellence'); ?>
+					</a>
+				</div>
+			</section>
+		<?php endif; ?>
 
 	</main>
 
@@ -279,149 +413,6 @@ while (have_posts()):
 			}
 		}
 	</style>
-
-	<script>
-		// Prismpath Chart Config - Lazy Loaded
-		document.addEventListener('DOMContentLoaded', function () {
-            // Setup Schedule Interactions
-            const steps = document.querySelectorAll('[data-schedule-step-trigger]');
-            const titleEl = document.querySelector('[data-content-title]');
-            const copyEl = document.querySelector('[data-content-copy]');
-            
-            if(steps.length > 0) {
-                steps.forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        // Reset all
-                        steps.forEach(b => {
-                            b.classList.remove('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
-                            b.classList.add('bg-white', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
-                        });
-                        
-                        // Active state
-                        this.classList.remove('bg-white', 'text-brand-ink/70', 'text-brand-ink/80', 'hover:text-brand-ink', 'hover:bg-white/80');
-                        this.classList.add('bg-brand-ink', 'text-white', 'shadow-md', 'transform', 'scale-105');
-                        
-                        // Update content
-                        if(titleEl) titleEl.textContent = this.getAttribute('data-title');
-                        if(copyEl) copyEl.textContent = this.getAttribute('data-copy');
-                    });
-                });
-            }
-
-			// Chart.js Handler
-			const ctx = document.getElementById('programChart');
-			if (ctx) {
-				let programChartInstance = null;
-				let programChartLoading = false;
-
-				const createProgramChart = function () {
-					if (!window.Chart || programChartInstance) {
-						return;
-					}
-
-					programChartInstance = new Chart(ctx, {
-						type: 'radar',
-						data: {
-							labels: ['<?php _e('Physical', 'chroma-excellence'); ?>', '<?php _e('Emotional', 'chroma-excellence'); ?>', '<?php _e('Social', 'chroma-excellence'); ?>', '<?php _e('Academic', 'chroma-excellence'); ?>', '<?php _e('Creative', 'chroma-excellence'); ?>'],
-							datasets: [{
-								label: '<?php echo esc_js(get_the_title()); ?> Focus',
-								data: [
-									<?php echo absint($prism_physical); ?>,
-									<?php echo absint($prism_emotional); ?>,
-									<?php echo absint($prism_social); ?>,
-									<?php echo absint($prism_academic); ?>,
-									<?php echo absint($prism_creative); ?>
-								],
-								backgroundColor: '<?php
-								$chart_colors = array(
-									'red' => '#D67D6B',
-									'blue' => '#4A6C7C',
-									'yellow' => '#E6BE75',
-									'blueDark' => '#2F4858',
-									'green' => '#8DA399',
-									'orange' => '#C26524',
-									'teal' => '#4A6C7C',
-								);
-								$hex_color = $chart_colors[$color_scheme] ?? '#D67D6B';
-								echo $hex_color . '33'; // Add 20% opacity
-								?>',
-								borderColor: '<?php echo $hex_color; ?>',
-								pointBackgroundColor: '#fff',
-								pointBorderColor: '<?php echo $hex_color; ?>',
-								borderWidth: 2
-							}]
-						},
-						options: {
-							scales: {
-								r: {
-									angleLines: { color: '#e5e5e5' },
-									grid: { color: '#e5e5e5' },
-									pointLabels: { font: { family: 'Outfit', size: 14 }, color: '#263238' },
-									suggestedMin: 0,
-									suggestedMax: 100,
-									ticks: { display: false }
-								}
-							},
-							plugins: { legend: { display: false } }
-						}
-					});
-				};
-
-				const loadProgramChart = function () {
-					if (window.Chart) {
-						createProgramChart();
-						return;
-					}
-
-					const existingScript = document.getElementById('chroma-lazy-chart') || document.querySelector('script[data-chroma-chartjs]');
-					if (existingScript) {
-						existingScript.addEventListener('load', createProgramChart, { once: true });
-						return;
-					}
-
-					if (programChartLoading) {
-						return;
-					}
-
-					programChartLoading = true;
-					const script = document.createElement('script');
-					script.id = 'chroma-lazy-chart';
-					script.src = '<?php echo esc_url(get_template_directory_uri() . '/assets/js/chart.min.js'); ?>';
-					script.async = true;
-					script.dataset.chromaChartjs = 'true';
-					script.onload = createProgramChart;
-					document.body.appendChild(script);
-				};
-
-				const loadProgramChartWhenIdle = function () {
-					if ('requestIdleCallback' in window) {
-						window.requestIdleCallback(loadProgramChart, { timeout: 1800 });
-						return;
-					}
-
-					window.setTimeout(loadProgramChart, 1200);
-				};
-
-				if (!('IntersectionObserver' in window)) {
-					loadProgramChart();
-					return;
-				}
-
-				const observer = new IntersectionObserver((entries) => {
-					entries.forEach(entry => {
-						if (entry.isIntersecting) {
-							// Disconnect observer immediately
-							observer.disconnect();
-							loadProgramChart();
-						}
-					});
-				}, { rootMargin: '200px' }); // Start loading 200px before view
-				observer.observe(ctx);
-				loadProgramChartWhenIdle();
-			}
-		});
-	</script>
-
 	<?php
 endwhile;
 get_footer();

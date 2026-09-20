@@ -1,0 +1,538 @@
+[
+  {
+    "width": 1366,
+    "textScale": 1,
+    "path": "reports/launch-readiness/prism-fixed-1366-normal.png",
+    "card": {
+      "left": 717.3,
+      "right": 1295.5,
+      "width": 578.2
+    },
+    "svg": {
+      "left": 748.3,
+      "right": 1264.5,
+      "width": 516.2,
+      "overflow": "visible"
+    },
+    "labels": [
+      {
+        "text": "One activity",
+        "left": 761.2,
+        "right": 828.5,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "start"
+      },
+      {
+        "text": "Physical",
+        "left": 1122.5,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Emotional",
+        "left": 1112,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Social",
+        "left": 1135.1,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Academic",
+        "left": 1113.9,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Creative",
+        "left": 1121.9,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      }
+    ],
+    "allVisible": true
+  },
+  {
+    "width": 1366,
+    "textScale": 2,
+    "path": "reports/launch-readiness/prism-fixed-1366-text200.png",
+    "card": {
+      "left": 717.3,
+      "right": 1295.5,
+      "width": 578.2
+    },
+    "svg": {
+      "left": 748.3,
+      "right": 1264.5,
+      "width": 516.2,
+      "overflow": "visible"
+    },
+    "labels": [
+      {
+        "text": "One activity",
+        "left": 761.2,
+        "right": 894.6,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "start"
+      },
+      {
+        "text": "Physical",
+        "left": 1077.3,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Emotional",
+        "left": 1056.2,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Social",
+        "left": 1102.4,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Academic",
+        "left": 1061,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Creative",
+        "left": 1076.2,
+        "right": 1167.7,
+        "cardRight": 1295.5,
+        "insideCard": true,
+        "anchor": "end"
+      }
+    ],
+    "allVisible": true
+  },
+  {
+    "width": 1068,
+    "textScale": 1,
+    "path": "reports/launch-readiness/prism-fixed-1068-normal.png",
+    "card": {
+      "left": 18,
+      "right": 1035,
+      "width": 1017
+    },
+    "svg": {
+      "left": 49,
+      "right": 1004,
+      "width": 955,
+      "overflow": "visible"
+    },
+    "labels": [
+      {
+        "text": "One activity",
+        "left": 72.9,
+        "right": 196.5,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "start"
+      },
+      {
+        "text": "Physical",
+        "left": 741.3,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Emotional",
+        "left": 721.8,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Social",
+        "left": 764.5,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Academic",
+        "left": 726.2,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Creative",
+        "left": 740.3,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      }
+    ],
+    "allVisible": true
+  },
+  {
+    "width": 1068,
+    "textScale": 2,
+    "path": "reports/launch-readiness/prism-fixed-1068-text200.png",
+    "card": {
+      "left": 18,
+      "right": 1035,
+      "width": 1017
+    },
+    "svg": {
+      "left": 49,
+      "right": 1004,
+      "width": 955,
+      "overflow": "visible"
+    },
+    "labels": [
+      {
+        "text": "One activity",
+        "left": 72.9,
+        "right": 319.7,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "start"
+      },
+      {
+        "text": "Physical",
+        "left": 657.7,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Emotional",
+        "left": 618.7,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Social",
+        "left": 704.2,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Academic",
+        "left": 628.4,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Creative",
+        "left": 655.6,
+        "right": 824.9,
+        "cardRight": 1035,
+        "insideCard": true,
+        "anchor": "end"
+      }
+    ],
+    "allVisible": true
+  },
+  {
+    "width": 834,
+    "textScale": 1,
+    "path": "reports/launch-readiness/prism-fixed-834-normal.png",
+    "card": {
+      "left": 18,
+      "right": 801,
+      "width": 783
+    },
+    "svg": {
+      "left": 49,
+      "right": 770,
+      "width": 721,
+      "overflow": "visible"
+    },
+    "labels": [
+      {
+        "text": "One activity",
+        "left": 67,
+        "right": 160.3,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "start"
+      },
+      {
+        "text": "Physical",
+        "left": 571.7,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Emotional",
+        "left": 556.9,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Social",
+        "left": 589.2,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Academic",
+        "left": 560,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Creative",
+        "left": 570.9,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      }
+    ],
+    "allVisible": true
+  },
+  {
+    "width": 834,
+    "textScale": 2,
+    "path": "reports/launch-readiness/prism-fixed-834-text200.png",
+    "card": {
+      "left": 18,
+      "right": 801,
+      "width": 783
+    },
+    "svg": {
+      "left": 49,
+      "right": 770,
+      "width": 721,
+      "overflow": "visible"
+    },
+    "labels": [
+      {
+        "text": "One activity",
+        "left": 67,
+        "right": 253.4,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "start"
+      },
+      {
+        "text": "Physical",
+        "left": 508.6,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Emotional",
+        "left": 479.1,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Social",
+        "left": 543.6,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Academic",
+        "left": 486.2,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Creative",
+        "left": 507,
+        "right": 634.8,
+        "cardRight": 801,
+        "insideCard": true,
+        "anchor": "end"
+      }
+    ],
+    "allVisible": true
+  },
+  {
+    "width": 390,
+    "textScale": 1,
+    "path": "reports/launch-readiness/prism-fixed-390-normal.png",
+    "card": {
+      "left": 12,
+      "right": 363,
+      "width": 351
+    },
+    "svg": {
+      "left": 37,
+      "right": 338,
+      "width": 301,
+      "overflow": "visible"
+    },
+    "labels": [
+      {
+        "text": "One activity",
+        "left": 43.5,
+        "right": 83.7,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "start"
+      },
+      {
+        "text": "Physical",
+        "left": 255.2,
+        "right": 281.6,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Emotional",
+        "left": 249.1,
+        "right": 281.6,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Social",
+        "left": 261.5,
+        "right": 281.6,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Academic",
+        "left": 249.8,
+        "right": 282.3,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Creative",
+        "left": 253.9,
+        "right": 281.9,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      }
+    ],
+    "allVisible": true
+  },
+  {
+    "width": 390,
+    "textScale": 2,
+    "path": "reports/launch-readiness/prism-fixed-390-text200.png",
+    "card": {
+      "left": 12,
+      "right": 363,
+      "width": 351
+    },
+    "svg": {
+      "left": 37,
+      "right": 338,
+      "width": 301,
+      "overflow": "visible"
+    },
+    "labels": [
+      {
+        "text": "One activity",
+        "left": 44.5,
+        "right": 122.8,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "start"
+      },
+      {
+        "text": "Physical",
+        "left": 228.9,
+        "right": 281.6,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Emotional",
+        "left": 216.6,
+        "right": 281.6,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Social",
+        "left": 243.5,
+        "right": 281.6,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Academic",
+        "left": 219,
+        "right": 281.6,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      },
+      {
+        "text": "Creative",
+        "left": 228.2,
+        "right": 281.6,
+        "cardRight": 363,
+        "insideCard": true,
+        "anchor": "end"
+      }
+    ],
+    "allVisible": true
+  }
+]

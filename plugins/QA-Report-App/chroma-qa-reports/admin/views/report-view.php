@@ -41,11 +41,11 @@ if (!$report) {
 // Handle status change actions
 $status_message = '';
 if ($action && wp_verify_nonce($_GET['_wpnonce'] ?? '', 'cqa_report_action')) {
-    if ($action === 'approve' && current_user_can('cqa_approve_reports')) {
+    if ($action === 'approve' && \ChromaQA\Auth\Access_Policy::report($report, 'approve')) {
         $report->status = Report::STATUS_APPROVED;
         $report->save();
         $status_message = __('Report approved successfully!', 'chroma-qa-reports');
-    } elseif ($action === 'revert_draft' && current_user_can('cqa_edit_reports')) {
+    } elseif ($action === 'revert_draft' && \ChromaQA\Auth\Access_Policy::report($report, 'approve')) {
         $report->status = Report::STATUS_DRAFT;
         $report->save();
         $status_message = __('Report reverted to draft.', 'chroma-qa-reports');

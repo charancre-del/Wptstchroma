@@ -10,6 +10,7 @@ namespace ChromaQA\Export;
 use ChromaQA\Models\Report;
 use ChromaQA\Models\Checklist_Response;
 use ChromaQA\Checklists\Checklist_Manager;
+use ChromaQA\Utils\Private_Temp_Storage;
 
 /**
  * Generates PDF reports matching the original QA Report format with comparison notes.
@@ -51,7 +52,7 @@ class PDF_Generator
             }
 
             return $this->generate_dompdf($report, $include_comparison);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \ChromaQA\Utils\Logger::error('PDF_Generator', 'generate_catch', ['report_id' => $report->id], $e->getMessage());
             return new \WP_Error('pdf_generation_error', $e->getMessage(), ['status' => 500]);
         }
@@ -791,18 +792,7 @@ class PDF_Generator
     {
         $html = $this->get_report_html($report, $include_comparison);
 
-        // Save HTML to temp file
-        $temp_dir = wp_upload_dir()['basedir'] . '/cqa-temp';
-        wp_mkdir_p($temp_dir);
-
-        $filename = 'report-' . $report->id . '-' . time() . '.html';
-        $filepath = $temp_dir . '/' . $filename;
-
-        if (FileSystem::put_contents($filepath, $html) === false) {
-            return new \WP_Error('file_write_error', 'Failed to write HTML to temp file.');
-        }
-
-        return $filepath;
+        return Private_Temp_Storage::write($html, 'html', 'report-' . (int) $report->id);
     }
 
     /**
@@ -828,13 +818,18 @@ class PDF_Generator
         $pdf->AddPage();
         $pdf->writeHTML($html, true, false, true, false, '');
 
-        $temp_dir = wp_upload_dir()['basedir'] . '/cqa-temp';
-        wp_mkdir_p($temp_dir);
-
-        $filepath = $temp_dir . '/report-' . $report->id . '-' . time() . '.pdf';
-        $pdf->Output($filepath, 'F');
-
-        return $filepath;
+        $filepath = Private_Temp_Storage::create('pdf', 'report-' . (int) $report->id);
+        try {
+            $pdf->Output($filepath, 'F');
+            if (!Private_Temp_Storage::is_managed_file($filepath) || filesize($filepath) === 0) {
+                throw new \RuntimeException('TCPDF did not create a valid private export.');
+            }
+            @chmod($filepath, 0600);
+            return $filepath;
+        } catch (\Throwable $error) {
+            Private_Temp_Storage::delete($filepath, 'pdf_generation');
+            throw $error;
+        }
     }
 
     /**
@@ -853,12 +848,6 @@ class PDF_Generator
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        $temp_dir = wp_upload_dir()['basedir'] . '/cqa-temp';
-        wp_mkdir_p($temp_dir);
-
-        $filepath = $temp_dir . '/report-' . $report->id . '-' . time() . '.pdf';
-        file_put_contents($filepath, $dompdf->output());
-
-        return $filepath;
+        return Private_Temp_Storage::write($dompdf->output(), 'pdf', 'report-' . (int) $report->id);
     }
 }

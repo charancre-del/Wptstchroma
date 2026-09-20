@@ -34,7 +34,7 @@ function chroma_home_page_meta_boxes() {
 
 	add_meta_box(
 		'chroma-home-prismpath',
-		__( 'Home: Prismpath Section', 'chroma-excellence' ),
+		__( 'Home: PrismPath Section', 'chroma-excellence' ),
 		'chroma_home_prismpath_meta_box_render',
 		'page',
 		'normal',
@@ -250,11 +250,11 @@ function chroma_home_json_meta_box_render( $post ) {
 		<tr>
 			<th><label>Stats JSON [ES]</label></th>
 			<td>
-				<textarea name="_chroma_es_home_stats_json" rows="5" class="large-text code" placeholder="[{&quot;key&quot;:&quot;locations&quot;,&quot;value&quot;:&quot;19+&quot;,&quot;label&quot;:&quot;Locations&quot;},{&quot;key&quot;:&quot;families_served&quot;,&quot;value&quot;:&quot;2000+&quot;,&quot;label&quot;:&quot;Families Served&quot;}]"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_home_stats_json', true ) ); ?></textarea>
+				<textarea name="_chroma_es_home_stats_json" rows="5" class="large-text code" placeholder="[{&quot;key&quot;:&quot;locations&quot;,&quot;value&quot;:&quot;0&quot;,&quot;label&quot;:&quot;Locations&quot;},{&quot;key&quot;:&quot;programs&quot;,&quot;value&quot;:&quot;0&quot;,&quot;label&quot;:&quot;Programs&quot;},{&quot;key&quot;:&quot;founded&quot;,&quot;value&quot;:&quot;2022&quot;,&quot;label&quot;:&quot;Founded&quot;}]"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_home_stats_json', true ) ); ?></textarea>
 			</td>
 		</tr>
 		<tr>
-			<th><label>Prismpath Cards JSON [ES]</label></th>
+			<th><label>PrismPath Cards JSON [ES]</label></th>
 			<td>
 				<textarea name="_chroma_es_home_prismpath_cards_json" rows="5" class="large-text code"><?php echo esc_textarea( get_post_meta( $post->ID, '_chroma_es_home_prismpath_cards_json', true ) ); ?></textarea>
 			</td>

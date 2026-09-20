@@ -16,6 +16,8 @@ $author_name = get_the_author();
 $author_title = get_the_author_meta('description') ?: __('Contributor', 'chroma-excellence');
 $author_avatar = get_avatar_url($author_id, array('size' => 150));
 $featured_image_id = get_post_thumbnail_id($post_id);
+$raw_post_content = (string) get_post_field('post_content', $post_id);
+$content_starts_with_h1 = (bool) preg_match('/^\s*(?:(?:<!--.*?-->)\s*)*<h1\b/is', $raw_post_content);
 
 // Get related posts (same category, exclude current)
 $related_args = array(
@@ -121,13 +123,14 @@ $related_query = new WP_Query($related_args);
       </nav>
       <?php $locations_url = chroma_smart_link('locations'); ?>
       <a href="<?php echo esc_url($locations_url); ?>"
-        class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft"><?php _e('Book Tour', 'chroma-excellence'); ?></a>
+        class="hidden sm:inline-flex items-center gap-2 bg-brand-ink text-white text-xs font-semibold tracking-[0.2em] px-6 py-3 rounded-full shadow-soft"><?php _e('Schedule a Tour', 'chroma-excellence'); ?></a>
     </div>
   </header>
 
   <main>
     <article>
-      <header class="py-20 text-center max-w-4xl mx-auto px-4">
+      <header class="pageHero chroma-v2-page-hero py-20 text-center px-4">
+        <div class="max-w-4xl mx-auto">
         <div class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-chroma-blue mb-6">
           <span class="w-2 h-2 bg-chroma-blue rounded-full"></span> <?php echo esc_html($primary_category); ?>
           <span class="text-brand-ink/70">•</span> <?php echo esc_html($post_date); ?>
@@ -141,6 +144,7 @@ $related_query = new WP_Query($related_args);
             <p class="text-sm font-bold text-brand-ink"><?php echo esc_html($author_name); ?></p>
             <p class="text-xs text-brand-ink/90"><?php echo esc_html($author_title); ?></p>
           </div>
+        </div>
         </div>
       </header>
 
@@ -164,35 +168,49 @@ $related_query = new WP_Query($related_args);
         </div>
       <?php endif; ?>
 
-      <div class="max-w-3xl mx-auto px-4 lg:px-6 pb-20">
+      <section class="white max-w-3xl mx-auto px-4 lg:px-6 pb-20">
         <div
           class="post-content prose prose-lg prose-headings:font-serif prose-headings:font-bold prose-p:text-brand-ink/90 prose-a:text-chroma-blue hover:prose-a:text-chroma-blue/80 transition-colors">
           <?php
-          while (have_posts()):
-            the_post();
-            the_content();
-          endwhile;
+          $main_post = get_post($post_id);
+          if ($main_post instanceof WP_Post):
+            // wp_head integrations may run secondary queries and leave the
+            // global post pointing at another record. Restore the requested
+            // story explicitly so the real article body and translations are
+            // always rendered instead of an empty related-post context.
+            $GLOBALS['post'] = $main_post; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited
+            setup_postdata($main_post);
+            $rendered_content = apply_filters('the_content', (string) $main_post->post_content);
+            // The article title is the single page-level H1. Editors and
+            // imported legacy posts occasionally include additional H1s in
+            // the body; normalize all of them to H2s without changing copy.
+            if ($content_starts_with_h1 || stripos($rendered_content, '<h1') !== false) {
+              $rendered_content = preg_replace('/<h1(\s[^>]*)?>(.*?)<\/h1>/is', '<h2$1>$2</h2>', $rendered_content);
+            }
+            echo $rendered_content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            wp_reset_postdata();
+          endif;
           ?>
         </div>
-      </div>
+      </section>
     </article>
 
     <?php if ($related_query->have_posts()): ?>
-      <section class="bg-white py-20 border-t border-brand-ink/5">
+      <section class="cream borderY bg-brand-cream py-20 border-y border-chroma-blue/10">
         <div class="max-w-6xl mx-auto px-4 lg:px-6">
-          <h3 class="font-serif text-3xl font-bold mb-8 text-center"><?php _e('More from Chroma', 'chroma-excellence'); ?></h3>
+          <h2 class="font-serif text-3xl font-bold mb-8 text-center"><?php _e('Related articles.', 'chroma-excellence'); ?></h2>
           <div class="grid md:grid-cols-3 gap-8">
             <?php while ($related_query->have_posts()):
               $related_query->the_post(); ?>
               <a href="<?php the_permalink(); ?>" class="group">
                 <div class="rounded-2xl overflow-hidden mb-4 h-48">
                   <?php if (has_post_thumbnail()): ?>
-                    <?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover group-hover:scale-105 transition-transform')); ?>
+                    <?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover group-hover:scale-105 transition-transform', 'alt' => '')); ?>
                   <?php else: ?>
                     <div class="w-full h-full bg-chroma-blue/10"></div>
                   <?php endif; ?>
                 </div>
-                <h4 class="font-bold text-lg leading-tight group-hover:text-chroma-blue"><?php the_title(); ?></h4>
+                <h3 class="font-bold text-lg leading-tight group-hover:text-chroma-blue"><?php the_title(); ?></h3>
               </a>
             <?php endwhile;
             wp_reset_postdata(); ?>
@@ -201,7 +219,7 @@ $related_query = new WP_Query($related_args);
       </section>
     <?php endif; ?>
 
-    <section id="contact" class="bg-brand-cream py-20 border-t border-brand-ink/5">
+    <section id="contact" class="cream bg-brand-cream py-20 border-t border-brand-ink/5">
       <div class="max-w-4xl mx-auto px-4 lg:px-6">
         <div class="text-center mb-10">
           <p class="text-xs font-bold uppercase tracking-[0.2em] text-chroma-blue mb-3">
@@ -215,7 +233,7 @@ $related_query = new WP_Query($related_args);
           </p>
         </div>
 
-        <div class="bg-white rounded-3xl shadow-soft border border-brand-ink/5 p-4 md:p-8">
+        <div class="chroma-form-scroll-card chroma-form-scroll-card--story bg-white rounded-3xl shadow-soft border border-brand-ink/5 p-4 md:p-8" data-embedded-form-shell>
           <?php
           if (function_exists('chroma_render_contact_form')) {
             echo chroma_render_contact_form(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
@@ -230,8 +248,24 @@ $related_query = new WP_Query($related_args);
     </section>
   </main>
 
-  <footer class="bg-brand-ink text-white py-12 text-center text-sm opacity-60">
-    <p>&copy; <?php echo esc_html(date('Y')); ?> <?php bloginfo('name'); ?>.</p>
+  <footer class="bg-brand-ink text-white py-12 px-4 text-sm">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-3 gap-8">
+      <div>
+        <h3 class="font-bold text-sm mb-3"><?php esc_html_e('Explore', 'chroma-excellence'); ?></h3>
+        <a class="block text-white/70 hover:text-white" href="<?php echo esc_url(home_url('/programs/')); ?>"><?php esc_html_e('Programs', 'chroma-excellence'); ?></a>
+        <a class="block text-white/70 hover:text-white mt-2" href="<?php echo esc_url(home_url('/curriculum/')); ?>"><?php esc_html_e('Curriculum', 'chroma-excellence'); ?></a>
+      </div>
+      <div>
+        <h3 class="font-bold text-sm mb-3"><?php esc_html_e('Visit', 'chroma-excellence'); ?></h3>
+        <a class="block text-white/70 hover:text-white" href="<?php echo esc_url(home_url('/locations/')); ?>"><?php esc_html_e('Find a Campus', 'chroma-excellence'); ?></a>
+        <a class="block text-white/70 hover:text-white mt-2" href="<?php echo esc_url(home_url('/contact-us/')); ?>"><?php esc_html_e('Contact Us', 'chroma-excellence'); ?></a>
+      </div>
+      <div>
+        <h3 class="font-bold text-sm mb-3"><?php esc_html_e('From the Journal', 'chroma-excellence'); ?></h3>
+        <p class="text-white/70"><?php esc_html_e('Parent guides, school readiness notes, and Chroma family stories.', 'chroma-excellence'); ?></p>
+      </div>
+    </div>
+    <p class="max-w-6xl mx-auto mt-10 text-white/50">&copy; <?php echo esc_html(date('Y')); ?> <?php bloginfo('name'); ?>.</p>
   </footer>
 
   <?php wp_footer(); ?>

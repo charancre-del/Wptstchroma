@@ -83,7 +83,7 @@ $cqa_user_logged_in_no_access = is_user_logged_in();
 
             <div id="cqa-login-error" class="cqa-error" style="display:none;"></div>
 
-            <button type="submit" class="cqa-btn cqa-btn-primary cqa-btn-block">
+            <button type="submit" class="cqa-btn cqa-btn-primary cqa-btn-block" style="background:#735f3c;border-color:#735f3c;color:#fff;">
                 <span class="cqa-btn-text">Sign In</span>
                 <span class="cqa-btn-loading" style="display:none;">Signing in...</span>
             </button>

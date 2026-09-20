@@ -1,0 +1,40 @@
+{
+  "generatedAt": "2026-07-16",
+  "environment": "staging",
+  "runs": [
+    {
+      "route": "home",
+      "device": "desktop",
+      "performance": 69,
+      "accessibility": 100,
+      "bestPractices": 77,
+      "seo": 69,
+      "lcp": "2.1 s",
+      "tbt": "320 ms",
+      "cls": "0"
+    },
+    {
+      "route": "home",
+      "device": "mobile",
+      "performance": 58,
+      "accessibility": 100,
+      "bestPractices": 77,
+      "seo": 69,
+      "lcp": "4.6 s",
+      "tbt": "910 ms",
+      "cls": "0"
+    },
+    {
+      "route": "locations",
+      "device": "mobile",
+      "performance": 64,
+      "accessibility": 100,
+      "bestPractices": 73,
+      "seo": 69,
+      "lcp": "7.6 s",
+      "tbt": "340 ms",
+      "cls": "0.041"
+    }
+  ],
+  "note": "Staging measurements include a roughly 1.8 s root response plus shared-host, map-tile, analytics, remarketing, and embedded-form costs."
+}

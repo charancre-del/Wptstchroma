@@ -311,6 +311,7 @@ function chroma_render_location_custom_fields_meta_box($post)
 
 	// Get existing values
 	$hero_subtitle = get_post_meta($post->ID, 'location_hero_subtitle', true);
+	$ga_pre_k_available = get_post_meta($post->ID, 'location_ga_pre_k_available', true) ?: 'auto';
 	$hero_review_text = get_post_meta($post->ID, 'location_hero_review_text', true);
 	$hero_review_author = get_post_meta($post->ID, 'location_hero_review_author', true);
 	$hero_gallery = get_post_meta($post->ID, 'location_hero_gallery', true);
@@ -443,8 +444,18 @@ function chroma_render_location_custom_fields_meta_box($post)
 		<div class="chroma-meta-field">
 			<label for="location_hero_subtitle"><?php _e('Hero Subtitle', 'chroma-excellence'); ?></label>
 			<input type="text" id="location_hero_subtitle" name="location_hero_subtitle"
-				value="<?php echo esc_attr($hero_subtitle); ?>" placeholder="e.g., Now Enrolling: Pre-K & Toddlers" />
+				value="<?php echo esc_attr($hero_subtitle); ?>" placeholder="e.g., Now Enrolling" />
 			<small><?php _e('Small badge text shown above the location name', 'chroma-excellence'); ?></small>
+		</div>
+
+		<div class="chroma-meta-field">
+			<label for="location_ga_pre_k_available"><?php _e('Georgia Pre-K Availability', 'chroma-excellence'); ?></label>
+			<select id="location_ga_pre_k_available" name="location_ga_pre_k_available" style="width: 100%;">
+				<option value="auto" <?php selected($ga_pre_k_available, 'auto'); ?>><?php _e('Use current campus policy', 'chroma-excellence'); ?></option>
+				<option value="yes" <?php selected($ga_pre_k_available, 'yes'); ?>><?php _e('Available', 'chroma-excellence'); ?></option>
+				<option value="no" <?php selected($ga_pre_k_available, 'no'); ?>><?php _e('Not available', 'chroma-excellence'); ?></option>
+			</select>
+			<small><?php _e('Current policy treats all campuses except Chadwick and North Hall as available. Use an override when a campus changes status.', 'chroma-excellence'); ?></small>
 		</div>
 
 		<div class="chroma-meta-field">
@@ -859,6 +870,7 @@ function chroma_save_location_custom_fields($post_id)
 	// Save fields
 	$fields = array(
 		'location_hero_subtitle',
+		'location_ga_pre_k_available',
 		'location_hero_review_text',
 		'location_hero_review_author',
 		'location_hero_gallery',

@@ -8,8 +8,8 @@
 
 /* CSS Variables */
 :root {
-    --cqa-primary: #9d8253;
-    --cqa-primary-dark: #7d6842;
+    --cqa-primary: #735f3c;
+    --cqa-primary-dark: #58492f;
     --cqa-success: #10b981;
     --cqa-warning: #f59e0b;
     --cqa-danger: #ef4444;
@@ -185,9 +185,14 @@ body.cqa-frontend {
 }
 
 .cqa-btn-primary {
-    background: var(--cqa-primary);
-    border-color: var(--cqa-primary);
-    color: white;
+    background: var(--cqa-primary) !important;
+    border-color: var(--cqa-primary) !important;
+    color: white !important;
+}
+
+.cqa-btn-primary .cqa-btn-text,
+.cqa-btn-primary .cqa-btn-loading {
+    color: white !important;
 }
 
 .cqa-btn-primary:hover {

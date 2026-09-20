@@ -84,10 +84,10 @@ $google_developer_key = $mask_secret(get_option('cqa_google_developer_key', ''))
                             </th>
                             <td>
                                 <input type="password" id="cqa_google_developer_key" name="cqa_google_developer_key"
-                                    value="<?php echo esc_attr(get_option('cqa_google_developer_key', '')); ?>"
+                                    value="<?php echo esc_attr($google_developer_key); ?>"
                                     class="regular-text">
                                 <p class="description">
-                                    <?php esc_html_e('Required for Google Picker and Maps. Create an API key in Google Cloud Console.', 'chroma-qa-reports'); ?>
+                                    <?php esc_html_e('Server API key. Google Picker uses a separately provisioned, browser-restricted key.', 'chroma-qa-reports'); ?>
                                 </p>
                             </td>
                         </tr>

@@ -1,0 +1,29 @@
+{
+  "mode": "read_only_secret_safe_runtime_preflight",
+  "ok": true,
+  "credential_values_printed": false,
+  "sources": [
+    {
+      "path": "/opt/chroma-onboarding/.env",
+      "exists": false
+    },
+    {
+      "path": "/opt/chroma-ops-dashboard/.env",
+      "exists": false
+    },
+    {
+      "path": "/opt/n8n/.env",
+      "exists": false
+    }
+  ],
+  "credentials": {
+    "ghl_token": {
+      "configured": false,
+      "classification": "missing"
+    }
+  },
+  "payment_provider": "ghl_invoice_with_connected_stripe",
+  "direct_stripe_credentials_required": false,
+  "google_geocoding_required": false,
+  "staging_test_acceptance_ready": false
+}

@@ -1,0 +1,56 @@
+{
+  "contract_version": 1,
+  "client_request_id": "cart_01K2YWRJAEV0D6KQW56KXQ3N6Z",
+  "campus_id": "lilburn",
+  "parent": {
+    "first_name": "Test",
+    "last_name": "Parent",
+    "email": "parent@example.test",
+    "mobile_phone": "+1 404 555 0100"
+  },
+  "children": [
+    {
+      "client_child_id": "child_a",
+      "first_name": "Test",
+      "last_name": "Child One",
+      "date_of_birth": "2022-03-10",
+      "age_group": "preschool",
+      "enrollment_record_id": "record_child_a",
+      "enrollment_record_complete": true
+    },
+    {
+      "client_child_id": "child_b",
+      "first_name": "Test",
+      "last_name": "Child Two",
+      "date_of_birth": "2020-05-11",
+      "age_group": "school",
+      "enrollment_record_id": "record_child_b",
+      "enrollment_record_complete": true
+    }
+  ],
+  "attendance": [
+    {
+      "client_child_id": "child_a",
+      "care_date": "2026-08-18"
+    },
+    {
+      "client_child_id": "child_a",
+      "care_date": "2026-08-19"
+    },
+    {
+      "client_child_id": "child_b",
+      "care_date": "2026-08-18"
+    },
+    {
+      "client_child_id": "child_b",
+      "care_date": "2026-08-19"
+    }
+  ],
+  "policy_acceptance": {
+    "backup_care_terms": true,
+    "full_payment": true,
+    "refund_and_reschedule_deadline": true,
+    "no_discretionary_exceptions": true,
+    "privacy_and_communications": true
+  }
+}

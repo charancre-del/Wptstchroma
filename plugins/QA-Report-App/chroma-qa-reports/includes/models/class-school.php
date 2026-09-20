@@ -181,7 +181,7 @@ class School
 
         $args = \wp_parse_args($args, $defaults);
 
-        $where = [];
+        $where = [\ChromaQA\Auth\Access_Policy::school_sql('s')];
         $values = [];
 
         if (!empty($args['status'])) {
@@ -215,6 +215,7 @@ class School
             $values = array_merge($values, $search_values);
         }
 
+        $report_scope = \ChromaQA\Auth\Access_Policy::report_sql();
         $join_parts = [];
         $select_fields = ['s.*'];
         if (!empty($args['compliance_status']) || $args['overdue']) {
@@ -222,7 +223,7 @@ class School
             $join_parts[] = " LEFT JOIN (
                 SELECT school_id, MAX(inspection_date) as last_inspection, overall_rating
                 FROM {$reports_table}
-                WHERE status IN ('approved', 'submitted')
+                WHERE status IN ('approved', 'submitted') AND {$report_scope}
                 GROUP BY school_id
             ) r ON s.id = r.school_id ";
 
@@ -240,6 +241,7 @@ class School
             $join_parts[] = " LEFT JOIN (
                 SELECT school_id, MAX(inspection_date) as last_inspection_date, COUNT(*) as reports_count
                 FROM {$reports_table}
+                WHERE {$report_scope}
                 GROUP BY school_id
             ) rmeta ON s.id = rmeta.school_id ";
             $select_fields[] = 'rmeta.last_inspection_date';
@@ -291,7 +293,7 @@ class School
         global $wpdb;
         $table = self::get_table_name();
 
-        $where = [];
+        $where = [\ChromaQA\Auth\Access_Policy::school_sql()];
         $values = [];
 
         if (!empty($args['status'])) {
@@ -323,7 +325,7 @@ class School
             ));
         }
 
-        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table}");
+        return (int) $wpdb->get_var("SELECT COUNT(*) FROM {$table} {$where_clause}");
     }
 
     /**
@@ -467,7 +469,8 @@ class School
         global $wpdb;
         $table = self::get_table_name();
 
-        return $wpdb->get_col("SELECT DISTINCT region FROM {$table} WHERE region != '' ORDER BY region");
+        $scope = \ChromaQA\Auth\Access_Policy::school_sql();
+        return $wpdb->get_col("SELECT DISTINCT region FROM {$table} WHERE region != '' AND {$scope} ORDER BY region");
     }
 
     /**
@@ -480,7 +483,8 @@ class School
         global $wpdb;
         $table = self::get_table_name();
 
-        return $wpdb->get_col("SELECT DISTINCT location FROM {$table} WHERE location != '' ORDER BY location");
+        $scope = \ChromaQA\Auth\Access_Policy::school_sql();
+        return $wpdb->get_col("SELECT DISTINCT location FROM {$table} WHERE location != '' AND {$scope} ORDER BY location");
     }
 
     /**
@@ -494,14 +498,16 @@ class School
         global $wpdb;
         $schools_table = self::get_table_name();
         $reports_table = Report::get_table_name();
+        $school_scope = \ChromaQA\Auth\Access_Policy::school_sql('s');
+        $report_scope = \ChromaQA\Auth\Access_Policy::report_sql('r');
 
         $sql = "
             SELECT s.*, 
             DATEDIFF(NOW(), MAX(r.inspection_date)) as days_since_last_report,
             MAX(r.inspection_date) as last_inspection_date
             FROM {$schools_table} s
-            LEFT JOIN {$reports_table} r ON s.id = r.school_id AND r.status IN ('approved', 'submitted')
-            WHERE s.status = 'active'
+            LEFT JOIN {$reports_table} r ON s.id = r.school_id AND r.status IN ('approved', 'submitted') AND {$report_scope}
+            WHERE s.status = 'active' AND {$school_scope}
             GROUP BY s.id
             HAVING days_since_last_report > %d OR days_since_last_report IS NULL
             ORDER BY days_since_last_report DESC
@@ -527,6 +533,8 @@ class School
     {
         global $wpdb;
         $reports_table = Report::get_table_name();
+        $scope = \ChromaQA\Auth\Access_Policy::report_sql();
+        $joined_scope = \ChromaQA\Auth\Access_Policy::report_sql('r');
 
         // Get counts of latest approved report ratings
         // We need a complex query to get only the LATEST report for each school
@@ -536,10 +544,10 @@ class School
             INNER JOIN (
                 SELECT school_id, MAX(inspection_date) as latest_date
                 FROM {$reports_table}
-                WHERE status IN ('approved', 'submitted')
+                WHERE status IN ('approved', 'submitted') AND {$scope}
                 GROUP BY school_id
             ) latest ON r.school_id = latest.school_id AND r.inspection_date = latest.latest_date
-            WHERE r.status IN ('approved', 'submitted') AND r.overall_rating != 'pending'
+            WHERE r.status IN ('approved', 'submitted') AND r.overall_rating != 'pending' AND {$joined_scope}
             GROUP BY r.overall_rating
         ";
 

@@ -119,7 +119,7 @@ get_header();
 
 <main>
     <!-- Hero with Image -->
-    <section class="py-20 bg-white border-b border-brand-ink/5 overflow-hidden">
+    <section class="pageHero chroma-v2-page-hero py-20 bg-white border-b border-brand-ink/5 overflow-hidden">
         <div class="max-w-7xl mx-auto px-4 lg:px-6 grid lg:grid-cols-2 gap-12 items-center">
             <div class="text-center lg:text-left fade-in-up">
                 <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php echo esc_html($tour_hero_badge); ?></span>
@@ -201,24 +201,24 @@ get_header();
 </main>
 
 <!-- Tour Booking Modal -->
-<div id="chroma-tour-modal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true">
+<div id="chroma-tour-modal" class="fixed inset-0 z-[5000] hidden" role="dialog" aria-modal="true" aria-labelledby="chroma-tour-title">
     <!-- Backdrop -->
     <div class="absolute inset-0 bg-brand-ink/80 backdrop-blur-sm transition-opacity" id="chroma-tour-backdrop">
     </div>
 
     <!-- Modal Container -->
     <div
-        class="absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
+        class="chroma-booking-modal-shell absolute inset-4 md:inset-10 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-fade-in-up">
         <!-- Header -->
         <div
             class="bg-brand-cream border-b border-brand-ink/5 px-6 py-4 flex items-center justify-between flex-shrink-0">
-            <h3 class="font-serif text-xl font-bold text-brand-ink">Schedule Your Visit</h3>
+            <h3 id="chroma-tour-title" class="font-serif text-xl font-bold text-brand-ink">Schedule Your Visit</h3>
             <div class="flex items-center gap-4">
                 <a href="#" id="chroma-tour-external" target="_blank"
                     class="text-xs font-bold uppercase tracking-wider text-brand-ink/50 hover:text-chroma-blue transition-colors hidden md:block">
                     Open in new tab <i class="fa-solid fa-external-link-alt ml-1"></i>
                 </a>
-                <button id="chroma-tour-close"
+                <button id="chroma-tour-close" type="button" aria-label="<?php esc_attr_e( 'Close schedule tour form', 'chroma-excellence' ); ?>"
                     class="w-10 h-10 rounded-full bg-white border border-brand-ink/10 flex items-center justify-center text-brand-ink hover:bg-chroma-red hover:text-white hover:border-chroma-red transition-all">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
@@ -226,12 +226,12 @@ get_header();
         </div>
 
         <!-- Iframe Container -->
-        <div class="flex-grow relative bg-white">
+        <div class="chroma-booking-scroll-frame flex-grow relative bg-white">
             <div id="chroma-tour-loader" class="absolute inset-0 flex items-center justify-center bg-white z-10">
                 <div class="w-12 h-12 border-4 border-chroma-blue/20 border-t-chroma-blue rounded-full animate-spin">
                 </div>
             </div>
-            <iframe id="chroma-tour-frame" src="about:blank" class="w-full h-full border-0"
+            <iframe id="chroma-tour-frame" src="about:blank" class="w-full h-full border-0" scrolling="yes" title="<?php esc_attr_e('Schedule tour booking form', 'chroma-excellence'); ?>"
                 allow="camera; microphone; autoplay; encrypted-media;"></iframe>
         </div>
     </div>
@@ -245,8 +245,10 @@ get_header();
         const iframe = document.getElementById('chroma-tour-frame');
         const externalLink = document.getElementById('chroma-tour-external');
         const loader = document.getElementById('chroma-tour-loader');
+        let lastFocusedElement = null;
 
-        function openModal(url) {
+        function openModal(url, trigger) {
+            lastFocusedElement = trigger || document.activeElement;
             modal.classList.remove('hidden');
             document.body.style.overflow = 'hidden';
 
@@ -260,12 +262,20 @@ get_header();
             iframe.onload = function () {
                 loader.classList.add('hidden');
             };
+
+            window.requestAnimationFrame(function () {
+                closeBtn.focus();
+            });
         }
 
-        function closeModal() {
+        function closeModal(restoreFocus = true) {
             modal.classList.add('hidden');
             document.body.style.overflow = '';
             iframe.src = 'about:blank'; // Clear source to stop media/reset
+            if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
+                lastFocusedElement.focus();
+            }
+            lastFocusedElement = null;
         }
 
         // Attach listeners to booking buttons
@@ -276,7 +286,7 @@ get_header();
                 // Only intercept standard external URLs, ignore mailto/tel or hashes
                 if (url && url.startsWith('http')) {
                     e.preventDefault();
-                    openModal(url);
+                    openModal(url, this);
                 }
             });
         });

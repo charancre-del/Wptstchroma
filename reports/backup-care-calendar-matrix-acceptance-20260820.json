@@ -1,0 +1,107 @@
+{
+  "mode": "temporary_calendar_matrix_acceptance",
+  "ok": true,
+  "credential_values_printed": false,
+  "credential_source": "/opt/chroma-onboarding/.env",
+  "location_fingerprint": "euN4...yh3p",
+  "test_contact": {
+    "contact_id": "5xmuFgXfO6xEZGlCcKId",
+    "email_domain": "example.com",
+    "reserved_test_domain": true,
+    "test_marker_present": true,
+    "dnd": false
+  },
+  "calendar": {
+    "id": "OlqV5D5p6VyWJx05hcm6",
+    "name": "Grayson - Tour Appointment",
+    "team_member_count": 1,
+    "team_member_ids": [
+      "5CGj1XPm7br6rdChPfa2"
+    ]
+  },
+  "matrix": {
+    "children": [
+      "TEST CHILD A",
+      "TEST CHILD B"
+    ],
+    "dates": [
+      "2026-09-16",
+      "2026-09-17"
+    ],
+    "expected_appointments": 4,
+    "created_appointments": 4,
+    "appointments": [
+      {
+        "event_id": "SMhfXZcKYyIjzncVyTmM",
+        "title": "BC CALENDAR ACCEPTANCE | TEST CHILD A | 2026-09-16",
+        "calendar_id": "OlqV5D5p6VyWJx05hcm6",
+        "contact_id_matches": true,
+        "assigned_user_id": "5CGj1XPm7br6rdChPfa2",
+        "appointment_status": "confirmed",
+        "address": "550 Grayson Pkwy, Grayson, GA 30017",
+        "start_time": "2026-09-16T09:30:00-04:00",
+        "end_time": "2026-09-16T10:00:00-04:00"
+      },
+      {
+        "event_id": "iWqqMSfIFX7Ey9hbkpA8",
+        "title": "BC CALENDAR ACCEPTANCE | TEST CHILD A | 2026-09-17",
+        "calendar_id": "OlqV5D5p6VyWJx05hcm6",
+        "contact_id_matches": true,
+        "assigned_user_id": "5CGj1XPm7br6rdChPfa2",
+        "appointment_status": "confirmed",
+        "address": "550 Grayson Pkwy, Grayson, GA 30017",
+        "start_time": "2026-09-17T09:30:00-04:00",
+        "end_time": "2026-09-17T10:00:00-04:00"
+      },
+      {
+        "event_id": "8YkD0th1RTH5qIUH3roe",
+        "title": "BC CALENDAR ACCEPTANCE | TEST CHILD B | 2026-09-16",
+        "calendar_id": "OlqV5D5p6VyWJx05hcm6",
+        "contact_id_matches": true,
+        "assigned_user_id": "5CGj1XPm7br6rdChPfa2",
+        "appointment_status": "confirmed",
+        "address": "550 Grayson Pkwy, Grayson, GA 30017",
+        "start_time": "2026-09-16T09:30:00-04:00",
+        "end_time": "2026-09-16T10:00:00-04:00"
+      },
+      {
+        "event_id": "nh22DgTxNrQKc91sTCOB",
+        "title": "BC CALENDAR ACCEPTANCE | TEST CHILD B | 2026-09-17",
+        "calendar_id": "OlqV5D5p6VyWJx05hcm6",
+        "contact_id_matches": true,
+        "assigned_user_id": "5CGj1XPm7br6rdChPfa2",
+        "appointment_status": "confirmed",
+        "address": "550 Grayson Pkwy, Grayson, GA 30017",
+        "start_time": "2026-09-17T09:30:00-04:00",
+        "end_time": "2026-09-17T10:00:00-04:00"
+      }
+    ]
+  },
+  "notifications_attempted": false,
+  "payment_attempted": false,
+  "workflow_activation_attempted": false,
+  "cleanup": [
+    {
+      "event_id": "nh22DgTxNrQKc91sTCOB",
+      "delete_status": 200,
+      "delete_error": null
+    },
+    {
+      "event_id": "8YkD0th1RTH5qIUH3roe",
+      "delete_status": 200,
+      "delete_error": null
+    },
+    {
+      "event_id": "iWqqMSfIFX7Ey9hbkpA8",
+      "delete_status": 200,
+      "delete_error": null
+    },
+    {
+      "event_id": "SMhfXZcKYyIjzncVyTmM",
+      "delete_status": 200,
+      "delete_error": null
+    }
+  ],
+  "recovered_cleanup": [],
+  "cleanup_ok": true
+}

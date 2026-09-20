@@ -25,8 +25,22 @@ $cities_query = chroma_cached_query(
     7 * DAY_IN_SECONDS
 );
 
+// Hide legacy or incomplete community records without deleting historical content.
+if (is_array($cities_query->posts)) {
+    $cities_query->posts = array_values(array_filter($cities_query->posts, static function ($city_post) {
+        $county = trim((string) chroma_get_translated_meta($city_post->ID, 'city_county'));
+        $excluded_counties = array('other', 'local');
+
+        return 'lafayette' !== $city_post->post_name
+            && '' !== $county
+            && !in_array(strtolower($county), $excluded_counties, true);
+    }));
+    $cities_query->post_count = count($cities_query->posts);
+}
+
 // Counties will be collected during the main loop to avoid double iteration
 $unique_counties = [];
+$cities_count = is_array($cities_query->posts) ? count($cities_query->posts) : 0;
 
 // Local fallback image
 $local_fallback = get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp';
@@ -49,6 +63,32 @@ if ($cities_query->have_posts()) {
  * Uses wp_get_attachment_image for correct aspect ratio attributes.
  */
 if (!function_exists('chroma_get_city_image_html')) {
+    function chroma_normalize_city_image_url($raw_value)
+    {
+        if (is_array($raw_value)) {
+            $raw_value = $raw_value['url'] ?? reset($raw_value);
+        }
+
+        $raw_value = trim((string) $raw_value);
+        if ($raw_value === '') {
+            return '';
+        }
+
+        if (preg_match('/https?:\/\/[^\s"\']+/i', $raw_value, $matches)) {
+            $url = $matches[0];
+            $home_host = wp_parse_url(home_url(), PHP_URL_HOST);
+            $image_host = wp_parse_url($url, PHP_URL_HOST);
+
+            if ($image_host && $home_host && $image_host !== $home_host) {
+                return '';
+            }
+
+            return $url;
+        }
+
+        return $raw_value;
+    }
+
     function chroma_get_city_image_html($city_post, $fallback_url)
     {
         $img_class = 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-500';
@@ -64,9 +104,14 @@ if (!function_exists('chroma_get_city_image_html')) {
             if (is_numeric($hero_val)) {
                 return wp_get_attachment_image($hero_val, 'medium_large', false, ['class' => $img_class, 'loading' => 'lazy']);
             } else {
+                $hero_url = chroma_normalize_city_image_url($hero_val);
+                if (!$hero_url) {
+                    return null;
+                }
+
                 return sprintf(
                     '<img src="%s" class="%s" alt="%s" loading="lazy">',
-                    esc_url($hero_val),
+                    esc_url($hero_url),
                     esc_attr($img_class),
                     esc_attr($city_post->post_title . ' community')
                 );
@@ -81,7 +126,7 @@ if (!function_exists('chroma_get_city_image_html')) {
 
 <main>
     <!-- Hero Section -->
-    <section class="relative pt-16 pb-12 lg:pt-24 lg:pb-20 bg-white overflow-hidden">
+    <section class="pageHero chroma-v2-page-hero relative pt-16 pb-12 lg:pt-24 lg:pb-20 bg-white overflow-hidden">
         <!-- Decor -->
         <div
             class="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-chroma-blueLight/40 via-transparent to-transparent">
@@ -90,7 +135,7 @@ if (!function_exists('chroma_get_city_image_html')) {
         <div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 text-center">
             <div
                 class="inline-flex items-center gap-2 bg-white border border-chroma-blue/30 px-4 py-1.5 rounded-full text-[11px] uppercase tracking-[0.2em] font-bold text-chroma-blue shadow-sm mb-6 fade-in-up">
-                <i class="fa-solid fa-city"></i> <?php echo $cities_query->found_posts; ?>
+                <i class="fa-solid fa-city"></i> <?php echo esc_html($cities_count); ?>
                 <?php _e('Communities', 'chroma-excellence'); ?>
             </div>
 
@@ -107,7 +152,8 @@ if (!function_exists('chroma_get_city_image_html')) {
             <div class="max-w-7xl mx-auto bg-white p-2 rounded-full shadow-float border border-brand-ink/5 flex flex-col lg:flex-row gap-2 fade-in-up"
                 style="animation-delay: 0.3s;">
                 <div class="relative flex-grow max-w-md">
-                    <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-brand-ink"></i>
+                    <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-brand-ink" aria-hidden="true"></i>
+                    <label for="city-search" class="sr-only"><?php esc_html_e('Search communities', 'chroma-excellence'); ?></label>
                     <input type="text" id="city-search"
                         placeholder="<?php esc_attr_e('Search for your city...', 'chroma-excellence'); ?>"
                         class="w-full pl-12 pr-4 py-3 rounded-full focus:outline-none text-brand-ink bg-white" />
@@ -145,7 +191,11 @@ if (!function_exists('chroma_get_city_image_html')) {
                         $county_slug = sanitize_title($county);
 
                         $city_html = chroma_get_city_image_html($post, $local_fallback);
-                        $city_description = chroma_get_translated_meta($city_id, 'city_intro_text');
+                        $city_description = wp_trim_words(
+                            wp_strip_all_tags((string) chroma_get_translated_meta($city_id, 'city_intro_text')),
+                            28,
+                            '&hellip;'
+                        );
                         ?>
                         <div class="city-card group" data-county="<?php echo esc_attr($county_slug); ?>"
                             data-name="<?php echo esc_attr(strtolower(get_the_title())); ?>">
@@ -176,10 +226,10 @@ if (!function_exists('chroma_get_city_image_html')) {
                                             <?php echo esc_html($county); ?>
                                         </span>
                                     </div>
-                                    <h3
+                                    <h2
                                         class="font-serif text-xl md:text-2xl font-bold text-brand-ink mb-2 group-hover:text-chroma-blue transition-colors">
                                         <?php the_title(); ?>
-                                    </h3>
+                                    </h2>
                                     <p class="text-sm text-brand-ink/60 mb-4 line-clamp-2">
                                         <?php echo esc_html($city_description); ?>
                                     </p>

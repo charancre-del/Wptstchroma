@@ -1,0 +1,163 @@
+{
+  "schema_version": 3,
+  "run_date": "2026-08-19",
+  "mode": "private_ghl_and_stripe_test",
+  "website_changed": false,
+  "website_source_prepared": true,
+  "service_published": false,
+  "workflows_published": false,
+  "credentials_recorded": false,
+  "objects": {
+    "child_id": "6a85d700cb547f58df257c05",
+    "order_id": "6a85d70186673994a84c9d57",
+    "attendance_id": "6a85d6d3d63ba1ef841594b6",
+    "closure_id": "6a86214656bd22a063c1b0cb",
+    "field_count": 48,
+    "booking_unique_field_rules_confirmed": 4,
+    "total_unique_field_rules_confirmed": 5,
+    "closure_schema_key": "custom_objects.backup_care_closure",
+    "closure_object_readback_status": 200
+  },
+  "associations": {
+    "count": 4,
+    "one_to_many_confirmed": true,
+    "ids": {
+      "parent_to_child": "6a85d7bed4a282e9de959057",
+      "parent_to_order": "6a85d7bf28fda2dfd0a91f31",
+      "order_to_attendance": "6a85d7bf3f6a8b0d5b2803b9",
+      "child_to_attendance": "6a85d7c0b694a20000d8f8d6"
+    }
+  },
+  "forms": {
+    "family_profile": "gH2g9JDSqv0EhBPuLk2n",
+    "child_enrollment": "JSSCutlpdu1QdvPvq18d",
+    "booking_terms": "0bn3ZGjBmOjWLMr5cb39"
+  },
+  "form_acceptance": {
+    "original_payloads_backed_up": true,
+    "required_parent_fields": true,
+    "parent_and_child_prefill_keys_separated": true,
+    "internal_fields_hidden": true,
+    "real_policy_links_configured": true,
+    "child_file_upload_rendered": true,
+    "child_submission_created_expected_record": true,
+    "native_parent_child_association_confirmed": true,
+    "server_keyed_child_identity_token": true,
+    "server_validates_all_required_child_fields": true,
+    "record_status_alone_cannot_mark_enrollment_complete": true,
+    "acceptance_records_removed": true
+  },
+  "live_data_model_round_trip": {
+    "two_children": true,
+    "one_order": true,
+    "four_attendance_units": true,
+    "one_closure": true,
+    "all_eleven_relationship_writes_succeeded": true,
+    "all_five_unique_constraints_rejected_duplicates": true,
+    "test_records_removed": true
+  },
+  "tags": {
+    "live_readback_status": 200,
+    "ids": {
+      "backup-care": "7UVOoaxV1lwbo9oThN0n",
+      "backup-care-paid": "AGnyP28f7xqp7TjBbHYw",
+      "backup-care-cancelled": "RhvChUQ8wRonKZ49dbgY",
+      "backup-care-partially-refunded": "pOxY9EipWIaZEODyWCjA",
+      "backup-care-refunded": "u2IQnHKJxzvDk9XO3BEt",
+      "backup-care-rescheduled": "YYSwa7uahyiH07Jr01wh",
+      "backup-care-payment-failed": "XIus8Vzq9w0dYK7QqwzA",
+      "backup-care-review-required": "Fg9uzmanYhLIJOW4R8zb",
+      "backup-care-late-cancellation": "pId9Z0KuyGTHhYSG9dHE",
+      "backup-care-late-reschedule": "TeIOGd8qimuOPrWG5th1",
+      "backup-care-arrival-reminded": "iPRW66IqIkbRVqiIdHsI"
+    }
+  },
+  "workflows": {
+    "count": 8,
+    "status": "draft",
+    "object_type": "contact",
+    "automatic_triggers_configured": false,
+    "execution_mode": "coordinator_contact_enrollment_only_after_explicit_activation",
+    "draft_manifest_enrollment_blocked": true,
+    "fulfillment_and_notification_actions_complete": true,
+    "legacy_custom_object_workflows_soft_deleted": 8,
+    "live_readback": {
+      "checked_at": "2026-08-19",
+      "all_detail_requests_succeeded": true,
+      "all_trigger_requests_succeeded": true,
+      "all_draft": true,
+      "workflow_count": 8,
+      "workflows_with_zero_automatic_triggers": 8,
+      "workflows_with_one_executable_tag_action": 8,
+      "workflows_with_contact_context": 8
+    },
+    "ids": {
+      "paid": "0a1fc418-86b5-422d-b71e-add7e66e8425",
+      "payment_failed": "be98bba4-476f-4364-8510-8c928c83965d",
+      "mandatory_review": "0c6807f7-f559-4889-a4cf-fe09d85a8985",
+      "eligible_cancellation": "ca480f96-ca6d-4c11-89bc-17fa2796549a",
+      "late_cancellation": "503d1b9b-c86e-4b9c-9635-ee9aeb06b55d",
+      "eligible_reschedule": "12c68bd0-2aa8-4743-8b4e-e1de7aaa0763",
+      "late_reschedule": "07712b7a-31d3-4546-8296-421f0f83b8b9",
+      "arrival_reminder": "f0a2b357-8dcd-446e-af97-fe538fd0151d"
+    }
+  },
+  "services_v2": {
+    "service_id": "6a852f7edd9a7f8f82f4fa36",
+    "private": true,
+    "booking_horizon_days": 365,
+    "minimum_notice_minutes": 120,
+    "cancellation_cutoff_hours": 72,
+    "reschedule_cutoff_hours": 72,
+    "multiple_service_selection": true,
+    "payment_mode": "test",
+    "partial_payment": false,
+    "capacity_resource_id": "6a85df0e3f6985809e26eeb5",
+    "capacity_locations": 24,
+    "capacity_each": 100,
+    "closure_source": "custom_objects.backup_care_closure",
+    "closure_dates_configured": false
+  },
+  "stripe_test": {
+    "passed": true,
+    "amount_cents": 11500,
+    "payment_status": "completed",
+    "service_booking_id": "oUDfgxzJiwM7WaPORAcO",
+    "order_id": "6a85e2cc7181886b898068e7",
+    "live_charge": false
+  },
+  "native_checkout_acceptance": {
+    "passed": false,
+    "single_date_single_attendee_payment": "pass",
+    "multiple_children": "fail_no_guest_or_child_control",
+    "multiple_arbitrary_dates": "fail_no_repeated_service_date_cart",
+    "campus_routing": "fail_staff_and_displayed_location_differed",
+    "capacity_assignment": "fail_test_booking_had_no_assigned_resource",
+    "closure_enforcement": "not_run_no_closure_dates_supplied"
+  },
+  "coordinator_acceptance": {
+    "domain_rule_tests": "pass_14_of_14",
+    "multiple_children_multiple_dates": "pass_local_domain_test",
+    "server_priced_11500_per_child_date": "pass_local_domain_test",
+    "365_day_horizon": "pass_local_domain_test",
+    "120_minute_notice_and_0730_same_day_deadline": "pass_local_domain_test",
+    "capacity_100": "pass_local_domain_test",
+    "closure_rejection": "pass_local_domain_and_live_ghl_closure_round_trip",
+    "stripe_checkout_and_webhook": "pass_mocked_contract_pending_real_test_mode_staging_transaction",
+    "checkout_session_binding": "pass_rejects_valid_signed_event_for_wrong_session",
+    "duplicate_webhook_delivery": "pass_idempotent",
+    "notification_failure_retry": "pass_paid_state_retained_without_duplicate_fulfillment",
+    "wordpress_payload_retention": "pass_encrypted_until_notifications_succeed_then_purged",
+    "order_mutation_serialization": "pass_order_locks_cover_checkout_webhooks_refunds_cancellation_and_reschedule",
+    "policy_acceptance_audit": "pass_server_time_contract_version_and_exact_policy_keys_persisted",
+    "nearest_campus_by_address": "pass_mocked_server_side_geocoding_pending_restricted_key_and_staging_readback",
+    "address_data_minimization": "pass_key_not_public_and_address_not_written_to_booking_contract",
+    "partial_cancellation_refund": "pass_mocked_contract_11500",
+    "stripe_refund_reconciliation": "pass_expected_partial_unmatched_partial_review_and_full_external_release",
+    "reschedule_and_72_hour_denial": "pass_mocked_contract",
+    "ghl_record_relationship_round_trip": "pass_live_and_cleaned_up",
+    "native_child_form_round_trip": "pass_live_and_cleaned_up",
+    "theme_and_management_surfaces": "source_prepared_not_published"
+  },
+  "release_decision": "staging_ready_after_credentials_closures_policy_and_capacity_inputs_do_not_publish_live"
+}

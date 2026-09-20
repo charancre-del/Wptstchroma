@@ -12,6 +12,7 @@ use ChromaQA\Models\School;
 $school_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 $school = $school_id ? School::find($school_id) : new School();
 $is_new = !$school_id;
+$original_region = $school->region ?? '';
 
 // Handle form submission
 if (isset($_POST['cqa_school_nonce']) && wp_verify_nonce($_POST['cqa_school_nonce'], 'cqa_save_school')) {
@@ -25,7 +26,11 @@ if (isset($_POST['cqa_school_nonce']) && wp_verify_nonce($_POST['cqa_school_nonc
     $school->tier = isset($_POST['tier']) ? intval($_POST['tier']) : 1;
     $school->acquired_date = sanitize_text_field($_POST['acquired_date']);
     $school->status = sanitize_text_field($_POST['status']);
-    $school->drive_folder_id = sanitize_text_field($_POST['drive_folder_id']);
+    $drive_folder_id = sanitize_text_field($_POST['drive_folder_id']);
+    \ChromaQA\Auth\Access_Policy::require_access(
+        $drive_folder_id === (string) $school->drive_folder_id || \ChromaQA\Auth\Access_Policy::settings()
+    );
+    $school->drive_folder_id = $drive_folder_id;
 
     // Parse classroom config
     $classroom_config = [];
@@ -35,6 +40,11 @@ if (isset($_POST['cqa_school_nonce']) && wp_verify_nonce($_POST['cqa_school_nonc
         }
     }
     $school->classroom_config = $classroom_config;
+
+    \ChromaQA\Auth\Access_Policy::require_access(
+        (!$is_new && $school->region === $original_region) ||
+        \ChromaQA\Auth\Access_Policy::can_create_school($school->region)
+    );
 
     $result = $school->save();
 

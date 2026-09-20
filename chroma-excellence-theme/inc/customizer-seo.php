@@ -382,6 +382,147 @@ function chroma_get_context_meta_description() {
 }
 
 /**
+ * Keep the first matching SEO tag and remove later duplicates.
+ *
+ * @param string $html    Buffered wp_head output.
+ * @param string $pattern Tag-matching regular expression.
+ * @return string
+ */
+function chroma_keep_first_seo_tag($html, $pattern) {
+    $seen = false;
+
+    $result = preg_replace_callback($pattern, static function ($matches) use (&$seen) {
+        if ($seen) {
+            return '';
+        }
+
+        $seen = true;
+        return $matches[0];
+    }, (string) $html);
+
+    return is_string($result) ? $result : (string) $html;
+}
+
+/**
+ * Append only the social tags that are missing from an externally managed head.
+ *
+ * @param string $head Buffered wp_head output.
+ * @return string
+ */
+function chroma_append_missing_social_meta($head) {
+    $title = wp_get_document_title();
+    $description = chroma_get_context_meta_description();
+    $url = chroma_get_context_canonical_url();
+    $image = get_theme_mod('chroma_default_og_image', '');
+
+    if (is_singular()) {
+        $post = get_post();
+        if ($post && has_post_thumbnail($post)) {
+            $image = get_the_post_thumbnail_url($post, 'large');
+        }
+    }
+
+    if (empty($image) && function_exists('get_site_icon_url')) {
+        $image = get_site_icon_url(512);
+    }
+
+    if (empty($image) && function_exists('has_custom_logo') && has_custom_logo()) {
+        $logo_id = get_theme_mod('custom_logo');
+        $image = $logo_id ? wp_get_attachment_image_url($logo_id, 'full') : '';
+    }
+
+    $tags = [
+        'og:type' => '<meta property="og:type" content="' . esc_attr(is_singular('post') ? 'article' : 'website') . '">',
+        'og:title' => '<meta property="og:title" content="' . esc_attr($title) . '">',
+        'og:description' => '<meta property="og:description" content="' . esc_attr($description) . '">',
+        'og:url' => '<meta property="og:url" content="' . esc_url($url) . '">',
+        'og:site_name' => '<meta property="og:site_name" content="' . esc_attr(get_bloginfo('name')) . '">',
+        'twitter:card' => '<meta name="twitter:card" content="' . esc_attr(get_theme_mod('chroma_twitter_card_type', 'summary_large_image')) . '">',
+        'twitter:title' => '<meta name="twitter:title" content="' . esc_attr($title) . '">',
+        'twitter:description' => '<meta name="twitter:description" content="' . esc_attr($description) . '">',
+    ];
+
+    if ($image) {
+        $tags['og:image'] = '<meta property="og:image" content="' . esc_url($image) . '">';
+        $tags['twitter:image'] = '<meta name="twitter:image" content="' . esc_url($image) . '">';
+    }
+
+    foreach ($tags as $key => $tag) {
+        $attribute = strpos($key, 'og:') === 0 ? 'property' : 'name';
+        $pattern = '~<meta\b(?=[^>]*\b' . $attribute . '\s*=\s*(?:"' . preg_quote($key, '~') . '"|\'' . preg_quote($key, '~') . '\'))[^>]*>~i';
+        if (!preg_match($pattern, $head)) {
+            $head .= $tag . "\n";
+        }
+    }
+
+    return $head;
+}
+
+/**
+ * Reconcile OTTO/MetaSync output without competing with tags it supplied.
+ *
+ * @param string $head Buffered wp_head output.
+ * @return string
+ */
+function chroma_reconcile_external_seo_head($head) {
+    $canonical_pattern = '~<link\b(?=[^>]*\brel\s*=\s*(?:"canonical"|\'canonical\'))[^>]*>\s*~i';
+    $description_pattern = '~<meta\b(?=[^>]*\bname\s*=\s*(?:"description"|\'description\'))[^>]*>\s*~i';
+
+    $head = preg_replace($canonical_pattern, '', (string) $head);
+    if (!is_string($head)) {
+        $head = '';
+    }
+    $head = preg_replace($description_pattern, '', $head);
+    if (!is_string($head)) {
+        $head = '';
+    }
+
+    $canonical = chroma_get_context_canonical_url();
+    if ($canonical !== '') {
+        $head .= '<link rel="canonical" href="' . esc_url($canonical) . '">' . "\n";
+    }
+
+    $description = chroma_get_context_meta_description();
+    if ($description !== '') {
+        $head .= '<meta name="description" content="' . esc_attr($description) . '">' . "\n";
+    }
+
+    return chroma_append_missing_social_meta($head);
+}
+
+/**
+ * Buffer wp_head only when an external SEO runtime owns primary tag output.
+ */
+function chroma_begin_external_seo_head_buffer() {
+    if (!function_exists('chroma_should_reconcile_external_seo_head') || !chroma_should_reconcile_external_seo_head()) {
+        return;
+    }
+
+    ob_start();
+    $GLOBALS['chroma_external_seo_head_buffer_level'] = ob_get_level();
+}
+add_action('wp_head', 'chroma_begin_external_seo_head_buffer', PHP_INT_MIN);
+
+/**
+ * Flush reconciled external SEO head output.
+ */
+function chroma_end_external_seo_head_buffer() {
+    $buffer_level = isset($GLOBALS['chroma_external_seo_head_buffer_level'])
+        ? (int) $GLOBALS['chroma_external_seo_head_buffer_level']
+        : 0;
+
+    if ($buffer_level === 0 || ob_get_level() !== $buffer_level) {
+        return;
+    }
+
+    $head = ob_get_clean();
+    unset($GLOBALS['chroma_external_seo_head_buffer_level']);
+
+    echo chroma_reconcile_external_seo_head((string) $head);
+}
+add_action('wp_head', 'chroma_end_external_seo_head_buffer', PHP_INT_MAX);
+
+/**
  * Shared meta description output.
  */
 function chroma_shared_meta_description() {
@@ -453,7 +594,13 @@ if (!function_exists('chroma_get_route_specific_title')) {
 if (!function_exists('chroma_force_known_route_titles')) {
     function chroma_force_known_route_titles($title) {
         $override = chroma_get_route_specific_title();
-        return $override !== '' ? $override : $title;
+        $resolved = $override !== '' ? $override : $title;
+
+        return preg_replace(
+            '/\b(?:top[- ]rated|award[- ]winning|best)\s+(?=(?:daycare|childcare|preschool)\b)/i',
+            '',
+            (string) $resolved
+        );
     }
 }
 add_filter('pre_get_document_title', 'chroma_force_known_route_titles', PHP_INT_MAX);
@@ -469,7 +616,13 @@ if (!function_exists('chroma_get_route_specific_meta_description')) {
 if (!function_exists('chroma_force_known_route_meta_descriptions')) {
     function chroma_force_known_route_meta_descriptions($description) {
         $override = chroma_get_route_specific_meta_description();
-        return $override !== '' ? $override : $description;
+        $resolved = $override !== '' ? $override : $description;
+
+        return preg_replace(
+            '/\b(?:top[- ]rated|award[- ]winning|best)\s+(?=(?:daycare|childcare|preschool)\b)/i',
+            '',
+            (string) $resolved
+        );
     }
 }
 add_filter('wpseo_metadesc', 'chroma_force_known_route_meta_descriptions', PHP_INT_MAX);

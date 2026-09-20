@@ -8,6 +8,8 @@
 (function () {
   'use strict';
 
+  document.documentElement.classList.add('chroma-js');
+
   // Helper: Idle callback with polyfill
   const runIdle = (fn) => {
     if ('requestIdleCallback' in window) {
@@ -53,6 +55,247 @@
     return fallback;
   };
 
+  const debounce = (callback, wait = 150) => {
+    let timeoutId;
+
+    return (...args) => {
+      window.clearTimeout(timeoutId);
+      timeoutId = window.setTimeout(() => callback(...args), wait);
+    };
+  };
+
+  /**
+   * Component: HTML Preview Motion Layer
+   * Restores the finalized preview's reveal-on-scroll and staggered card movement.
+   */
+  const initRevealMotion = () => {
+    if (document.documentElement.dataset.chromaMotionReady === 'true') return;
+    document.documentElement.dataset.chromaMotionReady = 'true';
+
+    const selectors = [
+      '.reveal',
+      '.fade-in-up',
+      '[data-motion]',
+      '.chroma-redesign-hero-art',
+      '.chroma-bento-heading',
+      '.chroma-bento-card',
+      '.chroma-prism-stack .max-w-6xl',
+      '.chroma-prism-card',
+      '.chroma-program-tab',
+      '.chroma-template-card',
+      '.chroma-locations-showcase .text-center',
+      '.chroma-location-map-panel',
+      '.chroma-location-list-panel',
+      '[data-section="stats"] .group',
+      '#tour aside',
+      '#tour .grid > div',
+    ];
+
+    const motionItems = Array.from(new Set(
+      selectors.flatMap(selector => Array.from(document.querySelectorAll(selector)))
+    )).filter(el => el instanceof HTMLElement);
+
+    if (!motionItems.length) return;
+
+    const delayFromClass = (el) => {
+      if (el.classList.contains('delay-300') || el.classList.contains('d4')) return 300;
+      if (el.classList.contains('delay-200') || el.classList.contains('d3')) return 200;
+      if (el.classList.contains('delay-100') || el.classList.contains('d2')) return 100;
+      if (el.classList.contains('d1')) return 80;
+      return null;
+    };
+
+    const groupedIndex = new WeakMap();
+    motionItems.forEach((el) => {
+      el.classList.add('chroma-motion-item');
+
+      if (!el.style.getPropertyValue('--reveal-delay')) {
+        const explicitDelay = delayFromClass(el);
+        if (explicitDelay !== null) {
+          el.style.setProperty('--reveal-delay', `${explicitDelay}ms`);
+          return;
+        }
+
+        const parent = el.parentElement;
+        const parentKey = parent || document.body;
+        const index = groupedIndex.get(parentKey) || 0;
+        groupedIndex.set(parentKey, index + 1);
+        el.style.setProperty('--reveal-delay', `${Math.min(index * 75, 450)}ms`);
+      }
+    });
+
+    const activate = (el) => {
+      el.classList.add('active', 'is-visible');
+    };
+
+    if (!('IntersectionObserver' in window)) {
+      motionItems.forEach(activate);
+      return;
+    }
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        activate(entry.target);
+        observer.unobserve(entry.target);
+      });
+    }, {
+      rootMargin: '0px 0px 8% 0px',
+      threshold: 0.01,
+    });
+
+    motionItems.forEach(el => observer.observe(el));
+
+    window.setTimeout(() => {
+      motionItems.forEach((el) => {
+        if (!el.classList.contains('is-visible')) activate(el);
+      });
+    }, 2400);
+  };
+
+  const normalizeGhlFormEmbeds = () => {
+    const formCards = document.querySelectorAll('.chroma-form-scroll-card, .chroma-tour-form-card');
+    if (!formCards.length) return;
+
+    const setImportantStyle = (element, property, value) => {
+      if (
+        element.style.getPropertyValue(property) === value
+        && element.style.getPropertyPriority(property) === 'important'
+      ) {
+        return;
+      }
+
+      element.style.setProperty(property, value, 'important');
+    };
+
+    formCards.forEach((card) => {
+      card.classList.add('has-embedded-form');
+
+      card.querySelectorAll('.chroma-contact-form-wrapper, .chroma-tour-form-wrapper, [data-chroma-ghl-container]').forEach((container) => {
+        if (!(container instanceof HTMLElement)) return;
+
+        container.style.setProperty('position', 'relative', 'important');
+        container.style.setProperty('left', 'auto', 'important');
+        container.style.setProperty('right', 'auto', 'important');
+        container.style.setProperty('top', 'auto', 'important');
+        container.style.setProperty('bottom', 'auto', 'important');
+        container.style.setProperty('transform', 'none', 'important');
+        container.style.setProperty('width', '100%', 'important');
+        container.style.setProperty('max-width', '100%', 'important');
+        container.style.setProperty('height', 'auto', 'important');
+        container.style.setProperty('max-height', 'none', 'important');
+        container.style.setProperty('min-height', '0px', 'important');
+        container.style.setProperty('overflow', 'visible', 'important');
+      });
+
+      card.querySelectorAll('.chroma-ghl-iframe-container').forEach((viewport) => {
+        if (!(viewport instanceof HTMLElement)) return;
+
+        viewport.style.setProperty('position', 'relative', 'important');
+        viewport.style.setProperty('left', 'auto', 'important');
+        viewport.style.setProperty('right', 'auto', 'important');
+        viewport.style.setProperty('top', 'auto', 'important');
+        viewport.style.setProperty('bottom', 'auto', 'important');
+        viewport.style.setProperty('transform', 'none', 'important');
+        viewport.style.setProperty('width', '100%', 'important');
+        viewport.style.setProperty('max-width', '100%', 'important');
+        viewport.style.setProperty('overflow', 'hidden', 'important');
+
+        if (viewport.dataset.chromaScrollInitialized !== 'true') {
+          viewport.dataset.chromaScrollInitialized = 'true';
+          viewport.scrollTop = 0;
+        }
+      });
+
+      card.querySelectorAll('iframe[data-src], iframe[src*="leadconnectorhq.com"], iframe[src*="msgsndr.com"], iframe[src*="gohighlevel"]').forEach((iframe) => {
+        if (!(iframe instanceof HTMLIFrameElement)) return;
+
+        const dataSource = iframe.getAttribute('data-src');
+        if (dataSource && !iframe.getAttribute('src')) {
+          iframe.setAttribute('src', dataSource);
+        }
+
+        iframe.setAttribute('scrolling', 'yes');
+
+        if (iframe.dataset.chromaFormSizeListener !== 'true') {
+          iframe.dataset.chromaFormSizeListener = 'true';
+          iframe.addEventListener('load', () => {
+            const viewport = iframe.closest('.chroma-ghl-iframe-container');
+            if (viewport instanceof HTMLElement) {
+              viewport.scrollTop = 0;
+              window.setTimeout(() => {
+                viewport.scrollTop = 0;
+              }, 180);
+            }
+            window.setTimeout(normalizeGhlFormEmbeds, 120);
+            window.setTimeout(normalizeGhlFormEmbeds, 700);
+          });
+        }
+
+        setImportantStyle(iframe, 'position', 'relative');
+        setImportantStyle(iframe, 'left', '0px');
+        setImportantStyle(iframe, 'right', 'auto');
+        setImportantStyle(iframe, 'top', '0px');
+        setImportantStyle(iframe, 'bottom', 'auto');
+        setImportantStyle(iframe, 'transform', 'none');
+        setImportantStyle(iframe, 'display', 'block');
+        setImportantStyle(iframe, 'visibility', 'visible');
+        setImportantStyle(iframe, 'opacity', '1');
+        setImportantStyle(iframe, 'width', '100%');
+        setImportantStyle(iframe, 'max-width', '100%');
+        setImportantStyle(iframe, 'min-width', '0px');
+        setImportantStyle(iframe, 'height', '100%');
+        setImportantStyle(iframe, 'max-height', '100%');
+        setImportantStyle(iframe, 'min-height', '100%');
+        setImportantStyle(iframe, 'overflow', 'auto');
+
+        let embedWrapper = iframe.parentElement;
+        while (embedWrapper && embedWrapper !== viewport) {
+          if (
+            embedWrapper.classList.contains('ep-wrapper')
+            || embedWrapper.classList.contains('ep-iFrameContainer')
+          ) {
+            setImportantStyle(embedWrapper, 'height', '100%');
+            setImportantStyle(embedWrapper, 'max-height', '100%');
+            setImportantStyle(embedWrapper, 'min-height', '100%');
+            setImportantStyle(embedWrapper, 'overflow', 'hidden');
+            setImportantStyle(embedWrapper, 'width', '100%');
+          }
+          embedWrapper = embedWrapper.parentElement;
+        }
+
+      });
+    });
+  };
+
+  const observeGhlFormEmbeds = () => {
+    normalizeGhlFormEmbeds();
+
+    if (!('MutationObserver' in window) || document.documentElement.dataset.chromaGhlEmbedObserver === 'true') {
+      return;
+    }
+
+    document.documentElement.dataset.chromaGhlEmbedObserver = 'true';
+    const refresh = debounce(normalizeGhlFormEmbeds, 50);
+    const observer = new MutationObserver(refresh);
+
+    document.querySelectorAll('.chroma-form-scroll-card, .chroma-tour-form-card').forEach((card) => {
+      observer.observe(card, {
+        attributes: true,
+        attributeFilter: ['src', 'data-src', 'class'],
+        childList: true,
+        subtree: true,
+      });
+    });
+
+    window.setTimeout(normalizeGhlFormEmbeds, 100);
+    window.setTimeout(normalizeGhlFormEmbeds, 800);
+    window.setTimeout(normalizeGhlFormEmbeds, 2200);
+    window.setTimeout(normalizeGhlFormEmbeds, 4500);
+    window.setTimeout(normalizeGhlFormEmbeds, 7000);
+    window.addEventListener('resize', debounce(normalizeGhlFormEmbeds, 120), { passive: true });
+  };
+
   /**
    * Component: Mobile Navigation
    * Loaded immediately as it's critical for mobile UX
@@ -62,44 +305,115 @@
     const mobileNav = document.querySelector('[data-mobile-nav]');
     if (!mobileNav || !mobileNavToggles.length) return;
 
+    const focusableSelector = [
+      'a[href]',
+      'button:not([disabled])',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(',');
+    let lastFocusedElement = null;
+    let previousBodyOverflow = '';
+    let inertSiblings = [];
+
     const isOpen = () => !mobileNav.classList.contains('translate-x-full');
     const setExpanded = (expanded) => {
       mobileNavToggles.forEach((toggle) => {
         toggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       });
     };
-    const openMobileNav = () => {
-      mobileNav.classList.remove('translate-x-full');
-      document.body.style.overflow = 'hidden';
-      setExpanded(true);
+    const setBackgroundInert = (shouldBeInert) => {
+      if (shouldBeInert) {
+        inertSiblings = Array.from(document.body.children)
+          .filter((element) => element !== mobileNav && !['SCRIPT', 'STYLE', 'LINK'].includes(element.tagName))
+          .map((element) => ({ element, wasInert: element.inert }));
+        inertSiblings.forEach(({ element }) => { element.inert = true; });
+        return;
+      }
+
+      inertSiblings.forEach(({ element, wasInert }) => { element.inert = wasInert; });
+      inertSiblings = [];
     };
-    const closeMobileNav = () => {
+    const openMobileNav = (trigger) => {
+      lastFocusedElement = trigger || document.activeElement;
+      previousBodyOverflow = document.body.style.overflow;
+      mobileNav.inert = false;
+      mobileNav.classList.remove('translate-x-full');
+      mobileNav.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+      setBackgroundInert(true);
+      setExpanded(true);
+      window.requestAnimationFrame(() => {
+        const closeButton = mobileNav.querySelector('[data-mobile-nav-toggle]');
+        const firstFocusable = mobileNav.querySelector(focusableSelector);
+        (closeButton || firstFocusable || mobileNav).focus();
+      });
+    };
+    const closeMobileNav = (restoreFocus = true) => {
       mobileNav.classList.add('translate-x-full');
-      document.body.style.overflow = '';
+      mobileNav.setAttribute('aria-hidden', 'true');
+      mobileNav.inert = true;
+      document.body.style.overflow = previousBodyOverflow;
+      setBackgroundInert(false);
       setExpanded(false);
+      if (restoreFocus && lastFocusedElement instanceof HTMLElement) {
+        lastFocusedElement.focus();
+      }
+      lastFocusedElement = null;
     };
 
-    closeMobileNav();
+    mobileNav.classList.add('translate-x-full');
+    mobileNav.setAttribute('aria-hidden', 'true');
+    mobileNav.inert = true;
+    setExpanded(false);
 
     mobileNavToggles.forEach((toggle) => {
       toggle.addEventListener('click', () => {
         if (isOpen()) {
           closeMobileNav();
         } else {
-          openMobileNav();
+          openMobileNav(toggle);
         }
       });
     });
 
     mobileNav.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', closeMobileNav);
+      link.addEventListener('click', () => closeMobileNav(false));
     });
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape' && isOpen()) {
+        event.preventDefault();
         closeMobileNav();
+        return;
+      }
+
+      if (event.key !== 'Tab' || !isOpen()) return;
+      const focusableElements = Array.from(mobileNav.querySelectorAll(focusableSelector))
+        .filter((element) => element instanceof HTMLElement && element.offsetParent !== null);
+      if (!focusableElements.length) {
+        event.preventDefault();
+        mobileNav.focus();
+        return;
+      }
+
+      const firstFocusable = focusableElements[0];
+      const lastFocusable = focusableElements[focusableElements.length - 1];
+      if (event.shiftKey && document.activeElement === firstFocusable) {
+        event.preventDefault();
+        lastFocusable.focus();
+      } else if (!event.shiftKey && document.activeElement === lastFocusable) {
+        event.preventDefault();
+        firstFocusable.focus();
       }
     });
+
+    window.addEventListener('resize', debounce(() => {
+      if (window.matchMedia('(min-width: 1024px)').matches && isOpen()) {
+        closeMobileNav(false);
+      }
+    }, 120));
   };
 
   /**
@@ -119,26 +433,12 @@
           if (!content) return;
 
           const isOpen = !content.classList.contains('hidden');
-          const group = accordion.closest('[data-accordion-group]') || container;
+          content.classList.toggle('hidden', isOpen);
+          accordion.classList.toggle('open', !isOpen);
+          trigger.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
 
-          // Close all items in the same group.
-          group.querySelectorAll('[data-accordion]').forEach((item) => {
-            const itemTrigger = item.querySelector('[data-accordion-trigger]');
-            const itemContent = item.querySelector('[data-accordion-content]');
-            const itemIcon = item.querySelector('[data-accordion-icon]');
-
-            if (itemTrigger) itemTrigger.setAttribute('aria-expanded', 'false');
-            if (itemContent) itemContent.classList.add('hidden');
-            if (itemIcon) itemIcon.textContent = 'v';
-          });
-
-          // Open selected item.
-          if (!isOpen) {
-            content.classList.remove('hidden');
-            trigger.setAttribute('aria-expanded', 'true');
-            const icon = trigger.querySelector('[data-accordion-icon]');
-            if (icon) icon.textContent = '^';
-          }
+          const icon = trigger.querySelector('[data-accordion-icon]');
+          if (icon) icon.textContent = isOpen ? '+' : '−';
         });
       });
     });
@@ -152,42 +452,224 @@
     wizard.dataset.programWizardReady = 'true';
 
     const options = readJSONPayload(wizard, '[data-program-wizard-payload]', 'data-options', []);
+    const chartLabels = readJSONPayload(wizard, '[data-program-chart-labels]', null, []);
     const optionButtons = wizard.querySelectorAll('[data-program-wizard-option]');
+    const optionScroller = wizard.querySelector('[data-program-wizard-options]');
+    const railPrev = wizard.querySelector('[data-program-rail-prev]');
+    const railNext = wizard.querySelector('[data-program-rail-next]');
     const result = wizard.querySelector('[data-program-wizard-result]');
     const title = wizard.querySelector('[data-program-wizard-title]');
+    const age = wizard.querySelector('[data-program-wizard-age]');
     const desc = wizard.querySelector('[data-program-wizard-description]');
-    const image = wizard.querySelector('[data-program-wizard-image]');
+    const prismDescription = wizard.querySelector('[data-program-wizard-prism-description]');
     const learnLink = wizard.querySelector('[data-program-wizard-link]');
     const resetBtn = wizard.querySelector('[data-program-wizard-reset]');
+    const chartFills = wizard.querySelectorAll('[data-program-chart-fill]');
+    const chartStatuses = wizard.querySelectorAll('[data-program-chart-status]');
+    const radar = wizard.querySelector('[data-program-radar]');
+    const radarGrid = wizard.querySelector('[data-program-radar-grid]');
+    const radarArea = wizard.querySelector('[data-program-radar-area]');
+    const radarStroke = wizard.querySelector('[data-program-radar-stroke]');
+    const radarPoints = wizard.querySelector('[data-program-radar-points]');
+    const defaultOption = options.find(option => option && option.key === 'preschool') || options[0];
+    let currentRadarValues = Array.isArray(defaultOption?.prism_data)
+      ? defaultOption.prism_data.map(value => Math.max(0, Math.min(100, parseInt(value, 10) || 0)))
+      : [0, 0, 0, 0, 0];
+    let radarAnimationFrame = null;
 
-    const showResult = (selected) => {
-      if (!result) return;
-      if (title) title.textContent = selected.label;
-      if (desc) desc.textContent = selected.description;
-      if (learnLink && selected.link) {
-        learnLink.setAttribute('href', selected.link);
-        learnLink.setAttribute('aria-label', 'Learn more about ' + selected.label);
-      }
-      if (image && selected.image) image.src = selected.image;
+    const radarCenter = { x: 280, y: 220 };
+    const radarRadius = 138;
+    const radarAngles = [-90, -18, 54, 126, 198].map(deg => (deg * Math.PI) / 180);
 
-      const optionsGrid = wizard.querySelector('[data-program-wizard-options]');
-      if (optionsGrid) optionsGrid.classList.add('hidden');
-      result.classList.remove('hidden');
-      requestAnimationFrame(() => {
-        result.classList.remove('opacity-0', 'translate-y-4');
-        result.classList.add('opacity-100', 'translate-y-0');
+    const radarPointFor = (value, index, radius = radarRadius) => {
+      const clamped = Math.max(0, Math.min(100, parseInt(value, 10) || 0));
+      const distance = (clamped / 100) * radius;
+      return {
+        x: radarCenter.x + Math.cos(radarAngles[index] || 0) * distance,
+        y: radarCenter.y + Math.sin(radarAngles[index] || 0) * distance,
+        value: clamped,
+      };
+    };
+
+    const pointsToString = (points) => points.map(point => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
+
+    const buildRadarGrid = () => {
+      if (!radarGrid || radarGrid.dataset.gridReady === 'true') return;
+      radarGrid.dataset.gridReady = 'true';
+      [14, 28, 42, 56, 70, 84, 100].forEach((step) => {
+        const ringPoints = radarAngles.map((angle) => {
+          const distance = (step / 100) * radarRadius;
+          return {
+            x: radarCenter.x + Math.cos(angle) * distance,
+            y: radarCenter.y + Math.sin(angle) * distance,
+          };
+        });
+        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polygon.setAttribute('points', pointsToString(ringPoints));
+        radarGrid.appendChild(polygon);
+      });
+
+      radarAngles.forEach((angle) => {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('class', 'radarAxis');
+        line.setAttribute('x1', radarCenter.x);
+        line.setAttribute('y1', radarCenter.y);
+        line.setAttribute('x2', radarCenter.x + Math.cos(angle) * radarRadius);
+        line.setAttribute('y2', radarCenter.y + Math.sin(angle) * radarRadius);
+        radarGrid.appendChild(line);
       });
     };
 
-    const resetWizard = () => {
+    const ensureRadarGridOverlay = () => {
+      const svg = radarGrid ? radarGrid.closest('svg') : null;
+      if (!svg || !radarStroke || svg.querySelector('[data-program-radar-grid-overlay]')) return;
+      const overlayGrid = radarGrid.cloneNode(true);
+      overlayGrid.classList.add('radarGridOverlay');
+      overlayGrid.removeAttribute('data-program-radar-grid');
+      overlayGrid.removeAttribute('data-grid-ready');
+      overlayGrid.setAttribute('data-program-radar-grid-overlay', 'true');
+      svg.insertBefore(overlayGrid, radarStroke);
+    };
+
+    const drawRadar = (normalizedValues) => {
+      if (!radar || !radarArea || !radarStroke || !radarPoints) return;
+      buildRadarGrid();
+      ensureRadarGridOverlay();
+      const points = normalizedValues.map((value, index) => radarPointFor(value, index));
+      const pointString = pointsToString(points);
+
+      radarArea.setAttribute('points', pointString);
+      radarStroke.setAttribute('points', pointString);
+      radarPoints.innerHTML = '';
+      points.forEach((point, index) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('class', 'radarPoint');
+        circle.setAttribute('cx', point.x.toFixed(2));
+        circle.setAttribute('cy', point.y.toFixed(2));
+        circle.setAttribute('r', '7');
+        circle.setAttribute('aria-hidden', 'true');
+        circle.setAttribute('focusable', 'false');
+        radarPoints.appendChild(circle);
+      });
+    };
+
+    const updateRadar = (values, animate = true) => {
+      const normalizedValues = Array.from({ length: 5 }, (_, index) => Math.max(0, Math.min(100, parseInt(values[index], 10) || 0)));
+
+      if (!animate || !('requestAnimationFrame' in window)) {
+        currentRadarValues = normalizedValues;
+        drawRadar(normalizedValues);
+        return;
+      }
+
+      if (radarAnimationFrame) {
+        window.cancelAnimationFrame(radarAnimationFrame);
+      }
+
+      const fromValues = currentRadarValues.slice(0, 5);
+      const startedAt = performance.now();
+      const duration = 760;
+
+      const tick = (now) => {
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const frameValues = normalizedValues.map((target, index) => {
+          const from = fromValues[index] || 0;
+          return from + (target - from) * eased;
+        });
+
+        drawRadar(frameValues);
+
+        if (progress < 1) {
+          radarAnimationFrame = window.requestAnimationFrame(tick);
+          return;
+        }
+
+        currentRadarValues = normalizedValues;
+        radarAnimationFrame = null;
+      };
+
+      radarAnimationFrame = window.requestAnimationFrame(tick);
+    };
+
+    const statusForValue = (value) => {
+      if (value >= 82) return 'Advanced';
+      if (value >= 70) return 'Active';
+      return 'Growing';
+    };
+
+    const showResult = (selected) => {
       if (!result) return;
-      result.classList.add('opacity-0', 'translate-y-4');
-      result.classList.remove('opacity-100', 'translate-y-0');
-      setTimeout(() => {
-        result.classList.add('hidden');
-        const optionsGrid = wizard.querySelector('[data-program-wizard-options]');
-        if (optionsGrid) optionsGrid.classList.remove('hidden');
-      }, 500);
+      const selectedTitle = selected.program_title || selected.label || '';
+      const selectedAge = selected.age_label || '';
+      const selectedColor = selected.prism_color || '#4A6C7C';
+      const selectedData = Array.isArray(selected.prism_data) ? selected.prism_data : [];
+      const resultScroller = result.firstElementChild || result;
+
+      wizard.style.setProperty('--program-accent', selectedColor);
+      result.classList.add('is-updating');
+
+      optionButtons.forEach((button) => {
+        const isActive = button.getAttribute('data-program-wizard-option') === selected.key;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+        if (isActive && window.matchMedia('(max-width: 1023px)').matches) {
+          if (optionScroller && optionScroller.scrollWidth > optionScroller.clientWidth) {
+            const targetLeft = button.offsetLeft - ((optionScroller.clientWidth - button.offsetWidth) / 2);
+            optionScroller.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+          }
+        }
+      });
+
+      if (title) title.textContent = selectedTitle;
+      if (age) {
+        age.textContent = selectedAge;
+        age.classList.toggle('hidden', !selectedAge);
+      }
+      if (desc) desc.textContent = selected.description;
+      if (prismDescription) {
+        prismDescription.textContent = selected.prism_description || '';
+      }
+      if (learnLink && selected.link) {
+        learnLink.setAttribute('href', selected.link);
+        learnLink.setAttribute('aria-label', 'Learn more about ' + selectedTitle);
+      }
+
+      updateRadar(selectedData);
+
+      window.requestAnimationFrame(() => {
+        wizard.scrollLeft = 0;
+        const shellGrid = wizard.querySelector('.chroma-program-shell-grid');
+        if (shellGrid) {
+          shellGrid.scrollLeft = 0;
+        }
+        result.scrollTop = 0;
+        if (resultScroller && resultScroller !== result) {
+          resultScroller.scrollTop = 0;
+        }
+      });
+
+      chartFills.forEach((fill, index) => {
+        const value = Math.max(0, Math.min(100, parseInt(selectedData[index], 10) || 0));
+        fill.style.width = `${value}%`;
+        fill.setAttribute('aria-label', `${chartLabels[index] || 'Pillar'} ${value}%`);
+      });
+
+      chartStatuses.forEach((status, index) => {
+        const value = Math.max(0, Math.min(100, parseInt(selectedData[index], 10) || 0));
+        status.textContent = statusForValue(value);
+      });
+
+      window.setTimeout(() => {
+        result.classList.remove('is-updating');
+      }, 260);
+    };
+
+    const resetWizard = () => {
+      if (defaultOption) {
+        showResult(defaultOption);
+      }
     };
 
     optionButtons.forEach(btn => {
@@ -198,6 +680,375 @@
       });
     });
     if (resetBtn) resetBtn.addEventListener('click', resetWizard);
+
+    const updateRailControls = () => {
+      if (!optionScroller) return;
+      const maxScroll = Math.max(0, optionScroller.scrollWidth - optionScroller.clientWidth);
+      if (railPrev) railPrev.disabled = optionScroller.scrollLeft <= 4;
+      if (railNext) railNext.disabled = optionScroller.scrollLeft >= maxScroll - 4;
+    };
+
+    const moveProgramRail = (direction) => {
+      if (!optionScroller) return;
+      optionScroller.scrollBy({
+        left: direction * Math.max(220, optionScroller.clientWidth * 0.78),
+        behavior: 'smooth',
+      });
+    };
+
+    if (railPrev) railPrev.addEventListener('click', () => moveProgramRail(-1));
+    if (railNext) railNext.addEventListener('click', () => moveProgramRail(1));
+    if (optionScroller) {
+      optionScroller.addEventListener('scroll', debounce(updateRailControls, 60), { passive: true });
+      window.addEventListener('resize', debounce(updateRailControls, 120));
+      updateRailControls();
+    }
+
+    if (defaultOption) {
+      updateRadar(currentRadarValues, false);
+      showResult(defaultOption);
+    }
+  };
+
+  /**
+   * Component: Program Prism Slider
+   */
+  const initProgramChartSlider = (slider) => {
+    if (slider.dataset.programChartSliderReady === 'true') return;
+    slider.dataset.programChartSliderReady = 'true';
+
+    const options = readJSONPayload(slider, '[data-program-slider-payload]', null, []);
+    const chartLabels = readJSONPayload(slider, '[data-program-slider-labels]', null, []);
+    const range = slider.querySelector('[data-program-slider-range]');
+    const ticks = Array.from(slider.querySelectorAll('[data-program-slider-tick]'));
+    const tickScroller = slider.querySelector('.chroma-program-slider-ticks');
+    const age = slider.querySelector('[data-program-slider-age]');
+    const title = slider.querySelector('[data-program-slider-title]');
+    const desc = slider.querySelector('[data-program-slider-description]');
+    const prism = slider.querySelector('[data-program-slider-prism]');
+    const radarGrid = slider.querySelector('[data-program-slider-grid]');
+    const radarArea = slider.querySelector('[data-program-slider-area]');
+    const radarStroke = slider.querySelector('[data-program-slider-stroke]');
+    const radarPoints = slider.querySelector('[data-program-slider-points]');
+    const defaultIndex = range ? Math.max(0, Math.min(options.length - 1, parseInt(range.value, 10) || 0)) : 0;
+    const defaultOption = options[defaultIndex] || options[0];
+    let currentRadarValues = Array.isArray(defaultOption?.prism_data)
+      ? defaultOption.prism_data.map(value => Math.max(0, Math.min(100, parseInt(value, 10) || 0)))
+      : [0, 0, 0, 0, 0];
+    let radarAnimationFrame = null;
+
+    if (!options.length || !range || !radarGrid || !radarArea || !radarStroke || !radarPoints) return;
+
+    const radarCenter = { x: 280, y: 220 };
+    const radarRadius = 138;
+    const radarAngles = [-90, -18, 54, 126, 198].map(deg => (deg * Math.PI) / 180);
+    const clampValue = (value) => Math.max(0, Math.min(100, parseInt(value, 10) || 0));
+    const pointFor = (value, index, radius = radarRadius) => {
+      const distance = (clampValue(value) / 100) * radius;
+      return {
+        x: radarCenter.x + Math.cos(radarAngles[index] || 0) * distance,
+        y: radarCenter.y + Math.sin(radarAngles[index] || 0) * distance,
+      };
+    };
+    const pointsToString = (points) => points.map(point => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
+
+    const buildRadarGrid = () => {
+      if (radarGrid.dataset.gridReady === 'true') return;
+      radarGrid.dataset.gridReady = 'true';
+
+      [14, 28, 42, 56, 70, 84, 100].forEach((step) => {
+        const ringPoints = radarAngles.map((angle) => {
+          const distance = (step / 100) * radarRadius;
+          return {
+            x: radarCenter.x + Math.cos(angle) * distance,
+            y: radarCenter.y + Math.sin(angle) * distance,
+          };
+        });
+        const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        polygon.setAttribute('points', pointsToString(ringPoints));
+        radarGrid.appendChild(polygon);
+      });
+
+      radarAngles.forEach((angle) => {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('class', 'radarAxis');
+        line.setAttribute('x1', radarCenter.x);
+        line.setAttribute('y1', radarCenter.y);
+        line.setAttribute('x2', radarCenter.x + Math.cos(angle) * radarRadius);
+        line.setAttribute('y2', radarCenter.y + Math.sin(angle) * radarRadius);
+        radarGrid.appendChild(line);
+      });
+    };
+
+    const drawRadar = (values) => {
+      buildRadarGrid();
+      const normalizedValues = Array.from({ length: 5 }, (_, index) => clampValue(values[index]));
+      const points = normalizedValues.map((value, index) => pointFor(value, index));
+      const pointString = pointsToString(points);
+      radarArea.setAttribute('points', pointString);
+      radarStroke.setAttribute('points', pointString);
+      radarPoints.innerHTML = '';
+
+      points.forEach((point, index) => {
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('class', 'radarPoint');
+        circle.setAttribute('cx', point.x.toFixed(2));
+        circle.setAttribute('cy', point.y.toFixed(2));
+        circle.setAttribute('r', '7');
+        circle.setAttribute('aria-hidden', 'true');
+        circle.setAttribute('focusable', 'false');
+        radarPoints.appendChild(circle);
+      });
+    };
+
+    const updateRadar = (values, animate = true) => {
+      const targetValues = Array.from({ length: 5 }, (_, index) => clampValue(values[index]));
+
+      if (!animate || !('requestAnimationFrame' in window)) {
+        currentRadarValues = targetValues;
+        drawRadar(targetValues);
+        return;
+      }
+
+      if (radarAnimationFrame) {
+        window.cancelAnimationFrame(radarAnimationFrame);
+      }
+
+      const fromValues = currentRadarValues.slice(0, 5);
+      const startedAt = performance.now();
+      const duration = 680;
+
+      const tickFrame = (now) => {
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const frameValues = targetValues.map((target, index) => {
+          const from = fromValues[index] || 0;
+          return from + (target - from) * eased;
+        });
+
+        drawRadar(frameValues);
+
+        if (progress < 1) {
+          radarAnimationFrame = window.requestAnimationFrame(tickFrame);
+          return;
+        }
+
+        currentRadarValues = targetValues;
+        radarAnimationFrame = null;
+      };
+
+      radarAnimationFrame = window.requestAnimationFrame(tickFrame);
+    };
+
+    const activate = (index, animate = true) => {
+      const safeIndex = Math.max(0, Math.min(options.length - 1, parseInt(index, 10) || 0));
+      const selected = options[safeIndex] || options[0];
+      if (!selected) return;
+
+      slider.style.setProperty('--program-accent', selected.prism_color || '#4A6C7C');
+      range.value = String(safeIndex);
+      if (age) {
+        age.textContent = selected.age_label || '';
+        age.classList.toggle('hidden', !selected.age_label);
+      }
+      if (title) title.textContent = selected.program_title || selected.label || '';
+      if (desc) desc.textContent = selected.description || '';
+      if (prism) prism.textContent = selected.prism_description || '';
+
+      let activeTick = null;
+      ticks.forEach((tick) => {
+        const isActive = parseInt(tick.getAttribute('data-program-slider-tick'), 10) === safeIndex;
+        tick.classList.toggle('is-active', isActive);
+        tick.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        if (isActive) activeTick = tick;
+      });
+
+      if (activeTick && tickScroller && tickScroller.scrollWidth > tickScroller.clientWidth) {
+        const targetLeft = activeTick.offsetLeft - ((tickScroller.clientWidth - activeTick.offsetWidth) / 2);
+        tickScroller.scrollTo({
+          left: Math.max(0, targetLeft),
+          behavior: animate ? 'smooth' : 'auto',
+        });
+      }
+
+      updateRadar(selected.prism_data || [], animate);
+    };
+
+    range.addEventListener('input', () => activate(range.value));
+    ticks.forEach((tick) => {
+      tick.addEventListener('click', () => activate(tick.getAttribute('data-program-slider-tick')));
+    });
+
+    activate(defaultIndex, false);
+  };
+
+  /**
+   * Component: SVG Radar Charts
+   */
+  const initRadarChart = (chart) => {
+    if (chart.dataset.radarReady === 'true') return;
+    chart.dataset.radarReady = 'true';
+
+    const grid = chart.querySelector('[data-radar-grid]');
+    const area = chart.querySelector('[data-radar-area]');
+    const stroke = chart.querySelector('[data-radar-stroke]');
+    const pointsGroup = chart.querySelector('[data-radar-points]');
+    const values = safeParseJSON(chart.getAttribute('data-radar-values') || '[]', []);
+    const color = chart.getAttribute('data-radar-color') || '#A84B38';
+    if (!grid || !area || !stroke || !pointsGroup || !values.length) return;
+
+    const center = { x: 280, y: 225 };
+    const radius = 150;
+    const angles = [-90, -18, 54, 126, 198].map(deg => (deg * Math.PI) / 180);
+    const labels = ['Physical', 'Emotional', 'Social', 'Academic', 'Creative'];
+    const clampValue = (value) => Math.max(0, Math.min(100, parseInt(value, 10) || 0));
+    const pointFor = (value, index, pointRadius = radius) => {
+      const distance = (clampValue(value) / 100) * pointRadius;
+      return {
+        x: center.x + Math.cos(angles[index] || 0) * distance,
+        y: center.y + Math.sin(angles[index] || 0) * distance,
+      };
+    };
+    const pointsToString = (points) => points.map(point => `${point.x.toFixed(2)},${point.y.toFixed(2)}`).join(' ');
+
+    [20, 40, 60, 80, 100].forEach((step) => {
+      const ringPoints = angles.map((angle) => {
+        const distance = (step / 100) * radius;
+        return {
+          x: center.x + Math.cos(angle) * distance,
+          y: center.y + Math.sin(angle) * distance,
+        };
+      });
+      const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      polygon.setAttribute('points', pointsToString(ringPoints));
+      grid.appendChild(polygon);
+    });
+
+    angles.forEach((angle) => {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('class', 'radarAxis');
+      line.setAttribute('x1', center.x);
+      line.setAttribute('y1', center.y);
+      line.setAttribute('x2', center.x + Math.cos(angle) * radius);
+      line.setAttribute('y2', center.y + Math.sin(angle) * radius);
+      grid.appendChild(line);
+    });
+
+    const svg = grid.closest('svg');
+    if (svg && !svg.querySelector('[data-radar-grid-overlay]')) {
+      const overlayGrid = grid.cloneNode(true);
+      overlayGrid.classList.add('radarGridOverlay');
+      overlayGrid.removeAttribute('data-radar-grid');
+      overlayGrid.setAttribute('data-radar-grid-overlay', 'true');
+      svg.insertBefore(overlayGrid, stroke);
+    }
+
+    chart.style.setProperty('--program-accent', color);
+    chart.style.setProperty('--radar-color', color);
+
+    const normalized = Array.from({ length: 5 }, (_, index) => clampValue(values[index]));
+    const initialPoints = normalized.map(() => ({ x: center.x, y: center.y }));
+    area.setAttribute('points', pointsToString(initialPoints));
+    stroke.setAttribute('points', pointsToString(initialPoints));
+
+    normalized.forEach((value, index) => {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('class', 'radarPoint');
+      circle.setAttribute('cx', center.x);
+      circle.setAttribute('cy', center.y);
+      circle.setAttribute('r', '10');
+      circle.setAttribute('aria-hidden', 'true');
+      circle.setAttribute('focusable', 'false');
+      pointsGroup.appendChild(circle);
+    });
+
+    window.requestAnimationFrame(() => {
+      const targetPoints = normalized.map((value, index) => pointFor(value, index));
+      area.setAttribute('points', pointsToString(targetPoints));
+      stroke.setAttribute('points', pointsToString(targetPoints));
+      Array.from(pointsGroup.children).forEach((circle, index) => {
+        circle.setAttribute('cx', targetPoints[index].x.toFixed(2));
+        circle.setAttribute('cy', targetPoints[index].y.toFixed(2));
+      });
+    });
+  };
+
+  /**
+   * Component: Sun Schedule
+   */
+  const initSunSchedule = (schedule) => {
+    if (schedule.dataset.sunScheduleReady === 'true') return;
+    schedule.dataset.sunScheduleReady = 'true';
+
+    const steps = readJSONPayload(schedule, '[data-sun-steps]', 'data-schedule-steps', []);
+    const range = schedule.querySelector('[data-sun-range]');
+    const sun = schedule.querySelector('[data-sun-orb]');
+    const progress = schedule.querySelector('[data-sun-progress]');
+    const time = schedule.querySelector('[data-sun-time]');
+    const title = schedule.querySelector('[data-sun-title]');
+    const copy = schedule.querySelector('[data-sun-copy]');
+    if (!range || !sun || !progress || !time || !title || !copy || !steps.length) return;
+
+    range.max = String(Math.max(0, steps.length - 1));
+
+    const update = (index) => {
+      const safeIndex = Math.max(0, Math.min(steps.length - 1, parseInt(index, 10) || 0));
+      const step = steps[safeIndex];
+      const percent = steps.length <= 1 ? 0 : (safeIndex / (steps.length - 1)) * 100;
+      const arc = Math.sin((percent / 100) * Math.PI);
+
+      schedule.style.setProperty('--sun-progress', `${percent}%`);
+      sun.style.left = `calc(${8 + percent * 0.78}% - 36px)`;
+      sun.style.top = `${64 - arc * 50}%`;
+      progress.style.width = `${percent}%`;
+
+      [time, title, copy].forEach(el => el.classList.add('is-changing'));
+      window.setTimeout(() => {
+        time.textContent = step.time || '';
+        title.textContent = step.title || '';
+        copy.textContent = step.copy || '';
+        [time, title, copy].forEach(el => el.classList.remove('is-changing'));
+      }, 130);
+    };
+
+    range.addEventListener('input', () => update(range.value));
+    update(range.value || 0);
+  };
+
+  /**
+   * Component: Moments Carousel
+   */
+  const initMomentsCarousel = (carousel) => {
+    if (carousel.dataset.momentsReady === 'true') return;
+    carousel.dataset.momentsReady = 'true';
+
+    const track = carousel.querySelector('[data-moments-track]');
+    const slides = Array.from(carousel.querySelectorAll('[data-moments-slide]'));
+    const prev = carousel.querySelector('[data-moments-prev]');
+    const next = carousel.querySelector('[data-moments-next]');
+    const dots = Array.from(carousel.querySelectorAll('[data-moments-dot]'));
+    if (!track || slides.length <= 1) return;
+
+    let activeIndex = 0;
+
+    const activate = (index) => {
+      activeIndex = (index + slides.length) % slides.length;
+      track.style.transform = `translateX(-${activeIndex * 100}%)`;
+      slides.forEach((slide, slideIndex) => {
+        const isActive = slideIndex === activeIndex;
+        slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        slide.inert = !isActive;
+      });
+      dots.forEach((dot, dotIndex) => {
+        dot.classList.toggle('is-active', dotIndex === activeIndex);
+        dot.setAttribute('aria-current', dotIndex === activeIndex ? 'true' : 'false');
+      });
+    };
+
+    if (prev) prev.addEventListener('click', () => activate(activeIndex - 1));
+    if (next) next.addEventListener('click', () => activate(activeIndex + 1));
+    dots.forEach((dot, dotIndex) => dot.addEventListener('click', () => activate(dotIndex)));
+    activate(0);
   };
 
   /**
@@ -319,8 +1170,8 @@
     const panels = schedule.querySelectorAll('[data-schedule-panel]');
     const tabs = schedule.querySelectorAll('[data-schedule-tab]');
     const defaultKey = tabs[0] ? tabs[0].getAttribute('data-schedule-tab') : '';
-    const activeTabClasses = ['bg-chroma-blue', 'text-white', 'shadow-soft'];
-    const inactiveTabClasses = ['text-gray-900', 'hover:text-chroma-blue'];
+    const activeTabClasses = ['bg-chroma-red', 'text-white', 'shadow-soft'];
+    const inactiveTabClasses = ['text-gray-900', 'hover:text-chroma-red'];
     const activeStepClasses = ['bg-brand-ink', 'text-white', 'shadow-md', 'scale-105'];
     const inactiveStepClasses = ['bg-white', 'text-brand-ink', 'hover:text-brand-ink', 'hover:bg-white/80'];
 
@@ -371,13 +1222,48 @@
    * Component: Reviews Carousel
    */
   const initReviewsCarousel = (carousel) => {
+    if (carousel.dataset.reviewsReady === 'true') return;
+    carousel.dataset.reviewsReady = 'true';
+
     const track = carousel.querySelector('[data-reviews-track]');
-    const dots = carousel.querySelectorAll('[data-review-dot]');
-    const slides = carousel.querySelectorAll('[data-review-slide]');
+    const viewport = carousel.querySelector('.chroma-review-viewport');
+    const dots = Array.from(carousel.querySelectorAll('[data-review-dot]'));
+    const slides = Array.from(carousel.querySelectorAll('[data-review-slide]'));
     const prevBtn = carousel.querySelector('[data-review-prev]');
     const nextBtn = carousel.querySelector('[data-review-next]');
+    const pauseBtn = carousel.querySelector('[data-review-pause]');
+    const pauseLabel = carousel.querySelector('[data-review-pause-label]');
+    const pauseIcon = carousel.querySelector('[data-review-pause-icon]');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     let currentIndex = 0;
     let autoplayInterval = null;
+    let userPaused = reducedMotionQuery.matches;
+    let pointerPaused = false;
+    let focusPaused = false;
+
+    const syncMotionPreference = () => {
+      if (track) track.style.transitionDuration = reducedMotionQuery.matches ? '0ms' : '';
+    };
+
+    slides.forEach((slide) => {
+      const quote = slide.querySelector('blockquote');
+      const length = quote ? quote.textContent.trim().length : 0;
+      slide.classList.toggle('is-long-review', length > 360);
+      slide.classList.toggle('is-extra-long-review', length > 620);
+    });
+
+    const syncViewportHeight = () => {
+      if (!viewport || !slides[currentIndex]) return;
+      window.requestAnimationFrame(() => {
+        viewport.style.setProperty('height', 'auto', 'important');
+        track.style.setProperty('height', 'auto', 'important');
+        const activeHeight = Math.ceil(slides[currentIndex].scrollHeight);
+        if (activeHeight > 0) {
+          viewport.style.setProperty('height', `${activeHeight}px`, 'important');
+          track.style.setProperty('height', `${activeHeight}px`, 'important');
+        }
+      });
+    };
 
     const goToSlide = (index) => {
       if (index < 0) index = slides.length - 1;
@@ -390,18 +1276,75 @@
         dot.classList.toggle('w-8', isActive);
         dot.classList.toggle('bg-chroma-blue/30', !isActive);
         dot.classList.toggle('w-3', !isActive);
+        dot.setAttribute('aria-current', isActive ? 'true' : 'false');
       });
+      slides.forEach((slide, i) => {
+        const isActive = i === currentIndex;
+        slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        slide.inert = !isActive;
+      });
+      syncViewportHeight();
     };
 
-    const startAutoplay = () => { autoplayInterval = setInterval(() => goToSlide(currentIndex + 1), 6000); };
-    const resetAutoplay = () => { clearInterval(autoplayInterval); startAutoplay(); };
+    const stopAutoplay = () => {
+      window.clearInterval(autoplayInterval);
+      autoplayInterval = null;
+      if (viewport) viewport.setAttribute('aria-live', 'polite');
+    };
+    const canAutoplay = () => !userPaused && !pointerPaused && !focusPaused;
+    const startAutoplay = () => {
+      stopAutoplay();
+      if (viewport) viewport.setAttribute('aria-live', canAutoplay() ? 'off' : 'polite');
+      if (canAutoplay() && slides.length > 1) {
+        autoplayInterval = window.setInterval(() => goToSlide(currentIndex + 1), 6000);
+      }
+    };
+    const syncPauseControl = () => {
+      if (!pauseBtn) return;
+      pauseBtn.setAttribute('aria-pressed', userPaused ? 'true' : 'false');
+      if (pauseLabel) pauseLabel.textContent = userPaused ? 'Play parent reviews' : 'Pause parent reviews';
+      if (pauseIcon) {
+        pauseIcon.classList.toggle('fa-play', userPaused);
+        pauseIcon.classList.toggle('fa-pause', !userPaused);
+      }
+    };
+    const resetAutoplay = () => { startAutoplay(); };
 
     dots.forEach((dot, i) => dot.addEventListener('click', () => { goToSlide(i); resetAutoplay(); }));
     if (prevBtn) prevBtn.addEventListener('click', () => { goToSlide(currentIndex - 1); resetAutoplay(); });
     if (nextBtn) nextBtn.addEventListener('click', () => { goToSlide(currentIndex + 1); resetAutoplay(); });
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => {
+        userPaused = !userPaused;
+        syncPauseControl();
+        startAutoplay();
+      });
+    }
 
-    carousel.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
-    carousel.addEventListener('mouseleave', startAutoplay);
+    carousel.addEventListener('mouseenter', () => { pointerPaused = true; stopAutoplay(); });
+    carousel.addEventListener('mouseleave', () => { pointerPaused = false; startAutoplay(); });
+    carousel.addEventListener('focusin', () => { focusPaused = true; stopAutoplay(); });
+    carousel.addEventListener('focusout', (event) => {
+      if (event.relatedTarget && carousel.contains(event.relatedTarget)) return;
+      focusPaused = false;
+      startAutoplay();
+    });
+    reducedMotionQuery.addEventListener('change', (event) => {
+      if (event.matches) userPaused = true;
+      syncMotionPreference();
+      syncPauseControl();
+      startAutoplay();
+    });
+    window.addEventListener('resize', debounce(syncViewportHeight, 120));
+    if ('ResizeObserver' in window) {
+      const resizeObserver = new ResizeObserver(() => syncViewportHeight());
+      slides.forEach((slide) => resizeObserver.observe(slide));
+    }
+    goToSlide(0);
+    syncMotionPreference();
+    syncPauseControl();
+    syncViewportHeight();
+    if (document.fonts?.ready) document.fonts.ready.then(syncViewportHeight);
     startAutoplay();
   };
 
@@ -410,12 +1353,23 @@
    */
   const initLocationCarousel = (carousel) => {
     const track = carousel.querySelector('[data-location-carousel-track]');
-    const dots = carousel.querySelectorAll('[data-location-dot]');
-    const slides = carousel.querySelectorAll('[data-location-slide]');
+    const dots = Array.from(carousel.querySelectorAll('[data-location-dot]'));
+    const slides = Array.from(carousel.querySelectorAll('[data-location-slide]'));
     const prevBtn = carousel.querySelector('[data-location-prev]');
     const nextBtn = carousel.querySelector('[data-location-next]');
+    const pauseBtn = carousel.querySelector('[data-location-pause]');
+    const pauseLabel = carousel.querySelector('[data-location-pause-label]');
+    const pauseIcon = carousel.querySelector('[data-location-pause-icon]');
+    const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     let currentIndex = 0;
     let autoplayInterval = null;
+    let userPaused = reducedMotionQuery.matches;
+    let pointerPaused = false;
+    let focusPaused = false;
+
+    const syncMotionPreference = () => {
+      if (track) track.style.transitionDuration = reducedMotionQuery.matches ? '0ms' : '';
+    };
 
     const update = (index) => {
       if (index < 0) index = slides.length - 1;
@@ -428,19 +1382,316 @@
         dot.classList.toggle('w-6', isActive);
         dot.classList.toggle('bg-white/50', !isActive);
         dot.classList.toggle('w-3', !isActive);
+        dot.setAttribute('aria-current', isActive ? 'true' : 'false');
+      });
+      slides.forEach((slide, i) => {
+        const isActive = i === currentIndex;
+        slide.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+        slide.inert = !isActive;
       });
     };
 
-    const start = () => { autoplayInterval = setInterval(() => update(currentIndex + 1), 5000); };
-    const reset = () => { clearInterval(autoplayInterval); start(); };
+    const stop = () => {
+      window.clearInterval(autoplayInterval);
+      autoplayInterval = null;
+      carousel.setAttribute('aria-live', 'polite');
+    };
+    const canAutoplay = () => !userPaused && !pointerPaused && !focusPaused;
+    const start = () => {
+      stop();
+      carousel.setAttribute('aria-live', canAutoplay() ? 'off' : 'polite');
+      if (canAutoplay() && slides.length > 1) {
+        autoplayInterval = window.setInterval(() => update(currentIndex + 1), 5000);
+      }
+    };
+    const syncPauseControl = () => {
+      if (!pauseBtn) return;
+      pauseBtn.setAttribute('aria-pressed', userPaused ? 'true' : 'false');
+      if (pauseLabel) pauseLabel.textContent = userPaused ? 'Play campus images' : 'Pause campus images';
+      if (pauseIcon) {
+        pauseIcon.classList.toggle('fa-play', userPaused);
+        pauseIcon.classList.toggle('fa-pause', !userPaused);
+      }
+    };
+    const reset = () => { start(); };
 
     if (prevBtn) prevBtn.addEventListener('click', () => { update(currentIndex - 1); reset(); });
     if (nextBtn) nextBtn.addEventListener('click', () => { update(currentIndex + 1); reset(); });
     dots.forEach((dot, i) => dot.addEventListener('click', () => { update(i); reset(); }));
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => {
+        userPaused = !userPaused;
+        syncPauseControl();
+        start();
+      });
+    }
 
-    carousel.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
-    carousel.addEventListener('mouseleave', start);
+    carousel.addEventListener('mouseenter', () => { pointerPaused = true; stop(); });
+    carousel.addEventListener('mouseleave', () => { pointerPaused = false; start(); });
+    carousel.addEventListener('focusin', () => { focusPaused = true; stop(); });
+    carousel.addEventListener('focusout', (event) => {
+      if (event.relatedTarget && carousel.contains(event.relatedTarget)) return;
+      focusPaused = false;
+      start();
+    });
+    reducedMotionQuery.addEventListener('change', (event) => {
+      if (event.matches) userPaused = true;
+      syncMotionPreference();
+      syncPauseControl();
+      start();
+    });
+    update(0);
+    syncMotionPreference();
+    syncPauseControl();
     start();
+  };
+
+  /**
+   * Component: Location Explorer
+   */
+  const initLocationExplorer = (explorer) => {
+    if (explorer.dataset.locationExplorerReady === 'true') return;
+    explorer.dataset.locationExplorerReady = 'true';
+
+    const mapId = explorer.getAttribute('data-map-target') || 'chroma-locations-map';
+    const filterButtons = explorer.querySelectorAll('[data-location-filter]');
+    const cards = Array.from(explorer.querySelectorAll('[data-location-card-wrap]'));
+    const list = explorer.querySelector('[data-location-list]');
+    const status = explorer.querySelector('[data-location-status]');
+    const count = explorer.querySelector('[data-location-summary-count]');
+    const summaryLabel = explorer.querySelector('[data-location-summary-label]');
+    const closestButton = explorer.querySelector('[data-location-filter="closest"]');
+    const searchInput = explorer.querySelector('[data-location-search]');
+    const programFilter = explorer.querySelector('[data-location-program-filter]');
+    let userCoords = null;
+    let locationRequestId = 0;
+    let activeFilter = 'all';
+
+    const defaultLocationStatus = 'Share your location to sort campuses by distance, or choose a region to zoom the map.';
+    const deniedLocationStatus = 'Location was not shared. Showing all campuses. Choose a region to narrow the map.';
+    const blockedLocationStatus = 'Location is blocked in your browser for this site. Click the lock icon in the address bar, allow Location, then try again.';
+    const closestLocationStatus = 'Closest campuses sorted by distance.';
+    const timeoutLocationStatus = 'We could not get your location in time. Showing all campuses. Try again or choose a region.';
+
+    const setLocationRequestPending = (isPending) => {
+      if (!closestButton) return;
+      closestButton.disabled = isPending;
+      closestButton.setAttribute('aria-busy', isPending ? 'true' : 'false');
+      closestButton.classList.toggle('is-loading', isPending);
+    };
+
+    const distanceMiles = (lat1, lng1, lat2, lng2) => {
+      const toRadians = (value) => value * Math.PI / 180;
+      const radiusMiles = 3958.8;
+      const deltaLat = toRadians(lat2 - lat1);
+      const deltaLng = toRadians(lng2 - lng1);
+      const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2)
+        + Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2))
+        * Math.sin(deltaLng / 2) * Math.sin(deltaLng / 2);
+      return radiusMiles * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
+    };
+
+    const setActiveButton = (filter) => {
+      filterButtons.forEach((button) => {
+        const isActive = button.getAttribute('data-location-filter') === filter;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    };
+
+    const updateSummary = (visibleCards, label) => {
+      if (count) {
+        count.textContent = `${visibleCards.length} ${visibleCards.length === 1 ? 'location' : 'locations'}`;
+      }
+      if (summaryLabel) {
+        summaryLabel.textContent = label;
+      }
+    };
+
+    const dispatchFilter = (visibleCards) => {
+      const ids = visibleCards.map((card) => parseInt(card.getAttribute('data-location-id'), 10)).filter(Boolean);
+      window.chromaLocationExplorerState = window.chromaLocationExplorerState || {};
+      window.chromaLocationExplorerState[mapId] = Object.assign(
+        {},
+        window.chromaLocationExplorerState[mapId] || {},
+        { ids }
+      );
+      window.dispatchEvent(new CustomEvent('chroma:locations-filter', {
+        detail: { mapId, ids },
+      }));
+    };
+
+    const focusCardOnMap = (card) => {
+      const id = card ? parseInt(card.getAttribute('data-location-id'), 10) : 0;
+      if (!id) return;
+
+      cards.forEach((item) => {
+        item.classList.toggle('is-active', parseInt(item.getAttribute('data-location-id'), 10) === id);
+      });
+
+      window.chromaLocationExplorerState = window.chromaLocationExplorerState || {};
+      window.chromaLocationExplorerState[mapId] = Object.assign(
+        {},
+        window.chromaLocationExplorerState[mapId] || {},
+        { focusId: id }
+      );
+      window.dispatchEvent(new CustomEvent('chroma:locations-focus', {
+        detail: { mapId, id },
+      }));
+    };
+
+    const applyFilter = (filter, labelOverride, statusOverride) => {
+      activeFilter = filter;
+      const isClosestWithCoords = filter === 'closest' && userCoords;
+      setActiveButton(isClosestWithCoords ? 'closest' : filter);
+      let visibleCards = cards.filter((card) => {
+        const regionMatch = filter === 'closest' || filter === 'all'
+          ? true
+          : (card.getAttribute('data-location-regions') || '').split(/\s+/).indexOf(filter) !== -1;
+        if (!regionMatch) return false;
+
+        const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        const searchText = (card.getAttribute('data-location-search-text') || '').toLowerCase();
+        if (searchTerm && searchText.indexOf(searchTerm) === -1) return false;
+
+        const program = programFilter ? programFilter.value : 'all';
+        if (program === 'all') return true;
+        if (program === 'ga-pre-k') return card.getAttribute('data-location-has-ga-pre-k') === 'true';
+        if (program === 'transportation') return card.getAttribute('data-location-has-transportation') === 'true';
+        const programs = (card.getAttribute('data-location-programs') || '').split(/\s+/);
+        return programs.some((value) => value === program || value.indexOf(program) !== -1);
+      });
+
+      if (isClosestWithCoords) {
+        visibleCards.forEach((card) => {
+          const lat = parseFloat(card.getAttribute('data-location-lat'));
+          const lng = parseFloat(card.getAttribute('data-location-lng'));
+          const distance = Number.isFinite(lat) && Number.isFinite(lng)
+            ? distanceMiles(userCoords.latitude, userCoords.longitude, lat, lng)
+            : Number.POSITIVE_INFINITY;
+          card.dataset.locationDistance = String(distance);
+          const distanceEl = card.querySelector('[data-location-distance]');
+          if (distanceEl && Number.isFinite(distance)) {
+            distanceEl.textContent = `${distance.toFixed(1)} mi away`;
+            distanceEl.classList.remove('hidden');
+          }
+        });
+        visibleCards.sort((left, right) => {
+          return parseFloat(left.dataset.locationDistance || '99999') - parseFloat(right.dataset.locationDistance || '99999');
+        });
+        if (status) {
+          status.textContent = statusOverride || closestLocationStatus;
+        }
+      } else {
+        cards.forEach((card) => {
+          const distanceEl = card.querySelector('[data-location-distance]');
+          if (distanceEl) distanceEl.classList.add('hidden');
+        });
+        if (status && statusOverride) {
+          status.textContent = statusOverride;
+        }
+      }
+
+      cards.forEach((card) => {
+        const isVisible = visibleCards.indexOf(card) !== -1;
+        card.classList.toggle('hidden', !isVisible);
+      });
+
+      if (list) {
+        visibleCards.forEach((card) => list.appendChild(card));
+      }
+
+      const readableFilter = labelOverride || (isClosestWithCoords ? 'Closest to your browser location' : '');
+      updateSummary(visibleCards, readableFilter);
+      dispatchFilter(visibleCards);
+
+      if (!visibleCards.length && status) {
+        status.textContent = 'No campuses match those filters. Try another city, ZIP code, or program.';
+      }
+
+      if (isClosestWithCoords) {
+        window.setTimeout(() => focusCardOnMap(visibleCards[0]), 80);
+      }
+    };
+
+    const requestClosest = () => {
+      if (!navigator.geolocation) {
+        userCoords = null;
+        applyFilter('all', '', deniedLocationStatus);
+        return;
+      }
+
+      const requestId = ++locationRequestId;
+      let settled = false;
+      setLocationRequestPending(true);
+      if (status) status.textContent = 'Asking your browser for location permission...';
+
+      const finish = (callback) => {
+        if (settled || requestId !== locationRequestId) return;
+        settled = true;
+        window.clearTimeout(watchdog);
+        setLocationRequestPending(false);
+        callback();
+      };
+
+      const watchdog = window.setTimeout(() => {
+        finish(() => {
+          userCoords = null;
+          applyFilter('all', '', timeoutLocationStatus);
+        });
+      }, 12000);
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          finish(() => {
+            userCoords = position.coords;
+            applyFilter('closest', 'Closest to your browser location', closestLocationStatus);
+          });
+        },
+        (error) => {
+          finish(() => {
+            userCoords = null;
+            const isBlocked = error && error.code === error.PERMISSION_DENIED;
+            const isTimeout = error && error.code === error.TIMEOUT;
+            applyFilter('all', '', isBlocked ? blockedLocationStatus : (isTimeout ? timeoutLocationStatus : deniedLocationStatus));
+          });
+        },
+        { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
+      );
+    };
+
+    filterButtons.forEach((button) => {
+      button.addEventListener('click', () => {
+        const filter = button.getAttribute('data-location-filter') || 'closest';
+        if (filter === 'closest') {
+          requestClosest();
+          return;
+        }
+
+        if (status) status.textContent = 'Filtered by live campus region.';
+        applyFilter(filter, button.textContent.trim(), 'Filtered by live campus region.');
+      });
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', debounce(() => {
+        applyFilter(activeFilter, '', 'Showing campuses that match your search.');
+      }, 180));
+    }
+
+    if (programFilter) {
+      programFilter.addEventListener('change', () => {
+        applyFilter(activeFilter, '', 'Showing campuses with the selected program or service.');
+      });
+    }
+
+    explorer.querySelectorAll('[data-location-card]').forEach((button) => {
+      button.addEventListener('click', () => {
+        focusCardOnMap(button.closest('[data-location-card-wrap]'));
+      });
+    });
+
+    applyFilter('all', '', defaultLocationStatus);
   };
 
   /**
@@ -522,14 +1773,120 @@
   };
 
   /**
+   * Emit privacy-safe intent events through the site's existing gtag/GTM setup.
+   * Do not include phone numbers, email addresses, form values, or coordinates.
+   */
+  const initIntentAnalytics = () => {
+    const emit = (eventName, parameters = {}) => {
+      const payload = {
+        page_path: window.location.pathname,
+        page_language: document.documentElement.lang || 'en',
+        ...parameters,
+      };
+
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', eventName, payload);
+        return;
+      }
+
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({ event: eventName, ...payload });
+    };
+
+    const cleanLabel = element => (element?.getAttribute('aria-label') || element?.textContent || '')
+      .trim()
+      .replace(/\s+/g, ' ')
+      .slice(0, 80);
+
+    const path = window.location.pathname.replace(/\/+$/, '') || '/';
+    if (/^\/(?:es\/)?programs\/[^/]+$/i.test(path)) {
+      emit('program_page_view', { content_type: 'program' });
+    } else if (/^\/(?:es\/)?locations\/[^/]+$/i.test(path)) {
+      emit('location_page_view', { content_type: 'campus' });
+    }
+
+    document.addEventListener('click', event => {
+      const target = event.target instanceof Element ? event.target.closest('a,button') : null;
+      if (!target) return;
+
+      const href = target instanceof HTMLAnchorElement ? target.href : '';
+      const parsedUrl = href ? new URL(href, window.location.href) : null;
+      const label = cleanLabel(target);
+      const shared = label ? { link_text: label } : {};
+      const locationFilter = target.getAttribute('data-location-filter');
+
+      if (locationFilter === 'closest') {
+        emit('use_my_location', { interaction_type: 'geolocation_request' });
+        return;
+      }
+
+      if (locationFilter) {
+        emit('location_region_filter', { region: locationFilter });
+        return;
+      }
+
+      if (target.closest('[data-location-card]') && !href) {
+        emit('location_card_focus', { interaction_type: 'map_focus' });
+        return;
+      }
+
+      if (!parsedUrl) return;
+
+      if (parsedUrl.protocol === 'tel:') {
+        emit('phone_call', shared);
+        return;
+      }
+
+      if (/google\.[^/]+\/maps|maps\.google\.|\/maps\/dir|\/maps\/search/i.test(parsedUrl.href)) {
+        emit('directions_click', shared);
+        return;
+      }
+
+      if (target.classList.contains('booking-btn') || /\/schedule-a-tour\/?$/i.test(parsedUrl.pathname)) {
+        emit('schedule_tour_click', shared);
+        return;
+      }
+
+      if (/\/parent-portal\/?$/i.test(parsedUrl.pathname)) {
+        emit('parent_portal_click', shared);
+        return;
+      }
+
+      if (/\/careers?\/?$/i.test(parsedUrl.pathname)) {
+        emit('careers_click', shared);
+        return;
+      }
+
+      if (/\/locations\/[^/]+\/?$/i.test(parsedUrl.pathname)) {
+        emit('view_campus', shared);
+        return;
+      }
+
+      if (/\/programs\/[^/]+\/?$/i.test(parsedUrl.pathname)) {
+        emit('program_view', shared);
+      }
+    }, { capture: true });
+  };
+
+  /**
    * Core Initialization Handler
    */
   document.addEventListener('DOMContentLoaded', () => {
     // 1. Critical Nav (Immediate)
     initMobileNav();
+    initRevealMotion();
+    initIntentAnalytics();
+    observeGhlFormEmbeds();
+    window.addEventListener('load', () => {
+      observeGhlFormEmbeds();
+    });
+    setTimeout(observeGhlFormEmbeds, 2400);
 
     const initializeLazyComponent = (el, type) => {
       if (type === 'wizard') initProgramWizard(el);
+      if (type === 'program-chart-slider') initProgramChartSlider(el);
+      if (type === 'radar') initRadarChart(el);
+      if (type === 'sun-schedule') initSunSchedule(el);
       if (type === 'chart') initCurriculumChart(el);
       if (type === 'schedule') initSchedule(el);
       if (type === 'reviews') initReviewsCarousel(el);
@@ -559,6 +1916,10 @@
 
     // Identify and Observe components
     document.querySelectorAll('[data-program-wizard]').forEach(initProgramWizard);
+    document.querySelectorAll('[data-program-chart-slider]').forEach(el => observeOrInitialize(el, 'program-chart-slider'));
+    document.querySelectorAll('[data-radar-chart]').forEach(el => observeOrInitialize(el, 'radar'));
+    document.querySelectorAll('[data-sun-schedule]').forEach(el => observeOrInitialize(el, 'sun-schedule'));
+    document.querySelectorAll('[data-moments-carousel]').forEach(initMomentsCarousel);
 
     // Fix: Observe the parent container for the chart so initCurriculumChart can find siblings
     document.querySelectorAll('[data-curriculum-chart]').forEach(el => {
@@ -571,6 +1932,7 @@
     document.querySelectorAll('[data-schedule]').forEach(initSchedule);
     document.querySelectorAll('[data-reviews-carousel]').forEach(el => observeOrInitialize(el, 'reviews'));
     document.querySelectorAll('[data-location-carousel]').forEach(el => observeOrInitialize(el, 'location-carousel'));
+    document.querySelectorAll('[data-location-explorer]').forEach(initLocationExplorer);
     document.querySelectorAll('[data-accordion-group]').forEach(el => observeOrInitialize(el, 'accordions'));
 
     // 3. Idle-load non-critical features
@@ -594,7 +1956,13 @@
 
           if (target) {
             e.preventDefault();
-            target.scrollIntoView({ behavior: 'smooth' });
+            const header = document.querySelector('[data-header]');
+            const headerOffset = header ? header.getBoundingClientRect().height + 16 : 16;
+            const targetTop = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+            window.scrollTo({
+              top: Math.max(0, targetTop),
+              behavior: 'smooth',
+            });
           }
         });
       });

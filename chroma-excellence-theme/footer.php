@@ -5,7 +5,7 @@
  * @package Chroma_Excellence
  */
 ?>
-</main>
+</div>
 
 <footer class="bg-brand-ink text-white py-12 px-4 lg:px-6">
 	<div class="max-w-7xl mx-auto">
@@ -17,6 +17,10 @@
 		);
 		?>
 		<!-- Top Section -->
+		<?php
+		$footer_brand_label = chroma_get_theme_mod('chroma_early_learning_brand_label', get_bloginfo('name'));
+		$footer_site_name = get_bloginfo('name') ?: $footer_brand_label;
+		?>
 		<div class="grid md:grid-cols-2 lg:grid-cols-5 gap-8 mb-8">
 			<!-- Logo and Description -->
 			<div class="md:col-span-1">
@@ -24,17 +28,17 @@
 					<img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?>"
 						srcset="<?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_70x70.webp'); ?> 1x,
 								 <?php echo esc_url(get_template_directory_uri() . '/assets/images/logo_chromacropped_140x140.webp'); ?> 2x"
-						alt="Chroma Early Learning" width="48" height="48"
+						alt="<?php echo esc_attr($footer_brand_label); ?>" width="48" height="48"
 						class="h-12 w-12 opacity-90 hover:opacity-100 transition-opacity" />
 				</a>
-				<p class="text-[11px] text-white/80 leading-relaxed">
+				<p class="text-xs text-white/80 leading-relaxed">
 					<?php _e('Premium childcare & early education across Metro Atlanta.', 'chroma-excellence'); ?>
 				</p>
 			</div>
 
 			<!-- Quick Links -->
 			<div class="md:col-span-1">
-				<h3 class="font-bold text-sm mb-3"><?php _e('Quick Links', 'chroma-excellence'); ?></h3>
+				<h3 class="font-bold text-sm mb-3"><?php _e('Explore', 'chroma-excellence'); ?></h3>
 				<div class="text-xs text-white/90 space-y-2">
 					<?php chroma_footer_nav(); ?>
 				</div>
@@ -42,7 +46,7 @@
 
 			<!-- Contact Info -->
 			<div class="md:col-span-1">
-				<h3 class="font-bold text-sm mb-3"><?php _e('Contact', 'chroma-excellence'); ?></h3>
+				<h3 class="font-bold text-sm mb-3"><?php _e('Visit', 'chroma-excellence'); ?></h3>
 				<div class="space-y-2 text-xs text-white/90">
 					<?php
 					// Get contact info from customizer (with fallback to global settings)
@@ -87,7 +91,7 @@
 			<?php if (!$is_virtual_seo_route): ?>
 				<!-- Latest News -->
 				<div class="md:col-span-1 lg:col-span-1">
-					<h3 class="font-bold text-sm mb-4"><?php _e('Latest Blogs', 'chroma-excellence'); ?></h3>
+					<h3 class="font-bold text-sm mb-4"><?php _e('From the Journal', 'chroma-excellence'); ?></h3>
 					<?php
 					$footer_blog_query = chroma_cached_query(
 						array(
@@ -106,7 +110,7 @@
 								<a href="<?php the_permalink(); ?>" class="group block">
 									<div class="aspect-video relative rounded-lg overflow-hidden bg-brand-ink/10 mb-2">
 										<?php if (has_post_thumbnail()): ?>
-											<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105')); ?>
+											<?php the_post_thumbnail('medium', array('class' => 'w-full h-full object-cover transition-transform duration-300 group-hover:scale-105', 'alt' => '')); ?>
 										<?php else: ?>
 											<div
 												class="w-full h-full flex items-center justify-center bg-brand-ink/5 text-brand-ink/20">
@@ -118,12 +122,16 @@
 										</div>
 									</div>
 									<h4
-										class="text-[10px] font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
+										class="text-xs font-bold leading-tight group-hover:text-chroma-blue transition-colors line-clamp-3">
 										<?php the_title(); ?>
 									</h4>
-									<span class="text-[9px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
+									<span class="text-[11px] text-white/50 mt-1 block"><?php echo get_the_date('M j, Y'); ?></span>
 								</a>
 							<?php endwhile; ?>
+						</div>
+						<div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] font-bold uppercase tracking-wider text-white/75">
+							<a href="<?php echo esc_url(chroma_get_localized_url(home_url('/stories/'))); ?>" class="hover:text-white transition-colors"><?php esc_html_e('All Stories', 'chroma-excellence'); ?></a>
+							<a href="<?php echo esc_url(chroma_get_localized_url(home_url('/newsroom/'))); ?>" class="hover:text-white transition-colors"><?php esc_html_e('Newsroom', 'chroma-excellence'); ?></a>
 						</div>
 						<?php wp_reset_postdata(); ?>
 					<?php else: ?>
@@ -147,7 +155,7 @@
 		<div
 			class="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-white/80">
 			<p>&copy; <?php echo date('Y'); ?>
-				<?php _e('Chroma Early Learning Academy. All rights reserved.', 'chroma-excellence'); ?>
+				<?php echo esc_html(sprintf(__('%s. All rights reserved.', 'chroma-excellence'), $footer_site_name)); ?>
 			</p>
 
 			<div class="flex items-center gap-6">
@@ -170,7 +178,7 @@
 
 <?php
 // Global Sticky CTA Logic
-$show_sticky_cta = true;
+$show_sticky_cta = false;
 $sticky_text = __('Ready to experience the Chroma difference?', 'chroma-excellence');
 $sticky_btn_text = __('Schedule a Tour', 'chroma-excellence');
 $sticky_url = chroma_get_localized_url(home_url('/schedule-a-tour/'));

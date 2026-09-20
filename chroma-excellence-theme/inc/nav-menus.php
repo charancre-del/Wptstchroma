@@ -28,6 +28,17 @@ function chroma_register_menus()
 add_action('init', 'chroma_register_menus');
 
 /**
+ * Normalize rendered navigation labels.
+ *
+ * Real WordPress menu item titles are the source of truth. Theme-level label
+ * overrides are only used by fallback/generated nav arrays, not assigned menus.
+ */
+function chroma_normalize_nav_label($label)
+{
+	return (string) $label;
+}
+
+/**
  * Get the current nav cache version.
  */
 function chroma_get_nav_cache_version()
@@ -97,11 +108,14 @@ function chroma_disable_front_page_edge_cache()
 add_action('send_headers', 'chroma_disable_front_page_edge_cache', 100);
 
 /**
- * Nav markup on the front page goes stale most visibly, so skip transients there.
+ * Header/footer navigation includes Customizer-controlled labels and URLs.
+ *
+ * Avoid transient caching so Customizer/menu overrides show immediately on
+ * staging and production without a manual cache purge.
  */
 function chroma_should_cache_nav_markup()
 {
-	return !is_front_page() && !is_customize_preview();
+	return false;
 }
 
 /**
@@ -167,6 +181,23 @@ function chroma_normalize_nav_url($url)
 
 	$path = isset($parts['path']) && $parts['path'] !== '' ? $parts['path'] : '/';
 	$path = user_trailingslashit($path);
+	$path_key = trim($path, '/');
+
+	if (in_array($path_key, array('chroma-early-learning'), true)) {
+		$early_learning_url = function_exists('chroma_get_early_learning_url')
+			? chroma_get_early_learning_url()
+			: home_url('/early-learning/');
+
+		if (!empty($parts['query'])) {
+			$early_learning_url = add_query_arg(wp_parse_args($parts['query']), $early_learning_url);
+		}
+
+		if (!empty($parts['fragment'])) {
+			$early_learning_url .= '#' . $parts['fragment'];
+		}
+
+		return $early_learning_url;
+	}
 
 	if (!empty($parts['query'])) {
 		$path .= '?' . $parts['query'];
@@ -219,7 +250,7 @@ function chroma_render_flat_menu_location($location, $link_class)
 		}
 
 		echo '<a href="' . esc_url($url) . '" class="' . esc_attr($link_class) . '">';
-		echo esc_html(isset($item->title) ? (string) $item->title : '');
+		echo esc_html(chroma_normalize_nav_label(isset($item->title) ? (string) $item->title : ''));
 		echo '</a>';
 	}
 
@@ -278,6 +309,7 @@ function chroma_primary_nav()
 function chroma_primary_nav_fallback()
 {
 	$is_es = (class_exists('Chroma_Multilingual_Manager') && method_exists('Chroma_Multilingual_Manager', 'is_spanish') && Chroma_Multilingual_Manager::is_spanish());
+	$early_learning_label = chroma_get_theme_mod('chroma_early_learning_nav_label', __('Early Learning', 'chroma-excellence'));
 
 	$pages = $is_es ? array(
 		'programs' => 'Programas',
@@ -285,14 +317,20 @@ function chroma_primary_nav_fallback()
 		'about' => 'Nosotros',
 		'contact-us' => 'Contacto'
 	) : array(
-		'programs' => 'Programs',
-		'locations' => 'Locations',
 		'about' => 'About Us',
-		'contact-us' => 'Contact'
+		'prismpath' => 'PrismPath',
+		'parents' => 'Parents',
+		'programs' => 'Programs',
+		'early-learning' => $early_learning_label,
+		'contact-us' => 'Contact',
+		'locations' => 'Locations',
+		'summer-camp-discover-go' => 'Summer 2026'
 	);
 
 	foreach ($pages as $slug => $title) {
-		$url = chroma_get_page_link($slug);
+		$url = 'prismpath' === $slug
+			? chroma_get_page_link('curriculum')
+			: chroma_get_page_link($slug);
 		echo '<a href="' . esc_url($url) . '" class="hover:text-chroma-blue transition">' . esc_html($title) . '</a>';
 	}
 }
@@ -387,8 +425,10 @@ function chroma_footer_contact_nav()
 
 	ob_start();
 	$location = $is_es ? 'footer_contact_es' : 'footer_contact';
+	$rendered_virtual_menu = chroma_is_virtual_nav_request()
+		&& chroma_render_flat_menu_location($location, 'block hover:text-white transition');
 
-	if (has_nav_menu($location)) {
+	if (!$rendered_virtual_menu && has_nav_menu($location)) {
 		wp_nav_menu(array(
 			'theme_location' => $location,
 			'container' => false,
@@ -398,7 +438,7 @@ function chroma_footer_contact_nav()
 			'depth' => 1,
 			'walker' => new Chroma_Footer_Nav_Walker(),
 		));
-	} else {
+	} elseif (!$rendered_virtual_menu) {
 		$program_slug = chroma_get_program_base_slug();
 
 		$pages = $is_es ? array(
@@ -456,7 +496,7 @@ class Chroma_Primary_Nav_Walker extends Walker_Nav_Menu
 		}
 
 		$output .= '<a href="' . esc_url($url) . '" class="' . esc_attr($classes) . '">';
-		$output .= esc_html(isset($item->title) ? (string) $item->title : '');
+		$output .= esc_html(chroma_normalize_nav_label(isset($item->title) ? (string) $item->title : ''));
 		$output .= '</a>';
 	}
 
@@ -490,7 +530,7 @@ class Chroma_Footer_Nav_Walker extends Walker_Nav_Menu
 		}
 
 		$output .= '<a href="' . esc_url($url) . '" class="block hover:text-white transition">';
-		$output .= esc_html(isset($item->title) ? (string) $item->title : '');
+		$output .= esc_html(chroma_normalize_nav_label(isset($item->title) ? (string) $item->title : ''));
 		$output .= '</a>';
 	}
 
@@ -556,14 +596,14 @@ function chroma_mobile_nav_fallback()
 
 	$pages = $is_es ? array(
 		$program_slug => 'Programas',
-		'prismpath' => 'Prismpath',
+		'prismpath' => 'PrismPath',
 		'curriculum' => 'Currículo',
 		'schedule' => 'Horario',
 		'locations' => 'Ubicaciones',
 		'faq' => 'Preguntas Frecuentes'
 	) : array(
 		$program_slug => 'Programs',
-		'prismpath' => 'Prismpath',
+		'prismpath' => 'PrismPath',
 		'curriculum' => 'Curriculum',
 		'schedule' => 'Schedule',
 		'locations' => 'Locations',
@@ -612,7 +652,7 @@ class Chroma_Mobile_Nav_Walker extends Walker_Nav_Menu
 		}
 
 		$output .= '<a href="' . esc_url($url) . '" class="' . esc_attr($classes) . '">';
-		$output .= esc_html(isset($item->title) ? (string) $item->title : '');
+		$output .= esc_html(chroma_normalize_nav_label(isset($item->title) ? (string) $item->title : ''));
 		$output .= '</a>';
 	}
 

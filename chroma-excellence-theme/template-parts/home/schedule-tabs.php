@@ -14,13 +14,13 @@ if (empty($tracks)) {
 }
 ?>
 
-<section id="schedule" class="py-20 bg-brand-cream relative" data-section="schedule">
+<section id="schedule" class="cream py-20 lg:py-24 bg-brand-cream relative" data-section="schedule">
         <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-chroma-red via-chroma-yellow to-chroma-blue opacity-40"></div>
         <div class="max-w-6xl mx-auto px-4 lg:px-6" data-schedule>
                 <script type="application/json" data-schedule-tracks>
                         <?php echo wp_json_encode($tracks, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
                 </script>
-                <div class="text-center mb-12">
+                <div class="head reveal text-center max-w-3xl mx-auto mb-12">
                         <span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-4 block">
                                 <?php echo esc_html($schedule_content['eyebrow']); ?>
                         </span>
@@ -32,15 +32,15 @@ if (empty($tracks)) {
                         </p>
                 </div>
 
-                <div class="flex justify-center mb-12">
-                        <div class="bg-white border border-chroma-blue/15 p-1 rounded-2xl flex flex-wrap gap-2 justify-center"
+                <div class="chroma-schedule-tabs-wrap mb-12">
+                        <div class="chroma-schedule-tabs bg-white border border-chroma-blue/15 p-1 rounded-2xl flex gap-2"
                                 data-schedule-tabs>
                                 <?php foreach ($tracks as $index => $track): ?>
                                         <?php
                                         $is_active = 0 === $index;
                                         $tab_classes = $is_active
-                                                ? 'bg-chroma-blue text-white shadow-soft'
-                                                : 'text-gray-900 hover:text-chroma-blue';
+                                                ? 'bg-chroma-red text-white shadow-soft'
+                                                : 'text-gray-900 hover:text-chroma-red';
                                         ?>
                                         <button
                                                 class="schedule-tab px-8 py-3 rounded-full text-sm font-bold transition-all duration-300 <?php echo esc_attr($tab_classes); ?>"
@@ -52,6 +52,10 @@ if (empty($tracks)) {
                         </div>
                 </div>
 
+                <p class="scheduleHint text-center -mt-7 mb-8 text-sm text-brand-ink/75">
+                        <?php esc_html_e('Choose a program above, then slide through a sample Chroma day.', 'chroma-excellence'); ?>
+                </p>
+
                 <?php foreach ($tracks as $index => $track): ?>
                         <?php
                         $is_active = 0 === $index;
@@ -59,84 +63,41 @@ if (empty($tracks)) {
                         $background_tint = !empty($track['background']) ? $track['background'] : 'bg-brand-cream';
                         ?>
                         <div class="<?php echo esc_attr($panel_classes); ?>" data-schedule-panel="<?php echo esc_attr($track['key']); ?>">
-                                <div class="rounded-[2rem] md:rounded-[3rem] p-6 md:p-12 <?php echo esc_attr($background_tint); ?> text-center overflow-hidden">
-                                        <div class="max-w-3xl mx-auto mb-8">
-                                                <h3 class="text-3xl font-serif text-brand-ink mb-4">
+                                <?php
+                                $steps = !empty($track['steps']) && is_array($track['steps']) ? array_values($track['steps']) : array();
+                                $first_step = $steps[0] ?? array('time' => '', 'title' => $track['title'], 'copy' => $track['description'] ?? '');
+                                ?>
+                                <div class="day reveal" data-sun-schedule>
+                                        <script type="application/json" data-sun-steps>
+                                                <?php echo wp_json_encode($steps, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>
+                                        </script>
+                                        <div class="sky" aria-hidden="true">
+                                                <div class="sun" data-sun-orb></div>
+                                                <div class="cloud c1"></div>
+                                                <div class="cloud c2"></div>
+                                        </div>
+                                        <div class="panel">
+                                                <div class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3">
                                                         <?php echo esc_html($track['title']); ?>
+                                                </div>
+                                                <div class="time font-serif" data-sun-time><?php echo esc_html($first_step['time']); ?></div>
+                                                <h3 class="font-serif text-4xl md:text-5xl font-semibold tracking-[-0.035em] text-brand-ink mb-4" data-sun-title>
+                                                        <?php echo esc_html($first_step['title']); ?>
                                                 </h3>
-                                                <p class="text-brand-ink leading-relaxed break-words">
-                                                        <?php echo esc_html($track['description'] ?? ''); ?>
+                                                <p class="text-brand-ink/75 text-lg leading-relaxed min-h-[7rem]" data-sun-copy>
+                                                        <?php echo esc_html($first_step['copy']); ?>
                                                 </p>
-                                        </div>
-
-                                        <div class="max-w-xl mx-auto mb-10">
-                                                <div class="rounded-[2rem] overflow-hidden shadow-lg aspect-video bg-white/50">
-                                                        <?php if (!empty($track['image'])): ?>
-                                                                <img src="<?php echo esc_url($track['image']); ?>"
-                                                                        alt="<?php echo esc_attr($track['title']); ?>"
-                                                                        class="w-full h-full object-cover"
-                                                                        width="800"
-                                                                        height="450"
-                                                                        loading="lazy"
-                                                                        decoding="async" />
-                                                        <?php else: ?>
-                                                                <div class="w-full h-full flex items-center justify-center text-chroma-blueDark/20 text-6xl">
-                                                                        <i class="fa-solid fa-image"></i>
-                                                                </div>
-                                                        <?php endif; ?>
-                                                </div>
-                                        </div>
-
-                                        <div class="relative max-w-5xl mx-auto mb-10">
-                                                <?php
-                                                $total_steps = count($track['steps']);
-                                                $split_index = ceil($total_steps / 2);
-                                                $top_steps = array_slice($track['steps'], 0, $split_index);
-                                                $bottom_steps = array_slice($track['steps'], $split_index);
-                                                ?>
-
-                                                <div class="flex flex-wrap justify-center gap-2 md:gap-4 mb-4 relative z-10 max-w-full">
-                                                        <?php foreach ($top_steps as $i => $step): ?>
-                                                                <?php
-                                                                $is_first = 0 === $i;
-                                                                $btn_classes = $is_first
-                                                                        ? 'bg-brand-ink text-white shadow-md transform scale-105'
-                                                                        : 'bg-white text-brand-ink hover:text-brand-ink hover:bg-white/80';
-                                                                ?>
-                                                                <button
-                                                                        class="min-w-[3.5rem] h-14 md:h-16 px-4 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 <?php echo esc_attr($btn_classes); ?>"
-                                                                        data-schedule-step-trigger
-                                                                        data-title="<?php echo esc_attr($step['title']); ?>"
-                                                                        data-copy="<?php echo esc_attr($step['copy']); ?>"
-                                                                        aria-label="<?php echo esc_attr($step['time']); ?>">
-                                                                        <?php echo esc_html($step['time']); ?>
-                                                                </button>
-                                                        <?php endforeach; ?>
-                                                </div>
-
-                                                <div class="flex flex-wrap justify-center gap-2 md:gap-4 relative z-10 max-w-full">
-                                                        <?php foreach ($bottom_steps as $step): ?>
-                                                                <button
-                                                                        class="min-w-[3.5rem] h-14 md:h-16 px-4 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300 bg-white text-brand-ink hover:text-brand-ink hover:bg-white/80"
-                                                                        data-schedule-step-trigger
-                                                                        data-title="<?php echo esc_attr($step['title']); ?>"
-                                                                        data-copy="<?php echo esc_attr($step['copy']); ?>"
-                                                                        aria-label="<?php echo esc_attr($step['time']); ?>">
-                                                                        <?php echo esc_html($step['time']); ?>
-                                                                </button>
-                                                        <?php endforeach; ?>
-                                                </div>
-                                        </div>
-
-                                        <div class="max-w-2xl mx-auto min-h-[120px]" data-schedule-content>
-                                                <?php if (!empty($track['steps'][0])): ?>
-                                                        <h4 class="text-xl font-bold text-brand-ink mb-3 transition-colors duration-300" data-content-title>
-                                                                <?php echo esc_html($track['steps'][0]['title']); ?>
-                                                        </h4>
-                                                        <p class="text-brand-ink leading-relaxed transition-opacity duration-300" data-content-copy>
-                                                                <?php echo esc_html($track['steps'][0]['copy']); ?>
-                                                        </p>
-                                                <?php endif; ?>
+                                                <div class="track mt-8"><div class="progress" data-sun-progress></div></div>
+                                                <input
+                                                        class="mt-5 w-full accent-chroma-yellow"
+                                                        data-sun-range
+                                                        type="range"
+                                                        min="0"
+                                                        max="<?php echo esc_attr(max(0, count($steps) - 1)); ?>"
+                                                        value="0"
+                                                        step="1"
+                                                        aria-label="<?php echo esc_attr($track['title']); ?>"
+                                                />
                                         </div>
                                 </div>
                         </div>

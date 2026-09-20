@@ -250,7 +250,7 @@ function chroma_seed_default_team_members()
     $defaults = array(
         array(
             'post_title' => __('Jordan Avery', 'chroma-excellence'),
-            'post_content' => __('Jordan leads the Prismpath team with a passion for creating joyful, evidence-based learning experiences for every child.', 'chroma-excellence'),
+            'post_content' => __('Jordan leads the PrismPath team with a passion for creating joyful, evidence-based learning experiences for every child.', 'chroma-excellence'),
             'role' => __('Executive Director', 'chroma-excellence'),
         ),
         array(

@@ -1,6 +1,6 @@
 <?php
 /**
- * Template Name: Early Start Template
+ * Template Name: Early Start Therapy Template
  * Template Post Type: program
  *
  * @package Chroma_Excellence
@@ -49,65 +49,220 @@ while (have_posts()):
 
     $page_id = get_the_ID();
     $asset_base = trailingslashit(CHROMA_THEME_URI . '/assets/images/early-start');
+    $request_path = isset($_SERVER['REQUEST_URI'])
+        ? trim((string) wp_parse_url(wp_unslash($_SERVER['REQUEST_URI']), PHP_URL_PATH), '/')
+        : '';
+    $is_early_learning_route = in_array($request_path, array('early-learning', 'chroma-early-learning'), true);
 
-    $hero_badge = chroma_get_translated_meta($page_id, 'early_start_hero_badge', true) ?: __('Specialized Pediatric Therapy', 'chroma-excellence');
-    $hero_title = chroma_get_translated_meta($page_id, 'early_start_hero_title', true) ?: __('Every child blooms at their own pace.', 'chroma-excellence');
-    $hero_description = chroma_get_translated_meta($page_id, 'early_start_hero_description', true) ?: __('Chroma Early Start is our dedicated therapeutic division, providing Speech, Occupational, and ABA therapies. We seamlessly bridge the gap between clinical intervention and early childhood education.', 'chroma-excellence');
-    $primary_cta_text = chroma_get_translated_meta($page_id, 'early_start_primary_cta_text', true) ?: __('Explore Early Start', 'chroma-excellence');
-    $primary_cta_url = chroma_get_translated_meta($page_id, 'early_start_primary_cta_url', true) ?: 'https://earlystart.chromaela.com';
-    $secondary_cta_text = chroma_get_translated_meta($page_id, 'early_start_secondary_cta_text', true) ?: __('Visit Early Start Site', 'chroma-excellence');
-    $secondary_cta_url = chroma_get_translated_meta($page_id, 'early_start_secondary_cta_url', true) ?: 'https://earlystart.chromaela.com';
+    $early_learning_nav_label = function_exists('chroma_get_theme_mod')
+        ? chroma_get_theme_mod('chroma_early_learning_nav_label', __('Early Learning', 'chroma-excellence'))
+        : __('Early Learning', 'chroma-excellence');
+    $early_learning_brand_label = function_exists('chroma_get_theme_mod')
+        ? chroma_get_theme_mod('chroma_early_learning_brand_label', __('Chroma Early Learning', 'chroma-excellence'))
+        : __('Chroma Early Learning', 'chroma-excellence');
+    $early_learning_support_label = sprintf(__('%s Support', 'chroma-excellence'), $early_learning_nav_label);
+    $early_learning_support_program_label = sprintf(__('%s support program', 'chroma-excellence'), strtolower($early_learning_nav_label));
+
+    $normalize_early_learning_text = static function ($value) use ($is_early_learning_route, $early_learning_nav_label, $early_learning_brand_label, $early_learning_support_label, $early_learning_support_program_label) {
+        if (!$is_early_learning_route) {
+            return (string) $value;
+        }
+
+        return str_replace(
+            [
+                'Chroma Early Start',
+                'Early Start',
+                'Specialized Pediatric Therapy',
+                'Pediatric Therapy',
+                'Occupational Therapy',
+                'ABA Therapy',
+                'therapeutic division',
+                'dedicated therapeutic division',
+                'Therapists',
+                'therapists',
+                'therapy',
+                'Therapy',
+                'clinicians',
+                'clinical',
+            ],
+            [
+                $early_learning_brand_label,
+                $early_learning_nav_label,
+                $early_learning_support_label,
+                $early_learning_nav_label,
+                __('Motor & Sensory Support', 'chroma-excellence'),
+                __('Behavioral Learning Support', 'chroma-excellence'),
+                $early_learning_support_program_label,
+                sprintf(__('dedicated %s', 'chroma-excellence'), $early_learning_support_program_label),
+                __('Educators', 'chroma-excellence'),
+                __('educators', 'chroma-excellence'),
+                __('support', 'chroma-excellence'),
+                __('Support', 'chroma-excellence'),
+                __('specialists', 'chroma-excellence'),
+                __('developmental', 'chroma-excellence'),
+            ],
+            (string) $value
+        );
+    };
+
+    $normalize_early_learning_url = static function ($value, $fallback) use ($is_early_learning_route) {
+        $value = (string) $value;
+
+        if (!$is_early_learning_route) {
+            return $value !== '' ? $value : $fallback;
+        }
+
+        if ($value === '' || strpos($value, 'earlystart.chromaela.com') !== false || strpos($value, 'chromaearlystart.com') !== false) {
+            return chroma_get_localized_url(home_url($fallback));
+        }
+
+        return $value;
+    };
+
+    $route_text = static function ($key, $default, $early_learning_defaults = array()) use ($page_id, $is_early_learning_route, $normalize_early_learning_text) {
+        $value = chroma_get_translated_meta($page_id, $key, true);
+        $legacy_learning_fragments = array(
+            'early learning',
+            'support',
+            'developmental guidance',
+            'classroom care',
+            'family partnership',
+            'child development support',
+            'daycare',
+            'whole-child',
+            'warmth of home',
+            'preserving the warmth',
+            'every program is guided by prismpath',
+            'prismpath™',
+            'prismpath',
+        );
+
+        if (!$is_early_learning_route) {
+            $normalized_value = strtolower(trim(wp_strip_all_tags((string) $value)));
+            $is_learning_fallback = in_array(trim((string) $value), $early_learning_defaults, true);
+
+            foreach ($legacy_learning_fragments as $fragment) {
+                if ($normalized_value !== '' && strpos($normalized_value, $fragment) !== false && strpos($normalized_value, 'therapy') === false && strpos($normalized_value, 'therap') === false && strpos($normalized_value, 'early start') === false) {
+                    $is_learning_fallback = true;
+                    break;
+                }
+            }
+
+            if ($is_learning_fallback) {
+                $value = '';
+            }
+        }
+
+        if (!$is_early_learning_route && in_array(trim((string) $value), $early_learning_defaults, true)) {
+            $value = '';
+        }
+
+        return $normalize_early_learning_text($value ?: $default);
+    };
+
+    $hero_badge = $route_text('early_start_hero_badge', $is_early_learning_route ? $early_learning_support_label : __('Specialized Pediatric Therapy', 'chroma-excellence'), array($early_learning_support_label, 'Early Learning Support'));
+    $hero_title = $route_text('early_start_hero_title', __('Every child blooms at their own pace.', 'chroma-excellence'));
+    $hero_description = $route_text(
+        'early_start_hero_description',
+        $is_early_learning_route
+            ? sprintf(__('%s brings classroom care, developmental support, and family partnership together so children can thrive in the rhythm of their day.', 'chroma-excellence'), $early_learning_brand_label)
+            : __('Chroma Early Start services are available to families through every Chroma campus. Eligibility, scheduling, and the appropriate care setting are determined with each family and clinical team.', 'chroma-excellence'),
+        array(sprintf(__('%s brings classroom care, developmental support, and family partnership together so children can thrive in the rhythm of their day.', 'chroma-excellence'), $early_learning_brand_label))
+    );
+    if (!$is_early_learning_route && (
+        false !== stripos($hero_description, 'providing Speech, Occupational, and ABA')
+        || false !== stripos($hero_description, 'participating location')
+        || false !== stripos($hero_description, 'service availability')
+    )) {
+        $hero_description = __('Chroma Early Start services are available to families through every Chroma campus. Eligibility, scheduling, and the appropriate care setting are determined with each family and clinical team.', 'chroma-excellence');
+    }
+    $primary_cta_text = $route_text('early_start_primary_cta_text', $is_early_learning_route ? sprintf(__('Explore %s', 'chroma-excellence'), $early_learning_nav_label) : __('Explore Early Start', 'chroma-excellence'), array(sprintf(__('Explore %s', 'chroma-excellence'), $early_learning_nav_label)));
+    $primary_cta_url = $normalize_early_learning_url(chroma_get_translated_meta($page_id, 'early_start_primary_cta_url', true), $is_early_learning_route ? '/programs/' : 'https://chromaearlystart.com/');
+    $secondary_cta_text = $route_text('early_start_secondary_cta_text', $is_early_learning_route ? __('Schedule a Tour', 'chroma-excellence') : __('Inquire About Early Start', 'chroma-excellence'), array(__('Schedule a Tour', 'chroma-excellence')));
+    $secondary_cta_url = $normalize_early_learning_url(chroma_get_translated_meta($page_id, 'early_start_secondary_cta_url', true), $is_early_learning_route ? '/schedule-a-tour/' : 'https://chromaearlystart.com/contact/');
     $hero_image = chroma_get_translated_meta($page_id, 'early_start_hero_image', true) ?: $asset_base . 'hero-therapy.jpg';
 
-    $synergy_eyebrow = chroma_get_translated_meta($page_id, 'early_start_synergy_eyebrow', true) ?: __('The Chroma Advantage', 'chroma-excellence');
-    $synergy_title = chroma_get_translated_meta($page_id, 'early_start_synergy_title', true) ?: __('Where Therapy Meets Education.', 'chroma-excellence');
-    $synergy_intro_one = chroma_get_translated_meta($page_id, 'early_start_synergy_intro_one', true) ?: __('Traditionally, parents have to juggle preschool drop-offs with driving across town to therapy clinics. Chroma Early Start solves this.', 'chroma-excellence');
-    $synergy_intro_two = chroma_get_translated_meta($page_id, 'early_start_synergy_intro_two', true) ?: __('By integrating our Early Start therapists directly with our Early Learning Academy teachers, we create a unified, collaborative care plan for your child. Strategies used in therapy are reinforced in the classroom, leading to faster, more sustainable progress.', 'chroma-excellence');
-    $synergy_bullets = [
-        chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_one', true) ?: __('Reduced transitions and travel for parents', 'chroma-excellence'),
-        chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_two', true) ?: __('Real-time collaboration between teachers and clinicians', 'chroma-excellence'),
-        chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_three', true) ?: __('Inclusive, neurodiversity-affirming environments', 'chroma-excellence'),
-    ];
-    $push_title = chroma_get_translated_meta($page_id, 'early_start_push_title', true) ?: __('Push-In Therapy', 'chroma-excellence');
-    $push_description = chroma_get_translated_meta($page_id, 'early_start_push_description', true) ?: __('Therapists support children right inside their Chroma Academy classrooms.', 'chroma-excellence');
-    $pull_title = chroma_get_translated_meta($page_id, 'early_start_pull_title', true) ?: __('Pull-Out Therapy', 'chroma-excellence');
-    $pull_description = chroma_get_translated_meta($page_id, 'early_start_pull_description', true) ?: __('Dedicated sensory gyms and quiet clinic spaces for focused, one-on-one sessions.', 'chroma-excellence');
+    $synergy_eyebrow = $route_text('early_start_synergy_eyebrow', __('The Chroma Advantage', 'chroma-excellence'));
+    $synergy_title = $route_text('early_start_synergy_title', $is_early_learning_route ? __('Where support meets education.', 'chroma-excellence') : __('Where therapy meets education.', 'chroma-excellence'), array(__('Where support meets education.', 'chroma-excellence')));
+    if ($is_early_learning_route && in_array(strtolower(rtrim($synergy_title, '.')), array('where therapy meets education', 'where support meets education'), true)) {
+        $synergy_title = __('Where support meets education.', 'chroma-excellence');
+    }
+    $synergy_intro_one = $route_text(
+        'early_start_synergy_intro_one',
+        $is_early_learning_route
+            ? sprintf(__('Families should not have to piece together care, learning, and developmental guidance across disconnected settings. %s brings that support into one warm school community.', 'chroma-excellence'), $early_learning_brand_label)
+            : __('At every Chroma campus, Early Start can help eligible families coordinate early learning and therapy support with fewer disconnected transitions.', 'chroma-excellence')
+    );
+    if (!$is_early_learning_route && (
+        false !== stripos($synergy_intro_one, 'Chroma Early Start solves this')
+        || false !== stripos($synergy_intro_one, 'participating location')
+        || false !== stripos($synergy_intro_one, 'when services are available')
+    )) {
+        $synergy_intro_one = __('At every Chroma campus, Early Start can help eligible families coordinate early learning and therapy support with fewer disconnected transitions.', 'chroma-excellence');
+    }
+    $synergy_intro_two = $route_text(
+        'early_start_synergy_intro_two',
+        $is_early_learning_route
+            ? __('By aligning classroom teachers, family communication, and child development support, we create a unified care plan for each child. Strategies are reinforced in daily routines, leading to steadier confidence and growth.', 'chroma-excellence')
+            : __('With family consent and when appropriate for the child, Early Start clinicians and Academy teachers can coordinate strategies across therapy and classroom routines. Eligibility, scheduling, and delivery models are determined with each family and clinical team.', 'chroma-excellence')
+    );
+    if (!$is_early_learning_route && (
+        false !== stripos($synergy_intro_two, 'integrating our Early Start therapists directly')
+        || false !== stripos($synergy_intro_two, 'vary by location')
+    )) {
+        $synergy_intro_two = __('With family consent and when appropriate for the child, Early Start clinicians and Academy teachers can coordinate strategies across therapy and classroom routines. Eligibility, scheduling, and delivery models are determined with each family and clinical team.', 'chroma-excellence');
+    }
+    $synergy_bullets = array_map(
+        $normalize_early_learning_text,
+        [
+            chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_one', true) ?: __('Reduced transitions and travel for parents', 'chroma-excellence'),
+            chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_two', true) ?: __('Real-time collaboration between teachers and support specialists', 'chroma-excellence'),
+            chroma_get_translated_meta($page_id, 'early_start_synergy_bullet_three', true) ?: __('Inclusive, neurodiversity-affirming environments', 'chroma-excellence'),
+        ]
+    );
+    $push_title = $route_text('early_start_push_title', $is_early_learning_route ? __('Push-In Support', 'chroma-excellence') : __('Push-In Therapy', 'chroma-excellence'), array(__('Push-In Support', 'chroma-excellence')));
+    $push_description = $route_text('early_start_push_description', $is_early_learning_route ? __('Educators support children right inside their Chroma Academy classrooms.', 'chroma-excellence') : __('Therapists support children right inside their Chroma Academy classrooms, embedding strategies into the natural flow of the day.', 'chroma-excellence'));
+    $pull_title = $route_text('early_start_pull_title', $is_early_learning_route ? __('Focused Support', 'chroma-excellence') : __('Pull-Out Therapy', 'chroma-excellence'), array(__('Focused Support', 'chroma-excellence')));
+    $pull_description = $route_text('early_start_pull_description', $is_early_learning_route ? __('Dedicated sensory-friendly spaces for focused, one-on-one support.', 'chroma-excellence') : __('Dedicated sensory gyms and quiet clinic spaces for focused, one-on-one sessions when a child needs them.', 'chroma-excellence'));
     $synergy_image_one = chroma_get_translated_meta($page_id, 'early_start_synergy_image_one', true) ?: $asset_base . 'synergy-classroom.jpg';
     $synergy_image_two = chroma_get_translated_meta($page_id, 'early_start_synergy_image_two', true) ?: $asset_base . 'synergy-sensory.jpg';
 
-    $services_title = get_post_meta($page_id, 'early_start_services_title', true) ?: __('Our Core Clinical Services', 'chroma-excellence');
-    $services_description = get_post_meta($page_id, 'early_start_services_description', true) ?: __('Comprehensive pediatric therapies tailored to your child\'s unique developmental profile.', 'chroma-excellence');
+    $services_title = $route_text('early_start_services_title', $is_early_learning_route ? __('Comprehensive child development support.', 'chroma-excellence') : __('Comprehensive pediatric therapies.', 'chroma-excellence'), array(__('Comprehensive child development support.', 'chroma-excellence')));
+    if ($is_early_learning_route && in_array(strtolower(rtrim($services_title, '.')), array('our core clinical services', 'comprehensive pediatric therapies'), true)) {
+        $services_title = __('Comprehensive child development support.', 'chroma-excellence');
+    }
+    $services_description = $route_text('early_start_services_description', $is_early_learning_route ? __('Warm learning support tailored to your child\'s unique developmental profile.', 'chroma-excellence') : __('Tailored to your child\'s unique developmental profile.', 'chroma-excellence'), array(__('Warm learning support tailored to your child\'s unique developmental profile.', 'chroma-excellence')));
     $services = [
         [
             'icon' => 'fa-solid fa-comment-dots',
             'accent' => '#964030',
             'accent_bg' => 'rgba(214, 125, 107, 0.12)',
-            'title' => get_post_meta($page_id, 'early_start_service_1_title', true) ?: __('Speech & Language', 'chroma-excellence'),
-            'description' => get_post_meta($page_id, 'early_start_service_1_description', true) ?: __('Helping children find their voice. From articulation and expressive language delays to pragmatic social communication and AAC device support.', 'chroma-excellence'),
-            'url' => get_post_meta($page_id, 'early_start_service_1_url', true) ?: 'https://earlystart.chromaela.com/speech-therapy',
+            'title' => $route_text('early_start_service_1_title', $is_early_learning_route ? __('Language & Communication', 'chroma-excellence') : __('Speech & Language', 'chroma-excellence'), array(__('Language & Communication', 'chroma-excellence'))),
+            'description' => $route_text('early_start_service_1_description', $is_early_learning_route ? __('Helping children find their voice through expressive language, social communication, and classroom confidence.', 'chroma-excellence') : __('Helping children find their voice — from articulation and expressive language delays to pragmatic social communication and AAC device support.', 'chroma-excellence'), array(__('Helping children find their voice through expressive language, social communication, and classroom confidence.', 'chroma-excellence'))),
+            'url' => $normalize_early_learning_url(get_post_meta($page_id, 'early_start_service_1_url', true), $is_early_learning_route ? '/programs/' : 'https://chromaearlystart.com/programs/speech-therapy/'),
         ],
         [
             'icon' => 'fa-solid fa-puzzle-piece',
             'accent' => '#8C6B2F',
             'accent_bg' => 'rgba(230, 190, 117, 0.18)',
-            'title' => get_post_meta($page_id, 'early_start_service_2_title', true) ?: __('Occupational Therapy', 'chroma-excellence'),
-            'description' => get_post_meta($page_id, 'early_start_service_2_description', true) ?: __('Building independence in daily living. We focus on fine motor skills, sensory processing, feeding challenges, and self-regulation techniques.', 'chroma-excellence'),
-            'url' => get_post_meta($page_id, 'early_start_service_2_url', true) ?: 'https://earlystart.chromaela.com/occupational-therapy',
+            'title' => $route_text('early_start_service_2_title', $is_early_learning_route ? __('Motor & Sensory Support', 'chroma-excellence') : __('Occupational Therapy', 'chroma-excellence'), array(__('Motor & Sensory Support', 'chroma-excellence'))),
+            'description' => $route_text('early_start_service_2_description', $is_early_learning_route ? __('Building independence through fine motor practice, sensory processing support, feeding routines, and self-regulation.', 'chroma-excellence') : __('Building independence in daily living — fine motor skills, sensory processing, feeding challenges, and self-regulation techniques.', 'chroma-excellence'), array(__('Building independence through fine motor practice, sensory processing support, feeding routines, and self-regulation.', 'chroma-excellence'))),
+            'url' => $normalize_early_learning_url(get_post_meta($page_id, 'early_start_service_2_url', true), $is_early_learning_route ? '/programs/' : 'https://chromaearlystart.com/programs/occupational-therapy/'),
         ],
         [
             'icon' => 'fa-solid fa-hands-holding-child',
             'accent' => '#4A6C7C',
             'accent_bg' => 'rgba(74, 108, 124, 0.12)',
-            'title' => get_post_meta($page_id, 'early_start_service_3_title', true) ?: __('ABA Therapy', 'chroma-excellence'),
-            'description' => get_post_meta($page_id, 'early_start_service_3_description', true) ?: __('Play-based, naturalistic Applied Behavior Analysis focused on communication, social skills, and reducing barriers to learning.', 'chroma-excellence'),
-            'url' => get_post_meta($page_id, 'early_start_service_3_url', true) ?: 'https://earlystart.chromaela.com/aba-therapy',
+            'title' => $route_text('early_start_service_3_title', $is_early_learning_route ? __('Behavioral Learning Support', 'chroma-excellence') : __('ABA Therapy', 'chroma-excellence'), array(__('Behavioral Learning Support', 'chroma-excellence'))),
+            'description' => $route_text('early_start_service_3_description', $is_early_learning_route ? __('Play-based, naturalistic support focused on communication, social skills, and reducing barriers to learning.', 'chroma-excellence') : __('Play-based, naturalistic Applied Behavior Analysis focused on communication, social skills, and reducing barriers to learning.', 'chroma-excellence'), array(__('Play-based, naturalistic support focused on communication, social skills, and reducing barriers to learning.', 'chroma-excellence'))),
+            'url' => $normalize_early_learning_url(get_post_meta($page_id, 'early_start_service_3_url', true), $is_early_learning_route ? '/programs/' : 'https://chromaearlystart.com/programs/aba-therapy/'),
         ],
     ];
 
-    $cta_title = get_post_meta($page_id, 'early_start_cta_title', true) ?: __('Ready to take the next step?', 'chroma-excellence');
-    $cta_description = get_post_meta($page_id, 'early_start_cta_description', true) ?: __('Visit the official Chroma Early Start website to meet our clinical directors, view accepted insurances, and request an initial evaluation.', 'chroma-excellence');
-    $cta_button_text = get_post_meta($page_id, 'early_start_cta_button_text', true) ?: __('Go to Early Start Website', 'chroma-excellence');
-    $cta_button_url = get_post_meta($page_id, 'early_start_cta_button_url', true) ?: 'https://earlystart.chromaela.com';
+    $cta_title = $route_text('early_start_cta_title', __('Ready to take the next step?', 'chroma-excellence'));
+    $cta_description = $route_text('early_start_cta_description', $is_early_learning_route ? __('Schedule a tour with Chroma Early Learning to meet our team, explore classrooms, and talk through the support your child needs.', 'chroma-excellence') : __('Visit the official Chroma Early Start website to meet our clinical directors, view accepted insurances, and request an initial evaluation.', 'chroma-excellence'));
+    $cta_button_text = $route_text('early_start_cta_button_text', $is_early_learning_route ? __('Schedule a Tour', 'chroma-excellence') : __('Go to Early Start Website', 'chroma-excellence'));
+    $cta_button_url = $normalize_early_learning_url(get_post_meta($page_id, 'early_start_cta_button_url', true), $is_early_learning_route ? '/schedule-a-tour/' : 'https://chromaearlystart.com/');
     ?>
 
     <style>
@@ -177,7 +332,7 @@ while (have_posts()):
 
         .ces-title {
             margin: 18px 0 18px;
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: var(--font-serif, "Playfair Display", Georgia, serif);
             font-size: clamp(2.4rem, 5vw, 4.6rem);
             line-height: 1.08;
             font-weight: 700;
@@ -186,7 +341,7 @@ while (have_posts()):
 
         .ces-section-title {
             margin: 0 0 18px;
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: var(--font-serif, "Playfair Display", Georgia, serif);
             font-size: clamp(2rem, 3.8vw, 3.4rem);
             line-height: 1.12;
             font-weight: 700;
@@ -415,7 +570,7 @@ while (have_posts()):
 
         .ces-service-card h3 {
             margin: 0 0 12px;
-            font-family: Georgia, "Times New Roman", serif;
+            font-family: var(--font-serif, "Playfair Display", Georgia, serif);
             font-size: 1.7rem;
             line-height: 1.25;
         }
@@ -514,7 +669,7 @@ while (have_posts()):
 
     <main id="primary" class="site-main ces-page">
         <article id="post-<?php the_ID(); ?>" <?php post_class('ces-page'); ?>>
-            <section class="ces-section ces-hero">
+            <section class="pageHero ces-section ces-hero chroma-v2-page-hero">
                 <div class="ces-shell ces-grid ces-hero-grid">
                     <div>
                         <span class="ces-badge"><?php echo esc_html($hero_badge); ?></span>
@@ -538,14 +693,14 @@ while (have_posts()):
                     <div class="ces-card-frame">
                         <div class="ces-hero-image">
                             <img src="<?php echo esc_url($hero_image); ?>"
-                                alt="<?php esc_attr_e('Pediatric therapist smiling and engaging with a young child', 'chroma-excellence'); ?>"
+                                alt="<?php esc_attr_e('Chroma educator smiling and engaging with a young child', 'chroma-excellence'); ?>"
                                 loading="eager" fetchpriority="high" decoding="sync" class="no-lazy" />
                         </div>
                     </div>
                 </div>
             </section>
 
-            <section class="ces-section ces-synergy">
+            <section class="white borderY ces-section ces-synergy">
                 <div class="ces-shell ces-grid ces-synergy-grid">
                     <div class="ces-synergy-copy">
                         <span class="ces-eyebrow"><?php echo esc_html($synergy_eyebrow); ?></span>
@@ -593,7 +748,7 @@ while (have_posts()):
                 </div>
             </section>
 
-            <section class="ces-section ces-services">
+            <section class="white borderY ces-section ces-services">
                 <div class="ces-shell">
                     <div class="ces-services-header">
                         <h2 class="ces-section-title"><?php echo esc_html($services_title); ?></h2>
@@ -622,7 +777,7 @@ while (have_posts()):
                 </div>
             </section>
 
-            <section class="ces-section ces-cta">
+            <section class="cream ces-section ces-cta">
                 <div class="ces-shell ces-cta-shell">
                     <h2 class="ces-section-title"><?php echo esc_html($cta_title); ?></h2>
                     <p class="ces-copy"><?php echo esc_html($cta_description); ?></p>

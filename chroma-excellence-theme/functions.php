@@ -30,7 +30,7 @@ if (!defined('CHROMA_DEBUG') || !CHROMA_DEBUG) {
 /**
  * Define theme constants
  */
-define('CHROMA_VERSION', '1.0.0');
+define('CHROMA_VERSION', '2.0.0');
 define('CHROMA_THEME_DIR', get_template_directory());
 define('CHROMA_THEME_URI', get_template_directory_uri());
 
@@ -121,8 +121,11 @@ if (!function_exists('chroma_url')) {
 
 if (!function_exists('chroma_get_theme_mod')) {
     /**
-     * Get theme mod with fallback
-     * Simple wrapper around get_theme_mod
+     * Get theme mod with original-theme fallback.
+     *
+     * V2 uses a different stylesheet slug, so Customizer values live under a
+     * different option name. Post meta remains shared automatically, but
+     * theme mods need a safe read-through while the migration runs.
      *
      * @param string $name Theme mod name
      * @param mixed $default Default value
@@ -130,7 +133,33 @@ if (!function_exists('chroma_get_theme_mod')) {
      */
     function chroma_get_theme_mod($name, $default = false)
     {
-        return get_theme_mod($name, $default);
+        $value = get_theme_mod($name, null);
+
+        if (null !== $value) {
+            return $value;
+        }
+
+        $stylesheet = get_stylesheet();
+        $source_stylesheets = array_unique(array(
+            'chroma-excellence-theme-v2',
+            'chroma-excellence-theme-v2-0',
+            'chroma-excellence-theme-v2-0-2',
+            'chroma-excellence-theme',
+        ));
+
+        foreach ($source_stylesheets as $source_stylesheet) {
+            if ($source_stylesheet === $stylesheet) {
+                continue;
+            }
+
+            $source_mods = get_option('theme_mods_' . $source_stylesheet, array());
+
+            if (is_array($source_mods) && array_key_exists($name, $source_mods)) {
+                return $source_mods[$name];
+            }
+        }
+
+        return $default;
     }
 }
 
@@ -225,6 +254,7 @@ add_action('template_redirect', 'chroma_disable_careers_page_cache', -1000);
  */
 
 // Core setup and configuration
+require_once CHROMA_THEME_DIR . '/inc/theme-migrations.php';
 require_once CHROMA_THEME_DIR . '/inc/setup.php';
 require_once CHROMA_THEME_DIR . '/inc/nav-menus.php';
 
@@ -279,6 +309,7 @@ if (is_admin()) {
 require_once CHROMA_THEME_DIR . '/inc/translation-helpers.php';
 require_once CHROMA_THEME_DIR . '/inc/template-tags.php';
 require_once CHROMA_THEME_DIR . '/inc/dynamic-links.php';
+require_once CHROMA_THEME_DIR . '/inc/backup-care.php';
 require_once CHROMA_THEME_DIR . '/inc/guide-aliases.php';
 require_once CHROMA_THEME_DIR . '/inc/staging-cache.php';
 require_once CHROMA_THEME_DIR . '/inc/archive-root-query-context.php';
@@ -739,11 +770,10 @@ add_filter('wp_sitemaps_enabled', '__return_false');
  * Single unified sitemap at /sitemap.xml.
  *
  * Completely bypasses WordPress's native sitemap system and its rewrite rules.
- * Generates one flat XML sitemap containing ALL URLs:
- * - Published posts, pages, locations, programs, cities
- * - Combo pages (program-in-city-state)
- * - Near-me pages
- * - Spanish /es/ variants of everything above
+ * Generates one flat XML sitemap containing approved indexable URLs:
+ * - Published posts, pages, locations, programs, and approved cities
+ * - Search-approved generated routes registered through chroma_sitemap_urls
+ * - Spanish /es/ variants only when translated content is available
  */
 function chroma_serve_custom_sitemap()
 {
@@ -761,12 +791,26 @@ function chroma_serve_custom_sitemap()
         '/sitemap-near-me-es.xml',
     ];
     if (in_array($path, $legacy, true)) {
+        if (function_exists('chroma_is_staging_request') && chroma_is_staging_request()) {
+            status_header(404);
+            nocache_headers();
+            header('X-Robots-Tag: noindex, nofollow, noarchive', true);
+            exit;
+        }
+
         wp_safe_redirect(home_url('/sitemap.xml'), 301);
         exit;
     }
 
     if ($path !== '/sitemap.xml') {
         return;
+    }
+
+    if (function_exists('chroma_is_staging_request') && chroma_is_staging_request()) {
+        status_header(404);
+        nocache_headers();
+        header('X-Robots-Tag: noindex, nofollow, noarchive', true);
+        exit;
     }
 
     // Prevent caching issues
@@ -821,7 +865,7 @@ function chroma_get_standard_sitemap_urls()
     ]);
 
     $front_page_id = (int) get_option('page_on_front');
-    if ($front_page_id > 0) {
+    if ($front_page_id > 0 && chroma_post_has_verified_spanish_variant($front_page_id)) {
         $front_lastmod = get_the_modified_date('c', $front_page_id) ?: gmdate('c');
         $urls[] = [
             'loc' => $base . '/es/',
@@ -830,6 +874,39 @@ function chroma_get_standard_sitemap_urls()
     }
 
     foreach ($posts as $post) {
+        // The secure Parent Portal is intentionally noindex and must not be
+        // advertised as an organic-search landing page in the public sitemap.
+        if (
+            $post->post_type === 'page'
+            && in_array($post->post_name, ['parent-portal', 'blog'], true)
+        ) {
+            continue;
+        }
+
+        if (
+            $post->post_type === 'post'
+            && function_exists('chroma_is_legacy_local_doorway_post')
+            && chroma_is_legacy_local_doorway_post($post->ID)
+        ) {
+            continue;
+        }
+
+        if (
+            $post->post_type === 'post'
+            && function_exists('chroma_is_unfinished_empty_post')
+            && chroma_is_unfinished_empty_post($post->ID)
+        ) {
+            continue;
+        }
+
+        if (
+            $post->post_type === 'city'
+            && function_exists('chroma_city_is_search_approved')
+            && !chroma_city_is_search_approved($post->ID)
+        ) {
+            continue;
+        }
+
         $permalink = get_permalink($post->ID);
         if (!$permalink)
             continue;
@@ -839,9 +916,9 @@ function chroma_get_standard_sitemap_urls()
             'lastmod' => get_the_modified_date('c', $post->ID),
         ];
 
-        // Traditional Spanish prefix logic (simpler than reaching into Spanish provider)
+        // Publish a Spanish URL only when its post has translated content.
         $rel_path = trim(str_replace($base, '', $permalink), '/');
-        if ($rel_path && !str_starts_with($rel_path, 'es/')) {
+        if ($rel_path && !str_starts_with($rel_path, 'es/') && chroma_post_has_verified_spanish_variant($post->ID)) {
             $urls[] = [
                 'loc' => $base . '/es/' . $rel_path . '/',
                 'lastmod' => get_the_modified_date('c', $post->ID),
@@ -1113,5 +1190,74 @@ function chroma_render_contact_form()
         return chroma_contact_form_shortcode();
     }
 
-    return do_shortcode('[chroma_tour_form]');
+    $form_id = get_option('chroma_contact_form_id', 'ibinKhrBmF0n4S5tFcz6');
+    if (!$form_id || '848tl2LjoZVsUIhhNOxd' === $form_id) {
+        $form_id = 'ibinKhrBmF0n4S5tFcz6';
+    }
+    $form_url = 'https://api.leadconnectorhq.com/widget/form/' . rawurlencode($form_id);
+
+    return sprintf(
+        '<div class="chroma-contact-form-wrapper"><iframe src="%1$s" loading="lazy" title="%2$s" style="width:100%%;height:779px;border:0;border-radius:1.5rem" allow="clipboard-write"></iframe></div>',
+        esc_url($form_url),
+        esc_attr__('Contact Chroma Early Learning', 'chroma-excellence')
+    );
+}
+
+/**
+ * Determine whether a post has a verified Spanish variant suitable for indexing.
+ */
+function chroma_post_has_verified_spanish_variant($post_id)
+{
+    $post_id = absint($post_id);
+    if (!$post_id) {
+        return false;
+    }
+
+    $alternate_url = trim((string) get_post_meta($post_id, 'alternate_url_es', true));
+    if ($alternate_url !== '') {
+        return true;
+    }
+
+    $looks_spanish = static function ($value) {
+        $value = trim(wp_strip_all_tags(html_entity_decode((string) $value, ENT_QUOTES, 'UTF-8')));
+        if ($value === '') {
+            return false;
+        }
+        if (preg_match('/[áéíóúüñ¿¡]/iu', $value)) {
+            return true;
+        }
+        $normalized = ' ' . strtolower($value) . ' ';
+        $signals = array(' el ', ' la ', ' los ', ' las ', ' de ', ' del ', ' que ', ' para ', ' con ', ' una ', ' un ', ' niños', ' familias', ' aprendizaje', ' desarrollo', ' programa', ' cuidado', ' maestros', ' padres', ' escuela', ' nuestro', ' nuestra', ' cada ');
+        $matches = 0;
+        foreach ($signals as $signal) {
+            if (strpos($normalized, $signal) !== false) {
+                $matches++;
+            }
+        }
+        return $matches >= 3;
+    };
+
+    $post = get_post($post_id);
+    if ($post instanceof WP_Post && $post->post_type === 'post') {
+        return $looks_spanish(get_post_meta($post_id, '_chroma_es_content', true));
+    }
+
+    if ($post instanceof WP_Post && $post->post_type === 'page' && $post->post_name === 'chroma-early-start') {
+        return $looks_spanish(get_post_meta($post_id, '_chroma_es_content', true));
+    }
+
+    foreach (array('_chroma_es_title', '_chroma_es_content', '_chroma_es_excerpt', '_chroma_es_meta_description', '_chroma_es_seo_title') as $meta_key) {
+        if (trim((string) get_post_meta($post_id, $meta_key, true)) !== '') {
+            return true;
+        }
+    }
+
+    global $wpdb;
+    $translated_rows = (int) $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->postmeta} WHERE post_id = %d AND meta_key LIKE %s AND meta_value <> ''",
+        $post_id,
+        $wpdb->esc_like('_chroma_es_') . '%'
+    ));
+
+    return $translated_rows > 0;
 }

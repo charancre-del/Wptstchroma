@@ -23,6 +23,10 @@ add_action(
 
 get_header();
 
+?>
+<main id="primary" class="site-main single-program custom-program-v2" role="main">
+<?php
+
 while (have_posts()):
 	the_post();
 
@@ -39,9 +43,9 @@ while (have_posts()):
 			'icon_class' => 'fa-solid fa-landmark-dome',
 			'icon_color' => 'text-chroma-blue',
 			'title' => __('Georgia DECAL Summer Transition', 'chroma-excellence'),
-			'copy' => __('Funded by the Georgia Department of Early Care and Learning, this track is <strong>completely free</strong> for eligible families. It is specifically designed for dual language learners and families meeting specific income requirements to ensure educational equity.', 'chroma-excellence'),
+			'copy' => __('Funded by the Georgia Department of Early Care and Learning, this transition track supports eligible children as they prepare for Pre-K. Eligibility is based on current state requirements.', 'chroma-excellence'),
 			'points' => array(
-				__('100% Tuition Covered', 'chroma-excellence'),
+				__('State-Funded Summer Support', 'chroma-excellence'),
 				__('Meals & materials included', 'chroma-excellence'),
 				__('6-week intensive schedule', 'chroma-excellence'),
 			),
@@ -55,12 +59,12 @@ while (have_posts()):
 			'title' => __('Chroma Private Transition', 'chroma-excellence'),
 			'copy' => __('For families who do not meet state DECAL requirements but still want their child to experience the profound benefits of a summer prep program, our Private Track offers identical classroom experiences, curriculum, and expert teaching.', 'chroma-excellence'),
 			'points' => array(
-				__('Identical Prismpath™ curriculum', 'chroma-excellence'),
+				__('Connected PrismPath™ curriculum', 'chroma-excellence'),
 				__('Low teacher-to-student ratios', 'chroma-excellence'),
 				__('Flexible wrap-around care options', 'chroma-excellence'),
 			),
 			'accent_class' => 'border-chroma-yellow',
-			'link_text' => __('Request Private Tuition Rates', 'chroma-excellence'),
+			'link_text' => __('Ask About Eligibility', 'chroma-excellence'),
 			'link_color' => 'text-chroma-yellow',
 		),
 	);
@@ -126,7 +130,7 @@ while (have_posts()):
 		}
 	</style>
 
-	<section class="relative pb-20 bg-white overflow-hidden">
+	<section class="pageHero chroma-v2-page-hero relative pb-20 bg-white overflow-hidden">
 		<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chroma-greenLight/60 to-transparent" aria-hidden="true"></div>
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
 			<div>
@@ -187,12 +191,12 @@ while (have_posts()):
 		<div class="max-w-6xl mx-auto px-4 lg:px-6">
 			<div class="grid lg:grid-cols-2 gap-16 items-center">
 				<div class="bg-brand-cream rounded-[3rem] p-8 shadow-soft border border-brand-ink/5 order-2 lg:order-1 rising-prek-chart-shell">
-					<canvas id="risingPrekChart" role="img" aria-label="<?php echo esc_attr(sprintf(__('Radar chart showing the Rising Pre-K Prismpath focus areas: %1$d%% Physical, %2$d%% Emotional, %3$d%% Social, %4$d%% Academic, and %5$d%% Creative.', 'chroma-excellence'), $chart_values[0], $chart_values[1], $chart_values[2], $chart_values[3], $chart_values[4])); ?>">
+					<canvas id="risingPrekChart" role="img" aria-label="<?php echo esc_attr(sprintf(__('Radar chart showing the Rising Pre-K PrismPath focus areas: %1$d%% Physical, %2$d%% Emotional, %3$d%% Social, %4$d%% Academic, and %5$d%% Creative.', 'chroma-excellence'), $chart_values[0], $chart_values[1], $chart_values[2], $chart_values[3], $chart_values[4])); ?>">
 						<?php esc_html_e('A radar chart illustrating our curriculum\'s heavy focus on Social and Emotional routines for Pre-K.', 'chroma-excellence'); ?>
 					</canvas>
 				</div>
 				<div class="order-1 lg:order-2">
-					<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('Prismpath™ Focus', 'chroma-excellence'); ?></span>
+					<span class="text-chroma-green font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('PrismPath™ Focus', 'chroma-excellence'); ?></span>
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6"><?php esc_html_e('Routines & Resilience.', 'chroma-excellence'); ?></h2>
 					<p class="text-brand-ink/80 text-lg mb-6"><?php echo wp_kses_post(__('Transitioning into a structured Pre-K is a big leap. Our summer bridge focuses heavily on <strong>Social</strong> and <strong>Emotional</strong> development, ensuring children learn how to share, follow classroom routines, and separate from parents with confidence.', 'chroma-excellence')); ?></p>
 					<ul class="space-y-3 text-sm text-brand-ink/80">
@@ -235,6 +239,19 @@ while (have_posts()):
 			</div>
 		</div>
 	</section>
+
+	<?php
+	get_template_part(
+		'template-parts/program/required-details',
+		null,
+		array(
+			'program_id' => get_the_ID(),
+			'program_title' => get_the_title(),
+			'program_slug' => (string) get_post_field('post_name', get_the_ID()),
+			'accent' => '#4A7C59',
+		)
+	);
+	?>
 
 	<script>
 		(function () {
@@ -354,5 +371,7 @@ while (have_posts()):
 	</script>
 
 <?php endwhile; ?>
+
+</main>
 
 <?php get_footer(); ?>

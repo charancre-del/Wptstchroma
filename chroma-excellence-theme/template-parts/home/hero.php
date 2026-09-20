@@ -14,12 +14,18 @@ $home_id = get_option('page_on_front');
 $hero_image = get_theme_mod('chroma_home_hero_image');
 $hero_fallback_image_path = get_template_directory() . '/assets/images/early-start/synergy-classroom.jpg';
 $hero_fallback_image_url = get_template_directory_uri() . '/assets/images/early-start/synergy-classroom.jpg';
-$loc_count = wp_count_posts('location')->publish ?? 19;
+$loc_count = function_exists('chroma_home_get_location_count') ? chroma_home_get_location_count() : (int) (wp_count_posts('location')->publish ?? 0);
 $location_pill = sprintf($hero['pill_format'], $loc_count);
+$location_pill = function_exists('chroma_home_normalize_location_count_copy')
+    ? chroma_home_normalize_location_count_copy($location_pill, $loc_count)
+    : $location_pill;
+if ($loc_count > 0 && !preg_match('/\b' . preg_quote((string) $loc_count, '/') . '\b/', $location_pill)) {
+    $location_pill = sprintf(__('%d Metro Atlanta Locations', 'chroma-excellence'), $loc_count);
+}
 ?>
 
 <section
-    class="relative overflow-hidden bg-gradient-to-br from-brand-cream via-white to-chroma-yellowLight pt-20 pb-20 lg:pt-24">
+    class="pageHero chroma-v2-page-hero chroma-redesign-hero relative overflow-hidden bg-gradient-to-br from-brand-cream via-white to-chroma-yellowLight pt-20 pb-20 lg:pt-24">
     <div class="absolute inset-0 pointer-events-none">
         <div class="absolute -top-24 left-10 w-96 h-96 bg-chroma-red/10 blur-3xl"></div>
         <div class="absolute top-20 right-16 w-80 h-80 bg-chroma-blue/10 blur-[120px]"></div>
@@ -33,7 +39,7 @@ $location_pill = sprintf($hero['pill_format'], $loc_count);
                 <?php echo esc_html($location_pill); ?>
             </div>
 
-            <h1 class="font-serif text-brand-ink text-4xl sm:text-[3.4rem] leading-tight tracking-tight break-words max-w-full">
+            <h1 class="chroma-redesign-hero-title font-serif text-brand-ink text-4xl sm:text-[3.4rem] leading-tight tracking-tight break-words max-w-full">
                 <?php echo wp_kses_post($hero['heading']); ?>
             </h1>
 
@@ -57,7 +63,7 @@ $location_pill = sprintf($hero['pill_format'], $loc_count);
 
             <div class="flex min-w-0 flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 sm:gap-5 text-[12px] text-brand-ink">
                 <div class="flex items-center gap-2 w-full sm:w-auto">
-                    <span class="text-chroma-yellow text-lg">★★★★★</span>
+                    <span class="text-chroma-yellow text-lg" aria-label="5 out of 5 stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
                     <span><?php echo esc_html($hero['rating_label']); ?></span>
                 </div>
                 <div class="hidden sm:block w-[1px] h-5 bg-chroma-blue/20"></div>
@@ -65,21 +71,21 @@ $location_pill = sprintf($hero['pill_format'], $loc_count);
                     <span class="w-2 h-2 rounded-full bg-chroma-green"></span>
                     <span class="leading-relaxed"><?php echo esc_html($hero['quality_badge_text']); ?></span>
                 </div>
+                <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                    <span class="rounded-full border border-chroma-blue/20 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink">
+                        <?php esc_html_e('NAEYC Recognized', 'chroma-excellence'); ?>
+                    </span>
+                    <span class="rounded-full border border-chroma-red/20 bg-white px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-ink">
+                        <?php esc_html_e('GAC Accredited GA Pre-K', 'chroma-excellence'); ?>
+                    </span>
+                </div>
             </div>
         </div>
 
-        <div class="chroma-hero-lock relative w-full min-w-0 isolate mt-8 sm:mt-0"
+        <div class="chroma-redesign-hero-art chroma-hero-lock relative w-full min-w-0 isolate mt-8 sm:mt-0"
             style="min-height:clamp(400px,42vw,500px);aspect-ratio:4/3;">
-            <!-- Background Decorations -->
-            <div
-                class="absolute top-10 right-10 w-72 h-72 bg-chroma-greenLight rounded-[3rem] -z-10 rotate-3 hidden sm:block">
-            </div>
-            <div
-                class="absolute bottom-6 left-6 w-72 h-72 bg-chroma-yellowLight rounded-full -z-10 blur-2xl opacity-70 hidden sm:block">
-            </div>
-
             <!-- Main Image Frame - uses bg-brand-cream as placeholder until image loads -->
-            <div class="absolute inset-0 sm:inset-y-0 sm:left-12 lg:left-16 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/10 shadow-soft z-0"
+            <div class="chroma-redesign-hero-frame absolute inset-0 sm:inset-y-0 sm:left-8 lg:left-10 sm:right-0 rounded-[2rem] sm:rounded-[3rem] overflow-hidden border border-white/70 shadow-soft z-0"
                 style="background: linear-gradient(135deg, #FFFCF8 0%, #E3E9EC 100%);">
                 <?php if ($hero_image): ?>
                     <!-- Priority 1: Customizer hero image -->

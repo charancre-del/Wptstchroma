@@ -82,7 +82,11 @@ class Chroma_Related_Programs
                     $prog_obj = is_object($prog) ? $prog : get_post($prog);
                     if (!$prog_obj) continue;
                     
-                    $age_range = get_post_meta($prog_id, 'program_age_range', true);
+                    $age_range = preg_replace(
+                        '/^\s*Ages?\s*:?\s*/i',
+                        '',
+                        (string) get_post_meta($prog_id, 'program_age_range', true)
+                    );
                     $slug = $prog_obj->post_name;
                     $colors = $color_map[$slug] ?? $color_map['toddler'];
                 ?>

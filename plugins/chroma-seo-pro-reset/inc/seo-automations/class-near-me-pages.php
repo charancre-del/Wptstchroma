@@ -23,9 +23,7 @@ class Chroma_Near_Me_Pages
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_near_me_page']);
         add_action('wp_enqueue_scripts', [$this, 'enqueue_scripts']);
-        add_filter('chroma_sitemap_urls', [$this, 'add_to_unified_sitemap']);
-
-        // Note: Sitemap providers are registered by Chroma_Sitemap_Integrator::register_providers()
+        // Near-me routes are personalized UX helpers, not indexable sitemap URLs.
     }
 
 
@@ -101,18 +99,19 @@ class Chroma_Near_Me_Pages
             exit;
         }
 
-        $page_title = (string) ($profile['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
-        $description = (string) ($profile['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
+        $resolved_seo = $this->resolve_virtual_seo($keyword, $city_slug, $state, $city_context, $profile);
+        $page_title = (string) ($resolved_seo['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
+        $description = (string) ($resolved_seo['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
 
         $this->prepare_virtual_page_query_state($page_title, $description, $canonical);
-        $this->register_seo_overrides($keyword, $city_slug, $state, $city_context);
+        $this->register_seo_overrides($keyword, $city_slug, $state, $city_context, $resolved_seo);
 
         add_filter('body_class', function ($classes) {
             $classes[] = 'near-me-page';
             return $classes;
         });
 
-        $this->render_near_me_page($keyword, $city_context, $state);
+        $this->render_near_me_page($keyword, $city_context, $state, $resolved_seo);
         exit;
     }
 
@@ -167,6 +166,36 @@ class Chroma_Near_Me_Pages
     }
 
     /**
+     * Resolve editable virtual-page SEO overrides, then fall back to generated near-me SEO.
+     */
+    private function resolve_virtual_seo($keyword, $city_slug = '', $state = '', $city_context = null, array $profile = [])
+    {
+        if (empty($profile)) {
+            $profile = $this->get_route_profile($keyword, $city_slug, $state, $city_context);
+        }
+
+        $fallbacks = [
+            'title' => (string) ($profile['title'] ?? $this->build_page_title($keyword, $city_slug, $state)),
+            'meta_description' => (string) ($profile['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state)),
+            'canonical' => (string) ($profile['canonical'] ?? $this->build_canonical_url($keyword, $city_slug, $state)),
+        ];
+
+        if (class_exists('Chroma_Virtual_Page_SEO_Data')) {
+            return Chroma_Virtual_Page_SEO_Data::resolve('near-me', [
+                'keyword' => $keyword,
+                'city_slug' => $city_slug,
+                'state' => $state,
+            ], $fallbacks);
+        }
+
+        $fallbacks['robots'] = '';
+        $fallbacks['source'] = 'fallback';
+        $fallbacks['data'] = [];
+
+        return $fallbacks;
+    }
+
+    /**
      * Keep virtual near pages from inheriting front-page query flags.
      *
      * The route is rendered manually in template_redirect, so WordPress may still
@@ -184,12 +213,30 @@ class Chroma_Near_Me_Pages
 
         $virtual_post = (object) [
             'ID' => 0,
-            'post_type' => 'page',
-            'post_status' => 'publish',
+            'post_author' => 0,
+            'post_date' => '',
+            'post_date_gmt' => '',
+            'post_content' => '',
             'post_title' => (string) $title,
             'post_excerpt' => (string) $description,
+            'post_status' => 'publish',
+            'comment_status' => 'closed',
+            'ping_status' => 'closed',
+            'post_password' => '',
             'post_name' => $route_slug,
+            'to_ping' => '',
+            'pinged' => '',
+            'post_modified' => '',
+            'post_modified_gmt' => '',
+            'post_content_filtered' => '',
+            'post_parent' => 0,
             'guid' => (string) $canonical,
+            'menu_order' => 0,
+            'post_type' => 'page',
+            'post_mime_type' => '',
+            'comment_count' => 0,
+            'filter' => 'raw',
+            'ancestors' => [],
         ];
 
         $wp_query->is_home = false;
@@ -247,12 +294,20 @@ class Chroma_Near_Me_Pages
     /**
      * Register route-level SEO overrides so theme and plugin head output stay aligned.
      */
-    private function register_seo_overrides($keyword, $city_slug = '', $state = '', $city_context = null)
+    private function register_seo_overrides($keyword, $city_slug = '', $state = '', $city_context = null, array $resolved_seo = [])
     {
-        $profile = $this->get_route_profile($keyword, $city_slug, $state, $city_context);
-        $title = (string) ($profile['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
-        $description = (string) ($profile['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
-        $canonical = (string) ($profile['canonical'] ?? $this->build_canonical_url($keyword, $city_slug, $state));
+        if (empty($resolved_seo)) {
+            $resolved_seo = $this->resolve_virtual_seo($keyword, $city_slug, $state, $city_context);
+        }
+
+        if (class_exists('Chroma_Virtual_Page_SEO_Data')) {
+            Chroma_Virtual_Page_SEO_Data::apply_filters($resolved_seo);
+            return;
+        }
+
+        $title = (string) ($resolved_seo['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
+        $description = (string) ($resolved_seo['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
+        $canonical = (string) ($resolved_seo['canonical'] ?? $this->build_canonical_url($keyword, $city_slug, $state));
 
         add_filter('pre_get_document_title', function ($current) use ($title) {
             return $title;
@@ -312,7 +367,7 @@ class Chroma_Near_Me_Pages
         if ($city_slug !== '' && $state !== '') {
             $city_name = ucwords(str_replace('-', ' ', $city_slug));
             return sprintf(
-                __('Compare trusted %1$s options near %2$s, %3$s. Explore nearby Chroma locations, curriculum, and tour information for local families.', 'chroma-excellence'),
+                __('Explore %1$s options near %2$s, %3$s. Review nearby Chroma locations, curriculum, and tour information for local families.', 'chroma-excellence'),
                 $keyword_label,
                 $city_name,
                 $state
@@ -320,7 +375,7 @@ class Chroma_Near_Me_Pages
         }
 
         return sprintf(
-            __('Compare trusted %1$s options near you. Explore nearby Chroma locations, curriculum, and tour information for Georgia families.', 'chroma-excellence'),
+            __('Explore %1$s options near you. Review nearby Chroma locations, curriculum, and tour information for Georgia families.', 'chroma-excellence'),
             $keyword_label
         );
     }
@@ -561,7 +616,7 @@ class Chroma_Near_Me_Pages
             }
 
             return [
-                'hero' => sprintf('Find trusted %s options near you. Explore Chroma campuses, curriculum highlights, and tour details for families across Georgia.', $keyword_lower),
+                'hero' => sprintf('Explore %s options near you, including Chroma campus, curriculum, and tour information for families across Georgia.', $keyword_lower),
                 'section_title' => sprintf('Chroma Campuses for %s', $keyword_label),
                 'section_body' => sprintf('Compare our nearby campuses, review program fit, and find the right %s environment for your family.', $keyword_lower),
             ];
@@ -605,8 +660,8 @@ class Chroma_Near_Me_Pages
         if (!empty($neighborhoods)) {
             $list = implode(', ', array_slice($neighborhoods, 0, 3));
             $neighborhood_fragment = $language === 'es'
-                ? ' Familias de zonas como ' . $list . ' suelen comenzar aqui.'
-                : ' Families from neighborhoods like ' . $list . ' often start here.';
+                ? ' Esta página también puede ser útil para familias que revisan opciones cerca de ' . $list . '.'
+                : ' This page may also be useful to families reviewing options around ' . $list . '.';
         }
 
         $county_fragment = '';
@@ -676,7 +731,7 @@ class Chroma_Near_Me_Pages
     /**
      * Render near me page
      */
-    private function render_near_me_page($keyword, $city_context = null, $state = '')
+    private function render_near_me_page($keyword, $city_context = null, $state = '', array $resolved_seo = [])
     {
         $language = function_exists('chroma_seo_get_request_language') ? chroma_seo_get_request_language() : 'en';
         $keyword_label = $this->get_keyword_label($keyword, $language);
@@ -692,9 +747,9 @@ class Chroma_Near_Me_Pages
             if ($city_name === '') {
                 $city_name = ucwords(str_replace('-', ' ', $city_slug));
             }
-            $page_title = $this->build_page_title($keyword, $city_slug, $state);
+            $page_title = (string) ($resolved_seo['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
         } else {
-            $page_title = $this->build_page_title($keyword, '', '');
+            $page_title = (string) ($resolved_seo['title'] ?? $this->build_page_title($keyword, '', ''));
         }
 
         $route_copy = $this->build_route_copy($keyword, $city_context, $locations, $language);
@@ -763,8 +818,8 @@ class Chroma_Near_Me_Pages
                                 'border' => 'chroma-blue'
                             );
 
-                            $is_decal = get_post_meta($loc['id'], 'location_decal_licensed', true);
-                            $quality_rated = get_post_meta($loc['id'], 'location_quality_rated', true);
+                            $is_decal = in_array(strtolower(trim((string) get_post_meta($loc['id'], 'location_decal_licensed', true))), array('1', 'yes', 'true', 'licensed'), true);
+                            $quality_rated = in_array(strtolower(trim((string) get_post_meta($loc['id'], 'location_quality_rated', true))), array('1', 'yes', 'true', 'rated'), true);
                             ?>
                             <article class="location-card group" data-lat="<?php echo esc_attr($loc['lat']); ?>"
                                 data-lng="<?php echo esc_attr($loc['lng']); ?>" data-id="<?php echo esc_attr($loc['id']); ?>">
@@ -795,14 +850,18 @@ class Chroma_Near_Me_Pages
                                     </p>
 
                                     <div class="flex flex-wrap gap-2 mb-8">
+                                        <?php if ($is_decal): ?>
                                         <span
                                             class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-blueLight/50 text-chroma-blueDark text-[9px] font-bold uppercase rounded-full">
                                             <i class="fa-solid fa-graduation-cap"></i> DECAL
                                         </span>
+                                        <?php endif; ?>
+                                        <?php if ($quality_rated): ?>
                                         <span
                                             class="inline-flex items-center gap-1.5 px-3 py-1 bg-chroma-yellowLight/50 text-chroma-yellowDark text-[9px] font-bold uppercase rounded-full">
                                             <i class="fa-solid fa-star"></i> Quality Rated
                                         </span>
+                                        <?php endif; ?>
                                     </div>
 
                                     <div class="grid grid-cols-2 gap-3 mt-auto">
@@ -847,7 +906,7 @@ class Chroma_Near_Me_Pages
 
         <?php
         // Output schema
-        $this->output_schema($keyword_label, $keyword, $city_slug, $state, $city_context);
+        $this->output_schema($keyword_label, $keyword, $city_slug, $state, $city_context, $resolved_seo);
 
         get_footer();
     }
@@ -952,12 +1011,15 @@ class Chroma_Near_Me_Pages
     /**
      * Output schema
      */
-    private function output_schema($keyword_label, $keyword, $city_slug = '', $state = '', $city_context = null)
+    private function output_schema($keyword_label, $keyword, $city_slug = '', $state = '', $city_context = null, array $resolved_seo = [])
     {
-        $profile = $this->get_route_profile($keyword, $city_slug, $state, $city_context);
-        $canonical = (string) ($profile['canonical'] ?? $this->build_canonical_url($keyword, $city_slug, $state));
-        $description = (string) ($profile['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
-        $page_title = (string) ($profile['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
+        if (empty($resolved_seo)) {
+            $resolved_seo = $this->resolve_virtual_seo($keyword, $city_slug, $state, $city_context);
+        }
+
+        $canonical = (string) ($resolved_seo['canonical'] ?? $this->build_canonical_url($keyword, $city_slug, $state));
+        $description = (string) ($resolved_seo['meta_description'] ?? $this->build_meta_description($keyword, $city_slug, $state));
+        $page_title = (string) ($resolved_seo['title'] ?? $this->build_page_title($keyword, $city_slug, $state));
 
         $schema = [
             '@context' => 'https://schema.org',
@@ -1007,7 +1069,7 @@ class Chroma_Near_Me_Pages
     }
 
     /**
-     * Add near-me URLs (EN + ES) to unified /sitemap.xml.
+     * Add English near-me URLs to unified /sitemap.xml.
      *
      * @param array $urls
      * @return array
@@ -1019,7 +1081,6 @@ class Chroma_Near_Me_Pages
         }
 
         $lastmod = $this->get_near_me_sitemap_lastmod();
-        $base = rtrim(home_url('/'), '/');
         $links = self::get_sitemap_urls();
 
         foreach ($links as $link) {
@@ -1033,20 +1094,6 @@ class Chroma_Near_Me_Pages
                 'lastmod' => $lastmod,
             ];
 
-            $es_url = str_replace($base . '/', $base . '/es/', $url);
-            if ($es_url === $url) {
-                $path = (string) wp_parse_url($url, PHP_URL_PATH);
-                if ($path !== '') {
-                    $es_url = home_url('/es/' . ltrim($path, '/'));
-                }
-            }
-
-            if ($es_url !== $url) {
-                $urls[] = [
-                    'loc' => $es_url,
-                    'lastmod' => $lastmod,
-                ];
-            }
         }
 
         return $urls;

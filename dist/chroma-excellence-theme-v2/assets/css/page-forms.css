@@ -1,0 +1,7 @@
+/* Form presentation bundle: loaded only on form-heavy routes. */
+.chroma-tour-form label {
+  display: block !important;
+  color: #263238 !important;
+  opacity: 1 !important;
+  margin-bottom: 0.5rem !important;
+}

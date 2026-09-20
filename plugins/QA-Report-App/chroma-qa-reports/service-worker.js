@@ -1,14 +1,13 @@
 /**
  * Chroma QA Reports - Service Worker
  *
- * Enables offline functionality and caching
+ * Provides background sync and caches only immutable, non-sensitive assets.
  *
  * @package ChromaQAReports
  */
 
-const CACHE_NAME = 'cqa-reports-v1';
-const STATIC_CACHE = 'cqa-static-v1';
-const DYNAMIC_CACHE = 'cqa-dynamic-v1';
+const CACHE_PREFIX = 'cqa-';
+const STATIC_CACHE = 'cqa-static-v2';
 
 // Static assets to cache on install
 const STATIC_ASSETS = [
@@ -41,7 +40,7 @@ self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys => {
             return Promise.all(
-                keys.filter(key => key !== STATIC_CACHE && key !== DYNAMIC_CACHE)
+                keys.filter(key => key.startsWith(CACHE_PREFIX) && key !== STATIC_CACHE)
                     .map(key => caches.delete(key))
             );
         }).then(() => self.clients.claim())
@@ -62,31 +61,19 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Handle API requests differently
-    if (url.pathname.includes('/wp-json/cqa/')) {
-        event.respondWith(networkFirst(event.request));
-        return;
-    }
-
-    // Static assets - cache first
+    // Only an exact allowlist of non-sensitive plugin assets may be cached.
     if (isStaticAsset(url.pathname)) {
         event.respondWith(cacheFirst(event.request));
         return;
     }
 
-    // HTML pages - network first with cache fallback
-    if (event.request.headers.get('accept').includes('text/html')) {
-        event.respondWith(networkFirst(event.request));
-        return;
-    }
-
-    // Default - stale while revalidate
-    event.respondWith(staleWhileRevalidate(event.request));
+    // API, HTML, reports, photos, and every other response are network-only.
+    event.respondWith(networkOnly(event.request));
 });
 
 // Check if request is for static asset
 function isStaticAsset(pathname) {
-    return /\.(css|js|png|jpg|jpeg|gif|svg|woff|woff2)$/.test(pathname);
+    return STATIC_ASSETS.includes(pathname);
 }
 
 // Cache first strategy
@@ -97,10 +84,10 @@ async function cacheFirst(request) {
     }
 
     try {
-        const response = await fetch(request);
-        if (response.ok) {
+        const response = await fetch(request, { cache: 'no-store' });
+        if (response.ok && response.type === 'basic') {
             const cache = await caches.open(STATIC_CACHE);
-            cache.put(request, response.clone());
+            await cache.put(request, response.clone());
         }
         return response;
     } catch (error) {
@@ -108,50 +95,30 @@ async function cacheFirst(request) {
     }
 }
 
-// Network first strategy
-async function networkFirst(request) {
+// Network-only strategy for all potentially sensitive or user-specific data.
+async function networkOnly(request) {
     try {
-        const response = await fetch(request);
-        if (response.ok) {
-            const cache = await caches.open(DYNAMIC_CACHE);
-            cache.put(request, response.clone());
-        }
-        return response;
+        return await fetch(request, { cache: 'no-store' });
     } catch (error) {
-        const cached = await caches.match(request);
-        if (cached) {
-            return cached;
-        }
-
-        // Return a self-contained offline page for HTML requests.
         const acceptHeader = request.headers.get('accept') || '';
         if (acceptHeader.includes('text/html')) {
             return new Response(
                 '<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QA Reports Offline</title></head><body><main style="font-family:system-ui,sans-serif;max-width:36rem;margin:4rem auto;padding:0 1.5rem;line-height:1.5"><h1>QA Reports is offline</h1><p>Please check your connection and try again.</p></main></body></html>',
                 {
                     status: 503,
-                    headers: { 'Content-Type': 'text/html; charset=utf-8' }
+                    headers: {
+                        'Content-Type': 'text/html; charset=utf-8',
+                        'Cache-Control': 'no-store'
+                    }
                 }
             );
         }
 
-        return new Response('Offline', { status: 503 });
+        return new Response('Offline', {
+            status: 503,
+            headers: { 'Cache-Control': 'no-store' }
+        });
     }
-}
-
-// Stale while revalidate strategy
-async function staleWhileRevalidate(request) {
-    const cached = await caches.match(request);
-
-    const fetchPromise = fetch(request).then(response => {
-        if (response.ok) {
-            const cache = caches.open(DYNAMIC_CACHE);
-            cache.then(c => c.put(request, response.clone()));
-        }
-        return response;
-    }).catch(() => null);
-
-    return cached || fetchPromise;
 }
 
 // Background sync for offline reports

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Backup Care Cart Preview</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="../chroma-plugins/chroma-backup-care/assets/backup-care-cart.css">
+  <style>
+    body { background: #fffcf8; color: #263238; font-family: Arial, sans-serif; margin: 0; padding: 32px 16px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="chroma-backup-care-cart" data-chroma-backup-care-cart data-campus="grayson">
+      <p>Loading secure booking...</p>
+    </div>
+  </main>
+  <script>
+    fetch("../chroma-plugins/chroma-backup-care/config/backup-care.json")
+      .then(function (response) { return response.json(); })
+      .then(function (manifest) {
+        var rules = manifest.business_rules;
+        var publicConfig = {
+          contractVersion: 1,
+          currency: rules.price.currency,
+          unitAmountCents: rules.price.amount_cents,
+          bookingHorizonDays: rules.booking.booking_horizon_days,
+          maxCareDatesPerOrder: rules.booking.max_care_dates_per_order,
+          minimumNoticeMinutes: rules.booking.minimum_notice_minutes,
+          sameDayDeadline: rules.booking.same_day_booking_deadline_local,
+          dropoffCutoff: rules.booking.dropoff_cutoff_local,
+          refundCutoffHours: rules.cancellation.refundable_until_hours_before_care,
+          rescheduleCutoffHours: rules.cancellation.reschedulable_until_hours_before_care,
+          campusSelectionMode: "explicit_list",
+          checkoutEnabled: false,
+          nonce: "preview",
+          campuses: manifest.campuses.map(function (campus) {
+            return {
+              id: campus.id,
+              name: campus.name,
+              address: campus.address,
+              opens: campus.published_open,
+              closes: campus.published_close
+            };
+          })
+        };
+        window.ChromaBackupCare = {
+          configUrl: "data:application/json," + encodeURIComponent(JSON.stringify(publicConfig)),
+          quoteUrl: "/preview-quote",
+          requestAccessUrl: "/preview-parent-access-request",
+          verifyAccessUrl: "/preview-parent-access-verify",
+          checkoutUrl: "/preview-disabled",
+          manageUrl: "/preview-disabled",
+          cancelUrl: "/preview-disabled",
+          rescheduleUrl: "/preview-disabled"
+        };
+        var nativeFetch = window.fetch.bind(window);
+        window.fetch = function (url, options) {
+          if (url === "/preview-parent-access-request") {
+            return Promise.resolve(new Response(JSON.stringify({
+              challenge_id: "0123456789abcdef0123456789abcdef",
+              expires_in_seconds: 600
+            }), { status: 200, headers: { "Content-Type": "application/json" } }));
+          }
+          if (url === "/preview-parent-access-verify") {
+            var verification = JSON.parse(options.body);
+            if (verification.code !== "123456") {
+              return Promise.resolve(new Response(JSON.stringify({
+                message: "The verification code is invalid or expired."
+              }), { status: 422, headers: { "Content-Type": "application/json" } }));
+            }
+            return Promise.resolve(new Response(JSON.stringify({
+              parent_access_token: "preview-verified-parent",
+              expires_in_seconds: 1800
+            }), { status: 200, headers: { "Content-Type": "application/json" } }));
+          }
+          if (url === "/preview-quote") {
+            var order = JSON.parse(options.body).order;
+            return Promise.resolve(new Response(JSON.stringify({
+              contract_valid: true,
+              quote_token: "preview-only",
+              quote: {
+                unit_count: order.attendance.length,
+                unit_amount_cents: rules.price.amount_cents,
+                total_amount_cents: order.attendance.length * rules.price.amount_cents
+              }
+            }), { status: 200, headers: { "Content-Type": "application/json" } }));
+          }
+          return nativeFetch(url, options);
+        };
+        var script = document.createElement("script");
+        script.src = "../chroma-plugins/chroma-backup-care/assets/backup-care-cart.js";
+        document.body.appendChild(script);
+      });
+  </script>
+</body>
+</html>

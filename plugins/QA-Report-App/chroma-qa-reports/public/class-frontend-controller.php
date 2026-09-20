@@ -333,6 +333,9 @@ class Frontend_Controller
         }
 
         // Load the appropriate template
+        if (!in_array($page, $public_pages, true)) {
+            \ChromaQA\Auth\Access_Policy::require_access(\ChromaQA\Auth\Access_Policy::can_read());
+        }
         self::load_template($page);
         exit;
     }

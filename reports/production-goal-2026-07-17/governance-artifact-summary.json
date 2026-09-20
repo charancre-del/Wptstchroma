@@ -1,0 +1,14 @@
+{
+  "generatedAt": "2026-07-18T22:10:47.874Z",
+  "contentDispositions": {
+    "Keep": 304,
+    "Improve": 162
+  },
+  "communities": 0,
+  "programRequirementRows": 165,
+  "campusRequirementRows": 624,
+  "brokenExternalTargets": 0,
+  "promptStatementRows": 1010,
+  "explicitPromptRequirementRows": 1010,
+  "note": "Prompt statements include bullets, numbered items, and paragraph requirements. Phase evidence does not by itself prove each statement. Proposed dispositions are management-review artifacts, not automatic delete or publication approvals."
+}

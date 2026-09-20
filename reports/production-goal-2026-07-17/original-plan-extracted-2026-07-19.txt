@@ -1,0 +1,1109 @@
+0001: You are a senior website strategist, UX designer, conversion-rate optimization specialist, technical SEO expert, copy editor, and WordPress developer.
+0002: Your assignment is to conduct a complete production-level audit and improvement of Chroma Early Learning Academy’s website: https://chromaela.com/.
+0003: The goal is not merely to make cosmetic edits. The goal is to bring the website to a true 10/10 standard for:
+0004: Parent trust
+0005: Brand positioning
+0006: Enrollment conversion
+0007: Accuracy
+0008: Content quality
+0009: Technical SEO
+0010: Local SEO
+0011: Mobile usability
+0012: Accessibility
+0013: Page speed
+0014: Campus-level lead generation
+0015: Professionalism
+0016: Long-term scalability
+0017: Chroma should appear as Georgia’s leading family-owned early education provider: warm and personal, but also sophisticated, systematic, technology-enabled, academically intentional, and operationally credible.
+0018: Core Brand Positioning
+0019: Preserve and strengthen the following central ideas:
+0020: “The Art of Growing Up”
+0021: Chroma provides accredited excellence with the warmth of home.
+0022: PrismPath is Chroma’s proprietary whole-child curriculum framework.
+0023: PrismPath supports physical, emotional, social, academic, and creative development.
+0024: Learning concepts are introduced early and deepened over time.
+0025: Early impressions develop into understanding, skills, confidence, and eventual mastery.
+0026: Curriculum Studio is Chroma’s proprietary in-house platform that helps personalize classroom lesson plans.
+0027: Curriculum Studio incorporates parent screening responses, teacher observations, classroom notes, child progress, developmental needs, and classroom-level trends.
+0028: Curriculum Studio also helps Chroma’s education and teacher-training teams tailor coaching and professional development to the actual needs of each classroom.
+0029: Chroma Early Start provides pediatric developmental and therapy support, including ABA, speech, and occupational therapy where available.
+0030: Chroma is a family-owned and operated organization rather than a private-equity or national franchise system.
+0031: Do not dilute these differentiators with generic daycare language.
+0032: Non-Negotiable Rules
+0033: Do not fabricate any fact.
+0034: Do not invent campuses, programs, accreditations, transportation routes, ratings, staff members, amenities, availability, therapy services, or local claims.
+0035: Do not publish content simply because it is good for SEO.
+0036: Every factual claim must be supported by verified Chroma information.
+0037: When information cannot be verified, remove the claim or create a clearly marked placeholder for management confirmation.
+0038: Never imply that every campus offers the same services unless that has been verified.
+0039: Never imply that every campus individually possesses a system-level accreditation or recognition.
+0040: Do not use keyword stuffing, doorway pages, location-page spam, repetitive AI-generated FAQs, invisible content, unrelated partner links, or content placed below the intended footer.
+0041: Do not sacrifice parent readability for keyword density.
+0042: Do not change Chroma’s fundamental visual identity without a clear usability or conversion reason.
+0043: Preserve all existing functional integrations unless they are being replaced with a confirmed better implementation.
+0044: Back up the website before making changes.
+0045: Perform all edits in staging first unless instructed otherwise.
+0046: Document every material change.
+0047: Test every page on desktop, tablet, and mobile before publishing.
+0048: Phase 1: Full Website Crawl and Content Inventory
+0049: Crawl and inspect the entire live website, including:
+0050: Homepage
+0051: About page
+0052: Curriculum and PrismPath pages
+0053: Curriculum Studio content
+0054: All program pages
+0055: All location pages
+0056: All community and city pages
+0057: Parents page
+0058: Careers page
+0059: Contact page
+0060: Schedule-a-tour page
+0061: Chroma Early Start pages
+0062: Blog and resource pages
+0063: Legal and privacy pages
+0064: Header
+0065: Footer
+0066: Navigation
+0067: Forms
+0068: Popups
+0069: Thank-you pages
+0070: Hidden template content
+0071: Mobile menus
+0072: Search-engine-indexed pages
+0073: XML sitemap
+0074: Robots.txt
+0075: Schema markup
+0076: Redirects
+0077: 404 pages
+0078: Create a complete page inventory before editing.
+0079: For every URL, identify:
+0080: Page purpose
+0081: Intended audience
+0082: Primary conversion action
+0083: Current title tag
+0084: Meta description
+0085: H1
+0086: Secondary headings
+0087: Word count
+0088: Internal links
+0089: External links
+0090: Form or CTA
+0091: Duplicate content
+0092: Thin content
+0093: inaccurate claims
+0094: spelling or grammar issues
+0095: outdated information
+0096: hidden content
+0097: content appearing below the footer
+0098: irrelevant keyword text
+0099: broken layout
+0100: missing images
+0101: broken links
+0102: mobile issues
+0103: indexing recommendation
+0104: Flag pages as:
+0105: Keep
+0106: Improve
+0107: Merge
+0108: Redirect
+0109: Noindex
+0110: Delete
+0111: Phase 2: Remove Harmful or Unfinished SEO Content
+0112: Immediately inspect all program, location, community, childcare, blog, and template pages for:
+0113: Raw keyword lists
+0114: Automatically generated city keywords
+0115: Unrelated city names
+0116: Out-of-state references
+0117: Irrelevant partner links
+0118: Repetitive generic paragraphs
+0119: AI-generated FAQ text that reads unnaturally
+0120: Content after the footer
+0121: Hidden blocks designed only for search engines
+0122: Misspelled or malformed headings
+0123: Duplicate FAQ sections
+0124: Placeholder language
+0125: Statements such as “None – inadequate instructions”
+0126: Incorrect ages
+0127: Repetitive insertion of “Chroma Early Learning Academy”
+0128: Doorway-page language
+0129: Claims about campuses that do not exist
+0130: Remove these elements completely from the page source and database. Do not merely hide them using CSS.
+0131: Specifically inspect the Infant Care and Pre-K Prep pages for previously observed low-quality or injected content.
+0132: Search the entire WordPress database, reusable blocks, theme templates, widgets, SEO plugins, custom fields, page-builder templates, header/footer scripts, and post content for similar material.
+0133: Determine how the content was created or injected and prevent recurrence.
+0134: Phase 3: Correct All Company-Wide Inconsistencies
+0135: Establish one verified source of truth for all company-wide facts.
+0136: Review and reconcile:
+0137: Number of campuses
+0138: “24,” “24+,” “25,” “19+,” or any other number
+0139: Founding date
+0140: Growth history
+0141: Number of years in operation
+0142: Geographic service area
+0143: Family-owned positioning
+0144: Operating hours
+0145: Parent communication app
+0146: CAPS acceptance
+0147: GA Pre-K availability
+0148: Quality Rated language
+0149: NAEYC-related language
+0150: GAC accreditation language
+0151: Therapy services
+0152: Programs offered
+0153: Ages served
+0154: School transportation
+0155: Curriculum terminology
+0156: Campus amenities
+0157: Use the following approved company story unless management supplies a newer version:
+0158: “Founded in 2022 with one school in Canton, Chroma Early Learning Academy has grown into one of Georgia’s largest family-owned and operated early education providers, serving families through a growing network of campuses across Metro Atlanta and surrounding communities.”
+0159: Update the exact campus count throughout the website using the current verified number.
+0160: Do not use language such as “over the last decade” unless referring to the leadership team’s broader experience rather than Chroma’s operating history.
+0161: Remove duplicated paragraphs from the About page.
+0162: Resolve the parent-app inconsistency. The website must consistently name the currently used parent communication platform. Do not mention both Procare and Brightwheel unless there is an intentional transition explanation.
+0163: Resolve operating-hour inconsistencies. Campus-specific hours should appear on campus pages. Company-wide policy pages should not state a closing time that conflicts with actual campus hours.
+0164: Resolve CAPS language. Use accurate wording such as:
+0165: “CAPS is accepted at participating Chroma campuses, subject to authorization, funding, program eligibility, and classroom availability.”
+0166: Only use “all campuses accept CAPS” if that statement is verified.
+0167: Phase 4: Remove False or Misleading Community Pages
+0168: Audit every community and city page.
+0169: Delete, redirect, rewrite, or noindex any page that:
+0170: Claims Chroma has a campus in a city where it does not
+0171: Describes a local facility that does not exist
+0172: Invents local teachers, playgrounds, transportation, or programs
+0173: Uses generic city swapping
+0174: Exists only to rank for a location keyword
+0175: Is not meaningfully helpful to a parent
+0176: Duplicates another location page
+0177: Specifically review the LaFayette and Walker County content. Do not state or imply that Chroma operates a LaFayette campus unless a verified campus exists there.
+0178: For communities served by a nearby campus, use transparent wording:
+0179: “Chroma Early Learning Academy serves families from [community] through our nearby [campus name] location.”
+0180: State the realistic distance or service relationship only when verified.
+0181: Every local page must be attached to a real campus and provide useful, unique information.
+0182: Phase 5: Complete Professional Copyediting
+0183: Proofread every visible and hidden content element.
+0184: Correct all:
+0185: Spelling
+0186: Grammar
+0187: Punctuation
+0188: Capitalization
+0189: Singular/plural errors
+0190: Inconsistent hyphenation
+0191: Incorrect age formatting
+0192: Broken sentences
+0193: Repeated words
+0194: Awkward AI-style language
+0195: Unsupported superlatives
+0196: Repetitive brand-name insertion
+0197: Inconsistent CTA labels
+0198: Formatting errors
+0199: Correct known examples, including:
+0200: “abour” to “about”
+0201: “Rythm” to “Rhythm”
+0202: “Maintainence” to “Maintenance”
+0203: “24 Months to 36 Month” to a consistent age format
+0204: “Non walker” to “Non-walker”
+0205: “Teaching has always been my passion.s”
+0206: Duplicate “Stories” footer items
+0207: Inconsistent “3Yr - 4Yr” formatting
+0208: Standardize age labels across the website. Use a format such as:
+0209: 6 weeks–15 months
+0210: 12–24 months
+0211: 2–3 years
+0212: 3–4 years
+0213: 4–5 years
+0214: 5–12 years
+0215: Use en dashes consistently.
+0216: Keep the voice:
+0217: Warm
+0218: Confident
+0219: Sophisticated
+0220: Parent-friendly
+0221: Clear
+0222: Evidence-based
+0223: Never overly corporate
+0224: Never childish
+0225: Never filled with education jargon without explanation
+0226: Phase 6: Improve Homepage Conversion
+0227: The homepage must answer these parent questions within seconds:
+0228: What is Chroma?
+0229: Why is it different?
+0230: Is there a campus near me?
+0231: What ages and programs are offered?
+0232: Can I trust Chroma?
+0233: What should I do next?
+0234: Recommended homepage structure:
+0235: Section 1: Hero
+0236: Maintain the core brand statement:
+0237: “The Art of Growing Up”
+0238: Support it with a concise value proposition that communicates:
+0239: Whole-child education
+0240: Personalized learning
+0241: Warm and nurturing care
+0242: Multiple Georgia campuses
+0243: Infant through school-age programs
+0244: Primary CTA:
+0245: “Schedule a Tour”
+0246: Secondary CTA:
+0247: “Find Your Chroma Campus”
+0248: Do not overload the hero with too many buttons or claims.
+0249: Section 2: Trust Strip
+0250: Present verified credibility indicators, such as:
+0251: Family-owned and operated
+0252: Licensed childcare provider
+0253: GA Pre-K partner
+0254: Quality Rated participation
+0255: Accreditation or recognition
+0256: Parent rating and review count
+0257: Number of campuses
+0258: Every item must link to an explanation where appropriate.
+0259: Section 3: Why Chroma
+0260: Explain the difference between Chroma and ordinary childcare:
+0261: PrismPath
+0262: Curriculum Studio
+0263: Supported teachers
+0264: Connected learning continuum
+0265: Safe, consistent environments
+0266: Family partnership
+0267: Section 4: PrismPath
+0268: Show the five whole-child pillars:
+0269: Physical
+0270: Emotional
+0271: Social
+0272: Academic
+0273: Creative
+0274: Use a strong visual presentation without overcrowding.
+0275: Section 5: Introduced Early, Deepened Over Time
+0276: Explain the learning continuum with one highly understandable example.
+0277: Example:
+0278: Infants hear songs, sounds, and alphabet language.
+0279: Toddlers begin identifying sounds and symbols.
+0280: Preschoolers connect letters with sounds and words.
+0281: Pre-K children develop phonological awareness and early phonics.
+0282: Kindergarten learners apply phonics to reading and writing.
+0283: Avoid implying formal academic instruction is imposed on infants. Emphasize age-appropriate exposure and developmental progression.
+0284: Section 6: Curriculum Studio
+0285: Give Curriculum Studio its own prominent homepage section.
+0286: Explain that it:
+0287: Uses parent insights and developmental screening responses
+0288: Incorporates teacher observations and classroom notes
+0289: Helps identify classroom and individual learning needs
+0290: Supports individualized lesson-planning decisions
+0291: Helps teacher trainers and the education team provide targeted coaching
+0292: Strengthens consistency across Chroma campuses
+0293: Use actual interface images or carefully designed product mockups only if approved.
+0294: Do not overstate artificial intelligence or automation capabilities unless verified.
+0295: Section 7: Programs
+0296: Provide clear pathways to:
+0297: Infant Care
+0298: Toddler Care
+0299: Preschool
+0300: Pre-K Prep
+0301: GA Pre-K
+0302: Private Kindergarten
+0303: Before and After School
+0304: Summer Camp
+0305: Only show programs currently offered.
+0306: Section 8: Find a Campus
+0307: Make location search simple by:
+0308: ZIP code
+0309: City
+0310: Current location
+0311: County or region
+0312: Show:
+0313: Distance
+0314: Address
+0315: Phone
+0316: Hours
+0317: Programs
+0318: Availability status where known
+0319: Schedule-a-tour button
+0320: Section 9: Parent Proof
+0321: Use verified parent testimonials and ratings.
+0322: Display:
+0323: Parent first name and last initial, when permitted
+0324: Campus name
+0325: Source
+0326: Date or recency
+0327: Verified star rating
+0328: Total review count
+0329: Do not use unattributed reviews.
+0330: Section 10: Chroma Early Start
+0331: Present Chroma Early Start as an optional developmental-support resource without creating confusion about whether therapy is automatically included in tuition.
+0332: Clarify:
+0333: Services provided
+0334: Ages served
+0335: Locations or service areas
+0336: Insurance or evaluation process
+0337: How parents inquire
+0338: Section 11: FAQ
+0339: Limit the homepage to approximately 6–10 high-conversion questions.
+0340: Suggested homepage FAQs:
+0341: What ages does Chroma serve?
+0342: How do I schedule a tour?
+0343: How much is tuition?
+0344: Does Chroma accept CAPS?
+0345: Does Chroma offer GA Pre-K?
+0346: What is PrismPath?
+0347: What is Curriculum Studio?
+0348: How does Chroma communicate with families?
+0349: What safety practices are in place?
+0350: How do I find the closest campus?
+0351: Move detailed policy questions to a dedicated family FAQ or Parents page.
+0352: Section 12: Final CTA
+0353: Use a clear closing CTA:
+0354: “Find the Chroma campus that feels right for your family.”
+0355: Buttons:
+0356: Find a Campus
+0357: Schedule a Tour
+0358: Phase 7: Strengthen Curriculum and PrismPath Pages
+0359: Make the curriculum page one of the strongest childcare curriculum pages in Georgia.
+0360: The page should include:
+0361: Chroma’s curriculum philosophy
+0362: The five PrismPath developmental pillars
+0363: The connected learning continuum
+0364: Developmental progression by age
+0365: Curriculum Studio
+0366: Teacher coaching and classroom support
+0367: Observation and assessment
+0368: Family input and communication
+0369: School-readiness outcomes
+0370: Examples of classroom learning
+0371: Frequently asked curriculum questions
+0372: Schedule-a-tour CTA
+0373: Avoid unsupported claims about guaranteed outcomes.
+0374: Clearly distinguish:
+0375: Exposure
+0376: Practice
+0377: Skill-building
+0378: Mastery
+0379: Explain that curriculum remains developmentally appropriate at every age.
+0380: Use real examples across age groups, such as:
+0381: Language and literacy
+0382: Numbers and mathematical thinking
+0383: Science and inquiry
+0384: Social-emotional learning
+0385: Creative expression
+0386: Fine- and gross-motor development
+0387: Show how the same broad concepts evolve in complexity.
+0388: Phase 8: Improve Every Program Page
+0389: Each program page must have unique, age-appropriate content.
+0390: Required structure:
+0391: Clear page title
+0392: Age range
+0393: Brief parent-centered introduction
+0394: What children experience
+0395: Developmental priorities
+0396: Example daily rhythm
+0397: PrismPath at this stage
+0398: Teacher and family partnership
+0399: Classroom environment
+0400: Meals and rest, where applicable
+0401: Safety and supervision
+0402: Transition to the next stage
+0403: Campus availability
+0404: Parent FAQs
+0405: Schedule-a-tour CTA
+0406: Do not reuse nearly identical text across programs.
+0407: Make the writing developmentally accurate.
+0408: For Infant Care, emphasize:
+0409: Secure relationships
+0410: Responsive caregiving
+0411: Sensory exploration
+0412: Language exposure
+0413: Safe movement
+0414: Individual feeding and rest routines
+0415: Family communication
+0416: For Toddlers, emphasize:
+0417: Independence
+0418: Language growth
+0419: Movement
+0420: Routines
+0421: Early peer interaction
+0422: Emotional regulation
+0423: Hands-on exploration
+0424: For Preschool and Pre-K Prep, emphasize:
+0425: Inquiry
+0426: Communication
+0427: Early literacy
+0428: Mathematical thinking
+0429: Cooperative play
+0430: Problem solving
+0431: Self-regulation
+0432: Kindergarten readiness
+0433: For GA Pre-K, accurately explain:
+0434: State-funded program
+0435: Eligibility
+0436: Lottery or application process
+0437: Schedule
+0438: Wraparound care
+0439: Campus availability
+0440: Curriculum and state standards
+0441: For Kindergarten, clarify:
+0442: Accreditation
+0443: Grade-level scope
+0444: Tuition
+0445: Campus availability
+0446: Class size
+0447: Academic expectations
+0448: Progress reporting
+0449: Future grade expansion only if approved
+0450: Phase 9: Rebuild Campus Pages as High-Converting Local Landing Pages
+0451: Every campus page must be unique, factually verified, and locally useful.
+0452: Required elements:
+0453: Campus name
+0454: City and neighborhood
+0455: Full address
+0456: Phone number
+0457: Current operating hours
+0458: Directions and map
+0459: Real campus photography
+0460: Short campus-specific introduction
+0461: Current director biography
+0462: Programs offered
+0463: Ages served
+0464: Verified campus features
+0465: Current school pickups
+0466: GA Pre-K availability
+0467: CAPS participation
+0468: Quality Rated status
+0469: Licensing information
+0470: Parent testimonials for that campus
+0471: Tuition inquiry
+0472: Availability or waitlist information
+0473: Schedule-a-tour form
+0474: Local FAQ
+0475: Nearby communities served
+0476: Nearby landmarks or access information
+0477: Date the page was last reviewed
+0478: Do not copy and paste the same introduction, feature list, or director language across campuses.
+0479: Verify every feature before publication, including:
+0480: Cameras
+0481: Monitoring practices
+0482: Playground type
+0483: Shade
+0484: Gardening beds
+0485: Trike paths
+0486: STEM rooms
+0487: Front desk staffing
+0488: Defibrillators
+0489: Security systems
+0490: Meals
+0491: Transportation
+0492: Kindergarten
+0493: GA Pre-K
+0494: Parents’ Day Out
+0495: Therapy availability
+0496: If a feature is not available at a campus, do not show it.
+0497: Remove repeated school-pickup lists.
+0498: Use natural local writing rather than phrases such as:
+0499: “As one of the best daycares in Marietta GA…”
+0500: Prefer:
+0501: “Located on Shallowford Road, our East Cobb campus serves families from Marietta, Roswell, Woodstock, and surrounding neighborhoods.”
+0502: Only mention surrounding areas that are realistically served.
+0503: Phase 10: Improve the Location Directory
+0504: The locations page should support both browsing and immediate conversion.
+0505: Add or improve:
+0506: ZIP-code search
+0507: Map and list toggle
+0508: Distance calculation
+0509: City filters
+0510: Program filters
+0511: GA Pre-K filter
+0512: Infant-care filter
+0513: Kindergarten filter
+0514: School-transportation filter
+0515: Current availability indicator
+0516: “Schedule a Tour” on every card
+0517: Call button on mobile
+0518: Directions button
+0519: Consistent campus naming
+0520: Campus cards should display only verified information.
+0521: Suggested availability labels:
+0522: Now Enrolling
+0523: Limited Openings
+0524: Waitlist
+0525: Contact Campus
+0526: GA Pre-K Applications Open
+0527: GA Pre-K Waitlist
+0528: Do not show inaccurate real-time availability if the data cannot be maintained.
+0529: Phase 11: Clarify Accreditation and Trust Signals
+0530: Create a dedicated “Accreditation, Licensing, and Quality” page or expandable trust section.
+0531: Explain separately:
+0532: State childcare licensing
+0533: Quality Rated participation
+0534: GA Pre-K partnership
+0535: NAEYC recognition
+0536: GAC accreditation
+0537: Private-school accreditation
+0538: Curriculum recognition
+0539: Campus-specific credentials
+0540: System-wide credentials
+0541: Do not group unrelated credentials in a way that implies all campuses individually possess them.
+0542: Every logo should link to either:
+0543: The verifying organization
+0544: A credential document
+0545: A clear internal explanation
+0546: Use careful wording approved by management and the accrediting organization.
+0547: Avoid “accredited excellence” on pages where the type and scope of accreditation are not explained.
+0548: Phase 12: Upgrade the Tour and Enrollment Funnel
+0549: Standardize the primary CTA across the website as:
+0550: “Schedule a Tour”
+0551: Use the same wording in:
+0552: Header
+0553: Homepage
+0554: Program pages
+0555: Campus pages
+0556: Footer
+0557: Mobile sticky CTA
+0558: Blog pages
+0559: Curriculum pages
+0560: The tour experience should remain visually within the Chroma brand.
+0561: Avoid sending parents to an unbranded LeadConnector URL when possible.
+0562: Preferred implementation:
+0563: Embedded branded form
+0564: Chroma subdomain
+0565: Branded confirmation page
+0566: Campus-specific routing
+0567: CRM integration in the background
+0568: Tour form fields should include:
+0569: Parent or guardian name
+0570: Phone
+0571: Email
+0572: Preferred campus
+0573: Child’s date of birth or age
+0574: Program needed
+0575: Desired start date
+0576: Tour date and time
+0577: Preferred contact method
+0578: Referral source
+0579: Optional comments
+0580: Do not make the first form unnecessarily long.
+0581: Use progressive collection where appropriate.
+0582: After submission:
+0583: Show immediate confirmation.
+0584: Send email confirmation.
+0585: Send text confirmation where consent was provided.
+0586: Notify the correct campus.
+0587: Assign the lead in the CRM.
+0588: Provide directions.
+0589: Allow rescheduling.
+0590: Track attended, missed, enrolled, lost, and waitlisted outcomes.
+0591: Ensure every campus, including Chadwick, has a working tour pathway.
+0592: Use clear consent language for SMS and email communication.
+0593: Phase 13: Tuition and Availability Strategy
+0594: Parents frequently leave childcare websites when they cannot find any tuition guidance.
+0595: Implement one of the following, based on management approval:
+0596: Option A: Display tuition ranges by campus and age.
+0597: Option B: Use a “Request Tuition” form that immediately provides the appropriate rate sheet.
+0598: Option C: Show transparent language explaining that tuition varies by campus, age, schedule, and program, followed by an easy rate-request form.
+0599: Do not force parents to complete a full tour form merely to receive basic tuition information.
+0600: Add current openings or waitlist status by age group only if the data can be maintained accurately.
+0601: Phase 14: Parent Resources and Policy Accuracy
+0602: Improve the Parents page into a clear resource center.
+0603: Organize it into:
+0604: Parent communication app
+0605: Family handbook
+0606: Enrollment documents
+0607: Tuition and payment information
+0608: Menus
+0609: Health and illness policy
+0610: Medication forms
+0611: Allergy information
+0612: Authorized pickup
+0613: Attendance
+0614: Late pickup
+0615: Weather closures
+0616: Family events
+0617: School calendar
+0618: Portal access
+0619: Support contacts
+0620: Ensure operating hours and late-pickup language are accurate for all campuses or clearly identified as campus-specific.
+0621: Remove outdated Procare, Brightwheel, or other software references.
+0622: Ensure downloadable files are current, branded, accessible, and mobile-friendly.
+0623: Phase 15: Chroma Early Start Improvements
+0624: Clarify the relationship between Chroma Early Learning Academy and Chroma Early Start.
+0625: The page should clearly explain:
+0626: What Chroma Early Start is
+0627: Which services are currently active
+0628: Which services are upcoming
+0629: Ages served
+0630: Whether services occur in clinics, homes, schools, or multiple settings
+0631: How assessments work
+0632: How parents inquire
+0633: Insurance and private-pay considerations
+0634: Whether services are available only to Chroma students or to the broader community
+0635: How therapy teams and education teams may collaborate with consent
+0636: Privacy protections
+0637: Do not imply that all therapy services are available at all Chroma campuses.
+0638: Correct all typographical errors, including “Inquire abour Early Start.”
+0639: Use a separate, clearly labeled inquiry funnel from the childcare tour funnel.
+0640: Phase 16: Careers Page Improvements
+0641: Strengthen the careers page for teacher and leadership recruitment.
+0642: Include:
+0643: Why work at Chroma
+0644: Mission and culture
+0645: Professional development
+0646: Curriculum support
+0647: Career growth
+0648: Benefits
+0649: Employee referral opportunities
+0650: Teacher and director roles
+0651: Corporate roles
+0652: Open-position search
+0653: Equal employment opportunity language
+0654: Background-check expectations
+0655: CPR and first-aid expectations
+0656: Application process
+0657: Correct all job-title spelling, including “Maintenance Technician.”
+0658: Do not publish positions that are no longer open.
+0659: Use structured job-posting schema for active roles.
+0660: Phase 17: Technical SEO
+0661: Perform a complete technical SEO audit.
+0662: Review and correct:
+0663: XML sitemap
+0664: Robots.txt
+0665: Canonical URLs
+0666: HTTPS
+0667: Redirect chains
+0668: Broken links
+0669: 404 errors
+0670: 5xx errors
+0671: Duplicate pages
+0672: Trailing-slash consistency
+0673: Indexation
+0674: Thin pages
+0675: Orphan pages
+0676: Pagination
+0677: Image indexing
+0678: JavaScript-rendering issues
+0679: Core Web Vitals
+0680: Mobile usability
+0681: Internal-link depth
+0682: Breadcrumbs
+0683: Structured data
+0684: Heading hierarchy
+0685: Meta titles
+0686: Meta descriptions
+0687: Open Graph tags
+0688: X/Twitter cards
+0689: Favicon
+0690: Site name markup
+0691: Organization schema
+0692: LocalBusiness schema
+0693: ChildCare schema where appropriate
+0694: School schema where appropriate
+0695: FAQ schema only for visible FAQs
+0696: Breadcrumb schema
+0697: Review schema compliance
+0698: JobPosting schema
+0699: Video schema where applicable
+0700: Do not mark up reviews or ratings in ways that violate Google’s policies.
+0701: Do not use FAQ schema for hidden or repetitive content.
+0702: Ensure every indexable page has:
+0703: One clear H1
+0704: Unique title tag
+0705: Unique meta description
+0706: Logical heading structure
+0707: Appropriate internal links
+0708: Accurate canonical
+0709: Relevant schema
+0710: Useful content
+0711: A conversion action
+0712: Phase 18: Local SEO
+0713: For every real campus:
+0714: Confirm exact name, address, and phone number
+0715: Match the Google Business Profile
+0716: Use consistent NAP information
+0717: Link to the correct map listing
+0718: Add local business schema
+0719: Add service areas only when realistic
+0720: Include accurate hours
+0721: Include correct coordinates
+0722: Include campus-specific images
+0723: Link to licensing and quality information
+0724: Add campus-specific reviews
+0725: Avoid duplicate or keyword-stuffed business names
+0726: Create useful local content around real parent questions, not generic city pages.
+0727: Examples:
+0728: How to choose infant care in East Cobb
+0729: GA Pre-K enrollment near Johns Creek
+0730: Before-school transportation options near a specific campus
+0731: What to bring on the first day of preschool
+0732: How Chroma prepares children for kindergarten
+0733: Every local article must be genuinely helpful and connected to a real campus.
+0734: Phase 19: Accessibility
+0735: Bring the website as close as reasonably possible to WCAG 2.2 AA.
+0736: Review:
+0737: Color contrast
+0738: Keyboard navigation
+0739: Visible focus states
+0740: Form labels
+0741: Error messages
+0742: Alt text
+0743: Link descriptions
+0744: Button labels
+0745: Heading order
+0746: Skip navigation
+0747: ARIA usage
+0748: Modal accessibility
+0749: Mobile menu accessibility
+0750: Captions and transcripts
+0751: Reduced-motion support
+0752: Touch-target size
+0753: Font sizing
+0754: Form autocomplete
+0755: Screen-reader order
+0756: Do not use alt text as an SEO keyword field.
+0757: Describe images based on what they actually show.
+0758: Phase 20: Performance and Mobile Experience
+0759: Optimize for mobile-first use.
+0760: Review:
+0761: Largest Contentful Paint
+0762: Interaction to Next Paint
+0763: Cumulative Layout Shift
+0764: Total blocking time
+0765: Image size
+0766: WebP or AVIF conversion
+0767: Lazy loading
+0768: Preloading
+0769: Font loading
+0770: Unused CSS
+0771: Unused JavaScript
+0772: Plugin bloat
+0773: Third-party scripts
+0774: Video loading
+0775: Form loading
+0776: Map loading
+0777: Cache configuration
+0778: CDN
+0779: Server response time
+0780: Database cleanup
+0781: Targets:
+0782: Mobile PageSpeed score of at least 85 where reasonably achievable
+0783: Desktop PageSpeed score of at least 95
+0784: LCP below 2.5 seconds
+0785: CLS below 0.1
+0786: INP below 200 milliseconds where possible
+0787: Do not damage layout or functionality to chase a perfect testing score.
+0788: Add a persistent mobile CTA bar with:
+0789: Call
+0790: Find a Campus
+0791: Schedule a Tour
+0792: Keep it unobtrusive and accessible.
+0793: Phase 21: Visual and Brand Consistency
+0794: Create or enforce a consistent design system for:
+0795: Typography
+0796: Heading sizes
+0797: Button styles
+0798: Form styles
+0799: Card styles
+0800: Icon styles
+0801: Image ratios
+0802: Spacing
+0803: Section padding
+0804: Border radius
+0805: Shadows
+0806: Color usage
+0807: Mobile breakpoints
+0808: Hover states
+0809: Accessibility states
+0810: Use real Chroma photography wherever possible.
+0811: Avoid excessive stock photography.
+0812: Prioritize images showing:
+0813: Real classrooms
+0814: Teachers interacting with children
+0815: Campus exteriors
+0816: Playgrounds
+0817: Curriculum materials
+0818: Family events
+0819: Classroom projects
+0820: Leadership
+0821: Curriculum Studio
+0822: Therapy spaces
+0823: Ensure signed photo permissions are on file.
+0824: Do not visually overcrowd pages with too many decorative elements.
+0825: Phase 22: Trust and Proof
+0826: Strengthen major claims using evidence.
+0827: For “4.8 parent rating,” include:
+0828: Review platform
+0829: Number of reviews
+0830: Date updated
+0831: Link to reviews
+0832: For “Kindergarten Ready,” include:
+0833: Clear explanation of what readiness means
+0834: Developmental domains
+0835: Sample skills
+0836: Avoid guaranteed outcomes
+0837: For Curriculum Studio, include:
+0838: Screenshots or approved mockups
+0839: Example workflow
+0840: Clear privacy statement
+0841: How information supports lesson planning
+0842: What teachers and parents can expect
+0843: For safety claims, explain:
+0844: Secure entry
+0845: Staff screening
+0846: Training
+0847: Supervision
+0848: Emergency preparedness
+0849: Camera policy
+0850: Parent access policy
+0851: Incident communication
+0852: Do not use vague claims such as “the safest childcare” without defensible evidence.
+0853: Phase 23: Analytics and Conversion Tracking
+0854: Verify and improve tracking for:
+0855: Tour form submissions
+0856: Calls
+0857: Click-to-call actions
+0858: Directions
+0859: Tuition requests
+0860: Application starts
+0861: Applications completed
+0862: Parent-portal clicks
+0863: Job applications
+0864: Early Start inquiries
+0865: Downloaded forms
+0866: Campus searches
+0867: Program-page engagement
+0868: Chat interactions
+0869: Tour scheduling
+0870: Tour attendance
+0871: Enrollment completion
+0872: Use:
+0873: Google Analytics 4
+0874: Google Tag Manager
+0875: Google Ads conversion tracking
+0876: CRM source and campaign fields
+0877: UTM persistence
+0878: Call tracking where approved
+0879: Ensure primary and secondary conversions are properly separated.
+0880: Primary conversions should include:
+0881: Scheduled tour
+0882: Qualified tuition inquiry
+0883: Enrollment application
+0884: Phone lead
+0885: Early Start inquiry
+0886: Do not treat every button click as a primary conversion.
+0887: Test duplicate conversion firing.
+0888: Phase 24: Privacy, Consent, and Compliance
+0889: Review:
+0890: Privacy policy
+0891: Terms of use
+0892: Cookie disclosure
+0893: Form consent
+0894: SMS consent
+0895: Email consent
+0896: Children’s privacy language
+0897: Health-information forms
+0898: Therapy inquiries
+0899: Analytics scripts
+0900: Third-party trackers
+0901: Embedded tools
+0902: Retargeting tags
+0903: Do not collect sensitive health or developmental information through ordinary unsecured marketing forms.
+0904: Route clinical or therapy information through an appropriate secure process.
+0905: Add a cookie-consent mechanism if legally or operationally required.
+0906: Phase 25: Final Quality Assurance
+0907: Before launch, manually test:
+0908: Every menu item
+0909: Every CTA
+0910: Every form
+0911: Every phone number
+0912: Every email address
+0913: Every campus map
+0914: Every downloadable file
+0915: Every social link
+0916: Every campus tour route
+0917: Every confirmation page
+0918: Every automated email
+0919: Every automated text
+0920: Desktop view
+0921: Tablet view
+0922: iPhone view
+0923: Android view
+0924: Chrome
+0925: Safari
+0926: Edge
+0927: Firefox
+0928: Check for:
+0929: Broken links
+0930: Placeholder text
+0931: Duplicate sections
+0932: Incorrect campuses
+0933: Incorrect staff names
+0934: Incorrect hours
+0935: Incorrect app names
+0936: Incorrect program ages
+0937: Inaccurate accreditation statements
+0938: Outdated documents
+0939: Form-routing failures
+0940: Mobile overlap
+0941: Footer problems
+0942: Content below the footer
+0943: Indexable staging pages
+0944: Accidental noindex tags
+0945: Missing canonical tags
+0946: Broken schema
+0947: Run:
+0948: Spellcheck
+0949: Grammar check
+0950: Link checker
+0951: Accessibility audit
+0952: Lighthouse
+0953: PageSpeed Insights
+0954: Search Console inspection
+0955: Schema validation
+0956: Mobile usability test
+0957: Security scan
+0958: Backup verification
+0959: Required Deliverables
+0960: Provide the following after completing the work:
+0961: 1. Executive Summary
+0962: Include:
+0963: Major issues found
+0964: Major fixes completed
+0965: Remaining items requiring management confirmation
+0966: Expected impact on trust, SEO, and conversions
+0967: 2. Change Log
+0968: For every changed page, document:
+0969: URL
+0970: Previous issue
+0971: Change made
+0972: Reason
+0973: Status
+0974: Any required follow-up
+0975: 3. Fact-Verification List
+0976: Provide a list of all facts requiring Chroma management confirmation, including:
+0977: Current number of campuses
+0978: Official company description
+0979: Current parent app
+0980: Campus hours
+0981: CAPS participation
+0982: GA Pre-K campuses
+0983: Kindergarten campuses
+0984: Transportation routes
+0985: Campus directors
+0986: Campus features
+0987: Accreditation scope
+0988: Therapy-service availability
+0989: Tuition display policy
+0990: Availability-status process
+0991: 4. Redirect Map
+0992: List:
+0993: Deleted URLs
+0994: Old URLs
+0995: Destination URLs
+0996: Redirect type
+0997: Reason
+0998: 5. SEO Report
+0999: Include:
+1000: Indexable pages
+1001: Noindexed pages
+1002: Deleted pages
+1003: Duplicate-content fixes
+1004: Metadata updates
+1005: Schema updates
+1006: Local SEO changes
+1007: Internal-linking changes
+1008: Technical problems resolved
+1009: 6. Conversion Report
+1010: Include:
+1011: Tour-flow changes
+1012: Form changes
+1013: CTA changes
+1014: Campus-level routing
+1015: CRM tracking
+1016: Analytics events
+1017: Mobile conversion improvements
+1018: 7. Performance Report
+1019: Provide before-and-after results for:
+1020: Mobile PageSpeed
+1021: Desktop PageSpeed
+1022: LCP
+1023: CLS
+1024: INP
+1025: Page weight
+1026: Request count
+1027: 8. Final Website Score
+1028: Rate the completed website out of 10 across:
+1029: Brand
+1030: Content
+1031: Accuracy
+1032: Trust
+1033: SEO
+1034: Local SEO
+1035: Conversion
+1036: Mobile usability
+1037: Accessibility
+1038: Performance
+1039: Do not declare the site 10/10 merely because tasks were completed. Identify any remaining limitations honestly.
+1040: Execution Priority
+1041: Complete the work in this order:
+1042: Critical
+1043: Back up the website.
+1044: Create or verify staging.
+1045: Remove harmful and injected SEO content.
+1046: Remove false location and community claims.
+1047: Correct factual inconsistencies.
+1048: Fix spelling and grammar.
+1049: Verify campus-level claims.
+1050: Repair broken forms and tour routes.
+1051: High Priority
+1052: Improve homepage structure.
+1053: Strengthen Curriculum Studio positioning.
+1054: Improve program pages.
+1055: Rebuild campus pages.
+1056: Standardize CTAs.
+1057: Improve tour scheduling.
+1058: Clarify accreditation.
+1059: Improve technical and local SEO.
+1060: Enhancement
+1061: Improve availability and tuition visibility.
+1062: Add stronger evidence and parent proof.
+1063: Improve accessibility.
+1064: Improve site speed.
+1065: Upgrade analytics and attribution.
+1066: Improve Careers and Early Start pages.
+1067: Add useful local content.
+1068: Approval Requirements
+1069: Do not publish changes involving the following without management confirmation:
+1070: Campus count
+1071: Accreditations
+1072: Tuition
+1073: Parent communication platform
+1074: Campus hours
+1075: CAPS participation
+1076: GA Pre-K availability
+1077: Kindergarten availability
+1078: Transportation routes
+1079: Therapy services
+1080: Staff biographies
+1081: Parent reviews
+1082: Campus features
+1083: Real-time openings
+1084: Legal or privacy language
+1085: For each uncertain item, use a visible internal placeholder such as:
+1086: “MANAGEMENT CONFIRMATION REQUIRED — DO NOT PUBLISH”
+1087: Do not display that placeholder publicly.
+1088: Final Standard
+1089: The completed website should make a parent feel:
+1090: Chroma is established and trustworthy.
+1091: Chroma is warm and family-centered.
+1092: Chroma is educationally intentional.
+1093: Chroma has systems that support consistency.
+1094: Chroma understands the whole child.
+1095: Chroma invests in teachers.
+1096: Chroma uses technology thoughtfully.
+1097: Chroma can support their child from infancy through school readiness.
+1098: It is easy to find the right campus.
+1099: It is easy to understand the programs.
+1100: It is easy to schedule a tour.
+1101: Every statement appears accurate and credible.
+1102: The website should not feel like:
+1103: A generic daycare template
+1104: A national franchise
+1105: A keyword-driven SEO project
+1106: An unfinished AI-generated website
+1107: A collection of copied campus pages
+1108: A site with exaggerated or unsupported claims
+1109: Begin by creating the complete audit, page inventory, issue list, and fact-verification list. Then implement the critical fixes in staging, followed by conversion, SEO, design, accessibility, and performance improvements. Do not publish until the full QA checklist is completed.

@@ -8,6 +8,10 @@
 
 function chroma_print_critical_css()
 {
+    if (function_exists('chroma_is_app_shell_route') && chroma_is_app_shell_route()) {
+        return;
+    }
+
     ?>
     <style id="chroma-critical-css">
         /* Critical Fonts */

@@ -385,6 +385,10 @@ class Route_Utils
             return self::sanitize_global_script_markup((string) $value);
         }
 
+        if (self::is_location_maps_embed_key($key)) {
+            return self::sanitize_google_maps_embed((string) $value);
+        }
+
         if (substr($key, -5) === '_json') {
             if (is_string($value)) {
                 $decoded = json_decode($value, true);
@@ -426,6 +430,71 @@ class Route_Utils
         }
 
         return sanitize_text_field((string) $value);
+    }
+
+    private static function is_location_maps_embed_key(string $key): bool
+    {
+        return $key === 'location_maps_embed'
+            || substr($key, -strlen('_location_maps_embed')) === '_location_maps_embed';
+    }
+
+    private static function sanitize_google_maps_embed(string $value): string
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return '';
+        }
+
+        if (
+            preg_match_all('/<iframe\b/i', $value) !== 1
+            || !preg_match('/<iframe\b([^>]*)>/is', $value, $iframe_match)
+            || !preg_match('/\bsrc\s*=\s*(["\'])(.*?)\1/is', $iframe_match[1], $src_match)
+        ) {
+            return '';
+        }
+
+        $src = html_entity_decode($src_match[2], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $src = esc_url_raw($src, ['https']);
+        if ($src === '') {
+            return '';
+        }
+
+        $parts = wp_parse_url($src);
+        $host = strtolower((string) ($parts['host'] ?? ''));
+        $path = (string) ($parts['path'] ?? '');
+        $query = [];
+        parse_str((string) ($parts['query'] ?? ''), $query);
+
+        $is_standard_embed = $host === 'www.google.com'
+            && preg_match('#^/maps/(?:embed|d/embed)(?:/|$)#', $path);
+        $is_legacy_embed = $host === 'maps.google.com'
+            && preg_match('#^/maps(?:/|$)#', $path)
+            && (
+                strpos($path, '/embed') !== false
+                || strtolower((string) ($query['output'] ?? '')) === 'embed'
+            );
+
+        if (!$is_standard_embed && !$is_legacy_embed) {
+            return '';
+        }
+
+        $allowed_html = [
+            'iframe' => [
+                'src' => true,
+                'width' => true,
+                'height' => true,
+                'frameborder' => true,
+                'allowfullscreen' => true,
+                'allow' => true,
+                'loading' => true,
+                'style' => true,
+                'class' => true,
+                'title' => true,
+                'referrerpolicy' => true,
+            ],
+        ];
+
+        return wp_kses('<iframe' . $iframe_match[1] . '></iframe>', $allowed_html, ['https']);
     }
 
     private static function is_global_script_theme_mod(string $key): bool

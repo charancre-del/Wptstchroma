@@ -201,7 +201,7 @@ class Google_Drive
             return $access_token;
         }
 
-        $response = wp_remote_get(self::API_URL . '/files/' . $file_id . '?fields=id,name,mimeType,thumbnailLink,webViewLink', [
+        $response = wp_remote_get(self::API_URL . '/files/' . rawurlencode($file_id) . '?fields=id,name,mimeType,parents,trashed,thumbnailLink,webViewLink', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $access_token,
             ],

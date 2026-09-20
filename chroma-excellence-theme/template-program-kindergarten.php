@@ -106,13 +106,13 @@ while (have_posts()):
 	$support_cards = array(
 		array(
 			'icon' => 'fa-solid fa-award',
-			'title' => __('Georgia Accrediting Commission', 'chroma-excellence'),
-			'description' => __('Our Private Kindergarten is fully accredited by the <strong>Georgia Accrediting Commission (GAC)</strong>. This prestigious designation guarantees our program meets or exceeds the highest educational and operational standards in the state, ensuring a seamless academic transition to any public or private 1st-grade program.', 'chroma-excellence'),
+			'title' => __('Kindergarten Readiness', 'chroma-excellence'),
+			'description' => __('Our private Kindergarten experience supports early literacy, mathematics, classroom independence, and the routines children use as they prepare for first grade.', 'chroma-excellence'),
 		),
 		array(
 			'icon' => 'fa-solid fa-hand-holding-dollar',
 			'title' => __('Promise Scholarships & SSOs', 'chroma-excellence'),
-			'description' => __('We believe a premium education should be within reach. Chroma proudly accepts the <strong>Georgia Promise Scholarship</strong> and partners with multiple <strong>Student Scholarship Organizations (SSOs)</strong> to help eligible families offset the cost of private kindergarten tuition.', 'chroma-excellence'),
+			'description' => __('Chroma accepts the <strong>Georgia Promise Scholarship</strong> and partners with multiple <strong>Student Scholarship Organizations (SSOs)</strong> to help eligible families access private kindergarten.', 'chroma-excellence'),
 		),
 	);
 
@@ -161,6 +161,7 @@ while (have_posts()):
 	}
 	?>
 
+	<main id="primary" class="site-main single-program custom-program-v2" role="main">
 	<section class="relative pt-20 pb-20 bg-white">
 		<div class="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-chroma-blueLight/60 to-transparent"></div>
 		<div class="max-w-7xl mx-auto px-4 lg:px-6 relative z-10 grid lg:grid-cols-2 gap-12 items-center">
@@ -181,7 +182,7 @@ while (have_posts()):
 				<div class="flex flex-wrap gap-4 mt-10">
 					<a href="<?php echo esc_url($schedule_tour_url); ?>"
 						class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-brand-ink text-white text-xs font-bold uppercase tracking-[0.2em] shadow-soft hover:bg-chroma-blue transition-colors">
-						<?php esc_html_e('Book Tour', 'chroma-excellence'); ?>
+						<?php esc_html_e('Schedule a Tour', 'chroma-excellence'); ?>
 					</a>
 					<a href="#kinder-focus"
 						class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-white border border-brand-ink/10 text-brand-ink text-xs font-bold uppercase tracking-[0.2em] hover:border-chroma-blue hover:text-chroma-blue transition-colors">
@@ -215,7 +216,7 @@ while (have_posts()):
 				</div>
 				<div class="order-1 lg:order-2">
 					<span class="text-brand-ink font-bold tracking-[0.2em] text-xs uppercase mb-3 block">
-						<?php esc_html_e('Prismpath™ Focus', 'chroma-excellence'); ?>
+						<?php esc_html_e('PrismPath™ Focus', 'chroma-excellence'); ?>
 					</span>
 					<h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-ink mb-6">
 						<?php echo esc_html($prism_title); ?>
@@ -261,7 +262,7 @@ while (have_posts()):
 					<?php esc_html_e('An Elite Instructional Framework', 'chroma-excellence'); ?>
 				</h2>
 				<p class="text-brand-ink/80 mt-4 max-w-2xl mx-auto">
-					<?php esc_html_e('We incorporate targeted, elite supplemental resources to guarantee a superior foundation in both reading and mathematics.', 'chroma-excellence'); ?>
+					<?php esc_html_e('Teachers use purposeful literacy and mathematics resources to strengthen each child’s foundation while keeping learning active and developmentally appropriate.', 'chroma-excellence'); ?>
 				</p>
 			</div>
 
@@ -340,6 +341,19 @@ while (have_posts()):
 		</div>
 	</section>
 
+	<?php
+	get_template_part(
+		'template-parts/program/required-details',
+		null,
+		array(
+			'program_id' => $program_id,
+			'program_title' => get_the_title($program_id),
+			'program_slug' => 'kindergarten-1',
+			'accent' => '#4A6C7C',
+		)
+	);
+	?>
+
 	<section class="py-20 bg-white border-t border-brand-ink/5">
 		<div class="max-w-5xl mx-auto px-4 lg:px-6">
 			<div class="rounded-[2.5rem] bg-gradient-to-br from-brand-ink to-[#2F4858] text-white p-10 md:p-14 text-center shadow-2xl">
@@ -365,6 +379,7 @@ while (have_posts()):
 			</div>
 		</div>
 	</section>
+	</main>
 
 	<script>
 		(function () {

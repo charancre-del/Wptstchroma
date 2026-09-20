@@ -238,3 +238,24 @@ if (!function_exists('chroma_should_use_local_seo_fallback')) {
         return (bool) apply_filters('chroma_should_use_local_seo_fallback', $use_fallback, $route_key);
     }
 }
+
+if (!function_exists('chroma_should_reconcile_external_seo_head')) {
+    /**
+     * Reconcile external SEO output after all wp_head callbacks have run.
+     *
+     * @return bool
+     */
+    function chroma_should_reconcile_external_seo_head()
+    {
+        if (chroma_get_seo_runtime_mode() !== 'otto_compatible') {
+            return false;
+        }
+
+        return !is_admin()
+            && !is_feed()
+            && !is_robots()
+            && !is_404()
+            && !is_search()
+            && !is_trackback();
+    }
+}

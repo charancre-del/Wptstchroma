@@ -151,7 +151,7 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
         return [
             'home' => [
                 'en' => [
-                    'title' => 'Chroma Academy | Top Daycare & Preschool in Metro Atlanta',
+                    'title' => 'Chroma Early Learning Academy | Daycare & Preschool in Metro Atlanta',
                     'meta_description' => 'Discover Chroma Early Learning Academy for daycare, preschool, GA Pre-K, and family-focused early education across Metro Atlanta.',
                 ],
                 'es' => [
@@ -189,24 +189,34 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
                     'meta_description' => 'Lee la política de privacidad de Chroma Early Learning Academy para entender cómo recopilamos, usamos y protegemos la información familiar.',
                 ],
             ],
-            'chroma-early-start' => [
+            'chroma-early-learning' => [
                 'en' => [
-                    'title' => 'Chroma Early Start | Early Childhood Support Services',
-                    'meta_description' => 'Explore Chroma Early Start and learn how our early childhood support services help children and families thrive.',
+                    'title' => 'Chroma Early Learning | Early Childhood Education',
+                    'meta_description' => 'Explore Chroma Early Learning and learn how our early childhood programs help children and families thrive.',
                 ],
                 'es' => [
-                    'title' => 'Chroma Early Start | Servicios de apoyo infantil',
-                    'meta_description' => 'Explora Chroma Early Start y conoce cómo nuestros servicios de apoyo al desarrollo infantil ayudan a niños y familias a prosperar.',
+                    'title' => 'Chroma Early Learning | Educación infantil',
+                    'meta_description' => 'Explora Chroma Early Learning y conoce cómo nuestros programas de educación infantil ayudan a niños y familias a prosperar.',
+                ],
+            ],
+            'chroma-early-start' => [
+                'en' => [
+                    'title' => 'Chroma Early Start | Pediatric Therapy',
+                    'meta_description' => 'Explore Chroma Early Start for speech, occupational, and ABA therapy support connected with early childhood education.',
+                ],
+                'es' => [
+                    'title' => 'Chroma Early Start | Terapia pediátrica',
+                    'meta_description' => 'Explora Chroma Early Start para apoyo de terapia del habla, ocupacional y ABA conectado con educación infantil.',
                 ],
             ],
             'parents' => [
                 'en' => [
                     'title' => 'Parents | Chroma Early Learning Academy',
-                    'meta_description' => 'Find parent resources, enrollment guidance, tuition details, and family support information from Chroma Early Learning Academy.',
+                    'meta_description' => 'Find parent resources, enrollment guidance, account access, and family support information from Chroma Early Learning Academy.',
                 ],
                 'es' => [
                     'title' => 'Padres | Chroma Early Learning Academy',
-                    'meta_description' => 'Encuentra recursos para padres, información de inscripción, detalles de matrícula y apoyo familiar de Chroma Early Learning Academy.',
+                    'meta_description' => 'Encuentra recursos para padres, información de inscripción, acceso a la cuenta y apoyo familiar de Chroma Early Learning Academy.',
                 ],
             ],
             'programs' => [
@@ -222,11 +232,11 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
             'contact-us' => [
                 'en' => [
                     'title' => 'Contact Us | Chroma Early Learning Academy',
-                    'meta_description' => 'Contact Chroma Early Learning Academy to ask about enrollment, locations, tuition, or scheduling a tour.',
+                    'meta_description' => 'Contact Chroma Early Learning Academy to ask about enrollment, locations, programs, or scheduling a tour.',
                 ],
                 'es' => [
                     'title' => 'Contáctanos | Chroma Early Learning Academy',
-                    'meta_description' => 'Contacta a Chroma Early Learning Academy para preguntas sobre inscripción, ubicaciones, matrícula o recorridos.',
+                    'meta_description' => 'Contacta a Chroma Early Learning Academy para preguntas sobre inscripción, ubicaciones, programas o recorridos.',
                 ],
             ],
             'stories' => [
@@ -302,11 +312,11 @@ if (!function_exists('chroma_seo_get_static_route_defaults')) {
             'parent-portal' => [
                 'en' => [
                     'title' => 'Parent Portal | Chroma',
-                    'meta_description' => 'Secure family portal for tuition, daily reports, classroom updates, and school resources.',
+                    'meta_description' => 'Secure family portal for billing, daily reports, classroom updates, and school resources.',
                 ],
                 'es' => [
                     'title' => 'Portal para familias | Chroma',
-                    'meta_description' => 'Portal seguro para familias con matrícula, reportes diarios, novedades del aula y recursos escolares.',
+                    'meta_description' => 'Portal seguro para familias con facturación, reportes diarios, novedades del aula y recursos escolares.',
                 ],
             ],
         ];
@@ -621,6 +631,29 @@ if (!function_exists('chroma_seo_get_post_translation_value')) {
     }
 }
 
+if (!function_exists('chroma_seo_text_looks_spanish')) {
+    function chroma_seo_text_looks_spanish($value)
+    {
+        $value = trim(chroma_seo_clean_text((string) $value));
+        if ($value === '') {
+            return false;
+        }
+        if (preg_match('/[áéíóúüñ¿¡]/iu', $value)) {
+            return true;
+        }
+
+        $normalized = ' ' . strtolower($value) . ' ';
+        $signals = [' el ', ' la ', ' los ', ' las ', ' de ', ' del ', ' que ', ' para ', ' con ', ' una ', ' un ', ' niños', ' familias', ' aprendizaje', ' desarrollo', ' programa', ' cuidado', ' maestros', ' padres', ' escuela', ' nuestro', ' nuestra', ' cada '];
+        $matches = 0;
+        foreach ($signals as $signal) {
+            if (strpos($normalized, $signal) !== false) {
+                $matches++;
+            }
+        }
+        return $matches >= 3;
+    }
+}
+
 if (!function_exists('chroma_seo_build_singular_profile')) {
     function chroma_seo_build_singular_profile($post, $language = '')
     {
@@ -641,9 +674,40 @@ if (!function_exists('chroma_seo_build_singular_profile')) {
         $translated_excerpt = chroma_seo_get_post_translation_value($post_id, ['_chroma_es_meta_description', '_chroma_es_excerpt']);
         $translated_content = chroma_seo_get_post_translation_value($post_id, ['_chroma_es_content']);
 
+        if (!chroma_seo_text_looks_spanish($title)) {
+            $title = '';
+        }
+        if (!chroma_seo_text_looks_spanish($translated_title)) {
+            $translated_title = '';
+        }
+        if (!chroma_seo_text_looks_spanish($translated_excerpt)) {
+            $translated_excerpt = '';
+        }
+        if (!chroma_seo_text_looks_spanish($translated_content)) {
+            $translated_content = '';
+        }
+
         if ($title === '') {
             switch ($post_type) {
                 case 'post':
+                    if (preg_match('/^top-rated-preschool-programs-in-(.+)-ga$/', $post->post_name, $matches)) {
+                        $city = ucwords(str_replace('-', ' ', $matches[1]));
+                        $title = 'Preescolar en ' . $city . ', GA | Chroma Academy';
+                        break;
+                    }
+                    if (preg_match('/^kindergarten-readiness-programs-in-(.+)-ga$/', $post->post_name, $matches)) {
+                        $city = ucwords(str_replace('-', ' ', $matches[1]));
+                        $title = 'Kindergarten en ' . $city . ', GA | Chroma Academy';
+                        break;
+                    }
+                    if ($post->post_name === 'how-nutrition-impacts-early-learning-and-behavior') {
+                        $title = 'Nutrición y comportamiento infantil | Chroma';
+                        break;
+                    }
+                    if (strpos($post->post_name, 'how-nutrition-impacts-early-learning-and-behavior-essential-insights') === 0) {
+                        $title = 'Nutrición, cerebro y aprendizaje | Chroma';
+                        break;
+                    }
                     $base_title = $translated_title !== '' ? $translated_title : get_the_title($post);
                     $title = 'Artículo de Chroma: ' . $base_title;
                     break;
@@ -837,7 +901,7 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
 
         $meta_map = [
             'infant-care' => [
-                'en' => "Trusted Infant Care in {$city_name}, {$state}" . ($age_range !== '' ? " for babies {$age_range}." : '.') . ' Safe routines, caring teachers, and early learning at Chroma.',
+                'en' => "Infant Care in {$city_name}, {$state}" . ($age_range !== '' ? " for babies {$age_range}." : '.') . ' Review program information and contact Chroma to confirm current campus offerings.',
                 'es' => "Cuidado para bebés en {$city_name}, {$state}" . ($age_range !== '' ? " para edades {$age_range}." : '.') . ' Rutinas seguras, atención cariñosa y aprendizaje temprano en Chroma.',
             ],
             'toddler-care' => [
@@ -845,7 +909,7 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
                 'es' => "Cuidado para niños pequeños en {$city_name}, {$state}" . ($age_range !== '' ? " para edades {$age_range}." : '.') . ' Juego guiado, lenguaje y atención cariñosa en Chroma.',
             ],
             'preschool' => [
-                'en' => "Preschool in {$city_name}, {$state}" . ($age_range !== '' ? " for ages {$age_range}." : '.') . ' Hands-on learning, small classes, and trusted teachers at Chroma.',
+                'en' => "Preschool in {$city_name}, {$state}" . ($age_range !== '' ? " for ages {$age_range}." : '.') . ' Review program information and contact Chroma to confirm current campus offerings.',
                 'es' => "Preescolar en {$city_name}, {$state}" . ($age_range !== '' ? " para edades {$age_range}." : '.') . ' Aprendizaje práctico, grupos pequeños y maestros de confianza en Chroma.',
             ],
             'pre-k-prep' => [
@@ -893,8 +957,8 @@ if (!function_exists('chroma_seo_build_combo_profile')) {
             'title' => chroma_seo_trim_title("{$program_label} " . ($language === 'es' ? 'en' : 'in') . " {$city_name}, {$state} | Chroma"),
             'meta_description' => chroma_seo_trim_meta_description($meta_description),
             'canonical' => chroma_seo_build_url_from_path($canonical_path),
-            'indexable' => true,
-            'sitemap_include' => true,
+            'indexable' => false,
+            'sitemap_include' => false,
             'city_context' => $city_context,
         ];
     }
@@ -928,8 +992,8 @@ if (!function_exists('chroma_seo_build_near_me_profile')) {
                 'title' => chroma_seo_trim_title("{$label} {$connector} {$city_name}, {$state} | Chroma"),
                 'meta_description' => chroma_seo_trim_meta_description($meta_description),
                 'canonical' => chroma_seo_build_url_from_path(($language === 'es' ? '/es/' : '/') . "{$keyword}-near-{$city_context['canonical_slug']}-" . strtolower($state) . '/'),
-                'indexable' => true,
-                'sitemap_include' => true,
+                'indexable' => false,
+                'sitemap_include' => false,
                 'city_context' => $city_context,
             ];
         }
@@ -942,8 +1006,8 @@ if (!function_exists('chroma_seo_build_near_me_profile')) {
             'title' => chroma_seo_trim_title("{$label} " . ($language === 'es' ? 'cerca de mí' : 'Near Me') . ' | Chroma'),
             'meta_description' => chroma_seo_trim_meta_description($meta_description),
             'canonical' => chroma_seo_build_url_from_path(($language === 'es' ? '/es/' : '/') . "{$keyword}-near-me/"),
-            'indexable' => true,
-            'sitemap_include' => true,
+            'indexable' => false,
+            'sitemap_include' => false,
         ];
     }
 }

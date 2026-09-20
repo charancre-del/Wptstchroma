@@ -25,22 +25,34 @@ $benefits = array(
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit1_icon') ?: 'fa-solid fa-money-bill-wave',
 		'color' => 'chroma-green',
-		'title' => chroma_get_translated_meta($page_id, 'careers_benefit1_title') ?: __('Competitive Pay & 401k', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit1_desc') ?: __('Above-market salaries, annual performance bonuses, and retirement matching.', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit1_title') ?: __('Role-Based Compensation', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit1_desc') ?: __('Compensation and available benefits vary by role and location. Current openings include the details for each opportunity.', 'chroma-excellence'),
 	),
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit2_icon') ?: 'fa-solid fa-graduation-cap',
 		'color' => 'chroma-blue',
-		'title' => chroma_get_translated_meta($page_id, 'careers_benefit2_title') ?: __('Paid Tuition & CDA', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit2_desc') ?: __('We pay for your Child Development Associate (CDA) credential and offer college tuition assistance.', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit2_title') ?: __('Professional Learning', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit2_desc') ?: __('Team members receive role-appropriate onboarding, coaching, and opportunities to build early-childhood expertise.', 'chroma-excellence'),
 	),
 	array(
 		'icon' => chroma_get_translated_meta($page_id, 'careers_benefit3_icon') ?: 'fa-solid fa-heart-pulse',
 		'color' => 'chroma-red',
-		'title' => chroma_get_translated_meta($page_id, 'careers_benefit3_title') ?: __('Health & Wellness', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit3_desc') ?: __('Comprehensive medical, dental, and vision insurance, plus free childcare discounts.', 'chroma-excellence'),
+		'title' => chroma_get_translated_meta($page_id, 'careers_benefit3_title') ?: __('A Supportive Workplace', 'chroma-excellence'),
+		'desc' => chroma_get_translated_meta($page_id, 'careers_benefit3_desc') ?: __('We aim to create a collaborative environment where educators can grow, contribute, and do meaningful work.', 'chroma-excellence'),
 	),
 );
+
+$legacy_benefit_copy = array(
+	'Paid Tuition & CDA' => array(__('Professional Learning', 'chroma-excellence'), __('Team members receive role-appropriate onboarding, coaching, and opportunities to build early-childhood expertise.', 'chroma-excellence')),
+	'Competitive Pay & 401k' => array(__('Role-Based Compensation', 'chroma-excellence'), __('Compensation and available benefits vary by role and location. Current openings include the details for each opportunity.', 'chroma-excellence')),
+	'Health & Wellness' => array(__('A Supportive Workplace', 'chroma-excellence'), __('We aim to create a collaborative environment where educators can grow, contribute, and do meaningful work.', 'chroma-excellence')),
+);
+foreach ($benefits as &$benefit) {
+	if (isset($legacy_benefit_copy[$benefit['title']])) {
+		list($benefit['title'], $benefit['desc']) = $legacy_benefit_copy[$benefit['title']];
+	}
+}
+unset($benefit);
 
 // Openings Section
 $openings_title = chroma_get_translated_meta($page_id, 'careers_openings_title') ?: __('Current Opportunities', 'chroma-excellence');
@@ -189,7 +201,7 @@ if (!empty($jobs) && is_array($jobs)) {
 	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
 		<!-- Hero -->
-		<section class="py-24 bg-white text-center relative overflow-hidden">
+		<section class="pageHero chroma-v2-page-hero py-24 bg-white text-center relative overflow-hidden">
 			<div class="max-w-4xl mx-auto px-4 relative z-10">
 				<span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-4 block">
 					<?php echo esc_html($hero_badge); ?>
@@ -289,7 +301,7 @@ if (!empty($jobs) && is_array($jobs)) {
 					</p>
 				</div>
 
-				<div class="bg-white p-10 rounded-[3rem] border border-brand-ink/5 shadow-soft">
+				<div class="chroma-form-scroll-card chroma-form-scroll-card--career bg-white p-10 rounded-[3rem] border border-brand-ink/5 shadow-soft" tabindex="0" aria-label="<?php esc_attr_e( 'Career application form', 'chroma-excellence' ); ?>">
 					<?php echo do_shortcode('[chroma_career_form]'); ?>
 				</div>
 			</div>

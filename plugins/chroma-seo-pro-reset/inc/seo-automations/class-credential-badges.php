@@ -125,6 +125,9 @@ class Chroma_Credential_Badges
             .chroma-credential-badges .badge-icon {
                 font-size: 16px;
             }
+            .chroma-credential-badges .badge-name {
+                color: #263238;
+            }
             .chroma-credential-badges.style-compact .badge {
                 padding: 5px 10px;
                 font-size: 11px;

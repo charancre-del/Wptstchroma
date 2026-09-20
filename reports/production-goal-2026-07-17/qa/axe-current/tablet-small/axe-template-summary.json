@@ -1,0 +1,12 @@
+{
+  "generatedAt": "2026-07-18T23:41:48.677Z",
+  "baseUrl": "https://x3yyntt5tp-staging.wpdns.site",
+  "checks": 28,
+  "failedChecks": 0,
+  "checksWithViolations": 13,
+  "violationGroups": 13,
+  "violationNodes": 26,
+  "rules": [
+    "region"
+  ]
+}

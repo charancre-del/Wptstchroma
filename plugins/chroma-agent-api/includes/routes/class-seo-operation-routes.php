@@ -529,6 +529,7 @@ class SEO_Operation_Routes
                     'combo' => 'program_slug:city_slug:STATE',
                     'county' => 'county_slug',
                     'zip' => '12345',
+                    'near-me' => 'keyword or keyword:city_slug:STATE',
                 ],
             ],
         ];
@@ -573,6 +574,16 @@ class SEO_Operation_Routes
                     'data' => (array) $item['data'],
                 ];
             }
+
+            foreach (\Chroma_Virtual_Page_SEO_Data::near_me_candidates() as $item) {
+                $items[] = [
+                    'type' => 'near-me',
+                    'key' => (string) $item['key'],
+                    'label' => (string) $item['label'],
+                    'url' => (string) $item['url'],
+                    'data' => (array) $item['data'],
+                ];
+            }
         }
 
         return rest_ensure_response([
@@ -612,7 +623,7 @@ class SEO_Operation_Routes
         $payload = Route_Utils::payload($request);
         $dry_run = Route_Utils::dry_run($payload);
         $raw_updates = Route_Utils::updates_from_request($request);
-        unset($raw_updates['type'], $raw_updates['key'], $raw_updates['program_slug'], $raw_updates['city_slug'], $raw_updates['state'], $raw_updates['area_type'], $raw_updates['area_name']);
+        unset($raw_updates['type'], $raw_updates['key'], $raw_updates['program_slug'], $raw_updates['keyword'], $raw_updates['city_slug'], $raw_updates['state'], $raw_updates['area_type'], $raw_updates['area_name']);
         [$updates, $blocked] = Route_Utils::partition_updates(
             $raw_updates,
             Field_Registry::virtual_page_seo_fields()
@@ -639,6 +650,13 @@ class SEO_Operation_Routes
             if ($descriptor['type'] === 'combo') {
                 \Chroma_Virtual_Page_SEO_Data::save_combo(
                     $descriptor['program_slug'],
+                    $descriptor['city_slug'],
+                    $descriptor['state'],
+                    $sanitized
+                );
+            } elseif ($descriptor['type'] === 'near-me') {
+                \Chroma_Virtual_Page_SEO_Data::save_near_me(
+                    $descriptor['keyword'],
                     $descriptor['city_slug'],
                     $descriptor['state'],
                     $sanitized
@@ -1622,7 +1640,39 @@ class SEO_Operation_Routes
             ];
         }
 
-        return new \WP_Error('caa_virtual_page_type_invalid', 'Virtual page type must be combo, county, or zip.', ['status' => 400]);
+        if ($type === 'near-me') {
+            $parts = array_map('trim', explode(':', $key));
+            if (!in_array(count($parts), [1, 3], true)) {
+                return new \WP_Error('caa_virtual_page_key_invalid', 'Near-me key must be keyword or keyword:city_slug:STATE.', ['status' => 400]);
+            }
+
+            $keyword = sanitize_title($parts[0]);
+            $city_slug = '';
+            $state = '';
+            if (count($parts) === 3) {
+                $city_slug = sanitize_title($parts[1]);
+                $state = strtoupper(sanitize_text_field($parts[2]));
+            }
+
+            if ($keyword === '' || (count($parts) === 3 && ($city_slug === '' || $state === ''))) {
+                return new \WP_Error('caa_virtual_page_key_invalid', 'Near-me key contains empty parts.', ['status' => 400]);
+            }
+
+            $normalized_key = class_exists('\Chroma_Virtual_Page_SEO_Data')
+                ? \Chroma_Virtual_Page_SEO_Data::near_me_key($keyword, $city_slug, $state)
+                : ($city_slug !== '' ? $keyword . ':' . $city_slug . ':' . $state : $keyword);
+
+            return [
+                'type' => 'near-me',
+                'key' => $normalized_key,
+                'keyword' => $keyword,
+                'city_slug' => $city_slug,
+                'state' => $state,
+                'snapshot_key' => 'near-me:' . $normalized_key,
+            ];
+        }
+
+        return new \WP_Error('caa_virtual_page_type_invalid', 'Virtual page type must be combo, county, zip, or near-me.', ['status' => 400]);
     }
 
     private static function read_virtual_page_data(array $descriptor): array
@@ -1639,6 +1689,14 @@ class SEO_Operation_Routes
             );
         }
 
+        if ($descriptor['type'] === 'near-me') {
+            return \Chroma_Virtual_Page_SEO_Data::get_near_me(
+                $descriptor['keyword'],
+                $descriptor['city_slug'],
+                $descriptor['state']
+            );
+        }
+
         return \Chroma_Virtual_Page_SEO_Data::get_service_area(
             $descriptor['type'],
             $descriptor['area_name']
@@ -1650,7 +1708,7 @@ class SEO_Operation_Routes
         $payload = Route_Utils::payload($request);
         $dry_run = Route_Utils::dry_run($payload);
         $raw_updates = Route_Utils::updates_from_request($request);
-        unset($raw_updates['type'], $raw_updates['key'], $raw_updates['program_slug'], $raw_updates['city_slug'], $raw_updates['state'], $raw_updates['area_type'], $raw_updates['area_name']);
+        unset($raw_updates['type'], $raw_updates['key'], $raw_updates['program_slug'], $raw_updates['keyword'], $raw_updates['city_slug'], $raw_updates['state'], $raw_updates['area_type'], $raw_updates['area_name']);
         [$updates, $blocked] = Route_Utils::partition_updates($raw_updates, $allowed_fields);
 
         $storage_program_slug = $descriptor['program_slug'] ?? '';
@@ -1676,6 +1734,8 @@ class SEO_Operation_Routes
             $snapshot_ids[] = Snapshot_Store::create_snapshot(Auth::current_key_id(), 'write:seo', 'virtual_page_seo', $descriptor['snapshot_key'], $before, $after);
             if ($descriptor['type'] === 'combo' && class_exists('\Chroma_Combo_Page_Data')) {
                 \Chroma_Combo_Page_Data::save($storage_program_slug, $descriptor['city_slug'], $descriptor['state'], $stored_updates);
+            } elseif ($descriptor['type'] === 'near-me' && class_exists('\Chroma_Virtual_Page_SEO_Data')) {
+                \Chroma_Virtual_Page_SEO_Data::save_near_me($descriptor['keyword'], $descriptor['city_slug'], $descriptor['state'], $stored_updates);
             } elseif (class_exists('\Chroma_Virtual_Page_SEO_Data')) {
                 \Chroma_Virtual_Page_SEO_Data::save_service_area($descriptor['type'], $descriptor['area_name'], $stored_updates);
             }

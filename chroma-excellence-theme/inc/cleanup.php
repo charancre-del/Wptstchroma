@@ -161,6 +161,118 @@ function chroma_redirect_tracked_404_to_home()
 add_action('template_redirect', 'chroma_redirect_tracked_404_to_home', 0);
 
 /**
+ * Redirect retired public aliases to their current canonical destinations.
+ */
+function chroma_redirect_legacy_public_aliases()
+{
+        if (is_admin() || wp_doing_ajax()) {
+                return;
+        }
+
+        $request_uri = isset($_SERVER['REQUEST_URI']) ? (string) wp_unslash($_SERVER['REQUEST_URI']) : '';
+        $path = wp_parse_url($request_uri, PHP_URL_PATH);
+        $path = is_string($path) ? '/' . trim($path, '/') . '/' : '';
+        if ($path === '') {
+                return;
+        }
+
+        $is_spanish = strpos($path, '/es/') === 0;
+        $base_path = $is_spanish ? substr($path, 3) : $path;
+	$aliases = [
+		'/blog/' => '/stories/',
+		'/contact/' => '/contact-us/',
+		'/programs/curriculum/' => '/curriculum/',
+		'/programs/developmental-approach/' => '/curriculum/',
+		'/locations/midway-alpharetta/' => '/locations/midway-campus/',
+		'/locations/pleasant-hill-campus-duluth/' => '/locations/pleasanthill-campus-duluth/',
+		'/post/what-to-do-if-kids-get-physical-during-a-meltdown/' => '/2025/12/02/the-psychology-behind-toy-throwing-understanding-your-childs-behavior/',
+		'/post/6d9f3d13-a22b-41e9-9a4a-88af74b35004-why-you-should-not-over-react-when-your-child-gets-hurt-calm-parenting-and-emotional-support-strategies/' => '/2025/12/02/why-you-should-not-over-react-when-your-child-gets-hurt-calm-parenting-and-emotional-support-strategies/',
+		'/post/all-about-why-language-and-tone-matter-with-your-preschooler/' => '/2025/12/26/supporting-toddler-language-development-communication/',
+		'/post/how-to-master-communicating-with-your-child-in-30-days/' => '/2025/12/27/tips-for-effective-communication-with-toddlers/',
+		'/post/understanding-child-behavior-psychology-how-to-nurture-emotional-intelligence-and-positive-growth/' => '/2025/12/02/the-psychology-behind-toy-throwing-understanding-your-childs-behavior/',
+		'/post/teaching-by-example-how-parents-shape-their-childrens-behavior/' => '/2025/12/26/effective-positive-discipline-techniques-for-young-children/',
+		'/post/handling-bad-behavior-without-yelling-positive-discipline/' => '/2025/12/26/effective-positive-discipline-techniques-for-young-children/',
+	];
+
+        if (!isset($aliases[$base_path])) {
+                return;
+        }
+
+        $target_path = ($is_spanish ? '/es' : '') . $aliases[$base_path];
+        wp_safe_redirect(home_url($target_path), 301);
+        exit;
+}
+add_action('template_redirect', 'chroma_redirect_legacy_public_aliases', -60);
+
+/**
+ * Repair migrated content links at render time while database cleanup is reviewed.
+ * Clear aliases are redirected to canonical pages, including migrated Chroma
+ * articles and official Georgia early-learning resources.
+ *
+ * @param string $content Post content.
+ * @return string
+ */
+function chroma_normalize_legacy_content_links($content)
+{
+        if (!is_string($content) || $content === '') {
+                return $content;
+        }
+
+	$aliases = [
+		'/contact/' => '/contact-us/',
+		'/programs/curriculum/' => '/curriculum/',
+		'/programs/developmental-approach/' => '/curriculum/',
+		'/locations/midway-alpharetta/' => '/locations/midway-campus/',
+		'/locations/pleasant-hill-campus-duluth/' => '/locations/pleasanthill-campus-duluth/',
+		'/post/what-to-do-if-kids-get-physical-during-a-meltdown/' => '/2025/12/02/the-psychology-behind-toy-throwing-understanding-your-childs-behavior/',
+		'/post/6d9f3d13-a22b-41e9-9a4a-88af74b35004-why-you-should-not-over-react-when-your-child-gets-hurt-calm-parenting-and-emotional-support-strategies/' => '/2025/12/02/why-you-should-not-over-react-when-your-child-gets-hurt-calm-parenting-and-emotional-support-strategies/',
+		'/post/all-about-why-language-and-tone-matter-with-your-preschooler/' => '/2025/12/26/supporting-toddler-language-development-communication/',
+		'/post/how-to-master-communicating-with-your-child-in-30-days/' => '/2025/12/27/tips-for-effective-communication-with-toddlers/',
+		'/post/understanding-child-behavior-psychology-how-to-nurture-emotional-intelligence-and-positive-growth/' => '/2025/12/02/the-psychology-behind-toy-throwing-understanding-your-childs-behavior/',
+		'/post/teaching-by-example-how-parents-shape-their-childrens-behavior/' => '/2025/12/26/effective-positive-discipline-techniques-for-young-children/',
+		'/post/handling-bad-behavior-without-yelling-positive-discipline/' => '/2025/12/26/effective-positive-discipline-techniques-for-young-children/',
+	];
+	$external_aliases = [
+		'https://www.gelds.decal.ga.gov/' => 'https://www.decal.ga.gov/Prek/GELDS.aspx',
+		'https://gelds.decal.ga.gov/' => 'https://www.decal.ga.gov/Prek/GELDS.aspx',
+		'https://decal.ga.gov/' => 'https://georgia.gov/organization/department-early-care-and-learning',
+		'https://www.decal.ga.gov/' => 'https://georgia.gov/organization/department-early-care-and-learning',
+	];
+
+        $normalized_content = preg_replace_callback(
+                '/href=(["\'])([^"\']+)\1/i',
+                static function ($matches) use ($aliases, $external_aliases) {
+                        $href = html_entity_decode((string) $matches[2], ENT_QUOTES, 'UTF-8');
+			$normalized_href = trailingslashit(strtok($href, '?#'));
+			if (isset($external_aliases[$normalized_href])) {
+				return 'href=' . $matches[1] . esc_url($external_aliases[$normalized_href]) . $matches[1];
+			}
+                        $path = wp_parse_url($href, PHP_URL_PATH);
+                        if (!is_string($path) || $path === '') {
+                                return $matches[0];
+                        }
+
+                        $normalized_path = '/' . trim($path, '/') . '/';
+                        $is_spanish = strpos($normalized_path, '/es/') === 0;
+                        $base_path = $is_spanish ? substr($normalized_path, 3) : $normalized_path;
+                        if (!isset($aliases[$base_path])) {
+                                return $matches[0];
+                        }
+
+                        $target_path = ($is_spanish ? '/es' : '') . $aliases[$base_path];
+                        return 'href=' . $matches[1] . esc_url(home_url($target_path)) . $matches[1];
+                },
+                $content
+        );
+        if (is_string($normalized_content)) {
+                $content = $normalized_content;
+        }
+
+	return $content;
+}
+add_filter('the_content', 'chroma_normalize_legacy_content_links', 35);
+
+/**
  * Disable XML-RPC
  */
 add_filter('xmlrpc_enabled', '__return_false');
@@ -329,6 +441,324 @@ function chroma_send_career_x_robots_header()
         header('X-Robots-Tag: noindex, follow', true);
 }
 add_action('send_headers', 'chroma_send_career_x_robots_header', 20);
+
+/**
+ * Determine whether a city landing page has explicit search approval.
+ *
+ * @param int $post_id City post ID.
+ * @return bool
+ */
+function chroma_city_is_search_approved($post_id)
+{
+        $post_id = absint($post_id);
+        if ($post_id < 1 || get_post_type($post_id) !== 'city') {
+                return false;
+        }
+
+        return get_post_meta($post_id, 'city_search_approved', true) === '1';
+}
+
+/**
+ * Redirect the inaccurate LaFayette community page to the verified directory.
+ */
+function chroma_redirect_unverified_city_pages()
+{
+        if (!is_singular('city')) {
+                return;
+        }
+
+        $post = get_queried_object();
+        if ($post instanceof WP_Post && sanitize_title((string) $post->post_name) === 'lafayette') {
+                wp_safe_redirect(home_url('/locations/'), 301);
+                exit;
+        }
+}
+add_action('template_redirect', 'chroma_redirect_unverified_city_pages', -40);
+
+/**
+ * Keep generic city pages and virtual keyword routes out of search indexes.
+ *
+ * @param array $robots Robots directives.
+ * @return array
+ */
+function chroma_noindex_unapproved_local_routes($robots)
+{
+        $is_unapproved_city = is_singular('city') && !chroma_city_is_search_approved(get_queried_object_id());
+        $is_virtual_route = (string) get_query_var('chroma_combo') !== ''
+                || (string) get_query_var('chroma_near_me') !== ''
+                || (string) get_query_var('chroma_service_area') !== '';
+
+        if (!$is_unapproved_city && !$is_virtual_route) {
+                return $robots;
+        }
+
+        if (!is_array($robots)) {
+                $robots = [];
+        }
+
+        unset($robots['index'], $robots['nofollow']);
+        $robots['noindex'] = true;
+        $robots['follow'] = true;
+
+        return $robots;
+}
+add_filter('wp_robots', 'chroma_noindex_unapproved_local_routes', 40);
+
+/**
+ * Mirror noindex directives when an SEO plugin owns robots output.
+ *
+ * @param string $robots Robots directive string.
+ * @return string
+ */
+function chroma_noindex_unapproved_local_routes_wpseo($robots)
+{
+        $is_unapproved_city = is_singular('city') && !chroma_city_is_search_approved(get_queried_object_id());
+        $is_virtual_route = (string) get_query_var('chroma_combo') !== ''
+                || (string) get_query_var('chroma_near_me') !== ''
+                || (string) get_query_var('chroma_service_area') !== '';
+
+        return ($is_unapproved_city || $is_virtual_route) ? 'noindex,follow' : $robots;
+}
+add_filter('wpseo_robots', 'chroma_noindex_unapproved_local_routes_wpseo', 40);
+
+/**
+ * Send a definitive noindex header for unapproved local landing routes.
+ */
+function chroma_send_local_route_x_robots_header()
+{
+        if (headers_sent()) {
+                return;
+        }
+
+        $is_unapproved_city = is_singular('city') && !chroma_city_is_search_approved(get_queried_object_id());
+        $is_virtual_route = (string) get_query_var('chroma_combo') !== ''
+                || (string) get_query_var('chroma_near_me') !== ''
+                || (string) get_query_var('chroma_service_area') !== '';
+
+        if ($is_unapproved_city || $is_virtual_route) {
+                header('X-Robots-Tag: noindex, follow', true);
+        }
+}
+add_action('send_headers', 'chroma_send_local_route_x_robots_header', 30);
+
+/**
+ * Identify legacy city-keyword articles that duplicate campus and directory intent.
+ *
+ * These posts remain accessible for historical reference, but are not suitable
+ * organic landing pages because the location directory and campus pages provide
+ * the maintained, verified local experience.
+ *
+ * @param int $post_id Post ID.
+ * @return bool
+ */
+function chroma_is_legacy_local_doorway_post($post_id = 0)
+{
+        $post_id = $post_id ? absint($post_id) : get_queried_object_id();
+        if ($post_id < 1 || get_post_type($post_id) !== 'post') {
+                return false;
+        }
+
+        $post = get_post($post_id);
+        if (!$post instanceof WP_Post) {
+                return false;
+        }
+
+        $slug = sanitize_title((string) $post->post_name);
+        $patterns = [
+                '/childcare-preschool-(?:in|on|services-in)-/',
+                '/secure-the-best-childcare-in-/',
+                '/trusted-childcare-preschool-in-/',
+                '/quality-childcare-preschool-in-/',
+                '/nurturing-infant-care-programs-in-/',
+                '/engaging-toddler-care-programs-in-/',
+                '/premier-choice-for-daycare-and-preschool-in-/',
+        ];
+
+        foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $slug)) {
+                        return true;
+                }
+        }
+
+        return false;
+}
+
+/**
+ * Keep legacy local doorway articles out of search while preserving links.
+ *
+ * @param array $robots Robots directives.
+ * @return array
+ */
+function chroma_noindex_legacy_local_doorway_posts($robots)
+{
+        if (!is_singular('post') || !chroma_is_legacy_local_doorway_post()) {
+                return $robots;
+        }
+
+        if (!is_array($robots)) {
+                $robots = [];
+        }
+
+        unset($robots['index'], $robots['nofollow']);
+        $robots['noindex'] = true;
+        $robots['follow'] = true;
+
+        return $robots;
+}
+add_filter('wp_robots', 'chroma_noindex_legacy_local_doorway_posts', 45);
+
+function chroma_noindex_legacy_local_doorway_posts_wpseo($robots)
+{
+        return is_singular('post') && chroma_is_legacy_local_doorway_post()
+                ? 'noindex,follow'
+                : $robots;
+}
+add_filter('wpseo_robots', 'chroma_noindex_legacy_local_doorway_posts_wpseo', 45);
+
+function chroma_send_legacy_local_doorway_x_robots_header()
+{
+        if (!headers_sent() && is_singular('post') && chroma_is_legacy_local_doorway_post()) {
+                header('X-Robots-Tag: noindex, follow', true);
+        }
+}
+add_action('send_headers', 'chroma_send_legacy_local_doorway_x_robots_header', 35);
+
+/**
+ * Identify published editorial posts that do not yet contain an article body.
+ *
+ * These records remain available to editors, but they should not be promoted
+ * to search engines until substantive content has been added.
+ *
+ * @param int $post_id Optional post ID.
+ * @return bool
+ */
+function chroma_is_unfinished_empty_post($post_id = 0)
+{
+        $post = get_post($post_id ?: get_queried_object_id());
+        if (!$post instanceof WP_Post || $post->post_type !== 'post' || $post->post_status !== 'publish') {
+                return false;
+        }
+
+        return trim(wp_strip_all_tags(strip_shortcodes((string) $post->post_content))) === '';
+}
+
+/**
+ * Return published editorial post IDs that do not yet contain an article body.
+ *
+ * @return int[]
+ */
+function chroma_get_unfinished_empty_post_ids()
+{
+        static $ids = null;
+        if ($ids !== null) {
+                return $ids;
+        }
+
+        global $wpdb;
+        $ids = array_map(
+                'intval',
+                (array) $wpdb->get_col(
+                        $wpdb->prepare(
+                                "SELECT ID FROM {$wpdb->posts} WHERE post_type = %s AND post_status = %s AND TRIM(post_content) = %s",
+                                'post',
+                                'publish',
+                                ''
+                        )
+                )
+        );
+
+        return $ids;
+}
+
+/**
+ * Keep unfinished empty editorial records out of search while preserving URLs.
+ *
+ * @param array $robots Robots directives.
+ * @return array
+ */
+function chroma_noindex_unfinished_empty_posts($robots)
+{
+        if (!is_singular('post') || !chroma_is_unfinished_empty_post()) {
+                return $robots;
+        }
+
+        if (!is_array($robots)) {
+                $robots = [];
+        }
+
+        unset($robots['index'], $robots['nofollow']);
+        $robots['noindex'] = true;
+        $robots['follow'] = true;
+
+        return $robots;
+}
+add_filter('wp_robots', 'chroma_noindex_unfinished_empty_posts', 46);
+
+function chroma_noindex_unfinished_empty_posts_wpseo($robots)
+{
+        return is_singular('post') && chroma_is_unfinished_empty_post()
+                ? 'noindex,follow'
+                : $robots;
+}
+add_filter('wpseo_robots', 'chroma_noindex_unfinished_empty_posts_wpseo', 46);
+
+function chroma_send_unfinished_empty_posts_x_robots_header()
+{
+        if (!headers_sent() && is_singular('post') && chroma_is_unfinished_empty_post()) {
+                header('X-Robots-Tag: noindex, follow', true);
+        }
+}
+add_action('send_headers', 'chroma_send_unfinished_empty_posts_x_robots_header', 36);
+
+/**
+ * Keep incomplete Spanish singular variants out of search until translated.
+ */
+function chroma_is_unverified_spanish_singular()
+{
+        if (!is_singular() || !isset($_SERVER['REQUEST_URI'])) {
+                return false;
+        }
+
+        $path = (string) wp_parse_url(wp_unslash($_SERVER['REQUEST_URI']), PHP_URL_PATH);
+        if (strpos($path, '/es/') !== 0) {
+                return false;
+        }
+
+        $post_id = get_queried_object_id();
+        return $post_id > 0
+                && function_exists('chroma_post_has_verified_spanish_variant')
+                && !chroma_post_has_verified_spanish_variant($post_id);
+}
+
+function chroma_noindex_unverified_spanish_robots($robots)
+{
+        if (!chroma_is_unverified_spanish_singular()) {
+                return $robots;
+        }
+
+        if (!is_array($robots)) {
+                $robots = [];
+        }
+        unset($robots['index'], $robots['nofollow']);
+        $robots['noindex'] = true;
+        $robots['follow'] = true;
+        return $robots;
+}
+add_filter('wp_robots', 'chroma_noindex_unverified_spanish_robots', 50);
+
+function chroma_noindex_unverified_spanish_wpseo($robots)
+{
+        return chroma_is_unverified_spanish_singular() ? 'noindex,follow' : $robots;
+}
+add_filter('wpseo_robots', 'chroma_noindex_unverified_spanish_wpseo', 50);
+
+function chroma_send_unverified_spanish_x_robots_header()
+{
+        if (!headers_sent() && chroma_is_unverified_spanish_singular()) {
+                header('X-Robots-Tag: noindex, follow', true);
+        }
+}
+add_action('send_headers', 'chroma_send_unverified_spanish_x_robots_header', 37);
 
 /**
  * Keep non-indexable or unsupported post types out of the unified sitemap.

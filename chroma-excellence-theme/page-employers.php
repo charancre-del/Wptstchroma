@@ -14,12 +14,21 @@ $page_id = get_the_ID();
 $hero_badge = chroma_get_translated_meta($page_id, 'employers_hero_badge') ?: __('Workforce Solutions', 'chroma-excellence');
 $hero_title = chroma_get_translated_meta($page_id, 'employers_hero_title') ?: __('Childcare is critical infrastructure.', 'chroma-excellence');
 $hero_description = chroma_get_translated_meta($page_id, 'employers_hero_description') ?: __('Retain top talent and reduce absenteeism by offering premium childcare benefits. Chroma partners with Metro Atlanta\'s leading employers to support working parents.', 'chroma-excellence');
+$location_counts = wp_count_posts('location');
+$published_location_count = isset($location_counts->publish) ? (int) $location_counts->publish : 0;
+$priority_access_description = chroma_get_translated_meta($page_id, 'employers_solution1_desc');
+if (!$priority_access_description || preg_match('/\b\d+\+?\s+locations\b/i', $priority_access_description)) {
+	$priority_access_description = sprintf(
+		__('Explore partnership options across our %d Metro Atlanta campuses. Availability and reserved access are confirmed campus by campus.', 'chroma-excellence'),
+		$published_location_count
+	);
+}
 
 // Solutions Section (3 cards)
 $solutions = array(
 	array(
 		'title' => chroma_get_translated_meta($page_id, 'employers_solution1_title') ?: __('Priority Access', 'chroma-excellence'),
-		'desc' => chroma_get_translated_meta($page_id, 'employers_solution1_desc') ?: __('Skip the waitlist. Reserve dedicated spots at our 19+ locations exclusively for your employees\' children.', 'chroma-excellence'),
+		'desc' => $priority_access_description,
 	),
 	array(
 		'title' => chroma_get_translated_meta($page_id, 'employers_solution2_title') ?: __('Tuition Subsidies', 'chroma-excellence'),
@@ -50,7 +59,10 @@ $georgia_title = chroma_get_translated_meta($page_id, 'employers_georgia_title')
 $georgia_subtitle = chroma_get_translated_meta($page_id, 'employers_georgia_subtitle') ?: __('Georgia Child Care Tax Credit', 'chroma-excellence');
 $georgia_desc = chroma_get_translated_meta($page_id, 'employers_georgia_desc') ?: __('Georgia maintains its generous <strong>75% credit</strong> for employer-sponsored care costs. New for 2026: Employers can also claim a supplemental credit of <strong>$1,000 per child</strong> for eligible childcare payments provided to employees.', 'chroma-excellence');
 $georgia_link_text = chroma_get_translated_meta($page_id, 'employers_georgia_link_text') ?: __('View Georgia DOR Details', 'chroma-excellence');
-$georgia_link_url = chroma_get_translated_meta($page_id, 'employers_georgia_link_url') ?: 'https://dor.georgia.gov/tax-credits-business';
+$georgia_link_url = chroma_get_translated_meta($page_id, 'employers_georgia_link_url') ?: 'https://dor.georgia.gov/taxes/tax-credits';
+if ('https://dor.georgia.gov/tax-credits-business' === untrailingslashit($georgia_link_url)) {
+	$georgia_link_url = 'https://dor.georgia.gov/taxes/tax-credits';
+}
 
 $tax_disclaimer = chroma_get_translated_meta($page_id, 'employers_tax_disclaimer') ?: __('Note: Please consult with your corporate tax professional to verify eligibility and application details.', 'chroma-excellence');
 
@@ -62,7 +74,7 @@ $contact_title = chroma_get_translated_meta($page_id, 'employers_contact_title')
 	<article id="post-<?php the_ID(); ?>" <?php post_class(); ?>>
 
 		<!-- Hero -->
-		<section class="py-24 bg-brand-cream text-center">
+		<section class="pageHero chroma-v2-page-hero py-24 bg-brand-cream text-center">
 			<div class="max-w-4xl mx-auto px-4">
 				<span class="text-chroma-blue font-bold tracking-[0.2em] text-xs uppercase mb-4 block">
 					<?php echo esc_html($hero_badge); ?>

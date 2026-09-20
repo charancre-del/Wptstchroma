@@ -236,6 +236,21 @@ class Chroma_Multilingual_Manager
     public function filter_permalink($url, $post)
     {
         if (self::is_spanish() && !is_admin()) {
+            $post_id = $post instanceof \WP_Post ? (int) $post->ID : (int) $post;
+            if (
+                $post_id > 0
+                && function_exists('chroma_post_has_verified_spanish_variant')
+                && !chroma_post_has_verified_spanish_variant($post_id)
+            ) {
+                $base = rtrim((string) get_option('home'), '/');
+                $spanish_base = $base . '/es';
+                if ($url === $spanish_base || strpos($url, $spanish_base . '/') === 0) {
+                    return $base . substr($url, strlen($spanish_base));
+                }
+
+                return $url;
+            }
+
             // Avoid double stacking
             if (strpos($url, '/es/') !== false) {
                 return $url;
@@ -473,14 +488,34 @@ class Chroma_Multilingual_Manager
     public function rewrite_content_urls($content)
     {
         if (!self::is_spanish() || is_admin()) return $content;
-        
-        $site_url = preg_quote(rtrim(get_option('home'), '/'), '/');
-        
-        // Match href="https://site.com/path" but not href="https://site.com/es/path"
-        $pattern = '/href=["\'](' . $site_url . ')(?!\/es\/)([^"\']*)["\']/i';
-        $replacement = 'href="$1/es$2"';
-        
-        return preg_replace($pattern, $replacement, $content);
+
+        $home = rtrim((string) get_option('home'), '/');
+        $site_url = preg_quote($home, '/');
+
+        // Localize public page links only. Media files and WordPress system
+        // endpoints always remain rooted at the site origin.
+        $pattern = '/href=(["\'])(' . $site_url . ')(?!\/es(?:\/|$))([^"\']*)\1/i';
+
+        return preg_replace_callback($pattern, static function ($matches) {
+            $path = (string) ($matches[3] ?? '');
+            $path_only = (string) wp_parse_url($path, PHP_URL_PATH);
+            $is_system_path = (bool) preg_match('#^/(?:wp-admin|wp-content|wp-includes|wp-json)(?:/|$)#i', $path_only);
+            $is_file = (bool) preg_match('/\.[a-z0-9]{2,8}$/i', $path_only);
+
+            if ($is_system_path || $is_file) {
+                return $matches[0];
+            }
+
+            $target_url = $matches[2] . $path;
+            if (
+                function_exists('chroma_url_has_verified_spanish_variant')
+                && !chroma_url_has_verified_spanish_variant($target_url)
+            ) {
+                return $matches[0];
+            }
+
+            return 'href=' . $matches[1] . $matches[2] . '/es' . $path . $matches[1];
+        }, $content);
     }
 
     /**
@@ -495,7 +530,20 @@ class Chroma_Multilingual_Manager
             $site_url = rtrim(get_option('home'), '/');
             
             // Only modify internal links that don't already have /es/
-            if (strpos($href, $site_url) === 0 && strpos($href, $site_url . '/es/') !== 0) {
+            $path = (string) wp_parse_url($href, PHP_URL_PATH);
+            $is_system_path = (bool) preg_match('#^/(?:wp-admin|wp-content|wp-includes|wp-json)(?:/|$)#i', $path);
+            $is_file = (bool) preg_match('/\.[a-z0-9]{2,8}$/i', $path);
+
+            if (
+                !$is_system_path
+                && !$is_file
+                && strpos($href, $site_url) === 0
+                && strpos($href, $site_url . '/es/') !== 0
+                && (
+                    !function_exists('chroma_url_has_verified_spanish_variant')
+                    || chroma_url_has_verified_spanish_variant($href)
+                )
+            ) {
                 $path = substr($href, strlen($site_url));
                 $atts['href'] = $site_url . '/es' . $path;
             }
@@ -597,6 +645,28 @@ class Chroma_Multilingual_Manager
     /**
      * Localize SEO Title
      */
+    private static function looks_spanish($value) {
+        $value = trim(wp_strip_all_tags(html_entity_decode((string) $value, ENT_QUOTES, 'UTF-8')));
+        if ($value === '') {
+            return false;
+        }
+
+        if (preg_match('/[áéíóúüñ¿¡]/iu', $value)) {
+            return true;
+        }
+
+        $normalized = ' ' . strtolower($value) . ' ';
+        $signals = [' el ', ' la ', ' los ', ' las ', ' de ', ' del ', ' que ', ' para ', ' con ', ' una ', ' un ', ' niños', ' familias', ' aprendizaje', ' desarrollo', ' programa', ' cuidado', ' maestros', ' padres', ' escuela', ' nuestro', ' nuestra', ' cada '];
+        $matches = 0;
+        foreach ($signals as $signal) {
+            if (strpos($normalized, $signal) !== false) {
+                $matches++;
+            }
+        }
+
+        return $matches >= 3;
+    }
+
     public function localize_seo_title($title) {
         if (!self::is_spanish()) return $title;
 
@@ -620,15 +690,15 @@ class Chroma_Multilingual_Manager
             }
         }
 
+        $es_seo_title = get_post_meta($post_id, '_chroma_es_seo_title', true);
+        if (self::looks_spanish($es_seo_title)) return $es_seo_title;
+        
+        $es_title = get_post_meta($post_id, '_chroma_es_title', true);
+        if (self::looks_spanish($es_title)) return $es_title . ' | Chroma Academy';
+
         if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
             return $title;
         }
-        
-        $es_seo_title = get_post_meta($post_id, '_chroma_es_seo_title', true);
-        if ($es_seo_title) return $es_seo_title;
-        
-        $es_title = get_post_meta($post_id, '_chroma_es_title', true);
-        if ($es_title) return $es_title . ' | Chroma';
         
         return $title;
     }
@@ -661,15 +731,26 @@ class Chroma_Multilingual_Manager
             }
         }
 
-        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
-            return;
-        }
-        
         $es_meta_desc = get_post_meta($post_id, '_chroma_es_meta_description', true);
-        if ($es_meta_desc) {
+        if (self::looks_spanish($es_meta_desc)) {
             // Remove the default meta description if it exists
             remove_action('wp_head', 'chroma_shared_meta_description', 2);
             echo '<meta name="description" content="' . esc_attr($es_meta_desc) . '" />' . "\n";
+            return;
+        }
+
+        $es_content = get_post_meta($post_id, '_chroma_es_content', true);
+        if (self::looks_spanish($es_content)) {
+            $description = wp_trim_words(wp_strip_all_tags(strip_shortcodes($es_content)), 26, '…');
+            if ($description !== '') {
+                remove_action('wp_head', 'chroma_shared_meta_description', 2);
+                echo '<meta name="description" content="' . esc_attr($description) . '" />' . "\n";
+                return;
+            }
+        }
+
+        if (function_exists('chroma_is_otto_compatible_seo_mode') && chroma_is_otto_compatible_seo_mode()) {
+            return;
         }
     }
 
@@ -842,8 +923,8 @@ class Chroma_Multilingual_Manager
                 
                 // City Pages
                 'Serving %s & %s County' => 'Sirviendo a %s y el Condado de %s',
-                'The Best Daycare in <span class="italic text-chroma-blue">%s, %s.</span>' => 'La Mejor Guardería en <span class="italic text-chroma-blue">%s, %s.</span>',
-                'Are you looking for "daycare near me"? Discover the highest-rated early learning centers in the %s area, featuring the Prismpath™ curriculum and GA Pre-K.' => '¿Está buscando "guardería cerca de mí"? Descubra los centros de aprendizaje temprano mejor calificados en el área de %s, con el plan de estudios Prismpath™ y GA Pre-K.',
+                'Early Learning Near <span class="italic text-chroma-blue">%s, %s.</span>' => 'Aprendizaje temprano cerca de <span class="italic text-chroma-blue">%s, %s.</span>',
+                'Looking for childcare near %s? Explore nearby Chroma campuses and confirm programs, services, and availability directly with each location.' => '¿Busca cuidado infantil cerca de %s? Explore los campus Chroma cercanos y confirme los programas, servicios y la disponibilidad directamente con cada ubicación.',
                 'See Locations in %s' => 'Ver Ubicaciones en %s',
                 'Early Education and <br> Care in <span class="text-chroma-blue">%s, GA</span>' => 'Educación Temprana y <br> Cuidado en <span class="text-chroma-blue">%s, GA</span>',
                 'Our school is more than a daycare. Through purposeful play and nurturing guidance, we help lay the foundation for a lifelong love of learning.' => 'Nuestra escuela es más que una guardería. A través del juego con propósito y la guía cariñosa, ayudamos a sentar las bases para un amor por el aprendizaje de por vida.',
@@ -855,7 +936,7 @@ class Chroma_Multilingual_Manager
                 'World-class curriculum served locally.' => 'Currículo de clase mundial servido localmente.',
                 'Questions about Childcare in %s' => 'Preguntas sobre el Cuidado Infantil en %s',
                 'Do you offer GA Lottery Pre-K in %s?' => '¿Ofrecen GA Lottery Pre-K en %s?',
-                'Yes! Our locations serving %s participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia.' => '¡Sí! Nuestras ubicaciones que sirven a %s participan en el programa Georgia Lottery Pre-K. Es gratuito para todos los niños de 4 años que viven en Georgia.',
+                'Georgia Pre-K availability varies by campus. Contact the campus serving %s to confirm current eligibility, availability, and enrollment requirements.' => 'La disponibilidad de Georgia Pre-K varía según el campus. Comuníquese con el campus que atiende a %s para confirmar los requisitos y la disponibilidad actuales.',
                 'Do you provide transportation from %s schools?' => '¿Proporcionan transporte desde las escuelas de %s?',
                 'We provide safe bus transportation from most major elementary schools in the %s School District. Check the specific campus page for a full list.' => 'Proporcionamos transporte seguro en autobús desde la mayoría de las principales escuelas primarias en el Distrito Escolar de %s. Consulte la página del campus específico para obtener una lista completa.',
                 'What ages do you accept at your %s centers?' => '¿Qué edades aceptan en sus centros de %s?',
@@ -955,7 +1036,7 @@ class Chroma_Multilingual_Manager
                 'STEM Atelier' => 'Atelier STEM',
                 'A dedicated studio for science experiments, light table exploration, and early engineering projects.' => 'Un estudio dedicado a experimentos científicos, exploración de mesas de luz y proyectos de ingeniería temprana.',
                 'GA Lottery Pre-K' => 'Pre-K de la Lotería de GA',
-                'We are a proud partner of the Georgia Pre-K Program, offering tuition-free education for 4-year-olds.' => 'Somos un socio orgulloso del Programa Pre-K de Georgia, que ofrece educación gratuita para niños de 4 años.',
+                'Georgia Pre-K is available at participating campuses. Contact your preferred campus for current eligibility and availability.' => 'Georgia Pre-K está disponible en los campus participantes. Comuníquese con su campus preferido para conocer los requisitos y la disponibilidad actuales.',
                 'Welcome to Chroma %s.' => 'Bienvenido a Chroma %s.',
                 'Campus Director' => 'Director del Campus',
                 'Explore Our Campus' => 'Explore Nuestro Campus',
@@ -1183,7 +1264,7 @@ class Chroma_Multilingual_Manager
                 
                 // Homepage Hero
                 'The art of <span class="italic text-chroma-red">growing up.</span>' => 'El arte de <span class="italic text-chroma-red">crecer.</span>',
-                'Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.' => 'Donde la excelencia acreditada se encuentra con la calidez del hogar. Un santuario moderno impulsado por nuestro modelo de aprendizaje patentado Prismpath™ para niños de 6 semanas a 12 años.',
+                'Where thoughtful early learning meets the warmth of home for children from 6 weeks through school age.' => 'Donde el aprendizaje temprano intencional se encuentra con la calidez del hogar para niños desde las 6 semanas hasta la edad escolar.',
                 'View Programs' => 'Ver Programas',
                 '19+ Metro Atlanta Locations' => 'Más de 19 Ubicaciones en Metro Atlanta',
                 

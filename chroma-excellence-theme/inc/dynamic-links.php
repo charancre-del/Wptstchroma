@@ -159,6 +159,10 @@ function chroma_get_page_link($name)
         'after-school' => 'programs/after-school',
         'parents-day-out' => 'programs/parents-day-out',
         'camp-summer-winter-fall' => 'programs/camp-summer-winter-fall',
+        'early-learning' => 'early-learning',
+        'early-start' => 'chroma-early-start',
+        'chroma-early-start' => 'chroma-early-start',
+        'chroma-early-learning' => 'early-learning',
     );
 
     // Check if this is an aliased name
@@ -211,6 +215,41 @@ function chroma_dynamic_link_shortcode($atts, $content = null)
     return '<a ' . implode(' ', $link_atts) . '>' . do_shortcode($content) . '</a>';
 }
 add_shortcode('chroma_link', 'chroma_dynamic_link_shortcode');
+
+/**
+ * Canonical public URL for the Early Learning page.
+ *
+ * @return string
+ */
+function chroma_get_early_learning_url()
+{
+    foreach (array('early-learning', 'chroma-early-learning') as $slug) {
+        $post = get_page_by_path($slug, OBJECT, 'page');
+        if ($post) {
+            return get_permalink($post);
+        }
+    }
+
+    return home_url('/early-learning/');
+}
+
+/**
+ * Keep /early-learning/ from canonicalizing back to /chroma-early-start/.
+ *
+ * @param string|false $redirect_url
+ * @return string|false
+ */
+function chroma_disable_early_learning_canonical_redirect($redirect_url)
+{
+    $request_path = isset($_SERVER['REQUEST_URI']) ? trim((string) wp_parse_url(wp_unslash($_SERVER['REQUEST_URI']), PHP_URL_PATH), '/') : '';
+
+    if ($request_path === 'early-learning') {
+        return false;
+    }
+
+    return $redirect_url;
+}
+add_filter('redirect_canonical', 'chroma_disable_early_learning_canonical_redirect');
 
 /**
  * Helper to check if a URL needs updating (points to a redirect)
@@ -290,7 +329,15 @@ if (!function_exists('chroma_normalize_owned_url')) {
         }
 
         $path = isset($parts['path']) && $parts['path'] !== '' ? $parts['path'] : '/';
-        $normalized = home_url($path);
+        $is_system_path = (bool) preg_match('#^/(?:wp-admin|wp-content|wp-includes|wp-json)(?:/|$)#i', $path);
+        $is_file = (bool) preg_match('/\.[a-z0-9]{2,8}$/i', $path);
+
+        // Media and WordPress system URLs must remain rooted at the active
+        // site origin. Calling home_url() here would pass them through the
+        // Spanish route filter and incorrectly create /es/wp-content URLs.
+        $normalized = ($is_system_path || $is_file)
+            ? rtrim((string) get_option('home'), '/') . '/' . ltrim($path, '/')
+            : home_url($path);
 
         if (!empty($parts['query'])) {
             $normalized .= '?' . $parts['query'];

@@ -427,7 +427,10 @@ function chroma_seed_employers_page_defaults( $post_id ) {
 		'employers_hero_description' => 'Retain top talent and reduce absenteeism by offering premium childcare benefits. Chroma partners with Metro Atlanta\'s leading employers to support working parents.',
 
 		'employers_solution1_title' => 'Priority Access',
-		'employers_solution1_desc'  => 'Skip the waitlist. Reserve dedicated spots at our 19+ locations exclusively for your employees\' children.',
+		'employers_solution1_desc'  => sprintf(
+			'Explore partnership options across our %d Metro Atlanta campuses. Availability and reserved access are confirmed campus by campus.',
+			(int) ( wp_count_posts( 'location' )->publish ?? 0 )
+		),
 
 		'employers_solution2_title' => 'Tuition Subsidies',
 		'employers_solution2_desc'  => 'We manage employer-sponsored tuition matching programs, making quality care affordable for your team.',
@@ -451,7 +454,7 @@ function chroma_seed_employers_page_defaults( $post_id ) {
 		'employers_georgia_subtitle'   => 'Georgia Child Care Tax Credit',
 		'employers_georgia_desc'       => 'Georgia maintains its generous <strong>75% credit</strong> for employer-sponsored care costs. New for 2026: Employers can also claim a supplemental credit of <strong>$1,000 per child</strong> for eligible childcare payments provided to employees.',
 		'employers_georgia_link_text'  => 'View Georgia DOR Details',
-		'employers_georgia_link_url'   => 'https://dor.georgia.gov/tax-credits-business',
+		'employers_georgia_link_url'   => 'https://dor.georgia.gov/taxes/tax-credits',
 
 		'employers_tax_disclaimer' => 'Note: Please consult with your corporate tax professional to verify eligibility and application details.',
 

@@ -22,16 +22,20 @@ $selected_category = isset($_GET['category']) ? sanitize_text_field($_GET['categ
 // Query arguments
 $args = array(
   'post_type' => 'post',
-  'posts_per_page' => 9,
+  'posts_per_page' => 36,
   'post_status' => 'publish',
   'orderby' => 'date',
   'order' => 'DESC',
 );
 
-// Exclude featured post from grid
+// Keep the featured item and unfinished empty editorial records out of the grid.
+$excluded_post_ids = function_exists('chroma_get_unfinished_empty_post_ids')
+  ? chroma_get_unfinished_empty_post_ids()
+  : array();
 if ($featured_post_id) {
-  $args['post__not_in'] = array($featured_post_id);
+  $excluded_post_ids[] = (int) $featured_post_id;
 }
+$args['post__not_in'] = array_values(array_unique(array_filter(array_map('intval', $excluded_post_ids))));
 
 // Filter by category if selected
 if ($selected_category) {
@@ -70,10 +74,10 @@ get_header();
 
 <main>
   <!-- Hero -->
-  <section class="py-20 bg-white text-center">
+    <section class="pageHero chroma-v2-page-hero py-20 bg-brand-cream text-center">
     <div class="max-w-4xl mx-auto px-4">
       <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php _e('The Blog', 'chroma-excellence'); ?></span>
-      <h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6"><?php _e('Chroma Stories', 'chroma-excellence'); ?></h1>
+      <h1 class="font-serif text-5xl md:text-6xl text-brand-ink mb-6"><?php _e('Chroma Stories.', 'chroma-excellence'); ?></h1>
       <p class="text-lg text-brand-ink/90"><?php _e('Parenting tips, classroom spotlights, and insights from our educators.', 'chroma-excellence'); ?></p>
 
       <!-- Categories -->
@@ -100,7 +104,8 @@ get_header();
       $featured_image = get_the_post_thumbnail_url($featured_post_id, 'large') ?: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?q=80&w=1200&auto=format&fit=crop';
       ?>
       <!-- Featured Post -->
-      <section class="py-12 px-4 lg:px-6 max-w-7xl mx-auto">
+      <section class="white borderY py-12 px-4 lg:px-6 bg-white border-y border-chroma-blue/10">
+        <div class="max-w-7xl mx-auto">
         <a href="<?php echo esc_url(get_permalink($featured_post_id)); ?>" class="block">
           <div class="relative rounded-[3rem] overflow-hidden shadow-soft group cursor-pointer h-[500px]">
             <img src="<?php echo esc_url($featured_image); ?>"
@@ -120,6 +125,7 @@ get_header();
             </div>
           </div>
         </a>
+        </div>
       </section>
       <?php
       wp_reset_postdata();
@@ -128,7 +134,8 @@ get_header();
   ?>
 
   <!-- Grid -->
-  <section class="pb-24 px-4 lg:px-6 max-w-7xl mx-auto">
+  <section class="cream pb-24 pt-16 px-4 lg:px-6 bg-brand-cream">
+    <div class="max-w-7xl mx-auto">
     <?php if ($posts_query->have_posts()): ?>
       <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         <?php while ($posts_query->have_posts()):
@@ -162,28 +169,26 @@ get_header();
         <?php endwhile; ?>
       </div>
 
-      <!-- Pagination -->
+      <!-- Pagination: expose every archive page so all stories remain within three clicks. -->
       <?php if ($posts_query->max_num_pages > 1): ?>
-        <div class="flex justify-center gap-4 mt-12">
-          <?php if ($paged > 1): ?>
-            <a href="<?php echo esc_url(add_query_arg('paged', $paged - 1)); ?>"
-              class="px-6 py-3 bg-white border border-brand-ink/10 rounded-full text-sm font-bold text-brand-ink hover:bg-brand-ink hover:text-white transition-colors">
-              <?php _e('&larr; Previous', 'chroma-excellence'); ?>
-            </a>
-          <?php endif; ?>
-
-          <span class="px-6 py-3 text-sm text-brand-ink/60">
-            <?php printf(__('Page %s of %s', 'chroma-excellence'), $paged, $posts_query->max_num_pages); ?>
-          </span>
-
-
-          <?php if ($paged < $posts_query->max_num_pages): ?>
-            <a href="<?php echo esc_url(add_query_arg('paged', $paged + 1)); ?>"
-              class="px-6 py-3 bg-brand-ink text-white rounded-full text-sm font-bold hover:bg-chroma-blue transition-colors">
-              <?php _e('Next &rarr;', 'chroma-excellence'); ?>
-            </a>
-          <?php endif; ?>
-        </div>
+        <nav class="mt-12 flex flex-wrap justify-center gap-2" aria-label="<?php esc_attr_e('Stories pagination', 'chroma-excellence'); ?>">
+          <?php
+          echo wp_kses_post(
+            paginate_links(array(
+              'base' => add_query_arg('paged', '%#%'),
+              'format' => '',
+              'current' => max(1, $paged),
+              'total' => (int) $posts_query->max_num_pages,
+              'show_all' => true,
+              'prev_text' => __('&larr; Previous', 'chroma-excellence'),
+              'next_text' => __('Next &rarr;', 'chroma-excellence'),
+              'type' => 'plain',
+              'before_page_number' => '<span class="inline-flex min-w-11 h-11 items-center justify-center rounded-full border border-brand-ink/10 bg-white px-4 text-sm font-bold text-brand-ink hover:bg-brand-ink hover:text-white transition-colors">',
+              'after_page_number' => '</span>',
+            ))
+          );
+          ?>
+        </nav>
       <?php endif; ?>
 
     <?php else: ?>
@@ -193,6 +198,47 @@ get_header();
     <?php endif; ?>
 
     <?php wp_reset_postdata(); ?>
+
+    <div class="mt-16 rounded-[2.5rem] bg-white border border-chroma-blue/10 shadow-soft p-6 md:p-8">
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+        <a href="<?php echo esc_url(home_url('/programs/preschool/')); ?>" class="rounded-3xl bg-brand-cream border border-brand-ink/5 p-6 hover:-translate-y-1 transition-transform">
+          <h3 class="font-serif text-xl font-bold text-brand-ink"><?php esc_html_e('How Preschool Prepares Children for Kindergarten Success', 'chroma-excellence'); ?></h3>
+          <p class="mt-3 text-sm leading-relaxed text-brand-ink/70"><?php esc_html_e('A family-friendly look at routines, confidence, social skills, and early academics.', 'chroma-excellence'); ?></p>
+        </a>
+        <a href="<?php echo esc_url(home_url('/about/')); ?>" class="rounded-3xl bg-brand-cream border border-brand-ink/5 p-6 hover:-translate-y-1 transition-transform">
+          <h3 class="font-serif text-xl font-bold text-brand-ink"><?php esc_html_e("Early Education Expansion: Chroma Academy's 19 New Locations", 'chroma-excellence'); ?></h3>
+          <p class="mt-3 text-sm leading-relaxed text-brand-ink/70"><?php esc_html_e('How Chroma is growing its Metro Atlanta campus community while keeping care personal.', 'chroma-excellence'); ?></p>
+        </a>
+        <a href="<?php echo esc_url(home_url('/locations/ellenwood-campus/')); ?>" class="rounded-3xl bg-brand-cream border border-brand-ink/5 p-6 hover:-translate-y-1 transition-transform">
+          <h3 class="font-serif text-xl font-bold text-brand-ink"><?php esc_html_e('Childcare & Preschool in Ellenwood, GA', 'chroma-excellence'); ?></h3>
+          <p class="mt-3 text-sm leading-relaxed text-brand-ink/70"><?php esc_html_e('What families can expect from Chroma care in the Ellenwood community.', 'chroma-excellence'); ?></p>
+        </a>
+        <a href="<?php echo esc_url(home_url('/locations/south-cobb-campus-austell/')); ?>" class="rounded-3xl bg-brand-cream border border-brand-ink/5 p-6 hover:-translate-y-1 transition-transform">
+          <h3 class="font-serif text-xl font-bold text-brand-ink"><?php esc_html_e('Childcare & Preschool in Austell, GA — South Cobb Campus', 'chroma-excellence'); ?></h3>
+          <p class="mt-3 text-sm leading-relaxed text-brand-ink/70"><?php esc_html_e('A guide for families considering Chroma’s South Cobb campus in Austell.', 'chroma-excellence'); ?></p>
+        </a>
+        <a href="<?php echo esc_url(home_url('/locations/midway-campus/')); ?>" class="rounded-3xl bg-brand-cream border border-brand-ink/5 p-6 hover:-translate-y-1 transition-transform md:col-span-2 lg:col-span-1">
+          <h3 class="font-serif text-xl font-bold text-brand-ink"><?php esc_html_e('Secure the Best Childcare in Alpharetta, GA — Midway Campus', 'chroma-excellence'); ?></h3>
+          <p class="mt-3 text-sm leading-relaxed text-brand-ink/70"><?php esc_html_e('What to know about care, curriculum, and campus fit near Midway and Alpharetta.', 'chroma-excellence'); ?></p>
+        </a>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <section class="white borderY py-20 px-4 lg:px-6 bg-white border-y border-chroma-blue/10">
+    <div class="max-w-4xl mx-auto text-center">
+      <span class="text-chroma-red font-bold tracking-[0.2em] text-xs uppercase mb-3 block"><?php esc_html_e('Newsletter', 'chroma-excellence'); ?></span>
+      <h2 class="font-serif text-4xl md:text-5xl font-semibold tracking-[-0.035em] text-brand-ink mb-5">
+        <?php esc_html_e('Get the next guide in your inbox.', 'chroma-excellence'); ?>
+      </h2>
+      <p class="text-brand-ink/70 text-lg leading-relaxed mb-8">
+        <?php esc_html_e('Parenting tips, Chroma stories, and early learning resources delivered occasionally.', 'chroma-excellence'); ?>
+      </p>
+      <a href="<?php echo esc_url(home_url('/contact-us/')); ?>" class="inline-flex items-center justify-center px-8 py-4 rounded-full bg-brand-ink text-white text-xs font-bold uppercase tracking-[0.18em] shadow-soft">
+        <?php esc_html_e('Connect With Us', 'chroma-excellence'); ?>
+      </a>
+    </div>
   </section>
 </main>
 

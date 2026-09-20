@@ -205,7 +205,7 @@ foreach ($city_map as $city_name => $schools) {
 
     // 3. Create/Update Post
     // We do NOT generate HTML content anymore. The template handles it.
-    $page_title = "Best Daycare & Preschool in $city_name, GA | Chroma Early Learning";
+    $page_title = "Daycare & Preschool in $city_name, GA | Chroma Early Learning";
 
     $existing_page = get_page_by_title($city_name, OBJECT, 'city');
 
@@ -244,7 +244,7 @@ foreach ($city_map as $city_name => $schools) {
 
     // SEO Meta
     update_post_meta($post_id, '_yoast_wpseo_title', $page_title);
-    update_post_meta($post_id, '_yoast_wpseo_metadesc', "Looking for 5-star rated daycare in $city_name? Chroma offers accredited infant care, toddler programs, and Free GA Pre-K at convenient locations near you.");
+    update_post_meta($post_id, '_yoast_wpseo_metadesc', "Explore Chroma Early Learning daycare, preschool, infant care, toddler programs, and nearby locations serving $city_name, GA.");
 
     // Keywords
     $keywords = array("daycare $city_name", "preschool $city_name", "child care $city_name", "early learning $city_name");

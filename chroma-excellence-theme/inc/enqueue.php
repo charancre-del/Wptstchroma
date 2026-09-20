@@ -42,7 +42,7 @@ function chroma_should_load_maps()
                 return false;
         }
 
-        $should_load_maps = is_post_type_archive('location') || is_singular('location') || is_page('locations');
+        $should_load_maps = is_post_type_archive('location') || is_singular('location') || is_page('locations') || is_page_template('page-summer-camp.php');
 
         if (is_front_page() && function_exists('chroma_home_locations_preview')) {
                 $locations_preview = chroma_home_locations_preview();
@@ -183,7 +183,7 @@ function chroma_enqueue_assets()
         $script_dependencies = array();
         $skip_global_scripts = chroma_is_app_shell_route();
 
-        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome.css');
+        $fa_asset = chroma_get_theme_asset('assets/css/font-awesome-subset.css');
         wp_enqueue_style(
                 'chroma-font-awesome',
                 $fa_asset['url'],
@@ -191,6 +191,13 @@ function chroma_enqueue_assets()
                 $fa_asset['version'],
                 'all'
         );
+
+        // Standalone portal/QA shells own their layout CSS and runtime. Keep the
+        // local icon subset available, but avoid shipping the full marketing
+        // stylesheet and scripts into authenticated application routes.
+        if ($skip_global_scripts) {
+                return;
+        }
 
         // Chart.js - Removed global enqueue. Lazy loaded in main.js
         // via IntersectionObserver when #curriculum section is visible.
@@ -321,6 +328,12 @@ function chroma_enqueue_assets()
                         wp_script_add_data('chroma-map-facade', 'defer', true);
                 }
 
+                $map_layer_asset = chroma_get_theme_asset('assets/js/map-layer.js');
+                $map_layer_url = $map_layer_asset['url'];
+                if (!empty($map_layer_asset['version'])) {
+                        $map_layer_url = add_query_arg('ver', rawurlencode((string) $map_layer_asset['version']), $map_layer_url);
+                }
+
                 // Localize script for AJAX and dynamic data.
                 wp_localize_script(
                         'chroma-main-js',
@@ -329,6 +342,7 @@ function chroma_enqueue_assets()
                                 'ajaxUrl' => admin_url('admin-ajax.php'),
                                 'nonce' => wp_create_nonce('chroma_nonce'),
                                 'themeUrl' => CHROMA_THEME_URI,
+                                'mapLayerUrl' => $map_layer_url,
                                 'homeUrl' => home_url(),
                                 'viewCampus' => __('View campus', 'chroma-excellence'),
                         )
@@ -447,11 +461,17 @@ function chroma_async_styles($html, $handle, $href, $media)
         }
 
         // Effects bundle is non-critical; always load asynchronously.
-        // Other handles continue to load async on non-critical routes.
-        $html = str_replace("media='all'", "media='print' onload=\"this.media='all'\"", $html);
-        $html = str_replace('media="all"', "media='print' onload=\"this.media='all'\"", $html);
-        $html = str_replace("media='print'", "media='print' onload=\"this.media='all'\"", $html);
-        $html = str_replace('media="print"', "media='print' onload=\"this.media='all'\"", $html);
+        // Other handles continue to load async on non-critical routes. Replace
+        // the media attribute once so the generated tag never contains duplicate
+        // onload attributes.
+        if (strpos($html, "onload=\"this.media='all'\"") === false) {
+                $html = preg_replace(
+                        '/\smedia=(["\'])(?:all|print)\1/i',
+                        " media='print' onload=\"this.media='all'\"",
+                        $html,
+                        1
+                );
+        }
 
         if (strpos($html, '<noscript><link rel=') === false) {
                 $html .= "<noscript><link rel='stylesheet' href='" . esc_url($href) . "' media='all'></noscript>";
@@ -503,6 +523,10 @@ function chroma_dequeue_dashicons()
  */
 function chroma_preload_main_css()
 {
+        if (chroma_is_app_shell_route()) {
+                return;
+        }
+
         $main_css_asset = chroma_get_theme_asset('assets/css/main.css');
         $href = $main_css_asset['url'];
         if (!empty($main_css_asset['version'])) {
@@ -545,6 +569,21 @@ function chroma_dequeue_cdn_styles()
         }
 }
 add_action('wp_enqueue_scripts', 'chroma_dequeue_cdn_styles', 100);
+
+/**
+ * Keep standalone application routes free of marketing analytics/breadcrumbs.
+ */
+function chroma_dequeue_app_shell_marketing_assets()
+{
+        if (!chroma_is_app_shell_route()) {
+                return;
+        }
+
+        wp_dequeue_style('metasync-breadcrumbs');
+        wp_dequeue_script('metasync-tracker');
+        wp_dequeue_script('metasync');
+}
+add_action('wp_enqueue_scripts', 'chroma_dequeue_app_shell_marketing_assets', 9999);
 
 /**
  * Add performance attributes to enqueued scripts

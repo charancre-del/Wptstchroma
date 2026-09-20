@@ -463,11 +463,13 @@ function chroma_location_schema_pro()
     $rating_value = get_post_meta($location_id, 'seo_llm_rating_value', true) ?: get_post_meta($location_id, 'location_google_rating', true);
     $rating_count = get_post_meta($location_id, 'seo_llm_rating_count', true);
 
-    if ($rating_value) {
+    $rating_value = (float) $rating_value;
+    $rating_count = (int) $rating_count;
+    if ($rating_value >= 1 && $rating_value <= 5 && $rating_count > 0) {
         $schema['aggregateRating'] = array(
             '@type' => 'AggregateRating',
             'ratingValue' => $rating_value,
-            'reviewCount' => $rating_count ?: '1',
+            'reviewCount' => $rating_count,
             'bestRating' => '5',
             'worstRating' => '1'
         );
@@ -671,7 +673,7 @@ function chroma_city_faq_schema_output()
     $faq_items = array(
         array(
             'question' => "Do you offer GA Lottery Pre-K in $city?",
-            'answer' => "Yes! Our locations serving $city participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia."
+            'answer' => "Georgia Pre-K availability varies by campus. Contact the campus serving $city to confirm current eligibility, availability, and enrollment requirements."
         ),
         array(
             'question' => "Do you provide transportation from $city schools?",
@@ -692,7 +694,7 @@ function chroma_city_faq_schema_output()
         $faq_items = array(
             array(
                 'question' => "¿Ofrecen GA Lottery Pre-K en $city?",
-                'answer' => "¡Sí! Nuestras ubicaciones que sirven a $city participan en el programa Georgia Lottery Pre-K. Es gratuito para todos los niños de 4 años que viven en Georgia."
+                'answer' => "La disponibilidad de Georgia Pre-K varía según el campus. Comuníquese con el campus que atiende a $city para confirmar los requisitos y la disponibilidad actuales."
             ),
             array(
                 'question' => "¿Proporcionan transporte desde las escuelas de $city?",

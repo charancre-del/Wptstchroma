@@ -19,7 +19,8 @@ class Chroma_Geographic_SEO
         add_action('init', [$this, 'add_service_area_rewrites']);
         add_filter('query_vars', [$this, 'add_query_vars']);
         add_action('template_redirect', [$this, 'handle_service_area_page']);
-        add_filter('chroma_sitemap_urls', [$this, 'add_service_areas_to_unified_sitemap']);
+        // Service-area routes remain available for UX/backward compatibility,
+        // but are intentionally excluded from the unified sitemap.
         add_action('admin_menu', [$this, 'add_admin_page'], 30);
     }
     
@@ -306,7 +307,6 @@ class Chroma_Geographic_SEO
             return $urls;
         }
 
-        $base = rtrim(home_url('/'), '/');
         foreach (Chroma_Virtual_Page_SEO_Data::service_area_candidates() as $item) {
             $url = isset($item['url']) ? (string) $item['url'] : '';
             if ($url === '') {
@@ -319,20 +319,6 @@ class Chroma_Geographic_SEO
                 'lastmod' => $lastmod,
             ];
 
-            $es_url = str_replace($base . '/', $base . '/es/', $url);
-            if ($es_url === $url) {
-                $path = (string) wp_parse_url($url, PHP_URL_PATH);
-                if ($path !== '') {
-                    $es_url = home_url('/es/' . ltrim($path, '/'));
-                }
-            }
-
-            if ($es_url !== $url) {
-                $urls[] = [
-                    'loc' => $es_url,
-                    'lastmod' => $lastmod,
-                ];
-            }
         }
 
         return $urls;

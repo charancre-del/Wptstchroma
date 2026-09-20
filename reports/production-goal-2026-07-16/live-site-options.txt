@@ -1,0 +1,4 @@
+﻿/%year%/%monthnum%/%day%/%postname%/
+1
+https://chromaela.com
+https://chromaela.com

@@ -66,14 +66,46 @@ class Chroma_Entity_SEO
      * Add semantic markup to content
      */
     public function add_semantic_markup($content) {
-        // Wrap numbers that look like phone numbers
-        $content = preg_replace(
-            '/(\(?(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4}))/',
-            '<span itemscope itemtype="https://schema.org/telephone">$1</span>',
-            $content
-        );
-        
-        return $content;
+        if (!is_string($content) || $content === '') {
+            return $content;
+        }
+
+        $phone_regex = '/(\(?(\d{3})\)?[\s.-]?(\d{3})[\s.-]?(\d{4}))/';
+        $parts       = preg_split('/(<[^>]+>)/', $content, -1, PREG_SPLIT_DELIM_CAPTURE);
+
+        if (!is_array($parts)) {
+            return $content;
+        }
+
+        $skip_text = false;
+
+        foreach ($parts as $index => $part) {
+            if ($part === '') {
+                continue;
+            }
+
+            if ($part[0] === '<') {
+                if (preg_match('/^<\s*(script|style)\b/i', $part)) {
+                    $skip_text = true;
+                } elseif (preg_match('/^<\s*\/\s*(script|style)\s*>/i', $part)) {
+                    $skip_text = false;
+                }
+
+                continue;
+            }
+
+            if ($skip_text) {
+                continue;
+            }
+
+            $parts[$index] = preg_replace(
+                $phone_regex,
+                '<span itemscope itemtype="https://schema.org/telephone">$1</span>',
+                $part
+            );
+        }
+
+        return implode('', $parts);
     }
     
     /**

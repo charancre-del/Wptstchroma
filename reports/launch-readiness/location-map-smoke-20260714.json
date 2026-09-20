@@ -1,0 +1,92 @@
+[
+  {
+    "profile": "desktop",
+    "mapReady": true,
+    "popupText": "Chadwick Campus Lawrenceville, GA 1479 Purcell Rd, Lawrenceville, GA 30043 +14706134403 info@chromaela.com View campus ×",
+    "popupStyle": "opacity: 1; transform: translate3d(679px, 315px, 0px); bottom: 18px; left: -153px;",
+    "popupParentClass": "leaflet-pane leaflet-popup-pane",
+    "popupParentStyle": "",
+    "mapRect": {
+      "top": 121,
+      "right": 1392,
+      "bottom": 823,
+      "left": 33,
+      "width": 1359,
+      "height": 702
+    },
+    "popupRect": {
+      "top": 289,
+      "right": 865,
+      "bottom": 562,
+      "left": 559,
+      "width": 306,
+      "height": 273
+    },
+    "headerRect": {
+      "top": 0,
+      "right": 1425,
+      "bottom": 96,
+      "left": 0,
+      "width": 1425,
+      "height": 96
+    },
+    "popupInsideMap": true,
+    "popupBelowHeader": true,
+    "markerImage": "https://x3yyntt5tp-staging.wpdns.site/wp-content/themes/chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/marker-icon-2x.png",
+    "tileCount": 8,
+    "status": "Closest campuses sorted by distance.",
+    "firstDistance": "Roswell Campus                                    \n                                                                            \n                                            Roswell, GA                                        \n                                                                                                                \n                                            1255 Upper Hembree Rd                                        \n                                                                        \n                                        Click card to zoom map                                    \n                                    3.8 mi away\n                                \n\n                                \n                                                                            \n                                            470-684-6067                                        \n                                                                                                                \n                                            View campus",
+    "localLeafletRequests": [
+      "https://x3yyntt5tp-staging.wpdns.site/wp-content/themes/chroma-excellence-theme/assets/vendor/leaflet-1.9.4/leaflet.min.css",
+      "https://x3yyntt5tp-staging.wpdns.site/wp-content/themes/chroma-excellence-theme/assets/vendor/leaflet-1.9.4/leaflet.min.js",
+      "https://x3yyntt5tp-staging.wpdns.site/wp-content/themes/chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/marker-icon-2x.png"
+    ],
+    "unpkgRequests": [],
+    "pass": true
+  },
+  {
+    "profile": "mobile",
+    "mapReady": true,
+    "popupText": "Chadwick Campus Lawrenceville, GA 1479 Purcell Rd, Lawrenceville, GA 30043 +14706134403 info@chromaela.com View campus ×",
+    "popupStyle": "opacity: 1; transform: translate3d(170px, 171px, 0px); bottom: 18px; left: -137px; --chroma-popup-left: 34px; --chroma-popup-top: 8px;",
+    "popupParentClass": "leaflet-pane leaflet-popup-pane",
+    "popupParentStyle": "",
+    "mapRect": {
+      "top": 105,
+      "right": 358,
+      "bottom": 519,
+      "left": 17,
+      "width": 341,
+      "height": 414
+    },
+    "popupRect": {
+      "top": 113,
+      "right": 325,
+      "bottom": 306,
+      "left": 51,
+      "width": 274,
+      "height": 194
+    },
+    "headerRect": {
+      "top": 0,
+      "right": 375,
+      "bottom": 80,
+      "left": 0,
+      "width": 375,
+      "height": 80
+    },
+    "popupInsideMap": true,
+    "popupBelowHeader": true,
+    "markerImage": "https://x3yyntt5tp-staging.wpdns.site/wp-content/themes/chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/marker-icon-2x.png",
+    "tileCount": 9,
+    "status": "Closest campuses sorted by distance.",
+    "firstDistance": "Roswell Campus                                    \n                                                                            \n                                            Roswell, GA                                        \n                                                                                                                \n                                            1255 Upper Hembree Rd                                        \n                                                                        \n                                        Click card to zoom map                                    \n                                    3.8 mi away\n                                \n\n                                \n                                                                            \n                                            470-684-6067                                        \n                                                                                                                \n                                            View campus",
+    "localLeafletRequests": [
+      "https://x3yyntt5tp-staging.wpdns.site/wp-content/themes/chroma-excellence-theme/assets/vendor/leaflet-1.9.4/leaflet.min.css",
+      "https://x3yyntt5tp-staging.wpdns.site/wp-content/themes/chroma-excellence-theme/assets/vendor/leaflet-1.9.4/leaflet.min.js",
+      "https://x3yyntt5tp-staging.wpdns.site/wp-content/themes/chroma-excellence-theme/assets/vendor/leaflet-1.9.4/images/marker-icon-2x.png"
+    ],
+    "unpkgRequests": [],
+    "pass": true
+  }
+]

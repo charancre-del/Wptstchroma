@@ -14,7 +14,6 @@ if (!defined('ABSPATH')) {
 class Chroma_Footer_City_Links
 {
     public function __construct() {
-        add_action('wp_footer', [$this, 'render_footer_links'], 5);
         add_action('widgets_init', [$this, 'register_widget']);
         add_action('save_post_location', [$this, 'clear_cache']);
     }
@@ -81,7 +80,7 @@ class Chroma_Footer_City_Links
      * Render footer links
      */
     public function render_footer_links() {
-        if (!get_option('chroma_seo_show_footer_cities', true)) {
+        if (!get_option('chroma_seo_show_footer_cities', false)) {
             return;
         }
         

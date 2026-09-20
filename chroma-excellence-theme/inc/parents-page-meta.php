@@ -145,11 +145,10 @@ function chroma_parents_resources_meta_box_render($post)
     $essentials_title = get_post_meta($post->ID, 'parents_essentials_title', true);
 
     $resources = array(
-        'procare' => 'Family App (Procare)',
+        'procare' => 'Family Communication App (LineLeader)',
         'tuition' => 'Pay Tuition',
         'handbook' => 'Parent Handbook',
         'enrollment' => 'Enrollment Forms',
-        'prekga' => 'Pre-K GA',
         'waitlist' => 'Join Waitlist',
     );
     ?>
@@ -939,11 +938,11 @@ function chroma_seed_parents_page_defaults($post_id)
         'parents_faq2_answer' => 'Yes! We offer 2-day, 3-day, and 5-day programs to accommodate different family schedules.',
 
         'parents_faq3_question' => 'What is the late pickup policy?',
-        'parents_faq3_answer' => 'We close promptly at 6:00 PM. A late fee of $1 per minute is charged to your account for pickups after 6:05 PM to compensate our staff who stay late.',
+        'parents_faq3_answer' => 'Operating hours and late-pickup policies vary by campus. Please review your enrollment agreement or contact your campus Director for the current schedule and applicable fees.',
 
         // Referral Banner
         'parents_referral_title' => 'Love the Chroma family?',
-        'parents_referral_description' => 'Refer a friend and receive a <strong>$100 tuition credit</strong> when they enroll.',
+		'parents_referral_description' => 'Refer a friend and receive a <strong>$100 account credit</strong> when they enroll.',
         'parents_referral_button_text' => 'Refer a Friend',
         'parents_referral_button_url' => 'mailto:director@chromaela.com?subject=Parent%20Referral',
     );

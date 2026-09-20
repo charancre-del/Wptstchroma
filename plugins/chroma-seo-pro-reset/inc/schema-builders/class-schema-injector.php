@@ -511,11 +511,13 @@ class Chroma_Schema_Injector
         // Aggregate Rating
         $rating = get_post_meta($location_id, 'location_google_rating', true);
         $review_count = get_post_meta($location_id, 'seo_llm_rating_count', true);
-        if ($rating) {
+        $rating = (float) $rating;
+        $review_count = (int) $review_count;
+        if ($rating >= 1 && $rating <= 5 && $review_count > 0) {
             $schema['aggregateRating'] = [
                 '@type' => 'AggregateRating',
                 'ratingValue' => $rating,
-                'reviewCount' => $review_count ?: '1',
+                'reviewCount' => $review_count,
                 'bestRating' => '5',
                 'worstRating' => '1'
             ];

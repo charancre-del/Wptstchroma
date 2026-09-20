@@ -60,11 +60,11 @@ const Settings = () => {
         if ( settings ) {
             setFormData( {
                 google_client_id: settings.google_client_id || '',
-                google_client_secret: settings.google_client_secret || '',
-                gemini_api_key: settings.gemini_api_key || '',
+                google_client_secret: '',
+                gemini_api_key: '',
                 enable_ai: settings.enable_ai || 'yes',
                 monday_enabled: settings.monday_enabled || 'no',
-                monday_api_token: settings.monday_api_token || '',
+                monday_api_token: '',
                 monday_auto_sync_on_approval: settings.monday_auto_sync_on_approval || 'yes',
                 monday_default_status_label: settings.monday_default_status_label || 'Not Started',
                 monday_workspace_id: settings.monday_workspace_id || '',
@@ -118,7 +118,7 @@ const Settings = () => {
     };
 
     const persistSettingsForMonday = async () => {
-        if ( ! formData.monday_api_token ) {
+        if ( ! formData.monday_api_token && ! settings?.monday_api_token_configured ) {
             throw new Error( 'Save or enter a monday.com API token first.' );
         }
 
@@ -294,9 +294,14 @@ const Settings = () => {
                                     id="google_client_secret"
                                     name="google_client_secret"
                                     value={ formData.google_client_secret }
+                                    placeholder={
+                                        settings?.google_client_secret_configured
+                                            ? 'Configured — leave blank to keep'
+                                            : 'Enter a client secret'
+                                    }
+                                    autoComplete="new-password"
                                     onChange={ handleChange }
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                                    placeholder="OAuth Client Secret"
                                 />
                             </div>
                         </div>
@@ -352,7 +357,12 @@ const Settings = () => {
                                         value={ formData.gemini_api_key }
                                         onChange={ handleChange }
                                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition-all"
-                                        placeholder="AI API Key"
+                                        placeholder={
+                                            settings?.gemini_api_key_configured
+                                                ? 'Configured — leave blank to keep'
+                                                : 'Enter an AI API key'
+                                        }
+                                        autoComplete="new-password"
                                     />
                                 </div>
                             </div>
@@ -404,9 +414,14 @@ const Settings = () => {
                                     id="monday_api_token"
                                     name="monday_api_token"
                                     value={ formData.monday_api_token }
+                                    placeholder={
+                                        settings?.monday_api_token_configured
+                                            ? 'Configured — leave blank to keep'
+                                            : 'Enter an API token'
+                                    }
+                                    autoComplete="new-password"
                                     onChange={ handleChange }
                                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none transition-all"
-                                    placeholder="monday.com admin token"
                                 />
                             </div>
                         </div>
@@ -447,7 +462,10 @@ const Settings = () => {
                             <button
                                 type="button"
                                 onClick={ handleTestMonday }
-                                disabled={ mondayTestMutation.isPending || ! formData.monday_api_token }
+                                disabled={
+                                    mondayTestMutation.isPending ||
+                                    ( ! formData.monday_api_token && ! settings?.monday_api_token_configured )
+                                }
                                 className="px-4 py-2 rounded-lg border border-amber-300 text-amber-800 hover:bg-amber-100 disabled:opacity-50 transition-colors"
                             >
                                 { mondayTestMutation.isPending ? 'Testing...' : 'Test Connection' }
@@ -504,7 +522,10 @@ const Settings = () => {
                                 <button
                                     type="button"
                                     onClick={ handleLoadWorkspaces }
-                                    disabled={ mondayWorkspacesMutation.isPending || ! formData.monday_api_token }
+                                    disabled={
+                                        mondayWorkspacesMutation.isPending ||
+                                        ( ! formData.monday_api_token && ! settings?.monday_api_token_configured )
+                                    }
                                     className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:opacity-50 flex items-center gap-2 text-sm transition-colors"
                                 >
                                     <RefreshCcw
@@ -526,7 +547,10 @@ const Settings = () => {
                             <button
                                 type="button"
                                 onClick={ handleLoadBoards }
-                                disabled={ mondayBoardsMutation.isPending || ! formData.monday_api_token }
+                                disabled={
+                                    mondayBoardsMutation.isPending ||
+                                    ( ! formData.monday_api_token && ! settings?.monday_api_token_configured )
+                                }
                                 className="px-4 py-2 rounded-lg border border-amber-300 text-amber-800 hover:bg-amber-100 disabled:opacity-50 flex items-center gap-2 transition-colors"
                             >
                                 <RefreshCcw

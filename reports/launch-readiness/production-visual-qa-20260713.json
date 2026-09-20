@@ -1,0 +1,3252 @@
+[
+  {
+    "routeName": "home",
+    "route": "/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Academy | Top Daycare & Preschool in Metro Atlanta",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-10.top-10",
+        "left": -40,
+        "right": 280,
+        "width": 320
+      },
+      {
+        "selector": "div.chroma-schedule-tabs.bg-white.border",
+        "left": 177,
+        "right": 1505,
+        "width": 1328
+      },
+      {
+        "selector": "button.schedule-tab.px-8.py-3",
+        "left": 1326,
+        "right": 1500,
+        "width": 174
+      },
+      {
+        "selector": "article.w-full.flex-shrink-0.chroma-review-card",
+        "left": 1329,
+        "right": 2090,
+        "width": 761
+      },
+      {
+        "selector": "blockquote",
+        "left": 1372,
+        "right": 2046,
+        "width": 674
+      },
+      {
+        "selector": "div.flex.items-center.gap-4",
+        "left": 1372,
+        "right": 2046,
+        "width": 674
+      },
+      {
+        "selector": "div.chroma-review-avatar",
+        "left": 1372,
+        "right": 1445,
+        "width": 73
+      },
+      {
+        "selector": "div",
+        "left": 1461,
+        "right": 1614,
+        "width": 153
+      },
+      {
+        "selector": "strong.text-brand-ink",
+        "left": 1461,
+        "right": 1507,
+        "width": 46
+      },
+      {
+        "selector": "span.text-brand-ink\\/65",
+        "left": 1461,
+        "right": 1614,
+        "width": 153
+      },
+      {
+        "selector": "article.w-full.flex-shrink-0.chroma-review-card",
+        "left": 2090,
+        "right": 2851,
+        "width": 761
+      },
+      {
+        "selector": "blockquote",
+        "left": 2133,
+        "right": 2807,
+        "width": 674
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049758827&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGAC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/546/817.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/546/818.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/545/816.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/546/816.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/547/817.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/547/818.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/546/819.png",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/544/816.png",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/547/816.png",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/547/819.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/544/818.png"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "about",
+    "route": "/about/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/about/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "About Chroma Early Learning Academy: Mission, Values & Tours",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [
+      "main-content"
+    ],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049763011&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=6&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "curriculum",
+    "route": "/curriculum/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/curriculum/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "PrismPath Curriculum | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049766840&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=11&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "parents",
+    "route": "/parents/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/parents/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parents | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-20.bottom-0",
+        "left": -80,
+        "right": 208,
+        "width": 288
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 1323,
+        "right": 2543,
+        "width": 1220
+      },
+      {
+        "selector": "img",
+        "left": 1323,
+        "right": 2543,
+        "width": 1220
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 2543,
+        "right": 3763,
+        "width": 1220
+      },
+      {
+        "selector": "img",
+        "left": 2543,
+        "right": 3763,
+        "width": 1220
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 3763,
+        "right": 4983,
+        "width": 1220
+      },
+      {
+        "selector": "img",
+        "left": 3763,
+        "right": 4983,
+        "width": 1220
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 4983,
+        "right": 6203,
+        "width": 1220
+      },
+      {
+        "selector": "img",
+        "left": 4983,
+        "right": 6203,
+        "width": 1220
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 6203,
+        "right": 7423,
+        "width": 1220
+      },
+      {
+        "selector": "img",
+        "left": 6203,
+        "right": 7423,
+        "width": 1220
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 7423,
+        "right": 8643,
+        "width": 1220
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049769542&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=7&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "programs",
+    "route": "/programs/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Programs | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049772407&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=14&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "program-single",
+    "route": "/programs/rising-kindergarten/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/rising-kindergarten/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Rising Kindergarten | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049774550&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=17&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "locations",
+    "route": "/locations/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/locations/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Locations | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -77,
+        "right": 179,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 1203,
+        "right": 1459,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -77,
+        "right": 179,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 1203,
+        "right": 1459,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -77,
+        "right": 179,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 1203,
+        "right": 1459,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -77,
+        "right": 179,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 1203,
+        "right": 1459,
+        "width": 256
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/545/816.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/546/816.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/547/817.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/547/818.png",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/544/816.png",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/547/816.png",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/547/819.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/548/817.png",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/548/818.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/543/816.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/548/816.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/548/819.png"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "location-single",
+    "route": "/locations/parklake-campus/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/locations/parklake-campus/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parklake Campus, Atlanta GA | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -141,
+        "right": 754,
+        "width": 894
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -141,
+        "right": 306,
+        "width": 447
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -141,
+        "right": 306,
+        "width": 447
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049779319&em=tv.1~em.rPMWAEI1IrYlFqcayxALQJ9XQaLqw8bVr3V47CWB3Ak&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=9&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "city-single",
+    "route": "/childcare/lafayette/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/childcare/lafayette/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Daycare Near Me LaFayette GA | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 1233,
+        "right": 1617,
+        "width": 384
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049782833&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=4&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "contact",
+    "route": "/contact-us/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/contact-us/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Contact Us | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 1092,
+        "right": 1592,
+        "width": 500
+      },
+      {
+        "selector": "div.absolute.bottom-0.left-0",
+        "left": -133,
+        "right": 267,
+        "width": 400
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://api.leadconnectorhq.com/widget/form/848tl2LjoZVsUIhhNOxd",
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049785122&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=19&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "schedule-tour",
+    "route": "/schedule-a-tour/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/schedule-a-tour/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Schedule a Tour | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049787456&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AgAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en",
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049787456&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAgAAGQC&_prs=ok&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw",
+      "net::ERR_ABORTED https://www.google.com/measurement/1p-conversion/?random=1755330645&cv=11&tid=G-KNBS4JH2FH&fst=1784049788260&fmt=8&en=ads_conversion_Submit_lead_form_1&gtm=45be67d0v9219676262za200zb9254310851zd9254310851xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=115938466~115938468~118826209~118897920~118897930~119027224~119709549~119773331&u_w=800&u_h=600&url=https%3A%2F%2Fx3yyntt5tp-staging.wpdns.site%2Fschedule-a-tour%2F%3Fcodex_prodqa%3D0713&gacid=367909611.1784049760&frm=0&tiba=Schedule%20a%20Tour"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "summer-camp",
+    "route": "/summer-camp-discover-go/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/summer-camp-discover-go/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Summer Camp Discover, Go! | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-20.bottom-0",
+        "left": -80,
+        "right": 208,
+        "width": 288
+      },
+      {
+        "selector": "div.absolute.-right-20.-top-20",
+        "left": 1121,
+        "right": 1505,
+        "width": 384
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049790175&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=2&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "early-start",
+    "route": "/chroma-early-start/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/chroma-early-start/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Early Start | Pediatric Therapy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049793692&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=3&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "careers",
+    "route": "/careers/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/careers/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Careers | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049796498&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=5&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938465~115938469~118826210~118"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "career-single",
+    "route": "/career/assistant-director-childcare-center/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/career/assistant-director-childcare-center/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Assistant Director Childcare Center | Chroma Early Learning Academy",
+    "statusText": "Back to Stories\nBook Tour\nSTORIES\n•\nJUL 9, 2026\nAssistant Director Childcare Cen",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049800045&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=8&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938465~115938469~118395333~118"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "employers",
+    "route": "/employers/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/employers/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Employer Childcare Solutions | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049802537&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=7&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "communities",
+    "route": "/communities/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/communities/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Communities | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049804423&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=1&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "blog",
+    "route": "/blog/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/blog/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Stories & Parenting Tips | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049808036&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=15&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "post-single",
+    "route": "/2026/05/22/georgia-pre-k-parent-guide/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/2026/05/22/georgia-pre-k-parent-guide/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Georgia Pre-K Parent Guide: Everything You Need to Know for 2026 | Chroma Early Learning Academy",
+    "statusText": "Back to Stories\nBook Tour\nUNCATEGORIZED\n•\nMAY 22, 2026\nGeorgia Pre-K Parent Guid",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 2,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [
+      "Framing 'https://www.google.com/' violates the following report-only Content Security Policy directive: \"frame-ancestors 'self'\". The violation has been logged, but no further action has been taken.\n"
+    ],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049809801&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938466~115938469~118826209~11",
+      "net::ERR_BLOCKED_BY_ORB https://csp.withgoogle.com/csp/frame-ancestors/38fac9d5b82543fc4729580d18ff2d3d"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "newsroom",
+    "route": "/newsroom/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/newsroom/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Newsroom | Chroma Early Learning Academy",
+    "statusText": "NEWSROOM\nStories (Blog)\nMedia Contact\nPress & Announcements\n\nLatest updates from",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049813486&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=2&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115616986~115938465~115938469~118"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "stories",
+    "route": "/stories/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/stories/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Stories & Parenting Tips | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049814787&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=6&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "privacy",
+    "route": "/privacy-policy/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/privacy-policy/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Privacy Policy | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049816543&em=tv.1~em.FJf1TiP-5iDUiy0k0Vow7rRZu76vOXhwzB4wU48Uww0&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=3&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "terms",
+    "route": "/terms-of-service/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/terms-of-service/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Terms of Service | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049818248&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=0&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "parent-portal",
+    "route": "/parent-portal/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/parent-portal/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parent Portal | Chroma",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nAbout us\nPrismPath\nParents\nProgram",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 1084,
+        "right": 1596,
+        "width": 512
+      },
+      {
+        "selector": "div.absolute.bottom-0.left-0",
+        "left": -139,
+        "right": 277,
+        "width": 416
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "director-portal",
+    "route": "/portal/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/portal/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Director Portal | Chroma Early Learning",
+    "statusText": "Director Portal\n\nSign in to manage your school's display.\n\nGoogle Sign-In needs ",
+    "documentWidth": 1440,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 0,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "qa-reports",
+    "route": "/qa-reports/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/qa-reports/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Early Learning Academy - QA Reports",
+    "statusText": "📋\nQA Reports\n\nSign in to continue\n\nUsername or Email\nPassword\nRemember me\nSign ",
+    "documentWidth": 1440,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "not-found",
+    "route": "/codex-production-qa-not-found/",
+    "viewport": "desktop",
+    "width": 1440,
+    "height": 1000,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/codex-production-qa-not-found/?codex_prodqa=0713",
+    "status": 404,
+    "loadError": "",
+    "title": "Page not found | Chroma Early Learning Academy",
+    "statusText": "404\nRuh-roh! This page is playing hide-and-seek.\n\nWe've checked the toy bin, loo",
+    "documentWidth": 1425,
+    "viewportWidth": 1440,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049824814&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=18&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938465~115938469~11882"
+    ],
+    "screenshot": "qa-screenshots\\production\\not-found-desktop.png"
+  },
+  {
+    "routeName": "home",
+    "route": "/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Academy | Top Daycare & Preschool in Metro Atlanta",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-10.top-10",
+        "left": -40,
+        "right": 280,
+        "width": 320
+      },
+      {
+        "selector": "button",
+        "left": 754,
+        "right": 895,
+        "width": 141
+      },
+      {
+        "selector": "button",
+        "left": 906,
+        "right": 1168,
+        "width": 262
+      },
+      {
+        "selector": "button",
+        "left": 1178,
+        "right": 1325,
+        "width": 146
+      },
+      {
+        "selector": "button",
+        "left": 1335,
+        "right": 1466,
+        "width": 131
+      },
+      {
+        "selector": "button",
+        "left": 1476,
+        "right": 1675,
+        "width": 199
+      },
+      {
+        "selector": "button",
+        "left": 1686,
+        "right": 1857,
+        "width": 171
+      },
+      {
+        "selector": "div.chroma-schedule-tabs.bg-white.border",
+        "left": 32,
+        "right": 1360,
+        "width": 1328
+      },
+      {
+        "selector": "button.schedule-tab.px-8.py-3",
+        "left": 772,
+        "right": 916,
+        "width": 143
+      },
+      {
+        "selector": "button.schedule-tab.px-8.py-3",
+        "left": 924,
+        "right": 1174,
+        "width": 250
+      },
+      {
+        "selector": "button.schedule-tab.px-8.py-3",
+        "left": 1182,
+        "right": 1355,
+        "width": 174
+      },
+      {
+        "selector": "div.sun",
+        "left": -22,
+        "right": 50,
+        "width": 72
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049826413&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=2&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/546/818.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/546/819.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/544/817.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/545/817.png"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "about",
+    "route": "/about/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/about/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "About Chroma Early Learning Academy: Mission, Values & Tours",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [
+      "main-content"
+    ],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049830744&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=10&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "curriculum",
+    "route": "/curriculum/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/curriculum/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "PrismPath Curriculum | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "button",
+        "left": 790,
+        "right": 854,
+        "width": 65
+      },
+      {
+        "selector": "button",
+        "left": 862,
+        "right": 989,
+        "width": 127
+      },
+      {
+        "selector": "button",
+        "left": 997,
+        "right": 1083,
+        "width": 86
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049833851&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=16&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "parents",
+    "route": "/parents/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/parents/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parents | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-20.bottom-0",
+        "left": -80,
+        "right": 208,
+        "width": 288
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 773,
+        "right": 1500,
+        "width": 727
+      },
+      {
+        "selector": "img",
+        "left": 773,
+        "right": 1500,
+        "width": 727
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 1500,
+        "right": 2227,
+        "width": 727
+      },
+      {
+        "selector": "img",
+        "left": 1500,
+        "right": 2227,
+        "width": 727
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 2227,
+        "right": 2954,
+        "width": 727
+      },
+      {
+        "selector": "img",
+        "left": 2227,
+        "right": 2954,
+        "width": 727
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 2954,
+        "right": 3681,
+        "width": 727
+      },
+      {
+        "selector": "img",
+        "left": 2954,
+        "right": 3681,
+        "width": 727
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 3681,
+        "right": 4408,
+        "width": 727
+      },
+      {
+        "selector": "img",
+        "left": 3681,
+        "right": 4408,
+        "width": 727
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 4408,
+        "right": 5135,
+        "width": 727
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049835559&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=17&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "programs",
+    "route": "/programs/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Programs | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049837216&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=7&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "program-single",
+    "route": "/programs/rising-kindergarten/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/rising-kindergarten/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Rising Kindergarten | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049838449&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=8&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "locations",
+    "route": "/locations/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/locations/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Locations | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -113,
+        "right": 143,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 655,
+        "right": 911,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -113,
+        "right": 143,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 655,
+        "right": 911,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -113,
+        "right": 143,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 655,
+        "right": 911,
+        "width": 256
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/546/818.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/547/817.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/547/818.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/544/817.png",
+      "net::ERR_ABORTED https://b.tile.openstreetmap.org/11/542/818.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/542/817.png",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/545/817.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/542/819.png",
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049839895&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=17&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "location-single",
+    "route": "/locations/parklake-campus/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/locations/parklake-campus/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parklake Campus, Atlanta GA | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -276,
+        "right": 525,
+        "width": 801
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -276,
+        "right": 525,
+        "width": 801
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -276,
+        "right": 124,
+        "width": 401
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -276,
+        "right": 124,
+        "width": 401
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -77,
+        "right": 123,
+        "width": 200
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -77,
+        "right": 123,
+        "width": 200
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -77,
+        "right": 123,
+        "width": 200
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049841335&em=tv.1~em.rPMWAEI1IrYlFqcayxALQJ9XQaLqw8bVr3V47CWB3Ak&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=5&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-",
+      "net::ERR_ABORTED https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LeDBFwpAAAAAJe8ux9-imrqZ2ueRsEtdiWoDDpX&co=aHR0cHM6Ly9hcGkubGVhZGNvbm5lY3RvcmhxLmNvbTo0NDM.&hl=en&v=rL1ELiQAg1kPezz6_H9hTZ_i&size=invisible&anchor-ms=20000&execute-ms=30000&cb=wp9y3jw3wnap",
+      "net::ERR_ABORTED https://backend.leadconnectorhq.com/forms/form-survey-event"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "city-single",
+    "route": "/childcare/lafayette/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/childcare/lafayette/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Daycare Near Me LaFayette GA | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 627,
+        "right": 1011,
+        "width": 384
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049843766&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=4&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "contact",
+    "route": "/contact-us/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/contact-us/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Contact Us | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 486,
+        "right": 986,
+        "width": 500
+      },
+      {
+        "selector": "div.absolute.bottom-0.left-0",
+        "left": -133,
+        "right": 267,
+        "width": 400
+      },
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 641,
+        "right": 897,
+        "width": 256
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049845720&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=6&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-",
+      "net::ERR_ABORTED https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LeDBFwpAAAAAJe8ux9-imrqZ2ueRsEtdiWoDDpX&co=aHR0cHM6Ly9hcGkubGVhZGNvbm5lY3RvcmhxLmNvbTo0NDM.&hl=en&v=rL1ELiQAg1kPezz6_H9hTZ_i&size=invisible&anchor-ms=20000&execute-ms=30000&cb=6fi26i1o4o9s",
+      "net::ERR_ABORTED https://stcdn.leadconnectorhq.com/libphonenumber/1.12.41/libphonenumber-js.min.js"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "schedule-tour",
+    "route": "/schedule-a-tour/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/schedule-a-tour/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Schedule a Tour | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049847730&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AgAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en",
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049847730&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAgAAGQC&_prs=ok&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw",
+      "net::ERR_ABORTED https://www.google.com/measurement/1p-conversion/?random=1430371198&cv=11&tid=G-KNBS4JH2FH&fst=1784049848186&fmt=8&en=ads_conversion_Submit_lead_form_1&gtm=45be67d0v9219676262za200zb9254310851zd9254310851xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=115938465~115938469~118826210~118897920~118897930~119027224~119724322&u_w=800&u_h=600&url=https%3A%2F%2Fx3yyntt5tp-staging.wpdns.site%2Fschedule-a-tour%2F%3Fcodex_prodqa%3D0713&gacid=367909611.1784049760&frm=0&tiba=Schedule%20a%20Tour%20%7C%20C"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "summer-camp",
+    "route": "/summer-camp-discover-go/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/summer-camp-discover-go/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Summer Camp Discover, Go! | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-20.bottom-0",
+        "left": -80,
+        "right": 208,
+        "width": 288
+      },
+      {
+        "selector": "div.absolute.-right-20.-top-20",
+        "left": 515,
+        "right": 899,
+        "width": 384
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049849826&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "early-start",
+    "route": "/chroma-early-start/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/chroma-early-start/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Early Start | Pediatric Therapy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049852416&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=14&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "careers",
+    "route": "/careers/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/careers/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Careers | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049854229&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "career-single",
+    "route": "/career/assistant-director-childcare-center/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/career/assistant-director-childcare-center/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Assistant Director Childcare Center | Chroma Early Learning Academy",
+    "statusText": "Back to Stories\nBook Tour\nSTORIES\n•\nJUL 9, 2026\nAssistant Director Childcare Cen",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049856583&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=10&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938466~115938468~118826210~11"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "employers",
+    "route": "/employers/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/employers/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Employer Childcare Solutions | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 714,
+        "right": 842,
+        "width": 128
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049858918&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=5&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "communities",
+    "route": "/communities/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/communities/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Communities | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049860372&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=10&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "blog",
+    "route": "/blog/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/blog/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Stories & Parenting Tips | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049863465&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=8&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "post-single",
+    "route": "/2026/05/22/georgia-pre-k-parent-guide/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/2026/05/22/georgia-pre-k-parent-guide/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Georgia Pre-K Parent Guide: Everything You Need to Know for 2026 | Chroma Early Learning Academy",
+    "statusText": "Back to Stories\nBook Tour\nUNCATEGORIZED\n•\nMAY 22, 2026\nGeorgia Pre-K Parent Guid",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 2,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [
+      "Framing 'https://www.google.com/' violates the following report-only Content Security Policy directive: \"frame-ancestors 'self'\". The violation has been logged, but no further action has been taken.\n"
+    ],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049865256&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=14&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938466~115938469~118826210~11",
+      "net::ERR_BLOCKED_BY_ORB https://csp.withgoogle.com/csp/frame-ancestors/38fac9d5b82543fc4729580d18ff2d3d"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "newsroom",
+    "route": "/newsroom/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/newsroom/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Newsroom | Chroma Early Learning Academy",
+    "statusText": "NEWSROOM\nStories (Blog)\nMedia Contact\nPress & Announcements\n\nLatest updates from",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049868365&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=9&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938466~115938468~118826210~118"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "stories",
+    "route": "/stories/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/stories/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Stories & Parenting Tips | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049869582&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=16&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "privacy",
+    "route": "/privacy-policy/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/privacy-policy/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Privacy Policy | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049870987&em=tv.1~em.FJf1TiP-5iDUiy0k0Vow7rRZu76vOXhwzB4wU48Uww0&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=3&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "terms",
+    "route": "/terms-of-service/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/terms-of-service/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Terms of Service | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049872489&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=2&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "parent-portal",
+    "route": "/parent-portal/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/parent-portal/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parent Portal | Chroma",
+    "statusText": "Skip to content\nAbout us\nPrismPath\nParents\nPrograms\nPediatric Therapy\nContact\nLo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 478,
+        "right": 990,
+        "width": 512
+      },
+      {
+        "selector": "div.absolute.bottom-0.left-0",
+        "left": -139,
+        "right": 277,
+        "width": 416
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "director-portal",
+    "route": "/portal/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/portal/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Director Portal | Chroma Early Learning",
+    "statusText": "Director Portal\n\nSign in to manage your school's display.\n\nGoogle Sign-In needs ",
+    "documentWidth": 834,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 0,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "qa-reports",
+    "route": "/qa-reports/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/qa-reports/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Early Learning Academy - QA Reports",
+    "statusText": "📋\nQA Reports\n\nSign in to continue\n\nUsername or Email\nPassword\nRemember me\nSign ",
+    "documentWidth": 834,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "not-found",
+    "route": "/codex-production-qa-not-found/",
+    "viewport": "tablet",
+    "width": 834,
+    "height": 1112,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/codex-production-qa-not-found/?codex_prodqa=0713",
+    "status": 404,
+    "loadError": "",
+    "title": "Page not found | Chroma Early Learning Academy",
+    "statusText": "404\nRuh-roh! This page is playing hide-and-seek.\n\nWe've checked the toy bin, loo",
+    "documentWidth": 819,
+    "viewportWidth": 834,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049876751&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=4&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938466~115938468~118826210~118"
+    ],
+    "screenshot": "qa-screenshots\\production\\not-found-tablet.png"
+  },
+  {
+    "routeName": "home",
+    "route": "/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Academy | Top Daycare & Preschool in Metro Atlanta",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\n24+ METRO ATLANTA LOCATIONS\nThe ar",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-top-24.left-10",
+        "left": 40,
+        "right": 424,
+        "width": 384
+      },
+      {
+        "selector": "div.absolute.top-20.right-16",
+        "left": -9,
+        "right": 311,
+        "width": 320
+      },
+      {
+        "selector": "div.absolute.-left-10.top-10",
+        "left": -40,
+        "right": 280,
+        "width": 320
+      },
+      {
+        "selector": "button",
+        "left": -133,
+        "right": -5,
+        "width": 129
+      },
+      {
+        "selector": "button",
+        "left": 385,
+        "right": 545,
+        "width": 160
+      },
+      {
+        "selector": "button",
+        "left": 555,
+        "right": 696,
+        "width": 141
+      },
+      {
+        "selector": "button",
+        "left": 707,
+        "right": 969,
+        "width": 262
+      },
+      {
+        "selector": "button",
+        "left": 979,
+        "right": 1126,
+        "width": 146
+      },
+      {
+        "selector": "button",
+        "left": 1136,
+        "right": 1267,
+        "width": 131
+      },
+      {
+        "selector": "button",
+        "left": 1277,
+        "right": 1476,
+        "width": 199
+      },
+      {
+        "selector": "button",
+        "left": 1487,
+        "right": 1658,
+        "width": 171
+      },
+      {
+        "selector": "div.chroma-schedule-tabs.bg-white.border",
+        "left": 32,
+        "right": 1360,
+        "width": 1328
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049877826&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=1&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-",
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/545/817.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/546/818.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/544/817.png",
+      "net::ERR_ABORTED https://backend.leadconnectorhq.com/forms/form-survey-event"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "about",
+    "route": "/about/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/about/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "About Chroma Early Learning Academy: Mission, Values & Tours",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nHOME\n·\nABOUT\nESTABLISHED 2022\nMore",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-10.-top-10",
+        "left": -16,
+        "right": 144,
+        "width": 160
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [
+      "main-content"
+    ],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049881211&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=0&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "curriculum",
+    "route": "/curriculum/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/curriculum/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "PrismPath Curriculum | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nTHE PRISMPATH METHOD\nWhole-child l",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "button",
+        "left": -158,
+        "right": -26,
+        "width": 132
+      },
+      {
+        "selector": "button",
+        "left": -18,
+        "right": 114,
+        "width": 132
+      },
+      {
+        "selector": "button",
+        "left": 262,
+        "right": 394,
+        "width": 132
+      },
+      {
+        "selector": "button",
+        "left": 402,
+        "right": 544,
+        "width": 142
+      },
+      {
+        "selector": "button",
+        "left": 552,
+        "right": 684,
+        "width": 132
+      },
+      {
+        "selector": "button",
+        "left": 692,
+        "right": 945,
+        "width": 253
+      },
+      {
+        "selector": "button",
+        "left": 953,
+        "right": 1085,
+        "width": 132
+      },
+      {
+        "selector": "button",
+        "left": 1093,
+        "right": 1225,
+        "width": 132
+      },
+      {
+        "selector": "button",
+        "left": 1233,
+        "right": 1416,
+        "width": 183
+      },
+      {
+        "selector": "button",
+        "left": 1424,
+        "right": 1579,
+        "width": 155
+      },
+      {
+        "selector": "span.pp-final-glow",
+        "left": -72,
+        "right": 448,
+        "width": 520
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049884531&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&_gaz=1&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=2&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "parents",
+    "route": "/parents/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/parents/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parents | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nHOME\n·\nPARENTS\nPARENT DASHBOARD\nPa",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-20.bottom-0",
+        "left": -80,
+        "right": 208,
+        "width": 288
+      },
+      {
+        "selector": "div.absolute.right-0.top-0",
+        "left": -9,
+        "right": 375,
+        "width": 384
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 353,
+        "right": 684,
+        "width": 331
+      },
+      {
+        "selector": "img",
+        "left": 353,
+        "right": 684,
+        "width": 331
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 684,
+        "right": 1015,
+        "width": 331
+      },
+      {
+        "selector": "img",
+        "left": 684,
+        "right": 1015,
+        "width": 331
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 1015,
+        "right": 1346,
+        "width": 331
+      },
+      {
+        "selector": "img",
+        "left": 1015,
+        "right": 1346,
+        "width": 331
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 1346,
+        "right": 1677,
+        "width": 331
+      },
+      {
+        "selector": "img",
+        "left": 1346,
+        "right": 1677,
+        "width": 331
+      },
+      {
+        "selector": "figure.chroma-moments-slide",
+        "left": 1677,
+        "right": 2008,
+        "width": 331
+      },
+      {
+        "selector": "img",
+        "left": 1677,
+        "right": 2008,
+        "width": 331
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049887326&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=1&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "programs",
+    "route": "/programs/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Programs | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nHOME\n·\nPROGRAMS\nAGES 6 WEEKS TO 12",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049889897&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=1&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "program-single",
+    "route": "/programs/rising-kindergarten/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/programs/rising-kindergarten/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Rising Kindergarten | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nSUMMER TRANSITION PROGRAM\nStep int",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049892257&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=13&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "locations",
+    "route": "/locations/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/locations/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Locations | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nA Chroma near you.\n\nNEIGHBORHOOD C",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -79,
+        "right": 177,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 177,
+        "right": 433,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -79,
+        "right": 177,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 177,
+        "right": 433,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -79,
+        "right": 177,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 177,
+        "right": 433,
+        "width": 256
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://a.tile.openstreetmap.org/11/545/817.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/546/818.png",
+      "net::ERR_ABORTED https://c.tile.openstreetmap.org/11/544/817.png",
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049893993&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=11&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "location-single",
+    "route": "/locations/parklake-campus/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/locations/parklake-campus/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parklake Campus, Atlanta GA | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nNOW ENROLLING!\nParklake Campus, At",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-top-24.left-10",
+        "left": 40,
+        "right": 424,
+        "width": 384
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -162,
+        "right": 94,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 350,
+        "right": 606,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -162,
+        "right": 94,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 350,
+        "right": 606,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": -162,
+        "right": 94,
+        "width": 256
+      },
+      {
+        "selector": "img.leaflet-tile.leaflet-tile-loaded",
+        "left": 350,
+        "right": 606,
+        "width": 256
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049895529&em=tv.1~em.rPMWAEI1IrYlFqcayxALQJ9XQaLqw8bVr3V47CWB3Ak&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=7&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "city-single",
+    "route": "/childcare/lafayette/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/childcare/lafayette/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Daycare Near Me LaFayette GA | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nSERVING LAFAYETTE & WALKER COUNTY\n",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 183,
+        "right": 567,
+        "width": 384
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049898256&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=15&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "contact",
+    "route": "/contact-us/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/contact-us/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Contact Us | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nGET IN TOUCH\nHow can we support yo",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 125,
+        "right": 500,
+        "width": 375
+      },
+      {
+        "selector": "div.absolute.bottom-0.left-0",
+        "left": -125,
+        "right": 250,
+        "width": 375
+      },
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 221,
+        "right": 477,
+        "width": 256
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049901028&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=0&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "schedule-tour",
+    "route": "/schedule-a-tour/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/schedule-a-tour/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Schedule a Tour | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nADMISSIONS\nCome see the magic.\n\nSe",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049903414&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AgAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=17&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en",
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049903414&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAgAAGQC&_prs=ok&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=17&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw",
+      "net::ERR_ABORTED https://www.google.com/measurement/1p-conversion/?random=67114798&cv=11&tid=G-KNBS4JH2FH&fst=1784049903922&fmt=8&en=ads_conversion_Submit_lead_form_1&gtm=45be67d0v9219676262za200zb9254310851zd9254310851xec&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616985~115938466~115938468~118395334~118826209~118897920~118897930~119027224&u_w=800&u_h=600&url=https%3A%2F%2Fx3yyntt5tp-staging.wpdns.site%2Fschedule-a-tour%2F%3Fcodex_prodqa%3D0713&gacid=367909611.1784049760&frm=0&tiba=Schedule%20a%20Tour%2"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "summer-camp",
+    "route": "/summer-camp-discover-go/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/summer-camp-discover-go/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Summer Camp Discover, Go! | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nHOME\n·\nSUMMER 2026\nSUMMER 2026\n·\nA",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.-left-20.bottom-0",
+        "left": -80,
+        "right": 208,
+        "width": 288
+      },
+      {
+        "selector": "div.absolute.-right-20.-top-20",
+        "left": 71,
+        "right": 455,
+        "width": 384
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049906013&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=1&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "early-start",
+    "route": "/chroma-early-start/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/chroma-early-start/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Early Start | Pediatric Therapy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nSPECIALIZED PEDIATRIC THERAPY\nEver",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049909559&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=11&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "careers",
+    "route": "/careers/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/careers/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Careers | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nJOIN OUR TEAM\nShape the future.\nLo",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049911727&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=3&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "career-single",
+    "route": "/career/assistant-director-childcare-center/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/career/assistant-director-childcare-center/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Assistant Director Childcare Center | Chroma Early Learning Academy",
+    "statusText": "STORIES\n•\nJUL 9, 2026\nAssistant Director Childcare Center\n\nContributor\n\nAbout Th",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049914378&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=0&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938465~115938468~118826210~118",
+      "net::ERR_ABORTED https://www.google.com/recaptcha/enterprise/anchor?ar=1&k=6LeDBFwpAAAAAJe8ux9-imrqZ2ueRsEtdiWoDDpX&co=aHR0cHM6Ly9hcGkubGVhZGNvbm5lY3RvcmhxLmNvbTo0NDM.&hl=en&v=rL1ELiQAg1kPezz6_H9hTZ_i&size=invisible&anchor-ms=20000&execute-ms=30000&cb=l7k5lssa2l0p"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "employers",
+    "route": "/employers/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/employers/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Employer Childcare Solutions | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nWORKFORCE SOLUTIONS\nCorporate Chil",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 270,
+        "right": 398,
+        "width": 128
+      },
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 270,
+        "right": 398,
+        "width": 128
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049916686&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=19&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "communities",
+    "route": "/communities/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/communities/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Communities | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\n50 COMMUNITIES\nOur Communities\n\nDi",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049918851&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=8&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "blog",
+    "route": "/blog/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/blog/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Stories & Parenting Tips | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nTHE BLOG\nChroma Stories.\n\nParentin",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049924275&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=10&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "post-single",
+    "route": "/2026/05/22/georgia-pre-k-parent-guide/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/2026/05/22/georgia-pre-k-parent-guide/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Georgia Pre-K Parent Guide: Everything You Need to Know for 2026 | Chroma Early Learning Academy",
+    "statusText": "UNCATEGORIZED\n•\nMAY 22, 2026\nGeorgia Pre-K Parent Guide: Everything You Need to ",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 2,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049926701&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=16&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115938466~115938469~118826210~11"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "newsroom",
+    "route": "/newsroom/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/newsroom/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Newsroom | Chroma Early Learning Academy",
+    "statusText": "NEWSROOM\nPress & Announcements\n\nLatest updates from Chroma Early Learning Academ",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049930626&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=19&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115616986~115938465~115938468~11"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "stories",
+    "route": "/stories/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/stories/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Stories & Parenting Tips | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nTHE BLOG\nChroma Stories.\n\nParentin",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049931964&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=12&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "privacy",
+    "route": "/privacy-policy/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/privacy-policy/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Privacy Policy | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nFAMILY PRIVACY\nPrivacy Policy\n\nLas",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049934215&em=tv.1~em.FJf1TiP-5iDUiy0k0Vow7rRZu76vOXhwzB4wU48Uww0&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=17&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "terms",
+    "route": "/terms-of-service/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/terms-of-service/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Terms of Service | Chroma Early Learning Academy",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nENROLLMENT TERMS\nTerms of Service\n",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049936015&em=tv.1~em.CYSh1DtFgzF-9M9Z4cso5voIGEsgejoTlfUe1wZNkyM&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=5&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-"
+    ],
+    "screenshot": ""
+  },
+  {
+    "routeName": "parent-portal",
+    "route": "/parent-portal/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/parent-portal/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Parent Portal | Chroma",
+    "statusText": "Skip to content\nCHROMA\nEARLY LEARNING\nACADEMY\nCHROMA EARLY LEARNING\nParent Porta",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [
+      {
+        "selector": "div.absolute.top-0.right-0",
+        "left": 34,
+        "right": 546,
+        "width": 512
+      },
+      {
+        "selector": "div.absolute.bottom-0.left-0",
+        "left": -139,
+        "right": 277,
+        "width": 416
+      }
+    ],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "director-portal",
+    "route": "/portal/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/portal/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Director Portal | Chroma Early Learning",
+    "statusText": "Director Portal\n\nSign in to manage your school's display.\n\nGoogle Sign-In needs ",
+    "documentWidth": 390,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 0,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "qa-reports",
+    "route": "/qa-reports/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/qa-reports/?codex_prodqa=0713",
+    "status": 200,
+    "loadError": "",
+    "title": "Chroma Early Learning Academy - QA Reports",
+    "statusText": "📋\nQA Reports\n\nSign in to continue\n\nUsername or Email\nPassword\nRemember me\nSign ",
+    "documentWidth": 390,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [],
+    "requestFailures": [],
+    "screenshot": ""
+  },
+  {
+    "routeName": "not-found",
+    "route": "/codex-production-qa-not-found/",
+    "viewport": "mobile",
+    "width": 390,
+    "height": 844,
+    "url": "https://x3yyntt5tp-staging.wpdns.site/codex-production-qa-not-found/?codex_prodqa=0713",
+    "status": 404,
+    "loadError": "",
+    "title": "Page not found | Chroma Early Learning Academy",
+    "statusText": "404\nRuh-roh! This page is playing hide-and-seek.\n\nWe've checked the toy bin, loo",
+    "documentWidth": 375,
+    "viewportWidth": 390,
+    "horizontalOverflow": false,
+    "horizontalOffenders": [],
+    "clippedText": [],
+    "brokenImages": [],
+    "duplicateIds": [],
+    "emptyLinks": [],
+    "h1Count": 1,
+    "mainCount": 1,
+    "axeViolations": [],
+    "consoleErrors": [
+      "Failed to load resource: the server responded with a status of 404 ()"
+    ],
+    "requestFailures": [
+      "net::ERR_ABORTED https://analytics.google.com/g/collect?v=2&tid=G-KNBS4JH2FH&gtm=45be67d0v9219676262za200zb9254310851zd9254310851&_p=1784049941841&gcd=13l3l3l3l1l1&npa=0&dma=0&ecid=1443991326&_eu=AAAAAGQC&are=1&cid=367909611.1784049760&ec_mode=a&frm=0&pscdl=noapi&rcb=7&sr=800x600&uaa=x86&uab=64&uafvl=Not%253BA%253DBrand%3B8.0.0.0%7CChromium%3B150.0.7871.101%7CGoogle%2520Chrome%3B150.0.7871.101&uam=&uamb=0&uap=Windows&uapv=19.0.0&uaw=0&ul=en-us&gaf=2&_s=1&tag_exp=115616985~115938465~115938469~118"
+    ],
+    "screenshot": "qa-screenshots\\production\\not-found-mobile.png"
+  }
+]

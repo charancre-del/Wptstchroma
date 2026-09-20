@@ -16,6 +16,7 @@ use ChromaQA\Integrations\Monday;
 use ChromaQA\Checklists\Checklist_Manager;
 use ChromaQA\Services\Monday_Sync_Service;
 use ChromaQA\Utils\Docx_Parser;
+use ChromaQA\Utils\Private_Temp_Storage;
 use ChromaQA\AI\Gemini_Service;
 use WP_REST_Server;
 use WP_REST_Request;
@@ -418,119 +419,59 @@ class REST_Controller
 
     public function check_authenticated_permission()
     {
-        return is_user_logged_in();
+        return \ChromaQA\Auth\Access_Policy::scoped();
     }
 
     public function check_read_permission()
     {
-        return \current_user_can('cqa_view_own_reports') || \current_user_can('cqa_view_all_reports');
+        return \ChromaQA\Auth\Access_Policy::can_read();
     }
 
     public function check_manage_schools_permission()
     {
-        return \current_user_can('cqa_manage_schools');
+        return \ChromaQA\Auth\Access_Policy::capability('cqa_manage_schools');
     }
 
     public function check_create_reports_permission()
     {
-        return \current_user_can('cqa_create_reports');
+        return \ChromaQA\Auth\Access_Policy::capability('cqa_create_reports');
     }
 
     public function check_edit_reports_permission($request)
     {
-        // 1. Grant full access to Super Admins (manage_options)
-        if (\current_user_can('manage_options')) {
-            return true;
-        }
-
-        $id = (int) $request['id'];
-        $report = \ChromaQA\Models\Report::find($id);
-
-        if (!$report) {
-            return new \WP_Error('cqa_report_not_found', 'Report not found', ['status' => 404]);
-        }
-
-        // 2. Report Status Check (Approved reports are locked)
-        if ($report->status === 'approved' && !\current_user_can('cqa_approve_reports')) {
-            return new \WP_Error(
-                'cqa_permission_denied_approved',
-                'Cannot edit approved report without approval permissions.',
-                ['status' => 403]
-            );
-        }
-
-        // 3. Allow any logged in user to edit (as requested)
-        // This replaces strict capability checks to unblock users.
-        if (\is_user_logged_in()) {
-            return true;
-        }
-
-        return new \WP_Error(
-            'cqa_permission_denied',
-            'Permission denied. You must be logged in to edit reports.',
-            ['status' => 403]
-        );
+        return \ChromaQA\Auth\Access_Policy::report(Report::find((int) $request['id']), 'edit');
     }
 
     public function check_edit_photo_permission($request)
     {
-        if (\current_user_can('manage_options')) {
-            return true;
-        }
-
         $photo = Photo::find((int) $request['id']);
-        if (!$photo) {
-            return new \WP_Error('cqa_photo_not_found', 'Photo not found.', ['status' => 404]);
-        }
-
-        $report = Report::find((int) $photo->report_id);
-        if (!$report) {
-            return new \WP_Error('cqa_report_not_found', 'Report not found.', ['status' => 404]);
-        }
-
-        if ($report->status === 'approved' && !\current_user_can('cqa_approve_reports')) {
-            return new \WP_Error(
-                'cqa_permission_denied_approved',
-                'Cannot edit approved report photos without approval permissions.',
-                ['status' => 403]
-            );
-        }
-
-        if (\is_user_logged_in()) {
-            return true;
-        }
-
-        return new \WP_Error(
-            'cqa_permission_denied',
-            'Permission denied. You must be logged in to edit report photos.',
-            ['status' => 403]
-        );
+        return $photo && \ChromaQA\Auth\Access_Policy::report(Report::find((int) $photo->report_id), 'edit');
     }
 
-    public function check_delete_reports_permission()
+    public function check_delete_reports_permission($request)
     {
-        return \current_user_can('cqa_delete_reports') || \current_user_can('cqa_delete_own_reports');
+        return \ChromaQA\Auth\Access_Policy::report(Report::find((int) $request['id']), 'delete');
     }
 
-    public function check_export_permission()
+    public function check_export_permission($request)
     {
-        return \current_user_can('cqa_export_reports');
+        return \ChromaQA\Auth\Access_Policy::report(Report::find((int) $request['id']), 'export');
     }
 
     public function check_ai_permission()
     {
-        return \current_user_can('cqa_use_ai_features');
+        return \ChromaQA\Auth\Access_Policy::capability('cqa_use_ai_features');
     }
 
     public function check_manage_options_permission()
     {
-        return \current_user_can('manage_options'); // Super Admin only
+        return \ChromaQA\Auth\Access_Policy::capability('manage_options');
     }
 
     public function check_settings_permission()
     {
         // Enforce strict access for settings (API keys, etc.)
-        return \current_user_can('cqa_manage_settings') || \current_user_can('manage_options');
+        return \ChromaQA\Auth\Access_Policy::settings();
     }
 
     // ===== CURRENT USER ENDPOINT =====
@@ -603,16 +544,20 @@ class REST_Controller
         global $wpdb;
         $reports_table = $wpdb->prefix . 'cqa_reports';
         $schools_table = $wpdb->prefix . 'cqa_schools';
+        $school_scope = \ChromaQA\Auth\Access_Policy::school_sql('s');
+        $report_scope = \ChromaQA\Auth\Access_Policy::report_sql();
+        $joined_report_scope = \ChromaQA\Auth\Access_Policy::report_sql('r');
 
         // 1. Total Schools
-        $total_schools = (int) $wpdb->get_var("SELECT COUNT(*) FROM $schools_table");
+        $total_schools = (int) $wpdb->get_var("SELECT COUNT(*) FROM $schools_table s WHERE {$school_scope}");
 
         // 2. Overdue Visits (Schools with no reports or older than 90 days)
         // For MVP, returning schools with NO reports or last report > 90 days
         $overdue_list = $wpdb->get_results("
             SELECT s.id, s.name, MAX(r.inspection_date) as last_visit
             FROM $schools_table s
-            LEFT JOIN $reports_table r ON s.id = r.school_id
+            LEFT JOIN $reports_table r ON s.id = r.school_id AND {$joined_report_scope}
+            WHERE {$school_scope}
             GROUP BY s.id
             HAVING last_visit IS NULL OR last_visit < DATE_SUB(NOW(), INTERVAL 90 DAY)
             LIMIT 5
@@ -622,7 +567,8 @@ class REST_Controller
             SELECT COUNT(*) FROM (
                 SELECT s.id, MAX(r.inspection_date) as last_visit
                 FROM $schools_table s
-                LEFT JOIN $reports_table r ON s.id = r.school_id
+                LEFT JOIN $reports_table r ON s.id = r.school_id AND {$joined_report_scope}
+                WHERE {$school_scope}
                 GROUP BY s.id
                 HAVING last_visit IS NULL OR last_visit < DATE_SUB(NOW(), INTERVAL 90 DAY)
             ) as sub
@@ -632,7 +578,7 @@ class REST_Controller
         $ratings = $wpdb->get_results("
             SELECT overall_rating, COUNT(*) as count 
             FROM $reports_table 
-            WHERE status = 'approved' AND overall_rating IS NOT NULL 
+            WHERE status = 'approved' AND overall_rating IS NOT NULL AND {$report_scope}
             GROUP BY overall_rating
         ");
 
@@ -658,13 +604,13 @@ class REST_Controller
         // 4. Compliant Schools (Have at least one 'meets' or 'exceeds' report)
         $compliant_schools = (int) $wpdb->get_var("
             SELECT COUNT(DISTINCT school_id) FROM $reports_table
-            WHERE status = 'approved' AND (overall_rating = 'meets' OR overall_rating = 'exceeds')
+            WHERE status = 'approved' AND (overall_rating = 'meets' OR overall_rating = 'exceeds') AND {$report_scope}
         ");
 
         // 5. My Reports (Current User)
         $user_id = \get_current_user_id();
         $my_reports = (int) $wpdb->get_var($wpdb->prepare(
-            "SELECT COUNT(*) FROM $reports_table WHERE user_id = %d",
+            "SELECT COUNT(*) FROM $reports_table WHERE user_id = %d AND {$report_scope}",
             $user_id
         ));
 
@@ -681,7 +627,7 @@ class REST_Controller
                     ELSE 40
                 END) as score
             FROM $reports_table
-            WHERE status = 'approved' 
+            WHERE status = 'approved' AND {$report_scope}
             AND inspection_date >= DATE_SUB(NOW(), INTERVAL 6 MONTH)
             GROUP BY DATE_FORMAT(inspection_date, '%b'), DATE_FORMAT(inspection_date, '%m')
             ORDER BY month_num ASC
@@ -696,7 +642,7 @@ class REST_Controller
             SELECT r.id, s.name as title, r.inspection_date as date
             FROM $reports_table r
             JOIN $schools_table s ON r.school_id = s.id
-            WHERE r.status = 'approved' 
+            WHERE r.status = 'approved' AND {$joined_report_scope}
             AND r.overall_rating = 'needs_improvement'
             AND r.inspection_date >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             LIMIT 3
@@ -729,7 +675,7 @@ class REST_Controller
             SELECT r.id, s.name as school_name, r.updated_at
             FROM $reports_table r
             LEFT JOIN $schools_table s ON r.school_id = s.id
-            WHERE r.status = 'draft' 
+            WHERE r.status = 'draft' AND {$joined_report_scope}
             AND r.user_id = %d
             AND r.updated_at < DATE_SUB(NOW(), INTERVAL 3 DAY)
             LIMIT 2
@@ -1800,6 +1746,10 @@ class REST_Controller
             ];
         }
 
+        foreach (\ChromaQA\Settings::secret_fields() as $field) {
+            $settings[$field . '_configured'] = (string) \ChromaQA\Settings::get($field, '') !== '';
+            unset($settings[$field]);
+        }
         return new WP_REST_Response($settings, 200);
     }
 
@@ -1839,10 +1789,8 @@ class REST_Controller
                 $value = \sanitize_text_field($params[$field]);
 
                 // Masking protection: If value is all asterisks or dots, do not overwrite existing
-                if (in_array($field, ['google_client_secret', 'gemini_api_key', 'google_developer_key', 'monday_api_token'], true)) {
-                    if (preg_match('/^[\*•]+$/u', $value)) {
-                        continue;
-                    }
+                if (\ChromaQA\Settings::preserve_secret($field, $value)) {
+                    continue;
                 }
 
                 \update_option('cqa_' . $field, $value);
@@ -2005,11 +1953,58 @@ class REST_Controller
         $mime = $ext === 'html' ? 'text/html' : 'application/pdf';
         $filename = \sanitize_file_name($report->get_school()->name . '-QA-Report.' . $ext);
 
-        // Stream the file
-        header('Content-Type: ' . $mime);
-        header('Content-Disposition: inline; filename="' . $filename . '"');
-        readfile($pdf_path);
+        if (!Private_Temp_Storage::is_managed_file($pdf_path)) {
+            return new WP_Error('unsafe_export_path', __('The report export could not be prepared securely.', 'chroma-qa-reports'), ['status' => 500]);
+        }
+
+        $this->stream_private_export($pdf_path, $mime, $filename);
         exit;
+    }
+
+    /**
+     * Emit private export headers, stream the managed file, and clean it up.
+     *
+     * Callable parameters are test seams; production always uses header/readfile.
+     *
+     * @param string        $path           Managed private export path.
+     * @param string        $mime           Response content type.
+     * @param string        $filename       Download filename.
+     * @param callable|null $streamer       Optional stream callback.
+     * @param callable|null $header_emitter Optional header callback.
+     * @return mixed Stream callback result.
+     */
+    private function stream_private_export($path, $mime, $filename, callable $streamer = null, callable $header_emitter = null)
+    {
+        if (!Private_Temp_Storage::is_managed_file($path)) {
+            throw new \RuntimeException('Refusing to stream an unmanaged report export.');
+        }
+
+        $header_emitter = $header_emitter ?: static function ($header) {
+            header($header);
+        };
+        $streamer = $streamer ?: static function ($private_path) {
+            $bytes = readfile($private_path);
+            if ($bytes === false) {
+                throw new \RuntimeException('Unable to stream the private report export.');
+            }
+            return $bytes;
+        };
+
+        $filename = str_replace(["\r", "\n"], '', (string) $filename);
+        $headers = [
+            'Content-Type: ' . $mime,
+            'Content-Disposition: inline; filename="' . $filename . '"',
+            'Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma: no-cache',
+            'Expires: 0',
+            'X-Content-Type-Options: nosniff',
+        ];
+        return Private_Temp_Storage::consume($path, static function ($private_path) use ($headers, $header_emitter, $streamer) {
+            foreach ($headers as $header) {
+                $header_emitter($header);
+            }
+            return $streamer($private_path);
+        }, 'rest_export');
     }
 
 
@@ -2344,36 +2339,70 @@ class REST_Controller
         }
 
         $file = $files['file'];
-
-        // 1. Move to temp location
-        $upload = \wp_handle_upload($file, ['test_form' => false]);
-        if (isset($upload['error'])) {
-            return new WP_Error('upload_error', $upload['error'], ['status' => 500]);
+        $error = isset($file['error']) ? (int) $file['error'] : UPLOAD_ERR_NO_FILE;
+        if ($error !== UPLOAD_ERR_OK || empty($file['tmp_name']) || empty($file['name'])) {
+            return new WP_Error('upload_error', __('The DOCX upload did not complete successfully.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
-        $file_path = $upload['file'];
-
-        // 2. Extract Text
-        require_once CQA_PLUGIN_DIR . 'includes/utils/class-docx-parser.php';
-        $text = Docx_Parser::extract_text($file_path);
-
-        if (\is_wp_error($text)) {
-            // cleanup
-            @unlink($file_path);
-            return $text;
+        if (!\is_uploaded_file($file['tmp_name'])) {
+            return new WP_Error('upload_error', __('The DOCX upload could not be verified.', 'chroma-qa-reports'), ['status' => 400]);
         }
 
-        // 3. Parse with AI
-        $parsed_data = Gemini_Service::parse_document($text);
+        if (function_exists('wp_max_upload_size') && !empty($file['size']) && (int) $file['size'] > \wp_max_upload_size()) {
+            return new WP_Error('upload_too_large', __('The DOCX upload exceeds the configured size limit.', 'chroma-qa-reports'), ['status' => 413]);
+        }
 
-        // Cleanup temp file
-        @unlink($file_path);
+        $type = \wp_check_filetype_and_ext(
+            $file['tmp_name'],
+            $file['name'],
+            ['docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+        );
+        if (empty($type['ext']) || $type['ext'] !== 'docx') {
+            return new WP_Error('invalid_file_type', __('Only valid DOCX files can be imported.', 'chroma-qa-reports'), ['status' => 415]);
+        }
+
+        try {
+            $parsed_data = $this->process_uploaded_report_doc($file['tmp_name']);
+        } catch (\RuntimeException $error) {
+            return new WP_Error('private_upload_error', __('The DOCX upload could not be processed securely.', 'chroma-qa-reports'), ['status' => 500]);
+        }
 
         if (\is_wp_error($parsed_data)) {
             return $parsed_data;
         }
 
         return new WP_REST_Response($parsed_data, 200);
+    }
+
+    /**
+     * Copy an uploaded DOCX into private storage, parse it, and always clean up.
+     *
+     * Callable parameters are test seams; production uses the real parser and
+     * Gemini service after the REST boundary has validated the PHP upload.
+     *
+     * @param string        $source    PHP upload temporary path.
+     * @param callable|null $extractor Optional DOCX text extractor.
+     * @param callable|null $parser    Optional document parser.
+     * @return mixed Parsed data or WP_Error.
+     */
+    private function process_uploaded_report_doc($source, callable $extractor = null, callable $parser = null)
+    {
+        $file_path = Private_Temp_Storage::import($source, 'docx', 'report-docx');
+
+        try {
+            require_once CQA_PLUGIN_DIR . 'includes/utils/class-docx-parser.php';
+            $extractor = $extractor ?: [Docx_Parser::class, 'extract_text'];
+            $parser = $parser ?: [Gemini_Service::class, 'parse_document'];
+
+            $text = $extractor($file_path);
+            if (\is_wp_error($text)) {
+                return $text;
+            }
+
+            return $parser($text);
+        } finally {
+            Private_Temp_Storage::delete($file_path, 'docx_upload');
+        }
     }
 
     /**
@@ -2522,6 +2551,10 @@ class REST_Controller
         }
 
         $versions = \ChromaQA\Models\Report_Snapshot::get_versions($report_id);
+        $versions = array_values(array_filter($versions, static function ($row) use ($report_id, $report) {
+            $snapshot = \ChromaQA\Models\Report_Snapshot::get_snapshot($report_id, (int) $row['version_number']);
+            return $snapshot && \ChromaQA\Auth\Access_Policy::snapshot_visible($snapshot, $report);
+        }));
 
         $has_current_snapshot = false;
         foreach ($versions as $version_row) {

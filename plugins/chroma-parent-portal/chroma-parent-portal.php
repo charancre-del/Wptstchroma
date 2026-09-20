@@ -25,10 +25,10 @@ function chroma_parent_portal_is_public_page()
     return is_page('parent-portal') || ($post && has_shortcode($post->post_content, 'chroma_parent_portal'));
 }
 
-// Force Viewport for Full App feel
+// Ensure the standalone portal remains responsive without disabling browser zoom.
 add_action('wp_head', function () {
     if (is_page('parent-portal')) {
-        echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">';
+        echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
     }
 });
 
@@ -242,6 +242,6 @@ add_shortcode('chroma_parent_portal', function () {
     return '<div id="chroma-parent-portal-root" style="display: flex !important; flex-direction: column; justify-content: center; align-items: center; height: 100vh !important; width: 100vw !important; position: fixed !important; top: 0 !important; left: 0 !important; z-index: 99999 !important; background: #FDFBF7; color: #263238; text-align: center; overflow: visible !important; font-family: system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, sans-serif;">
         <div style="width: 44px; height: 44px; border: 4px solid rgba(38, 50, 56, 0.14); border-top-color: #263238; border-radius: 999px; animation: chromaPortalSpin 1s linear infinite;"></div>
         <p style="font-size: 18px; margin: 20px 0 0; font-weight: 700;">Loading Parent Portal</p>
-        <style>@keyframes chromaPortalSpin { to { transform: rotate(360deg); } }</style>
+        <style>@keyframes chromaPortalSpin { to { transform: rotate(360deg); } } @media (prefers-reduced-motion: reduce) { #chroma-parent-portal-root > div { animation: none !important; } }</style>
     </div>';
 });

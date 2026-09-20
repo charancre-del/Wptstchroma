@@ -1,0 +1,43 @@
+﻿chroma-excellence-theme\inc\acf-homepage.php:65:array('key' => 'families_served', 'value' => '2,000+', 'label' => __('Children enrolled', 'chroma-excellence')),
+chroma-excellence-theme\inc\acf-homepage.php:170:if (false !== stripos($hero['subheading'], 'accredited excellence')) {
+chroma-excellence-theme\inc\acf-homepage.php:1202:if (preg_match('/communicate\s+with\s+parents/i', $question) && preg_match('/(?:LineLeader|Procare|Brightwheel)/i', $answer)) {
+chroma-excellence-theme\inc\acf-homepage.php:1206:if (preg_match('/(?:licensed|accredit)/i', $question) && preg_match('/(?:NAEYC|GAC\s+Accredited)/i', $answer)) {
+chroma-excellence-theme\inc\chroma-booking-modal.php:5:* Provides a reusable modal for third-party booking systems (e.g. Procare, Calendly, etc.)
+chroma-excellence-theme\inc\chroma-booking-modal.php:90:if (url.includes('procare') || url.includes('calendly') || btn.classList.contains('force-iframe')) {
+chroma-excellence-theme\inc\cpt-locations.php:539:value="<?php echo esc_attr($google_rating); ?>" placeholder="e.g., 4.9" />
+chroma-excellence-theme\inc\cpt-locations.php:540:<small><?php _e('Google rating for this location (e.g., 4.9)', 'chroma-excellence'); ?></small>
+chroma-excellence-theme\inc\parents-page-meta.php:148:'procare' => 'Family App (Procare)',
+chroma-excellence-theme\inc\parents-page-meta.php:682:// Procare
+chroma-excellence-theme\inc\parents-page-meta.php:683:'parents_resource_procare_icon' => 'sanitize_text_field',
+chroma-excellence-theme\inc\parents-page-meta.php:684:'parents_resource_procare_title' => 'sanitize_text_field',
+chroma-excellence-theme\inc\parents-page-meta.php:685:'_chroma_es_parents_resource_procare_title' => 'sanitize_text_field',
+chroma-excellence-theme\inc\parents-page-meta.php:686:'parents_resource_procare_desc' => 'sanitize_textarea_field',
+chroma-excellence-theme\inc\parents-page-meta.php:687:'_chroma_es_parents_resource_procare_desc' => 'sanitize_textarea_field',
+chroma-excellence-theme\inc\parents-page-meta.php:688:'parents_resource_procare_url' => 'esc_url_raw',
+chroma-excellence-theme\page-about.php:60:if (in_array(trim((string) $stat2_value), array('2k+', '2,000+', '2000+'), true)) {
+chroma-excellence-theme\page-parents.php:15:return preg_replace('/\b(?:Procare(?: Cloud)?|Brightwheel)\b/i', __('the family communication app', 'chroma-excellence'), (string) $text);
+chroma-excellence-theme\page-parents.php:26:$family_app_title = chroma_get_translated_meta($page_id, 'parents_resource_procare_title') ?: __('Family Communication App', 'chroma-excellence');
+chroma-excellence-theme\page-parents.php:27:if (preg_match('/\b(?:Procare|Brightwheel)\b/i', $family_app_title)) {
+chroma-excellence-theme\page-parents.php:30:$family_app_description = $neutralize_family_app_name(chroma_get_translated_meta($page_id, 'parents_resource_procare_desc') ?: __('Daily reports, photos, and attendance updates in your campus communication app.', 'chroma-excellence'));
+chroma-excellence-theme\page-parents.php:34:'name' => 'procare',
+chroma-excellence-theme\page-parents.php:35:'icon' => chroma_get_translated_meta($page_id, 'parents_resource_procare_icon') ?: 'fa-solid fa-cloud',
+chroma-excellence-theme\page-parents.php:38:'url' => chroma_get_translated_meta($page_id, 'parents_resource_procare_url') ?: '#',
+chroma-excellence-theme\page-parents.php:301:$is_external_portal = in_array($resource['name'], array('procare', 'tuition', 'enrollment', 'prekga', 'waitlist'));
+chroma-excellence-theme\page-privacy.php:82:if (3 === $i && (false !== stripos((string) $content, 'Procare') || false !== stripos((string) $content, 'camera feeds are encrypted'))) {
+chroma-excellence-theme\single-location.php:50:$google_rating = chroma_get_translated_meta($location_id, 'location_google_rating') ?: '4.9';
+plugins\chroma-seo-pro-reset\inc\class-fallback-resolver.php:189:$queries[] = "best daycare near " . $city . " GA";
+plugins\chroma-seo-pro-reset\inc\class-multilingual-manager.php:754:'Procare Cloud' => 'Nube Procare',
+plugins\chroma-seo-pro-reset\inc\class-multilingual-manager.php:845:'The Best Daycare in <span class="italic text-chroma-blue">%s, %s.</span>' => 'La Mejor Guardería en <span class="italic text-chroma-blue">%s, %s.</span>',
+plugins\chroma-seo-pro-reset\inc\class-multilingual-manager.php:846:'Are you looking for "daycare near me"? Discover the highest-rated early learning centers in the %s area, featuring the Prismpath™ curriculum and GA Pre-K.' => '¿Está buscando "guardería cerca de mí"? Descubra los centros de aprendizaje temprano mejor calificados en el área de %s, con el plan de estudios Prismpath™ y GA Pre-K.',
+plugins\chroma-seo-pro-reset\inc\class-multilingual-manager.php:858:'Yes! Our locations serving %s participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia.' => '¡Sí! Nuestras ubicaciones que sirven a %s participan en el programa Georgia Lottery Pre-K. Es gratuito para todos los niños de 4 años que viven en Georgia.',
+plugins\chroma-seo-pro-reset\inc\class-multilingual-manager.php:958:'We are a proud partner of the Georgia Pre-K Program, offering tuition-free education for 4-year-olds.' => 'Somos un socio orgulloso del Programa Pre-K de Georgia, que ofrece educación gratuita para niños de 4 años.',
+plugins\chroma-seo-pro-reset\inc\class-multilingual-manager.php:1186:'Where accredited excellence meets the warmth of home. A modern sanctuary powered by our proprietary Prismpath™ learning model for children 6 weeks to 12 years.' => 'Donde la excelencia acreditada se encuentra con la calidez del hogar. Un santuario moderno impulsado por nuestro modelo de aprendizaje patentado Prismpath™ para niños de 6 semanas a 12 años.',
+plugins\chroma-seo-pro-reset\inc\class-schema-types.php:181:'ratingValue' => ['type' => 'text', 'label' => 'Rating Value (e.g., 4.9)'],
+plugins\chroma-seo-pro-reset\inc\class-theme-schema-compat.php:676:'answer' => "Yes! Our locations serving $city participate in the Georgia Lottery Pre-K program. It is tuition-free for all 4-year-olds living in Georgia."
+plugins\chroma-seo-pro-reset\inc\class-translation-engine.php:295:'parents_resource_procare_title', 'parents_resource_procare_desc', 'parents_resource_procare_button_text',
+plugins\chroma-seo-pro-reset\inc\meta-boxes\class-location-llm-context.php:70:'placeholder' => 'e.g., "best daycare near Canton GA"',
+plugins\chroma-seo-pro-reset\inc\seo-automations\class-combo-page-generator.php:491:d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+plugins\chroma-seo-pro-reset\inc\seo-automations\class-combo-page-generator.php:638:$grid_rating = get_post_meta($grid_id, 'location_google_rating', true) ?: '4.9';
+plugins\chroma-seo-pro-reset\inc\seo-automations\class-credential-badges.php:4:* Display trust badges for DECAL, NAEYC, etc.
+plugins\chroma-seo-pro-reset\inc\seo-automations\class-credential-badges.php:23:'naeyc' => [
+plugins\chroma-seo-pro-reset\inc\seo-automations\class-credential-badges.php:24:'name' => 'NAEYC Accredited',

@@ -1,0 +1,44 @@
+{
+  "generatedAt": "2026-07-19T00:07:15.717Z",
+  "source": "Current staging XML sitemap plus live staging HTML",
+  "auditedUrls": 466,
+  "errors": 0,
+  "byDisposition": {
+    "Keep": 307,
+    "Improve": 159
+  },
+  "byPageType": {
+    "homepage": 2,
+    "editorial-single": 363,
+    "location-single": 48,
+    "program-single": 22,
+    "summer-camp": 2,
+    "early-start": 1,
+    "legal": 4,
+    "schedule-tour": 2,
+    "program-archive": 2,
+    "community-archive": 2,
+    "location-directory": 2,
+    "editorial-archive": 4,
+    "careers": 2,
+    "general-page": 2,
+    "parents": 2,
+    "about": 2,
+    "curriculum": 2,
+    "contact": 2
+  },
+  "duplicateTitleUrls": 0,
+  "duplicateContentUrls": 0,
+  "thinContentUrls": 0,
+  "noClearCtaUrls": 0,
+  "outsideSitemapInternalLinkUrls": 155,
+  "unresolvedInternalLinkUrls": 155,
+  "manualReviewRequired": true,
+  "limitations": [
+    "Search index status requires Google Search Console.",
+    "Grammar, accuracy, outdated facts, and legal claims require human or owner review.",
+    "Layout/mobile findings are template-level unless separately inspected per URL.",
+    "External-link response validation is a separate audit.",
+    "Outside-sitemap internal links are architecture signals, not broken-link findings; HTTP validity is covered by the technical crawl."
+  ]
+}

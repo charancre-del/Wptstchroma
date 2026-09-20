@@ -33,7 +33,7 @@
   </header>
 
   <main class="flex-grow flex flex-col items-center justify-center text-center px-4">
-    <div class="text-9xl font-serif font-bold text-chroma-yellow opacity-50 mb-4">404</div>
+    <div class="text-9xl font-serif font-bold text-[#765A00] mb-4">404</div>
     <h1 class="text-4xl md:text-5xl font-serif font-bold text-brand-ink mb-6"><?php _e('Ruh-roh! This page is playing hide-and-seek.', 'chroma-excellence'); ?></h1>
     <p class="text-lg text-brand-ink max-w-md mb-10"><?php _e('We\'ve checked the toy bin, looked under the rugs, and even asked the goldfish, but we can\'t find this page anywhere. It must be really good at hiding!', 'chroma-excellence'); ?></p>
 
